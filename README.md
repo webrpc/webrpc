@@ -1,4 +1,4 @@
 webrpc
 ======
 
-webrpc, is simple/lightweight RPC framework for webapps and your choice of server language.
+webrpc, is simple/lightweight RPC framework for webapps via JSON-RPC.
