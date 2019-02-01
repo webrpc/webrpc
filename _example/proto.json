@@ -1,0 +1,55 @@
+{
+  "proto": "webrpc/v0.0.1",
+  "version": "example/v0.0.1",
+  "messages": [
+    {
+      "name": "GetUserRequest",
+      "fields": [
+        {
+          "name": "userID",
+          "type": "uint64"
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uint64"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "methods": [
+    {
+      "name": "Ping",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "GetUser",
+      "inputs": [
+        {
+          "name": "req",
+          "type": "GetUserRequest"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "User"
+        }
+      ]
+    }
+  ]
+}
