@@ -16,14 +16,14 @@ form for making remote server calls. See https://www.jsonrpc.org/specification
   * Extensible, pluggable -- code-generate for your own source and target languages
   * Extensible transports, supporting first HTTP, HTTP2 and WebSockets
 
+
 ## Schema
 
-  * primitives - bool, uint64, string, ..........
-  * dictionaries
-  * lists
+  * primitives
   * objects
+  * lists
   * optional fields, etc.
-  * its JSON!
+  * its just JSON! https://www.json.org
 
 
 ## License
