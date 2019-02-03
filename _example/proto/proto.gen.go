@@ -33,8 +33,7 @@ TODO:
 =====
 
 1. error responses / handling
-2. runtime object of method names allowed and args..? or just structs..? could be useful for acl stuff..
-     * maybe that could be a plugin sometime?
+2. runtime map of service+methods for ExampleService, to get a lits of methods on service at runtime? could be useful for acl stuff..
 3. json marshalling type schema mapping + code-generation -- inspired by TypeScript -- TS types to json marshalling?
 4. optional types, and defaults.. ie. jsonpb from protobuf has `EmitDefaults: true`
 5. fast json code-generation, look into ffjson, etc.
