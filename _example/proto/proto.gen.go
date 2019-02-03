@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/webrpc/webrpc-go"
 )
 
 // TODO: this file should be code-generated from the proto.json file
@@ -25,6 +27,19 @@ type User struct {
 	ID       uint64 `json:"id" db:"id"`
 	Username string `json:"username" db:"username"`
 }
+
+/*
+TODO:
+=====
+
+1. error responses / handling
+2. runtime object of method names allowed and args..? or just structs..? could be useful for acl stuff..
+     * maybe that could be a plugin sometime?
+3. json marshalling type schema mapping + code-generation -- inspired by TypeScript -- TS types to json marshalling?
+4. optional types, and defaults.. ie. jsonpb from protobuf has `EmitDefaults: true`
+5. fast json code-generation, look into ffjson, etc.
+
+*/
 
 //--
 
@@ -55,11 +70,8 @@ func NewExampleServiceClient(addr string, client HTTPClient) ExampleService {
 }
 
 func (c *exampleServiceClient) Ping(ctx context.Context) (*bool, error) {
-	// ctx = ctxsetters.WithPackageName(ctx, "blox")
-	// ctx = ctxsetters.WithServiceName(ctx, "BloxRPC")
-	// ctx = ctxsetters.WithMethodName(ctx, "Ping")
 	// out := new(Empty)
-	var out *bool
+	var out *bool // TODO: should we support primitives at all in the first version? or require a struct/object for each input/output like gRPC?
 	err := doJSONRequest(ctx, c.client, c.urls[0], nil, &out)
 	if err != nil {
 		return nil, err
@@ -68,9 +80,6 @@ func (c *exampleServiceClient) Ping(ctx context.Context) (*bool, error) {
 }
 
 func (c *exampleServiceClient) GetUser(ctx context.Context, in *GetUserRequest) (*User, error) {
-	// ctx = ctxsetters.WithPackageName(ctx, "blox")
-	// ctx = ctxsetters.WithServiceName(ctx, "BloxRPC")
-	// ctx = ctxsetters.WithMethodName(ctx, "Ping")
 	out := new(User)
 	err := doJSONRequest(ctx, c.client, c.urls[1], in, out)
 	if err != nil {
@@ -99,11 +108,20 @@ func (s *exampleServiceServer) WebRPCVersion() string {
 	return "v0.0.1"
 }
 
+func (s *exampleServiceServer) ServiceVersion() string {
+	return "v0.1.0"
+}
+
+// TODO(future): create a ServiceDescriptor() []byte on ExampleService interface
+// where we return the entire schema, so a client can test if it supports it easily
+// or, maybe we just embed the schema json entirely, and also compute
+// a hash of it and include it in both client/server? that can work too.
+// but the schema json would need to be ordered/sorted, so testability is robust
+
 func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	// 	ctx = ctxsetters.WithPackageName(ctx, "blox")
-	// 	ctx = ctxsetters.WithServiceName(ctx, "BloxRPC")
-	// 	ctx = ctxsetters.WithResponseWriter(ctx, resp)
+	ctx = webrpc.WithResponseWriter(ctx, w)
+	ctx = webrpc.WithServiceName(ctx, "ExampleService")
 
 	if r.Method != "POST" {
 		msg := fmt.Sprintf("unsupported method %q (only POST is allowed)", r.Method)
@@ -149,7 +167,7 @@ func (s *exampleServiceServer) servePing(ctx context.Context, w http.ResponseWri
 
 func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var err error
-	// ctx = ctxsetters.WithMethodName(ctx, "Ping")
+	ctx = webrpc.WithMethodName(ctx, "Ping")
 
 	// reqContent := new(Empty)
 	// unmarshaler := jsonpb.Unmarshaler{AllowUnknownFields: true}
@@ -231,7 +249,7 @@ func (s *exampleServiceServer) serveGetUser(ctx context.Context, w http.Response
 
 func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var err error
-	// ctx = ctxsetters.WithMethodName(ctx, "Ping")
+	ctx = webrpc.WithMethodName(ctx, "GetUser")
 
 	reqContent := new(GetUserRequest)
 	reqBody, err := ioutil.ReadAll(r.Body)
@@ -319,7 +337,7 @@ type HTTPClient interface {
 type WebRPCServer interface {
 	http.Handler
 	WebRPCVersion() string
-	// ServiceVersion() string // TODO
+	ServiceVersion() string
 }
 
 // urlBase helps ensure that addr specifies a scheme. If it is unparsable
