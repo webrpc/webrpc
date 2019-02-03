@@ -2,7 +2,8 @@ TODO
 ====
 
 - [x] example stub, hand-made
-- [x] example json-rpc for request-response method call
+- [~] example json-rpc for request-response method call
+- [ ] JSON-RPC? or dropping the meta-structure around it?
 - [ ] example json-rpc for streaming from server->client over websockets (and later with http2)
 - [ ] example json-rpc for streaming from client->server over websockets (and later with http2)
 - [ ] example json-rpc for streaming from server<->client over websockets (and later with http2)
