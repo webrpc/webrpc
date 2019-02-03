@@ -1,4 +1,33 @@
 TODO
 ====
 
-- [ ] TODO
+- [x] example stub, hand-made
+- [x] example json-rpc for request-response method call
+- [ ] example json-rpc for streaming from server->client over websockets (and later with http2)
+- [ ] example json-rpc for streaming from client->server over websockets (and later with http2)
+- [ ] example json-rpc for streaming from server<->client over websockets (and later with http2)
+ 
+- [ ] schema
+    * get inspiration from TS, https://www.typescriptlang.org/docs/handbook/basic-types.html
+    * JSON encoding?
+
+- [ ] binary data encoding/decoding, []byte inside of json-rpc ..?
+  * see https://stackoverflow.com/questions/53354042/binary-data-inside-json
+  * Buffer .toJSON() ..
+  * https://github.com/PsychoLlama/bin-json
+
+- [ ] pluggable transport - easily add TCP, QUIC, ..
+- [ ] besides JSON, should we support pluggable encoding formats? flatbuffers? msgpack? cbor? other?
+
+- [ ] custom IDL for webrpc that resembles TypeScript and generates a webrpc-schema.json file
+
+interface GetUserRequest {
+  id?: number {
+    structTags: 'db:"id"'
+  } // this is an annotation, got some other ideas?
+  // + how do we add plugin-specific hints in here..?
+
+  userID?: number
+}
+
+.. but, adding some custom stuff too..

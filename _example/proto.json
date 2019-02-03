@@ -7,7 +7,9 @@
       "fields": [
         {
           "name": "userID",
-          "type": "uint64"
+          "kind": "number",
+          "type": "uint64",
+          "optional": false
         }
       ]
     },
@@ -15,39 +17,54 @@
       "name": "User",
       "fields": [
         {
-          "name": "id",
-          "type": "uint64"
+          "name": "ID",
+          "kind": "number",
+          "type": "uint64",
+          "optional": false,
+          "extra": {
+            "moreStructTags": "db:\"id\""
+          }
         },
         {
           "name": "username",
-          "type": "string"
+          "kind": "string",
+          "type": "string",
+          "optional": false,
+          "extra": {
+            "structTags": "json:\"username\" db:\"username\""
+          }
         }
       ]
     }
   ],
-  "methods": [
+  "services": [
     {
-      "name": "Ping",
-      "inputs": [],
-      "outputs": [
+      "name": "ExampleService",
+      "methods": [
         {
-          "name": "",
-          "type": "bool"
-        }
-      ]
-    },
-    {
-      "name": "GetUser",
-      "inputs": [
+          "name": "Ping",
+          "inputs": [],
+          "outputs": [
+            {
+              "name": "",
+              "type": "bool"
+            }
+          ]
+        },
         {
-          "name": "req",
-          "type": "GetUserRequest"
-        }
-      ],
-      "outputs": [
-        {
-          "name": "",
-          "type": "User"
+          "name": "GetUser",
+          "inputs": [
+            {
+              "name": "req",
+              "type": "GetUserRequest"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "",
+              "type": "User"
+            }
+          ]
         }
       ]
     }

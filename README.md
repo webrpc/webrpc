@@ -24,6 +24,9 @@ form for making remote server calls. See https://www.jsonrpc.org/specification
   * lists
   * optional fields, etc.
   * its just JSON! https://www.json.org
+  * using TypeScript data types for naming, see https://www.typescriptlang.org/docs/handbook/basic-types.html
+    since they've done a lot of work successfully mapping a type system onto Javascript, we should be able to do
+    this for JSON
 
 
 ## License
