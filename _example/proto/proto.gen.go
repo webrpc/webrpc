@@ -33,10 +33,10 @@ TODO:
 =====
 
 1. error responses / handling
-2. runtime map of service+methods for ExampleService, to get a lits of methods on service at runtime? could be useful for acl stuff..
-3. json marshalling type schema mapping + code-generation -- inspired by TypeScript -- TS types to json marshalling?
-4. optional types, and defaults.. ie. jsonpb from protobuf has `EmitDefaults: true`
-5. fast json code-generation, look into ffjson, etc.
+2. json marshalling type schema mapping + code-generation -- inspired by TypeScript -- TS types to json marshalling?
+3. optional types, and defaults.. ie. jsonpb from protobuf has `EmitDefaults: true`
+4. fast json code-generation, look into ffjson, etc.
+5. runtime map of service+methods for ExampleService, to get a lits of methods on service at runtime? could be useful for acl stuff..
 
 */
 
