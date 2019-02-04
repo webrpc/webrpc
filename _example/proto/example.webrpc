@@ -1,0 +1,33 @@
+// hi.. here is sample/ideas for the webrpc IDL,
+// inspired by typescript, borrowing types from WASM and Go
+// and adding annotations for generator plugins
+
+// comment
+enum Blah {
+  HI,
+  BYE
+}
+
+/* comment */
+message AddressBook {
+  contacts: { [id: string]: Contact };
+}
+
+message Contact {
+  firstName: string [ tag = `db:"first_name"` ];
+  lastName?: string;
+
+  birthday?: Date;
+  title?: "Mr." | "Mrs." | "Ms.";
+
+  emails?: string[];
+  phones: PhoneNumber[];
+
+  highScore: uint32;
+}
+
+message PhoneNumber {
+  number: string;
+
+  label?: string;
+}
