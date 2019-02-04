@@ -1,5 +1,5 @@
 // hi.. here is sample/ideas for the webrpc IDL,
-// inspired by typescript, borrowing types from WASM and Go
+// inspired by protobuf, typescript, borrowing types from WASM and Go
 // and adding annotations for generator plugins
 
 // comment
@@ -30,4 +30,9 @@ message PhoneNumber {
   number: string;
 
   label?: string;
+}
+
+service ExampleService {
+  rpc Ping() returns (bool);
+  rpc GetUser(GetUserRequest) returns (User?);
 }
