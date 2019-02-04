@@ -20,8 +20,6 @@ type WebRPCSchema struct {
 	Services []Service `json:"services"`
 }
 
-// TODO: how do we do Enums ..?
-
 type Message struct {
 	Name   string         `json:"name"`
 	Type   MessageType    `json:"type"`
@@ -34,6 +32,7 @@ type MessageField struct {
 	Name     string            `json:"name"`
 	Type     DataType          `json:"type"`
 	Optional bool              `json:"optional"`
+	Value    string            `json:"value"` // used by enums
 	Tags     []MessageFieldTag `json:"tags"`
 }
 
