@@ -4,16 +4,16 @@
 
 // comment
 enum Blah {
-  HI,
-  BYE
+  HI = 99,
+  BYE = 91
 }
 
 /* comment */
-message AddressBook {
+struct AddressBook {
   contacts: { [id: string]: Contact };
 }
 
-message Contact {
+struct Contact {
   firstName: string [ tag = `db:"first_name"` ];
   lastName?: string;
 
@@ -26,6 +26,7 @@ message Contact {
   highScore: uint32;
 }
 
+// or call it message ?
 message PhoneNumber {
   number: string;
 

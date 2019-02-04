@@ -1,13 +1,29 @@
 {
-  "proto": "webrpc/v0.0.1",
-  "version": "example/v0.0.1",
+  "schema": "webrpc/v0.0.1",
+  "app": "example/v0.0.1",
   "messages": [
     {
+      "name": "Kind",
+      "type": "enum",
+      "fields": [
+        {
+          "name": "USER",
+          "type": "uint32",
+          "value": "1"
+        },
+        {
+          "name": "ADMIN",
+          "type": "uint32",
+          "value": "2"
+        }
+      ]
+    },
+    {
       "name": "GetUserRequest",
+      "type": "struct",
       "fields": [
         {
           "name": "userID",
-          "kind": "number",
           "type": "uint64",
           "optional": false
         }
@@ -15,24 +31,24 @@
     },
     {
       "name": "User",
+      "type": "struct",
       "fields": [
         {
           "name": "ID",
-          "kind": "number",
           "type": "uint64",
           "optional": false,
-          "extra": {
-            "moreStructTags": "db:\"id\""
-          }
+          "tags": [
+            { "db": "id" }
+          ]
         },
         {
           "name": "username",
-          "kind": "string",
           "type": "string",
           "optional": false,
-          "extra": {
-            "structTags": "json:\"username\" db:\"username\""
-          }
+          "tags": [
+            { "json": "username" },
+            { "db": "username" }
+          ]
         }
       ]
     }

@@ -1,11 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"io/ioutil"
+	"log"
 
-func main() {
-	fmt.Println("webrpc-gen")
-
-}
+	"github.com/davecgh/go-spew/spew"
+	"github.com/webrpc/webrpc-go/schema"
+)
 
 /*
 
@@ -31,3 +32,18 @@ extra flags, target-lang specific ... how to pass those?
 // webrpc-gen is used to code-generate the server interfaces, handlers and message payload types with serialization.
 // this single util will code-generate for multiple language targets, ie. Go, TypeScript, and one day.. node_js node_ts
 // rust, ruby, python, etc......
+
+func main() {
+	f := `/home/peter/Dev/go/src/github.com/webrpc/webrpc-go/_example/proto/example.webrpc.json`
+	data, err := ioutil.ReadFile(f)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	schema, err := schema.ParseSchema(data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	spew.Dump(schema)
+}
