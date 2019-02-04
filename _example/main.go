@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/pkg/errors"
 	"github.com/webrpc/webrpc-go"
 	"github.com/webrpc/webrpc-go/_example/proto"
 )
@@ -45,9 +44,9 @@ func (s *ExampleService) Ping(ctx context.Context) (*bool, error) {
 
 func (s *ExampleService) GetUser(ctx context.Context, req *proto.GetUserRequest) (*proto.User, error) {
 	if req.UserID == 911 {
-		// let's intentionally fail on this one
-		// TODO: lets return proper error code of 404
-		return nil, webrpc.Error(errors.New("unknown userID"))
+		return nil, webrpc.ErrorNotFound("unknown userID %d", 911)
+		// return nil, webrpc.Errorf(webrpc.ErrNotFound, "unknown userID %d", 911)
+		// return nil, webrpc.WrapError(webrpc.ErrNotFound, err, "unknown userID %d", 911)
 	}
 
 	return &proto.User{

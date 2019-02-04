@@ -43,6 +43,16 @@ func TestGetUser(t *testing.T) {
 	}
 
 	{
-		// TODO: test error case
+		// Error case, expecting to receive an error
+		resp, err := client.GetUser(context.Background(), &proto.GetUserRequest{
+			UserID: 911,
+		})
+
+		// TODO: err should be webrpc.Error type
+		// so we can decode the .Code(), .Msg(), etc..
+
+		assert.Nil(t, resp)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "not_found")
 	}
 }
