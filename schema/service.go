@@ -110,5 +110,7 @@ func (m *Method) Parse(schema *WebRPCSchema) error {
 		}
 	}
 
+	// So far, we allow zero inputs and zero outputs
+
 	return nil
 }

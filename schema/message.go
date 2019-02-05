@@ -47,10 +47,11 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 		return errors.Errorf("schema error: message type must be 'enum' or 'struct' for '%s'", msgName)
 	}
 
+	// NOTE: so far, lets allow messages with no fields.. so just empty object, why, I dunno, but gRPC allows it
 	// Ensure we have some fields
-	if len(m.Fields) == 0 {
-		return errors.Errorf("schema error: message type must contain at least one field for '%s'", msgName)
-	}
+	// if len(m.Fields) == 0 {
+	// 	return errors.Errorf("schema error: message type must contain at least one field for '%s'", msgName)
+	// }
 
 	// Verify field names and ensure we don't have any duplicate field names
 	fieldList := map[string]string{}

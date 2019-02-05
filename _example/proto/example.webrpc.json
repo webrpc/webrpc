@@ -19,6 +19,12 @@
       ]
     },
     {
+      "name": "Empty",
+      "type": "struct",
+      "fields": [
+      ]
+    },
+    {
       "name": "GetUserRequest",
       "type": "struct",
       "fields": [

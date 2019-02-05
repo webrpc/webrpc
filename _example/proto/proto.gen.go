@@ -151,7 +151,8 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 	ctx = webrpc.WithMethodName(ctx, "Ping")
 
 	// NOTE: Ping method has no input arguments,
-	// TODO: is that cool or should we enforce some?
+	// TODO: is that cool or should we enforce some at schema level?
+	// lets try without for now, should be fine
 
 	// Call service method
 	var respContent *bool
@@ -231,6 +232,10 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	// TODO: multiple args..?
 	// perhaps, but need to name it and make implicit types essentially here..
 	// for named args, and ordered args, its possible..
+	// for now, just stick to single output, we can enforce
+	// this at schema level for now if we want.. gRPC only allows single output
+	// or they have you wrap multiple response types another message type for that response..
+	// lets just do what gRPC does for now can iterate after
 
 	// Call service method
 	var respContent *User
@@ -279,11 +284,6 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 // HTTPClient is the interface used by generated clients to send HTTP requests.
 // It is fulfilled by *(net/http).Client, which is sufficient for most users.
 // Users can provide their own implementation for special retry policies.
-//
-// HTTPClient implementations should not follow redirects. Redirects are
-// automatically disabled if *(net/http).Client is passed to client
-// constructors. See the withoutRedirects function in this file for more
-// details.
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
