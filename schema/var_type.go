@@ -2,7 +2,6 @@ package schema
 
 import (
 	"bytes"
-	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -53,7 +52,6 @@ func (t *VarType) UnmarshalJSON(b []byte) error {
 }
 
 func (t *VarType) Parse(schema *WebRPCSchema) error {
-	fmt.Println("")
 	if t.expr == "" {
 		return errors.Errorf("parse error: type expr cannot be empty")
 	}
@@ -82,8 +80,6 @@ func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 	if expr == "" {
 		return nil
 	}
-
-	fmt.Println("hi", expr)
 
 	// parse data type from string
 	dataType, ok := DataTypeFromString[expr]
