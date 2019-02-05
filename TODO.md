@@ -6,9 +6,10 @@ TODO
 - [x] general file parsing + structs
 - [x] parsing DataType for lists, maps, etc.
 - [x] dont allow dupe message names
-- [ ] service parsing + verification
+- [x] service parsing + verification
 - [ ] service arguments
-- [ ] VarName casing, parsing, etc.
+- [ ] VarName casing methods
+- [ ] VarName parsing + verification, check against regexp a-z0-9_
 - [ ] Enum design.. review
 - [ ] enum parsing + verification
 

@@ -12,6 +12,21 @@ type Message struct {
 	Fields []*MessageField `json:"fields"`
 }
 
+type MessageType string // "enum" | "struct"
+
+type MessageField struct {
+	Name *VarName `json:"name"`
+	Type *VarType `json:"type"`
+
+	Optional bool   `json:"optional"`
+	Value    string `json:"value"` // used by enums
+
+	// Tags store extra metadata for plugins
+	Tags []MessageFieldTag `json:"tags"`
+}
+
+type MessageFieldTag map[string]interface{}
+
 func (m *Message) Parse(schema *WebRPCSchema) error {
 	// Message name
 	if m.Name == nil || string(*m.Name) == "" {
@@ -63,18 +78,3 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 
 	return nil
 }
-
-type MessageType string // "enum" | "struct"
-
-type MessageField struct {
-	Name *VarName `json:"name"`
-	Type *VarType `json:"type"`
-
-	Optional bool   `json:"optional"`
-	Value    string `json:"value"` // used by enums
-
-	// Tags store extra metadata for plugins
-	Tags []MessageFieldTag `json:"tags"`
-}
-
-type MessageFieldTag map[string]interface{}
