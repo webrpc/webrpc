@@ -6,6 +6,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Parser interface {
+	Parse(schema *WebRPCSchema) error
+}
+
 type Validator interface {
 	Validate() error
 }
@@ -17,7 +21,7 @@ func ParseSchema(data []byte) (*WebRPCSchema, error) {
 		return nil, err
 	}
 
-	err = schema.Validate()
+	err = schema.Parse(nil)
 	if err != nil {
 		return schema, err
 	}

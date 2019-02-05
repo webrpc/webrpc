@@ -9,7 +9,7 @@ import (
 )
 
 type VarType struct {
-	// Expr string
+	expr string
 	Type DataType
 
 	Map    *VarMapType
@@ -17,29 +17,31 @@ type VarType struct {
 	Struct *VarStructType
 }
 
-func (t VarType) String() string {
-	switch t.Type {
-	case T_Invalid:
-		return "<invalid>"
+func (t *VarType) String() string {
+	return t.expr
 
-	case T_List:
-		// TODO: support [][]string
-		// TODO: support []<message> type..? yes
-		return "list, todo.."
+	// switch t.Type {
+	// case T_Invalid:
+	// 	return "<invalid>"
 
-	case T_Map:
-		// TODO: support map<string,map<string,uint32>>
-		// TODO: support map<string,User>
-		return "map, todo.."
+	// case T_List:
+	// 	// TODO: support [][]string
+	// 	// TODO: support []<message> type..? yes
+	// 	return "list, todo.."
 
-	case T_Struct:
-		// TODO: ..
-		return "struct, todo.."
+	// case T_Map:
+	// 	// TODO: support map<string,map<string,uint32>>
+	// 	// TODO: support map<string,User>
+	// 	return "map, todo.."
 
-	default:
-		// basic type
-		return t.Type.String()
-	}
+	// case T_Struct:
+	// 	// TODO: ..
+	// 	return "struct, todo.."
+
+	// default:
+	// 	// basic type
+	// 	return t.Type.String()
+	// }
 }
 
 func (t VarType) MarshalJSON() ([]byte, error) {
@@ -51,7 +53,7 @@ func (t VarType) MarshalJSON() ([]byte, error) {
 
 func (t *VarType) UnmarshalJSON(b []byte) error {
 	if len(b) <= 2 {
-		return errors.Errorf("type cannot be empty")
+		return errors.Errorf("json error: type cannot be empty")
 	}
 	s := string(b) // string value will be wrapped in quotes
 
@@ -66,6 +68,15 @@ func (t *VarType) UnmarshalJSON(b []byte) error {
 	// trim string quotes from the json string
 	s = s[1:]
 	s = s[:len(s)-1]
+
+	// set the expr from value
+	t.expr = s
+
+	return nil
+}
+
+func (t *VarType) Parse(schema *WebRPCSchema) error {
+	s := t.expr
 
 	// parse data type from string
 	dataType, ok := DataTypeFromString[s]
@@ -121,7 +132,6 @@ func (t *VarType) UnmarshalJSON(b []byte) error {
 		return nil
 
 	}
-
 }
 
 type VarMapType struct {
