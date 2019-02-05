@@ -55,7 +55,16 @@
             { "json": "username" },
             { "db": "username" }
           ]
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "optional": false,
+          "tags": [
+            { "db": "timestamp" }
+          ]
         }
+
       ]
     },
     {

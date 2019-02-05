@@ -30,6 +30,8 @@ const (
 
 	T_String
 
+	T_Timestamp
+
 	T_List
 	T_Map
 
@@ -57,6 +59,8 @@ var DataTypeToString = map[DataType]string{
 
 	T_String: "string",
 
+	T_Timestamp: "timestamp",
+
 	T_Map:  "map",
 	T_List: "[]",
 }
@@ -81,6 +85,8 @@ var DataTypeFromString = map[string]DataType{
 	"float64": T_Float64,
 
 	"string": T_String,
+
+	"timestamp": T_Timestamp,
 
 	"map": T_Map,
 	"[]":  T_List,

@@ -37,6 +37,11 @@ WebRPC Schema
 - string
 
 
+## Timestamps (date/time)
+
+- timestamp
+
+
 ## Lists
 
 - []<type>
