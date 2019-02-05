@@ -138,13 +138,13 @@ func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 	case T_Invalid:
 
 		structExpr := expr
-		if !isValidMessageType(schema, structExpr) {
+		msg, ok := getMessageType(schema, structExpr)
+		if !ok || msg == nil {
 			return errors.Errorf("parse error: invalid struct/message type '%s'", structExpr)
 		}
 
-		// TODO: check schema.Messages list to ensure the name matches..
-		// or return an error..
-		// setup a ref.. etc.
+		vt.Type = T_Struct
+		vt.Struct = &VarStructType{Name: structExpr, Message: msg}
 
 	default:
 		// basic type, we're done here
@@ -223,11 +223,11 @@ func isValidVarMapKeyType(s string) bool {
 	return false
 }
 
-func isValidMessageType(schema *WebRPCSchema, structExpr string) bool {
+func getMessageType(schema *WebRPCSchema, structExpr string) (*Message, bool) {
 	for _, msg := range schema.Messages {
 		if structExpr == string(*msg.Name) {
-			return true
+			return msg, true
 		}
 	}
-	return false
+	return nil, false
 }

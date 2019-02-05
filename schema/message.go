@@ -6,6 +6,9 @@ type Message struct {
 	Fields []*MessageField `json:"fields"`
 }
 
+// TODO: add Parse() to message
+// and ensure we dont have duplicates..
+
 // NOTE: for now just skip the enum stuff during generation..
 type MessageType string // TODO: must be `enum` or `struct`
 
