@@ -19,34 +19,11 @@ type VarType struct {
 
 func (t *VarType) String() string {
 	return t.expr
-
-	// switch t.Type {
-	// case T_Invalid:
-	// 	return "<invalid>"
-
-	// case T_List:
-	// 	// TODO: support [][]string
-	// 	// TODO: support []<message> type..? yes
-	// 	return "list, todo.."
-
-	// case T_Map:
-	// 	// TODO: support map<string,map<string,uint32>>
-	// 	// TODO: support map<string,User>
-	// 	return "map, todo.."
-
-	// case T_Struct:
-	// 	// TODO: ..
-	// 	return "struct, todo.."
-
-	// default:
-	// 	// basic type
-	// 	return t.Type.String()
-	// }
 }
 
-func (t VarType) MarshalJSON() ([]byte, error) {
+func (t *VarType) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
-	buf.WriteString(t.Type.String())
+	buf.WriteString(t.String())
 	buf.WriteString(`"`)
 	return buf.Bytes(), nil
 }
@@ -101,20 +78,17 @@ func (t *VarType) Parse(schema *WebRPCSchema) error {
 		if err != nil {
 			return err
 		}
-		// TODO: set t to tt..
-		_ = vt
+		// TODO: set vt to t..
 		spew.Dump(vt)
-		return nil
 
 	case T_Map:
-		tt, err := parseMapTypeString(s)
+		vt := &VarType{}
+		err := parseMapTypeString(s, vt)
 		if err != nil {
 			return err
 		}
-		// TODO: set t to tt..
-		_ = tt
-		spew.Dump(tt)
-		return nil
+		// TODO: set vt to t..
+		spew.Dump(vt)
 
 	case T_Invalid:
 
@@ -125,13 +99,16 @@ func (t *VarType) Parse(schema *WebRPCSchema) error {
 		// let's assume its a message ref then, until post-processor verifies
 
 		// TODO: ..........
-		return nil
 
 	default:
 		// basic type, we're done here
-		return nil
 
 	}
+
+	// update string expr after parsing
+	t.expr = buildVarTypeExpr(t)
+
+	return nil
 }
 
 type VarMapType struct {
@@ -164,12 +141,37 @@ func parseListTypeString(s string, vt *VarType) error {
 	return nil
 }
 
-func parseMapTypeString(s string) (*VarType, error) {
+func parseMapTypeString(s string, vt *VarType) error {
 	// TODO: support map<string,map<string,uint32>>
 	// TODO: support map<string,User>
-	return nil, nil
+	return nil
 }
 
-func parseStructTypeString(s string) (*VarType, error) {
-	return nil, nil
+func parseStructTypeString(s string, vt *VarType) error {
+	return nil
+}
+
+func buildVarTypeExpr(vt *VarType) string {
+	switch vt.Type {
+	case T_Invalid:
+		return "<invalid>"
+
+	case T_List:
+		// TODO: support [][]string
+		// TODO: support []<message> type..? yes
+		return "list, todo.."
+
+	case T_Map:
+		// TODO: support map<string,map<string,uint32>>
+		// TODO: support map<string,User>
+		return "map, todo.."
+
+	case T_Struct:
+		// TODO: ..
+		return "struct, todo.."
+
+	default:
+		// basic type
+		return vt.Type.String()
+	}
 }
