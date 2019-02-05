@@ -39,11 +39,11 @@ WebRPC Schema
 
 ## Lists
 
-- <type>[]
+- []<type>
 
-- string[]
+- []string
 
-- uint8[]
+- []uint8
 
 
 ## Map

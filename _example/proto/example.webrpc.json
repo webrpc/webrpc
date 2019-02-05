@@ -51,6 +51,32 @@
           ]
         }
       ]
+    },
+    {
+      "name": "RandomStuff",
+      "type": "struct",
+      "fields": [
+        {
+          "name": "meta",
+          "type": "map<string,any>"
+        },
+        {
+          "name": "metaNestedExample",
+          "type": "map<string,map<string,uint32>"
+        },
+        {
+          "name": "namesList",
+          "type": "[]string"
+        },
+        {
+          "name": "numsList",
+          "type": "[]int64"
+        },
+        {
+          "name": "listOfMaps",
+          "type": "[]map<string,uint32>"
+        }
+      ]
     }
   ],
   "services": [
