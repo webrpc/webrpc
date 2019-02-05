@@ -10,10 +10,6 @@ type WebRPCSchema struct {
 	Services []*Service `json:"services"`
 }
 
-func (s *WebRPCSchema) Validate() error {
-	return nil
-}
-
 // Parse parses the schema through the AST, intended to be called
 // after the json has been unmarshalled
 func (s *WebRPCSchema) Parse(schema *WebRPCSchema) error {

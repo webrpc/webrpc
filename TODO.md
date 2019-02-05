@@ -7,7 +7,7 @@ TODO
 - [x] parsing DataType for lists, maps, etc.
 - [ ] dont allow dupe message names
 - [ ] service arguments
-- [ ] 
+- [ ] VarName casing, parsing, etc.
 
 
 ## Overall

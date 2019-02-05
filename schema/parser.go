@@ -10,10 +10,6 @@ type Parser interface {
 	Parse(schema *WebRPCSchema) error
 }
 
-type Validator interface {
-	Validate() error
-}
-
 func ParseSchema(data []byte) (*WebRPCSchema, error) {
 	var schema *WebRPCSchema
 	err := json.Unmarshal(data, &schema)
