@@ -226,7 +226,7 @@ func isValidVarMapKeyType(s string) bool {
 
 func getMessageType(schema *WebRPCSchema, structExpr string) (*Message, bool) {
 	for _, msg := range schema.Messages {
-		if structExpr == string(*msg.Name) {
+		if structExpr == string(msg.Name) {
 			return msg, true
 		}
 	}

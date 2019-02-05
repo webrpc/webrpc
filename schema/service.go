@@ -7,41 +7,41 @@ import (
 )
 
 type Service struct {
-	Name    *VarName  `json:"name"`
+	Name    VarName   `json:"name"`
 	Methods []*Method `json:"methods"`
 }
 
 type Method struct {
-	Name    *VarName        `json:"name"`
+	Name    VarName         `json:"name"`
 	Inputs  []*MethodInput  `json:"inputs"`
 	Outputs []*MethodOutput `json:"outputs`
 }
 
 type MethodInput struct {
-	Name   *VarName        `json:"name"`
-	Type   *MethodArgument `json:"type"`   // TODO: VarType? Argument? ..perhaps ServiceArgument if we only allow struct..
-	Stream bool            `json:"stream"` // TOOD(future)
+	Name   VarName        `json:"name"`
+	Type   MethodArgument `json:"type"`   // TODO: VarType? Argument? ..perhaps ServiceArgument if we only allow struct..
+	Stream bool           `json:"stream"` // TOOD(future)
 }
 
 type MethodOutput struct {
-	Name   *VarName        `json:"name"`
-	Type   *MethodArgument `json:"type"`   // TODO: same as input above..
-	Stream bool            `json:"stream"` // TOOD(future)
+	Name   VarName        `json:"name"`
+	Type   MethodArgument `json:"type"`   // TODO: same as input above..
+	Stream bool           `json:"stream"` // TOOD(future)
 }
 
 type MethodArgument string
 
 func (s *Service) Parse(schema *WebRPCSchema) error {
 	// Service name
-	if s.Name == nil || string(*s.Name) == "" {
+	serviceName := string(s.Name)
+	if string(s.Name) == "" {
 		return errors.Errorf("schema error: service name cannot be empty")
 	}
-	serviceName := string(*s.Name)
 
 	// Ensure we don't have dupe service names (w/ normalization)
-	name := strings.ToLower(s.Name.String())
+	name := strings.ToLower(string(s.Name))
 	for _, svc := range schema.Services {
-		if svc != s && name == strings.ToLower(svc.Name.String()) {
+		if svc != s && name == strings.ToLower(string(svc.Name)) {
 			return errors.Errorf("schema error: duplicate service name detected in service '%s'", serviceName)
 		}
 	}
@@ -54,11 +54,11 @@ func (s *Service) Parse(schema *WebRPCSchema) error {
 	// Verify method names and ensure we don't have any duplicate method names
 	methodList := map[string]string{}
 	for _, method := range s.Methods {
-		if method.Name == nil || string(*method.Name) == "" {
+		if string(method.Name) == "" {
 			return errors.Errorf("schema error: detected empty method name in service '%s", serviceName)
 		}
 
-		methodName := string(*method.Name)
+		methodName := string(method.Name)
 		nMethodName := strings.ToLower(methodName)
 
 		if _, ok := methodList[nMethodName]; ok {

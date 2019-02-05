@@ -7,15 +7,15 @@ import (
 )
 
 type Message struct {
-	Name   *VarName        `json:"name"`
-	Type   *MessageType    `json:"type"`
+	Name   VarName         `json:"name"`
+	Type   MessageType     `json:"type"`
 	Fields []*MessageField `json:"fields"`
 }
 
 type MessageType string // "enum" | "struct"
 
 type MessageField struct {
-	Name *VarName `json:"name"`
+	Name VarName  `json:"name"`
 	Type *VarType `json:"type"`
 
 	Optional bool   `json:"optional"`
@@ -29,21 +29,21 @@ type MessageFieldTag map[string]interface{}
 
 func (m *Message) Parse(schema *WebRPCSchema) error {
 	// Message name
-	if m.Name == nil || string(*m.Name) == "" {
+	msgName := string(m.Name)
+	if msgName == "" {
 		return errors.Errorf("schema error: message name cannot be empty")
 	}
-	msgName := string(*m.Name)
 
 	// Ensure we don't have dupe message types (w/ normalization)
 	name := strings.ToLower(msgName)
 	for _, msg := range schema.Messages {
-		if msg != m && name == strings.ToLower(msg.Name.String()) {
+		if msg != m && name == strings.ToLower(string(msg.Name)) {
 			return errors.Errorf("schema error: duplicate message type detected, '%s'", msgName)
 		}
 	}
 
 	// Ensure we have a message type
-	if m.Type == nil || (string(*m.Type) != "enum" && string(*m.Type) != "struct") {
+	if string(m.Type) != "enum" && string(m.Type) != "struct" {
 		return errors.Errorf("schema error: message type must be 'enum' or 'struct' for '%s'", msgName)
 	}
 
@@ -55,11 +55,11 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 	// Verify field names and ensure we don't have any duplicate field names
 	fieldList := map[string]string{}
 	for _, field := range m.Fields {
-		if field.Name == nil || string(*field.Name) == "" {
+		if string(field.Name) == "" {
 			return errors.Errorf("schema error: detected empty field name in message '%s", msgName)
 		}
 
-		fieldName := string(*field.Name)
+		fieldName := string(field.Name)
 		nFieldName := strings.ToLower(fieldName)
 
 		if _, ok := fieldList[nFieldName]; ok {
