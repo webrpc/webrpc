@@ -92,17 +92,12 @@ func (t *VarType) Parse(schema *WebRPCSchema) error {
 
 	case T_Invalid:
 
-		// TODO: for Message/Struct type, we can put a stub(?),
-		// but need to do pass at the post-processing stage
-		// if it maps to a messageRef
-
-		// let's assume its a message ref then, until post-processor verifies
-
-		// TODO: ..........
+		// TODO: check schema.Messages list to ensure the name matches..
+		// or return an error..
+		// setup a ref.. etc.
 
 	default:
 		// basic type, we're done here
-
 	}
 
 	// update string expr after parsing
@@ -126,28 +121,24 @@ type VarStructType struct {
 	Message *Message
 }
 
-func parseListTypeString(s string, vt *VarType) error {
-	if !strings.HasPrefix(s, DataTypeToString[T_List]) {
+func parseListTypeString(expr string, vt *VarType) error {
+	if !strings.HasPrefix(expr, DataTypeToString[T_List]) {
 		return nil
 	}
 
 	// TODO: support [][]string
 
-	// okay...... so, we need to unmarshal in one step..
-	// and post-process in another, its clear now..
-	// so we have all messages
-
 	// TODO: support []<message>
 	return nil
 }
 
-func parseMapTypeString(s string, vt *VarType) error {
+func parseMapTypeString(expr string, vt *VarType) error {
 	// TODO: support map<string,map<string,uint32>>
 	// TODO: support map<string,User>
 	return nil
 }
 
-func parseStructTypeString(s string, vt *VarType) error {
+func parseStructTypeString(expr string, vt *VarType) error {
 	return nil
 }
 
