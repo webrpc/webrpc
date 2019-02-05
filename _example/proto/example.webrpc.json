@@ -58,11 +58,12 @@
           ]
         },
         {
-          "name": "created_at",
+          "name": "createdAt",
           "type": "timestamp",
-          "optional": false,
+          "optional": true,
           "tags": [
-            { "db": "timestamp" }
+            { "json": "created_at,omitempty" },
+            { "db": "created_at" }
           ]
         }
 
