@@ -65,14 +65,17 @@ type VarListType struct {
 }
 
 type VarMapType struct {
-	Key   DataType // TODO: in fact, key can only be reduced set.. number or string, create VarMapKeyType as subset of DataType
+	Key   DataType // see, VarMapKeyDataTypes -- only T_String or T_XintX supported
 	Value *VarType
 }
 
 type VarStructType struct {
-	// Fields []VarType // redundant, its already in Message with more data..
 	Name    string
 	Message *Message
+}
+
+var VarMapKeyDataTypes = []DataType{
+	T_String, T_UInt8, T_Uint16, T_Uint32, T_Uint64, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
 func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
@@ -133,7 +136,12 @@ func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 		}
 
 	case T_Invalid:
-		// panic("TODO")
+
+		structExpr := expr
+		if !isValidMessageType(schema, structExpr) {
+			return errors.Errorf("parse error: invalid struct/message type '%s'", structExpr)
+		}
+
 		// TODO: check schema.Messages list to ensure the name matches..
 		// or return an error..
 		// setup a ref.. etc.
@@ -170,6 +178,10 @@ func parseMapExpr(expr string) (string, string, error) {
 	key := expr[0:p]
 	value := expr[p+1:]
 
+	if !isValidVarMapKeyType(key) {
+		return "", "", errors.Errorf("parse error: invalid map key '%s' for '%s'", key, expr)
+	}
+
 	return key, value, nil
 }
 
@@ -196,4 +208,26 @@ func buildVarTypeExpr(vt *VarType) string {
 		// basic type
 		return vt.Type.String()
 	}
+}
+
+func isValidVarMapKeyType(s string) bool {
+	dt, ok := DataTypeFromString[s]
+	if !ok {
+		return false
+	}
+	for _, t := range VarMapKeyDataTypes {
+		if dt == t {
+			return true
+		}
+	}
+	return false
+}
+
+func isValidMessageType(schema *WebRPCSchema, structExpr string) bool {
+	for _, msg := range schema.Messages {
+		if structExpr == string(*msg.Name) {
+			return true
+		}
+	}
+	return false
 }

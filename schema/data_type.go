@@ -33,8 +33,7 @@ const (
 	T_List
 	T_Map
 
-	T_Struct // aka a message
-	// rename to.. T_Message ?
+	T_Struct // aka, a reference to our own webrpc proto struct/message
 )
 
 var DataTypeToString = map[DataType]string{

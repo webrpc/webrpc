@@ -73,6 +73,10 @@
           "type": "[]int64"
         },
         {
+          "name": "doubleArray",
+          "type": "[][]string"
+        },
+        {
           "name": "listOfMaps",
           "type": "[]map<string,uint32>"
         },
