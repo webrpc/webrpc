@@ -57,7 +57,7 @@
       "type": "struct",
       "fields": [
         {
-          "name": "meta!",
+          "name": "meta",
           "type": "map<string,any>"
         },
         {
