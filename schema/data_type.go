@@ -107,8 +107,3 @@ func (t *DataType) UnmarshalJSON(b []byte) error {
 	*t = DataTypeFromString[j]
 	return nil
 }
-
-func (t *DataType) Validate() error {
-	// return errors.Errorf("invalid data DataType %s", t)
-	return nil
-}
