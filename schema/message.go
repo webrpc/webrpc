@@ -62,6 +62,12 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 		fieldName := string(field.Name)
 		nFieldName := strings.ToLower(fieldName)
 
+		// Verify name format
+		if !IsValidArgName(fieldName) {
+			return errors.Errorf("schema error: invalid field name of '%s' in message '%s'", fieldName, msgName)
+		}
+
+		// Ensure no dupes
 		if _, ok := fieldList[nFieldName]; ok {
 			return errors.Errorf("schema error: detected duplicate field name of '%s' in message '%s'", fieldName, msgName)
 		}

@@ -2,6 +2,7 @@ package schema
 
 import (
 	"encoding/json"
+	"regexp"
 
 	"github.com/pkg/errors"
 )
@@ -9,6 +10,8 @@ import (
 type Parser interface {
 	Parse(schema *WebRPCSchema) error
 }
+
+var NameWhitelistRexp = regexp.MustCompile("(?i)[a-z0-9_]+")
 
 func ParseSchema(data []byte) (*WebRPCSchema, error) {
 	var schema *WebRPCSchema
@@ -27,4 +30,12 @@ func ParseSchema(data []byte) (*WebRPCSchema, error) {
 
 func ParseSchemaFile(fpath string) (*WebRPCSchema, error) {
 	return nil, errors.New("unimplemented")
+}
+
+func IsValidArgName(s string) bool {
+	// TODO: fix this regexp
+	if !NameWhitelistRexp.MatchString(s) {
+		return false
+	}
+	return true
 }

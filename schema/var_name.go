@@ -1,6 +1,8 @@
 package schema
 
-import "strings"
+import (
+	"strings"
+)
 
 type VarName string
 
@@ -22,8 +24,4 @@ func (v VarName) TitleUpcase() string {
 	}
 	s := string(v)
 	return strings.ToUpper(s[0:1]) + s[1:]
-}
-
-func (v VarName) Parse(schema *WebRPCSchema) error {
-	return nil
 }

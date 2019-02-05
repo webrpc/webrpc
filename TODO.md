@@ -8,8 +8,8 @@ TODO
 - [x] dont allow dupe message names
 - [x] service parsing + verification
 - [x] VarName casing methods
+- [x] VarName parsing + verification, check against regexp a-z0-9_
 - [ ] service arguments
-- [ ] VarName parsing + verification, check against regexp a-z0-9_
 - [ ] Enum design.. review
 - [ ] enum parsing + verification
 
