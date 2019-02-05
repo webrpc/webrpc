@@ -20,5 +20,15 @@ func (s *WebRPCSchema) Parse(schema *WebRPCSchema) error {
 	if schema == nil {
 		schema = s // we can take nil here, as this is the schema
 	}
+
+	for _, msg := range s.Messages {
+		for _, field := range msg.Fields {
+			err := field.Type.Parse(s)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }

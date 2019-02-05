@@ -2,6 +2,7 @@ package schema
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -52,6 +53,7 @@ func (t *VarType) UnmarshalJSON(b []byte) error {
 }
 
 func (t *VarType) Parse(schema *WebRPCSchema) error {
+	fmt.Println("")
 	if t.expr == "" {
 		return errors.Errorf("parse error: type expr cannot be empty")
 	}
@@ -78,6 +80,8 @@ func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 		return nil
 	}
 
+	fmt.Println("hi", expr)
+
 	// parse data type from string
 	dataType, ok := DataTypeFromString[expr]
 
@@ -97,7 +101,7 @@ func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 	switch vt.Type {
 	case T_List:
 		// create sub-type object for list element
-		vt.List = &VarListType{}
+		vt.List = &VarListType{Elem: &VarType{}}
 
 		// shift expr, and keep parsing
 		expr = strings.TrimPrefix(expr, DataTypeToString[T_List])
@@ -115,18 +119,21 @@ func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 
 		keyDataType, ok := DataTypeFromString[key]
 		if !ok {
-			return errors.Errorf("parse error: invalid map key type %s for expr %s", key, expr)
+			return errors.Errorf("parse error: invalid map key type '%s' for expr '%s'", key, expr)
 		}
 
 		// create sub-type object for map
-		vt.Map = &VarMapType{Key: keyDataType}
+		vt.Map = &VarMapType{Key: keyDataType, Value: &VarType{}}
 
 		// shift expr and keep parsing
 		expr = value
 		err = parseVarTypeExpr(schema, expr, vt.Map.Value)
+		if err != nil {
+			return err
+		}
 
 	case T_Invalid:
-		panic("TODO")
+		// panic("TODO")
 		// TODO: check schema.Messages list to ensure the name matches..
 		// or return an error..
 		// setup a ref.. etc.
@@ -142,26 +149,26 @@ func parseMapExpr(expr string) (string, string, error) {
 	mapKeyword := DataTypeToString[T_Map]
 
 	if !strings.HasPrefix(expr, mapKeyword) {
-		return "", "", errors.Errorf("parse error: invalud map expr for %s", expr)
+		return "", "", errors.Errorf("parse error: invalid map expr for '%s'", expr)
 	}
 
 	expr = expr[len(mapKeyword):]
 
 	if expr[0:1] != "<" {
-		return "", "", errors.Errorf("parse error: invalid map syntax for %s", expr)
+		return "", "", errors.Errorf("parse error: invalid map syntax for '%s'", expr)
 	}
 	if expr[len(expr)-1:] != ">" {
-		return "", "", errors.Errorf("parse error: invalid map syntax for %s", expr)
+		return "", "", errors.Errorf("parse error: invalid map syntax for '%s'", expr)
 	}
-	expr = expr[1 : len(expr)-2]
+	expr = expr[1 : len(expr)-1]
 
-	p := strings.Index(",", expr)
+	p := strings.Index(expr, ",")
 	if p < 0 {
-		return "", "", errors.Errorf("parse error: invalid map syntax for %s", expr)
+		return "", "", errors.Errorf("parse error: invalid map syntax for '%s'", expr)
 	}
 
-	key := expr[0 : p-1]
-	value := expr[p:]
+	key := expr[0:p]
+	value := expr[p+1:]
 
 	return key, value, nil
 }

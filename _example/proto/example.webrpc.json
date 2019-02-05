@@ -62,7 +62,7 @@
         },
         {
           "name": "metaNestedExample",
-          "type": "map<string,map<string,uint32>"
+          "type": "map<string,map<string,uint32>>"
         },
         {
           "name": "namesList",
