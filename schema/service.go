@@ -1,5 +1,11 @@
 package schema
 
+import (
+	"strings"
+
+	"github.com/pkg/errors"
+)
+
 type Service struct {
 	Name    *VarName  `json:"name"`
 	Methods []*Method `json:"methods"`
@@ -25,10 +31,53 @@ type MethodOutput struct {
 
 type MethodArgument string
 
-func (m *Service) Parse(schema *WebRPCSchema) error {
+func (s *Service) Parse(schema *WebRPCSchema) error {
+	// Service name
+	if s.Name == nil || string(*s.Name) == "" {
+		return errors.Errorf("schema error: service name cannot be empty")
+	}
+	serviceName := string(*s.Name)
 
-	// TODO: ...
-	// so................. for now, lets support primitive types
+	// Ensure we don't have dupe service names (w/ normalization)
+	name := strings.ToLower(s.Name.String())
+	for _, svc := range schema.Services {
+		if svc != s && name == strings.ToLower(svc.Name.String()) {
+			return errors.Errorf("schema error: duplicate service name detected in service '%s'", serviceName)
+		}
+	}
 
+	// Ensure methods is defined
+	if len(s.Methods) == 0 {
+		return errors.Errorf("schema error: methods cannot be empty for service '%s'", serviceName)
+	}
+
+	// Verify method names and ensure we don't have any duplicate method names
+	methodList := map[string]string{}
+	for _, method := range s.Methods {
+		if method.Name == nil || string(*method.Name) == "" {
+			return errors.Errorf("schema error: detected empty method name in service '%s", serviceName)
+		}
+
+		methodName := string(*method.Name)
+		nMethodName := strings.ToLower(methodName)
+
+		if _, ok := methodList[nMethodName]; ok {
+			return errors.Errorf("schema error: detected duplicate method name of '%s' in service '%s'", methodName, serviceName)
+		}
+		methodList[nMethodName] = methodName
+	}
+
+	// Parse+validate methods
+	for _, method := range s.Methods {
+		err := method.Parse(schema)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Method) Parse(schema *WebRPCSchema) error {
 	return nil
 }

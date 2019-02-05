@@ -54,7 +54,7 @@ func (t *VarType) UnmarshalJSON(b []byte) error {
 
 func (t *VarType) Parse(schema *WebRPCSchema) error {
 	if t.expr == "" {
-		return errors.Errorf("parse error: type expr cannot be empty")
+		return errors.Errorf("schema error: type expr cannot be empty")
 	}
 	err := parseVarTypeExpr(schema, t.expr, t)
 	if err != nil {
@@ -124,7 +124,7 @@ func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 
 		keyDataType, ok := DataTypeFromString[key]
 		if !ok {
-			return errors.Errorf("parse error: invalid map key type '%s' for expr '%s'", key, expr)
+			return errors.Errorf("schema error: invalid map key type '%s' for expr '%s'", key, expr)
 		}
 
 		// create sub-type object for map
@@ -142,7 +142,7 @@ func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 		structExpr := expr
 		msg, ok := getMessageType(schema, structExpr)
 		if !ok || msg == nil {
-			return errors.Errorf("parse error: invalid struct/message type '%s'", structExpr)
+			return errors.Errorf("schema error: invalid struct/message type '%s'", structExpr)
 		}
 
 		vt.Type = T_Struct
@@ -159,29 +159,29 @@ func parseMapExpr(expr string) (string, string, error) {
 	mapKeyword := DataTypeToString[T_Map]
 
 	if !strings.HasPrefix(expr, mapKeyword) {
-		return "", "", errors.Errorf("parse error: invalid map expr for '%s'", expr)
+		return "", "", errors.Errorf("schema error: invalid map expr for '%s'", expr)
 	}
 
 	expr = expr[len(mapKeyword):]
 
 	if expr[0:1] != "<" {
-		return "", "", errors.Errorf("parse error: invalid map syntax for '%s'", expr)
+		return "", "", errors.Errorf("schema error: invalid map syntax for '%s'", expr)
 	}
 	if expr[len(expr)-1:] != ">" {
-		return "", "", errors.Errorf("parse error: invalid map syntax for '%s'", expr)
+		return "", "", errors.Errorf("schema error: invalid map syntax for '%s'", expr)
 	}
 	expr = expr[1 : len(expr)-1]
 
 	p := strings.Index(expr, ",")
 	if p < 0 {
-		return "", "", errors.Errorf("parse error: invalid map syntax for '%s'", expr)
+		return "", "", errors.Errorf("schema error: invalid map syntax for '%s'", expr)
 	}
 
 	key := expr[0:p]
 	value := expr[p+1:]
 
 	if !isValidVarMapKeyType(key) {
-		return "", "", errors.Errorf("parse error: invalid map key '%s' for '%s'", key, expr)
+		return "", "", errors.Errorf("schema error: invalid map key '%s' for '%s'", key, expr)
 	}
 
 	return key, value, nil

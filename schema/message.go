@@ -13,25 +13,47 @@ type Message struct {
 }
 
 func (m *Message) Parse(schema *WebRPCSchema) error {
+	// Message name
+	if m.Name == nil || string(*m.Name) == "" {
+		return errors.Errorf("schema error: message name cannot be empty")
+	}
+	msgName := string(*m.Name)
+
 	// Ensure we don't have dupe message types (w/ normalization)
-	name := strings.ToLower(m.Name.String())
+	name := strings.ToLower(msgName)
 	for _, msg := range schema.Messages {
 		if msg != m && name == strings.ToLower(msg.Name.String()) {
-			return errors.Errorf("parse error: duplicate message type detected, '%s'", m.Name)
+			return errors.Errorf("schema error: duplicate message type detected, '%s'", msgName)
 		}
 	}
 
 	// Ensure we have a message type
 	if m.Type == nil || (string(*m.Type) != "enum" && string(*m.Type) != "struct") {
-		return errors.Errorf("parse error: message type must be 'enum' or 'struct' for '%s'", m.Name.String())
+		return errors.Errorf("schema error: message type must be 'enum' or 'struct' for '%s'", msgName)
 	}
 
 	// Ensure we have some fields
 	if len(m.Fields) == 0 {
-		return errors.Errorf("parse error: message type must contain at least one field for '%s'", m.Name.String())
+		return errors.Errorf("schema error: message type must contain at least one field for '%s'", msgName)
 	}
 
-	// Parse message fields
+	// Verify field names and ensure we don't have any duplicate field names
+	fieldList := map[string]string{}
+	for _, field := range m.Fields {
+		if field.Name == nil || string(*field.Name) == "" {
+			return errors.Errorf("schema error: detected empty field name in message '%s", msgName)
+		}
+
+		fieldName := string(*field.Name)
+		nFieldName := strings.ToLower(fieldName)
+
+		if _, ok := fieldList[nFieldName]; ok {
+			return errors.Errorf("schema error: detected duplicate field name of '%s' in message '%s'", fieldName, msgName)
+		}
+		fieldList[nFieldName] = fieldName
+	}
+
+	// Parse+validate message fields
 	for _, field := range m.Fields {
 		err := field.Type.Parse(schema)
 		if err != nil {
@@ -42,8 +64,7 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 	return nil
 }
 
-// NOTE: for now just skip the enum stuff during generation..
-type MessageType string // TODO: must be `enum` or `struct`
+type MessageType string // "enum" | "struct"
 
 type MessageField struct {
 	Name *VarName `json:"name"`
