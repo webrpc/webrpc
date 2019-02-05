@@ -82,5 +82,20 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 		}
 	}
 
+	// For enums only, ensure all field types are the same
+	if m.Type == "enum" {
+		fieldTypes := map[string]struct{}{}
+		for _, field := range m.Fields {
+			fieldType := field.Type.expr
+			fieldTypes[fieldType] = struct{}{}
+			if field.Value == "" {
+				return errors.Errorf("schema error: enum message '%s' with field '%s' is missing value", m.Name, field.Name)
+			}
+		}
+		if len(fieldTypes) > 1 {
+			return errors.Errorf("schema error: enum message '%s' must all have the same field type", m.Name)
+		}
+	}
+
 	return nil
 }
