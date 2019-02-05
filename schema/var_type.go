@@ -1,12 +1,15 @@
 package schema
 
 import (
+	"bytes"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 )
 
 type VarType struct {
+	// Expr string
 	Type DataType
 
 	Map    *VarMapType
@@ -15,11 +18,35 @@ type VarType struct {
 }
 
 func (t VarType) String() string {
-	return ""
+	switch t.Type {
+	case T_Invalid:
+		return "<invalid>"
+
+	case T_List:
+		// TODO: support [][]string
+		// TODO: support []<message> type..? yes
+		return "list, todo.."
+
+	case T_Map:
+		// TODO: support map<string,map<string,uint32>>
+		// TODO: support map<string,User>
+		return "map, todo.."
+
+	case T_Struct:
+		// TODO: ..
+		return "struct, todo.."
+
+	default:
+		// basic type
+		return t.Type.String()
+	}
 }
 
 func (t VarType) MarshalJSON() ([]byte, error) {
-	return nil, nil
+	buf := bytes.NewBufferString(`"`)
+	buf.WriteString(t.Type.String())
+	buf.WriteString(`"`)
+	return buf.Bytes(), nil
 }
 
 func (t *VarType) UnmarshalJSON(b []byte) error {
@@ -52,25 +79,42 @@ func (t *VarType) UnmarshalJSON(b []byte) error {
 		}
 	}
 
-	// if dataType == T_Invalid {
-	// 	return errors.Errorf("unknown type %s", s)
-	// }
-
 	// Set core data type
 	t.Type = dataType
 
 	// For complex types, keep parsing
 	switch t.Type {
 	case T_List:
-		// TODO: support [][]string
-		// TODO: support []<message> type..? yes
+		vt := &VarType{}
+		err := parseListTypeString(s, vt)
+		if err != nil {
+			return err
+		}
+		// TODO: set t to tt..
+		_ = vt
+		spew.Dump(vt)
+		return nil
 
 	case T_Map:
-		// TODO: support map<string,map<string,uint32>>
-		// TODO: support map<string,User>
+		tt, err := parseMapTypeString(s)
+		if err != nil {
+			return err
+		}
+		// TODO: set t to tt..
+		_ = tt
+		spew.Dump(tt)
+		return nil
 
 	case T_Invalid:
+
+		// TODO: for Message/Struct type, we can put a stub(?),
+		// but need to do pass at the post-processing stage
+		// if it maps to a messageRef
+
 		// let's assume its a message ref then, until post-processor verifies
+
+		// TODO: ..........
+		return nil
 
 	default:
 		// basic type, we're done here
@@ -78,11 +122,6 @@ func (t *VarType) UnmarshalJSON(b []byte) error {
 
 	}
 
-	// TODO: for Message/Struct type, we can put a stub(?),
-	// but need to do pass at the post-processing stage
-	// if it maps to a messageRef
-
-	return nil
 }
 
 type VarMapType struct {
@@ -95,11 +134,32 @@ type VarListType struct {
 }
 
 type VarStructType struct {
-	// Fields []VarType
+	// Fields []VarType // redundant, its already in Message with more data..
 	Name    string
 	Message *Message
 }
 
-// func testListPrefix(s string) bool {
-// 	if strings.HasPrefix(s, DataTypeToString[T_List])
-// }
+func parseListTypeString(s string, vt *VarType) error {
+	if !strings.HasPrefix(s, DataTypeToString[T_List]) {
+		return nil
+	}
+
+	// TODO: support [][]string
+
+	// okay...... so, we need to unmarshal in one step..
+	// and post-process in another, its clear now..
+	// so we have all messages
+
+	// TODO: support []<message>
+	return nil
+}
+
+func parseMapTypeString(s string) (*VarType, error) {
+	// TODO: support map<string,map<string,uint32>>
+	// TODO: support map<string,User>
+	return nil, nil
+}
+
+func parseStructTypeString(s string) (*VarType, error) {
+	return nil, nil
+}

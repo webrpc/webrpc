@@ -92,10 +92,10 @@ func (t DataType) String() string {
 }
 
 func (t DataType) MarshalJSON() ([]byte, error) {
-	buffer := bytes.NewBufferString(`"`)
-	buffer.WriteString(DataTypeToString[t])
-	buffer.WriteString(`"`)
-	return buffer.Bytes(), nil
+	buf := bytes.NewBufferString(`"`)
+	buf.WriteString(DataTypeToString[t])
+	buf.WriteString(`"`)
+	return buf.Bytes(), nil
 }
 
 func (t *DataType) UnmarshalJSON(b []byte) error {
