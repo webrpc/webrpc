@@ -44,6 +44,7 @@
           "type": "uint64",
           "optional": false,
           "tags": [
+            { "json": "id" },
             { "db": "id" }
           ]
         },
@@ -52,7 +53,7 @@
           "type": "string",
           "optional": false,
           "tags": [
-            { "json": "username" },
+            { "json": "USERNAME" },
             { "db": "username" }
           ]
         },

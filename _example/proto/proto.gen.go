@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/webrpc/webrpc-go"
@@ -23,8 +24,9 @@ type GetUserRequest struct {
 }
 
 type User struct {
-	ID       uint64 `json:"id" db:"id"`
-	Username string `json:"username" db:"username"`
+	ID        uint64    `json:"id" db:"id"`
+	Username  string    `json:"username" db:"username"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
 
 //--
