@@ -75,6 +75,10 @@
         {
           "name": "listOfMaps",
           "type": "[]map<string,uint32>"
+        },
+        {
+          "name": "user",
+          "type": "User"
         }
       ]
     }

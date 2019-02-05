@@ -34,6 +34,7 @@ const (
 	T_Map
 
 	T_Struct // aka a message
+	// rename to.. T_Message ?
 )
 
 var DataTypeToString = map[DataType]string{

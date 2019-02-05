@@ -1,6 +1,10 @@
 package schema
 
-import "fmt"
+import (
+	"strings"
+
+	"github.com/pkg/errors"
+)
 
 type VarType struct {
 	Type DataType
@@ -19,21 +23,64 @@ func (t VarType) MarshalJSON() ([]byte, error) {
 }
 
 func (t *VarType) UnmarshalJSON(b []byte) error {
-	s := string(b)
-	fmt.Println("woohoo", s)
+	if len(b) <= 2 {
+		return errors.Errorf("type cannot be empty")
+	}
+	s := string(b) // string value will be wrapped in quotes
 
-	// start, cannot be len 0, or error
+	// validate its a string value
+	if s[0:1] != "\"" {
+		return errors.Errorf("json error: string value is expected")
+	}
+	if s[len(s)-1:] != "\"" {
+		return errors.Errorf("json error: string value is expected")
+	}
 
-	// first, lets get datatype
+	// trim string quotes from the json string
+	s = s[1:]
+	s = s[:len(s)-1]
 
-	// second, if complex type, parse those (ie. map/list)
+	// parse data type from string
+	dataType, ok := DataTypeFromString[s]
 
-	// note: for structs, what do we do..? cuz its a ref
-	// to another type.., we can have a var that is a Message
-	// we can check list of Messages..
-	//
-	// .. we cant do that at unmarshal step, would need to
-	// be post-processed to get the ref from the MessageName
+	if !ok {
+		// test for complex datatype
+		if strings.HasPrefix(s, DataTypeToString[T_List]) {
+			dataType = T_List
+		} else if strings.HasPrefix(s, DataTypeToString[T_Map]) {
+			dataType = T_Map
+		}
+	}
+
+	// if dataType == T_Invalid {
+	// 	return errors.Errorf("unknown type %s", s)
+	// }
+
+	// Set core data type
+	t.Type = dataType
+
+	// For complex types, keep parsing
+	switch t.Type {
+	case T_List:
+		// TODO: support [][]string
+		// TODO: support []<message> type..? yes
+
+	case T_Map:
+		// TODO: support map<string,map<string,uint32>>
+		// TODO: support map<string,User>
+
+	case T_Invalid:
+		// let's assume its a message ref then, until post-processor verifies
+
+	default:
+		// basic type, we're done here
+		return nil
+
+	}
+
+	// TODO: for Message/Struct type, we can put a stub(?),
+	// but need to do pass at the post-processing stage
+	// if it maps to a messageRef
 
 	return nil
 }
@@ -52,3 +99,7 @@ type VarStructType struct {
 	Name    string
 	Message *Message
 }
+
+// func testListPrefix(s string) bool {
+// 	if strings.HasPrefix(s, DataTypeToString[T_List])
+// }
