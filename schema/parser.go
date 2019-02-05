@@ -11,7 +11,7 @@ type Parser interface {
 	Parse(schema *WebRPCSchema) error
 }
 
-var NameWhitelistRexp = regexp.MustCompile("(?i)[a-z0-9_]+")
+var NameWhitelistRexp = regexp.MustCompile(`(?i)^[a-zA-Z0-9]+(\w*[a-zA-Z0-9]+)?$`)
 
 func ParseSchema(data []byte) (*WebRPCSchema, error) {
 	var schema *WebRPCSchema
