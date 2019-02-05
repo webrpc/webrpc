@@ -2,6 +2,7 @@ package schema
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -55,7 +56,12 @@ func (t *VarType) Parse(schema *WebRPCSchema) error {
 	if t.expr == "" {
 		return errors.Errorf("parse error: type expr cannot be empty")
 	}
-	return parseVarTypeExpr(schema, t.expr, t)
+	err := parseVarTypeExpr(schema, t.expr, t)
+	if err != nil {
+		return err
+	}
+	t.expr = buildVarTypeExpr(t, "")
+	return nil
 }
 
 type VarListType struct {
@@ -181,28 +187,27 @@ func parseMapExpr(expr string) (string, string, error) {
 	return key, value, nil
 }
 
-func buildVarTypeExpr(vt *VarType) string {
+func buildVarTypeExpr(vt *VarType, expr string) string {
 	switch vt.Type {
 	case T_Invalid:
 		return "<invalid>"
 
 	case T_List:
-		// TODO: support [][]string
-		// TODO: support []<message> type..? yes
-		return "list, todo.."
+		expr += "[]" + buildVarTypeExpr(vt.List.Elem, expr)
+		return expr
 
 	case T_Map:
-		// TODO: support map<string,map<string,uint32>>
-		// TODO: support map<string,User>
-		return "map, todo.."
+		expr += fmt.Sprintf("map<%s,%s>", vt.Map.Key, buildVarTypeExpr(vt.Map.Value, ""))
+		return expr
 
 	case T_Struct:
-		// TODO: ..
-		return "struct, todo.."
+		expr += vt.Struct.Name
+		return expr
 
 	default:
 		// basic type
-		return vt.Type.String()
+		expr += vt.Type.String()
+		return expr
 	}
 }
 

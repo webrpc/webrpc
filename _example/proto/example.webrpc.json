@@ -81,6 +81,14 @@
           "type": "[]map<string,uint32>"
         },
         {
+          "name": "listOfUsers",
+          "type": "[]User"
+        },
+        {
+          "name": "mapOfUsers",
+          "type": "map<string,User>"
+        },
+        {
           "name": "user",
           "type": "User"
         }

@@ -1,11 +1,13 @@
 TODO
 ====
 
-## Next up
+## Schema TODO
 
-- [x] `schema` pkg - general file parsing + structs
-- [ ] `schema` pkg - parsing DataType for lists, maps, etc.
-- [ ] `schema` pkg - 
+- [x] general file parsing + structs
+- [x] parsing DataType for lists, maps, etc.
+- [ ] dont allow dupe message names
+- [ ] service arguments
+- [ ] 
 
 
 ## Overall

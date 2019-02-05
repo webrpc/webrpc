@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 
@@ -46,4 +47,9 @@ func main() {
 	}
 
 	spew.Dump(schema)
+
+	fmt.Println("")
+	fmt.Println("")
+
+	// fmt.Println(schema.Messages[3].Fields[5].Type.String())
 }
