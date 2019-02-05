@@ -1,6 +1,16 @@
 TODO
 ====
 
+## Next up
+
+- [x] `schema` pkg - general file parsing + structs
+- [ ] `schema` pkg - parsing DataType for lists, maps, etc.
+- [ ] `schema` pkg - 
+
+
+## Overall
+
+
 - [x] example stub, hand-made
 - [~] example json-rpc for request-response method call
 - [ ] JSON-RPC? or dropping the meta-structure around it?
