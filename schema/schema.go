@@ -18,11 +18,15 @@ func (s *WebRPCSchema) Parse(schema *WebRPCSchema) error {
 	}
 
 	for _, msg := range s.Messages {
-		for _, field := range msg.Fields {
-			err := field.Type.Parse(s)
-			if err != nil {
-				return err
-			}
+		err := msg.Parse(s)
+		if err != nil {
+			return err
+		}
+	}
+	for _, svc := range s.Services {
+		err := svc.Parse(s)
+		if err != nil {
+			return err
 		}
 	}
 

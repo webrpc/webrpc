@@ -24,3 +24,11 @@ type MethodOutput struct {
 }
 
 type MethodArgument string
+
+func (m *Service) Parse(schema *WebRPCSchema) error {
+
+	// TODO: ...
+	// so................. for now, lets support primitive types
+
+	return nil
+}
