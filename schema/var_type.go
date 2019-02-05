@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 )
 
@@ -53,57 +52,10 @@ func (t *VarType) UnmarshalJSON(b []byte) error {
 }
 
 func (t *VarType) Parse(schema *WebRPCSchema) error {
-	s := t.expr
-
-	// parse data type from string
-	dataType, ok := DataTypeFromString[s]
-
-	if !ok {
-		// test for complex datatype
-		if strings.HasPrefix(s, DataTypeToString[T_List]) {
-			dataType = T_List
-		} else if strings.HasPrefix(s, DataTypeToString[T_Map]) {
-			dataType = T_Map
-		}
+	if t.expr == "" {
+		return errors.Errorf("parse error: type expr cannot be empty")
 	}
-
-	// Set core data type
-	t.Type = dataType
-
-	// For complex types, keep parsing
-	switch t.Type {
-	case T_List:
-		vt := &VarType{}
-		err := parseListTypeString(s, vt)
-		if err != nil {
-			return err
-		}
-		// TODO: set vt to t..
-		spew.Dump(vt)
-
-	case T_Map:
-		vt := &VarType{}
-		err := parseMapTypeString(s, vt)
-		if err != nil {
-			return err
-		}
-		// TODO: set vt to t..
-		spew.Dump(vt)
-
-	case T_Invalid:
-
-		// TODO: check schema.Messages list to ensure the name matches..
-		// or return an error..
-		// setup a ref.. etc.
-
-	default:
-		// basic type, we're done here
-	}
-
-	// update string expr after parsing
-	t.expr = buildVarTypeExpr(t)
-
-	return nil
+	return parseVarTypeExpr(schema, t.expr, t)
 }
 
 type VarMapType struct {
@@ -121,26 +73,74 @@ type VarStructType struct {
 	Message *Message
 }
 
-func parseListTypeString(expr string, vt *VarType) error {
-	if !strings.HasPrefix(expr, DataTypeToString[T_List]) {
+func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
+	if expr == "" {
 		return nil
 	}
 
-	// TODO: support [][]string
+	// parse data type from string
+	dataType, ok := DataTypeFromString[expr]
 
-	// TODO: support []<message>
+	if !ok {
+		// test for complex datatype
+		if strings.HasPrefix(expr, DataTypeToString[T_List]) {
+			dataType = T_List
+		} else if strings.HasPrefix(expr, DataTypeToString[T_Map]) {
+			dataType = T_Map
+		}
+	}
+
+	// Set core data type
+	vt.Type = dataType
+
+	// For complex types, keep parsing
+	switch vt.Type {
+	case T_List:
+		// vt := &VarType{}
+		// err := parseListTypeString(s, vt)
+		// if err != nil {
+		// 	return err
+		// }
+		// // TODO: set vt to t..
+		// spew.Dump(vt)
+
+	case T_Map:
+		// vt := &VarType{}
+		// err := parseMapTypeString(s, vt)
+		// if err != nil {
+		// 	return err
+		// }
+		// // TODO: set vt to t..
+		// spew.Dump(vt)
+
+	case T_Invalid:
+
+		// TODO: check schema.Messages list to ensure the name matches..
+		// or return an error..
+		// setup a ref.. etc.
+
+	default:
+		// basic type, we're done here
+	}
+
 	return nil
 }
 
-func parseMapTypeString(expr string, vt *VarType) error {
-	// TODO: support map<string,map<string,uint32>>
-	// TODO: support map<string,User>
-	return nil
-}
+// func parseListTypeString(expr string, vt *VarType) error {
+// 	// TODO: support [][]string
+// 	// TODO: support []<message>
+// 	return nil
+// }
 
-func parseStructTypeString(expr string, vt *VarType) error {
-	return nil
-}
+// func parseMapTypeString(expr string, vt *VarType) error {
+// 	// TODO: support map<string,map<string,uint32>>
+// 	// TODO: support map<string,User>
+// 	return nil
+// }
+
+// func parseStructTypeString(expr string, vt *VarType) error {
+// 	return nil
+// }
 
 func buildVarTypeExpr(vt *VarType) string {
 	switch vt.Type {
