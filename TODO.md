@@ -9,7 +9,9 @@ TODO
 - [x] service parsing + verification
 - [x] VarName casing methods
 - [x] VarName parsing + verification, check against regexp a-z0-9_
-- [ ] service arguments
+- [x] service arguments
+- [ ] rpc methods, do we need argument names for inputs?
+- [ ] rpc methods, do we need argument names for outputs?
 - [ ] Enum design.. review
 - [ ] enum parsing + verification
 

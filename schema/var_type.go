@@ -92,9 +92,9 @@ func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 
 	if !ok {
 		// test for complex datatype
-		if strings.HasPrefix(expr, DataTypeToString[T_List]) {
+		if isListExpr(expr) {
 			dataType = T_List
-		} else if strings.HasPrefix(expr, DataTypeToString[T_Map]) {
+		} else if isMapExpr(expr) {
 			dataType = T_Map
 		}
 	}
@@ -156,12 +156,11 @@ func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 }
 
 func parseMapExpr(expr string) (string, string, error) {
-	mapKeyword := DataTypeToString[T_Map]
-
-	if !strings.HasPrefix(expr, mapKeyword) {
+	if !isMapExpr(expr) {
 		return "", "", errors.Errorf("schema error: invalid map expr for '%s'", expr)
 	}
 
+	mapKeyword := DataTypeToString[T_Map]
 	expr = expr[len(mapKeyword):]
 
 	if expr[0:1] != "<" {
@@ -231,4 +230,14 @@ func getMessageType(schema *WebRPCSchema, structExpr string) (*Message, bool) {
 		}
 	}
 	return nil, false
+}
+
+func isListExpr(expr string) bool {
+	listTest := DataTypeToString[T_List]
+	return strings.HasPrefix(expr, listTest)
+}
+
+func isMapExpr(expr string) bool {
+	mapTest := DataTypeToString[T_Map] + "<"
+	return strings.HasPrefix(expr, mapTest)
 }

@@ -12,24 +12,16 @@ type Service struct {
 }
 
 type Method struct {
-	Name    VarName         `json:"name"`
-	Inputs  []*MethodInput  `json:"inputs"`
-	Outputs []*MethodOutput `json:"outputs`
+	Name    VarName           `json:"name"`
+	Inputs  []*MethodArgument `json:"inputs"`
+	Outputs []*MethodArgument `json:"outputs`
 }
 
-type MethodInput struct {
-	Name   VarName        `json:"name"`
-	Type   MethodArgument `json:"type"`   // TODO: VarType? Argument? ..perhaps ServiceArgument if we only allow struct..
-	Stream bool           `json:"stream"` // TOOD(future)
+type MethodArgument struct {
+	Name   VarName  `json:"name"`
+	Type   *VarType `json:"type"`
+	Stream bool     `json:"stream"` // TOOD(future)
 }
-
-type MethodOutput struct {
-	Name   VarName        `json:"name"`
-	Type   MethodArgument `json:"type"`   // TODO: same as input above..
-	Stream bool           `json:"stream"` // TOOD(future)
-}
-
-type MethodArgument string
 
 func (s *Service) Parse(schema *WebRPCSchema) error {
 	// Service name
@@ -79,5 +71,44 @@ func (s *Service) Parse(schema *WebRPCSchema) error {
 }
 
 func (m *Method) Parse(schema *WebRPCSchema) error {
+	testValidFn := func(info string, arg *MethodArgument) error {
+		if isListExpr(arg.Type.expr) {
+			return errors.Errorf("schema error: rpc %s argument '%s' cannot be a list type in method '%s'", info, arg.Type.expr, m.Name)
+		}
+		if isMapExpr(arg.Type.expr) {
+			return errors.Errorf("schema error: rpc %s argument '%s' cannot be a map type in method '%s'", info, arg.Type.expr, m.Name)
+		}
+		return nil
+	}
+
+	// Parse+validate inputs, before/after
+	for _, input := range m.Inputs {
+		if err := testValidFn("input", input); err != nil {
+			return err
+		}
+		err := input.Type.Parse(schema)
+		if err != nil {
+			return err
+		}
+		if err := testValidFn("input", input); err != nil {
+			return err
+		}
+
+	}
+
+	// Parse+validate outputs, before/after
+	for _, output := range m.Outputs {
+		if err := testValidFn("output", output); err != nil {
+			return err
+		}
+		err := output.Type.Parse(schema)
+		if err != nil {
+			return err
+		}
+		if err := testValidFn("output", output); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
