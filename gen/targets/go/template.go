@@ -2,10 +2,10 @@ package gen
 
 const goStruct = `
 {{range .Messages}}
-	{{if .Type eq "struct" }}
+	{{if .Type | isStruct  }}
 		type {{.Name}} struct {
 			{{range .Fields}}
-				{{.Name}} {{.Type | fieldType}} {{.Tags | fieldTags}}
+				{{.Name}} {{.Type | fieldType}} {{.Meta | fieldTags}}
 			{{end}}
 		}
 	{{end}}

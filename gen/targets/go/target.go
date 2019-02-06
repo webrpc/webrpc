@@ -80,6 +80,10 @@ func methodOutputs(in []*schema.MethodArgument) (string, error) {
 	return "", nil
 }
 
+func isStruct(t schema.MessageType) bool {
+	return t == "struct"
+}
+
 var templateFuncMap = map[string]interface{}{
 	"serviceMethodName":    serviceMethodName,
 	"fieldTags":            fieldTags,
@@ -90,6 +94,7 @@ var templateFuncMap = map[string]interface{}{
 	"clientServiceName":    clientServiceName,
 	"methodInputs":         methodInputs,
 	"methodOutputs":        methodOutputs,
+	"isStruct":             isStruct,
 }
 
 func compile(s *schema.WebRPCSchema) ([]byte, error) {
