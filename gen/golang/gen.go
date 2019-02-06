@@ -10,10 +10,18 @@ import (
 
 	"github.com/rakyll/statik/fs"
 	_ "github.com/webrpc/webrpc/gen/golang/embed"
+	"github.com/webrpc/webrpc/gen/target"
 	"github.com/webrpc/webrpc/schema"
 )
 
-func Gen(proto *schema.WebRPCSchema) (string, error) {
+func init() {
+	target.Register("go", &generator{})
+}
+
+type generator struct {
+}
+
+func (g *generator) Gen(proto *schema.WebRPCSchema, opts target.Options) (string, error) {
 	// Get templates from `embed` asset package
 	// NOTE: make sure to `go generate` whenever you change the files in `templates/` folder
 	templates, err := getTemplates()

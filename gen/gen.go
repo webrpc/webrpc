@@ -1,10 +1,5 @@
 package gen
 
 import (
-	"github.com/webrpc/webrpc/gen/golang"
-	"github.com/webrpc/webrpc/schema"
+	_ "github.com/webrpc/webrpc/gen/golang"
 )
-
-func Gen(proto *schema.WebRPCSchema) (string, error) {
-	return golang.Gen(proto)
-}

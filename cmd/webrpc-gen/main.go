@@ -3,9 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 
-	"github.com/davecgh/go-spew/spew"
+	_ "github.com/webrpc/webrpc/gen"
+	"github.com/webrpc/webrpc/gen/target"
 	"github.com/webrpc/webrpc/schema"
 )
 
@@ -37,12 +40,52 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Parse the schema file
+	// Parse+validate the webrpc schema file
 	schema, err := schema.ParseSchemaFile(*schemaFlag)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	spew.Dump(schema)
+	// Call our target code-generator
+	generator := target.GetGenerator(*targetFlag)
+	if generator == nil {
+		fmt.Printf("error! unable to find generator for target '%s'\n", *targetFlag)
+		os.Exit(1)
+	}
+
+	targetOpts := target.Options{
+		PkgName:   *pkgFlag,
+		Client:    *clientFlag,
+		Server:    *serverFlag,
+		Websocket: *websocketFlag,
+	}
+
+	protoGen, err := generator.Gen(schema, targetOpts)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	// Write output
+	if *outFlag != "" && *outFlag != "stdout" {
+		outfile := *outFlag
+		cwd, err := os.Getwd()
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+		if outfile[0:1] != "/" {
+			outfile = filepath.Join(cwd, outfile)
+		}
+
+		err = ioutil.WriteFile(outfile, []byte(protoGen), 0644)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+	} else {
+		fmt.Println(protoGen)
+	}
+
 }
