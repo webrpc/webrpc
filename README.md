@@ -17,6 +17,15 @@ form for making remote server calls. See https://www.jsonrpc.org/specification
   * Extensible transports, supporting first HTTP, HTTP2 and WebSockets
 
 
+## Building from source
+
+1. Install Go 1.11+
+2. $ `go get -u github.com/webrpc/webrpc`
+3. $ `make build`
+4. $ `make test`
+5. $ `go install ./cmd/webrpc-gen`
+
+
 ## Schema
 
   * primitives
