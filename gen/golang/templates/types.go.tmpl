@@ -1,4 +1,39 @@
 {{define "types"}}
---TYPES-START
---TYPES-END
+
+{{if .Messages}}
+  {{range .Messages}}
+    {{if .Type | isEnum}}
+      {{$enumName := .Name}}
+      {{range .Fields}}
+        // {{$enumName}}_{{.Name}} = {{.Type}} {{.Value}}
+      {{end}}
+    {{end}}
+    {{if .Type | isStruct  }}
+      type {{.Name}} struct {
+        {{range .Fields}}
+          {{.Name | exportedField}} {{.Type | fieldType}} {{.Meta | fieldTags}}
+        {{end}}
+      }
+    {{end}}
+  {{end}}
+{{end}}
+{{if .Services}}
+  {{range .Services}}
+    type {{.Name}} interface {
+      {{range .Methods}}
+        {{.Name}}({{.Inputs | methodInputs}}) ({{.Outputs | methodOutputs}})
+      {{end}}
+    }
+  {{end}}
+  var Services = map[string][]string{
+    {{range .Services}}
+      "{{.Name}}": {
+        {{range .Methods}}
+          "{{.Name}}",
+        {{end}}
+      },
+    {{end}}
+  }
+{{end}}
+
 {{end}}

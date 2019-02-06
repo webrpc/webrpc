@@ -3,6 +3,7 @@ package golang
 
 import (
 	"bytes"
+	"go/format"
 	"io/ioutil"
 	"os"
 	"text/template"
@@ -21,7 +22,9 @@ func Gen(proto *schema.WebRPCSchema) (string, error) {
 	}
 
 	// Load templates
-	tmpl := template.New("webrpc-gen")
+	tmpl := template.
+		New("webrpc-gen").
+		Funcs(templateFuncMap)
 	for _, tmplData := range templates {
 		_, err = tmpl.Parse(tmplData)
 		if err != nil {
@@ -30,19 +33,20 @@ func Gen(proto *schema.WebRPCSchema) (string, error) {
 	}
 
 	// Generate the template
-	vars := struct {
-		Name string
-	}{
-		"joe",
-	}
-
 	genBuf := bytes.NewBuffer(nil)
-	err = tmpl.ExecuteTemplate(genBuf, "proto", vars)
+	// Generate the template
+
+	err = tmpl.ExecuteTemplate(genBuf, "proto", proto)
 	if err != nil {
 		return "", err
 	}
 
-	return string(genBuf.Bytes()), nil
+	src, err := format.Source(genBuf.Bytes())
+	if err != nil {
+		return "", err
+	}
+
+	return string(src), nil
 }
 
 func getTemplates() (map[string]string, error) {

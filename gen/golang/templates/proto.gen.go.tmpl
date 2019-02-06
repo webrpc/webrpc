@@ -1,9 +1,27 @@
 {{define "proto"}}
---PROTO-START
-{{/* this is a comment in the template.., I think? */}}
+package proto
 
-{{template "types"}}
-{{template "client"}}
-{{template "server"}}
---PROTO-END
+import (
+  "bytes"
+  "context"
+  "encoding/json"
+  "io"
+  "io/ioutil"
+  "net/http"
+  "net/url"
+  "strings"
+  "time"
+
+  "github.com/pkg/errors"
+  "github.com/webrpc/webrpc/lib/webrpc-go"
+)
+
+{{template "types" .}}
+
+{{template "client" .}}
+
+{{template "server" .}}
+
+{{template "helpers" .}}
+
 {{end}}
