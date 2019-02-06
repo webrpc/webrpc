@@ -1,12 +1,9 @@
-package gen
+package golang
 
 import (
-	"bytes"
 	"fmt"
-	"go/format"
 	"strconv"
 	"strings"
-	"text/template"
 
 	"github.com/webrpc/webrpc/schema"
 )
@@ -175,31 +172,4 @@ var templateFuncMap = map[string]interface{}{
 	"isStruct":              isStruct,
 	"isEnum":                isEnum,
 	"exportedField":         exportedField,
-}
-
-func compileTemplate(src string, s *schema.WebRPCSchema) ([]byte, error) {
-	tpl, err := template.New("").
-		Funcs(templateFuncMap).
-		Parse(src)
-
-	if err != nil {
-		return nil, err
-	}
-	buf := bytes.NewBuffer(nil)
-	if err := tpl.Execute(buf, s); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
-}
-
-func compile(s *schema.WebRPCSchema) ([]byte, error) {
-	buf, err := compileTemplate(goTemplate, s)
-	if err != nil {
-		return nil, err
-	}
-	z, err := format.Source(buf)
-	if err != nil {
-		return buf, err
-	}
-	return z, nil
 }
