@@ -78,7 +78,7 @@ type VarStructType struct {
 	Message *Message
 }
 
-var VarMapKeyDataTypes = []DataType{
+var VarAllowedKeyDataTypes = []DataType{
 	T_String, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
@@ -179,7 +179,7 @@ func parseMapExpr(expr string) (string, string, error) {
 	key := expr[0:p]
 	value := expr[p+1:]
 
-	if !isValidVarMapKeyType(key) {
+	if !isValidVarKeyType(key) {
 		return "", "", errors.Errorf("schema error: invalid map key '%s' for '%s'", key, expr)
 	}
 
@@ -210,12 +210,12 @@ func buildVarTypeExpr(vt *VarType, expr string) string {
 	}
 }
 
-func isValidVarMapKeyType(s string) bool {
+func isValidVarKeyType(s string) bool {
 	dt, ok := DataTypeFromString[s]
 	if !ok {
 		return false
 	}
-	for _, t := range VarMapKeyDataTypes {
+	for _, t := range VarAllowedKeyDataTypes {
 		if dt == t {
 			return true
 		}

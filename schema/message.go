@@ -85,6 +85,7 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 
 	// For enums only, ensure all field types are the same
 	if m.Type == "enum" {
+		// ensure enum fields have value key set, and are all of the same type
 		fieldTypes := map[string]struct{}{}
 		for _, field := range m.Fields {
 			fieldType := field.Type.expr
@@ -95,6 +96,12 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 		}
 		if len(fieldTypes) > 1 {
 			return errors.Errorf("schema error: enum message '%s' must all have the same field type", m.Name)
+		}
+
+		// ensure enum type is one of the allowed types.. aka integer or string
+		fieldType := m.Fields[0].Type.String()
+		if !isValidVarKeyType(fieldType) {
+			return errors.Errorf("schema error: enum message '%s' field '%s' is invalid. must be either integer or string.", m.Name, fieldType)
 		}
 	}
 

@@ -11,15 +11,24 @@ TODO
 - [x] VarName parsing + verification, check against regexp a-z0-9_
 - [x] service arguments
 - [x] timestamp type
+- [x] Enum design.. review
+- [x] enum parsing + verification
 - [ ] rpc methods, do we need argument names for inputs?
 - [ ] rpc methods, do we need argument names for outputs?
-- [ ] Enum design.. review
-- [ ] enum parsing + verification
+- [ ] improve Go client error response code, some TODO's in there..
+
 
 ## Next
 
 - [ ] json-rpc, to be or not to be?
+
+- [ ] request payload -- do we need to wrap in json-rpc for any good reason?
+- [ ] response payload -- we need to clearly identify an error response versus app response, maybe just status codes + response type is enuf?
+- [ ] streaming request payload -- we will need a sequence number here
+- [ ] streaming response payload -- we will need a sequence number and status code here
+
 - [ ] request body via query params option (more cachable)
+    * is this needed..? perhaps CloudFlare workers can help us instead?
 
 
 ## Overall
