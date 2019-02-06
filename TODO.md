@@ -48,11 +48,11 @@ TODO
 * /gen/golang           - code-gen templates for Go client+server via schema ast
 * /gen/typescript       - code-gen templates for TS client+server
 * /gen/<targetlang>     - ...
-* /runtime/webrpc-go    - Runtime for Go client+server
-* /runtime/webrpc-js    - Runtime JS client (Web/node) + server (node)
-* /runtime/webrpc-ts    - Runtime TS client (Web/node) + server (node)
-* /runtime/webrpc-rust  - ..
-* /runtime/<targetlang>
+* /pkgs/webrpc-go       - Lib for Go client+server
+* /pkgs/webrpc-js       - Lib for JS client (Web/node) + server (node)
+* /pkgs/webrpc-ts       - Lib for TS client (Web/node) + server (node)
+* /pkgs/webrpc-rust     - ..
+* /pkgs/<targetlang>
 
 NOTE: we may only need a runtime for the server parts..
 and clients could be self-contained from code generated source (maybe).. websockets? http2? other encodings? .. would prob be seperarate dependencies..

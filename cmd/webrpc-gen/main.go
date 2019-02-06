@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/webrpc/webrpc-go/gen"
-	"github.com/webrpc/webrpc-go/schema"
+	"github.com/webrpc/webrpc/gen"
+	"github.com/webrpc/webrpc/schema"
 )
 
 /*

@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/webrpc/webrpc/runtime/webrpc-go"
+	"github.com/webrpc/webrpc/lib/webrpc-go"
 )
 
 // TODO: this file should be code-generated from the proto.json file

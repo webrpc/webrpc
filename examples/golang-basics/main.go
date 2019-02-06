@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/webrpc/webrpc/examples/golang-basics/proto"
-	"github.com/webrpc/webrpc/runtime/webrpc-go"
+	"github.com/webrpc/webrpc/lib/webrpc-go"
 )
 
 func main() {
