@@ -1,0 +1,47 @@
+{{define "client"}}
+{{if .Services}}
+  // Client
+
+  {{range .Services}}
+  const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
+  {{end}}
+
+  {{range .Services}}
+    {{ $serviceName := .Name | clientServiceName}}
+    type {{$serviceName}} struct {
+      client HTTPClient
+      urls   [{{.Methods | countMethods}}]string
+    }
+
+    func {{.Name | newClientServiceName }}(addr string, client HTTPClient) {{.Name}} {
+      prefix := urlBase(addr) + ExampleServicePathPrefix
+      urls := [{{.Methods | countMethods}}]string{
+        {{range .Methods}}
+        prefix + "{{.Name}}",
+        {{end}}
+      }
+      return &exampleServiceClient{
+        client: client,
+        urls:   urls,
+      }
+    }
+
+    {{range $i, $method := .Methods}}
+      func (c *{{$serviceName}}) {{.Name}}({{.Inputs | methodInputs}}) ({{.Outputs | methodOutputs }}) {
+        {{range .Outputs}}
+          out := new()
+        {{end}}
+        {{if .Inputs | len}}
+        err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], req, out)
+        {{else}}
+        err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], nil, out)
+        {{end}}
+        if err != nil {
+          return nil, err
+        }
+        return out, nil
+      }
+    {{end}}
+  {{end}}
+{{end}}
+{{end}}
