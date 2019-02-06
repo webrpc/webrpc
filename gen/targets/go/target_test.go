@@ -9,95 +9,97 @@ import (
 )
 
 var testMessages = []string{
-	`
-{
-  "schema": "webrpc/v0.0.1",
-  "app": "example/v0.0.1",
-  "messages": [
-    {
-      "name": "Kind",
-      "type": "enum",
-      "fields": [
-        {
-          "name": "USER",
-          "type": "uint32",
-          "value": "1"
-        },
-        {
-          "name": "ADMIN",
-          "type": "uint32",
-          "value": "2"
-        }
-      ]
-    }
-	]
-}
-`,
-	`
-{
-  "schema": "webrpc/v0.0.1",
-  "app": "example/v0.0.1",
-  "messages": [
-    {
-      "name": "Empty",
-      "type": "struct",
-      "fields": [
-      ]
-    }
-	]
-}
-`,
-	`{
-  "schema": "webrpc/v0.0.1",
-  "app": "example/v0.0.1",
-  "messages": [
-    {
-      "name": "GetUserRequest",
-      "type": "struct",
-      "fields": [
-        {
-          "name": "userID",
-          "type": "uint64",
-          "optional": false
-        }
-      ]
-    },
-    {
-      "name": "User",
-      "type": "struct",
-      "fields": [
-        {
-          "name": "ID",
-          "type": "uint64",
-          "optional": false,
-          "meta": [
-            { "json": "id" },
-            { "go.tag.db": "id" }
-          ]
-        },
-        {
-          "name": "username",
-          "type": "string",
-          "optional": false,
-          "meta": [
-            { "json": "USERNAME" },
-            { "go.tag.db": "username" }
-          ]
-        },
-        {
-          "name": "createdAt",
-          "type": "timestamp",
-          "optional": true,
-          "meta": [
-            { "json": "created_at,omitempty" },
-            { "go.tag.db": "created_at" }
-          ]
-        }
+	/*
+	   	`
+	   {
+	     "schema": "webrpc/v0.0.1",
+	     "app": "example/v0.0.1",
+	     "messages": [
+	       {
+	         "name": "Kind",
+	         "type": "enum",
+	         "fields": [
+	           {
+	             "name": "USER",
+	             "type": "uint32",
+	             "value": "1"
+	           },
+	           {
+	             "name": "ADMIN",
+	             "type": "uint32",
+	             "value": "2"
+	           }
+	         ]
+	       }
+	   	]
+	   }
+	   `,
+	   	`
+	   {
+	     "schema": "webrpc/v0.0.1",
+	     "app": "example/v0.0.1",
+	     "messages": [
+	       {
+	         "name": "Empty",
+	         "type": "struct",
+	         "fields": [
+	         ]
+	       }
+	   	]
+	   }
+	   `,
+	   	`{
+	     "schema": "webrpc/v0.0.1",
+	     "app": "example/v0.0.1",
+	     "messages": [
+	       {
+	         "name": "GetUserRequest",
+	         "type": "struct",
+	         "fields": [
+	           {
+	             "name": "userID",
+	             "type": "uint64",
+	             "optional": false
+	           }
+	         ]
+	       },
+	       {
+	         "name": "User",
+	         "type": "struct",
+	         "fields": [
+	           {
+	             "name": "ID",
+	             "type": "uint64",
+	             "optional": false,
+	             "meta": [
+	               { "json": "id" },
+	               { "go.tag.db": "id" }
+	             ]
+	           },
+	           {
+	             "name": "username",
+	             "type": "string",
+	             "optional": false,
+	             "meta": [
+	               { "json": "USERNAME" },
+	               { "go.tag.db": "username" }
+	             ]
+	           },
+	           {
+	             "name": "createdAt",
+	             "type": "timestamp",
+	             "optional": true,
+	             "meta": [
+	               { "json": "created_at,omitempty" },
+	               { "go.tag.db": "created_at" }
+	             ]
+	           }
 
-      ]
-    }
-	]
-}`,
+	         ]
+	       }
+	   	]
+	   }`,
+	*/
 	`
 {
   "schema": "webrpc/v0.0.1",
@@ -255,10 +257,11 @@ func TestGenerateGo(t *testing.T) {
 		assert.NoError(t, err)
 
 		buf, err := compile(s)
-		assert.NoError(t, err)
-		assert.NotNil(t, buf)
 
 		log.Printf("t: %s", string(buf))
+
+		assert.NoError(t, err)
+		assert.NotNil(t, buf)
 	}
 }
 

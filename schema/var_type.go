@@ -79,7 +79,7 @@ type VarStructType struct {
 }
 
 var VarMapKeyDataTypes = []DataType{
-	T_String, T_UInt8, T_Uint16, T_Uint32, T_Uint64, T_Int8, T_Int16, T_Int32, T_Int64,
+	T_String, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
 func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
