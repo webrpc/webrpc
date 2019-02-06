@@ -53,7 +53,11 @@ const goClient = `
         {{range .Outputs}}
           out := new({{.Type | fieldType}})
         {{end}}
-        err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], in, out)
+        {{if .Inputs | len}}
+        err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], req, out)
+        {{else}}
+        err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], nil, out)
+        {{end}}
         if err != nil {
           return nil, err
         }
@@ -285,7 +289,7 @@ const goServices = `
         }
       }
 
-      func (c *{{$serviceName}}) {{.Name | serviceMethodJSONName}}(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+      func (s *{{$serviceName}}) {{.Name | serviceMethodJSONName}}(ctx context.Context, w http.ResponseWriter, r *http.Request) {
         var err error
         ctx = webrpc.WithMethodName(ctx, "{{.Name}}")
 
@@ -344,7 +348,7 @@ import (
   "time"
 
   "github.com/pkg/errors"
-  "github.com/webrpc/webrpc-go"
+  "github.com/webrpc/webrpc/lib/webrpc-go"
 )
 
 ` + goStruct + `
