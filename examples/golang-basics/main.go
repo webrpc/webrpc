@@ -1,4 +1,4 @@
-//go:generate webrpc-gen -schema=example.webrpc.json -target=go -pkg=main -server -client -out=./example.gen.go
+//go:generate ../../bin/webrpc-gen -schema=example.webrpc.json -target=go -pkg=main -server -client -out=./example.gen.go
 package main
 
 import (
