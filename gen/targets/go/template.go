@@ -1,47 +1,57 @@
 package gen
 
 const goStruct = `
-{{range .Messages}}
-	{{if .Type | isStruct  }}
-		type {{.Name}} struct {
+{{if .Messages}}
+	{{range .Messages}}
+		{{if .Type | isEnum}}
+			{{$enumName := .Name}}
 			{{range .Fields}}
-				{{.Name}} {{.Type | fieldType}} {{.Meta | fieldTags}}
+				// {{$enumName}}_{{.Name}} = {{.Type}} {{.Value}}
 			{{end}}
-		}
+		{{end}}
+		{{if .Type | isStruct  }}
+			type {{.Name}} struct {
+				{{range .Fields}}
+					{{.Name}} {{.Type | fieldType}} {{.Meta | fieldTags}}
+				{{end}}
+			}
+		{{end}}
 	{{end}}
 {{end}}
 `
 
 const goClient = `
-// Client
+{{if .Services}}
+	// Client
 
-{{range .Services}}
-const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
-{{end}}
+	{{range .Services}}
+	const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
+	{{end}}
 
-{{range .Services}}
-	{{ $serviceName := .Name | clientServiceName}}
-	type {{$serviceName}} struct {
+	{{range .Services}}
+		{{ $serviceName := .Name | clientServiceName}}
+		type {{$serviceName}} struct {
 
-	}
-
-	func {{.Name | newClientServiceName }}(addr string, client HTTPClient) {{.Name}} {
-		prefix := urlBase(addr) + ExampleServicePathPrefix
-		urls := [{{.Methods | countMethods}}]string{
-			{{range .Methods}}
-			prefix + "{{.Name}}",
-			{{end}}
 		}
-		return &exampleServiceClient{
-			client: client,
-			urls:   urls,
-		}
-	}
 
-	{{range .Methods}}
-		func (c *{{$serviceName}}) {{.Name}}({{.Inputs | methodInputs}}) {{.Outputs | methodOutputs }} {
-			//
+		func {{.Name | newClientServiceName }}(addr string, client HTTPClient) {{.Name}} {
+			prefix := urlBase(addr) + ExampleServicePathPrefix
+			urls := [{{.Methods | countMethods}}]string{
+				{{range .Methods}}
+				prefix + "{{.Name}}",
+				{{end}}
+			}
+			return &exampleServiceClient{
+				client: client,
+				urls:   urls,
+			}
 		}
+
+		{{range .Methods}}
+			func (c *{{$serviceName}}) {{.Name}}({{.Inputs | methodInputs}}) {{.Outputs | methodOutputs }} {
+				//
+			}
+		{{end}}
 	{{end}}
 {{end}}
 `
@@ -179,44 +189,48 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out i
 `
 
 const goServiceInterface = `
-{{range .Services}}
-	type {{.Name}} interface {
-		{{range .Methods}}
-			{{.Name}}({{.Inputs | methodInputs}}) {{.Outputs | methodOutputs}}
-		{{end}}
-	}
+{{if .Services}}
+	{{range .Services}}
+		type {{.Name}} interface {
+			{{range .Methods}}
+				{{.Name}}({{.Inputs | methodInputs}}) {{.Outputs | methodOutputs}}
+			{{end}}
+		}
+	{{end}}
 {{end}}
 `
 
 const goServices = `
-// Server
-{{range .Services}}
-	type {{.Name}} struct {
+{{if .Services}}
+	// Server
+	{{range .Services}}
+		type {{.Name}} struct {
 
-	}
-
-	func New{{.Name}}Service() {{.Name}} {
-
-	}
-
-	{{range .Methods}}
-		func (c *{{.Name}}) {{.Name | serviceMethodName}}(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-			ctx = webrpc.WithMethodName(ctx, "{{.Name}}")
-
-			header := r.Header.Get("Content-Type")
-			i := strings.Index(header, ";")
-			if i == -1 {
-				i = len(header)
-			}
-
-			switch strings.TrimSpace(strings.ToLower(header[:i])) {
-			case "application/json":
-				s.serveGetUserJSON(ctx, w, r)
-			default:
-				err := webrpc.Errorf(webrpc.ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
-				writeJSONError(ctx, w, r, err)
-			}
 		}
+
+		func New{{.Name}}Service() {{.Name}} {
+
+		}
+
+		{{range .Methods}}
+			func (c *{{.Name}}) {{.Name | serviceMethodName}}(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+				ctx = webrpc.WithMethodName(ctx, "{{.Name}}")
+
+				header := r.Header.Get("Content-Type")
+				i := strings.Index(header, ";")
+				if i == -1 {
+					i = len(header)
+				}
+
+				switch strings.TrimSpace(strings.ToLower(header[:i])) {
+				case "application/json":
+					s.serveGetUserJSON(ctx, w, r)
+				default:
+					err := webrpc.Errorf(webrpc.ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
+					writeJSONError(ctx, w, r, err)
+				}
+			}
+		{{end}}
 	{{end}}
 {{end}}
 `
@@ -243,5 +257,6 @@ import (
 ` + goServiceInterface + `
 ` + goClient + `
 ` + goServices + `
+
 ` + goBaseCode + `
 `
