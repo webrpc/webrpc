@@ -3,66 +3,65 @@ WebRPC Schema
 
 ## Basics
 
-- byte (aka uint8)
-- bool
-- any
-- null
+- `byte` (aka uint8)
+- `bool`
+- `any`
+- `null`
 
 
 ## Numbers
 
-- integer (aka int64)
+- `uint8`
+- `uint16`
+- `uint32`
+- `uint64`
 
-- uint8
-- uint16
-- uint32
-- uint64
-
-- int8
-- int16
-- int32
-- int64
+- `int8`
+- `int16`
+- `int32`
+- `int64`
 
 
 ## Floats
 
-- float (aka float64)
-
-- float32
-- float64
+- `float32`
+- `float64`
 
 
 ## Strings
 
-- string
+- `string`
 
 
 ## Timestamps (date/time)
 
-- timestamp
-
+- `timestamp` - for date/time
+- TODO: should we have separate date and time? 
 
 ## Lists
 
-- []<type>
-
-- []string
-
-- []uint8
+- form: `[]<type>`
+- ie.
+  * `[]string`
+  * `[]uint8`
+  * `[][]string`
+  * ..
 
 
 ## Map
 
-- map<key, value>
-  * ie. map<string, any>
-
-- map<string, map<string, any>>
-
-- map<string, integer>
+- form: `map<key,value>`
+- ie.
+  * `map<string,any>`
+  * `map<string,map<string,any>>`
+  * `map<string,[]uint8>`
+  * `map<int64,[]string>`
+  * `map<string,User>` - where `User` is a struct type defined in schema
 
 
 ## Enums
 
+- TODO: review/update forms..
 - enum of strings
 - enum of integers
 
@@ -73,10 +72,9 @@ WebRPC Schema
   * TODO: https://github.com/PsychoLlama/bin-json might have some ideas for us
 
 
-## Objects aka Messages
+## Structs aka Objects / Messages
 
-- object
-  * ie. a struct, a class, etc.
+- struct or object
   * think of it just as a Javascript object or JSON object
 
 ### Some notes on objects / messages
@@ -87,8 +85,9 @@ WebRPC Schema
   - otherwise someone should make it optional which will have it be nullable
 
 
-## Services aka RPC methods
+## Services + Methods aka the RPC parts
 
+- TODO: review notes below and update.. 
 - So.. gRPC's service/rpc method definitions like `rpc Ping(Empty) returns (Empty);` or any method, set
 a requirement that a method must have one request argument and one response value. That is,
 `rpc Ping() returns (Empty);` is not allowed, nor is `rpc Ping(Empty) returns ();`, or any combination
