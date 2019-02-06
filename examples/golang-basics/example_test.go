@@ -24,6 +24,7 @@ func init() {
 	client = proto.NewExampleServiceClient("http://0.0.0.0:4242", &http.Client{
 		Timeout: time.Duration(2 * time.Second),
 	})
+	time.Sleep(time.Millisecond * 500)
 
 }
 

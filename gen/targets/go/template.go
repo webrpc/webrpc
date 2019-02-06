@@ -293,8 +293,32 @@ const goServices = `
         var err error
         ctx = webrpc.WithMethodName(ctx, "{{.Name}}")
 
+        {{if .Inputs|len}}
+
+        {{range .Inputs}}
+        reqContent := new({{.Type | fieldType}})
+        {{end}}
+
+        reqBody, err := ioutil.ReadAll(r.Body)
+        if err != nil {
+          err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to read request data")
+          writeJSONError(ctx, w, r, err)
+          return
+        }
+        defer r.Body.Close()
+
+        err = json.Unmarshal(reqBody, reqContent)
+        if err != nil {
+          err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to unmarshal request data")
+          writeJSONError(ctx, w, r, err)
+          return
+        }
+        {{end}}
+
         // Call service method
-        var respContent *bool
+        {{range .Outputs}}
+        var respContent *{{.Type | fieldType}}
+        {{end}}
         func() {
           defer func() {
             // In case of a panic, serve a 500 error and then panic.
@@ -303,7 +327,11 @@ const goServices = `
               panic(rr)
             }
           }()
-          respContent, err = s.ExampleService.Ping(ctx)
+          {{if .Inputs|len}}
+          respContent, err = s.{{$name}}.{{.Name}}(ctx, reqContent)
+          {{else}}
+          respContent, err = s.{{$name}}.{{.Name}}(ctx)
+          {{end}}
         }()
 
         if err != nil {
