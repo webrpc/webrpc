@@ -38,7 +38,7 @@ func (x Kind) String() string {
 
 func (x Kind) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
-	buf.WriteString(string(Kind_name[uint32(x)]))
+	buf.WriteString(Kind_name[uint32(x)])
 	buf.WriteString(`"`)
 	return buf.Bytes(), nil
 }
