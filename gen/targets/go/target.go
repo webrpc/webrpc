@@ -23,7 +23,7 @@ var fieldTypeMap = map[schema.DataType]string{
 	schema.T_Float32:   "float32",
 	schema.T_Float64:   "float64",
 	schema.T_String:    "string",
-	schema.T_Timestamp: "*time.Time",
+	schema.T_Timestamp: "time.Time",
 	schema.T_Null:      "struct{}",
 	schema.T_Any:       "interface{}",
 	schema.T_Byte:      "byte",
@@ -32,7 +32,12 @@ var fieldTypeMap = map[schema.DataType]string{
 
 func serviceMethodName(in schema.VarName) (string, error) {
 	s := string(in)
-	return strings.ToLower(s[0:1]) + s[1:], nil
+	return "serve" + strings.ToUpper(s[0:1]) + s[1:], nil
+}
+
+func serviceMethodJSONName(in schema.VarName) (string, error) {
+	s := string(in)
+	return "serve" + strings.ToUpper(s[0:1]) + s[1:] + "JSON", nil
 }
 
 func fieldTags(in []schema.MessageFieldMeta) (string, error) {
@@ -46,6 +51,10 @@ func fieldTags(in []schema.MessageFieldMeta) (string, error) {
 		}
 	}
 	return "`" + strings.Join(fieldTags, " ") + "`", nil
+}
+
+func newServerServiceName(in schema.VarName) (string, error) {
+	return "New" + string(in) + "Server", nil
 }
 
 func newClientServiceName(in schema.VarName) (string, error) {
@@ -90,6 +99,11 @@ func clientServiceName(in schema.VarName) (string, error) {
 	return strings.ToLower(s[0:1]) + s[1:] + "Client", nil
 }
 
+func serverServiceName(in schema.VarName) (string, error) {
+	s := string(in)
+	return strings.ToLower(s[0:1]) + s[1:] + "Server", nil
+}
+
 func methodInputName(in *schema.MethodArgument) string {
 	name := string(in.Name)
 	if name != "" {
@@ -103,7 +117,11 @@ func methodInputName(in *schema.MethodArgument) string {
 
 func methodInputType(in *schema.MethodArgument) string {
 	// TODO: how do we know when we have a pointer?
-	return in.Type.String()
+	z, err := fieldType(in.Type)
+	if err != nil {
+		panic(err.Error())
+	}
+	return "*" + z
 }
 
 func methodInputs(in []*schema.MethodArgument) (string, error) {
@@ -117,7 +135,15 @@ func methodInputs(in []*schema.MethodArgument) (string, error) {
 }
 
 func methodOutputs(in []*schema.MethodArgument) (string, error) {
-	return "", nil
+	outputs := []string{}
+
+	for i := range in {
+		outputs = append(outputs, methodInputType(in[i]))
+	}
+
+	outputs = append(outputs, "error")
+
+	return strings.Join(outputs, ", "), nil
 }
 
 func isStruct(t schema.MessageType) bool {
@@ -134,18 +160,21 @@ func isEnum(t schema.MessageType) bool {
 }
 
 var templateFuncMap = map[string]interface{}{
-	"serviceMethodName":    serviceMethodName,
-	"fieldTags":            fieldTags,
-	"fieldType":            fieldType,
-	"newClientServiceName": newClientServiceName,
-	"constPathPrefix":      constPathPrefix,
-	"countMethods":         countMethods,
-	"clientServiceName":    clientServiceName,
-	"methodInputs":         methodInputs,
-	"methodOutputs":        methodOutputs,
-	"isStruct":             isStruct,
-	"isEnum":               isEnum,
-	"exportedField":        exportedField,
+	"serviceMethodName":     serviceMethodName,
+	"serviceMethodJSONName": serviceMethodJSONName,
+	"fieldTags":             fieldTags,
+	"fieldType":             fieldType,
+	"newClientServiceName":  newClientServiceName,
+	"newServerServiceName":  newServerServiceName,
+	"constPathPrefix":       constPathPrefix,
+	"countMethods":          countMethods,
+	"clientServiceName":     clientServiceName,
+	"serverServiceName":     serverServiceName,
+	"methodInputs":          methodInputs,
+	"methodOutputs":         methodOutputs,
+	"isStruct":              isStruct,
+	"isEnum":                isEnum,
+	"exportedField":         exportedField,
 }
 
 func compileTemplate(src string, s *schema.WebRPCSchema) ([]byte, error) {
@@ -168,5 +197,9 @@ func compile(s *schema.WebRPCSchema) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return format.Source(buf)
+	z, err := format.Source(buf)
+	if err != nil {
+		return buf, err
+	}
+	return z, nil
 }
