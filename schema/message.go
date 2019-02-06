@@ -21,11 +21,11 @@ type MessageField struct {
 	Optional bool   `json:"optional"`
 	Value    string `json:"value"` // used by enums
 
-	// Tags store extra metadata for plugins
-	Tags []MessageFieldTag `json:"tags"`
+	// Meta store extra metadata on a field for plugins
+	Meta []MessageFieldMeta `json:"meta"`
 }
 
-type MessageFieldTag map[string]interface{}
+type MessageFieldMeta map[string]interface{}
 
 func (m *Message) Parse(schema *WebRPCSchema) error {
 	// Message name

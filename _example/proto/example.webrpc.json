@@ -43,27 +43,27 @@
           "name": "ID",
           "type": "uint64",
           "optional": false,
-          "tags": [
+          "meta": [
             { "json": "id" },
-            { "db": "id" }
+            { "go.tag.db": "id" }
           ]
         },
         {
           "name": "username",
           "type": "string",
           "optional": false,
-          "tags": [
+          "meta": [
             { "json": "USERNAME" },
-            { "db": "username" }
+            { "go.tag.db": "username" }
           ]
         },
         {
           "name": "createdAt",
           "type": "timestamp",
           "optional": true,
-          "tags": [
+          "meta": [
             { "json": "created_at,omitempty" },
-            { "db": "created_at" }
+            { "go.tag.db": "created_at" }
           ]
         }
 

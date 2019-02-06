@@ -36,6 +36,10 @@ type ExampleService interface {
 	GetUser(context.Context, *GetUserRequest) (*User, error)
 }
 
+var Services = map[string][]string{
+	"ExampleService": {"Ping", "GetUser"},
+}
+
 //
 // Client
 //
