@@ -35,7 +35,7 @@ extra flags, target-lang specific ... how to pass those?
 // rust, ruby, python, etc......
 
 func main() {
-	f := `/home/peter/Dev/go/src/github.com/webrpc/webrpc-go/_example/proto/example.webrpc.json`
+	f := `../../examples/golang-basics/example.webrpc.json`
 	data, err := ioutil.ReadFile(f)
 	if err != nil {
 		log.Fatal(err)

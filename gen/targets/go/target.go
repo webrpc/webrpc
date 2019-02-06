@@ -15,7 +15,7 @@ func serviceMethodName(in schema.VarName) (string, error) {
 	return strings.ToLower(s[0:1]) + s[1:], nil
 }
 
-func fieldTags(in []schema.MessageFieldTag) (string, error) {
+func fieldTags(in []schema.MessageFieldMeta) (string, error) {
 	if len(in) < 1 {
 		return "", nil
 	}
