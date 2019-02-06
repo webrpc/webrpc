@@ -85,6 +85,10 @@ func isStruct(t schema.MessageType) bool {
 	return t == "struct"
 }
 
+func isEnum(t schema.MessageType) bool {
+	return t == "enum"
+}
+
 var templateFuncMap = map[string]interface{}{
 	"serviceMethodName":    serviceMethodName,
 	"fieldTags":            fieldTags,
@@ -96,12 +100,13 @@ var templateFuncMap = map[string]interface{}{
 	"methodInputs":         methodInputs,
 	"methodOutputs":        methodOutputs,
 	"isStruct":             isStruct,
+	"isEnum":               isEnum,
 }
 
-func compile(s *schema.WebRPCSchema) ([]byte, error) {
+func compileTemplate(src string, s *schema.WebRPCSchema) ([]byte, error) {
 	tpl, err := template.New("").
 		Funcs(templateFuncMap).
-		Parse(goTemplate)
+		Parse(src)
 
 	if err != nil {
 		return nil, err
@@ -110,5 +115,13 @@ func compile(s *schema.WebRPCSchema) ([]byte, error) {
 	if err := tpl.Execute(buf, s); err != nil {
 		return nil, err
 	}
-	return format.Source(buf.Bytes())
+	return buf.Bytes(), nil
+}
+
+func compile(s *schema.WebRPCSchema) ([]byte, error) {
+	buf, err := compileTemplate(goTemplate, s)
+	if err != nil {
+		return nil, err
+	}
+	return format.Source(buf)
 }
