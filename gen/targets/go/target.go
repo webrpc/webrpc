@@ -3,13 +3,32 @@ package gen
 import (
 	"bytes"
 	"fmt"
-	"go/format"
 	"strconv"
+	//"go/format"
 	"strings"
 	"text/template"
 
 	"github.com/webrpc/webrpc/schema"
 )
+
+var fieldTypeMap = map[schema.DataType]string{
+	schema.T_Uint8:     "uint8",
+	schema.T_Uint16:    "uint16",
+	schema.T_Uint32:    "uint32",
+	schema.T_Uint64:    "uint64",
+	schema.T_Int8:      "int8",
+	schema.T_Int16:     "int16",
+	schema.T_Int32:     "int32",
+	schema.T_Int64:     "int64",
+	schema.T_Float32:   "float32",
+	schema.T_Float64:   "float64",
+	schema.T_String:    "string",
+	schema.T_Timestamp: "*time.Time",
+	schema.T_Null:      "struct{}",
+	schema.T_Any:       "interface{}",
+	schema.T_Byte:      "byte",
+	schema.T_Bool:      "bool",
+}
 
 func serviceMethodName(in schema.VarName) (string, error) {
 	s := string(in)
@@ -33,9 +52,29 @@ func newClientServiceName(in schema.VarName) (string, error) {
 	return "New" + string(in) + "Client", nil
 }
 
-func fieldType(in schema.VarType) (string, error) {
-	s := in.String()
-	return s, nil
+func fieldType(in *schema.VarType) (string, error) {
+	switch in.Type {
+	case schema.T_Map:
+		z, err := fieldType(in.Map.Value)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("map[%v]%s", in.Map.Key, z), nil
+	case schema.T_List:
+		z, err := fieldType(in.List.Elem)
+		if err != nil {
+			return "", err
+		}
+		return "[]" + z, nil
+	case schema.T_Struct:
+		// TODO: add in.Struct.Message to global structs
+		return in.Struct.Name, nil
+	default:
+		if fieldTypeMap[in.Type] != "" {
+			return fieldTypeMap[in.Type], nil
+		}
+	}
+	return "", fmt.Errorf("could not represent type: %#v", in)
 }
 
 func constPathPrefix(in schema.VarName) (string, error) {
@@ -85,6 +124,11 @@ func isStruct(t schema.MessageType) bool {
 	return t == "struct"
 }
 
+func exportedField(in schema.VarName) (string, error) {
+	s := string(in)
+	return strings.ToUpper(s[0:1]) + s[1:], nil
+}
+
 func isEnum(t schema.MessageType) bool {
 	return t == "enum"
 }
@@ -101,6 +145,7 @@ var templateFuncMap = map[string]interface{}{
 	"methodOutputs":        methodOutputs,
 	"isStruct":             isStruct,
 	"isEnum":               isEnum,
+	"exportedField":        exportedField,
 }
 
 func compileTemplate(src string, s *schema.WebRPCSchema) ([]byte, error) {
@@ -123,5 +168,6 @@ func compile(s *schema.WebRPCSchema) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return format.Source(buf)
+	return buf, nil
+	//return format.Source(buf)
 }

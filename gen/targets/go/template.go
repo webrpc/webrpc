@@ -12,7 +12,7 @@ const goStruct = `
 		{{if .Type | isStruct  }}
 			type {{.Name}} struct {
 				{{range .Fields}}
-					{{.Name}} {{.Type | fieldType}} {{.Meta | fieldTags}}
+					{{.Name | exportedField}} {{.Type | fieldType}} {{.Meta | fieldTags}}
 				{{end}}
 			}
 		{{end}}
