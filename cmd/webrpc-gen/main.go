@@ -79,6 +79,15 @@ func main() {
 			outfile = filepath.Join(cwd, outfile)
 		}
 
+		outdir := filepath.Dir(outfile)
+		if _, err := os.Stat(outdir); os.IsNotExist(err) {
+			err := os.MkdirAll(outdir, 0755)
+			if err != nil {
+				fmt.Println(err.Error())
+				os.Exit(1)
+			}
+		}
+
 		err = ioutil.WriteFile(outfile, []byte(protoGen), 0644)
 		if err != nil {
 			fmt.Println(err.Error())
