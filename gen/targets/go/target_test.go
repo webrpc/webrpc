@@ -5,11 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/webrpc/webrpc-go/schema"
+	"github.com/webrpc/webrpc/schema"
 )
 
 var testMessages = []string{
-	`{
+	`
+{
   "schema": "webrpc/v0.0.1",
   "app": "example/v0.0.1",
   "messages": [
@@ -30,8 +31,10 @@ var testMessages = []string{
       ]
     }
 	]
-}`,
-	`{
+}
+`,
+	`
+{
   "schema": "webrpc/v0.0.1",
   "app": "example/v0.0.1",
   "messages": [
@@ -42,7 +45,8 @@ var testMessages = []string{
       ]
     }
 	]
-}`,
+}
+`,
 	`{
   "schema": "webrpc/v0.0.1",
   "app": "example/v0.0.1",
@@ -66,27 +70,27 @@ var testMessages = []string{
           "name": "ID",
           "type": "uint64",
           "optional": false,
-          "tags": [
+          "meta": [
             { "json": "id" },
-            { "db": "id" }
+            { "go.tag.db": "id" }
           ]
         },
         {
           "name": "username",
           "type": "string",
           "optional": false,
-          "tags": [
+          "meta": [
             { "json": "USERNAME" },
-            { "db": "username" }
+            { "go.tag.db": "username" }
           ]
         },
         {
           "name": "createdAt",
           "type": "timestamp",
           "optional": true,
-          "tags": [
+          "meta": [
             { "json": "created_at,omitempty" },
-            { "db": "created_at" }
+            { "go.tag.db": "created_at" }
           ]
         }
 
@@ -94,49 +98,8 @@ var testMessages = []string{
     }
 	]
 }`,
-	`{
-  "schema": "webrpc/v0.0.1",
-  "app": "example/v0.0.1",
-  "services": [
-  ]
-}`,
-	`{
-  "schema": "webrpc/v0.0.1",
-  "app": "example/v0.0.1",
-  "services": [
-    {
-      "name": "ExampleService",
-      "methods": [
-        {
-          "name": "Ping",
-          "inputs": [],
-          "outputs": [
-            {
-              "name": "",
-              "type": "bool"
-            }
-          ]
-        },
-        {
-          "name": "GetUser",
-          "inputs": [
-            {
-              "name": "req",
-              "type": "GetUserRequest"
-            }
-          ],
-          "outputs": [
-            {
-              "name": "",
-              "type": "User"
-            }
-          ]
-        }
-      ]
-    }
-  ]
-}`,
-	`{
+	`
+{
   "schema": "webrpc/v0.0.1",
   "app": "example/v0.0.1",
   "messages": [
@@ -181,27 +144,27 @@ var testMessages = []string{
           "name": "ID",
           "type": "uint64",
           "optional": false,
-          "tags": [
+          "meta": [
             { "json": "id" },
-            { "db": "id" }
+            { "go.tag.db": "id" }
           ]
         },
         {
           "name": "username",
           "type": "string",
           "optional": false,
-          "tags": [
+          "meta": [
             { "json": "USERNAME" },
-            { "db": "username" }
+            { "go.tag.db": "username" }
           ]
         },
         {
           "name": "createdAt",
           "type": "timestamp",
           "optional": true,
-          "tags": [
+          "meta": [
             { "json": "created_at,omitempty" },
-            { "db": "created_at" }
+            { "go.tag.db": "created_at" }
           ]
         }
 
@@ -282,7 +245,8 @@ var testMessages = []string{
       ]
     }
   ]
-}`,
+}
+`,
 }
 
 func TestGenerateGo(t *testing.T) {

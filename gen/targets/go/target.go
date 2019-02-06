@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/webrpc/webrpc-go/schema"
+	"github.com/webrpc/webrpc/schema"
 )
 
 func serviceMethodName(in schema.VarName) (string, error) {
