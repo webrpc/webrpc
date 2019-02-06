@@ -3,6 +3,7 @@ package gen
 import (
 	"bytes"
 	"fmt"
+	"go/format"
 	"strconv"
 	"strings"
 	"text/template"
@@ -109,5 +110,5 @@ func compile(s *schema.WebRPCSchema) ([]byte, error) {
 	if err := tpl.Execute(buf, s); err != nil {
 		return nil, err
 	}
-	return buf.Bytes(), nil
+	return format.Source(buf.Bytes())
 }
