@@ -68,7 +68,7 @@ WebRPC Schema
 
 ## Binary (future / v2)
 
-- blob
+- `blob` aka.. `[]byte`
   * TODO: https://github.com/PsychoLlama/bin-json might have some ideas for us
 
 
@@ -77,7 +77,7 @@ WebRPC Schema
 - struct or object
   * think of it just as a Javascript object or JSON object
 
-### Some notes on objects / messages
+### Some notes on structs
 
 - fields of an object can be `optional`
 - fields of an object are by default required, unless made optional
