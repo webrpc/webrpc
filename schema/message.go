@@ -98,5 +98,15 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 		}
 	}
 
+	// For structs only
+	if m.Type == "struct" {
+		for _, field := range m.Fields {
+			if field.Value != "" {
+				return errors.Errorf("schema error: struct message '%s' with field '%s' cannot contain value field - please remove it", m.Name, field.Name)
+			}
+		}
+
+	}
+
 	return nil
 }
