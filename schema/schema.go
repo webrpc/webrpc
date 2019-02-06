@@ -3,8 +3,9 @@ package schema
 // schema of webrpc json file, and validations
 
 type WebRPCSchema struct {
-	Schema string `json:"schema"`
-	App    string `json:"app"`
+	Schema  string   `json:"schema"`
+	App     string   `json:"app"`
+	Imports []string `json:"imports"` // TODO ..
 
 	Messages []*Message `json:"messages"`
 	Services []*Service `json:"services"`

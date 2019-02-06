@@ -1,9 +1,7 @@
 package gen
 
 import (
-	"bytes"
-	"text/template"
-
+	"github.com/webrpc/webrpc/gen/golang"
 	"github.com/webrpc/webrpc/schema"
 )
 
@@ -12,23 +10,26 @@ import (
 
 func Gen(proto *schema.WebRPCSchema) (string, error) {
 
-	vars := struct {
-		Name string
-	}{
-		"joe",
-	}
+	// vars := struct {
+	// 	Name string
+	// }{
+	// 	"joe",
+	// }
 
-	t, err := template.New("go.client").Parse(GoClientTemplate)
-	if err != nil {
-		return "", err
-	}
+	// t, err := template.New("go.client").Parse(GoClientTemplate)
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	buf := bytes.NewBuffer(nil)
+	// buf := bytes.NewBuffer(nil)
 
-	err = t.Execute(buf, vars)
-	if err != nil {
-		return "", err
-	}
+	// err = t.Execute(buf, vars)
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	return string(buf.Bytes()), nil
+	// return string(buf.Bytes()), nil
+
+	return golang.Gen(proto)
+
 }

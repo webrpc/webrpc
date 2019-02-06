@@ -16,7 +16,7 @@ TODO
 - [ ] rpc methods, do we need argument names for inputs?
 - [ ] rpc methods, do we need argument names for outputs?
 - [ ] improve Go client error response code, some TODO's in there..
-
+- [ ] schema: "imports" statement.. to merge schema files before processing..
 
 ## Next
 
