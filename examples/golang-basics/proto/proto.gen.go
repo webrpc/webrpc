@@ -27,11 +27,11 @@ type GetUserRequest struct {
 }
 
 type User struct {
-	ID uint64 `json:"id" go.tag.db:"id"`
+	ID uint64 `db:"id"`
 
-	Username string `json:"USERNAME" go.tag.db:"username"`
+	Username string `db:"username"`
 
-	CreatedAt time.Time `json:"created_at,omitempty" go.tag.db:"created_at"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
 type RandomStuff struct {

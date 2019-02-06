@@ -44,7 +44,12 @@ func fieldTags(in []schema.MessageFieldMeta) (string, error) {
 	fieldTags := []string{}
 	for kk := range in {
 		for k := range in[kk] {
-			fieldTags = append(fieldTags, fmt.Sprintf(`%s:"%v"`, k, in[kk][k]))
+			switch {
+			case strings.HasPrefix(k, "go.tag."):
+				fieldTags = append(fieldTags, fmt.Sprintf(`%s:"%v"`, k[7:], in[kk][k]))
+			case k == "json":
+				fieldTags = append(fieldTags, fmt.Sprintf(`json:"%v"`, in[kk][k]))
+			}
 		}
 	}
 	return "`" + strings.Join(fieldTags, " ") + "`", nil
