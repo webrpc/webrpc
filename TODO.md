@@ -38,3 +38,42 @@ TODO
 - [ ] example json-rpc for streaming from client->server over websockets (and later with http2)
 - [ ] example json-rpc for streaming from server<->client over websockets (and later with http2)
  
+
+## Folder structure (ideas..)
+
+### Option A repos
+
+* github.com/webrpc/webrpc
+  * /cmd/webrpc-gen       - cli util for all generation
+  * /schema               - webrpc schema parser+validator
+  * /gen/golang           - code-gen templates for Go client+server via schema ast
+  * /gen/typescript       - ...
+  * /gen/rust
+  * /gen/<targetlang>
+
+* github.com/webrpc/webrpc-go
+  * the runtime for webrpc for Go client or servers
+
+* github.com/webrpc/webrpc-ts-server (for nodejs only)
+  * the runtime for webrpc node server
+
+* github.com/webrpc/webrpc-ts-client (for Web/node)
+  * NOTE: I don't think we'll need this, the entire client lib can fit in the
+    code-generated source I believe..
+
+* github.com/webrpc/webrpc-rust
+  * the runtime for webrpc for Rust client or servers
+
+
+### Option B monorepo github.com/webrpc/webrpc
+
+* /cmd/webrpc-gen       - cli util for all generation
+* /schema               - webrpc schema parser+validator
+* /lib/golang           - Runtime for Go client+server
+* /lib/javascript       - Runtime JS client (Web/node) + server (node)
+* /lib/typescript       - Runtime TS client (Web/node) + server (node)
+* /lib/rust
+* /lib/<targetlang>
+
+NOTE: we may only need a runtime for the server parts..
+and clients could be self-contained from code generated source (maybe).. websockets? http2? other encodings? .. would prob be seperarate dependencies..

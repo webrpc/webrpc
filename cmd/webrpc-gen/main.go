@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/davecgh/go-spew/spew"
+	"github.com/webrpc/webrpc-go/gen"
 	"github.com/webrpc/webrpc-go/schema"
 )
 
@@ -46,10 +46,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	spew.Dump(schema)
+	// spew.Dump(schema)
 
-	fmt.Println("")
-	fmt.Println("")
+	// fmt.Println("")
+	// fmt.Println("")
 
 	// fmt.Println(schema.Messages[3].Fields[5].Type.String())
+
+	tpl, err := gen.Gen(schema)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(tpl)
 }
