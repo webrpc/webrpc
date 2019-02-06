@@ -78,10 +78,6 @@ type VarStructType struct {
 	Message *Message
 }
 
-var VarAllowedKeyDataTypes = []DataType{
-	T_String, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int8, T_Int16, T_Int32, T_Int64,
-}
-
 func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 	if expr == "" {
 		return nil
@@ -210,17 +206,14 @@ func buildVarTypeExpr(vt *VarType, expr string) string {
 	}
 }
 
-func isValidVarKeyType(s string) bool {
-	dt, ok := DataTypeFromString[s]
-	if !ok {
-		return false
-	}
-	for _, t := range VarAllowedKeyDataTypes {
-		if dt == t {
-			return true
-		}
-	}
-	return false
+func isListExpr(expr string) bool {
+	listTest := DataTypeToString[T_List]
+	return strings.HasPrefix(expr, listTest)
+}
+
+func isMapExpr(expr string) bool {
+	mapTest := DataTypeToString[T_Map] + "<"
+	return strings.HasPrefix(expr, mapTest)
 }
 
 func getMessageType(schema *WebRPCSchema, structExpr string) (*Message, bool) {
@@ -232,12 +225,27 @@ func getMessageType(schema *WebRPCSchema, structExpr string) (*Message, bool) {
 	return nil, false
 }
 
-func isListExpr(expr string) bool {
-	listTest := DataTypeToString[T_List]
-	return strings.HasPrefix(expr, listTest)
+var VarKeyDataTypes = []DataType{
+	T_String, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
-func isMapExpr(expr string) bool {
-	mapTest := DataTypeToString[T_Map] + "<"
-	return strings.HasPrefix(expr, mapTest)
+var VarIntegerDataTypes = []DataType{
+	T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int8, T_Int16, T_Int32, T_Int64,
+}
+
+func isValidVarKeyType(s string) bool {
+	return isValidVarType(s, VarKeyDataTypes)
+}
+
+func isValidVarType(s string, allowedList []DataType) bool {
+	dt, ok := DataTypeFromString[s]
+	if !ok {
+		return false
+	}
+	for _, t := range allowedList {
+		if dt == t {
+			return true
+		}
+	}
+	return false
 }

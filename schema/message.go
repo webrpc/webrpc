@@ -98,10 +98,10 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 			return errors.Errorf("schema error: enum message '%s' must all have the same field type", m.Name)
 		}
 
-		// ensure enum type is one of the allowed types.. aka integer or string
+		// ensure enum type is one of the allowed types.. aka integer
 		fieldType := m.Fields[0].Type.String()
-		if !isValidVarKeyType(fieldType) {
-			return errors.Errorf("schema error: enum message '%s' field '%s' is invalid. must be either integer or string.", m.Name, fieldType)
+		if !isValidVarType(fieldType, VarIntegerDataTypes) {
+			return errors.Errorf("schema error: enum message '%s' field '%s' is invalid. must be an integer type.", m.Name, fieldType)
 		}
 	}
 

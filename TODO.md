@@ -16,8 +16,21 @@ TODO
 - [ ] rpc methods, do we need argument names for inputs?
 - [ ] rpc methods, do we need argument names for outputs?
 - [ ] improve Go client error response code, some TODO's in there..
-- [ ] schema: "imports" statement.. to merge schema files before processing..
 
+
+## Go gen
+
+- [ ] should message types be objects? .. ie "User" in schema -> *User in code..
+
+- [x] can our current gen pkg generate multiple services?
+- [ ] rename `NewExampleServiceServer` to `NewExampleServiceHandler` .. since its really a http.Handler  ..?
+- [ ] webrpc.ServiceHandlers(a, b) -- might need this to compose and use proto.Services ? to the paths.. like ..
+    * `webrpcHandler := webrpc.Router{
+        "/rpc/ExampleService": NewExampleServiceHandler(&x{})
+        "/rpc/Blah": NewBlahHandler(&y{}))
+      }`
+    * make Router a map[string]http.Handler and add a ServeHTTP() method on it ..
+    * hmm, with chi, can prob just do........ `r.Post("/rpc/ExampleService/*", NewExampleServiceHandler(&x{}))`
 
 ## Next
 
