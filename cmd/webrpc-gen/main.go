@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	_ "github.com/webrpc/webrpc/gen"
-	"github.com/webrpc/webrpc/gen/target"
+	"github.com/webrpc/webrpc/gen"
+	_ "github.com/webrpc/webrpc/gen/golang"
 	"github.com/webrpc/webrpc/schema"
 )
 
@@ -48,13 +48,13 @@ func main() {
 	}
 
 	// Call our target code-generator
-	generator := target.GetGenerator(*targetFlag)
+	generator := gen.GetGenerator(*targetFlag)
 	if generator == nil {
 		fmt.Printf("error! unable to find generator for target '%s'\n", *targetFlag)
 		os.Exit(1)
 	}
 
-	targetOpts := target.Options{
+	targetOpts := gen.TargetOptions{
 		PkgName:   *pkgFlag,
 		Client:    *clientFlag,
 		Server:    *serverFlag,
