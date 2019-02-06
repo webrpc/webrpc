@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/webrpc/webrpc-go"
-	"github.com/webrpc/webrpc-go/_example/proto"
+	"github.com/webrpc/webrpc/examples/golang-basics/proto"
+	"github.com/webrpc/webrpc/runtime/webrpc-go"
 )
 
 func main() {

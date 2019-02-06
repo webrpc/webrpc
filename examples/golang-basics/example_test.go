@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/webrpc/webrpc-go/_example/proto"
+	"github.com/webrpc/webrpc/examples/golang-basics/proto"
 )
 
 var (

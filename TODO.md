@@ -41,7 +41,24 @@ TODO
 
 ## Folder structure (ideas..)
 
-### Option A repos
+### Option A monorepo: github.com/webrpc/webrpc -- what we have right now..
+
+* /cmd/webrpc-gen       - cli util for all generation
+* /schema               - webrpc schema parser+validator
+* /gen/golang           - code-gen templates for Go client+server via schema ast
+* /gen/typescript       - code-gen templates for TS client+server
+* /gen/<targetlang>     - ...
+* /runtime/webrpc-go    - Runtime for Go client+server
+* /runtime/webrpc-js    - Runtime JS client (Web/node) + server (node)
+* /runtime/webrpc-ts    - Runtime TS client (Web/node) + server (node)
+* /runtime/webrpc-rust  - ..
+* /runtime/<targetlang>
+
+NOTE: we may only need a runtime for the server parts..
+and clients could be self-contained from code generated source (maybe).. websockets? http2? other encodings? .. would prob be seperarate dependencies..
+
+
+### Option B multiple repos
 
 * github.com/webrpc/webrpc
   * /cmd/webrpc-gen       - cli util for all generation
@@ -65,15 +82,3 @@ TODO
   * the runtime for webrpc for Rust client or servers
 
 
-### Option B monorepo github.com/webrpc/webrpc
-
-* /cmd/webrpc-gen       - cli util for all generation
-* /schema               - webrpc schema parser+validator
-* /lib/golang           - Runtime for Go client+server
-* /lib/javascript       - Runtime JS client (Web/node) + server (node)
-* /lib/typescript       - Runtime TS client (Web/node) + server (node)
-* /lib/rust
-* /lib/<targetlang>
-
-NOTE: we may only need a runtime for the server parts..
-and clients could be self-contained from code generated source (maybe).. websockets? http2? other encodings? .. would prob be seperarate dependencies..
