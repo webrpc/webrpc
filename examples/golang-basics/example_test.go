@@ -7,11 +7,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/webrpc/webrpc/examples/golang-basics/proto"
 )
 
 var (
-	client proto.ExampleService
+	client ExampleService
 )
 
 // func TestMain()
@@ -21,7 +20,7 @@ func init() {
 		startServer()
 	}()
 
-	client = proto.NewExampleServiceClient("http://0.0.0.0:4242", &http.Client{
+	client = NewExampleServiceClient("http://0.0.0.0:4242", &http.Client{
 		Timeout: time.Duration(2 * time.Second),
 	})
 	time.Sleep(time.Millisecond * 500)
@@ -36,16 +35,16 @@ func TestPing(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	{
-		resp, err := client.GetUser(context.Background(), &proto.GetUserRequest{
+		resp, err := client.GetUser(context.Background(), &GetUserRequest{
 			UserID: 12,
 		})
-		assert.Equal(t, &proto.User{ID: 1, Username: "hihi"}, resp)
+		assert.Equal(t, &User{ID: 1, Username: "hihi"}, resp)
 		assert.NoError(t, err)
 	}
 
 	{
 		// Error case, expecting to receive an error
-		resp, err := client.GetUser(context.Background(), &proto.GetUserRequest{
+		resp, err := client.GetUser(context.Background(), &GetUserRequest{
 			UserID: 911,
 		})
 
