@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/webrpc/webrpc/schema"
 	"log"
+	"os"
 	"testing"
 )
 
@@ -168,4 +169,12 @@ func TestGenTypescript(t *testing.T) {
 	assert.NoError(t, err)
 
 	log.Printf("o: %v", o)
+
+	fp, err := os.Create("out.ts")
+	assert.NoError(t, err)
+
+	_, err = fp.Write([]byte(o))
+	assert.NoError(t, err)
+
+	fp.Close()
 }
