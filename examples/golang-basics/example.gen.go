@@ -15,6 +15,8 @@ import (
 	"github.com/webrpc/webrpc/lib/webrpc-go"
 )
 
+type Kind uint32
+
 // Kind_USER = uint32 1
 
 // Kind_ADMIN = uint32 2
