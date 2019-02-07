@@ -4,10 +4,47 @@
   {{range .Messages}}
     {{if .Type | isEnum}}
       {{$enumName := .Name}}
-      type {{$enumName}} {{.EnumType}}
-      {{range .Fields}}
-        // {{$enumName}}_{{.Name}} = {{.Type}} {{.Value}}
-      {{end}}
+      {{$enumType := .EnumType}}
+      type {{$enumName}} {{$enumType}}
+
+      const (
+        {{- range .Fields}}
+          {{$enumName}}_{{.Name}} {{$enumName}} = {{.Value}}
+        {{- end}}
+      )
+
+      var {{$enumName}}_name = map[{{$enumType}}]string {
+        {{- range .Fields}}
+          {{.Value}}: "{{.Name}}",
+        {{- end}}
+      }
+
+      var {{$enumName}}_value = map[string]{{$enumType}} {
+        {{- range .Fields}}
+          "{{.Name}}": {{.Value}},
+        {{- end}}
+      }
+
+      func (x {{$enumName}}) String() string {
+        return {{$enumName}}_name[{{$enumType}}(x)]
+      }
+
+      func (x {{$enumName}}) MarshalJSON() ([]byte, error) {
+        buf := bytes.NewBufferString(`"`)
+        buf.WriteString({{$enumName}}_name[{{$enumType}}(x)])
+        buf.WriteString(`"`)
+        return buf.Bytes(), nil
+      }
+
+      func (x *{{$enumName}}) UnmarshalJSON(b []byte) error {
+        var j string
+        err := json.Unmarshal(b, &j)
+        if err != nil {
+          return err
+        }
+        *x = {{$enumName}}({{$enumName}}_value[j])
+        return nil
+      }
     {{end}}
     {{if .Type | isStruct  }}
       type {{.Name}} struct {
