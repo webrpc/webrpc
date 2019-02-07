@@ -9,21 +9,21 @@ import (
 )
 
 var fieldTypeMap = map[schema.DataType]string{
-	schema.T_Uint8:     "uint8",
-	schema.T_Uint16:    "uint16",
-	schema.T_Uint32:    "uint32",
-	schema.T_Uint64:    "uint64",
-	schema.T_Int8:      "int8",
-	schema.T_Int16:     "int16",
-	schema.T_Int32:     "int32",
-	schema.T_Int64:     "int64",
-	schema.T_Float32:   "float32",
-	schema.T_Float64:   "float64",
+	schema.T_Uint8:     "number",
+	schema.T_Uint16:    "number",
+	schema.T_Uint32:    "number",
+	schema.T_Uint64:    "number",
+	schema.T_Int8:      "number",
+	schema.T_Int16:     "number",
+	schema.T_Int32:     "number",
+	schema.T_Int64:     "number",
+	schema.T_Float32:   "number",
+	schema.T_Float64:   "number",
 	schema.T_String:    "string",
-	schema.T_Timestamp: "time.Time",
-	schema.T_Null:      "struct{}",
-	schema.T_Any:       "interface{}",
-	schema.T_Byte:      "byte",
+	schema.T_Timestamp: "string",
+	schema.T_Null:      "null",
+	schema.T_Any:       "any",
+	schema.T_Byte:      "string",
 	schema.T_Bool:      "bool",
 }
 
@@ -63,32 +63,29 @@ func newClientServiceName(in schema.VarName) (string, error) {
 	return "New" + string(in) + "Client", nil
 }
 
-func fieldType(in *schema.MessageField) (string, error) {
-	return "", nil
-	/*
-		switch in.Type {
-		case schema.T_Map:
-			z, err := fieldType(in.Map.Value)
-			if err != nil {
-				return "", err
-			}
-			return fmt.Sprintf("map[%v]%s", in.Map.Key, z), nil
-		case schema.T_List:
-			z, err := fieldType(in.List.Elem)
-			if err != nil {
-				return "", err
-			}
-			return "[]" + z, nil
-		case schema.T_Struct:
-			// TODO: add in.Struct.Message to global structs
-			return in.Struct.Name, nil
-		default:
-			if fieldTypeMap[in.Type] != "" {
-				return fieldTypeMap[in.Type], nil
-			}
+func fieldType(in *schema.VarType) (string, error) {
+	switch in.Type {
+	case schema.T_Map:
+		z, err := fieldType(in.Map.Value)
+		if err != nil {
+			return "", err
 		}
-		return "", fmt.Errorf("could not represent type: %#v", in)
-	*/
+		return fmt.Sprintf("map[%v]%s", in.Map.Key, z), nil
+	case schema.T_List:
+		z, err := fieldType(in.List.Elem)
+		if err != nil {
+			return "", err
+		}
+		return "[]" + z, nil
+	case schema.T_Struct:
+		// TODO: add in.Struct.Message to global structs
+		return "I" + in.Struct.Name, nil
+	default:
+		if fieldTypeMap[in.Type] != "" {
+			return fieldTypeMap[in.Type], nil
+		}
+	}
+	return "", fmt.Errorf("could not represent type: %#v", in)
 }
 
 func constPathPrefix(in schema.VarName) (string, error) {
@@ -121,15 +118,18 @@ func methodInputName(in *schema.MethodArgument) string {
 }
 
 func methodInputType(in *schema.MethodArgument) string {
-	return "TODO"
+	z, _ := fieldType(in.Type)
+	return z
 }
 
 func methodInputs(in []*schema.MethodArgument) (string, error) {
-	inputs := []string{"ctx context.Context"}
+	inputs := []string{}
 
 	for i := range in {
-		inputs = append(inputs, fmt.Sprintf("%s %s", methodInputName(in[i]), methodInputType(in[i])))
+		inputs = append(inputs, fmt.Sprintf("params: %s", methodInputType(in[i])))
 	}
+
+	inputs = append(inputs, "headers: object = {}")
 
 	return strings.Join(inputs, ", "), nil
 }
@@ -141,9 +141,7 @@ func methodOutputs(in []*schema.MethodArgument) (string, error) {
 		outputs = append(outputs, methodInputType(in[i]))
 	}
 
-	outputs = append(outputs, "error")
-
-	return strings.Join(outputs, ", "), nil
+	return fmt.Sprintf("Promise<%s>", strings.Join(outputs, ", ")), nil
 }
 
 func isStruct(t schema.MessageType) bool {
@@ -155,8 +153,25 @@ func exportedField(in schema.VarName) (string, error) {
 	return strings.ToUpper(s[0:1]) + s[1:], nil
 }
 
+func interfaceName(in schema.VarName) (string, error) {
+	s := string(in)
+	return "I" + s, nil
+}
+
 func isEnum(t schema.MessageType) bool {
 	return t == "enum"
+}
+
+func serviceInterfaceName(in schema.VarName) (string, error) {
+	s := string(in)
+	return "I" + s + "Service", nil
+}
+
+func optional(in bool) (string, error) {
+	if in {
+		return "?", nil
+	}
+	return "", nil
 }
 
 var templateFuncMap = map[string]interface{}{
@@ -169,10 +184,13 @@ var templateFuncMap = map[string]interface{}{
 	"constPathPrefix":       constPathPrefix,
 	"countMethods":          countMethods,
 	"clientServiceName":     clientServiceName,
+	"interfaceName":         interfaceName,
 	"serverServiceName":     serverServiceName,
 	"methodInputs":          methodInputs,
 	"methodOutputs":         methodOutputs,
 	"isStruct":              isStruct,
 	"isEnum":                isEnum,
+	"optional":              optional,
+	"serviceInterfaceName":  serviceInterfaceName,
 	"exportedField":         exportedField,
 }
