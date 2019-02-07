@@ -10,6 +10,9 @@ type Message struct {
 	Name   VarName         `json:"name"`
 	Type   MessageType     `json:"type"`
 	Fields []*MessageField `json:"fields"`
+
+	// EnumType determined for enum types during parsing time
+	EnumType *VarType `json:"-"`
 }
 
 type MessageType string // "enum" | "struct"
@@ -99,10 +102,11 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 		}
 
 		// ensure enum type is one of the allowed types.. aka integer
-		fieldType := m.Fields[0].Type.String()
-		if !isValidVarType(fieldType, VarIntegerDataTypes) {
-			return errors.Errorf("schema error: enum message '%s' field '%s' is invalid. must be an integer type.", m.Name, fieldType)
+		fieldType := m.Fields[0].Type
+		if !isValidVarType(fieldType.String(), VarIntegerDataTypes) {
+			return errors.Errorf("schema error: enum message '%s' field '%s' is invalid. must be an integer type.", m.Name, fieldType.String())
 		}
+		m.EnumType = fieldType
 	}
 
 	// For structs only

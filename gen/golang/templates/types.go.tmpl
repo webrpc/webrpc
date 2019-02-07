@@ -4,6 +4,7 @@
   {{range .Messages}}
     {{if .Type | isEnum}}
       {{$enumName := .Name}}
+      type {{$enumName}} {{.EnumType}}
       {{range .Fields}}
         // {{$enumName}}_{{.Name}} = {{.Type}} {{.Value}}
       {{end}}
