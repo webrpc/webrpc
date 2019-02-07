@@ -20,7 +20,7 @@ all:
 	@echo ""
 
 tools:
-	GO111MODULE=off go get -u github.com/rakyll/statik
+	GO111MODULE=off go get -u github.com/goware/statik
 
 build:
 	go generate ./gen/...

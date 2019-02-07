@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/webrpc/webrpc/gen"
 	_ "github.com/webrpc/webrpc/gen/golang"
 	_ "github.com/webrpc/webrpc/gen/typescript"
@@ -63,8 +62,6 @@ func main() {
 		Server:    *serverFlag,
 		Websocket: *websocketFlag,
 	}
-
-	spew.Dump(generator)
 
 	protoGen, err := generator.Gen(schema, targetOpts)
 	if err != nil {

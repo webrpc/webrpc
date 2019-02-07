@@ -8,9 +8,9 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/rakyll/statik/fs"
+	"github.com/goware/statik/fs"
 	"github.com/webrpc/webrpc/gen"
-	_ "github.com/webrpc/webrpc/gen/golang/embed"
+	"github.com/webrpc/webrpc/gen/golang/embed"
 	"github.com/webrpc/webrpc/schema"
 )
 
@@ -42,8 +42,6 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 		}
 	}
 
-	// TODO ........... next, we need to pass opts
-	// we can embed..
 	vars := struct {
 		*schema.WebRPCSchema
 		TargetOpts gen.TargetOptions
@@ -69,7 +67,7 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 func getTemplates() (map[string]string, error) {
 	data := map[string]string{}
 
-	statikFS, err := fs.New()
+	statikFS, err := fs.New(embed.Asset)
 	if err != nil {
 		return nil, err
 	}

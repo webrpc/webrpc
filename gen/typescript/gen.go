@@ -7,9 +7,9 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/rakyll/statik/fs"
+	"github.com/goware/statik/fs"
 	"github.com/webrpc/webrpc/gen"
-	_ "github.com/webrpc/webrpc/gen/typescript/embed"
+	"github.com/webrpc/webrpc/gen/typescript/embed"
 	"github.com/webrpc/webrpc/schema"
 )
 
@@ -38,9 +38,16 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 		}
 	}
 
+	vars := struct {
+		*schema.WebRPCSchema
+		TargetOpts gen.TargetOptions
+	}{
+		proto, opts,
+	}
+
 	// Generate the template
 	genBuf := bytes.NewBuffer(nil)
-	err = tmpl.ExecuteTemplate(genBuf, "proto", proto)
+	err = tmpl.ExecuteTemplate(genBuf, "proto", vars)
 	if err != nil {
 		return "", err
 	}
@@ -51,7 +58,7 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 func getTemplates() (map[string]string, error) {
 	data := map[string]string{}
 
-	statikFS, err := fs.New()
+	statikFS, err := fs.New(embed.Asset)
 	if err != nil {
 		return nil, err
 	}
