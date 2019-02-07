@@ -21,7 +21,9 @@ all:
 
 
 build:
+	go generate ./...
 	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen
+	go generate ./...
 
 test: generate
 	go test -v ./...

@@ -29,6 +29,9 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 		return "", err
 	}
 
+	// TODO: we can move a bunch of this code to the core gen package at githb.com/webrpc/webrpc/gen
+	// .. then typescript gen, and others can use it too..
+
 	// Load templates
 	tmpl := template.
 		New("webrpc-gen").
@@ -40,11 +43,18 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 		}
 	}
 
+	// TODO ........... next, we need to pass opts
+	// we can embed..
+	vars := struct {
+		*schema.WebRPCSchema
+		TargetOpts gen.TargetOptions
+	}{
+		proto, opts,
+	}
+
 	// Generate the template
 	genBuf := bytes.NewBuffer(nil)
-	// Generate the template
-
-	err = tmpl.ExecuteTemplate(genBuf, "proto", proto)
+	err = tmpl.ExecuteTemplate(genBuf, "proto", vars)
 	if err != nil {
 		return "", err
 	}

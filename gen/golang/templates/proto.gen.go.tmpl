@@ -1,5 +1,5 @@
 {{define "proto"}}
-package proto
+package {{.TargetOpts.PkgName}}
 
 import (
   "bytes"
@@ -18,9 +18,13 @@ import (
 
 {{template "types" .}}
 
-{{template "client" .}}
+{{if .TargetOpts.Client}}
+  {{template "client" .}}
+{{end}}
 
-{{template "server" .}}
+{{if .TargetOpts.Server}}
+  {{template "server" .}}
+{{end}}
 
 {{template "helpers" .}}
 
