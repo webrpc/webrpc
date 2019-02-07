@@ -10,8 +10,9 @@
     {{if .Type | isStruct  }}
       export interface {{.Name | interfaceName}} {
         {{range .Fields}}
-          {{.Name | exportedField}}{{.Optional | optional}}: {{.Type | fieldType}}
+          {{.Name | exportedField}}?: {{.Type | fieldType}}
         {{end}}
+        toJSON?(): object
       }
 
       export class {{.Name}} implements {{.Name | interfaceName}} {
@@ -20,10 +21,20 @@
           this._data = {}
           if (_data) {
             {{range .Fields}}
-              this._data['{{.Name | exportedField}}'] = _data['{{.Name | exportedField}}']
+              this._data['{{.Name | exportedField}}'] = _data['{{.Name | exportedField}}']!
             {{end}}
           }
         }
+
+        {{ range .Fields }}
+        public get {{.Name | exportedField}}(): {{.Type | fieldType}} {
+          return this._data['{{.Name | exportedField }}']!
+        }
+        public set {{.Name | exportedField}}(value: {{.Type | fieldType}}) {
+          this._data['{{.Name | exportedField}}'] = value
+        }
+        {{ end }}
+
         public toJSON(): object {
           return this._data
         }
@@ -35,7 +46,7 @@
   {{range .Services}}
     export interface {{.Name | serviceInterfaceName}} {
       {{range .Methods}}
-        {{.Name}}: ({{.Inputs | methodInputs}}) => {{.Outputs | methodOutputs}}
+        {{.Name}}({{.Inputs | methodInputs}}): {{.Outputs | methodOutputs}}
       {{end}}
     }
   {{end}}
