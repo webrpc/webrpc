@@ -1,6 +1,7 @@
-package typescript
+package golang
 
 import (
+	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -162,13 +163,13 @@ const input = `
 `
 
 func TestGenTypescript(t *testing.T) {
+	g := &generator{}
+
 	s, err := schema.ParseSchema([]byte(input))
 	assert.NoError(t, err)
 
-	g := &generator{}
-
-	o, err := g.Gen(s, gen.TargetOptions{})
+	o, err := g.Gen(s, gen.TargetOptions{PkgName: "test"})
 	assert.NoError(t, err)
 
-	t.Logf("%s", o)
+	log.Printf("o: %v", o)
 }
