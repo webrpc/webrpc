@@ -1,11 +1,11 @@
 package typescript
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/webrpc/webrpc/schema"
-	"log"
-	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/webrpc/webrpc/gen"
+	"github.com/webrpc/webrpc/schema"
 )
 
 const input = `
@@ -165,16 +165,17 @@ func TestGenTypescript(t *testing.T) {
 	s, err := schema.ParseSchema([]byte(input))
 	assert.NoError(t, err)
 
-	o, err := Gen(s)
+	g := &generator{}
+
+	o, err := g.Gen(s, gen.TargetOptions{})
 	assert.NoError(t, err)
+	_ = o
 
-	log.Printf("o: %v", o)
+	// log.Printf("o: %v", o)
 
-	fp, err := os.Create("out.ts")
-	assert.NoError(t, err)
-
-	_, err = fp.Write([]byte(o))
-	assert.NoError(t, err)
-
-	fp.Close()
+	// fp, err := os.Create("out.ts")
+	// assert.NoError(t, err)
+	// _, err = fp.Write([]byte(o))
+	// assert.NoError(t, err)
+	// fp.Close()
 }
