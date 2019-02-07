@@ -1,9 +1,6 @@
 {
   "schema": "webrpc/v0.0.1",
   "app": "example/v0.0.1",
-  "imports": [
-    "./user.json", "./auth.json", "./etc.json"
-  ],
   "messages": [
     {
       "name": "Kind",

@@ -27,45 +27,31 @@ type GetUserRequest struct {
 }
 
 type User struct {
-	ID uint64 `json:"id" db:"id"`
-
-	Username string `json:"USERNAME" db:"username"`
-
+	ID        uint64    `json:"id" db:"id"`
+	Username  string    `json:"USERNAME" db:"username"`
 	CreatedAt time.Time `json:"created_at,omitempty" db:"created_at"`
 }
 
 type RandomStuff struct {
-	Meta map[string]interface{}
-
+	Meta              map[string]interface{}
 	MetaNestedExample map[string]map[string]uint32
-
-	NamesList []string
-
-	NumsList []int64
-
-	DoubleArray [][]string
-
-	ListOfMaps []map[string]uint32
-
-	ListOfUsers []User
-
-	MapOfUsers map[string]User
-
-	User User
+	NamesList         []string
+	NumsList          []int64
+	DoubleArray       [][]string
+	ListOfMaps        []map[string]uint32
+	ListOfUsers       []User
+	MapOfUsers        map[string]User
+	User              User
 }
 
 type ExampleService interface {
 	Ping(ctx context.Context) (*bool, error)
-
 	GetUser(ctx context.Context, req *GetUserRequest) (*User, error)
 }
 
 var Services = map[string][]string{
-
 	"ExampleService": {
-
 		"Ping",
-
 		"GetUser",
 	},
 }
