@@ -10,9 +10,9 @@
     {{end}}
     {{if .Type | isStruct  }}
       type {{.Name}} struct {
-        {{range .Fields}}
+        {{- range .Fields}}
           {{.Name | exportedField}} {{.Type | fieldType}} {{.Meta | fieldTags}}
-        {{end}}
+        {{- end}}
       }
     {{end}}
   {{end}}
@@ -20,19 +20,19 @@
 {{if .Services}}
   {{range .Services}}
     type {{.Name}} interface {
-      {{range .Methods}}
+      {{- range .Methods}}
         {{.Name}}({{.Inputs | methodInputs}}) ({{.Outputs | methodOutputs}})
-      {{end}}
+      {{- end}}
     }
   {{end}}
   var Services = map[string][]string{
-    {{range .Services}}
+    {{- range .Services}}
       "{{.Name}}": {
-        {{range .Methods}}
+        {{- range .Methods}}
           "{{.Name}}",
-        {{end}}
+        {{- end}}
       },
-    {{end}}
+    {{- end}}
   }
 {{end}}
 
