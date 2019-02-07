@@ -9,7 +9,7 @@ WebRPC Schema
 - `null`
 
 
-## Numbers
+## Integers
 
 - `uint8`
 - `uint16`
@@ -36,7 +36,7 @@ WebRPC Schema
 ## Timestamps (date/time)
 
 - `timestamp` - for date/time
-- TODO: should we have separate date and time? 
+
 
 ## Lists
 
@@ -61,7 +61,7 @@ WebRPC Schema
 
 ## Enums
 
-- enum of integers, see examples
+- enum, see examples
 
 
 ## Binary (future / v2)

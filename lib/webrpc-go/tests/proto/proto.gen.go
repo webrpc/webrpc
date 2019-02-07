@@ -61,9 +61,9 @@ type GetUserRequest struct {
 }
 
 type User struct {
-	ID        uint64    `json:"id" db:"id"`
-	Username  string    `json:"USERNAME" db:"username"`
-	CreatedAt time.Time `json:"created_at,omitempty" db:"created_at"`
+	ID        uint64     `json:"id" db:"id"`
+	Username  string     `json:"USERNAME" db:"username"`
+	CreatedAt *time.Time `json:"created_at,omitempty" db:"created_at"`
 }
 
 type RandomStuff struct {

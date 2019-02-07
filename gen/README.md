@@ -8,6 +8,7 @@ to generate source code of the Web service's type system, client library and ser
 * `go` - gen/golang
 * `ts` - gen/typescript
 
+
 ## Adding a new target
 
 Adding a new target is easy, just add a folder under `gen/` and copy one of the existing

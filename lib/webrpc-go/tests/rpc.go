@@ -37,7 +37,7 @@ func (s *exampleRPC) GetUser(ctx context.Context, req *proto.GetUserRequest) (*p
 	}
 
 	return &proto.User{
-		ID:       1,
+		ID:       req.UserID,
 		Username: "hihi",
 	}, nil
 }

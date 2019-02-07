@@ -88,6 +88,25 @@ func fieldType(in *schema.VarType) (string, error) {
 	return "", fmt.Errorf("could not represent type: %#v", in)
 }
 
+func fieldOptional(field *schema.MessageField) (string, error) {
+	if !field.Optional {
+		return "", nil
+	}
+	switch field.Type.Type {
+	case schema.T_Map:
+		return "", nil // noop
+	case schema.T_List:
+		return "", nil // noop
+	case schema.T_Struct:
+		return "*", nil
+	default:
+		if fieldTypeMap[field.Type.Type] != "" {
+			return "*", nil
+		}
+	}
+	return "", fmt.Errorf("could not represent type: %#v", field)
+}
+
 func constPathPrefix(in schema.VarName) (string, error) {
 	return string(in) + "PathPrefix", nil
 }
@@ -166,6 +185,7 @@ var templateFuncMap = map[string]interface{}{
 	"serviceMethodJSONName": serviceMethodJSONName,
 	"fieldTags":             fieldTags,
 	"fieldType":             fieldType,
+	"fieldOptional":         fieldOptional,
 	"newClientServiceName":  newClientServiceName,
 	"newServerServiceName":  newServerServiceName,
 	"constPathPrefix":       constPathPrefix,

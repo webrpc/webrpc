@@ -49,7 +49,7 @@
     {{if .Type | isStruct  }}
       type {{.Name}} struct {
         {{- range .Fields}}
-          {{.Name | exportedField}} {{.Type | fieldType}} {{.Meta | fieldTags}}
+          {{.Name | exportedField}} {{. | fieldOptional}}{{.Type | fieldType}} {{.Meta | fieldTags}}
         {{- end}}
       }
     {{end}}

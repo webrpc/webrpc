@@ -24,7 +24,7 @@ func TestGetUser(t *testing.T) {
 		resp, err := Client.GetUser(context.Background(), &proto.GetUserRequest{
 			UserID: 12,
 		})
-		assert.Equal(t, &proto.User{ID: 1, Username: "hihi"}, resp)
+		assert.Equal(t, &proto.User{ID: 12, Username: "hihi"}, resp)
 		assert.NoError(t, err)
 	}
 

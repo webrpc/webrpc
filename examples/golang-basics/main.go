@@ -32,8 +32,6 @@ func startServer() error {
 	return http.ListenAndServe(":4242", r)
 }
 
-// TODO: lets move the service entire to tests
-
 type ExampleServiceRPC struct {
 }
 
