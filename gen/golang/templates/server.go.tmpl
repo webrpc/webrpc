@@ -1,7 +1,7 @@
 {{define "server"}}
 {{if .Services}}
   // Server
-  {{range .Services}}
+  {{- range .Services}}
     {{$name := .Name}}
     {{$serviceName := .Name | serverServiceName}}
 
@@ -36,11 +36,11 @@
       }
 
       switch r.URL.Path {
-      {{range .Methods}}
+      {{- range .Methods}}
       case "/rpc/{{$name}}/{{.Name}}":
         s.{{.Name | serviceMethodName}}(ctx, w, r)
         return
-      {{end}}
+      {{- end}}
       default:
         err := webrpc.Errorf(webrpc.ErrBadRoute, "no handler for path %q", r.URL.Path)
         writeJSONError(ctx, w, r, err)
@@ -69,11 +69,11 @@
         var err error
         ctx = webrpc.WithMethodName(ctx, "{{.Name}}")
 
-        {{if .Inputs|len}}
+        {{- if .Inputs|len}}
 
-        {{range .Inputs}}
+        {{- range .Inputs}}
         reqContent := new({{.Type | fieldType}})
-        {{end}}
+        {{- end}}
 
         reqBody, err := ioutil.ReadAll(r.Body)
         if err != nil {
@@ -89,12 +89,12 @@
           writeJSONError(ctx, w, r, err)
           return
         }
-        {{end}}
+        {{- end}}
 
         // Call service method
-        {{range .Outputs}}
+        {{- range .Outputs}}
         var respContent *{{.Type | fieldType}}
-        {{end}}
+        {{- end}}
         func() {
           defer func() {
             // In case of a panic, serve a 500 error and then panic.
@@ -103,11 +103,11 @@
               panic(rr)
             }
           }()
-          {{if .Inputs|len}}
+          {{- if .Inputs|len}}
           respContent, err = s.{{$name}}.{{.Name}}(ctx, reqContent)
-          {{else}}
+          {{- else}}
           respContent, err = s.{{$name}}.{{.Name}}(ctx)
-          {{end}}
+          {{- end}}
         }()
 
         if err != nil {
@@ -133,6 +133,6 @@
         }
       }
     {{end}}
-  {{end}}
+  {{- end}}
 {{end}}
 {{end}}

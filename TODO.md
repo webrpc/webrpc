@@ -21,9 +21,7 @@ TODO
 ## Go gen
 
 - [ ] should message types be objects? .. ie "User" in schema -> *User in code..
-
 - [x] can our current gen pkg generate multiple services?
-- [ ] rename `NewExampleServiceServer` to `NewExampleServiceHandler` .. since its really a http.Handler  ..?
 
 
 ## Next

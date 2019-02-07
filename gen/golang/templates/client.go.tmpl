@@ -16,9 +16,9 @@
     func {{.Name | newClientServiceName }}(addr string, client HTTPClient) {{.Name}} {
       prefix := urlBase(addr) + {{.Name | constPathPrefix}}
       urls := [{{.Methods | countMethods}}]string{
-        {{range .Methods}}
+        {{- range .Methods}}
         prefix + "{{.Name}}",
-        {{end}}
+        {{- end}}
       }
       return &{{$serviceName}}{
         client: client,
@@ -28,14 +28,14 @@
 
     {{range $i, $method := .Methods}}
       func (c *{{$serviceName}}) {{.Name}}({{.Inputs | methodInputs}}) ({{.Outputs | methodOutputs }}) {
-        {{range .Outputs}}
+        {{- range .Outputs}}
           out := new({{.Type | fieldType}})
-        {{end}}
-        {{if .Inputs | len}}
+        {{- end}}
+        {{- if .Inputs | len}}
         err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], req, out)
-        {{else}}
+        {{- else}}
         err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], nil, out)
-        {{end}}
+        {{- end}}
         if err != nil {
           return nil, err
         }

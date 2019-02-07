@@ -111,9 +111,7 @@ type exampleRPCClient struct {
 func NewExampleRPCClient(addr string, client HTTPClient) ExampleRPC {
 	prefix := urlBase(addr) + ExampleRPCPathPrefix
 	urls := [2]string{
-
 		prefix + "Ping",
-
 		prefix + "GetUser",
 	}
 	return &exampleRPCClient{
@@ -123,11 +121,8 @@ func NewExampleRPCClient(addr string, client HTTPClient) ExampleRPC {
 }
 
 func (c *exampleRPCClient) Ping(ctx context.Context) (*bool, error) {
-
 	out := new(bool)
-
 	err := doJSONRequest(ctx, c.client, c.urls[0], nil, out)
-
 	if err != nil {
 		return nil, err
 	}
@@ -135,11 +130,8 @@ func (c *exampleRPCClient) Ping(ctx context.Context) (*bool, error) {
 }
 
 func (c *exampleRPCClient) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
-
 	out := new(User)
-
 	err := doJSONRequest(ctx, c.client, c.urls[1], req, out)
-
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +146,6 @@ type anotherRPCClient struct {
 func NewAnotherRPCClient(addr string, client HTTPClient) AnotherRPC {
 	prefix := urlBase(addr) + AnotherRPCPathPrefix
 	urls := [1]string{
-
 		prefix + "Owner",
 	}
 	return &anotherRPCClient{
@@ -164,11 +155,8 @@ func NewAnotherRPCClient(addr string, client HTTPClient) AnotherRPC {
 }
 
 func (c *anotherRPCClient) Owner(ctx context.Context) (*User, error) {
-
 	out := new(User)
-
 	err := doJSONRequest(ctx, c.client, c.urls[0], nil, out)
-
 	if err != nil {
 		return nil, err
 	}
@@ -207,15 +195,12 @@ func (s *exampleRPCServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch r.URL.Path {
-
 	case "/rpc/ExampleRPC/Ping":
 		s.servePing(ctx, w, r)
 		return
-
 	case "/rpc/ExampleRPC/GetUser":
 		s.serveGetUser(ctx, w, r)
 		return
-
 	default:
 		err := webrpc.Errorf(webrpc.ErrBadRoute, "no handler for path %q", r.URL.Path)
 		writeJSONError(ctx, w, r, err)
@@ -244,9 +229,7 @@ func (s *exampleRPCServer) servePingJSON(ctx context.Context, w http.ResponseWri
 	ctx = webrpc.WithMethodName(ctx, "Ping")
 
 	// Call service method
-
 	var respContent *bool
-
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -255,9 +238,7 @@ func (s *exampleRPCServer) servePingJSON(ctx context.Context, w http.ResponseWri
 				panic(rr)
 			}
 		}()
-
 		respContent, err = s.ExampleRPC.Ping(ctx)
-
 	}()
 
 	if err != nil {
@@ -302,7 +283,6 @@ func (s *exampleRPCServer) serveGetUser(ctx context.Context, w http.ResponseWrit
 func (s *exampleRPCServer) serveGetUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx = webrpc.WithMethodName(ctx, "GetUser")
-
 	reqContent := new(GetUserRequest)
 
 	reqBody, err := ioutil.ReadAll(r.Body)
@@ -321,9 +301,7 @@ func (s *exampleRPCServer) serveGetUserJSON(ctx context.Context, w http.Response
 	}
 
 	// Call service method
-
 	var respContent *User
-
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -332,9 +310,7 @@ func (s *exampleRPCServer) serveGetUserJSON(ctx context.Context, w http.Response
 				panic(rr)
 			}
 		}()
-
 		respContent, err = s.ExampleRPC.GetUser(ctx, reqContent)
-
 	}()
 
 	if err != nil {
@@ -390,11 +366,9 @@ func (s *anotherRPCServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch r.URL.Path {
-
 	case "/rpc/AnotherRPC/Owner":
 		s.serveOwner(ctx, w, r)
 		return
-
 	default:
 		err := webrpc.Errorf(webrpc.ErrBadRoute, "no handler for path %q", r.URL.Path)
 		writeJSONError(ctx, w, r, err)
@@ -423,9 +397,7 @@ func (s *anotherRPCServer) serveOwnerJSON(ctx context.Context, w http.ResponseWr
 	ctx = webrpc.WithMethodName(ctx, "Owner")
 
 	// Call service method
-
 	var respContent *User
-
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -434,9 +406,7 @@ func (s *anotherRPCServer) serveOwnerJSON(ctx context.Context, w http.ResponseWr
 				panic(rr)
 			}
 		}()
-
 		respContent, err = s.AnotherRPC.Owner(ctx)
-
 	}()
 
 	if err != nil {

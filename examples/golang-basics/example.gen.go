@@ -102,9 +102,7 @@ type exampleServiceClient struct {
 func NewExampleServiceClient(addr string, client HTTPClient) ExampleService {
 	prefix := urlBase(addr) + ExampleServicePathPrefix
 	urls := [2]string{
-
 		prefix + "Ping",
-
 		prefix + "GetUser",
 	}
 	return &exampleServiceClient{
@@ -114,11 +112,8 @@ func NewExampleServiceClient(addr string, client HTTPClient) ExampleService {
 }
 
 func (c *exampleServiceClient) Ping(ctx context.Context) (*bool, error) {
-
 	out := new(bool)
-
 	err := doJSONRequest(ctx, c.client, c.urls[0], nil, out)
-
 	if err != nil {
 		return nil, err
 	}
@@ -126,11 +121,8 @@ func (c *exampleServiceClient) Ping(ctx context.Context) (*bool, error) {
 }
 
 func (c *exampleServiceClient) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
-
 	out := new(User)
-
 	err := doJSONRequest(ctx, c.client, c.urls[1], req, out)
-
 	if err != nil {
 		return nil, err
 	}
@@ -169,15 +161,12 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 
 	switch r.URL.Path {
-
 	case "/rpc/ExampleService/Ping":
 		s.servePing(ctx, w, r)
 		return
-
 	case "/rpc/ExampleService/GetUser":
 		s.serveGetUser(ctx, w, r)
 		return
-
 	default:
 		err := webrpc.Errorf(webrpc.ErrBadRoute, "no handler for path %q", r.URL.Path)
 		writeJSONError(ctx, w, r, err)
@@ -206,9 +195,7 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 	ctx = webrpc.WithMethodName(ctx, "Ping")
 
 	// Call service method
-
 	var respContent *bool
-
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -217,9 +204,7 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 				panic(rr)
 			}
 		}()
-
 		respContent, err = s.ExampleService.Ping(ctx)
-
 	}()
 
 	if err != nil {
@@ -264,7 +249,6 @@ func (s *exampleServiceServer) serveGetUser(ctx context.Context, w http.Response
 func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx = webrpc.WithMethodName(ctx, "GetUser")
-
 	reqContent := new(GetUserRequest)
 
 	reqBody, err := ioutil.ReadAll(r.Body)
@@ -283,9 +267,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	}
 
 	// Call service method
-
 	var respContent *User
-
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -294,9 +276,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 				panic(rr)
 			}
 		}()
-
 		respContent, err = s.ExampleService.GetUser(ctx, reqContent)
-
 	}()
 
 	if err != nil {
