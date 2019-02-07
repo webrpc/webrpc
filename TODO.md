@@ -26,10 +26,6 @@ TODO
 
 ## Next
 
-- [ ] json-rpc, to be or not to be?
-
-- [ ] request payload -- do we need to wrap in json-rpc for any good reason?
-- [ ] response payload -- we need to clearly identify an error response versus app response, maybe just status codes + response type is enuf?
 - [ ] streaming request payload -- we will need a sequence number here
 - [ ] streaming response payload -- we will need a sequence number and status code here
 
@@ -40,9 +36,6 @@ TODO
 ## Overall
 
 - [x] example stub, hand-made
-- [~] example json-rpc for request-response method call
-- [ ] JSON-RPC? or dropping the meta-structure around it?
-
 - [x] schema - get inspiration from TS, https://www.typescriptlang.org/docs/handbook/basic-types.html
 
 - [x] code-generation of server (Go)

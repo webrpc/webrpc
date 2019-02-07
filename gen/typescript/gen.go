@@ -8,11 +8,18 @@ import (
 	"text/template"
 
 	"github.com/rakyll/statik/fs"
+	"github.com/webrpc/webrpc/gen"
 	_ "github.com/webrpc/webrpc/gen/typescript/embed"
 	"github.com/webrpc/webrpc/schema"
 )
 
-func Gen(proto *schema.WebRPCSchema) (string, error) {
+func init() {
+	gen.Register("ts", &generator{})
+}
+
+type generator struct{}
+
+func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (string, error) {
 	// Get templates from `embed` asset package
 	// NOTE: make sure to `go generate` whenever you change the files in `templates/` folder
 	templates, err := getTemplates()
@@ -22,7 +29,7 @@ func Gen(proto *schema.WebRPCSchema) (string, error) {
 
 	// Load templates
 	tmpl := template.
-		New("webrpc-gen").
+		New("webrpc-gen-ts").
 		Funcs(templateFuncMap)
 	for _, tmplData := range templates {
 		_, err = tmpl.Parse(tmplData)
@@ -33,8 +40,6 @@ func Gen(proto *schema.WebRPCSchema) (string, error) {
 
 	// Generate the template
 	genBuf := bytes.NewBuffer(nil)
-	// Generate the template
-
 	err = tmpl.ExecuteTemplate(genBuf, "proto", proto)
 	if err != nil {
 		return "", err

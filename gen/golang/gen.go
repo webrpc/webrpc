@@ -18,8 +18,7 @@ func init() {
 	gen.Register("go", &generator{})
 }
 
-type generator struct {
-}
+type generator struct{}
 
 func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (string, error) {
 	// Get templates from `embed` asset package
@@ -34,7 +33,7 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 
 	// Load templates
 	tmpl := template.
-		New("webrpc-gen").
+		New("webrpc-gen-go").
 		Funcs(templateFuncMap)
 	for _, tmplData := range templates {
 		_, err = tmpl.Parse(tmplData)

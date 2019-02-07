@@ -7,8 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/webrpc/webrpc/gen"
 	_ "github.com/webrpc/webrpc/gen/golang"
+	_ "github.com/webrpc/webrpc/gen/typescript"
 	"github.com/webrpc/webrpc/schema"
 )
 
@@ -36,6 +38,7 @@ func main() {
 		os.Exit(1)
 	}
 	if *targetFlag != "go" && *targetFlag != "ts" {
+		// TODO: check list and return response from gen.Generators keys ..
 		fmt.Println("oops, you passed an invalid -target flag, see -h for help/usage")
 		os.Exit(1)
 	}
@@ -60,6 +63,8 @@ func main() {
 		Server:    *serverFlag,
 		Websocket: *websocketFlag,
 	}
+
+	spew.Dump(generator)
 
 	protoGen, err := generator.Gen(schema, targetOpts)
 	if err != nil {
