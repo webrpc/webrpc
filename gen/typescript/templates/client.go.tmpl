@@ -7,41 +7,38 @@
   {{end}}
 
   {{range .Services}}
-    {{ $serviceName := .Name | clientServiceName}}
-    type {{$serviceName}} struct {
-      client HTTPClient
-      urls   [{{.Methods | countMethods}}]string
+
+    export class {{.Name}} implements {{.Name | serviceInterfaceName}} {
+      private hostname: string
+      private fetch: Fetch
+      private path = '/rpc/{{.Name}}'
+
+			constructor(hostname: string, fetch: Fetch) {
+				this.hostname = hostname
+				this.fetch = fetch
+			}
+
+			private url(name: string): string {
+				return this.hostname + this.path + name
+			}
+
+      {{range .Methods}}
+        {{.Name}}({{.Inputs | methodInputs}}) ({{.Outputs | methodOutputs}}) {
+					return this.fetch(
+						this.url('{{.Name}}'),
+						createHTTPRequest(params, headers)
+					).then((res) => {
+						if (!res.ok) {
+							return throwHTTPError(res)
+						}
+						{{range $output := .Outputs}}
+							return res.json().then((_data) => {return {{$output | newResponseConcreteType}}(_data)})
+						{{end}}
+					})
+				}
+      {{end}}
     }
 
-    func {{.Name | newClientServiceName }}(addr string, client HTTPClient) {{.Name}} {
-      prefix := urlBase(addr) + ExampleServicePathPrefix
-      urls := [{{.Methods | countMethods}}]string{
-        {{range .Methods}}
-        prefix + "{{.Name}}",
-        {{end}}
-      }
-      return &exampleServiceClient{
-        client: client,
-        urls:   urls,
-      }
-    }
-
-    {{range $i, $method := .Methods}}
-      func (c *{{$serviceName}}) {{.Name}}({{.Inputs | methodInputs}}) ({{.Outputs | methodOutputs }}) {
-        {{range .Outputs}}
-          out := new()
-        {{end}}
-        {{if .Inputs | len}}
-        err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], req, out)
-        {{else}}
-        err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], nil, out)
-        {{end}}
-        if err != nil {
-          return nil, err
-        }
-        return out, nil
-      }
-    {{end}}
   {{end}}
 {{end}}
 {{end}}
