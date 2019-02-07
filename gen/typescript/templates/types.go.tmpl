@@ -38,12 +38,6 @@
         {{.Name}}: ({{.Inputs | methodInputs}}) {{.Outputs | methodOutputs}}
       {{end}}
     }
-
-    export class {{.Name}} implements {{.Name | serviceInterfaceName}} {
-      {{range .Methods}}
-        {{.Name}}({{.Inputs | methodInputs}}) ({{.Outputs | methodOutputs}})
-      {{end}}
-    }
   {{end}}
   var Services = map[string][]string{
     {{range .Services}}

@@ -63,6 +63,31 @@ func newClientServiceName(in schema.VarName) (string, error) {
 	return "New" + string(in) + "Client", nil
 }
 
+func fieldConcreteType(in *schema.VarType) (string, error) {
+	switch in.Type {
+	case schema.T_Map:
+		z, err := fieldType(in.Map.Value)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("map[%v]%s", in.Map.Key, z), nil
+	case schema.T_List:
+		z, err := fieldType(in.List.Elem)
+		if err != nil {
+			return "", err
+		}
+		return "[]" + z, nil
+	case schema.T_Struct:
+		// TODO: add in.Struct.Message to global structs
+		return in.Struct.Name, nil
+	default:
+		if fieldTypeMap[in.Type] != "" {
+			return fieldTypeMap[in.Type], nil
+		}
+	}
+	return "", fmt.Errorf("could not represent type: %#v", in)
+}
+
 func fieldType(in *schema.VarType) (string, error) {
 	switch in.Type {
 	case schema.T_Map:
@@ -174,23 +199,32 @@ func optional(in bool) (string, error) {
 	return "", nil
 }
 
+func newResponseConcreteType(in schema.MethodArgument) (string, error) {
+	z, err := fieldConcreteType(in.Type)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("new %s", z), nil
+}
+
 var templateFuncMap = map[string]interface{}{
-	"serviceMethodName":     serviceMethodName,
-	"serviceMethodJSONName": serviceMethodJSONName,
-	"fieldTags":             fieldTags,
-	"fieldType":             fieldType,
-	"newClientServiceName":  newClientServiceName,
-	"newServerServiceName":  newServerServiceName,
-	"constPathPrefix":       constPathPrefix,
-	"countMethods":          countMethods,
-	"clientServiceName":     clientServiceName,
-	"interfaceName":         interfaceName,
-	"serverServiceName":     serverServiceName,
-	"methodInputs":          methodInputs,
-	"methodOutputs":         methodOutputs,
-	"isStruct":              isStruct,
-	"isEnum":                isEnum,
-	"optional":              optional,
-	"serviceInterfaceName":  serviceInterfaceName,
-	"exportedField":         exportedField,
+	"serviceMethodName":       serviceMethodName,
+	"serviceMethodJSONName":   serviceMethodJSONName,
+	"fieldTags":               fieldTags,
+	"fieldType":               fieldType,
+	"newClientServiceName":    newClientServiceName,
+	"newServerServiceName":    newServerServiceName,
+	"newResponseConcreteType": newResponseConcreteType,
+	"constPathPrefix":         constPathPrefix,
+	"countMethods":            countMethods,
+	"clientServiceName":       clientServiceName,
+	"interfaceName":           interfaceName,
+	"serverServiceName":       serverServiceName,
+	"methodInputs":            methodInputs,
+	"methodOutputs":           methodOutputs,
+	"isStruct":                isStruct,
+	"isEnum":                  isEnum,
+	"optional":                optional,
+	"serviceInterfaceName":    serviceInterfaceName,
+	"exportedField":           exportedField,
 }
