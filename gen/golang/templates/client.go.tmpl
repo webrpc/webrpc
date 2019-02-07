@@ -14,13 +14,13 @@
     }
 
     func {{.Name | newClientServiceName }}(addr string, client HTTPClient) {{.Name}} {
-      prefix := urlBase(addr) + ExampleServicePathPrefix
+      prefix := urlBase(addr) + {{.Name | constPathPrefix}}
       urls := [{{.Methods | countMethods}}]string{
         {{range .Methods}}
         prefix + "{{.Name}}",
         {{end}}
       }
-      return &exampleServiceClient{
+      return &{{$serviceName}}{
         client: client,
         urls:   urls,
       }

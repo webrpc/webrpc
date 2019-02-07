@@ -24,10 +24,10 @@
       return "v0.1.0"
     }
 
-    func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
       ctx := r.Context()
       ctx = webrpc.WithResponseWriter(ctx, w)
-      ctx = webrpc.WithServiceName(ctx, "ExampleService")
+      ctx = webrpc.WithServiceName(ctx, "{{.Name}}")
 
       if r.Method != "POST" {
         err := webrpc.Errorf(webrpc.ErrBadRoute, "unsupported method %q (only POST is allowed)", r.Method)

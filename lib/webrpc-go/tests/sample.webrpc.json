@@ -117,7 +117,7 @@
   ],
   "services": [
     {
-      "name": "ExampleService",
+      "name": "ExampleRPC",
       "methods": [
         {
           "name": "Ping",
@@ -145,6 +145,22 @@
           ]
         }
       ]
+    },
+    {
+      "name": "AnotherRPC",
+      "methods": [
+        {
+          "name": "Owner",
+          "inputs": [],
+          "outputs": [
+            {
+              "name": "",
+              "type": "User"
+            }
+          ]
+        }
+      ]
     }
+
   ]
 }

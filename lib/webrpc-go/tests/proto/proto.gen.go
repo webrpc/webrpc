@@ -54,46 +54,57 @@ type RandomStuff struct {
 	User User
 }
 
-type ExampleService interface {
+type ExampleRPC interface {
 	Ping(ctx context.Context) (*bool, error)
 
 	GetUser(ctx context.Context, req *GetUserRequest) (*User, error)
 }
 
+type AnotherRPC interface {
+	Owner(ctx context.Context) (*User, error)
+}
+
 var Services = map[string][]string{
 
-	"ExampleService": {
+	"ExampleRPC": {
 
 		"Ping",
 
 		"GetUser",
 	},
+
+	"AnotherRPC": {
+
+		"Owner",
+	},
 }
 
 // Client
 
-const ExampleServicePathPrefix = "/rpc/ExampleService/"
+const ExampleRPCPathPrefix = "/rpc/ExampleRPC/"
 
-type exampleServiceClient struct {
+const AnotherRPCPathPrefix = "/rpc/AnotherRPC/"
+
+type exampleRPCClient struct {
 	client HTTPClient
 	urls   [2]string
 }
 
-func NewExampleServiceClient(addr string, client HTTPClient) ExampleService {
-	prefix := urlBase(addr) + ExampleServicePathPrefix
+func NewExampleRPCClient(addr string, client HTTPClient) ExampleRPC {
+	prefix := urlBase(addr) + ExampleRPCPathPrefix
 	urls := [2]string{
 
 		prefix + "Ping",
 
 		prefix + "GetUser",
 	}
-	return &exampleServiceClient{
+	return &exampleRPCClient{
 		client: client,
 		urls:   urls,
 	}
 }
 
-func (c *exampleServiceClient) Ping(ctx context.Context) (*bool, error) {
+func (c *exampleRPCClient) Ping(ctx context.Context) (*bool, error) {
 
 	out := new(bool)
 
@@ -105,7 +116,7 @@ func (c *exampleServiceClient) Ping(ctx context.Context) (*bool, error) {
 	return out, nil
 }
 
-func (c *exampleServiceClient) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
+func (c *exampleRPCClient) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
 
 	out := new(User)
 
@@ -117,30 +128,59 @@ func (c *exampleServiceClient) GetUser(ctx context.Context, req *GetUserRequest)
 	return out, nil
 }
 
-// Server
-
-type exampleServiceServer struct {
-	ExampleService
+type anotherRPCClient struct {
+	client HTTPClient
+	urls   [1]string
 }
 
-func NewExampleServiceServer(svc ExampleService) WebRPCServer {
-	return &exampleServiceServer{
-		ExampleService: svc,
+func NewAnotherRPCClient(addr string, client HTTPClient) AnotherRPC {
+	prefix := urlBase(addr) + AnotherRPCPathPrefix
+	urls := [1]string{
+
+		prefix + "Owner",
+	}
+	return &anotherRPCClient{
+		client: client,
+		urls:   urls,
 	}
 }
 
-func (s *exampleServiceServer) WebRPCVersion() string {
+func (c *anotherRPCClient) Owner(ctx context.Context) (*User, error) {
+
+	out := new(User)
+
+	err := doJSONRequest(ctx, c.client, c.urls[0], nil, out)
+
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server
+
+type exampleRPCServer struct {
+	ExampleRPC
+}
+
+func NewExampleRPCServer(svc ExampleRPC) WebRPCServer {
+	return &exampleRPCServer{
+		ExampleRPC: svc,
+	}
+}
+
+func (s *exampleRPCServer) WebRPCVersion() string {
 	return "v0.0.1"
 }
 
-func (s *exampleServiceServer) ServiceVersion() string {
+func (s *exampleRPCServer) ServiceVersion() string {
 	return "v0.1.0"
 }
 
-func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *exampleRPCServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	ctx = webrpc.WithResponseWriter(ctx, w)
-	ctx = webrpc.WithServiceName(ctx, "ExampleService")
+	ctx = webrpc.WithServiceName(ctx, "ExampleRPC")
 
 	if r.Method != "POST" {
 		err := webrpc.Errorf(webrpc.ErrBadRoute, "unsupported method %q (only POST is allowed)", r.Method)
@@ -150,11 +190,11 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	switch r.URL.Path {
 
-	case "/rpc/ExampleService/Ping":
+	case "/rpc/ExampleRPC/Ping":
 		s.servePing(ctx, w, r)
 		return
 
-	case "/rpc/ExampleService/GetUser":
+	case "/rpc/ExampleRPC/GetUser":
 		s.serveGetUser(ctx, w, r)
 		return
 
@@ -165,7 +205,7 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (s *exampleServiceServer) servePing(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *exampleRPCServer) servePing(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	header := r.Header.Get("Content-Type")
 	i := strings.Index(header, ";")
 	if i == -1 {
@@ -181,7 +221,7 @@ func (s *exampleServiceServer) servePing(ctx context.Context, w http.ResponseWri
 	}
 }
 
-func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *exampleRPCServer) servePingJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx = webrpc.WithMethodName(ctx, "Ping")
 
@@ -198,7 +238,7 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 			}
 		}()
 
-		respContent, err = s.ExampleService.Ping(ctx)
+		respContent, err = s.ExampleRPC.Ping(ctx)
 
 	}()
 
@@ -225,7 +265,7 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 	}
 }
 
-func (s *exampleServiceServer) serveGetUser(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *exampleRPCServer) serveGetUser(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	header := r.Header.Get("Content-Type")
 	i := strings.Index(header, ";")
 	if i == -1 {
@@ -241,7 +281,7 @@ func (s *exampleServiceServer) serveGetUser(ctx context.Context, w http.Response
 	}
 }
 
-func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *exampleRPCServer) serveGetUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx = webrpc.WithMethodName(ctx, "GetUser")
 
@@ -275,7 +315,109 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 			}
 		}()
 
-		respContent, err = s.ExampleService.GetUser(ctx, reqContent)
+		respContent, err = s.ExampleRPC.GetUser(ctx, reqContent)
+
+	}()
+
+	if err != nil {
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+
+	respBody, err := json.Marshal(respContent)
+	if err != nil {
+		err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to marshal json response")
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if n, err := w.Write(respBody); err != nil {
+		_ = n
+		_ = err
+		// TODO: failing silently for now..
+		// msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
+	}
+}
+
+type anotherRPCServer struct {
+	AnotherRPC
+}
+
+func NewAnotherRPCServer(svc AnotherRPC) WebRPCServer {
+	return &anotherRPCServer{
+		AnotherRPC: svc,
+	}
+}
+
+func (s *anotherRPCServer) WebRPCVersion() string {
+	return "v0.0.1"
+}
+
+func (s *anotherRPCServer) ServiceVersion() string {
+	return "v0.1.0"
+}
+
+func (s *anotherRPCServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	ctx = webrpc.WithResponseWriter(ctx, w)
+	ctx = webrpc.WithServiceName(ctx, "AnotherRPC")
+
+	if r.Method != "POST" {
+		err := webrpc.Errorf(webrpc.ErrBadRoute, "unsupported method %q (only POST is allowed)", r.Method)
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+
+	switch r.URL.Path {
+
+	case "/rpc/AnotherRPC/Owner":
+		s.serveOwner(ctx, w, r)
+		return
+
+	default:
+		err := webrpc.Errorf(webrpc.ErrBadRoute, "no handler for path %q", r.URL.Path)
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+}
+
+func (s *anotherRPCServer) serveOwner(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	header := r.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveOwnerJSON(ctx, w, r)
+	default:
+		err := webrpc.Errorf(webrpc.ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
+		writeJSONError(ctx, w, r, err)
+	}
+}
+
+func (s *anotherRPCServer) serveOwnerJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	var err error
+	ctx = webrpc.WithMethodName(ctx, "Owner")
+
+	// Call service method
+
+	var respContent *User
+
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if rr := recover(); rr != nil {
+				writeJSONError(ctx, w, r, webrpc.ErrorInternal("internal service panic"))
+				panic(rr)
+			}
+		}()
+
+		respContent, err = s.AnotherRPC.Owner(ctx)
 
 	}()
 
