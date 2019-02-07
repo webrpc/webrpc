@@ -1,2 +1,38 @@
 {{define "helpers"}}
+
+export interface WebRPCErrorJSON {
+  code: string
+  msg: string
+  meta: {
+    [index: string]: string
+  }
+}
+
+export class WebRPCError extends Error {
+  code: string
+  meta: {
+    [index: string]: string
+  }
+
+  constructor(te: WebRPCErrorJSON) {
+    super(te.msg)
+
+    this.code = te.code
+    this.meta = te.meta
+  }
+}
+
+export const throwHTTPError = (resp: Response) => {
+  return resp.json().then((err: WebRPCErrorJSON) => { throw new WebRPCError(err) })
+}
+
+export const createHTTPRequest = (body: object = {}, headers: object = {}): object => {
+  return {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {})
+  }
+}
+
+export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
 {{end}}

@@ -39,14 +39,5 @@
       {{end}}
     }
   {{end}}
-  var Services = map[string][]string{
-    {{range .Services}}
-      "{{.Name}}": {
-        {{range .Methods}}
-          "{{.Name}}",
-        {{end}}
-      },
-    {{end}}
-  }
 {{end}}
 {{end}}
