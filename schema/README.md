@@ -61,9 +61,7 @@ WebRPC Schema
 
 ## Enums
 
-- TODO: review/update forms..
-- enum of strings
-- enum of integers
+- enum of integers, see examples
 
 
 ## Binary (future / v2)
@@ -77,6 +75,7 @@ WebRPC Schema
 - struct or object
   * think of it just as a Javascript object or JSON object
 
+
 ### Some notes on structs
 
 - fields of an object can be `optional`
@@ -87,7 +86,6 @@ WebRPC Schema
 
 ## Services + Methods aka the RPC parts
 
-- TODO: review notes below and update.. 
 - So.. gRPC's service/rpc method definitions like `rpc Ping(Empty) returns (Empty);` or any method, set
 a requirement that a method must have one request argument and one response value. That is,
 `rpc Ping() returns (Empty);` is not allowed, nor is `rpc Ping(Empty) returns ();`, or any combination

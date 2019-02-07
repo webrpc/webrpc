@@ -50,7 +50,7 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, req *GetUserRequest) (*
 	}
 
 	return &User{
-		ID:       1,
+		ID:       req.UserID,
 		Username: "hihi",
 	}, nil
 }

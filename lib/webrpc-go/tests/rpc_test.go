@@ -8,6 +8,11 @@ import (
 	"github.com/webrpc/webrpc/lib/webrpc-go/tests/proto"
 )
 
+// end-to-end integration testing of from json schema file, to schema parsing+validatoin,
+// code-generation, to server start and client communication -- the whole shabang is tested here.
+//
+// just run.. `make build && make test`
+
 func TestPing(t *testing.T) {
 	resp, err := Client.Ping(context.Background())
 	assert.Equal(t, false, *resp)
