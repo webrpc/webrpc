@@ -24,7 +24,7 @@ var fieldTypeMap = map[schema.DataType]string{
 	schema.T_Null:      "null",
 	schema.T_Any:       "any",
 	schema.T_Byte:      "string",
-	schema.T_Bool:      "bool",
+	schema.T_Bool:      "boolean",
 }
 
 func serviceMethodName(in schema.VarName) (string, error) {
@@ -154,7 +154,7 @@ func methodInputs(in []*schema.MethodArgument) (string, error) {
 		inputs = append(inputs, fmt.Sprintf("params: %s", methodInputType(in[i])))
 	}
 
-	inputs = append(inputs, "headers: object = {}")
+	inputs = append(inputs, "headers: object")
 
 	return strings.Join(inputs, ", "), nil
 }
@@ -204,7 +204,12 @@ func newResponseConcreteType(in schema.MethodArgument) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("new %s", z), nil
+
+	switch in.Type.Type {
+	case schema.T_Struct:
+		return fmt.Sprintf("new %s", z), nil
+	}
+	return fmt.Sprintf("<%s>", z), nil
 }
 
 var templateFuncMap = map[string]interface{}{
