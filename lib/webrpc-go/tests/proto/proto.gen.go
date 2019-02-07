@@ -513,7 +513,7 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 	return req, nil
 }
 
-// doJSONRequest is common code to make a request to the remote twirp service.
+// doJSONRequest is common code to make a request to the remote service.
 func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) error {
 	// TODO: return webrpc.Error every chance we get, with the proper cause..
 

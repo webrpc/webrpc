@@ -47,13 +47,13 @@ TODO
 
 - [x] schema - get inspiration from TS, https://www.typescriptlang.org/docs/handbook/basic-types.html
 
-- [ ] code-generation of server (Go)
-- [ ] code-generation of client (Go)
+- [x] code-generation of server (Go)
+- [x] code-generation of client (Go)
 - [ ] code-generation of client (TypeScript)
 
-- [ ] example json-rpc for streaming from server->client over websockets (and later with http2)
-- [ ] example json-rpc for streaming from client->server over websockets (and later with http2)
-- [ ] example json-rpc for streaming from server<->client over websockets (and later with http2)
+- [ ] example streaming from server->client over websockets (and later with http2)
+- [ ] example streaming from client->server over websockets (and later with http2)
+- [ ] example streaming from server<->client over websockets (and later with http2)
  
 
 ## Folder structure (ideas..)

@@ -72,7 +72,7 @@ const (
 	// NotFound means some requested entity was not found.
 	ErrNotFound ErrorCode = "not_found"
 
-	// BadRoute means that the requested URL path wasn't routable to a Twirp
+	// BadRoute means that the requested URL path wasn't routable to a webrpc
 	// service and method. This is returned by the generated server, and usually
 	// shouldn't be returned by applications. Instead, applications should use
 	// NotFound or Unimplemented.

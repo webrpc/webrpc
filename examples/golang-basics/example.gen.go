@@ -15,43 +15,9 @@ import (
 	"github.com/webrpc/webrpc/lib/webrpc-go"
 )
 
-type Kind uint32
+// Kind_USER = uint32 1
 
-const (
-	Kind_USER  Kind = 0
-	Kind_ADMIN Kind = 1
-)
-
-var Kind_name = map[uint32]string{
-	1: "USER",
-	2: "ADMIN",
-}
-
-var Kind_value = map[string]uint32{
-	"USER":  1,
-	"ADMIN": 2,
-}
-
-func (x Kind) String() string {
-	return Kind_name[uint32(x)]
-}
-
-func (x Kind) MarshalJSON() ([]byte, error) {
-	buf := bytes.NewBufferString(`"`)
-	buf.WriteString(Kind_name[uint32(x)])
-	buf.WriteString(`"`)
-	return buf.Bytes(), nil
-}
-
-func (x *Kind) UnmarshalJSON(b []byte) error {
-	var j string
-	err := json.Unmarshal(b, &j)
-	if err != nil {
-		return err
-	}
-	*x = Kind(Kind_value[j])
-	return nil
-}
+// Kind_ADMIN = uint32 2
 
 type Empty struct {
 }
@@ -405,7 +371,7 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 	return req, nil
 }
 
-// doJSONRequest is common code to make a request to the remote twirp service.
+// doJSONRequest is common code to make a request to the remote service.
 func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) error {
 	// TODO: return webrpc.Error every chance we get, with the proper cause..
 
