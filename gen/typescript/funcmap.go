@@ -70,13 +70,13 @@ func fieldConcreteType(in *schema.VarType) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return fmt.Sprintf("map[%v]%s", in.Map.Key, z), nil
+		return fmt.Sprintf("Map<%v,%s>", in.Map.Key, z), nil
 	case schema.T_List:
 		z, err := fieldType(in.List.Elem)
 		if err != nil {
 			return "", err
 		}
-		return "[]" + z, nil
+		return "Array<" + z + ">", nil
 	case schema.T_Struct:
 		// TODO: add in.Struct.Message to global structs
 		return in.Struct.Name, nil
@@ -95,13 +95,13 @@ func fieldType(in *schema.VarType) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return fmt.Sprintf("map[%v]%s", in.Map.Key, z), nil
+		return fmt.Sprintf("Map<%v,%s>", in.Map.Key, z), nil
 	case schema.T_List:
 		z, err := fieldType(in.List.Elem)
 		if err != nil {
 			return "", err
 		}
-		return "[]" + z, nil
+		return "Array<" + z + ">", nil
 	case schema.T_Struct:
 		// TODO: add in.Struct.Message to global structs
 		return "I" + in.Struct.Name, nil

@@ -25,7 +25,7 @@
           }
         }
         public toJSON(): object {
-          returns this._data
+          return this._data
         }
       }
     {{end}}
@@ -35,7 +35,7 @@
   {{range .Services}}
     export interface {{.Name | serviceInterfaceName}} {
       {{range .Methods}}
-        {{.Name}}: ({{.Inputs | methodInputs}}) {{.Outputs | methodOutputs}}
+        {{.Name}}: ({{.Inputs | methodInputs}}) => {{.Outputs | methodOutputs}}
       {{end}}
     }
   {{end}}
