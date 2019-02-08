@@ -5,8 +5,14 @@
 // Do not edit.
 
 
-// Kind_USER = uint32 1
-// Kind_ADMIN = uint32 2
+export enum Kind {
+  Kind_USER = <number>1,
+  Kind_ADMIN = <number>2
+}
+export const Kind_name = {
+  '1': 'USER',
+  '2': 'ADMIN'
+}
 
 export interface IEmpty {
   toJSON?(): object
