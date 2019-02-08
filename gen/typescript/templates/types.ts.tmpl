@@ -5,9 +5,18 @@
 
 {{if .Type | isEnum -}}
 {{$enumName := .Name}}
-{{range .Fields -}}
-  // {{$enumName}}_{{.Name}} = {{.Type}} {{.Value}}
-{{end -}}
+export enum {{$enumName}} {
+{{- range $i, $field := .Fields}}
+  {{- if $i}},{{end}}
+  {{$enumName}}_{{$field.Name}} = <{{$field.Type | fieldType}}>{{$field.Value}}
+{{- end}}
+}
+export const {{$enumName}}_name = {
+{{- range $i, $field := .Fields}}
+  {{- if $i}},{{end}}
+  '{{$field.Value}}': '{{$field.Name}}'
+{{- end}}
+}
 {{end -}}
 
 {{- if .Type | isStruct  }}
