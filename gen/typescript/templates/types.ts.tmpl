@@ -1,53 +1,58 @@
 {{define "types"}}
-{{if .Messages -}}
-  {{range .Messages -}}
-    {{if .Type | isEnum -}}
-      {{$enumName := .Name}}
+
+{{- if .Messages -}}
+{{range .Messages -}}
+
+{{if .Type | isEnum -}}
+{{$enumName := .Name}}
+{{range .Fields -}}
+  // {{$enumName}}_{{.Name}} = {{.Type}} {{.Value}}
+{{end -}}
+{{end -}}
+
+{{- if .Type | isStruct  }}
+export interface {{.Name | interfaceName}} {
+  {{range .Fields -}}
+  {{.Name | exportedField}}?: {{.Type | fieldType}}
+  {{end -}}
+
+  toJSON?(): object
+}
+
+export class {{.Name}} implements {{.Name | interfaceName}} {
+  private _data: {{.Name | interfaceName}}
+  constructor(_data?: {{.Name | interfaceName}}) {
+    this._data = {}
+    if (_data) {
       {{range .Fields -}}
-        // {{$enumName}}_{{.Name}} = {{.Type}} {{.Value}}
-      {{end -}}
-    {{end -}}
-    {{- if .Type | isStruct  }}
-      export interface {{.Name | interfaceName}} {
-        {{range .Fields -}}
-        {{.Name | exportedField}}?: {{.Type | fieldType}}
-        {{end -}}
-
-        toJSON?(): object
-      }
-
-      export class {{.Name}} implements {{.Name | interfaceName}} {
-        private _data: {{.Name | interfaceName}}
-        constructor(_data?: {{.Name | interfaceName}}) {
-          this._data = {}
-          if (_data) {
-            {{range .Fields -}}
-            this._data['{{.Name | exportedField}}'] = _data['{{.Name | exportedField}}']!
-            {{end}}
-          }
-        }
-        {{ range .Fields -}}
-        public get {{.Name | exportedField}}(): {{.Type | fieldType}} {
-          return this._data['{{.Name | exportedField }}']!
-        }
-        public set {{.Name | exportedField}}(value: {{.Type | fieldType}}) {
-          this._data['{{.Name | exportedField}}'] = value
-        }
-        {{end}}
-        public toJSON(): object {
-          return this._data
-        }
-      }
-    {{end}}
-  {{end}}
-{{end}}
-{{if .Services}}
-  {{range .Services -}}
-    export interface {{.Name | serviceInterfaceName}} {
-      {{range .Methods -}}
-        {{.Name}}({{.Inputs | methodInputs}}): {{.Outputs | methodOutputs}}
-      {{- end}}
+      this._data['{{.Name | exportedField}}'] = _data['{{.Name | exportedField}}']!
+      {{end}}
     }
-  {{- end}}
+  }
+  {{ range .Fields -}}
+  public get {{.Name | exportedField}}(): {{.Type | fieldType}} {
+    return this._data['{{.Name | exportedField }}']!
+  }
+  public set {{.Name | exportedField}}(value: {{.Type | fieldType}}) {
+    this._data['{{.Name | exportedField}}'] = value
+  }
+  {{end}}
+  public toJSON(): object {
+    return this._data
+  }
+}
 {{end}}
+{{end}}
+{{end}}
+
+{{if .Services}}
+{{range .Services -}}
+export interface {{.Name | serviceInterfaceName}} {
+  {{range .Methods -}}
+    {{.Name}}({{.Inputs | methodInputs}}): {{.Outputs | methodOutputs}}
+  {{- end}}
+}
+{{- end}}
+{{end -}}
+
 {{end}}
