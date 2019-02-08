@@ -88,13 +88,13 @@ to generate server+client code - we have an open issue [here](https://github.com
 ## Getting started
 
 1. `go get -u github.com/webrpc/webrpc/cmd/webrpc-gen`
-2. Write+design a [webrpc schema file] for your Web service
+2. Write+design a [webrpc schema file](./examples/golang-basics/example.webrpc.json) for your Web service
 3. Run the code-generator to create your server interface and client, ie.
   * `webrpc-gen -schema=example.webrpc.json -target=go -pkg=service -server -client -out=./service/proto.gen.go`
   * `webrpc-gen -schema=example.webrpc.json -target=ts -pkg=client -client -out=./web/client.ts`
 4. Implement the handlers for your server -- of course, it can't guess the server logic :)
 
-another option is copy the [examples/hello-webrpc] example, and adapt for your own app and server.
+another option is copy the [examples/hello-webrpc]() example, and adapt for your own app and server.
 
 
 ## Schema
