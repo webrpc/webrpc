@@ -111,7 +111,7 @@ High-level schema features:
     * optional fields, default values, and pluggable code-generation for a language target
   * enums
 
-For more information please see the [schema readme].
+For more information please see the [schema readme](./schema/README.md).
 
 
 ## Building from source / making your own code-generator
