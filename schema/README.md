@@ -1,6 +1,9 @@
 WebRPC Schema
 =============
 
+Below is the type system for the webrpc schema. Here is an [example webrpc schema file](./examples/golang-basics/example.webrpc.json)
+for an example service.
+
 ## Basics
 
 - `byte` (aka uint8)
