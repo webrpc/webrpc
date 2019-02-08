@@ -12,9 +12,6 @@ const input = `
 {
   "schema": "webrpc/v0.0.1",
   "app": "example/v0.0.1",
-  "imports": [
-    "./user.json", "./auth.json", "./etc.json"
-  ],
   "messages": [
     {
       "name": "Kind",
@@ -169,6 +166,7 @@ func TestGenTypescript(t *testing.T) {
 
 	o, err := g.Gen(s, gen.TargetOptions{})
 	assert.NoError(t, err)
+	_ = o
 
-	t.Logf("%s", o)
+	// t.Logf("%s", o)
 }

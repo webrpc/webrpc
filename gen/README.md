@@ -1,4 +1,4 @@
-# `gen` - code-generation for multiple language targets
+# `gen` - webrpc code-generation for multiple language targets
 
 `gen` uses a basic templating language, along with the webrpc schema AST (abtract-syntax-tree)
 to generate source code of the Web service's type system, client library and server handlers.

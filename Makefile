@@ -43,3 +43,5 @@ dep:
 
 dep-upgrade-all:
 	@GO111MODULE=on go get -u
+	@$(MAKE) dep
+

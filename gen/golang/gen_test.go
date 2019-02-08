@@ -1,7 +1,6 @@
 package golang
 
 import (
-	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,9 +12,6 @@ const input = `
 {
   "schema": "webrpc/v0.0.1",
   "app": "example/v0.0.1",
-  "imports": [
-    "./user.json", "./auth.json", "./etc.json"
-  ],
   "messages": [
     {
       "name": "Kind",
@@ -170,6 +166,7 @@ func TestGenTypescript(t *testing.T) {
 
 	o, err := g.Gen(s, gen.TargetOptions{PkgName: "test"})
 	assert.NoError(t, err)
+	_ = o
 
-	log.Printf("o: %v", o)
+	// log.Printf("o: %v", o)
 }
