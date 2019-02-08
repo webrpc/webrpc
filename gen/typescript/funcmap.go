@@ -112,7 +112,8 @@ func methodOutputs(in []*schema.MethodArgument) (string, error) {
 	outputs := []string{}
 
 	for i := range in {
-		outputs = append(outputs, methodInputType(in[i]))
+		z, _ := fieldConcreteType(in[i].Type)
+		outputs = append(outputs, z)
 	}
 
 	return fmt.Sprintf("Promise<%s>", strings.Join(outputs, ", ")), nil
@@ -125,6 +126,20 @@ func isStruct(t schema.MessageType) bool {
 func exportedField(in schema.VarName) (string, error) {
 	s := string(in)
 	return strings.ToUpper(s[0:1]) + s[1:], nil
+}
+
+func exportedJSONField(in schema.MessageField) (string, error) {
+	for i := range in.Meta {
+		for k := range in.Meta[i] {
+			if k == "json" {
+				s := strings.Split(fmt.Sprintf("%v", in.Meta[i][k]), ",")
+				if len(s) > 0 {
+					return s[0], nil
+				}
+			}
+		}
+	}
+	return string(in.Name), nil
 }
 
 func interfaceName(in schema.VarName) (string, error) {
@@ -165,4 +180,5 @@ var templateFuncMap = map[string]interface{}{
 	"isEnum":                  isEnum,
 	"serviceInterfaceName":    serviceInterfaceName,
 	"exportedField":           exportedField,
+	"exportedJSONField":       exportedJSONField,
 }
