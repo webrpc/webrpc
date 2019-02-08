@@ -2,7 +2,6 @@ package typescript
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/webrpc/webrpc/schema"
@@ -25,42 +24,6 @@ var fieldTypeMap = map[schema.DataType]string{
 	schema.T_Any:       "any",
 	schema.T_Byte:      "string",
 	schema.T_Bool:      "boolean",
-}
-
-func serviceMethodName(in schema.VarName) (string, error) {
-	s := string(in)
-	return "serve" + strings.ToUpper(s[0:1]) + s[1:], nil
-}
-
-func serviceMethodJSONName(in schema.VarName) (string, error) {
-	s := string(in)
-	return "serve" + strings.ToUpper(s[0:1]) + s[1:] + "JSON", nil
-}
-
-func fieldTags(in []schema.MessageFieldMeta) (string, error) {
-	if len(in) < 1 {
-		return "", nil
-	}
-	fieldTags := []string{}
-	for kk := range in {
-		for k := range in[kk] {
-			switch {
-			case strings.HasPrefix(k, "go.tag."):
-				fieldTags = append(fieldTags, fmt.Sprintf(`%s:"%v"`, k[7:], in[kk][k]))
-			case k == "json":
-				fieldTags = append(fieldTags, fmt.Sprintf(`json:"%v"`, in[kk][k]))
-			}
-		}
-	}
-	return "`" + strings.Join(fieldTags, " ") + "`", nil
-}
-
-func newServerServiceName(in schema.VarName) (string, error) {
-	return "New" + string(in) + "Server", nil
-}
-
-func newClientServiceName(in schema.VarName) (string, error) {
-	return "New" + string(in) + "Client", nil
 }
 
 func fieldConcreteType(in *schema.VarType) (string, error) {
@@ -115,20 +78,6 @@ func fieldType(in *schema.VarType) (string, error) {
 
 func constPathPrefix(in schema.VarName) (string, error) {
 	return string(in) + "PathPrefix", nil
-}
-
-func countMethods(in []*schema.Method) (string, error) {
-	return strconv.Itoa(len(in)), nil
-}
-
-func clientServiceName(in schema.VarName) (string, error) {
-	s := string(in)
-	return strings.ToLower(s[0:1]) + s[1:] + "Client", nil
-}
-
-func serverServiceName(in schema.VarName) (string, error) {
-	s := string(in)
-	return strings.ToLower(s[0:1]) + s[1:] + "Server", nil
 }
 
 func methodInputName(in *schema.MethodArgument) string {
@@ -192,13 +141,6 @@ func serviceInterfaceName(in schema.VarName) (string, error) {
 	return "I" + s + "Service", nil
 }
 
-func optional(in bool) (string, error) {
-	if in {
-		return "?", nil
-	}
-	return "", nil
-}
-
 func newResponseConcreteType(in schema.MethodArgument) (string, error) {
 	z, err := fieldConcreteType(in.Type)
 	if err != nil {
@@ -213,23 +155,14 @@ func newResponseConcreteType(in schema.MethodArgument) (string, error) {
 }
 
 var templateFuncMap = map[string]interface{}{
-	"serviceMethodName":       serviceMethodName,
-	"serviceMethodJSONName":   serviceMethodJSONName,
-	"fieldTags":               fieldTags,
 	"fieldType":               fieldType,
-	"newClientServiceName":    newClientServiceName,
-	"newServerServiceName":    newServerServiceName,
 	"newResponseConcreteType": newResponseConcreteType,
 	"constPathPrefix":         constPathPrefix,
-	"countMethods":            countMethods,
-	"clientServiceName":       clientServiceName,
 	"interfaceName":           interfaceName,
-	"serverServiceName":       serverServiceName,
 	"methodInputs":            methodInputs,
 	"methodOutputs":           methodOutputs,
 	"isStruct":                isStruct,
 	"isEnum":                  isEnum,
-	"optional":                optional,
 	"serviceInterfaceName":    serviceInterfaceName,
 	"exportedField":           exportedField,
 }
