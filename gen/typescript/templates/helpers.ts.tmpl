@@ -1,29 +1,13 @@
 {{define "helpers"}}
 
-export interface WebRPCErrorJSON {
+export interface WebRPCError extends Error {
   code: string
   msg: string
-  meta: {
-    [index: string]: string
-  }
-}
-
-export class WebRPCError extends Error {
-  code: string
-  meta: {
-    [index: string]: string
-  }
-
-  constructor(te: WebRPCErrorJSON) {
-    super(te.msg)
-
-    this.code = te.code
-    this.meta = te.meta
-  }
+	status: number
 }
 
 export const throwHTTPError = (resp: Response) => {
-  return resp.json().then((err: WebRPCErrorJSON) => { throw new WebRPCError(err) })
+  return resp.json().then((err: WebRPCError) => { throw err })
 }
 
 export const createHTTPRequest = (body: object = {}, headers: object = {}): object => {

@@ -1,18 +1,5 @@
 "use strict";
 /* tslint:disable */
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    }
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -41,15 +28,15 @@ var GetUserRequest = /** @class */ (function () {
     function GetUserRequest(_data) {
         this._data = {};
         if (_data) {
-            this._data['UserID'] = _data['UserID'];
+            this._data['userID'] = _data['userID'];
         }
     }
     Object.defineProperty(GetUserRequest.prototype, "UserID", {
         get: function () {
-            return this._data['UserID'];
+            return this._data['userID'];
         },
         set: function (value) {
-            this._data['UserID'] = value;
+            this._data['userID'] = value;
         },
         enumerable: true,
         configurable: true
@@ -64,37 +51,37 @@ var User = /** @class */ (function () {
     function User(_data) {
         this._data = {};
         if (_data) {
-            this._data['ID'] = _data['ID'];
-            this._data['Username'] = _data['Username'];
-            this._data['CreatedAt'] = _data['CreatedAt'];
+            this._data['id'] = _data['id'];
+            this._data['USERNAME'] = _data['USERNAME'];
+            this._data['created_at'] = _data['created_at'];
         }
     }
     Object.defineProperty(User.prototype, "ID", {
         get: function () {
-            return this._data['ID'];
+            return this._data['id'];
         },
         set: function (value) {
-            this._data['ID'] = value;
+            this._data['id'] = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(User.prototype, "Username", {
         get: function () {
-            return this._data['Username'];
+            return this._data['USERNAME'];
         },
         set: function (value) {
-            this._data['Username'] = value;
+            this._data['USERNAME'] = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(User.prototype, "CreatedAt", {
         get: function () {
-            return this._data['CreatedAt'];
+            return this._data['created_at'];
         },
         set: function (value) {
-            this._data['CreatedAt'] = value;
+            this._data['created_at'] = value;
         },
         enumerable: true,
         configurable: true
@@ -109,103 +96,103 @@ var RandomStuff = /** @class */ (function () {
     function RandomStuff(_data) {
         this._data = {};
         if (_data) {
-            this._data['Meta'] = _data['Meta'];
-            this._data['MetaNestedExample'] = _data['MetaNestedExample'];
-            this._data['NamesList'] = _data['NamesList'];
-            this._data['NumsList'] = _data['NumsList'];
-            this._data['DoubleArray'] = _data['DoubleArray'];
-            this._data['ListOfMaps'] = _data['ListOfMaps'];
-            this._data['ListOfUsers'] = _data['ListOfUsers'];
-            this._data['MapOfUsers'] = _data['MapOfUsers'];
-            this._data['User'] = _data['User'];
+            this._data['meta'] = _data['meta'];
+            this._data['metaNestedExample'] = _data['metaNestedExample'];
+            this._data['namesList'] = _data['namesList'];
+            this._data['numsList'] = _data['numsList'];
+            this._data['doubleArray'] = _data['doubleArray'];
+            this._data['listOfMaps'] = _data['listOfMaps'];
+            this._data['listOfUsers'] = _data['listOfUsers'];
+            this._data['mapOfUsers'] = _data['mapOfUsers'];
+            this._data['user'] = _data['user'];
         }
     }
     Object.defineProperty(RandomStuff.prototype, "Meta", {
         get: function () {
-            return this._data['Meta'];
+            return this._data['meta'];
         },
         set: function (value) {
-            this._data['Meta'] = value;
+            this._data['meta'] = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(RandomStuff.prototype, "MetaNestedExample", {
         get: function () {
-            return this._data['MetaNestedExample'];
+            return this._data['metaNestedExample'];
         },
         set: function (value) {
-            this._data['MetaNestedExample'] = value;
+            this._data['metaNestedExample'] = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(RandomStuff.prototype, "NamesList", {
         get: function () {
-            return this._data['NamesList'];
+            return this._data['namesList'];
         },
         set: function (value) {
-            this._data['NamesList'] = value;
+            this._data['namesList'] = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(RandomStuff.prototype, "NumsList", {
         get: function () {
-            return this._data['NumsList'];
+            return this._data['numsList'];
         },
         set: function (value) {
-            this._data['NumsList'] = value;
+            this._data['numsList'] = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(RandomStuff.prototype, "DoubleArray", {
         get: function () {
-            return this._data['DoubleArray'];
+            return this._data['doubleArray'];
         },
         set: function (value) {
-            this._data['DoubleArray'] = value;
+            this._data['doubleArray'] = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(RandomStuff.prototype, "ListOfMaps", {
         get: function () {
-            return this._data['ListOfMaps'];
+            return this._data['listOfMaps'];
         },
         set: function (value) {
-            this._data['ListOfMaps'] = value;
+            this._data['listOfMaps'] = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(RandomStuff.prototype, "ListOfUsers", {
         get: function () {
-            return this._data['ListOfUsers'];
+            return this._data['listOfUsers'];
         },
         set: function (value) {
-            this._data['ListOfUsers'] = value;
+            this._data['listOfUsers'] = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(RandomStuff.prototype, "MapOfUsers", {
         get: function () {
-            return this._data['MapOfUsers'];
+            return this._data['mapOfUsers'];
         },
         set: function (value) {
-            this._data['MapOfUsers'] = value;
+            this._data['mapOfUsers'] = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(RandomStuff.prototype, "User", {
         get: function () {
-            return this._data['User'];
+            return this._data['user'];
         },
         set: function (value) {
-            this._data['User'] = value;
+            this._data['user'] = value;
         },
         enumerable: true,
         configurable: true
@@ -228,6 +215,7 @@ var ExampleService = /** @class */ (function () {
         return this.hostname + this.path + name;
     };
     ExampleService.prototype.Ping = function (headers) {
+        if (headers === void 0) { headers = {}; }
         return this.fetch(this.url('Ping'), exports.createHTTPRequest({}, headers)).then(function (res) {
             if (!res.ok) {
                 return exports.throwHTTPError(res);
@@ -236,6 +224,7 @@ var ExampleService = /** @class */ (function () {
         });
     };
     ExampleService.prototype.GetUser = function (params, headers) {
+        if (headers === void 0) { headers = {}; }
         return this.fetch(this.url('GetUser'), exports.createHTTPRequest(params, headers)).then(function (res) {
             if (!res.ok) {
                 return exports.throwHTTPError(res);
@@ -246,19 +235,8 @@ var ExampleService = /** @class */ (function () {
     return ExampleService;
 }());
 exports.ExampleService = ExampleService;
-var WebRPCError = /** @class */ (function (_super) {
-    __extends(WebRPCError, _super);
-    function WebRPCError(te) {
-        var _this = _super.call(this, te.msg) || this;
-        _this.code = te.code;
-        _this.meta = te.meta;
-        return _this;
-    }
-    return WebRPCError;
-}(Error));
-exports.WebRPCError = WebRPCError;
 exports.throwHTTPError = function (resp) {
-    return resp.json().then(function (err) { throw new WebRPCError(err); });
+    return resp.json().then(function (err) { throw err; });
 };
 exports.createHTTPRequest = function (body, headers) {
     if (body === void 0) { body = {}; }

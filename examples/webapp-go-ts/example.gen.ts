@@ -8,192 +8,186 @@
 // Kind_USER = uint32 1
 // Kind_ADMIN = uint32 2
 
-
 export interface IEmpty {
   toJSON?(): object
 }
 
-export class Empty implements IEmpty {
-  private _data: IEmpty
+export class Empty {
+  private _data: object
   constructor(_data?: IEmpty) {
     this._data = {}
     if (_data) {
-      
+
     }
   }
-  
+
   public toJSON(): object {
     return this._data
   }
 }
 
-
 export interface IGetUserRequest {
-  UserID?: number
+  userID: number
   toJSON?(): object
 }
 
-export class GetUserRequest implements IGetUserRequest {
-  private _data: IGetUserRequest
+export class GetUserRequest {
+  private _data: object
   constructor(_data?: IGetUserRequest) {
     this._data = {}
     if (_data) {
-      this._data['UserID'] = _data['UserID']!
-      
+      this._data['userID'] = _data['userID']!
+
     }
   }
   public get UserID(): number {
-    return this._data['UserID']!
+    return this._data['userID']!
   }
   public set UserID(value: number) {
-    this._data['UserID'] = value
+    this._data['userID'] = value
   }
-  
+
   public toJSON(): object {
     return this._data
   }
 }
 
-
 export interface IUser {
-  ID?: number
-  Username?: string
-  CreatedAt?: string
+  id: number
+  USERNAME: string
+  created_at?: string
   toJSON?(): object
 }
 
-export class User implements IUser {
-  private _data: IUser
+export class User {
+  private _data: object
   constructor(_data?: IUser) {
     this._data = {}
     if (_data) {
-      this._data['ID'] = _data['ID']!
-      this._data['Username'] = _data['Username']!
-      this._data['CreatedAt'] = _data['CreatedAt']!
-      
+      this._data['id'] = _data['id']!
+      this._data['USERNAME'] = _data['USERNAME']!
+      this._data['created_at'] = _data['created_at']!
+
     }
   }
   public get ID(): number {
-    return this._data['ID']!
+    return this._data['id']!
   }
   public set ID(value: number) {
-    this._data['ID'] = value
+    this._data['id'] = value
   }
   public get Username(): string {
-    return this._data['Username']!
+    return this._data['USERNAME']!
   }
   public set Username(value: string) {
-    this._data['Username'] = value
+    this._data['USERNAME'] = value
   }
   public get CreatedAt(): string {
-    return this._data['CreatedAt']!
+    return this._data['created_at']!
   }
   public set CreatedAt(value: string) {
-    this._data['CreatedAt'] = value
+    this._data['created_at'] = value
   }
-  
+
   public toJSON(): object {
     return this._data
   }
 }
 
-
 export interface IRandomStuff {
-  Meta?: Map<string,any>
-  MetaNestedExample?: Map<string,Map<string,number>>
-  NamesList?: Array<string>
-  NumsList?: Array<number>
-  DoubleArray?: Array<Array<string>>
-  ListOfMaps?: Array<Map<string,number>>
-  ListOfUsers?: Array<IUser>
-  MapOfUsers?: Map<string,IUser>
-  User?: IUser
+  meta: Map<string,any>
+  metaNestedExample: Map<string,Map<string,number>>
+  namesList: Array<string>
+  numsList: Array<number>
+  doubleArray: Array<Array<string>>
+  listOfMaps: Array<Map<string,number>>
+  listOfUsers: Array<IUser>
+  mapOfUsers: Map<string,IUser>
+  user: IUser
   toJSON?(): object
 }
 
-export class RandomStuff implements IRandomStuff {
-  private _data: IRandomStuff
+export class RandomStuff {
+  private _data: object
   constructor(_data?: IRandomStuff) {
     this._data = {}
     if (_data) {
-      this._data['Meta'] = _data['Meta']!
-      this._data['MetaNestedExample'] = _data['MetaNestedExample']!
-      this._data['NamesList'] = _data['NamesList']!
-      this._data['NumsList'] = _data['NumsList']!
-      this._data['DoubleArray'] = _data['DoubleArray']!
-      this._data['ListOfMaps'] = _data['ListOfMaps']!
-      this._data['ListOfUsers'] = _data['ListOfUsers']!
-      this._data['MapOfUsers'] = _data['MapOfUsers']!
-      this._data['User'] = _data['User']!
-      
+      this._data['meta'] = _data['meta']!
+      this._data['metaNestedExample'] = _data['metaNestedExample']!
+      this._data['namesList'] = _data['namesList']!
+      this._data['numsList'] = _data['numsList']!
+      this._data['doubleArray'] = _data['doubleArray']!
+      this._data['listOfMaps'] = _data['listOfMaps']!
+      this._data['listOfUsers'] = _data['listOfUsers']!
+      this._data['mapOfUsers'] = _data['mapOfUsers']!
+      this._data['user'] = _data['user']!
+
     }
   }
   public get Meta(): Map<string,any> {
-    return this._data['Meta']!
+    return this._data['meta']!
   }
   public set Meta(value: Map<string,any>) {
-    this._data['Meta'] = value
+    this._data['meta'] = value
   }
   public get MetaNestedExample(): Map<string,Map<string,number>> {
-    return this._data['MetaNestedExample']!
+    return this._data['metaNestedExample']!
   }
   public set MetaNestedExample(value: Map<string,Map<string,number>>) {
-    this._data['MetaNestedExample'] = value
+    this._data['metaNestedExample'] = value
   }
   public get NamesList(): Array<string> {
-    return this._data['NamesList']!
+    return this._data['namesList']!
   }
   public set NamesList(value: Array<string>) {
-    this._data['NamesList'] = value
+    this._data['namesList'] = value
   }
   public get NumsList(): Array<number> {
-    return this._data['NumsList']!
+    return this._data['numsList']!
   }
   public set NumsList(value: Array<number>) {
-    this._data['NumsList'] = value
+    this._data['numsList'] = value
   }
   public get DoubleArray(): Array<Array<string>> {
-    return this._data['DoubleArray']!
+    return this._data['doubleArray']!
   }
   public set DoubleArray(value: Array<Array<string>>) {
-    this._data['DoubleArray'] = value
+    this._data['doubleArray'] = value
   }
   public get ListOfMaps(): Array<Map<string,number>> {
-    return this._data['ListOfMaps']!
+    return this._data['listOfMaps']!
   }
   public set ListOfMaps(value: Array<Map<string,number>>) {
-    this._data['ListOfMaps'] = value
+    this._data['listOfMaps'] = value
   }
   public get ListOfUsers(): Array<IUser> {
-    return this._data['ListOfUsers']!
+    return this._data['listOfUsers']!
   }
   public set ListOfUsers(value: Array<IUser>) {
-    this._data['ListOfUsers'] = value
+    this._data['listOfUsers'] = value
   }
   public get MapOfUsers(): Map<string,IUser> {
-    return this._data['MapOfUsers']!
+    return this._data['mapOfUsers']!
   }
   public set MapOfUsers(value: Map<string,IUser>) {
-    this._data['MapOfUsers'] = value
+    this._data['mapOfUsers'] = value
   }
   public get User(): IUser {
-    return this._data['User']!
+    return this._data['user']!
   }
   public set User(value: IUser) {
-    this._data['User'] = value
+    this._data['user'] = value
   }
-  
+
   public toJSON(): object {
     return this._data
   }
 }
 
-
-
-
-
 export interface IExampleServiceService {
-  Ping(headers: object): Promise<boolean>GetUser(params: IGetUserRequest, headers: object): Promise<IUser>
+  Ping(headers: object): Promise<boolean>
+  GetUser(params: IGetUserRequest, headers: object): Promise<User>
+
 }
 
 
@@ -215,39 +209,39 @@ export class ExampleService implements IExampleServiceService {
     return this.hostname + this.path + name
   }
 
-  
-  Ping(headers: object): Promise<boolean> {
+
+  Ping(headers: object = {}): Promise<boolean> {
     return this.fetch(
       this.url('Ping'),
-      
+
       createHTTPRequest({}, headers)
-      
+
     ).then((res) => {
       if (!res.ok) {
         return throwHTTPError(res)
       }
-      
+
       return res.json().then((_data) => {return <boolean>(_data)})
-      
+
     })
   }
-  
-  GetUser(params: IGetUserRequest, headers: object): Promise<IUser> {
+
+  GetUser(params: IGetUserRequest, headers: object = {}): Promise<User> {
     return this.fetch(
       this.url('GetUser'),
-      
+
       createHTTPRequest(params, headers)
-      
+
     ).then((res) => {
       if (!res.ok) {
         return throwHTTPError(res)
       }
-      
+
       return res.json().then((_data) => {return new User(_data)})
-      
+
     })
   }
-  
+
 }
 
 
@@ -255,30 +249,14 @@ export class ExampleService implements IExampleServiceService {
 
 
 
-export interface WebRPCErrorJSON {
+export interface WebRPCError extends Error {
   code: string
   msg: string
-  meta: {
-    [index: string]: string
-  }
-}
-
-export class WebRPCError extends Error {
-  code: string
-  meta: {
-    [index: string]: string
-  }
-
-  constructor(te: WebRPCErrorJSON) {
-    super(te.msg)
-
-    this.code = te.code
-    this.meta = te.meta
-  }
+	status: number
 }
 
 export const throwHTTPError = (resp: Response) => {
-  return resp.json().then((err: WebRPCErrorJSON) => { throw new WebRPCError(err) })
+  return resp.json().then((err: WebRPCError) => { throw err })
 }
 
 export const createHTTPRequest = (body: object = {}, headers: object = {}): object => {

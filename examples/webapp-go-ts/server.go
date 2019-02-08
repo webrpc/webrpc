@@ -31,6 +31,8 @@ func startServer() error {
 	webrpcHandler := NewExampleServiceServer(&ExampleServiceRPC{})
 	r.Handle("/*", webrpcHandler)
 
+	log.Printf("Starting server")
+
 	return http.ListenAndServe(":4242", r)
 }
 
@@ -47,8 +49,6 @@ func (s *ExampleServiceRPC) Ping(ctx context.Context) (*bool, error) {
 func (s *ExampleServiceRPC) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
 	if req.UserID == 911 {
 		return nil, webrpc.ErrorNotFound("unknown userID %d", 911)
-		// return nil, webrpc.Errorf(webrpc.ErrNotFound, "unknown userID %d", 911)
-		// return nil, webrpc.WrapError(webrpc.ErrNotFound, err, "unknown userID %d", 911)
 	}
 
 	return &User{
