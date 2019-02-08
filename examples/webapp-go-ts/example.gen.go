@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/webrpc/webrpc/lib/webrpc-go"
 )
 
@@ -88,45 +87,6 @@ var Services = map[string][]string{
 		"Ping",
 		"GetUser",
 	},
-}
-
-// Client
-
-const ExampleServicePathPrefix = "/rpc/ExampleService/"
-
-type exampleServiceClient struct {
-	client HTTPClient
-	urls   [2]string
-}
-
-func NewExampleServiceClient(addr string, client HTTPClient) ExampleService {
-	prefix := urlBase(addr) + ExampleServicePathPrefix
-	urls := [2]string{
-		prefix + "Ping",
-		prefix + "GetUser",
-	}
-	return &exampleServiceClient{
-		client: client,
-		urls:   urls,
-	}
-}
-
-func (c *exampleServiceClient) Ping(ctx context.Context) (*bool, error) {
-	out := new(bool)
-	err := doJSONRequest(ctx, c.client, c.urls[0], nil, out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *exampleServiceClient) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
-	out := new(User)
-	err := doJSONRequest(ctx, c.client, c.urls[1], req, out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 // Server
@@ -323,6 +283,7 @@ type errResponse struct {
 	Status int    `json:"status"`
 	Code   string `json:"code"`
 	Msg    string `json:"msg"`
+	Cause  string `json:"cause,omitempty"`
 }
 
 func writeJSONError(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
@@ -373,61 +334,75 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 
 // doJSONRequest is common code to make a request to the remote service.
 func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) error {
-	// TODO: return webrpc.Error every chance we get, with the proper cause..
-
 	reqBody, err := json.Marshal(in)
 	if err != nil {
-		return err
-		// return clientError("failed to marshal json request", err)
+		return clientError("failed to marshal json request", err)
 	}
-	// if err = ctx.Err(); err != nil {
-	//   return clientError("aborted because context was done", err)
-	// }
+	if err = ctx.Err(); err != nil {
+		return clientError("aborted because context was done", err)
+	}
 
 	req, err := newRequest(ctx, url, bytes.NewBuffer(reqBody), "application/json")
 	if err != nil {
-		return err
-		// return clientError("could not build request", err)
+		return clientError("could not build request", err)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
-		// return clientError("failed to do request", err)
+		return clientError("request failed", err)
 	}
 
 	defer func() {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = cerr
-			// err = clientError("failed to close response body", cerr)
+			err = clientError("failed to close response body", cerr)
 		}
 	}()
 
-	// if err = ctx.Err(); err != nil {
-	//   return clientError("aborted because context was done", err)
-	// }
+	if err = ctx.Err(); err != nil {
+		return clientError("aborted because context was done", err)
+	}
 
 	if resp.StatusCode != 200 {
-
-		// TODO ......
-		var respErr errResponse
-		respBody, _ := ioutil.ReadAll(resp.Body)
-		_ = json.Unmarshal(respBody, &respErr)
-		return errors.New(respErr.Msg)
-		// return errorFromResponse(resp)
+		return errorFromResponse(resp)
 	}
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		// TODO
-		return err
+		return clientError("failed to read response body", err)
 	}
 
 	err = json.Unmarshal(respBody, &out)
 	if err != nil {
-		// TODO
-		return err
+		return clientError("failed to unmarshal json response body", err)
+	}
+	if err = ctx.Err(); err != nil {
+		return clientError("aborted because context was done", err)
 	}
 
 	return nil
+}
+
+// errorFromResponse builds a webrpc.Error from a non-200 HTTP response.
+func errorFromResponse(resp *http.Response) webrpc.Error {
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return clientError("failed to read server error response body", err)
+	}
+
+	var respErr errResponse
+	if err := json.Unmarshal(respBody, &respErr); err != nil {
+		return clientError("failed unmarshal error response", err)
+	}
+
+	errCode := webrpc.ErrorCode(respErr.Code)
+
+	if webrpc.HTTPStatusFromErrorCode(errCode) == 0 {
+		return webrpc.ErrorInternal("invalid code returned from server error response: %s", respErr.Code)
+	}
+
+	return webrpc.Errorf(errCode, respErr.Msg)
+}
+
+func clientError(desc string, err error) webrpc.Error {
+	return webrpc.WrapError(webrpc.ErrInternal, err, desc)
 }

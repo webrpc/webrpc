@@ -1,5 +1,5 @@
-//go:generate webrpc-gen -schema=example.webrpc.json -target=go -pkg=main -server -out=./example.gen.go
-//go:generate webrpc-gen -schema example.webrpc.json -target=ts -client -out=example.gen.ts
+//go:generate ../../bin/webrpc-gen -schema=example.webrpc.json -target=go -pkg=main -server -out=./example.gen.go
+//go:generate ../../bin/webrpc-gen -schema example.webrpc.json -target=ts -client -out=example.gen.ts
 
 package main
 
