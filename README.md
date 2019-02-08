@@ -1,5 +1,4 @@
-webrpc
-======
+<img alt="webrpc" src="https://cdn.rawgit.com/webrpc/webrpc/master/webrpc.png" width="1024" />
 
 webrpc is a Web service meta-protocol, schema and code-generator tool for simplifying
 the development of backend services for modern Web applications.
