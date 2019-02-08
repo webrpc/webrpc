@@ -17,10 +17,10 @@ export class Empty {
   constructor(_data?: IEmpty) {
     this._data = {}
     if (_data) {
-
+      
     }
   }
-
+  
   public toJSON(): object {
     return this._data
   }
@@ -37,7 +37,7 @@ export class GetUserRequest {
     this._data = {}
     if (_data) {
       this._data['userID'] = _data['userID']!
-
+      
     }
   }
   public get UserID(): number {
@@ -46,7 +46,7 @@ export class GetUserRequest {
   public set UserID(value: number) {
     this._data['userID'] = value
   }
-
+  
   public toJSON(): object {
     return this._data
   }
@@ -67,7 +67,7 @@ export class User {
       this._data['id'] = _data['id']!
       this._data['USERNAME'] = _data['USERNAME']!
       this._data['created_at'] = _data['created_at']!
-
+      
     }
   }
   public get ID(): number {
@@ -88,7 +88,7 @@ export class User {
   public set CreatedAt(value: string) {
     this._data['created_at'] = value
   }
-
+  
   public toJSON(): object {
     return this._data
   }
@@ -121,7 +121,7 @@ export class RandomStuff {
       this._data['listOfUsers'] = _data['listOfUsers']!
       this._data['mapOfUsers'] = _data['mapOfUsers']!
       this._data['user'] = _data['user']!
-
+      
     }
   }
   public get Meta(): Map<string,any> {
@@ -178,7 +178,7 @@ export class RandomStuff {
   public set User(value: IUser) {
     this._data['user'] = value
   }
-
+  
   public toJSON(): object {
     return this._data
   }
@@ -187,7 +187,7 @@ export class RandomStuff {
 export interface IExampleServiceService {
   Ping(headers: object): Promise<boolean>
   GetUser(params: IGetUserRequest, headers: object): Promise<User>
-
+  
 }
 
 
@@ -209,39 +209,39 @@ export class ExampleService implements IExampleServiceService {
     return this.hostname + this.path + name
   }
 
-
+  
   Ping(headers: object = {}): Promise<boolean> {
     return this.fetch(
       this.url('Ping'),
-
+      
       createHTTPRequest({}, headers)
-
+      
     ).then((res) => {
       if (!res.ok) {
         return throwHTTPError(res)
       }
-
+      
       return res.json().then((_data) => {return <boolean>(_data)})
-
+      
     })
   }
-
+  
   GetUser(params: IGetUserRequest, headers: object = {}): Promise<User> {
     return this.fetch(
       this.url('GetUser'),
-
+      
       createHTTPRequest(params, headers)
-
+      
     ).then((res) => {
       if (!res.ok) {
         return throwHTTPError(res)
       }
-
+      
       return res.json().then((_data) => {return new User(_data)})
-
+      
     })
   }
-
+  
 }
 
 
