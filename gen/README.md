@@ -5,9 +5,9 @@ to generate source code of the Web service's type system, client library and ser
 
 ## Supported targets
 
-* `go` - gen/golang
-* `ts` - gen/typescript
-* `js` - gen/javascript
+* `go` - [gen/golang](./golang)
+* `ts` - [gen/typescript](./typescript)
+* `js` - [gen/javascript](./javascript)
 
 
 ## Adding a new target
