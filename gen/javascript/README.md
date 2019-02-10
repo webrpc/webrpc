@@ -27,7 +27,7 @@ The `webrpc-gen` tool accepts an `-extra` cli flag, which is passed down to the 
 we use it for some basic toggling during code-generation. For `javascript` generator, we make
 es6 code that includes module "exports" by default, but, if you'd like to use the client in a
 UMD scenario without having to use babel or something like it, you can pass `-extra=noexports`
-option to the cli.. like we do in the [hello-webrpc]() example. 
+option to the cli.. like we do in the [hello-webrpc](../../_examples/hello-webrpc) example. 
 
 ie..
 
