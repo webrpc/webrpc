@@ -6,9 +6,9 @@ the development of backend services for modern Web applications.
 Enjoy strongly-typed Web services and never having to write an API client library again.
 
 Current code-generation language targets:
-* Go
-* Typescript
-* Javascript
+* [Go](./gen/golang)
+* [Typescript](./gen/typescript)
+* [Javascript](./gen/javascript)
 * .. contribute more! they're just templates
 
 
