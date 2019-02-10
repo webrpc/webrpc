@@ -1,0 +1,15 @@
+{{define "helpers"}}
+
+{{exportKeyword}}const throwHTTPError = (resp) => {
+  return resp.json().then((err) => { throw err; });
+}
+
+{{exportKeyword}}const createHTTPRequest = (body = {}, headers = {}) => {
+  return {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {})
+  };
+}
+
+{{end}}

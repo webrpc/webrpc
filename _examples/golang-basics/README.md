@@ -19,6 +19,7 @@ that was created by the code generator, and located in the [gen'd file](./exampl
 
 Next steps, you can generate a Typescript client by running:
 * `webrpc-gen -schema=example.webrpc.json -target=ts -pkg=example -client -out=./example-client.ts`
+* check out the [hello-webrpc](../hello-webrpc) for an example with a Webapp client talking to a webrpc backend
 
 
 ## Testing the example
@@ -28,7 +29,7 @@ You can run the tests if you want with `go test -v .`.
 
 ### Running the example
 
-* $ `cd examples/golang-basics`
+* $ `cd _examples/golang-basics`
 
 * $ `go run .` -- runs the server
 
@@ -53,7 +54,7 @@ curl -v -X POST -H"Content-Type: application/json" -v -d '{"userID":1234}' http:
 
 *Response:*
 ```
-{"id":1234,"USERNAME":"hihi","created_at":"0001-01-01T00:00:00Z"}
+{"id":1234,"USERNAME":"hihi"}
 ```
 
 

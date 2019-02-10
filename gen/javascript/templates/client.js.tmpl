@@ -1,0 +1,44 @@
+{{define "client"}}
+
+{{- if .Services}}
+// Client
+{{range .Services}}
+const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
+{{end}}
+
+{{- range .Services}}
+{{exportKeyword}}class {{.Name}} {
+  constructor(hostname, fetch) {
+    this.path = '/rpc/{{.Name}}/';
+    this.hostname = hostname;
+    this.fetch = fetch;
+  }
+
+  url(name) {
+    return this.hostname + this.path + name;
+  }
+
+  {{range .Methods}}
+  {{.Name}}({{.Inputs | methodInputs}} = {}) {
+    return this.fetch(
+      this.url('{{.Name}}'),
+      {{if .Inputs | len}}
+      createHTTPRequest(params, headers)
+      {{else}}
+      createHTTPRequest({}, headers)
+      {{end}}
+    ).then((res) => {
+      if (!res.ok) {
+        return throwHTTPError(res);
+      }
+      {{range $output := .Outputs}}
+      return res.json().then((_data) => {return {{$output | newResponseConcreteType}}(_data);});
+      {{end}}
+    })
+  }
+  {{end}}
+}
+{{end -}}
+
+{{end -}}
+{{end}}

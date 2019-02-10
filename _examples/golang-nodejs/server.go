@@ -1,6 +1,5 @@
 //go:generate ../../bin/webrpc-gen -schema=example.webrpc.json -target=go -pkg=main -server -out=./example.gen.go
-//go:generate ../../bin/webrpc-gen -schema example.webrpc.json -target=ts -client -out=example.gen.ts
-
+//go:generate ../../bin/webrpc-gen -schema=example.webrpc.json -target=ts -client -out=example.gen.ts
 package main
 
 import (
@@ -24,9 +23,6 @@ func startServer() error {
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("hi"))
 	})
-	r.Post("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hi post"))
-	})
 
 	webrpcHandler := NewExampleServiceServer(&ExampleServiceRPC{})
 	r.Handle("/*", webrpcHandler)
@@ -35,8 +31,6 @@ func startServer() error {
 
 	return http.ListenAndServe(":4242", r)
 }
-
-// TODO: lets move the service entire to tests
 
 type ExampleServiceRPC struct {
 }

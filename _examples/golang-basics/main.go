@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/webrpc/webrpc/lib/webrpc-go"
 )
 
@@ -19,11 +20,12 @@ func main() {
 
 func startServer() error {
 	r := chi.NewRouter()
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hi"))
-	})
-	r.Post("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hi post"))
+		w.Write([]byte("."))
 	})
 
 	webrpcHandler := NewExampleServiceServer(&ExampleServiceRPC{})
@@ -36,7 +38,7 @@ type ExampleServiceRPC struct {
 }
 
 func (s *ExampleServiceRPC) Ping(ctx context.Context) (*bool, error) {
-	resp := false
+	resp := true
 	return &resp, nil
 }
 

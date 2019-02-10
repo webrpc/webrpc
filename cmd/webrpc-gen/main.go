@@ -9,23 +9,29 @@ import (
 
 	"github.com/webrpc/webrpc/gen"
 	_ "github.com/webrpc/webrpc/gen/golang"
+	_ "github.com/webrpc/webrpc/gen/javascript"
 	_ "github.com/webrpc/webrpc/gen/typescript"
 	"github.com/webrpc/webrpc/schema"
 )
 
-var (
-	flags = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
-
-	schemaFlag    = flags.String("schema", "", "webrpc schema file (required)")
-	targetFlag    = flags.String("target", "", "target language for webrpc library generation, options: [go, ts] (required)")
-	pkgFlag       = flags.String("pkg", "proto", "generated package name for target language, default: proto")
-	outFlag       = flags.String("out", "", "generated output file, default: stdout")
-	clientFlag    = flags.Bool("client", false, "enable webrpc client library generation, default: off")
-	serverFlag    = flags.Bool("server", false, "enable webrpc server library generation, default: off")
-	websocketFlag = flags.Bool("websocket", false, "enable websocket transport generation, default: off")
-)
+var flags = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
 
 func main() {
+	schemaFlag := flags.String("schema", "", "webrpc schema file (required)")
+	pkgFlag := flags.String("pkg", "proto", "generated package name for target language, default: proto")
+	outFlag := flags.String("out", "", "generated output file, default: stdout")
+	clientFlag := flags.Bool("client", false, "enable webrpc client library generation, default: off")
+	serverFlag := flags.Bool("server", false, "enable webrpc server library generation, default: off")
+	websocketFlag := flags.Bool("websocket", false, "enable websocket transport generation, default: off")
+
+	// registered/available target languages
+	targets := []string{}
+	for k, _ := range gen.Generators {
+		targets = append(targets, k)
+	}
+	targetFlag := flags.String("target", "", fmt.Sprintf("target language for webrpc library generation, %s (required)", targets))
+	targetExtra := flags.String("extra", "", "target language extra/custom options")
+
 	flags.Parse(os.Args[1:])
 
 	if *schemaFlag == "" {
@@ -36,9 +42,10 @@ func main() {
 		fmt.Println("oops, you must pass a -target flag, see -h for help/usage")
 		os.Exit(1)
 	}
-	if *targetFlag != "go" && *targetFlag != "ts" {
-		// TODO: check list and return response from gen.Generators keys ..
-		fmt.Println("oops, you passed an invalid -target flag, see -h for help/usage")
+
+	targetLang := *targetFlag
+	if _, ok := gen.Generators[targetLang]; !ok {
+		fmt.Printf("oops, you passed an invalid -target flag, try one of registered generators: %s\n", targets)
 		os.Exit(1)
 	}
 
@@ -60,6 +67,7 @@ func main() {
 		PkgName:   *pkgFlag,
 		Client:    *clientFlag,
 		Server:    *serverFlag,
+		Extra:     *targetExtra,
 		Websocket: *websocketFlag,
 	}
 
@@ -98,5 +106,4 @@ func main() {
 	} else {
 		fmt.Println(protoGen)
 	}
-
 }

@@ -22,14 +22,10 @@ func NewRPCHandler() http.Handler {
 	return r
 }
 
-// TODO: add enum an test it's marhsalling
-// TODO: test error responses
-// TODO: test optional arg
-
 type exampleRPC struct{}
 
 func (s *exampleRPC) Ping(ctx context.Context) (*bool, error) {
-	resp := false
+	resp := true
 	return &resp, nil
 }
 

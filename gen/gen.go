@@ -23,5 +23,6 @@ type TargetOptions struct {
 	PkgName   string
 	Client    bool
 	Server    bool
+	Extra     string
 	Websocket bool
 }

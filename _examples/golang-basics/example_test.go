@@ -29,7 +29,7 @@ func init() {
 
 func TestPing(t *testing.T) {
 	resp, err := client.Ping(context.Background())
-	assert.Equal(t, false, *resp)
+	assert.Equal(t, true, *resp)
 	assert.NoError(t, err)
 }
 

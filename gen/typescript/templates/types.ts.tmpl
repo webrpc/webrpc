@@ -8,13 +8,7 @@
 export enum {{$enumName}} {
 {{- range $i, $field := .Fields}}
   {{- if $i}},{{end}}
-  {{$enumName}}_{{$field.Name}} = <{{$field.Type | fieldType}}>{{$field.Value}}
-{{- end}}
-}
-export const {{$enumName}}_name = {
-{{- range $i, $field := .Fields}}
-  {{- if $i}},{{end}}
-  '{{$field.Value}}': '{{$field.Name}}'
+  {{$field.Name}} = '{{$field.Name}}'
 {{- end}}
 }
 {{end -}}

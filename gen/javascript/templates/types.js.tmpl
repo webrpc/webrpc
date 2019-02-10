@@ -1,0 +1,42 @@
+{{define "types"}}
+
+{{- if .Messages -}}
+{{range .Messages -}}
+
+{{if .Type | isEnum -}}
+{{$enumName := .Name}}
+{{exportKeyword}}var {{$enumName}};
+(function ({{$enumName}}) {
+{{- range $i, $field := .Fields}}
+  {{$enumName}}["{{$field.Name}}"] = "{{$field.Name}}";
+{{- end}}
+})({{$enumName}} || ({{$enumName}} = {}));
+{{end -}}
+
+{{- if .Type | isStruct  }}
+{{exportKeyword}}class {{.Name}} {
+  constructor(_data) {
+    this._data = {};
+    if (_data) {
+      {{range .Fields -}}
+      this._data['{{. | exportedJSONField}}'] = _data['{{. | exportedJSONField}}'];
+      {{end}}
+    }
+  }
+  {{ range .Fields -}}
+  get {{.Name | exportedField}}() {
+    return this._data['{{. | exportedJSONField }}'];
+  }
+  set {{.Name | exportedField}}(value) {
+    this._data['{{. | exportedJSONField}}'] = value;
+  }
+  {{end}}
+  toJSON() {
+    return this._data;
+  }
+}
+{{end -}}
+{{end -}}
+{{end -}}
+
+{{end}}

@@ -7,6 +7,7 @@ to generate source code of the Web service's type system, client library and ser
 
 * `go` - gen/golang
 * `ts` - gen/typescript
+* `js` - gen/javascript
 
 
 ## Adding a new target

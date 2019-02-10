@@ -29,8 +29,9 @@ you can use the `webrpc-gen` cli to generate source code for:
 * Complete client library to communicate with the web service
 
 See examples:
-* [golang-basics](./examples/golang-basics) - Go webrpc service with generated Go client
-* [golang-nodejs](./examples/golang-nodejs) - Go webrpc service with generated Typescript client running with nodejs
+* [hello-webrpc](./_examples/golang-basics) - webrpc service with Go server and Javascript webapp
+* [golang-basics](./_examples/golang-basics) - Go webrpc service with generated Go client
+* [golang-nodejs](./_examples/golang-nodejs) - Go webrpc service with generated Typescript client running with nodejs
 
 
 ## Design / architecture
@@ -87,13 +88,13 @@ to generate server+client code - we have an open issue [here](https://github.com
 ## Getting started
 
 1. `go get -u github.com/webrpc/webrpc/cmd/webrpc-gen`
-2. Write+design a [webrpc schema file](./examples/golang-basics/example.webrpc.json) for your Web service
+2. Write+design a [webrpc schema file](./_examples/golang-basics/example.webrpc.json) for your Web service
 3. Run the code-generator to create your server interface and client, ie.
   * `webrpc-gen -schema=example.webrpc.json -target=go -pkg=service -server -client -out=./service/proto.gen.go`
   * `webrpc-gen -schema=example.webrpc.json -target=ts -pkg=client -client -out=./web/client.ts`
 4. Implement the handlers for your server -- of course, it can't guess the server logic :)
 
-another option is copy the [golang-basics](./examples/golang-basics) example, and adapt for your own app and server.
+another option is copy the [hello-webrpc](./_examples/hello-webrpc) example, and adapt for your own webapp and server.
 
 
 ## Schema
