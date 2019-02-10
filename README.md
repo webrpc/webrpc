@@ -30,8 +30,8 @@ you can use the `webrpc-gen` cli to generate source code for:
 
 See examples:
 * [hello-webrpc](./_examples/hello-webrpc) - webrpc service with Go server and Javascript webapp
-* [golang-basics](./_examples/golang-basics) - Go webrpc service with generated Go client
-* [golang-nodejs](./_examples/golang-nodejs) - Go webrpc service with generated Typescript client running with nodejs
+* [golang-basics](./_examples/golang-basics) - webrpc service with Go server and Go client
+* [golang-nodejs](./_examples/golang-nodejs) - webrpc service with Go server and nodejs (Javascript ES6) client 
 
 
 ## Design / architecture
