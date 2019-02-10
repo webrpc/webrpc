@@ -1,8 +1,8 @@
 webrpc golang-nodejs example
 ============================
 
-Client: Nodejs (Javascript)
-Server: Go
+* Client: Nodejs (Javascript)
+* Server: Go
 
 NOTE: please use node v11.9.0 which has the new experimental es module support, so we can
 just import es6 code as you'd expect to work.

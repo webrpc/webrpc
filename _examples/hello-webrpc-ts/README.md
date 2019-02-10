@@ -1,10 +1,10 @@
-hello-webrpc
-============
+hello-webrpc-ts
+===============
 
-* Client: Web Browser (Javascript)
+* Client: Web Browser (Typescript)
 * Server: Go
 
-Simple client+server app with Go api backend (server) and Javascript Webapp (client).
+Simple client+server app with Go api backend (server) and Typescript Webapp (client).
 
 1. `$ make tools` - to download `webify` cli to serve the 'webapp/' local files
 2. `$ make serve-webapp` - to serve webapp files at http://localhost:4444/

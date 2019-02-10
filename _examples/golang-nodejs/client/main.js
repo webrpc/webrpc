@@ -1,4 +1,4 @@
-const fetch = require('node-fetch')
+const polyfetch = require('node-fetch')
 
 async function main() {
   const {
@@ -6,7 +6,7 @@ async function main() {
     GetUserRequest
   } = await import('./client.gen.mjs')
 
-  let svc = new ExampleService('http://127.0.01:4242', fetch)
+  const svc = new ExampleService('http://127.0.01:4242', polyfetch)
 
   // Expecting "true"
   console.log('[A] webrpc -- calling Ping() rpc method (expecting true):')
