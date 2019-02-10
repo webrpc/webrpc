@@ -16,14 +16,14 @@ export enum {{$enumName}} {
 {{- if .Type | isStruct  }}
 export interface {{.Name | interfaceName}} {
   {{range .Fields -}}
-  {{. | exportedJSONField}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}
+  {{. | exportedJSONField}}?: {{.Type | fieldType}}
   {{end -}}
 
   toJSON?(): object
 }
 
-export class {{.Name}} {
-  private _data: object
+export class {{.Name}} implements {{.Name | interfaceName}} {
+  private _data: {{.Name | interfaceName}}
   constructor(_data?: {{.Name | interfaceName}}) {
     this._data = {}
     if (_data) {

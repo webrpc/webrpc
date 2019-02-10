@@ -6,8 +6,8 @@ hello-webrpc-ts
 
 Simple client+server app with Go api backend (server) and Typescript Webapp (client).
 
-1. `$ make tools` - to download `webify` cli to serve the 'webapp/' local files
-2. `$ make serve-webapp` - to serve webapp files at http://localhost:4444/
+1. `$ cd client && npm install`
+2. `$ make serve-webapp` - build+start webapp via webpack dev server at http://localhost:4444/
 3. `$ make start-api-server` - to start the Go server at http://localhost:4242/
 4. Open your browser to https://localhost:4444/ and open your console, and see rpc calls, tada
 
