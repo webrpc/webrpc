@@ -1,5 +1,3 @@
-//go:generate ../../bin/webrpc-gen -schema=example.webrpc.json -target=go -pkg=main -server -out=./example.gen.go
-//go:generate ../../bin/webrpc-gen -schema=example.webrpc.json -target=ts -client -out=example.gen.ts
 package main
 
 import (
@@ -8,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/webrpc/webrpc/lib/webrpc-go"
 )
 
@@ -20,14 +19,18 @@ func main() {
 
 func startServer() error {
 	r := chi.NewRouter()
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hi"))
+		w.Write([]byte("."))
 	})
 
 	webrpcHandler := NewExampleServiceServer(&ExampleServiceRPC{})
 	r.Handle("/*", webrpcHandler)
 
-	log.Printf("Starting server")
+	log.Printf("Starting webrpc server on localhost:4242")
 
 	return http.ListenAndServe(":4242", r)
 }

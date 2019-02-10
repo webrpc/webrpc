@@ -2,17 +2,11 @@ all:
 	@echo "please read Makefile source to see available commands"
 
 generate:
-	@echo "generating es5 javascript client... or use 'make tsc-es6' if you want es6 output.." 
-	@$(MAKE) tsc-es5
+	../../bin/webrpc-gen -schema=example.webrpc.json -target=go -pkg=main -server -out=./server/server.gen.go
+	../../bin/webrpc-gen -schema=example.webrpc.json -target=js -client -out=./client/client.gen.mjs
 
-tsc-es5:
-	tsc --target es5 --lib es5,es6,dom example.gen.ts
+run-server:
+	go run ./server
 
-tsc-es6:
-	tsc --target es6 --lib es6,dom example.gen.ts
-
-start-go-server:
-	go run .
-
-run-node-client:
-	node main.js
+run-client:
+	cd ./client && npm start

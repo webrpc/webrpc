@@ -1,5 +1,8 @@
-hello-webrpc 
+hello-webrpc
 ============
+
+Client: Web Browser (Javascript)
+Server: Go
 
 Simple client+server app with Go api backend (server) and Javascript Webapp (client).
 
