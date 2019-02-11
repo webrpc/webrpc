@@ -139,7 +139,7 @@ Some tips..
 
 ## We're hiring!
 
-Our team at https://horizongames.net is building Arcadeum.net, a distributed
+Our team at https://horizongames.net is building [Arcadeum.net](https://arcadeum.net), a distributed
 network and platform for blockchain based video games :) built for Ethereum.
 
 If you're passionate about distributed systems, cryptography, privacy, and
