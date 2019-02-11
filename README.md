@@ -80,7 +80,7 @@ and code-generate it instead - Enter gRPC / Twirp .. and now, webrpc :)
 
 Future goals/work:
 1. Add RPC streaming support from client/server using websockets
-2. Create an [IDL](https://en.wikipedia.org/wiki/IDL_(programming_language)) as a frontend
+2. Create an [IDL](https://en.wikipedia.org/wiki/Interface_description_language) as a frontend
 to the webrpc json schema file. Our idea is it could look similar to a Typescript definition
 file that would generate this JSON file, which in-turn would be used by the code-generators
 to generate server+client code - we have an open issue [here](https://github.com/webrpc/webrpc/issues/1).
