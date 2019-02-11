@@ -8,12 +8,15 @@ import (
 	"testing"
 )
 
-func TestDefine(t *testing.T) {
+func TestBasic(t *testing.T) {
 	buf := `
 
 
 		ridl						 =  v1
 
+				+     foo=bar
+
+					-baz   = 56 # a comment
 
 							         		version=                    v0.0.1
 
@@ -27,7 +30,7 @@ foo=bar`
 	log.Printf("tokens: %v", tokens)
 }
 
-func SkipTestParse(t *testing.T) {
+func TestParse(t *testing.T) {
 	fp, err := os.Open("example1.ridl")
 	assert.NoError(t, err)
 
