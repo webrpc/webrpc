@@ -1,30 +1,12 @@
 package ridl
 
-type tokenType uint8
-
-const (
-	tokenSpace tokenType = iota
-	tokenNewLine
-	tokenDefine
-	tokenDefineValue
-	tokenImport
-	tokenImportValue
-	tokenEnum
-	tokenEnumType
-	tokenMessage
-	tokenService
-	tokenField
-	tokenMethod
-	tokenMethodType
-	tokenArgument
-	tokenArgumentType
-	tokenMeta
-	tokenComment
-)
-
 type Tree struct {
 }
 
+type Token struct {
+}
+
 func Tokenize(input []byte) (*Tree, error) {
+	_ = Lex(string(input))
 	return nil, nil
 }
