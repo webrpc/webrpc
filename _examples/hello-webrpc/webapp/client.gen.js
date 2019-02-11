@@ -30,10 +30,10 @@ class GetUserRequest {
       
     }
   }
-  get UserID() {
+  get userID() {
     return this._data['userID'];
   }
-  set UserID(value) {
+  set userID(value) {
     this._data['userID'] = value;
   }
   
@@ -52,22 +52,22 @@ class User {
       
     }
   }
-  get ID() {
+  get id() {
     return this._data['id'];
   }
-  set ID(value) {
+  set id(value) {
     this._data['id'] = value;
   }
-  get Username() {
+  get USERNAME() {
     return this._data['USERNAME'];
   }
-  set Username(value) {
+  set USERNAME(value) {
     this._data['USERNAME'] = value;
   }
-  get CreatedAt() {
+  get created_at() {
     return this._data['created_at'];
   }
-  set CreatedAt(value) {
+  set created_at(value) {
     this._data['created_at'] = value;
   }
   

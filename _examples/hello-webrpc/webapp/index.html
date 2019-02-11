@@ -42,6 +42,7 @@
 
   svc.GetUser(new GetUserRequest({userID: 966})).then((user) => {
     console.log('[C]', {user})
+    console.log('[C] welcome user ID', user.id, 'with username', user.USERNAME)
   }).catch((err, res) => {
     console.log('[C]', {err})
   })

@@ -124,18 +124,15 @@ func isStruct(t schema.MessageType) bool {
 }
 
 func exportedField(in schema.VarName) (string, error) {
-	s := string(in)
-	return strings.ToUpper(s[0:1]) + s[1:], nil
+	return string(in), nil
 }
 
 func exportedJSONField(in schema.MessageField) (string, error) {
-	for i := range in.Meta {
-		for k := range in.Meta[i] {
+	for _, meta := range in.Meta {
+		for k := range meta {
 			if k == "json" {
-				s := strings.Split(fmt.Sprintf("%v", in.Meta[i][k]), ",")
-				if len(s) > 0 {
-					return s[0], nil
-				}
+				s := strings.Split(fmt.Sprintf("%v", meta[k]), ",")
+				return s[0], nil
 			}
 		}
 	}

@@ -16,7 +16,7 @@ export enum {{$enumName}} {
 {{- if .Type | isStruct  }}
 export interface {{.Name | interfaceName}} {
   {{range .Fields -}}
-  {{. | exportedJSONField}}?: {{.Type | fieldType}}
+  {{. | exportedJSONField}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}
   {{end -}}
 
   toJSON?(): object
@@ -25,7 +25,7 @@ export interface {{.Name | interfaceName}} {
 export class {{.Name}} implements {{.Name | interfaceName}} {
   private _data: {{.Name | interfaceName}}
   constructor(_data?: {{.Name | interfaceName}}) {
-    this._data = {}
+    this._data = {} as {{.Name | interfaceName}}
     if (_data) {
       {{range .Fields -}}
       this._data['{{. | exportedJSONField}}'] = _data['{{. | exportedJSONField}}']!
@@ -33,10 +33,10 @@ export class {{.Name}} implements {{.Name | interfaceName}} {
     }
   }
   {{ range .Fields -}}
-  public get {{.Name | exportedField}}(): {{.Type | fieldType}} {
+  public get {{. | exportedJSONField}}(): {{.Type | fieldType}} {
     return this._data['{{. | exportedJSONField }}']!
   }
-  public set {{.Name | exportedField}}(value: {{.Type | fieldType}}) {
+  public set {{. | exportedJSONField}}(value: {{.Type | fieldType}}) {
     this._data['{{. | exportedJSONField}}'] = value
   }
   {{end}}

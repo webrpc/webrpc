@@ -24,10 +24,10 @@
     }
   }
   {{ range .Fields -}}
-  get {{.Name | exportedField}}() {
+  get {{. | exportedJSONField}}() {
     return this._data['{{. | exportedJSONField }}'];
   }
-  set {{.Name | exportedField}}(value) {
+  set {{. | exportedJSONField}}(value) {
     this._data['{{. | exportedJSONField}}'] = value;
   }
   {{end}}

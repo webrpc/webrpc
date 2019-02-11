@@ -17,7 +17,7 @@ export interface IEmpty {
 export class Empty implements IEmpty {
   private _data: IEmpty
   constructor(_data?: IEmpty) {
-    this._data = {}
+    this._data = {} as IEmpty
     if (_data) {
       
     }
@@ -29,23 +29,23 @@ export class Empty implements IEmpty {
 }
 
 export interface IGetUserRequest {
-  userID?: number
+  userID: number
   toJSON?(): object
 }
 
 export class GetUserRequest implements IGetUserRequest {
   private _data: IGetUserRequest
   constructor(_data?: IGetUserRequest) {
-    this._data = {}
+    this._data = {} as IGetUserRequest
     if (_data) {
       this._data['userID'] = _data['userID']!
       
     }
   }
-  public get UserID(): number {
+  public get userID(): number {
     return this._data['userID']!
   }
-  public set UserID(value: number) {
+  public set userID(value: number) {
     this._data['userID'] = value
   }
   
@@ -55,8 +55,8 @@ export class GetUserRequest implements IGetUserRequest {
 }
 
 export interface IUser {
-  id?: number
-  USERNAME?: string
+  id: number
+  USERNAME: string
   created_at?: string
   toJSON?(): object
 }
@@ -64,7 +64,7 @@ export interface IUser {
 export class User implements IUser {
   private _data: IUser
   constructor(_data?: IUser) {
-    this._data = {}
+    this._data = {} as IUser
     if (_data) {
       this._data['id'] = _data['id']!
       this._data['USERNAME'] = _data['USERNAME']!
@@ -72,22 +72,22 @@ export class User implements IUser {
       
     }
   }
-  public get ID(): number {
+  public get id(): number {
     return this._data['id']!
   }
-  public set ID(value: number) {
+  public set id(value: number) {
     this._data['id'] = value
   }
-  public get Username(): string {
+  public get USERNAME(): string {
     return this._data['USERNAME']!
   }
-  public set Username(value: string) {
+  public set USERNAME(value: string) {
     this._data['USERNAME'] = value
   }
-  public get CreatedAt(): string {
+  public get created_at(): string {
     return this._data['created_at']!
   }
-  public set CreatedAt(value: string) {
+  public set created_at(value: string) {
     this._data['created_at'] = value
   }
   

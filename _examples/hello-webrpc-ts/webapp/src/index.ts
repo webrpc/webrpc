@@ -26,7 +26,7 @@ console.log('[C] webrpc -- calling GetUser() rpc method (expecting User object):
 
 svc.GetUser(new client.GetUserRequest({userID: 966})).then((user) => {
   console.log('[C]', {user})
-  console.log('[C] welcome user ID', user.ID, 'with username', user.Username)
+  console.log('[C] welcome user ID', user.id, 'with username', user.USERNAME)
 }).catch(err => {
   console.log('[C]', {err})
 })

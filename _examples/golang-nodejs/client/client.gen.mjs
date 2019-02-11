@@ -30,10 +30,10 @@ export class GetUserRequest {
       
     }
   }
-  get UserID() {
+  get userID() {
     return this._data['userID'];
   }
-  set UserID(value) {
+  set userID(value) {
     this._data['userID'] = value;
   }
   
@@ -52,22 +52,22 @@ export class User {
       
     }
   }
-  get ID() {
+  get id() {
     return this._data['id'];
   }
-  set ID(value) {
+  set id(value) {
     this._data['id'] = value;
   }
-  get Username() {
+  get USERNAME() {
     return this._data['USERNAME'];
   }
-  set Username(value) {
+  set USERNAME(value) {
     this._data['USERNAME'] = value;
   }
-  get CreatedAt() {
+  get created_at() {
     return this._data['created_at'];
   }
-  set CreatedAt(value) {
+  set created_at(value) {
     this._data['created_at'] = value;
   }
   
@@ -92,58 +92,58 @@ export class RandomStuff {
       
     }
   }
-  get Meta() {
+  get meta() {
     return this._data['meta'];
   }
-  set Meta(value) {
+  set meta(value) {
     this._data['meta'] = value;
   }
-  get MetaNestedExample() {
+  get metaNestedExample() {
     return this._data['metaNestedExample'];
   }
-  set MetaNestedExample(value) {
+  set metaNestedExample(value) {
     this._data['metaNestedExample'] = value;
   }
-  get NamesList() {
+  get namesList() {
     return this._data['namesList'];
   }
-  set NamesList(value) {
+  set namesList(value) {
     this._data['namesList'] = value;
   }
-  get NumsList() {
+  get numsList() {
     return this._data['numsList'];
   }
-  set NumsList(value) {
+  set numsList(value) {
     this._data['numsList'] = value;
   }
-  get DoubleArray() {
+  get doubleArray() {
     return this._data['doubleArray'];
   }
-  set DoubleArray(value) {
+  set doubleArray(value) {
     this._data['doubleArray'] = value;
   }
-  get ListOfMaps() {
+  get listOfMaps() {
     return this._data['listOfMaps'];
   }
-  set ListOfMaps(value) {
+  set listOfMaps(value) {
     this._data['listOfMaps'] = value;
   }
-  get ListOfUsers() {
+  get listOfUsers() {
     return this._data['listOfUsers'];
   }
-  set ListOfUsers(value) {
+  set listOfUsers(value) {
     this._data['listOfUsers'] = value;
   }
-  get MapOfUsers() {
+  get mapOfUsers() {
     return this._data['mapOfUsers'];
   }
-  set MapOfUsers(value) {
+  set mapOfUsers(value) {
     this._data['mapOfUsers'] = value;
   }
-  get User() {
+  get user() {
     return this._data['user'];
   }
-  set User(value) {
+  set user(value) {
     this._data['user'] = value;
   }
   
