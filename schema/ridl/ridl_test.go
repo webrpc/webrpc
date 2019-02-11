@@ -9,19 +9,16 @@ import (
 )
 
 func TestDefine(t *testing.T) {
-	buf := []byte(`
+	buf := `
 
 
 		ridl						 =  v1
 
 
-
-
-
 							         		version=                    v0.0.1
 
 
-	`)
+foo=bar`
 
 	tokens, err := Tokenize(buf)
 	assert.NoError(t, err)
@@ -37,7 +34,7 @@ func SkipTestParse(t *testing.T) {
 	buf, err := ioutil.ReadAll(fp)
 	assert.NoError(t, err)
 
-	tokens, err := Tokenize(buf)
+	tokens, err := Tokenize(string(buf))
 	assert.NoError(t, err)
 
 	log.Printf("buf: %v", string(buf))
