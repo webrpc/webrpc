@@ -1,9 +1,14 @@
 package ridl
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"runtime"
+)
+
+var (
+	empty = rune(0)
 )
 
 type tokenType uint8
@@ -25,19 +30,30 @@ const (
 	tokenArgument
 	tokenArgumentType
 	tokenMeta
+	tokenEqual
+	tokenWord
 	tokenComment
 	tokenEOF
 )
 
+type token struct {
+	tt  tokenType
+	val string
+
+	line int
+	col  int
+}
+
 type lexer struct {
-	input  string
+	input  []rune
 	length int
 
 	pos   int
+	col   int
 	start int
 	line  int
 
-	tokens chan Token
+	tokens chan token
 }
 
 type lexState func(*lexer) lexState
@@ -45,83 +61,142 @@ type lexState func(*lexer) lexState
 func (lx *lexer) run() {
 	log.Printf("running...")
 	for state := lexStateStart; state != nil; {
-		log.Printf("state start: %v", stateName(state))
+		lx.start = lx.pos
+		//log.Printf("state start: %v, lx: %v", stateName(state), lx)
 		state = state(lx)
-		log.Printf("state end: %v", stateName(state))
+		if lx.pos > lx.start {
+			// log.Printf("state: %v, lx: %v", stateName(state), lx)
+		}
 	}
 	lx.emit(tokenEOF)
 	close(lx.tokens)
 }
 
-func (lx *lexer) emit(tokenType) {
-
-}
-
-func Lex(input string) *lexer {
+func Lex(inputString string) *lexer {
+	input := []rune(inputString)
 	lx := &lexer{
 		input:  input,
 		length: len(input),
-		tokens: make(chan Token, 5),
+		line:   1,
+		tokens: make(chan token, 5),
 	}
-	lx.run()
+	go lx.run()
 	return lx
 }
 
-func (lx *lexer) peek() string {
+func (lx *lexer) peek() rune {
 	if lx.pos >= lx.length {
-		return ""
+		return empty
 	}
-	return lx.input[lx.pos : lx.pos+1]
+	return lx.input[lx.pos]
 }
 
-func (lx *lexer) next() string {
+func (lx *lexer) next() bool {
 	if lx.pos >= lx.length {
-		return ""
+		return false
 	}
-	s := lx.input[lx.pos : lx.pos+1]
 	lx.pos = lx.pos + 1
-	return s
+	return true
+}
+
+func (lx *lexer) emit(tt tokenType) {
+	lx.tokens <- token{
+		tt:   tt,
+		val:  lx.val(),
+		line: lx.line,
+		col:  lx.start - lx.col,
+	}
+}
+
+func (lx *lexer) val() string {
+	return string(lx.input[lx.start:lx.pos])
+}
+
+func (lx *lexer) String() string {
+	return fmt.Sprintf("line: %d, start: %d, pos: %d, col: %d, length: %d, value: %q", lx.line, lx.start, lx.pos, lx.col, lx.length, string(lx.input[lx.start:lx.pos]))
 }
 
 func lexStateSpace(lx *lexer) lexState {
-	for s := lx.next(); isSpace(s); {
-		s = lx.next()
+	for lx.next() {
+		if !isSpace(lx.peek()) {
+			break
+		}
 	}
-	lx.start = lx.pos
+	lx.emit(tokenSpace)
 	return lexStateStart
 }
 
 func lexStateNewLine(lx *lexer) lexState {
-	for s := lx.next(); isNewLine(s); {
-		s = lx.next()
+	for lx.next() {
+		lx.col = lx.pos
+		lx.line++
+		if !isNewLine(lx.peek()) {
+			break
+		}
 	}
-	lx.start = lx.pos
+	lx.emit(tokenNewLine)
+	return lexStateStart
+}
+
+func lexStateEqual(lx *lexer) lexState {
+	lx.next()
+	lx.emit(tokenEqual)
 	return lexStateStart
 }
 
 func lexStateStart(lx *lexer) lexState {
-	if isSpace(lx.peek()) {
+	c := lx.peek()
+	switch {
+	case isEmpty(c):
+		return nil
+	case isSpace(c):
 		return lexStateSpace
-	}
-	if isNewLine(lx.peek()) {
+	case isNewLine(c):
 		return lexStateNewLine
+	case isEqual(c):
+		return lexStateEqual
+	case isAlphanumeric(c):
+		return lexStateWord
 	}
-	log.Printf("lx: %#v", lx)
 	return nil
 }
 
-func isSpace(b string) bool {
-	if b == " " || b == "\t" || b == "\r" {
+func isEmpty(r rune) bool {
+	return r == empty
+}
+
+func isSpace(r rune) bool {
+	s := string(r)
+	if s == " " || s == "\t" || s == "\r" {
 		return true
 	}
 	return false
 }
 
-func isNewLine(b string) bool {
-	if b == "\n" || b == "\r" {
+func isNewLine(r rune) bool {
+	s := string(r)
+	if s == "\n" || s == "\r" {
 		return true
 	}
 	return false
+}
+
+func lexStateWord(lx *lexer) lexState {
+	for lx.next() {
+		if !isAlphanumeric(lx.peek()) {
+			break
+		}
+	}
+	lx.emit(tokenWord)
+	return lexStateStart
+}
+
+func isEqual(r rune) bool {
+	return string(r) == "="
+}
+
+func isAlphanumeric(r rune) bool {
+	return !isNewLine(r) && !isSpace(r) && !isEqual(r)
 }
 
 func stateName(fn lexState) string {
