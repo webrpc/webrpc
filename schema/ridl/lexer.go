@@ -2,7 +2,6 @@ package ridl
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 	"runtime"
 )
@@ -14,27 +13,32 @@ var (
 type tokenType uint8
 
 const (
-	tokenSpace tokenType = iota
+	tokenInvalid tokenType = iota
+	tokenSpace
 	tokenNewLine
-	tokenDefine
-	tokenDefineValue
-	tokenImport
-	tokenImportValue
-	tokenEnum
-	tokenEnumType
-	tokenMessage
-	tokenService
-	tokenField
-	tokenMethod
-	tokenMethodType
-	tokenArgument
-	tokenArgumentType
-	tokenMeta
 	tokenEqual
+	tokenOpenParen
+	tokenCloseParen
+	tokenPlusSign
+	tokenMinusSign
+	tokenHash
 	tokenWord
-	tokenComment
 	tokenEOF
 )
+
+var tokenTypeName = map[tokenType]string{
+	tokenInvalid:    "[invalid]",
+	tokenSpace:      "[space]",
+	tokenNewLine:    "[newline]",
+	tokenEqual:      "[equal sign]",
+	tokenOpenParen:  "[open parenthesis]",
+	tokenCloseParen: "[close parenthesis]",
+	tokenPlusSign:   "[plus sign]",
+	tokenMinusSign:  "[minus sign]",
+	tokenHash:       "[hash sign]",
+	tokenWord:       "[word]",
+	tokenEOF:        "[EOF]",
+}
 
 type token struct {
 	tt  tokenType
@@ -58,15 +62,18 @@ type lexer struct {
 
 type lexState func(*lexer) lexState
 
+func (tt tokenType) String() string {
+	return tokenTypeName[tt]
+}
+
+func (t token) String() string {
+	return fmt.Sprintf("%s (line: %d, col: %d): %q", t.tt, t.line, t.col, t.val)
+}
+
 func (lx *lexer) run() {
-	log.Printf("running...")
 	for state := lexStateStart; state != nil; {
 		lx.start = lx.pos
-		//log.Printf("state start: %v, lx: %v", stateName(state), lx)
 		state = state(lx)
-		if lx.pos > lx.start {
-			// log.Printf("state: %v, lx: %v", stateName(state), lx)
-		}
 	}
 	lx.emit(tokenEOF)
 	close(lx.tokens)
@@ -155,6 +162,16 @@ func lexStateStart(lx *lexer) lexState {
 		return lexStateNewLine
 	case isEqual(c):
 		return lexStateEqual
+	case isOpenParen(c):
+		return lexStateOpenParen
+	case isCloseParen(c):
+		return lexStateCloseParen
+	case isPlusSign(c):
+		return lexStatePlusSign
+	case isMinusSign(c):
+		return lexStateMinusSign
+	case isHash(c):
+		return lexStateHash
 	case isAlphanumeric(c):
 		return lexStateWord
 	}
@@ -181,6 +198,36 @@ func isNewLine(r rune) bool {
 	return false
 }
 
+func lexStateOpenParen(lx *lexer) lexState {
+	lx.next()
+	lx.emit(tokenOpenParen)
+	return lexStateStart
+}
+
+func lexStateCloseParen(lx *lexer) lexState {
+	lx.next()
+	lx.emit(tokenCloseParen)
+	return lexStateStart
+}
+
+func lexStatePlusSign(lx *lexer) lexState {
+	lx.next()
+	lx.emit(tokenPlusSign)
+	return lexStateStart
+}
+
+func lexStateMinusSign(lx *lexer) lexState {
+	lx.next()
+	lx.emit(tokenMinusSign)
+	return lexStateStart
+}
+
+func lexStateHash(lx *lexer) lexState {
+	lx.next()
+	lx.emit(tokenHash)
+	return lexStateStart
+}
+
 func lexStateWord(lx *lexer) lexState {
 	for lx.next() {
 		if !isAlphanumeric(lx.peek()) {
@@ -193,6 +240,26 @@ func lexStateWord(lx *lexer) lexState {
 
 func isEqual(r rune) bool {
 	return string(r) == "="
+}
+
+func isPlusSign(r rune) bool {
+	return string(r) == "+"
+}
+
+func isMinusSign(r rune) bool {
+	return string(r) == "-"
+}
+
+func isOpenParen(r rune) bool {
+	return string(r) == "("
+}
+
+func isCloseParen(r rune) bool {
+	return string(r) == ")"
+}
+
+func isHash(r rune) bool {
+	return string(r) == "#"
 }
 
 func isAlphanumeric(r rune) bool {
