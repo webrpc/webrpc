@@ -137,6 +137,20 @@ Some tips..
 3. Write tests, TDD is a great approach to confirm things work
 
 
+## Authors
+
+* [Peter Kieltyka](https://github.com/pkieltyka)
+* [José Carlos Nieto](https://github.com/xiam)
+* ..and full list of [contributors](https://github.com/webrpc/webrpc/graphs/contributors)!
+
+## Credits
+
+* [Twirp authors](https://github.com/twitchtv/twirp) for making twirp. Much of the webrpc-go
+library comes from the twirp project.
+* [gRPC authors](https://grpc.io), for coming up with the overall architecture and patterns
+for code-generating the bindings between client and server from a common IDL.
+
+
 ## We're hiring!
 
 Our team at https://horizongames.net is building [Arcadeum.net](https://arcadeum.net), a distributed
