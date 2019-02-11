@@ -2,6 +2,8 @@ package ridl
 
 import (
 	"log"
+	"reflect"
+	"runtime"
 )
 
 type tokenType uint8
@@ -43,9 +45,9 @@ type lexState func(*lexer) lexState
 func (lx *lexer) run() {
 	log.Printf("running...")
 	for state := lexStateStart; state != nil; {
-		log.Printf("state start: %p", state)
+		log.Printf("state start: %v", stateName(state))
 		state = state(lx)
-		log.Printf("state end: %p", state)
+		log.Printf("state end: %v", stateName(state))
 	}
 	lx.emit(tokenEOF)
 	close(lx.tokens)
@@ -120,4 +122,8 @@ func isNewLine(b string) bool {
 		return true
 	}
 	return false
+}
+
+func stateName(fn lexState) string {
+	return runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
 }
