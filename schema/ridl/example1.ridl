@@ -1,4 +1,4 @@
-schema  = v1.0.0 # version of ridl schema
+ridl = v1
 
 service = hello-webrpc
 version = v0.0.1
@@ -30,9 +30,9 @@ message GetUserRequest
 
 
 message User
-  - ID: uint64         # hmm.. TODO, think about the name of the filed we want..? should it represent the JSON field name? prob
-    + json: id         # if so, we then need to add the json thing here .....
-    + go.tag.db: id
+  - ID: uint64          # hmm.. TODO, think about the name of the filed we want..? should it represent the JSON field name? prob
+    + json = id         # if so, we then need to add the json thing here .....
+    + go.tag.db = id
 
   - username: string
     + json = USERNAME
