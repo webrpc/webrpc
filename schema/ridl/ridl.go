@@ -3,6 +3,7 @@ package ridl
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/webrpc/webrpc/schema"
 )
@@ -61,8 +62,24 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 			s.Messages = []*schema.Message{}
 		}
 		for _, enum := range p.tree.enums {
+			fields := []*schema.MessageField{}
+
+			for i, value := range enum.values {
+				field := &schema.MessageField{
+					Name: schema.VarName(value.left.val),
+				}
+				if value.right != nil {
+					field.Value = value.right.val
+				} else {
+					field.Value = strconv.Itoa(i)
+				}
+				fields = append(fields, field)
+			}
+
 			s.Messages = append(s.Messages, &schema.Message{
-				Name: schema.VarName(enum.name.val),
+				Name:   schema.VarName(enum.name.val),
+				Type:   schema.MessageType("enum"),
+				Fields: fields,
 			})
 		}
 	}

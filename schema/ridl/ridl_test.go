@@ -98,7 +98,7 @@ func TestImport(t *testing.T) {
 
 		log.Printf("schema: %v", schema)
 
-		buf, err := json.Marshal(schema)
+		buf, err := json.MarshalIndent(schema, "", "  ")
 		assert.NoError(t, err)
 		log.Printf("schema JSON: %v", string(buf))
 	}
@@ -128,7 +128,7 @@ func TestEnum(t *testing.T) {
 
 		log.Printf("schema: %v", schema)
 
-		buf, err := json.Marshal(schema)
+		buf, err := json.MarshalIndent(schema, "", "  ")
 		assert.NoError(t, err)
 		log.Printf("schema JSON: %v", string(buf))
 
