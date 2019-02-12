@@ -19,7 +19,7 @@ func SkipTestLexer(t *testing.T) {
 
 					-baz   = 56 # a comment
 
-							         		version=                    v0.0.1
+													version=                    v0.0.1
 
 
 foo=bar`
@@ -61,7 +61,53 @@ func TestHeaders(t *testing.T) {
 	}
 }
 
-func TestHeadersImport(t *testing.T) {
+func TestImport(t *testing.T) {
+	/*
+		{
+			input := `
+		ridl = v1
+			version = v0.1.1
+		service = hello-webrpc
+
+		import
+		- foo
+			- bar
+		`
+			schema, err := Parse(input)
+			assert.NoError(t, err)
+
+			log.Printf("schema: %v", schema)
+
+			buf, err := json.Marshal(schema)
+			assert.NoError(t, err)
+			log.Printf("schema JSON: %v", string(buf))
+
+		}
+	*/
+
+	{
+		input := `
+	ridl = v1
+		version = v0.1.1 # version number
+	service = hello-webrpc
+
+	import # import line
+	- foo1 # foo-comment with spaces
+		- bar2 # # # bar-comment
+	`
+		schema, err := Parse(input)
+		assert.NoError(t, err)
+
+		log.Printf("schema: %v", schema)
+
+		buf, err := json.Marshal(schema)
+		assert.NoError(t, err)
+		log.Printf("schema JSON: %v", string(buf))
+
+	}
+}
+
+func TestEnum(t *testing.T) {
 	{
 		input := `
 	ridl = v1
@@ -71,6 +117,17 @@ func TestHeadersImport(t *testing.T) {
 	import
 	- foo
 		- bar
+
+					# this is a comment
+						# yep
+					enum Kind: uint32
+						- USER = 1             # comment
+						- ADMIN = 2            # comment..
+
+				# or.. just..
+				enum Kind: uint32
+					- USER                 # aka, = 0
+					- ADMIN         # aka, = 1
 	`
 		schema, err := Parse(input)
 		assert.NoError(t, err)
