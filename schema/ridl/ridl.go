@@ -56,5 +56,16 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 		}
 	}
 
+	if len(p.tree.enums) > 0 {
+		if s.Messages == nil {
+			s.Messages = []*schema.Message{}
+		}
+		for _, enum := range p.tree.enums {
+			s.Messages = append(s.Messages, &schema.Message{
+				Name: schema.VarName(enum.name.val),
+			})
+		}
+	}
+
 	return s, nil
 }

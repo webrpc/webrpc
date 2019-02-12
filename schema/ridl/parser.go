@@ -15,6 +15,12 @@ type definition struct {
 	right *token
 }
 
+type enum struct {
+	name     *token
+	enumType *token
+	values   []*definition
+}
+
 func (d *definition) value() string {
 	return d.right.val
 }
@@ -23,6 +29,7 @@ type tree struct {
 	definitions map[string]*definition
 
 	imports []*token
+	enums   []*enum
 }
 
 var invalidToken = &token{tt: tokenInvalid}
@@ -50,6 +57,7 @@ func newParser(input string) (*parser, error) {
 		tree: tree{
 			definitions: make(map[string]*definition),
 			imports:     []*token{},
+			enums:       []*enum{},
 		},
 	}
 	return p, nil
@@ -59,7 +67,6 @@ func (p *parser) run() error {
 	for state := parseStateStart; state != nil; {
 		state = state(p)
 	}
-	log.Printf("p: %#v", p)
 	if p.lastErr != nil {
 		return p.lastErr
 	}
@@ -175,6 +182,80 @@ func parseStateDefinition(word *token) parseState {
 	}
 }
 
+func parseStateEnum(p *parser) parseState {
+	// Enum definition
+	if err := p.expectNext(tokenWord); err != nil {
+		return p.stateError(err)
+	}
+	enumName := p.cursor()
+
+	if err := p.expectNext(tokenColon); err != nil {
+		return p.stateError(err)
+	}
+
+	if err := p.expectNext(tokenWord); err != nil {
+		return p.stateError(err)
+	}
+	enumType := p.cursor()
+
+	values := []*definition{}
+
+	// Parse enum values
+	for {
+		if !p.next() {
+			break
+		}
+
+		if err := p.expectCommentOrNewLine(); err != nil {
+			return p.stateError(err)
+		}
+
+		tok := p.cursor()
+		log.Printf("cursor: %v", tok)
+		switch tok.tt {
+		case tokenNewLine:
+			if !p.next() {
+				return nil
+			}
+		case tokenMinusSign:
+			log.Printf("got minus")
+			if err := p.expectNext(tokenWord); err != nil {
+				return p.stateError(err)
+			}
+			enumDefinition := &definition{left: p.cursor()}
+
+			if err := p.expectNext(tokenEqual); err == nil {
+				// has "=" sign
+				if err := p.expectNext(tokenWord); err != nil {
+					return p.stateError(err)
+				}
+				enumDefinition.right = p.cursor()
+			} else {
+				if err := p.continueUntilEOL(); err != nil {
+					return p.stateError(err)
+				}
+			}
+
+			values = append(values, enumDefinition)
+			if !p.next() {
+				break
+			}
+		default:
+			break
+		}
+	}
+
+	p.tree.enums = append(p.tree.enums, &enum{
+		name:     enumName,
+		enumType: enumType,
+		values:   values,
+	})
+
+	log.Printf("enumName: %v, enumType: %v, values: %v", enumName, enumType, values)
+
+	return nil
+}
+
 func parseStateImport(p *parser) parseState {
 	if !p.next() {
 		return parseStateUnexpectedEOF
@@ -186,14 +267,12 @@ func parseStateImport(p *parser) parseState {
 		}
 
 		tok := p.cursor()
-		log.Printf("inspect: %v", tok)
 		switch tok.tt {
 		case tokenNewLine:
 			if !p.next() {
 				return nil
 			}
 		case tokenMinusSign:
-			log.Printf("got minus")
 			if err := p.expectNext(tokenWord); err != nil {
 				return p.stateError(err)
 			}
@@ -234,6 +313,8 @@ func parseStateLine(p *parser) parseState {
 		return parseStateDefinition(word)
 	case "import":
 		return parseStateImport
+	case "enum":
+		return parseStateEnum
 	default:
 		return p.stateError(errors.New("unknown definition"))
 	}
