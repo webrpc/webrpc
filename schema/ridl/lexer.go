@@ -2,11 +2,14 @@ package ridl
 
 import (
 	"fmt"
+	"log"
 )
 
 var (
 	empty = rune(0)
 )
+
+var alphanumericCharset = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.")
 
 type tokenType uint8
 
@@ -20,6 +23,7 @@ const (
 	tokenPlusSign
 	tokenMinusSign
 	tokenHash
+	tokenColon
 	tokenWord
 	tokenEOF
 )
@@ -34,6 +38,7 @@ var tokenTypeName = map[tokenType]string{
 	tokenPlusSign:   "[plus sign]",
 	tokenMinusSign:  "[minus sign]",
 	tokenHash:       "[hash sign]",
+	tokenColon:      "[colon sign]",
 	tokenWord:       "[word]",
 	tokenEOF:        "[EOF]",
 }
@@ -171,6 +176,8 @@ func lexStateStart(lx *lexer) lexState {
 		return lexStateMinusSign
 	case isHash(c):
 		return lexStateHash
+	case isColon(c):
+		return lexStateColon
 	case isAlphanumeric(c):
 		return lexStateWord
 	}
@@ -186,6 +193,12 @@ func lexStateOpenParen(lx *lexer) lexState {
 func lexStateCloseParen(lx *lexer) lexState {
 	lx.next()
 	lx.emit(tokenCloseParen)
+	return lexStateStart
+}
+
+func lexStateColon(lx *lexer) lexState {
+	lx.next()
+	lx.emit(tokenColon)
 	return lexStateStart
 }
 
@@ -261,6 +274,16 @@ func isHash(r rune) bool {
 	return string(r) == "#"
 }
 
+func isColon(r rune) bool {
+	return string(r) == ":"
+}
+
 func isAlphanumeric(r rune) bool {
-	return !isNewLine(r) && !isSpace(r) && !isEqual(r)
+	for i := range alphanumericCharset {
+		if r == alphanumericCharset[i] {
+			return true
+		}
+	}
+	log.Printf("not alpha: %v", string(r))
+	return false
 }
