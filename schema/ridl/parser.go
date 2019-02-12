@@ -6,6 +6,10 @@ import (
 	"log"
 )
 
+var (
+	errUnexpectedEOF = errors.New(`unexpected EOF`)
+)
+
 type definition struct {
 	left  *token
 	right *token
@@ -62,6 +66,49 @@ func (p *parser) run() error {
 	return nil
 }
 
+func (p *parser) continueUntilEOL() error {
+	for {
+		tok := p.cursor()
+		log.Printf("drop: %v", tok)
+		if tok.tt == tokenNewLine {
+			// EOL
+			return nil
+		}
+
+		if !p.next() {
+			// EOF
+			return nil
+		}
+	}
+
+	panic("reached")
+}
+
+func (p *parser) expectCommentOrNewLine() error {
+	for {
+
+		tok := p.cursor()
+		log.Printf("tok: %q", tok.val)
+
+		switch tok.tt {
+		case tokenNewLine:
+			// got new line, continue
+		case tokenHash:
+			if !p.next() {
+				return nil
+			}
+			return p.continueUntilEOL()
+		default:
+			// another kind of token, stop
+			return nil
+		}
+		if !p.next() {
+			return nil
+		}
+	}
+	return nil
+}
+
 func (p *parser) expectNext(tt tokenType) error {
 	if !p.next() {
 		return errors.New(`unexpected EOF`)
@@ -71,7 +118,6 @@ func (p *parser) expectNext(tt tokenType) error {
 	if tok.tt != tt {
 		return fmt.Errorf(`expecting %v, got %v`, tt, tok)
 	}
-
 	return nil
 }
 
@@ -116,6 +162,7 @@ func parseStateDefinition(word *token) parseState {
 		if err := p.expectNext(tokenWord); err != nil {
 			return p.stateError(err)
 		}
+
 		if p.tree.definitions[word.val] != nil {
 			return p.stateError(fmt.Errorf(`can't redefine "%v", previous definition found at %v`, word.val, p.tree.definitions[word.val].left))
 		}
@@ -123,21 +170,28 @@ func parseStateDefinition(word *token) parseState {
 			left:  word,
 			right: p.cursor(),
 		}
-		return parseStateContinue
+		log.Printf("definition")
+		return parseStateEOL
 	}
 }
 
 func parseStateImport(p *parser) parseState {
-	// expect new line
-	if err := p.expectNext(tokenNewLine); err != nil {
-		return p.stateError(err)
+	if !p.next() {
+		return parseStateUnexpectedEOF
 	}
 
 	for {
+		if err := p.expectCommentOrNewLine(); err != nil {
+			return p.stateError(err)
+		}
+
 		tok := p.cursor()
+		log.Printf("inspect: %v", tok)
 		switch tok.tt {
 		case tokenNewLine:
-			p.next()
+			if !p.next() {
+				return nil
+			}
 		case tokenMinusSign:
 			log.Printf("got minus")
 			if err := p.expectNext(tokenWord); err != nil {
@@ -145,7 +199,7 @@ func parseStateImport(p *parser) parseState {
 			}
 			p.tree.imports = append(p.tree.imports, p.cursor())
 			if !p.next() {
-				return parseStateEOF
+				return nil
 			}
 		default:
 			return parseStateContinue
@@ -154,6 +208,20 @@ func parseStateImport(p *parser) parseState {
 
 	log.Fatalf("got: %v", p.cursor())
 	return nil
+}
+
+func parseStateEOL(p *parser) parseState {
+	if err := p.expectCommentOrNewLine(); err != nil {
+		return p.stateError(err)
+	}
+	return parseStateContinue
+}
+
+func parseStateComment(p *parser) parseState {
+	if err := p.continueUntilEOL(); err != nil {
+		return p.stateError(err)
+	}
+	return parseStateContinue
 }
 
 func parseStateLine(p *parser) parseState {
@@ -180,11 +248,17 @@ func parseStateStart(p *parser) parseState {
 		return parseStateNewLine
 	case tokenWord:
 		return parseStateLine
+	case tokenHash:
+		return parseStateComment
 	case tokenInvalid: // abrupt EOF
 		return nil
 	}
-	log.Fatalf("tok: %v", tok)
+	log.Fatalf("parse state: %v", tok)
 	return nil
+}
+
+func parseStateUnexpectedEOF(p *parser) parseState {
+	return p.stateError(errUnexpectedEOF)
 }
 
 func parseStateEOF(p *parser) parseState {
