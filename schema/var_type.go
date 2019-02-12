@@ -21,6 +21,17 @@ func (t *VarType) String() string {
 	return t.expr
 }
 
+func NewVarTypeFromString(s string) (*VarType, error) {
+	dataType, ok := DataTypeFromString[s]
+	if ok {
+		return &VarType{
+			Type: dataType,
+			expr: s,
+		}, nil
+	}
+	return nil, fmt.Errorf("unknown data type %q", s)
+}
+
 func (t *VarType) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	buf.WriteString(t.String())

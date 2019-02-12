@@ -3,6 +3,7 @@ package ridl
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/webrpc/webrpc/schema"
@@ -63,10 +64,17 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 		}
 		for _, enum := range p.tree.enums {
 			fields := []*schema.MessageField{}
+			varType, err := schema.NewVarTypeFromString(enum.enumType.val)
+			if err != nil {
+				return nil, fmt.Errorf("unknown data type: %v", enum.enumType)
+			}
 
-			for i, value := range enum.values {
+			for i := range enum.values {
+				value := enum.values[i]
+				log.Printf("value: %#v -> %#v", value.left, value.right)
 				field := &schema.MessageField{
 					Name: schema.VarName(value.left.val),
+					Type: varType,
 				}
 				if value.right != nil {
 					field.Value = value.right.val
