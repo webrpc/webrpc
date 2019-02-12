@@ -62,9 +62,8 @@ func TestHeaders(t *testing.T) {
 }
 
 func TestImport(t *testing.T) {
-	/*
-		{
-			input := `
+	{
+		input := `
 		ridl = v1
 			version = v0.1.1
 		service = hello-webrpc
@@ -73,17 +72,16 @@ func TestImport(t *testing.T) {
 		- foo
 			- bar
 		`
-			schema, err := Parse(input)
-			assert.NoError(t, err)
+		schema, err := Parse(input)
+		assert.NoError(t, err)
 
-			log.Printf("schema: %v", schema)
+		log.Printf("schema: %v", schema)
 
-			buf, err := json.Marshal(schema)
-			assert.NoError(t, err)
-			log.Printf("schema JSON: %v", string(buf))
+		buf, err := json.Marshal(schema)
+		assert.NoError(t, err)
+		log.Printf("schema JSON: %v", string(buf))
 
-		}
-	*/
+	}
 
 	{
 		input := `
@@ -103,7 +101,6 @@ func TestImport(t *testing.T) {
 		buf, err := json.Marshal(schema)
 		assert.NoError(t, err)
 		log.Printf("schema JSON: %v", string(buf))
-
 	}
 }
 
@@ -113,10 +110,6 @@ func TestEnum(t *testing.T) {
 	ridl = v1
 		version = v0.1.1
 	service = hello-webrpc
-
-	import
-	- foo
-		- bar
 
 					# this is a comment
 						# yep
@@ -128,6 +121,7 @@ func TestEnum(t *testing.T) {
 				enum Kind: uint32
 					- USER                 # aka, = 0
 					- ADMIN         # aka, = 1
+					- OTHER
 	`
 		schema, err := Parse(input)
 		assert.NoError(t, err)
