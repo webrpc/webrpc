@@ -189,6 +189,8 @@ func parseStateEnum(p *parser) parseState {
 	}
 	enumName := p.cursor()
 
+	log.Printf("ENUM cursor: %v", enumName)
+
 	if err := p.expectNext(tokenColon); err != nil {
 		return p.stateError(err)
 	}
@@ -200,18 +202,19 @@ func parseStateEnum(p *parser) parseState {
 
 	values := []*definition{}
 
+	if !p.next() {
+		return parseStateUnexpectedEOF
+	}
+
 	// Parse enum values
-	for {
-		if !p.next() {
-			break
-		}
+	loop := true
+	for loop {
 
 		if err := p.expectCommentOrNewLine(); err != nil {
 			return p.stateError(err)
 		}
 
 		tok := p.cursor()
-		log.Printf("cursor: %v", tok)
 		switch tok.tt {
 		case tokenNewLine:
 			if !p.next() {
@@ -235,13 +238,14 @@ func parseStateEnum(p *parser) parseState {
 					return p.stateError(err)
 				}
 			}
+			if !p.next() {
+				return nil
+			}
+			log.Printf("enumDefinition: %#v", enumDefinition.left)
 
 			values = append(values, enumDefinition)
-			if !p.next() {
-				break
-			}
 		default:
-			break
+			loop = false
 		}
 	}
 
@@ -253,7 +257,7 @@ func parseStateEnum(p *parser) parseState {
 
 	log.Printf("enumName: %v, enumType: %v, values: %v", enumName, enumType, values)
 
-	return nil
+	return parseStateStart
 }
 
 func parseStateImport(p *parser) parseState {
