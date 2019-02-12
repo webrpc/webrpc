@@ -1,17 +1,19 @@
 package ridl
 
 import (
-	"log"
+	"errors"
+	"fmt"
+
+	"github.com/webrpc/webrpc/schema"
 )
 
 type Tree struct {
 }
 
-type Token struct {
-}
+func tokenize(input string) ([]token, error) {
+	lx := newLexer(string(input))
 
-func Tokenize(input string) (*Tree, error) {
-	lx := Lex(string(input))
+	tokens := []token{}
 	for {
 		tok := <-lx.tokens
 		if tok.tt == tokenSpace {
@@ -20,11 +22,39 @@ func Tokenize(input string) (*Tree, error) {
 		if tok.tt == tokenEOF {
 			break
 		}
-		if tok.tt == tokenNewLine {
-			log.Printf("newline")
-			continue
-		}
-		log.Printf("%v", tok)
+		tokens = append(tokens, tok)
 	}
-	return nil, nil
+
+	return tokens, nil
+}
+
+func Parse(input string) (*schema.WebRPCSchema, error) {
+	p, err := newParser(input)
+	if err != nil {
+		return nil, err
+	}
+	if err = p.run(); err != nil {
+		return nil, err
+	}
+
+	if p.tree.definitions["service"] == nil {
+		return nil, errors.New(`missing "service" declaration`)
+	}
+	if p.tree.definitions["version"] == nil {
+		return nil, errors.New(`missing "version" declaration`)
+	}
+
+	s := &schema.WebRPCSchema{
+		Schema: "webrpc/v0.1.0",
+		App:    fmt.Sprintf("%s/%s", p.tree.definitions["service"].value(), p.tree.definitions["version"].value()),
+	}
+
+	if len(p.tree.imports) > 0 {
+		s.Imports = []string{}
+		for _, tok := range p.tree.imports {
+			s.Imports = append(s.Imports, tok.val)
+		}
+	}
+
+	return s, nil
 }

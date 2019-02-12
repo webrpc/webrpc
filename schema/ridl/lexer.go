@@ -2,8 +2,6 @@ package ridl
 
 import (
 	"fmt"
-	"reflect"
-	"runtime"
 )
 
 var (
@@ -40,12 +38,20 @@ var tokenTypeName = map[tokenType]string{
 	tokenEOF:        "[EOF]",
 }
 
+func (tt tokenType) String() string {
+	return tokenTypeName[tt]
+}
+
 type token struct {
 	tt  tokenType
 	val string
 
 	line int
 	col  int
+}
+
+func (t token) String() string {
+	return fmt.Sprintf("%s (line: %d, col: %d): %q", t.tt, t.line, t.col, t.val)
 }
 
 type lexer struct {
@@ -60,16 +66,6 @@ type lexer struct {
 	tokens chan token
 }
 
-type lexState func(*lexer) lexState
-
-func (tt tokenType) String() string {
-	return tokenTypeName[tt]
-}
-
-func (t token) String() string {
-	return fmt.Sprintf("%s (line: %d, col: %d): %q", t.tt, t.line, t.col, t.val)
-}
-
 func (lx *lexer) run() {
 	for state := lexStateStart; state != nil; {
 		lx.start = lx.pos
@@ -79,12 +75,13 @@ func (lx *lexer) run() {
 	close(lx.tokens)
 }
 
-func Lex(inputString string) *lexer {
+func newLexer(inputString string) *lexer {
 	input := []rune(inputString)
 	lx := &lexer{
 		input:  input,
 		length: len(input),
 		line:   1,
+		col:    1,
 		tokens: make(chan token, 5),
 	}
 	go lx.run()
@@ -122,6 +119,8 @@ func (lx *lexer) val() string {
 func (lx *lexer) String() string {
 	return fmt.Sprintf("line: %d, start: %d, pos: %d, col: %d, length: %d, value: %q", lx.line, lx.start, lx.pos, lx.col, lx.length, string(lx.input[lx.start:lx.pos]))
 }
+
+type lexState func(*lexer) lexState
 
 func lexStateSpace(lx *lexer) lexState {
 	for lx.next() {
@@ -178,26 +177,6 @@ func lexStateStart(lx *lexer) lexState {
 	return nil
 }
 
-func isEmpty(r rune) bool {
-	return r == empty
-}
-
-func isSpace(r rune) bool {
-	s := string(r)
-	if s == " " || s == "\t" || s == "\r" {
-		return true
-	}
-	return false
-}
-
-func isNewLine(r rune) bool {
-	s := string(r)
-	if s == "\n" || s == "\r" {
-		return true
-	}
-	return false
-}
-
 func lexStateOpenParen(lx *lexer) lexState {
 	lx.next()
 	lx.emit(tokenOpenParen)
@@ -238,6 +217,26 @@ func lexStateWord(lx *lexer) lexState {
 	return lexStateStart
 }
 
+func isEmpty(r rune) bool {
+	return r == empty
+}
+
+func isSpace(r rune) bool {
+	s := string(r)
+	if s == " " || s == "\t" || s == "\r" {
+		return true
+	}
+	return false
+}
+
+func isNewLine(r rune) bool {
+	s := string(r)
+	if s == "\n" || s == "\r" {
+		return true
+	}
+	return false
+}
+
 func isEqual(r rune) bool {
 	return string(r) == "="
 }
@@ -264,8 +263,4 @@ func isHash(r rune) bool {
 
 func isAlphanumeric(r rune) bool {
 	return !isNewLine(r) && !isSpace(r) && !isEqual(r)
-}
-
-func stateName(fn lexState) string {
-	return runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
 }
