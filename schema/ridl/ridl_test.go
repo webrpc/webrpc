@@ -113,12 +113,12 @@ func TestEnum(t *testing.T) {
 
 					# this is a comment
 						# yep
-					enum Kind: uint32
+					enum Kind:uint32
 						- USER = 1             # comment
 						- ADMIN = 2            # comment..
 
 				# or.. just..
-				enum Kind: uint32
+				enum	 KindTwo:		uint32
 					- USER                 # aka, = 0
 					- ADMIN         # aka, = 1
 					- OTHER
