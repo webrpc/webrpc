@@ -161,7 +161,7 @@ const input = `
 func TestGenTypescript(t *testing.T) {
 	g := &generator{}
 
-	s, err := schema.ParseSchema([]byte(input))
+	s, err := schema.ParseSchemaJSON([]byte(input))
 	assert.NoError(t, err)
 
 	o, err := g.Gen(s, gen.TargetOptions{PkgName: "test"})

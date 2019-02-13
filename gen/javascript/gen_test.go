@@ -159,7 +159,7 @@ const input = `
 `
 
 func TestGenJavascript(t *testing.T) {
-	s, err := schema.ParseSchema([]byte(input))
+	s, err := schema.ParseSchemaJSON([]byte(input))
 	assert.NoError(t, err)
 
 	g := &generator{}

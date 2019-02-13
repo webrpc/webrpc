@@ -158,7 +158,7 @@ func TestSchema(t *testing.T) {
 	}
 `
 
-	schema, err := ParseSchema([]byte(input))
+	schema, err := ParseSchemaJSON([]byte(input))
 	assert.NoError(t, err)
 
 	// spew.Dump(schema)
