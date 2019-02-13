@@ -124,7 +124,7 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 
 			s.Messages = append(s.Messages, &schema.Message{
 				Name:   schema.VarName(message.name.val),
-				Type:   schema.MessageType("message"),
+				Type:   schema.MessageType("struct"),
 				Fields: fields,
 			})
 		}
