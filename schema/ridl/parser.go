@@ -153,6 +153,40 @@ func (p *parser) expectCommentOrNewLine() error {
 	return nil
 }
 
+func (p *parser) expectDelimiter(baseToken *token, delimiters ...tokenType) (*token, error) {
+	if baseToken == nil {
+		baseToken = &token{}
+	}
+
+	values := []string{baseToken.val}
+
+loop:
+	for {
+		if !p.next() {
+			break loop
+		}
+
+		tok := p.cursor()
+		for i := range delimiters {
+			if tok.tt == delimiters[i] {
+				if err := p.back(); err != nil {
+					return nil, err
+				}
+				break loop
+			}
+		}
+
+		values = append(values, tok.val)
+	}
+
+	return &token{
+		tt:   tokenComposed,
+		val:  strings.Join(values, ""),
+		line: baseToken.line,
+		col:  baseToken.col,
+	}, nil
+}
+
 func (p *parser) expectComposedToken(baseToken *token, tt ...tokenType) (*token, error) {
 	if baseToken == nil {
 		baseToken = &token{}
@@ -198,6 +232,14 @@ func (p *parser) expectNext(tt tokenType) error {
 
 func (p *parser) stateError(err error) parseState {
 	p.lastErr = fmt.Errorf("error: %v, near: %v \n", err, p.cursor())
+	return nil
+}
+
+func (p *parser) back() error {
+	if p.pos <= 0 {
+		return errors.New("can't go back")
+	}
+	p.pos = p.pos - 1
 	return nil
 }
 
@@ -351,6 +393,8 @@ func parseStateMessage(p *parser) parseState {
 	}
 	messageName := p.cursor()
 
+	log.Printf("messageName: %v", messageName)
+
 	fields := []*definition{}
 
 	if !p.next() {
@@ -388,8 +432,13 @@ loop:
 			if err := p.expectNext(tokenWord); err != nil {
 				return p.stateError(err)
 			}
+
+			composedToken, err := p.expectDelimiter(p.cursor(), tokenSpace, tokenHash, tokenNewLine)
+			if err != nil {
+				return p.stateError(err)
+			}
 			//var metaValue *token
-			metaValue := p.cursor()
+			metaValue := composedToken
 
 			fieldDefinition.meta = append(fieldDefinition.meta, &definition{
 				left:  metaName,
@@ -635,7 +684,6 @@ func parseStateStart(p *parser) parseState {
 	default:
 		log.Printf("GOT STATE: %v", tok)
 	}
-	log.Fatalf("parse state: %v", tok)
 	return nil
 }
 
