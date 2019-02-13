@@ -9,7 +9,7 @@ var (
 	empty = rune(0)
 )
 
-var wordCharset = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.,/")
+var wordCharset = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-./")
 
 type tokenType uint8
 
@@ -20,31 +20,45 @@ const (
 	tokenEqual
 	tokenOpenParen
 	tokenCloseParen
+	tokenOpenBracket
+	tokenCloseBracket
+	tokenOpenAngleBracket
+	tokenCloseAngleBracket
+	tokenOpenMap
+	tokenCloseMap
 	tokenPlusSign
 	tokenMinusSign
 	tokenHash
 	tokenColon
+	tokenComma
 	tokenQuestionMark
 	tokenWord
 	tokenExtra
+	tokenComposed
 	tokenEOF
 )
 
 var tokenTypeName = map[tokenType]string{
-	tokenInvalid:      "[invalid]",
-	tokenSpace:        "[space]",
-	tokenNewLine:      "[newline]",
-	tokenEqual:        "[equal sign]",
-	tokenOpenParen:    "[open parenthesis]",
-	tokenCloseParen:   "[close parenthesis]",
-	tokenPlusSign:     "[plus]",
-	tokenMinusSign:    "[minus]",
-	tokenHash:         "[hash]",
-	tokenColon:        "[colon]",
-	tokenQuestionMark: "[question mark]",
-	tokenWord:         "[word]",
-	tokenExtra:        "[extra]",
-	tokenEOF:          "[EOF]",
+	tokenInvalid:           "[invalid]",
+	tokenSpace:             "[space]",
+	tokenNewLine:           "[newline]",
+	tokenEqual:             "[equal sign]",
+	tokenOpenParen:         "[open parenthesis]",
+	tokenCloseParen:        "[close parenthesis]",
+	tokenOpenBracket:       "[open bracket]",
+	tokenCloseBracket:      "[close bracket]",
+	tokenOpenAngleBracket:  "[open angle bracket]",
+	tokenCloseAngleBracket: "[close angle bracket]",
+	tokenPlusSign:          "[plus]",
+	tokenMinusSign:         "[minus]",
+	tokenHash:              "[hash]",
+	tokenColon:             "[colon]",
+	tokenComma:             "[comma]",
+	tokenQuestionMark:      "[question mark]",
+	tokenWord:              "[word]",
+	tokenExtra:             "[extra]",
+	tokenComposed:          "[composed]",
+	tokenEOF:               "[EOF]",
 }
 
 func (tt tokenType) String() string {
@@ -162,6 +176,8 @@ func lexStateEqual(lx *lexer) lexState {
 func lexStateStart(lx *lexer) lexState {
 	c := lx.peek()
 
+	// TODO: rewrite to "switch string(c) {" and handle character ranges as
+	// special cases
 	switch {
 	case isEmpty(c):
 		return nil
@@ -185,8 +201,18 @@ func lexStateStart(lx *lexer) lexState {
 		return lexStateColon
 	case isQuestionMark(c):
 		return lexStateQuestionMark
+	// TODO: move simple one-char checks here
+	case string(c) == "<":
 		// TODO: use lexStatePushToken to replace above funcs
-		// return lexStatePushToken(lx, tokenQuestionMark)
+		return lexStatePushToken(lx, tokenOpenAngleBracket)
+	case string(c) == ">":
+		return lexStatePushToken(lx, tokenCloseAngleBracket)
+	case string(c) == "[":
+		return lexStatePushToken(lx, tokenOpenBracket)
+	case string(c) == "]":
+		return lexStatePushToken(lx, tokenCloseBracket)
+	case string(c) == ",":
+		return lexStatePushToken(lx, tokenComma)
 	case isWord(c):
 		return lexStateWord
 	default:

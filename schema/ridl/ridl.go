@@ -3,7 +3,6 @@ package ridl
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/webrpc/webrpc/schema"
@@ -39,10 +38,9 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 		return nil, err
 	}
 
-	// TODO: rename to package?
-	//if p.tree.definitions["service"] == nil {
-	//	return nil, errors.New(`missing "service" declaration`)
-	//}
+	if p.tree.definitions["name"] == nil {
+		return nil, errors.New(`missing "name" declaration`)
+	}
 
 	if p.tree.definitions["version"] == nil {
 		return nil, errors.New(`missing "version" declaration`)
@@ -50,7 +48,7 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 
 	s := &schema.WebRPCSchema{
 		Schema: "webrpc/v0.1.0",
-		//App:    fmt.Sprintf("%s/%s", p.tree.definitions["service"].value(), p.tree.definitions["version"].value()),
+		Name:   fmt.Sprintf("%s/%s", p.tree.definitions["name"].value(), p.tree.definitions["version"].value()),
 	}
 
 	if len(p.tree.imports) > 0 {
@@ -66,17 +64,18 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 		}
 		for _, enum := range p.tree.enums {
 			fields := []*schema.MessageField{}
-			varType, err := schema.NewVarTypeFromString(s, enum.enumType.val)
+
+			var varType schema.VarType
+			err := schema.ParseVarTypeExpr(s, enum.enumType.val, &varType)
 			if err != nil {
 				return nil, fmt.Errorf("unknown data type: %v", enum.enumType)
 			}
 
 			for i := range enum.values {
 				value := enum.values[i]
-				log.Printf("value: %#v -> %#v", value.left, value.right)
 				field := &schema.MessageField{
 					Name: schema.VarName(value.left.val),
-					Type: varType,
+					Type: &varType,
 				}
 				if value.right != nil {
 					field.Value = value.right.val
@@ -103,16 +102,17 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 
 			for i := range message.fields {
 				value := message.fields[i]
-				varType, err := schema.NewVarTypeFromString(s, value.right.val)
+
+				var varType schema.VarType
+				err := schema.ParseVarTypeExpr(s, value.right.val, &varType)
 				if err != nil {
 					return nil, fmt.Errorf("unknown data type: %v", value.right.val)
 				}
 				field := &schema.MessageField{
 					Name: schema.VarName(value.left.val),
-					Type: varType,
+					Type: &varType,
 				}
 				for _, meta := range value.meta {
-					log.Printf("meta: %v", meta)
 					field.Meta = append(field.Meta, schema.MessageFieldMeta{
 						meta.left.val: meta.right.val,
 					})
@@ -146,12 +146,13 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 
 				// add inputs
 				for _, arg := range value.inputs {
-					varType, err := schema.NewVarTypeFromString(s, arg.right.val)
+					var varType schema.VarType
+					err := schema.ParseVarTypeExpr(s, arg.right.val, &varType)
 					if err != nil {
 						return nil, fmt.Errorf("unknown data type: %v", arg.right.val)
 					}
 					methodArgument := &schema.MethodArgument{
-						Type:   varType,
+						Type:   &varType,
 						Stream: arg.stream,
 					}
 					if arg.left != nil {
@@ -162,12 +163,13 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 
 				// add outputs
 				for _, arg := range value.outputs {
-					varType, err := schema.NewVarTypeFromString(s, arg.right.val)
+					var varType schema.VarType
+					err := schema.ParseVarTypeExpr(s, arg.right.val, &varType)
 					if err != nil {
 						return nil, fmt.Errorf("unknown data type: %v", arg.right.val)
 					}
 					methodArgument := &schema.MethodArgument{
-						Type:   varType,
+						Type:   &varType,
 						Stream: arg.stream,
 					}
 					if arg.left != nil {
