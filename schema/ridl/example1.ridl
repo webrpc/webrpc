@@ -22,7 +22,6 @@ enum Kind: uint32
 
 
 message Empty
-  -
 
 
 message GetUserRequest
