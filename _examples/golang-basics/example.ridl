@@ -1,0 +1,47 @@
+webrpc = v1             # version of webrpc schema format (ridl or json)
+
+name = example          # name if your backend app
+version = v1            # version of your app
+
+
+enum Kind: uint32
+  - USER
+  - ADMIN
+
+
+message Empty
+
+
+message GetUserRequest
+  - userID: uint64
+
+
+message User
+  - ID: uint64
+    + json = id
+    + go.tag.db = id
+
+  - username: string
+    + json = USERNAME
+    + go.tag.db = username
+
+  - createdAt?: timestamp
+    + json = created_at,omitempty
+    + go.tag.db = created_at
+
+
+message ComplexType
+  - user: User
+  - meta: map<string,any>
+  - metaNestExample: map<string,map<string,uint32>>
+  - namesList: []string
+  - numsList: []int64
+  #- doubleArray: [][]string
+  #- listOfMaps: []map<string,uint32>
+  - mapOfUsers: map<string,User>
+
+
+service ExampleService
+  - Ping(): bool
+  - GetUser(GetUserRequest): User
+

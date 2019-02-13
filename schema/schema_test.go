@@ -9,9 +9,9 @@ import (
 
 func TestSchema(t *testing.T) {
 	input := `{
-		"schema": "webrpc/v0.0.1",
+		"webrpc": "v1",
 		"name": "example",
-		"version": "1",
+		"version": "v0.0.1",
 		"messages": [
 			{
 				"name": "Kind",

@@ -19,18 +19,18 @@ import (
 type Kind uint32
 
 const (
-	Kind_USER  Kind = 1
-	Kind_ADMIN Kind = 2
+	Kind_USER  Kind = 0
+	Kind_ADMIN Kind = 1
 )
 
 var Kind_name = map[uint32]string{
-	1: "USER",
-	2: "ADMIN",
+	0: "USER",
+	1: "ADMIN",
 }
 
 var Kind_value = map[string]uint32{
-	"USER":  1,
-	"ADMIN": 2,
+	"USER":  0,
+	"ADMIN": 1,
 }
 
 func (x Kind) String() string {
@@ -67,21 +67,18 @@ type User struct {
 	CreatedAt *time.Time `json:"created_at,omitempty" db:"created_at"`
 }
 
-type RandomStuff struct {
-	Meta              map[string]interface{}
-	MetaNestedExample map[string]map[string]uint32
-	NamesList         []string
-	NumsList          []int64
-	DoubleArray       [][]string
-	ListOfMaps        []map[string]uint32
-	ListOfUsers       []User
-	MapOfUsers        map[string]User
-	User              User
+type ComplexType struct {
+	User            User
+	Meta            map[string]interface{}
+	MetaNestExample map[string]map[string]uint32
+	NamesList       []string
+	NumsList        []int64
+	MapOfUsers      map[string]User
 }
 
 type ExampleService interface {
 	Ping(ctx context.Context) (*bool, error)
-	GetUser(ctx context.Context, req *GetUserRequest) (*User, error)
+	GetUser(ctx context.Context, GetUserRequest *GetUserRequest) (*User, error)
 }
 
 var Services = map[string][]string{
@@ -121,7 +118,7 @@ func (c *exampleServiceClient) Ping(ctx context.Context) (*bool, error) {
 	return out, nil
 }
 
-func (c *exampleServiceClient) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
+func (c *exampleServiceClient) GetUser(ctx context.Context, GetUserRequest *GetUserRequest) (*User, error) {
 	out := new(User)
 	err := doJSONRequest(ctx, c.client, c.urls[1], req, out)
 	if err != nil {

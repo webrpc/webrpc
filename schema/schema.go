@@ -8,7 +8,7 @@ import (
 // schema of webrpc json file, and validations
 
 type WebRPCSchema struct {
-	Schema  string   `json:"schema"`
+	Schema  string   `json:"webrpc"`
 	Name    string   `json:"name"`
 	Version string   `json:"version"`
 	Imports []string `json:"imports"`

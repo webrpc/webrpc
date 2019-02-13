@@ -2,18 +2,19 @@ package ridl
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLexer(t *testing.T) {
 	buf := `
 
 
-		ridl						 =  v1
+		webrpc						 =  v1
 
 				+     foo=bar
 
@@ -34,15 +35,15 @@ foo=bar`
 func TestRidlHeader(t *testing.T) {
 	{
 		buf := `
-	ridl = v1
+		webrpc = v1
 	`
 		_, err := Parse(buf)
 		assert.Error(t, err, `"version" is required`)
 	}
 	{
 		buf := `
-	ridl = v0
-	ridl = v1
+	webrpc = v0
+	webrpc = v1
 	`
 		_, err := Parse(buf)
 		assert.Error(t, err, `should not be able to declare "ridl" twice`)
@@ -52,7 +53,7 @@ func TestRidlHeader(t *testing.T) {
 func TestHeaders(t *testing.T) {
 	{
 		buf := `
-	ridl = v1
+		webrpc = v1
 	version = v0.1.1
 
 	name= hello-webrpc
@@ -65,7 +66,7 @@ func TestHeaders(t *testing.T) {
 func TestImport(t *testing.T) {
 	{
 		input := `
-		ridl = v1
+		webrpc = v1
 			version = v0.1.1
 	name = hello-webrpc
 
@@ -89,7 +90,7 @@ func TestImport(t *testing.T) {
 
 	{
 		input := `
-	ridl = v1
+		webrpc = v1
 		version = v0.1.1 # version number
 	name		 = hello-webrpc
 
@@ -111,7 +112,7 @@ func TestImport(t *testing.T) {
 func TestEnum(t *testing.T) {
 	{
 		input := `
-	ridl = v1
+		webrpc = v1
 		version = v0.1.1
 	name = hello-webrpc
 
@@ -142,7 +143,7 @@ func TestEnum(t *testing.T) {
 func TestMessages(t *testing.T) {
 	{
 		input := `
-	ridl = v1
+		webrpc = v1
 		version = v0.1.1
 	name = hello-webrpc
 
@@ -161,7 +162,7 @@ func TestMessages(t *testing.T) {
 
 	{
 		input := `
-	ridl = v1
+		webrpc = v1
 		version = v0.1.1
 	name = hello-webrpc
 
@@ -180,7 +181,7 @@ func TestMessages(t *testing.T) {
 
 	{
 		input := `
-	ridl = v1
+		webrpc = v1
 		version = v0.1.1
 	name = hello-webrpc
 
@@ -200,7 +201,7 @@ func TestMessages(t *testing.T) {
 
 	{
 		input := `
-	ridl = v1
+		webrpc = v1
 		version = v0.1.1
 	name = hello-webrpc
 
@@ -224,7 +225,7 @@ func TestMessages(t *testing.T) {
 
 	{
 		input := `
-	ridl = v1
+		webrpc = v1
 		version = v0.1.1
 	name = hello-webrpc
 
@@ -253,7 +254,7 @@ func TestMessages(t *testing.T) {
 func TestService(t *testing.T) {
 	{
 		input := `
-	ridl = v1
+		webrpc = v1
 		version = v0.1.1
 	name = hello-webrpc
 
@@ -271,7 +272,7 @@ func TestService(t *testing.T) {
 
 	{
 		input := `
-	ridl = v1
+		webrpc = v1
 		version = v0.1.1
 	name = hello-webrpc
 
@@ -290,7 +291,7 @@ func TestService(t *testing.T) {
 
 	{
 		input := `
-	ridl = v1
+		webrpc = v1
 		version = v0.1.1
 	name = hello-webrpc
 

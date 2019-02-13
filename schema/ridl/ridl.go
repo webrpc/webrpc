@@ -8,9 +8,6 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-type Tree struct {
-}
-
 func tokenize(input string) ([]token, error) {
 	lx := newLexer(string(input))
 
@@ -38,6 +35,15 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 		return nil, err
 	}
 
+	if p.tree.definitions["webrpc"] == nil {
+		return nil, errors.New(`missing "webrpc" declaration`)
+	}
+	webrpcInputVersion := p.tree.definitions["webrpc"].value()
+	// TODO: use webrpc.VERSION string to compare..
+	if webrpcInputVersion != "v1" {
+		return nil, errors.New("invalid webrpc declaration in ridl file")
+	}
+
 	if p.tree.definitions["name"] == nil {
 		return nil, errors.New(`missing "name" declaration`)
 	}
@@ -47,7 +53,7 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 	}
 
 	s := &schema.WebRPCSchema{
-		Schema:  "webrpc/v0.1.0",
+		Schema:  webrpcInputVersion,
 		Name:    p.tree.definitions["name"].value(),
 		Version: p.tree.definitions["version"].value(),
 	}
@@ -87,9 +93,10 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 			}
 
 			s.Messages = append(s.Messages, &schema.Message{
-				Name:   schema.VarName(enum.name.val),
-				Type:   schema.MessageType("enum"),
-				Fields: fields,
+				Name:     schema.VarName(enum.name.val),
+				Type:     schema.MessageType("enum"),
+				Fields:   fields,
+				EnumType: &varType,
 			})
 		}
 	}

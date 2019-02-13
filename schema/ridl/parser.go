@@ -625,7 +625,7 @@ func parseStateLine(p *parser) parseState {
 	word := p.cursor()
 
 	switch word.val {
-	case "ridl", "name", "version":
+	case "webrpc", "name", "version":
 		return parseStateDefinition(word)
 	case "import":
 		return parseStateImport
