@@ -47,8 +47,9 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 	}
 
 	s := &schema.WebRPCSchema{
-		Schema: "webrpc/v0.1.0",
-		Name:   fmt.Sprintf("%s/%s", p.tree.definitions["name"].value(), p.tree.definitions["version"].value()),
+		Schema:  "webrpc/v0.1.0",
+		Name:    p.tree.definitions["name"].value(),
+		Version: p.tree.definitions["version"].value(),
 	}
 
 	if len(p.tree.imports) > 0 {
