@@ -2,14 +2,13 @@ package ridl
 
 import (
 	"fmt"
-	"log"
 )
 
 var (
 	empty = rune(0)
 )
 
-var alphanumericCharset = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.")
+var alphanumericCharset = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-./<>,[]?")
 
 type tokenType uint8
 
@@ -292,6 +291,6 @@ func isAlphanumeric(r rune) bool {
 			return true
 		}
 	}
-	log.Printf("not alpha: %v", string(r))
+	// log.Printf("not alpha: %v", string(r))
 	return false
 }

@@ -2,39 +2,20 @@ package ridl
 
 import (
 	"encoding/json"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
-
-func SkipTestLexer(t *testing.T) {
-	buf := `
-
-
-		ridl						 =  v1
-
-				+     foo=bar
-
-					-baz   = 56 # a comment
-
-													version=                    v0.0.1
-
-
-foo=bar`
-
-	tokens, err := tokenize(buf)
-	assert.NoError(t, err)
-
-	log.Printf("buf: %v", string(buf))
-	log.Printf("tokens: %v", tokens)
-}
 
 func TestRidlHeader(t *testing.T) {
 	{
 		buf := `
 	ridl = v1
+	name = myapp
+	version = 1
 	`
 		_, err := Parse(buf)
 		assert.NoError(t, err)
@@ -53,8 +34,9 @@ func TestHeaders(t *testing.T) {
 	{
 		buf := `
 	ridl = v1
+
+	name = hello-webrpc
 	version = v0.1.1
-	service = hello-webrpc
 	`
 		_, err := Parse(buf)
 		assert.NoError(t, err)
@@ -65,8 +47,8 @@ func TestImport(t *testing.T) {
 	{
 		input := `
 		ridl = v1
-			version = v0.1.1
-		service = hello-webrpc
+		name = a
+		version = b
 
 		import
 		- foo
@@ -86,8 +68,8 @@ func TestImport(t *testing.T) {
 	{
 		input := `
 	ridl = v1
-		version = v0.1.1 # version number
-	service = hello-webrpc
+	name = hello-webrpc
+	version = v0.1.1 # version number
 
 	import # import line
 	- foo1 # foo-comment with spaces
@@ -109,7 +91,7 @@ func TestEnum(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	service = hello-webrpc
+	name = hello-webrpc
 
 					# this is a comment
 						# yep
@@ -140,7 +122,7 @@ func TestMessages(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	service = hello-webrpc
+	name = hello-webrpc
 
 	message Empty
 	`
@@ -158,8 +140,8 @@ func TestMessages(t *testing.T) {
 	{
 		input := `
 	ridl = v1
+	name = hello-webrpc
 		version = v0.1.1
-	service = hello-webrpc
 
 	message Empty # with a, comment
 	`
@@ -176,9 +158,10 @@ func TestMessages(t *testing.T) {
 
 	{
 		input := `
-	ridl = v1
-		version = v0.1.1
-	service = hello-webrpc
+	 ridl = v1
+
+	 name = hello-webrpc
+	 version = v0.1.1
 
 	message Simple # with a, comment
 		- ID: uint32
@@ -197,8 +180,10 @@ func TestMessages(t *testing.T) {
 	{
 		input := `
 	ridl = v1
+
+	name = hello-webrpc
 		version = v0.1.1
-	service = hello-webrpc
+
 
 	message Simple # with a-comment an,d meta fields
 		- ID: uint32
@@ -206,7 +191,24 @@ func TestMessages(t *testing.T) {
 			+ json = field_2 # a comment
 				+ go.tag.db = field_2
 
+
 	message Simple2 # with a-comment an,d meta fields
+
+
+	# complex message
+	message Complex
+
+		- username: string # user's name
+
+		-	dict: map<string,Simple>
+			+ json = cool
+
+		- list: []string
+
+		- more: []Simple
+
+		- createdAt?: timestamp
+
 	`
 		schema, err := Parse(input)
 		assert.NoError(t, err)
@@ -224,7 +226,7 @@ func TestService(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	package = hello-webrpc
+	name = hello-webrpc
 
 	service Empty
 	`
@@ -242,7 +244,7 @@ func TestService(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	package = hello-webrpc
+	name = hello-webrpc
 
 	service Simple
 	-	Ping(): bool

@@ -1,11 +1,11 @@
 ridl = v1
 
-service = hello-webrpc
+name = hello-webrpc
 version = v0.0.1
 
 
 import
-  - ./blah.webrpc
+  - ./blah.ridl
   - ./abc.json
 
 
@@ -41,6 +41,14 @@ message User
   - createdAt?: timestamp
     + json = created_at,omitempty
     + go.tag.db = created_at
+
+
+message Role
+  - name: string
+
+  - users: map<uint64,User>
+
+  - perms: []string
 
 
 service ExampleService

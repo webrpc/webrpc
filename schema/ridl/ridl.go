@@ -39,11 +39,9 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 		return nil, err
 	}
 
-	// TODO: rename to package?
-	//if p.tree.definitions["service"] == nil {
-	//	return nil, errors.New(`missing "service" declaration`)
-	//}
-
+	if p.tree.definitions["name"] == nil {
+		return nil, errors.New(`missing "name" declaration`)
+	}
 	if p.tree.definitions["version"] == nil {
 		return nil, errors.New(`missing "version" declaration`)
 	}

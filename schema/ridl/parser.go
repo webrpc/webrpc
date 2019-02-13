@@ -77,6 +77,7 @@ func newParser(input string) (*parser, error) {
 	if err != nil {
 		return nil, err
 	}
+	// spew.Dump(tokens)
 	p := &parser{
 		tokens: tokens,
 		length: len(tokens),
@@ -176,8 +177,15 @@ func (p *parser) cursor() *token {
 	return &p.tokens[p.pos]
 }
 
+func (p *parser) peek() *token {
+	if p.pos >= p.length {
+		return invalidToken
+	}
+	return &p.tokens[p.pos+1]
+}
+
 func parseStateNewLine(p *parser) parseState {
-	for p.next(); p.cursor().tt == tokenNewLine; {
+	for ; p.cursor().tt == tokenNewLine; p.next() {
 	}
 	return parseStateStart
 }
@@ -496,10 +504,8 @@ func parseStateComment(p *parser) parseState {
 func parseStateLine(p *parser) parseState {
 	// word is the beginning of a line
 	word := p.cursor()
-	log.Printf("word: %v", word)
-
 	switch word.val {
-	case "ridl", "package", "version":
+	case "ridl", "name", "version":
 		return parseStateDefinition(word)
 	case "import":
 		return parseStateImport
