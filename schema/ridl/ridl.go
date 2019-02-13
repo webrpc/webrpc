@@ -110,8 +110,9 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 					return nil, fmt.Errorf("unknown data type: %v", value.right.val)
 				}
 				field := &schema.MessageField{
-					Name: schema.VarName(value.left.val),
-					Type: &varType,
+					Name:     schema.VarName(value.left.val),
+					Optional: value.optional,
+					Type:     &varType,
 				}
 				for _, meta := range value.meta {
 					field.Meta = append(field.Meta, schema.MessageFieldMeta{
