@@ -50,7 +50,9 @@ message Role
 
   - users: map<uint64,User>
 
-  - perms: []string
+  - perms: []string # comment
+
+  - other: map<uint64,map<string,string>> # comment
 
 
 message Notice
