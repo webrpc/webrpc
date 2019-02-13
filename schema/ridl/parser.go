@@ -3,7 +3,6 @@ package ridl
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -106,7 +105,6 @@ func (p *parser) run() error {
 func (p *parser) continueUntilEOL() error {
 	for {
 		tok := p.cursor()
-		log.Printf("drop: %v", tok)
 
 		if tok.tt == tokenNewLine {
 			// EOL
@@ -126,7 +124,6 @@ func (p *parser) expectCommentOrNewLine() error {
 	for {
 
 		tok := p.cursor()
-		log.Printf("discard?: %q", tok.val)
 
 		switch tok.tt {
 		case tokenNewLine:
@@ -143,7 +140,6 @@ func (p *parser) expectCommentOrNewLine() error {
 			return p.continueUntilEOL()
 		default:
 			// another kind of token, stop
-			log.Printf("discard? -> nope")
 			return nil
 		}
 		if !p.next() {
@@ -245,7 +241,6 @@ func (p *parser) back() error {
 
 func (p *parser) next() bool {
 	if p.pos >= p.length {
-		log.Printf("EOF")
 		return false
 	}
 	p.pos = p.pos + 1
@@ -288,7 +283,6 @@ func parseStateDefinition(word *token) parseState {
 			left:  word,
 			right: p.cursor(),
 		}
-		log.Printf("definition")
 		return parseStateEOL
 	}
 }
@@ -328,7 +322,6 @@ loop:
 				inputs:  []*methodArgument{},
 				outputs: []*methodArgument{},
 			}
-			log.Printf("methodDefinition: %v", methodDefinition)
 
 			if err := p.expectNext(tokenOpenParen); err != nil {
 				return p.stateError(err)
@@ -382,8 +375,6 @@ loop:
 		methods: methods,
 	})
 
-	log.Printf("service name %v", serviceName)
-
 	return parseStateStart
 }
 
@@ -392,8 +383,6 @@ func parseStateMessage(p *parser) parseState {
 		return p.stateError(err)
 	}
 	messageName := p.cursor()
-
-	log.Printf("messageName: %v", messageName)
 
 	fields := []*definition{}
 
@@ -449,12 +438,10 @@ loop:
 				break loop
 			}
 		case tokenMinusSign:
-			log.Printf("got minus sign")
 			if err := p.expectNext(tokenWord); err != nil {
 				return p.stateError(err)
 			}
 			fieldDefinition = &definition{left: p.cursor()}
-			log.Printf("fieldDefinition: %v", fieldDefinition)
 
 			if err := p.expectNext(tokenColon); err != nil {
 				if p.cursor().tt != tokenQuestionMark {
@@ -512,8 +499,6 @@ loop:
 		fields: fields,
 	})
 
-	log.Printf("message name %v", messageName)
-
 	return parseStateStart
 }
 
@@ -523,8 +508,6 @@ func parseStateEnum(p *parser) parseState {
 		return p.stateError(err)
 	}
 	enumName := p.cursor()
-
-	log.Printf("ENUM cursor: %v", enumName)
 
 	if err := p.expectNext(tokenColon); err != nil {
 		return p.stateError(err)
@@ -556,7 +539,6 @@ loop:
 				break loop
 			}
 		case tokenMinusSign:
-			log.Printf("got minus")
 			if err := p.expectNext(tokenWord); err != nil {
 				return p.stateError(err)
 			}
@@ -570,10 +552,8 @@ loop:
 				enumDefinition.right = p.cursor()
 			}
 			if err := p.continueUntilEOL(); err != nil {
-				log.Printf("UNTIL EOL")
 				return p.stateError(err)
 			}
-			log.Printf("enumDefinition: %#v", enumDefinition.left)
 			values = append(values, enumDefinition)
 			if !p.next() {
 				break loop
@@ -588,8 +568,6 @@ loop:
 		enumType: enumType,
 		values:   values,
 	})
-
-	log.Printf("enumName: %v, enumType: %v, values: %v", enumName, enumType, values)
 
 	return parseStateStart
 }
@@ -617,9 +595,7 @@ loop:
 			}
 
 			p.tree.imports = append(p.tree.imports, p.cursor())
-			log.Printf("pushed import")
 			if !p.next() {
-				log.Printf("NEXT")
 				break loop
 			}
 		default:
@@ -647,7 +623,6 @@ func parseStateComment(p *parser) parseState {
 func parseStateLine(p *parser) parseState {
 	// word is the beginning of a line
 	word := p.cursor()
-	log.Printf("word: %v", word)
 
 	switch word.val {
 	case "ridl", "name", "version":
@@ -669,7 +644,6 @@ func parseStateLine(p *parser) parseState {
 
 func parseStateStart(p *parser) parseState {
 	tok := p.cursor()
-	log.Printf("tok: %v", tok)
 	switch tok.tt {
 	case tokenNewLine:
 		return parseStateNewLine
@@ -678,10 +652,8 @@ func parseStateStart(p *parser) parseState {
 	case tokenHash:
 		return parseStateComment
 	case tokenEOF: // abrupt EOF
-		log.Printf("got EOF")
 		return nil
 	default:
-		log.Printf("GOT STATE: %v", tok)
 	}
 	return nil
 }
