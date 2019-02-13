@@ -320,7 +320,7 @@ func TestParse(t *testing.T) {
 
 	log.Printf("buf: %v", string(buf))
 
-	buf, err = json.MarshalIndent(schema, "", "  ")
+	jout, err := schema.ToJSON(true)
 	assert.NoError(t, err)
-	log.Printf("schema JSON: %v", string(buf))
+	log.Printf("schema JSON: %v", jout)
 }
