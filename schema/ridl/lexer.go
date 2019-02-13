@@ -9,7 +9,7 @@ var (
 	empty = rune(0)
 )
 
-var alphanumericCharset = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.")
+var wordCharset = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.,/")
 
 type tokenType uint8
 
@@ -24,25 +24,27 @@ const (
 	tokenMinusSign
 	tokenHash
 	tokenColon
+	tokenQuestionMark
 	tokenWord
 	tokenExtra
 	tokenEOF
 )
 
 var tokenTypeName = map[tokenType]string{
-	tokenInvalid:    "[invalid]",
-	tokenSpace:      "[space]",
-	tokenNewLine:    "[newline]",
-	tokenEqual:      "[equal sign]",
-	tokenOpenParen:  "[open parenthesis]",
-	tokenCloseParen: "[close parenthesis]",
-	tokenPlusSign:   "[plus sign]",
-	tokenMinusSign:  "[minus sign]",
-	tokenHash:       "[hash sign]",
-	tokenColon:      "[colon sign]",
-	tokenWord:       "[word]",
-	tokenExtra:      "[extra]",
-	tokenEOF:        "[EOF]",
+	tokenInvalid:      "[invalid]",
+	tokenSpace:        "[space]",
+	tokenNewLine:      "[newline]",
+	tokenEqual:        "[equal sign]",
+	tokenOpenParen:    "[open parenthesis]",
+	tokenCloseParen:   "[close parenthesis]",
+	tokenPlusSign:     "[plus]",
+	tokenMinusSign:    "[minus]",
+	tokenHash:         "[hash]",
+	tokenColon:        "[colon]",
+	tokenQuestionMark: "[question mark]",
+	tokenWord:         "[word]",
+	tokenExtra:        "[extra]",
+	tokenEOF:          "[EOF]",
 }
 
 func (tt tokenType) String() string {
@@ -159,6 +161,7 @@ func lexStateEqual(lx *lexer) lexState {
 
 func lexStateStart(lx *lexer) lexState {
 	c := lx.peek()
+
 	switch {
 	case isEmpty(c):
 		return nil
@@ -180,10 +183,17 @@ func lexStateStart(lx *lexer) lexState {
 		return lexStateHash
 	case isColon(c):
 		return lexStateColon
-	case isAlphanumeric(c):
+	case isQuestionMark(c):
+		return lexStateQuestionMark
+		// TODO: use lexStatePushToken to replace above funcs
+		// return lexStatePushToken(lx, tokenQuestionMark)
+	case isWord(c):
 		return lexStateWord
+	default:
+		return lexStateExtra
 	}
-	return lexStateExtra
+
+	panic("reached")
 }
 
 func lexStateOpenParen(lx *lexer) lexState {
@@ -204,9 +214,21 @@ func lexStateColon(lx *lexer) lexState {
 	return lexStateStart
 }
 
+func lexStateQuestionMark(lx *lexer) lexState {
+	lx.next()
+	lx.emit(tokenQuestionMark)
+	return lexStateStart
+}
+
 func lexStatePlusSign(lx *lexer) lexState {
 	lx.next()
 	lx.emit(tokenPlusSign)
+	return lexStateStart
+}
+
+func lexStatePushToken(lx *lexer, tt tokenType) lexState {
+	lx.next()
+	lx.emit(tt)
 	return lexStateStart
 }
 
@@ -224,7 +246,7 @@ func lexStateHash(lx *lexer) lexState {
 
 func lexStateWord(lx *lexer) lexState {
 	for lx.next() {
-		if !isAlphanumeric(lx.peek()) {
+		if !isWord(lx.peek()) {
 			break
 		}
 	}
@@ -286,12 +308,16 @@ func isColon(r rune) bool {
 	return string(r) == ":"
 }
 
-func isAlphanumeric(r rune) bool {
-	for i := range alphanumericCharset {
-		if r == alphanumericCharset[i] {
+func isQuestionMark(r rune) bool {
+	return string(r) == "?"
+}
+
+func isWord(r rune) bool {
+	for i := range wordCharset {
+		if r == wordCharset[i] {
 			return true
 		}
 	}
-	log.Printf("not alpha: %v", string(r))
+	log.Printf("not word: %v", string(r))
 	return false
 }

@@ -66,7 +66,7 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 		}
 		for _, enum := range p.tree.enums {
 			fields := []*schema.MessageField{}
-			varType, err := schema.NewVarTypeFromString(enum.enumType.val)
+			varType, err := schema.NewVarTypeFromString(s, enum.enumType.val)
 			if err != nil {
 				return nil, fmt.Errorf("unknown data type: %v", enum.enumType)
 			}
@@ -103,7 +103,7 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 
 			for i := range message.fields {
 				value := message.fields[i]
-				varType, err := schema.NewVarTypeFromString(value.right.val)
+				varType, err := schema.NewVarTypeFromString(s, value.right.val)
 				if err != nil {
 					return nil, fmt.Errorf("unknown data type: %v", value.right.val)
 				}
@@ -143,28 +143,44 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 					Inputs:  []*schema.MethodArgument{},
 					Outputs: []*schema.MethodArgument{},
 				}
+
+				// add inputs
 				for _, arg := range value.inputs {
-					varType, err := schema.NewVarTypeFromString(arg.right.val)
+					varType, err := schema.NewVarTypeFromString(s, arg.right.val)
 					if err != nil {
 						return nil, fmt.Errorf("unknown data type: %v", arg.right.val)
 					}
-					method.Inputs = append(method.Inputs, &schema.MethodArgument{
-						Name:   schema.VarName(arg.left.val),
+					methodArgument := &schema.MethodArgument{
 						Type:   varType,
 						Stream: arg.stream,
-					})
-				}
-				/*
-					for _, meta := range value.meta {
-						log.Printf("meta: %v", meta)
-						field.Meta = append(field.Meta, schema.MessageFieldMeta{
-							meta.left.val: meta.right.val,
-						})
 					}
-				*/
+					if arg.left != nil {
+						methodArgument.Name = schema.VarName(arg.left.val)
+					}
+					method.Inputs = append(method.Inputs, methodArgument)
+				}
+
+				// add outputs
+				for _, arg := range value.outputs {
+					varType, err := schema.NewVarTypeFromString(s, arg.right.val)
+					if err != nil {
+						return nil, fmt.Errorf("unknown data type: %v", arg.right.val)
+					}
+					methodArgument := &schema.MethodArgument{
+						Type:   varType,
+						Stream: arg.stream,
+					}
+					if arg.left != nil {
+						methodArgument.Name = schema.VarName(arg.left.val)
+					}
+					method.Outputs = append(method.Outputs, methodArgument)
+				}
+
+				// push method
 				methods = append(methods, method)
 			}
 
+			// push service
 			s.Services = append(s.Services, &schema.Service{
 				Name:    schema.VarName(service.name.val),
 				Methods: methods,

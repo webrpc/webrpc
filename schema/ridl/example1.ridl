@@ -1,6 +1,6 @@
 ridl = v1
 
-service = hello-webrpc
+package = hello-webrpc
 version = v0.0.1
 
 
@@ -22,12 +22,12 @@ enum Kind: uint32
 
 
 message Empty
-  -
 
 
 message GetUserRequest
   - userID: uint64
 
+message Notice
 
 message User
   - ID: uint64          # hmm.. TODO, think about the name of the filed we want..? should it represent the JSON field name? prob
@@ -51,11 +51,11 @@ service ExampleService
 
   - GetUser(GetUserRequest): User
 
-  - Recv(stream bytes)
+  - Recv(stream byte)
 
-  - Send(): stream bytes
+  - Send(): stream byte
 
-  - SendAndRecv(stream bytes): stream bytes
+  - SendAndRecv(stream byte): stream byte
 
   - Broadcast(): stream Notice
 
