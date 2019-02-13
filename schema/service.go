@@ -14,7 +14,7 @@ type Service struct {
 type Method struct {
 	Name    VarName           `json:"name"`
 	Inputs  []*MethodArgument `json:"inputs"`
-	Outputs []*MethodArgument `json:"outputs`
+	Outputs []*MethodArgument `json:"outputs"`
 }
 
 type MethodArgument struct {
