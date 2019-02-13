@@ -54,7 +54,8 @@ func TestHeaders(t *testing.T) {
 		buf := `
 	ridl = v1
 	version = v0.1.1
-	package = hello-webrpc
+
+	name= hello-webrpc
 	`
 		_, err := Parse(buf)
 		assert.NoError(t, err)
@@ -66,7 +67,7 @@ func TestImport(t *testing.T) {
 		input := `
 		ridl = v1
 			version = v0.1.1
-		package = hello-webrpc
+	name = hello-webrpc
 
 		import
 		- foo # ko ment
@@ -90,7 +91,7 @@ func TestImport(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1 # version number
-	package = hello-webrpc
+	name		 = hello-webrpc
 
 	import # import line
 	- foo1 # foo-comment with spaces
@@ -112,7 +113,7 @@ func TestEnum(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	package = hello-webrpc
+	name = hello-webrpc
 
 					# this is a comment
 						# yep
@@ -143,7 +144,7 @@ func TestMessages(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	package = hello-webrpc
+	name = hello-webrpc
 
 	message Empty
 	`
@@ -162,7 +163,7 @@ func TestMessages(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	package = hello-webrpc
+	name = hello-webrpc
 
 	message Empty # with a, comment
 	`
@@ -181,7 +182,7 @@ func TestMessages(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	package = hello-webrpc
+	name = hello-webrpc
 
 	message Simple # with a, comment
 		- ID: uint32
@@ -201,11 +202,38 @@ func TestMessages(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	package = hello-webrpc
+	name = hello-webrpc
 
 	message Simple # with a-comment an,d meta fields
 		- ID: uint32
 	- Field2: uint64 # one two #t
+			+ json = field_2 # a comment
+				+ go.tag.db = field_2
+
+	message Simple2 # with a-comment an,d meta fields
+	`
+		schema, err := Parse(input)
+		assert.NoError(t, err)
+
+		log.Printf("schema: %v", schema)
+
+		buf, err := json.MarshalIndent(schema, "", "  ")
+		assert.NoError(t, err)
+		log.Printf("schema JSON: %v", string(buf))
+	}
+
+	{
+		input := `
+	ridl = v1
+		version = v0.1.1
+	name = hello-webrpc
+
+	message Simple # with a-comment an,d meta fields
+		- ID: uint32
+	- Field2: map<string, string> # one two #t
+			+ json = field_2 # a comment
+				+ go.tag.db = field_2
+	- Field3: []bool # one two #t
 			+ json = field_2 # a comment
 				+ go.tag.db = field_2
 
@@ -227,7 +255,7 @@ func TestService(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	package = hello-webrpc
+	name = hello-webrpc
 
 	service Empty
 	`
@@ -245,7 +273,7 @@ func TestService(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	package = hello-webrpc
+	name = hello-webrpc
 
 	service Simple
 	-	Ping(): bool
@@ -264,7 +292,7 @@ func TestService(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	package = hello-webrpc
+	name = hello-webrpc
 
 	service Simple
 	-	Ping(stream uint32): bool

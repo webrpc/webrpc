@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 )
 
 var (
@@ -150,6 +151,37 @@ func (p *parser) expectCommentOrNewLine() error {
 		}
 	}
 	return nil
+}
+
+func (p *parser) expectComposedToken(baseToken *token, tt ...tokenType) (*token, error) {
+	if baseToken == nil {
+		baseToken = &token{}
+	}
+
+	values := make([]string, 0, len(tt)+1)
+	values = append(values, baseToken.val)
+
+	for i := 0; ; {
+		if !p.next() {
+			return nil, errors.New(`unexpected EOF`)
+		}
+
+		tok := p.cursor()
+		if tok.tt != tt[i] {
+			return nil, fmt.Errorf("unexpected token %v, expecting %v", tok, tt[i])
+		}
+		values = append(values, tok.val)
+		i = i + 1
+
+		if i >= len(tt) {
+			return &token{
+				tt:   tokenComposed,
+				val:  strings.Join(values, ""),
+				line: baseToken.line,
+				col:  baseToken.col,
+			}, nil
+		}
+	}
 }
 
 func (p *parser) expectNext(tt tokenType) error {
@@ -356,6 +388,7 @@ loop:
 			if err := p.expectNext(tokenWord); err != nil {
 				return p.stateError(err)
 			}
+			//var metaValue *token
 			metaValue := p.cursor()
 
 			fieldDefinition.meta = append(fieldDefinition.meta, &definition{
@@ -384,10 +417,38 @@ loop:
 				}
 			}
 
+			// TODO: new state machine
 			if err := p.expectNext(tokenWord); err != nil {
-				return p.stateError(err)
+				// if not a word, could be []
+				if p.cursor().tt != tokenOpenBracket {
+					return p.stateError(err)
+				}
+				if err := p.expectNext(tokenCloseBracket); err != nil {
+					return p.stateError(err)
+				}
+				if err := p.expectNext(tokenWord); err != nil {
+					return p.stateError(err)
+				}
+				// TODO: compose token properly
+				fieldDefinition.right = &token{val: "[]" + p.cursor().val}
+			} else {
+				if p.cursor().val == "map" {
+					composedToken, err := p.expectComposedToken(
+						p.cursor(),
+						tokenOpenAngleBracket,
+						tokenWord,
+						tokenComma,
+						tokenWord,
+						tokenCloseAngleBracket,
+					)
+					if err != nil {
+						return p.stateError(err)
+					}
+					fieldDefinition.right = composedToken
+				} else {
+					fieldDefinition.right = p.cursor()
+				}
 			}
-			fieldDefinition.right = p.cursor()
 
 			fields = append(fields, fieldDefinition)
 			if !p.next() {
@@ -541,7 +602,7 @@ func parseStateLine(p *parser) parseState {
 	log.Printf("word: %v", word)
 
 	switch word.val {
-	case "ridl", "package", "version":
+	case "ridl", "name", "version":
 		return parseStateDefinition(word)
 	case "import":
 		return parseStateImport

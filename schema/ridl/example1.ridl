@@ -1,11 +1,11 @@
 ridl = v1
 
-package = hello-webrpc
+name = hello-webrpc
 version = v0.0.1
 
 
 import
-  - ./blah.webrpc
+  - ./blah.ridl
   - ./abc.json
 
 
@@ -24,10 +24,12 @@ enum Kind: uint32
 message Empty
 
 
+message Notice
+
+
 message GetUserRequest
   - userID: uint64
 
-message Notice
 
 message User
   - ID: uint64          # hmm.. TODO, think about the name of the filed we want..? should it represent the JSON field name? prob
@@ -43,6 +45,18 @@ message User
     + go.tag.db = created_at
 
 
+message Role
+  - name: string
+
+  - users: map<uint64,User>
+
+  - perms: []string
+
+
+message Notice
+  - msg: string
+
+
 service ExampleService
 
   # comment can go here
@@ -51,11 +65,11 @@ service ExampleService
 
   - GetUser(GetUserRequest): User
 
-  - Recv(stream byte)
+  - Recv(stream string)
 
-  - Send(): stream byte
+  - Send(): stream string
 
-  - SendAndRecv(stream byte): stream byte
+  - SendAndRecv(stream string): stream string
 
   - Broadcast(): stream Notice
 
