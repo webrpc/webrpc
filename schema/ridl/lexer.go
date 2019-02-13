@@ -25,6 +25,7 @@ const (
 	tokenHash
 	tokenColon
 	tokenWord
+	tokenExtra
 	tokenEOF
 )
 
@@ -40,6 +41,7 @@ var tokenTypeName = map[tokenType]string{
 	tokenHash:       "[hash sign]",
 	tokenColon:      "[colon sign]",
 	tokenWord:       "[word]",
+	tokenExtra:      "[extra]",
 	tokenEOF:        "[EOF]",
 }
 
@@ -181,7 +183,7 @@ func lexStateStart(lx *lexer) lexState {
 	case isAlphanumeric(c):
 		return lexStateWord
 	}
-	return nil
+	return lexStateExtra
 }
 
 func lexStateOpenParen(lx *lexer) lexState {
@@ -227,6 +229,12 @@ func lexStateWord(lx *lexer) lexState {
 		}
 	}
 	lx.emit(tokenWord)
+	return lexStateStart
+}
+
+func lexStateExtra(lx *lexer) lexState {
+	lx.next()
+	lx.emit(tokenExtra)
 	return lexStateStart
 }
 

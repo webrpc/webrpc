@@ -10,15 +10,39 @@ var (
 	errUnexpectedEOF = errors.New(`unexpected EOF`)
 )
 
+type methodArgument struct {
+	left   *token
+	right  *token
+	stream bool
+}
+
+type method struct {
+	name    *token
+	inputs  []*methodArgument
+	outputs []*methodArgument
+}
+
+type service struct {
+	name    *token
+	methods []*method
+}
+
 type definition struct {
 	left  *token
 	right *token
+
+	meta []*definition
 }
 
 type enum struct {
 	name     *token
 	enumType *token
 	values   []*definition
+}
+
+type message struct {
+	name   *token
+	fields []*definition
 }
 
 func (d *definition) value() string {
@@ -28,8 +52,10 @@ func (d *definition) value() string {
 type tree struct {
 	definitions map[string]*definition
 
-	imports []*token
-	enums   []*enum
+	imports  []*token
+	enums    []*enum
+	messages []*message
+	services []*service
 }
 
 var invalidToken = &token{tt: tokenInvalid}
@@ -77,6 +103,7 @@ func (p *parser) continueUntilEOL() error {
 	for {
 		tok := p.cursor()
 		log.Printf("drop: %v", tok)
+
 		if tok.tt == tokenNewLine {
 			// EOL
 			return nil
@@ -135,6 +162,7 @@ func (p *parser) stateError(err error) parseState {
 
 func (p *parser) next() bool {
 	if p.pos >= p.length {
+		log.Printf("EOF")
 		return false
 	}
 	p.pos = p.pos + 1
@@ -182,6 +210,165 @@ func parseStateDefinition(word *token) parseState {
 	}
 }
 
+func parseStateService(p *parser) parseState {
+	if err := p.expectNext(tokenWord); err != nil {
+		return p.stateError(err)
+	}
+	serviceName := p.cursor()
+
+	methods := []*method{}
+
+	if !p.next() {
+		return parseStateUnexpectedEOF
+	}
+
+	var methodDefinition *method
+
+loop:
+	for {
+		if err := p.expectCommentOrNewLine(); err != nil {
+			return p.stateError(err)
+		}
+
+		tok := p.cursor()
+		switch tok.tt {
+		case tokenNewLine:
+			if !p.next() {
+				return nil
+			}
+		case tokenMinusSign:
+			if err := p.expectNext(tokenWord); err != nil {
+				return p.stateError(err)
+			}
+			methodDefinition = &method{name: p.cursor()}
+			log.Printf("methodDefinition: %v", methodDefinition)
+
+			if err := p.expectNext(tokenOpenParen); err != nil {
+				return p.stateError(err)
+			}
+
+			if err := p.expectNext(tokenWord); err != nil {
+				// check for close parens
+			} else {
+				if err := p.expectNext(tokenCloseParen); err != nil {
+					return p.stateError(err)
+				}
+			}
+
+			if err := p.expectNext(tokenColon); err == nil {
+				if err := p.expectNext(tokenWord); err != nil {
+					//return p.stateError(err)
+				}
+			}
+
+			methods = append(methods, methodDefinition)
+			if !p.next() {
+				break loop
+			}
+		default:
+			break loop
+		}
+	}
+
+	p.tree.services = append(p.tree.services, &service{
+		name:    serviceName,
+		methods: methods,
+	})
+
+	log.Printf("service name %v", serviceName)
+
+	return parseStateStart
+}
+
+func parseStateMessage(p *parser) parseState {
+	if err := p.expectNext(tokenWord); err != nil {
+		return p.stateError(err)
+	}
+	messageName := p.cursor()
+
+	fields := []*definition{}
+
+	if !p.next() {
+		return parseStateUnexpectedEOF
+	}
+
+	var fieldDefinition *definition
+
+loop:
+	for {
+		if err := p.expectCommentOrNewLine(); err != nil {
+			return p.stateError(err)
+		}
+
+		tok := p.cursor()
+		switch tok.tt {
+		case tokenNewLine:
+			if !p.next() {
+				return nil
+			}
+		case tokenPlusSign:
+			if fieldDefinition == nil {
+				return p.stateError(errors.New("unexpected meta property"))
+			}
+
+			if err := p.expectNext(tokenWord); err != nil {
+				return p.stateError(err)
+			}
+			metaName := p.cursor()
+
+			if err := p.expectNext(tokenEqual); err != nil {
+				return p.stateError(err)
+			}
+
+			if err := p.expectNext(tokenWord); err != nil {
+				return p.stateError(err)
+			}
+			metaValue := p.cursor()
+
+			fieldDefinition.meta = append(fieldDefinition.meta, &definition{
+				left:  metaName,
+				right: metaValue,
+			})
+
+			if !p.next() {
+				break loop
+			}
+		case tokenMinusSign:
+			log.Printf("got minus sign")
+			if err := p.expectNext(tokenWord); err != nil {
+				return p.stateError(err)
+			}
+			fieldDefinition = &definition{left: p.cursor()}
+			log.Printf("fieldDefinition: %v", fieldDefinition)
+
+			if err := p.expectNext(tokenColon); err != nil {
+				return p.stateError(err)
+			}
+
+			if err := p.expectNext(tokenWord); err != nil {
+				return p.stateError(err)
+			}
+			fieldDefinition.right = p.cursor()
+
+			fields = append(fields, fieldDefinition)
+			if !p.next() {
+				break loop
+			}
+		default:
+			break loop
+		}
+	}
+
+	p.tree.messages = append(p.tree.messages, &message{
+		name:   messageName,
+		fields: fields,
+	})
+
+	log.Printf("message name %v", messageName)
+
+	return parseStateStart
+}
+
 func parseStateEnum(p *parser) parseState {
 	// Enum definition
 	if err := p.expectNext(tokenWord); err != nil {
@@ -207,8 +394,8 @@ func parseStateEnum(p *parser) parseState {
 	}
 
 	// Parse enum values
-	loop := true
-	for loop {
+loop:
+	for {
 
 		if err := p.expectCommentOrNewLine(); err != nil {
 			return p.stateError(err)
@@ -218,7 +405,7 @@ func parseStateEnum(p *parser) parseState {
 		switch tok.tt {
 		case tokenNewLine:
 			if !p.next() {
-				return nil
+				break loop
 			}
 		case tokenMinusSign:
 			log.Printf("got minus")
@@ -233,19 +420,18 @@ func parseStateEnum(p *parser) parseState {
 					return p.stateError(err)
 				}
 				enumDefinition.right = p.cursor()
-			} else {
-				if err := p.continueUntilEOL(); err != nil {
-					return p.stateError(err)
-				}
 			}
-			if !p.next() {
-				return nil
+			if err := p.continueUntilEOL(); err != nil {
+				log.Printf("UNTIL EOL")
+				return p.stateError(err)
 			}
 			log.Printf("enumDefinition: %#v", enumDefinition.left)
-
 			values = append(values, enumDefinition)
+			if !p.next() {
+				break loop
+			}
 		default:
-			loop = false
+			break loop
 		}
 	}
 
@@ -313,12 +499,16 @@ func parseStateLine(p *parser) parseState {
 	log.Printf("word: %v", word)
 
 	switch word.val {
-	case "ridl", "service", "version":
+	case "ridl", "package", "version":
 		return parseStateDefinition(word)
 	case "import":
 		return parseStateImport
 	case "enum":
 		return parseStateEnum
+	case "message":
+		return parseStateMessage
+	case "service":
+		return parseStateService
 	default:
 		return p.stateError(errors.New("unknown definition"))
 	}
