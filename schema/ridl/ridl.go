@@ -102,7 +102,8 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 
 			for i := range message.fields {
 				value := message.fields[i]
-				varType, err := schema.NewVarTypeFromString(value.right.val)
+				varType := &schema.VarType{}
+				err := schema.ParseVarTypeExpr(s, value.right.val, varType)
 				if err != nil {
 					return nil, fmt.Errorf("unknown data type: %v", value.right.val)
 				}

@@ -50,6 +50,10 @@ message Role
   - perms: []string
 
 
+message Notice
+  - msg: string
+
+
 service ExampleService
 
   # comment can go here
@@ -58,11 +62,11 @@ service ExampleService
 
   - GetUser(GetUserRequest): User
 
-  - Recv(stream bytes)
+  - Recv(stream string)
 
-  - Send(): stream bytes
+  - Send(): stream string
 
-  - SendAndRecv(stream bytes): stream bytes
+  - SendAndRecv(stream string): stream string
 
   - Broadcast(): stream Notice
 

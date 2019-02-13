@@ -21,6 +21,8 @@ func (t *VarType) String() string {
 	return t.expr
 }
 
+// TODO: rename to .. ParseVarTypeIndependentExpr(expr string) (*VarType, error)
+// aka, no schema, so we cant parse message types
 func NewVarTypeFromString(s string) (*VarType, error) {
 	dataType, ok := DataTypeFromString[s]
 	if ok {
@@ -67,7 +69,7 @@ func (t *VarType) Parse(schema *WebRPCSchema) error {
 	if t.expr == "" {
 		return errors.Errorf("schema error: type expr cannot be empty")
 	}
-	err := parseVarTypeExpr(schema, t.expr, t)
+	err := ParseVarTypeExpr(schema, t.expr, t)
 	if err != nil {
 		return err
 	}
@@ -89,10 +91,11 @@ type VarStructType struct {
 	Message *Message
 }
 
-func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
+func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 	if expr == "" {
 		return nil
 	}
+	vt.expr = expr
 
 	// parse data type from string
 	dataType, ok := DataTypeFromString[expr]
@@ -117,7 +120,7 @@ func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 
 		// shift expr, and keep parsing
 		expr = strings.TrimPrefix(expr, DataTypeToString[T_List])
-		err := parseVarTypeExpr(schema, expr, vt.List.Elem)
+		err := ParseVarTypeExpr(schema, expr, vt.List.Elem)
 		if err != nil {
 			return err
 		}
@@ -139,7 +142,7 @@ func parseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 
 		// shift expr and keep parsing
 		expr = value
-		err = parseVarTypeExpr(schema, expr, vt.Map.Value)
+		err = ParseVarTypeExpr(schema, expr, vt.Map.Value)
 		if err != nil {
 			return err
 		}
