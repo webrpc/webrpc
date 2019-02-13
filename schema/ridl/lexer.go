@@ -2,7 +2,6 @@ package ridl
 
 import (
 	"fmt"
-	"log"
 )
 
 var (
@@ -344,6 +343,5 @@ func isWord(r rune) bool {
 			return true
 		}
 	}
-	log.Printf("not word: %v", string(r))
 	return false
 }
