@@ -4,8 +4,9 @@ package schema
 
 type WebRPCSchema struct {
 	Schema  string   `json:"schema"`
-	App     string   `json:"app"`
-	Imports []string `json:"imports"` // TODO ..
+	Name    string   `json:"name"`
+	Version string   `json:"version"`
+	Imports []string `json:"imports"`
 
 	Messages []*Message `json:"messages"`
 	Services []*Service `json:"services"`
