@@ -1,5 +1,10 @@
 package schema
 
+import (
+	"bytes"
+	"encoding/json"
+)
+
 // schema of webrpc json file, and validations
 
 type WebRPCSchema struct {
@@ -33,4 +38,25 @@ func (s *WebRPCSchema) Parse(schema *WebRPCSchema) error {
 	}
 
 	return nil
+}
+
+func (s *WebRPCSchema) ToJSON(optIndent ...bool) (string, error) {
+	indent := false
+	if len(optIndent) > 0 {
+		indent = optIndent[0]
+	}
+
+	buf := &bytes.Buffer{}
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+	if indent {
+		enc.SetIndent("", " ")
+	}
+
+	err := enc.Encode(s)
+	if err != nil {
+		return "", err
+	}
+
+	return string(buf.Bytes()), nil
 }
