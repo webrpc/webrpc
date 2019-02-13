@@ -39,16 +39,18 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 		return nil, err
 	}
 
-	if p.tree.definitions["service"] == nil {
-		return nil, errors.New(`missing "service" declaration`)
-	}
+	// TODO: rename to package?
+	//if p.tree.definitions["service"] == nil {
+	//	return nil, errors.New(`missing "service" declaration`)
+	//}
+
 	if p.tree.definitions["version"] == nil {
 		return nil, errors.New(`missing "version" declaration`)
 	}
 
 	s := &schema.WebRPCSchema{
 		Schema: "webrpc/v0.1.0",
-		App:    fmt.Sprintf("%s/%s", p.tree.definitions["service"].value(), p.tree.definitions["version"].value()),
+		//App:    fmt.Sprintf("%s/%s", p.tree.definitions["service"].value(), p.tree.definitions["version"].value()),
 	}
 
 	if len(p.tree.imports) > 0 {
@@ -88,6 +90,84 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 				Name:   schema.VarName(enum.name.val),
 				Type:   schema.MessageType("enum"),
 				Fields: fields,
+			})
+		}
+	}
+
+	if len(p.tree.messages) > 0 {
+		if s.Messages == nil {
+			s.Messages = []*schema.Message{}
+		}
+		for _, message := range p.tree.messages {
+			fields := []*schema.MessageField{}
+
+			for i := range message.fields {
+				value := message.fields[i]
+				varType, err := schema.NewVarTypeFromString(value.right.val)
+				if err != nil {
+					return nil, fmt.Errorf("unknown data type: %v", value.right.val)
+				}
+				field := &schema.MessageField{
+					Name: schema.VarName(value.left.val),
+					Type: varType,
+				}
+				for _, meta := range value.meta {
+					log.Printf("meta: %v", meta)
+					field.Meta = append(field.Meta, schema.MessageFieldMeta{
+						meta.left.val: meta.right.val,
+					})
+				}
+				fields = append(fields, field)
+			}
+
+			s.Messages = append(s.Messages, &schema.Message{
+				Name:   schema.VarName(message.name.val),
+				Type:   schema.MessageType("message"),
+				Fields: fields,
+			})
+		}
+	}
+
+	if len(p.tree.services) > 0 {
+		if s.Services == nil {
+			s.Services = []*schema.Service{}
+		}
+		for _, service := range p.tree.services {
+			methods := []*schema.Method{}
+
+			for i := range service.methods {
+				value := service.methods[i]
+
+				method := &schema.Method{
+					Name:    schema.VarName(value.name.val),
+					Inputs:  []*schema.MethodArgument{},
+					Outputs: []*schema.MethodArgument{},
+				}
+				for _, arg := range value.inputs {
+					varType, err := schema.NewVarTypeFromString(arg.right.val)
+					if err != nil {
+						return nil, fmt.Errorf("unknown data type: %v", arg.right.val)
+					}
+					method.Inputs = append(method.Inputs, &schema.MethodArgument{
+						Name:   schema.VarName(arg.left.val),
+						Type:   varType,
+						Stream: arg.stream,
+					})
+				}
+				/*
+					for _, meta := range value.meta {
+						log.Printf("meta: %v", meta)
+						field.Meta = append(field.Meta, schema.MessageFieldMeta{
+							meta.left.val: meta.right.val,
+						})
+					}
+				*/
+				methods = append(methods, method)
+			}
+
+			s.Services = append(s.Services, &schema.Service{
+				Name:    schema.VarName(service.name.val),
+				Methods: methods,
 			})
 		}
 	}

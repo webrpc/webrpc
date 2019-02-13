@@ -135,7 +135,130 @@ func TestEnum(t *testing.T) {
 	}
 }
 
-func SkipTestParse(t *testing.T) {
+func TestMessages(t *testing.T) {
+	{
+		input := `
+	ridl = v1
+		version = v0.1.1
+	service = hello-webrpc
+
+	message Empty
+	`
+		schema, err := Parse(input)
+		assert.NoError(t, err)
+
+		log.Printf("schema: %v", schema)
+
+		buf, err := json.MarshalIndent(schema, "", "  ")
+		assert.NoError(t, err)
+		log.Printf("schema JSON: %v", string(buf))
+
+	}
+
+	{
+		input := `
+	ridl = v1
+		version = v0.1.1
+	service = hello-webrpc
+
+	message Empty # with a, comment
+	`
+		schema, err := Parse(input)
+		assert.NoError(t, err)
+
+		log.Printf("schema: %v", schema)
+
+		buf, err := json.MarshalIndent(schema, "", "  ")
+		assert.NoError(t, err)
+		log.Printf("schema JSON: %v", string(buf))
+
+	}
+
+	{
+		input := `
+	ridl = v1
+		version = v0.1.1
+	service = hello-webrpc
+
+	message Simple # with a, comment
+		- ID: uint32
+	`
+		schema, err := Parse(input)
+		assert.NoError(t, err)
+
+		log.Printf("schema: %v", schema)
+
+		buf, err := json.MarshalIndent(schema, "", "  ")
+		assert.NoError(t, err)
+		log.Printf("schema JSON: %v", string(buf))
+
+	}
+
+	{
+		input := `
+	ridl = v1
+		version = v0.1.1
+	service = hello-webrpc
+
+	message Simple # with a-comment an,d meta fields
+		- ID: uint32
+	- Field2: uint64 # one two #t
+			+ json = field_2 # a comment
+				+ go.tag.db = field_2
+
+	message Simple2 # with a-comment an,d meta fields
+	`
+		schema, err := Parse(input)
+		assert.NoError(t, err)
+
+		log.Printf("schema: %v", schema)
+
+		buf, err := json.MarshalIndent(schema, "", "  ")
+		assert.NoError(t, err)
+		log.Printf("schema JSON: %v", string(buf))
+	}
+}
+
+func TestService(t *testing.T) {
+	{
+		input := `
+	ridl = v1
+		version = v0.1.1
+	package = hello-webrpc
+
+	service Empty
+	`
+		schema, err := Parse(input)
+		assert.NoError(t, err)
+
+		log.Printf("schema: %v", schema)
+
+		buf, err := json.MarshalIndent(schema, "", "  ")
+		assert.NoError(t, err)
+		log.Printf("schema JSON: %v", string(buf))
+	}
+
+	{
+		input := `
+	ridl = v1
+		version = v0.1.1
+	package = hello-webrpc
+
+	service Simple
+	-	Ping(): bool
+	`
+		schema, err := Parse(input)
+		assert.NoError(t, err)
+
+		log.Printf("schema: %v", schema)
+
+		buf, err := json.MarshalIndent(schema, "", "  ")
+		assert.NoError(t, err)
+		log.Printf("schema JSON: %v", string(buf))
+	}
+}
+
+func TestParse(t *testing.T) {
 	fp, err := os.Open("example1.ridl")
 	assert.NoError(t, err)
 
