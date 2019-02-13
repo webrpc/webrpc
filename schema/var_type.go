@@ -21,7 +21,7 @@ func (t *VarType) String() string {
 	return t.expr
 }
 
-func NewVarTypeFromString(s string) (*VarType, error) {
+func NewVarTypeFromString(schema *WebRPCSchema, s string) (*VarType, error) {
 	dataType, ok := DataTypeFromString[s]
 	if ok {
 		return &VarType{
@@ -29,7 +29,14 @@ func NewVarTypeFromString(s string) (*VarType, error) {
 			expr: s,
 		}, nil
 	}
-	return nil, fmt.Errorf("unknown data type %q", s)
+	if schema == nil {
+		return nil, fmt.Errorf("unknown type %q", s)
+	}
+	vt := &VarType{}
+	if err := parseVarTypeExpr(schema, s, vt); err != nil {
+		return nil, err
+	}
+	return vt, nil
 }
 
 func (t *VarType) MarshalJSON() ([]byte, error) {

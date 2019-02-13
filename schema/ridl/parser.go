@@ -28,8 +28,9 @@ type service struct {
 }
 
 type definition struct {
-	left  *token
-	right *token
+	left     *token
+	right    *token
+	optional bool
 
 	meta []*definition
 }
@@ -58,7 +59,9 @@ type tree struct {
 	services []*service
 }
 
-var invalidToken = &token{tt: tokenInvalid}
+var (
+	eofToken = &token{tt: tokenEOF}
+)
 
 type parseState func(*parser) parseState
 
@@ -122,11 +125,16 @@ func (p *parser) expectCommentOrNewLine() error {
 	for {
 
 		tok := p.cursor()
-		log.Printf("tok: %q", tok.val)
+		log.Printf("discard?: %q", tok.val)
 
 		switch tok.tt {
 		case tokenNewLine:
 			// got new line, continue
+		case tokenExtra:
+			// unknown char
+		case tokenEOF:
+			// got EOF
+			return nil
 		case tokenHash:
 			if !p.next() {
 				return nil
@@ -134,6 +142,7 @@ func (p *parser) expectCommentOrNewLine() error {
 			return p.continueUntilEOL()
 		default:
 			// another kind of token, stop
+			log.Printf("discard? -> nope")
 			return nil
 		}
 		if !p.next() {
@@ -171,7 +180,7 @@ func (p *parser) next() bool {
 
 func (p *parser) cursor() *token {
 	if p.pos >= p.length {
-		return invalidToken
+		return eofToken
 	}
 	return &p.tokens[p.pos]
 }
@@ -240,25 +249,49 @@ loop:
 			if err := p.expectNext(tokenWord); err != nil {
 				return p.stateError(err)
 			}
-			methodDefinition = &method{name: p.cursor()}
+			methodDefinition = &method{
+				name:    p.cursor(),
+				inputs:  []*methodArgument{},
+				outputs: []*methodArgument{},
+			}
 			log.Printf("methodDefinition: %v", methodDefinition)
 
 			if err := p.expectNext(tokenOpenParen); err != nil {
 				return p.stateError(err)
 			}
 
-			if err := p.expectNext(tokenWord); err != nil {
-				// check for close parens
-			} else {
-				if err := p.expectNext(tokenCloseParen); err != nil {
-					return p.stateError(err)
+			if err := p.expectNext(tokenWord); err == nil {
+				methodArgument := &methodArgument{}
+				if p.cursor().val == "stream" {
+					methodArgument.stream = true
+					if err := p.expectNext(tokenWord); err != nil {
+						return p.stateError(err)
+					}
 				}
+				methodArgument.right = p.cursor()
+				// check for close parens
+				methodDefinition.inputs = append(methodDefinition.inputs, methodArgument)
+				if !p.next() {
+					return parseStateUnexpectedEOF
+				}
+			}
+			if p.cursor().tt != tokenCloseParen {
+				return p.stateError(errors.New("expecting close paren"))
 			}
 
 			if err := p.expectNext(tokenColon); err == nil {
 				if err := p.expectNext(tokenWord); err != nil {
 					//return p.stateError(err)
 				}
+				methodArgument := &methodArgument{}
+				if p.cursor().val == "stream" {
+					methodArgument.stream = true
+					if err := p.expectNext(tokenWord); err != nil {
+						return p.stateError(err)
+					}
+				}
+				methodArgument.right = p.cursor()
+				methodDefinition.outputs = append(methodDefinition.outputs, methodArgument)
 			}
 
 			methods = append(methods, methodDefinition)
@@ -342,7 +375,13 @@ loop:
 			log.Printf("fieldDefinition: %v", fieldDefinition)
 
 			if err := p.expectNext(tokenColon); err != nil {
-				return p.stateError(err)
+				if p.cursor().tt != tokenQuestionMark {
+					return p.stateError(err)
+				}
+				fieldDefinition.optional = true
+				if err := p.expectNext(tokenColon); err != nil {
+					return p.stateError(err)
+				}
 			}
 
 			if err := p.expectNext(tokenWord); err != nil {
@@ -451,6 +490,7 @@ func parseStateImport(p *parser) parseState {
 		return parseStateUnexpectedEOF
 	}
 
+loop:
 	for {
 		if err := p.expectCommentOrNewLine(); err != nil {
 			return p.stateError(err)
@@ -466,17 +506,19 @@ func parseStateImport(p *parser) parseState {
 			if err := p.expectNext(tokenWord); err != nil {
 				return p.stateError(err)
 			}
+
 			p.tree.imports = append(p.tree.imports, p.cursor())
+			log.Printf("pushed import")
 			if !p.next() {
-				return nil
+				log.Printf("NEXT")
+				break loop
 			}
 		default:
-			return parseStateContinue
+			break loop
 		}
 	}
 
-	log.Fatalf("got: %v", p.cursor())
-	return nil
+	return parseStateStart
 }
 
 func parseStateEOL(p *parser) parseState {
@@ -510,7 +552,7 @@ func parseStateLine(p *parser) parseState {
 	case "service":
 		return parseStateService
 	default:
-		return p.stateError(errors.New("unknown definition"))
+		return p.stateError(fmt.Errorf("unknown definition near: %v", word))
 	}
 
 	return parseStateStart
@@ -518,6 +560,7 @@ func parseStateLine(p *parser) parseState {
 
 func parseStateStart(p *parser) parseState {
 	tok := p.cursor()
+	log.Printf("tok: %v", tok)
 	switch tok.tt {
 	case tokenNewLine:
 		return parseStateNewLine
@@ -525,8 +568,11 @@ func parseStateStart(p *parser) parseState {
 		return parseStateLine
 	case tokenHash:
 		return parseStateComment
-	case tokenInvalid: // abrupt EOF
+	case tokenEOF: // abrupt EOF
+		log.Printf("got EOF")
 		return nil
+	default:
+		log.Printf("GOT STATE: %v", tok)
 	}
 	log.Fatalf("parse state: %v", tok)
 	return nil

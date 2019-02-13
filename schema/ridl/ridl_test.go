@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func SkipTestLexer(t *testing.T) {
+func TestLexer(t *testing.T) {
 	buf := `
 
 
@@ -37,7 +37,7 @@ func TestRidlHeader(t *testing.T) {
 	ridl = v1
 	`
 		_, err := Parse(buf)
-		assert.NoError(t, err)
+		assert.Error(t, err, `"version" is required`)
 	}
 	{
 		buf := `
@@ -45,7 +45,7 @@ func TestRidlHeader(t *testing.T) {
 	ridl = v1
 	`
 		_, err := Parse(buf)
-		assert.Error(t, err)
+		assert.Error(t, err, `should not be able to declare "ridl" twice`)
 	}
 }
 
@@ -54,7 +54,7 @@ func TestHeaders(t *testing.T) {
 		buf := `
 	ridl = v1
 	version = v0.1.1
-	service = hello-webrpc
+	package = hello-webrpc
 	`
 		_, err := Parse(buf)
 		assert.NoError(t, err)
@@ -66,17 +66,20 @@ func TestImport(t *testing.T) {
 		input := `
 		ridl = v1
 			version = v0.1.1
-		service = hello-webrpc
+		package = hello-webrpc
 
 		import
-		- foo
+		- foo # ko ment
+		# ko ment
+
 			- bar
+			# comment
 		`
 		schema, err := Parse(input)
+		log.Printf("ERR: %v", err)
 		assert.NoError(t, err)
 
 		log.Printf("schema: %v", schema)
-
 		buf, err := json.Marshal(schema)
 		assert.NoError(t, err)
 		log.Printf("schema JSON: %v", string(buf))
@@ -87,7 +90,7 @@ func TestImport(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1 # version number
-	service = hello-webrpc
+	package = hello-webrpc
 
 	import # import line
 	- foo1 # foo-comment with spaces
@@ -109,7 +112,7 @@ func TestEnum(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	service = hello-webrpc
+	package = hello-webrpc
 
 					# this is a comment
 						# yep
@@ -140,7 +143,7 @@ func TestMessages(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	service = hello-webrpc
+	package = hello-webrpc
 
 	message Empty
 	`
@@ -159,7 +162,7 @@ func TestMessages(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	service = hello-webrpc
+	package = hello-webrpc
 
 	message Empty # with a, comment
 	`
@@ -178,7 +181,7 @@ func TestMessages(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	service = hello-webrpc
+	package = hello-webrpc
 
 	message Simple # with a, comment
 		- ID: uint32
@@ -198,7 +201,7 @@ func TestMessages(t *testing.T) {
 		input := `
 	ridl = v1
 		version = v0.1.1
-	service = hello-webrpc
+	package = hello-webrpc
 
 	message Simple # with a-comment an,d meta fields
 		- ID: uint32
@@ -246,7 +249,26 @@ func TestService(t *testing.T) {
 
 	service Simple
 	-	Ping(): bool
-	`
+	-	PingStream(): stream bool`
+		schema, err := Parse(input)
+		assert.NoError(t, err)
+
+		log.Printf("schema: %v", schema)
+
+		buf, err := json.MarshalIndent(schema, "", "  ")
+		assert.NoError(t, err)
+		log.Printf("schema JSON: %v", string(buf))
+	}
+
+	{
+		input := `
+	ridl = v1
+		version = v0.1.1
+	package = hello-webrpc
+
+	service Simple
+	-	Ping(stream uint32): bool
+	-	PingStream(string): stream bool`
 		schema, err := Parse(input)
 		assert.NoError(t, err)
 
@@ -269,5 +291,8 @@ func TestParse(t *testing.T) {
 	assert.NoError(t, err)
 
 	log.Printf("buf: %v", string(buf))
-	log.Printf("schema: %v", schema)
+
+	buf, err = json.MarshalIndent(schema, "", "  ")
+	assert.NoError(t, err)
+	log.Printf("schema JSON: %v", string(buf))
 }
