@@ -482,13 +482,12 @@ loop:
 				fieldDefinition.right = &token{val: "[]" + p.cursor().val}
 			} else {
 				if p.cursor().val == "map" {
-					composedToken, err := p.expectComposedToken(
+					// TODO: check grammar
+					composedToken, err := p.expectDelimiter(
 						p.cursor(),
-						tokenOpenAngleBracket,
-						tokenWord,
-						tokenComma,
-						tokenWord,
-						tokenCloseAngleBracket,
+						tokenSpace,
+						tokenHash,
+						tokenNewLine,
 					)
 					if err != nil {
 						return p.stateError(err)
