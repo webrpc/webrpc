@@ -237,6 +237,9 @@ func TestMessages(t *testing.T) {
 	- Field3: []bool # one two #t
 			+ json = field_2 # a comment
 				+ go.tag.db = field_2
+	- Field4: [][][]bool # one two #t
+			+ json = field_2 # a comment
+				+ go.tag.db = field_2
 
 	message Simple2 # with a-comment an,d meta fields
 	`
