@@ -459,14 +459,16 @@ loop:
 				if p.cursor().tt != tokenOpenBracket {
 					return p.stateError(err)
 				}
-				if err := p.expectNext(tokenCloseBracket); err != nil {
+				composedToken, err := p.expectDelimiter(
+					p.cursor(),
+					tokenSpace,
+					tokenHash,
+					tokenNewLine,
+				)
+				if err != nil {
 					return p.stateError(err)
 				}
-				if err := p.expectNext(tokenWord); err != nil {
-					return p.stateError(err)
-				}
-				// TODO: compose token properly
-				fieldDefinition.right = &token{val: "[]" + p.cursor().val}
+				fieldDefinition.right = composedToken
 			} else {
 				if p.cursor().val == "map" {
 					// TODO: check grammar
