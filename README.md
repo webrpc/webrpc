@@ -1,7 +1,7 @@
 <img alt="webrpc" src="https://github.com/webrpc/webrpc/raw/master/webrpc.png" width="1024" />
 
 webrpc is a design/schema-driven approach to writing backend servers for the Web. Write your server's
-api interface in a schema format of [RIDL](./_examples/golang-basics/example.idl) or [JSON](./_examples/golang-basics/example.webrpc.json),
+api interface in a schema format of [RIDL](./_examples/golang-basics/example.ridl) or [JSON](./_examples/golang-basics/example.webrpc.json),
 and then run `webrpc-gen` to generate the networking source code for your server and client apps. From the schema,
 webrpc-gen will generate application base class types/interfaces, JSON encoders, and networking code. In doing
 so, it's able to generate completely typed client libraries to communicate with your server. Enjoy strongly-typed
@@ -131,8 +131,8 @@ applications and other Web services.
 
 High-level features:
 
-  * RIDL, aka "RPC interface design language", format - a documentation-like schema format for
-  describing a server application.
+  * RIDL, aka RPC IDL, aka "RPC interface design language", format - a documentation-like schema
+  format for describing a server application.
   * JSON schema format is also supported if you prefer to write tools to target webrpc's code-gen tools
   * Type system inspired by Go + Typescript
     * integers, floats, byte, bool, any, null, date/time
