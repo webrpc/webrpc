@@ -24,7 +24,7 @@ func ParseSchemaJSON(jsondata []byte) (*WebRPCSchema, error) {
 	return schema, nil
 }
 
-var NameWhitelistRexp = regexp.MustCompile(`(?i)^[a-zA-Z0-9]+(\w*[a-zA-Z0-9]+)?$`)
+var NameWhitelistRexp = regexp.MustCompile(`^[a-zA-Z]+[a-zA-Z0-9_]*$`)
 
 func IsValidArgName(s string) bool {
 	// TODO: fix this regexp
