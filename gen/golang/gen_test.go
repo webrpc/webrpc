@@ -10,8 +10,9 @@ import (
 
 const input = `
 {
-  "schema": "webrpc/v0.0.1",
-  "app": "example/v0.0.1",
+  "webrpc": "v1",
+  "name": "example",
+  "version":" v0.0.1",
   "messages": [
     {
       "name": "Kind",

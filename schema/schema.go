@@ -3,10 +3,15 @@ package schema
 import (
 	"bytes"
 	"encoding/json"
+
+	"github.com/pkg/errors"
+)
+
+const (
+	VERSION = "v1"
 )
 
 // schema of webrpc json file, and validations
-
 type WebRPCSchema struct {
 	Schema  string   `json:"webrpc"`
 	Name    string   `json:"name"`
@@ -22,6 +27,10 @@ type WebRPCSchema struct {
 func (s *WebRPCSchema) Parse(schema *WebRPCSchema) error {
 	if schema == nil {
 		schema = s // we can take nil here, as this is the schema
+	}
+
+	if schema.Schema != VERSION {
+		return errors.Errorf("webrpc schema version, '%s' is invalid, try '%s'", schema.Schema, VERSION)
 	}
 
 	for _, msg := range s.Messages {

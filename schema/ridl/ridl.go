@@ -39,8 +39,7 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 		return nil, errors.New(`missing "webrpc" declaration`)
 	}
 	webrpcInputVersion := p.tree.definitions["webrpc"].value()
-	// TODO: use webrpc.VERSION string to compare..
-	if webrpcInputVersion != "v1" {
+	if webrpcInputVersion != schema.VERSION {
 		return nil, errors.New("invalid webrpc declaration in ridl file")
 	}
 
