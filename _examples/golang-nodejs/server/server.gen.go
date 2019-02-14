@@ -80,8 +80,8 @@ type RandomStuff struct {
 }
 
 type ExampleService interface {
-	Ping(ctx context.Context) (*bool, error)
-	GetUser(ctx context.Context, req *GetUserRequest) (*User, error)
+	Ping(context.Context) (*bool, error)
+	GetUser(context.Context, *GetUserRequest) (*User, error)
 }
 
 var Services = map[string][]string{

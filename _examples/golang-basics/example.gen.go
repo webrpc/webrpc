@@ -73,12 +73,14 @@ type ComplexType struct {
 	MetaNestExample map[string]map[string]uint32
 	NamesList       []string
 	NumsList        []int64
+	DoubleArray     [][]string
+	ListOfMaps      []map[string]uint32
 	MapOfUsers      map[string]User
 }
 
 type ExampleService interface {
-	Ping(ctx context.Context) (*bool, error)
-	GetUser(ctx context.Context, getUserRequest *GetUserRequest) (*User, error)
+	Ping(context.Context) (*bool, error)
+	GetUser(context.Context, *GetUserRequest) (*User, error)
 }
 
 var Services = map[string][]string{

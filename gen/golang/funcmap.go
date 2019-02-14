@@ -155,15 +155,15 @@ func methodInputs(in []*schema.MethodArgument) (string, error) {
 	return strings.Join(inputs, ", "), nil
 }
 
-// func methodInterfaceInputs(in []*schema.MethodArgument) (string, error) {
-// 	inputs := []string{"ctx context.Context"}
+func methodInterfaceInputs(in []*schema.MethodArgument) (string, error) {
+	inputs := []string{"context.Context"}
 
-// 	for i := range in {
-// 		inputs = append(inputs, fmt.Sprintf("%s", methodInputType(in[i])))
-// 	}
+	for i := range in {
+		inputs = append(inputs, fmt.Sprintf("%s", methodInputType(in[i])))
+	}
 
-// 	return strings.Join(inputs, ", "), nil
-// }
+	return strings.Join(inputs, ", "), nil
+}
 
 func methodOutputs(in []*schema.MethodArgument) (string, error) {
 	outputs := []string{}
@@ -202,11 +202,11 @@ var templateFuncMap = map[string]interface{}{
 	"countMethods":          countMethods,
 	"clientServiceName":     clientServiceName,
 	"serverServiceName":     serverServiceName,
-	// "methodInterfaceInputs": methodInterfaceInputs,
-	"methodInputs":    methodInputs,
-	"methodOutputs":   methodOutputs,
-	"methodInputName": methodInputName,
-	"isStruct":        isStruct,
-	"isEnum":          isEnum,
-	"exportedField":   exportedField,
+	"methodInterfaceInputs": methodInterfaceInputs,
+	"methodInputs":          methodInputs,
+	"methodOutputs":         methodOutputs,
+	"methodInputName":       methodInputName,
+	"isStruct":              isStruct,
+	"isEnum":                isEnum,
+	"exportedField":         exportedField,
 }

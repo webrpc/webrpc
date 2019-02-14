@@ -36,8 +36,8 @@ message ComplexType
   - metaNestExample: map<string,map<string,uint32>>
   - namesList: []string
   - numsList: []int64
-  #- doubleArray: [][]string
-  #- listOfMaps: []map<string,uint32>
+  - doubleArray: [][]string
+  - listOfMaps: []map<string,uint32>
   - mapOfUsers: map<string,User>
 
 

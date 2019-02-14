@@ -80,12 +80,12 @@ type RandomStuff struct {
 }
 
 type ExampleRPC interface {
-	Ping(ctx context.Context) (*bool, error)
-	GetUser(ctx context.Context, req *GetUserRequest) (*User, error)
+	Ping(context.Context) (*bool, error)
+	GetUser(context.Context, *GetUserRequest) (*User, error)
 }
 
 type AnotherRPC interface {
-	Owner(ctx context.Context) (*User, error)
+	Owner(context.Context) (*User, error)
 }
 
 var Services = map[string][]string{
