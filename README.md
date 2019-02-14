@@ -126,6 +126,14 @@ api interface in a schema format of [RIDL](./_examples/golang-basics/example.rid
 [JSON](./_examples/golang-basics/example.webrpc.json) format and run `webrpc-gen` to generate
 source code for your target language.
 
+For example, to generate webrpc server+client code -- run:
+
+```
+bin/webrpc-gen -schema=example.ridl -target=go -pkg=main -server -client -out=./example.gen.go
+```
+
+and see the generated `./example.gen.go` file of types, server and client in Go.
+
 The webrpc schema type system is inspired by Go and TypeScript, and is simple and flexible enough
 to cover the wide variety of language targets, designed to target RPC communication with Web
 applications and other Web services.
