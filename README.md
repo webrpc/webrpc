@@ -48,7 +48,16 @@ For example, to generate webrpc server+client code -- run:
 bin/webrpc-gen -schema=example.ridl -target=go -pkg=main -server -client -out=./example.gen.go
 ```
 
-and see the generated `./example.gen.go` file of types, server and client in Go.
+and see the generated `./example.gen.go` file of types, server and client in Go. This is essentially
+how the `golang-basics` example was built.
+
+
+### More example apps
+
+* [hello-webrpc](./_examples/hello-webrpc) - webrpc service with Go server and Javascript webapp
+* [hello-webrpc-ts](./_examples/hello-webrpc-ts) - webrpc service with Go server and Typescript webapp
+* [golang-basics](./_examples/golang-basics) - webrpc service with Go server and Go client
+* [golang-nodejs](./_examples/golang-nodejs) - webrpc service with Go server and nodejs (Javascript ES6) client 
 
 
 ## Why
@@ -66,12 +75,6 @@ you can use the `webrpc-gen` cli to generate source code for:
 * Strongly-typed request / response data payloads for your target language
 * Strongly-typed server interface and methods on the service, aka the RPC methods
 * Complete client library to communicate with the web service
-
-See examples:
-* [hello-webrpc](./_examples/hello-webrpc) - webrpc service with Go server and Javascript webapp
-* [hello-webrpc-ts](./_examples/hello-webrpc-ts) - webrpc service with Go server and Typescript webapp
-* [golang-basics](./_examples/golang-basics) - webrpc service with Go server and Go client
-* [golang-nodejs](./_examples/golang-nodejs) - webrpc service with Go server and nodejs (Javascript ES6) client 
 
 
 ## Design / architecture
