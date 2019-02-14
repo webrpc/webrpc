@@ -78,7 +78,7 @@ type ComplexType struct {
 
 type ExampleService interface {
 	Ping(ctx context.Context) (*bool, error)
-	GetUser(ctx context.Context, GetUserRequest *GetUserRequest) (*User, error)
+	GetUser(ctx context.Context, getUserRequest *GetUserRequest) (*User, error)
 }
 
 var Services = map[string][]string{
@@ -118,9 +118,9 @@ func (c *exampleServiceClient) Ping(ctx context.Context) (*bool, error) {
 	return out, nil
 }
 
-func (c *exampleServiceClient) GetUser(ctx context.Context, GetUserRequest *GetUserRequest) (*User, error) {
+func (c *exampleServiceClient) GetUser(ctx context.Context, getUserRequest *GetUserRequest) (*User, error) {
 	out := new(User)
-	err := doJSONRequest(ctx, c.client, c.urls[1], req, out)
+	err := doJSONRequest(ctx, c.client, c.urls[1], getUserRequest, out)
 	if err != nil {
 		return nil, err
 	}

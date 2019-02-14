@@ -69,7 +69,7 @@ type User struct {
 
 type ExampleService interface {
 	Ping(ctx context.Context) (*bool, error)
-	GetUser(ctx context.Context, GetUserRequest *GetUserRequest) (*User, error)
+	GetUser(ctx context.Context, getUserRequest *GetUserRequest) (*User, error)
 }
 
 var Services = map[string][]string{

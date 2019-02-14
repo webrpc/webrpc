@@ -32,7 +32,7 @@
           out := new({{.Type | fieldType}})
         {{- end}}
         {{- if .Inputs | len}}
-        err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], req, out)
+        err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], {{index .Inputs 0 | methodInputName}}, out)
         {{- else}}
         err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], nil, out)
         {{- end}}
