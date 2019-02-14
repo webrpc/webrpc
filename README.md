@@ -1,9 +1,13 @@
 <img alt="webrpc" src="https://github.com/webrpc/webrpc/raw/master/webrpc.png" width="1024" />
 
-webrpc is a Web service meta-protocol, schema and code-generator tool for simplifying
-the development of backend services for modern Web applications.
+webrpc is a design/schema-driven approach to writing backend servers for the Web. Write your
+server's schema in [RIDL](./_examples/example.idl) or [JSON](./_examples/example.webrpc.json) format,
+and run the `webrpc-gen` tool to code-generate your server scaffolding/interface, payload serializers,
+and network communication with a fully complete client library in the your client's app language
+of your choice. Enjoy strongly-typed Web services and never having to write an API client library again.
 
-Enjoy strongly-typed Web services and never having to write an API client library again.
+Under the hood, webrpc is a Web service meta-protocol, schema and code-generator tool for
+simplifying the development of backend services for modern Web applications.
 
 Current code-generation language targets:
 * [Go](./gen/golang)
@@ -80,19 +84,16 @@ and code-generate it instead - Enter gRPC / Twirp .. and now, webrpc :)
 
 Future goals/work:
 1. Add RPC streaming support from client/server using websockets
-2. Create an [IDL](https://en.wikipedia.org/wiki/Interface_description_language) as a frontend
-to the webrpc json schema file. Our idea is it could look similar to a Typescript definition
-file that would generate this JSON file, which in-turn would be used by the code-generators
-to generate server+client code - we have an open issue [here](https://github.com/webrpc/webrpc/issues/1).
+2. More code generators.. for Rust, Python, ..
 
 
 ## Getting started
 
 1. `go get -u github.com/webrpc/webrpc/cmd/webrpc-gen`
-2. Write+design a [webrpc schema file](./_examples/golang-basics/example.webrpc.json) for your Web service
+2. Write+design a [webrpc schema file](./_examples/golang-basics/example.ridl) for your Web service
 3. Run the code-generator to create your server interface and client, ie.
-  * `webrpc-gen -schema=example.webrpc.json -target=go -pkg=service -server -client -out=./service/proto.gen.go`
-  * `webrpc-gen -schema=example.webrpc.json -target=ts -pkg=client -client -out=./web/client.ts`
+  * `webrpc-gen -schema=example.ridl -target=go -pkg=service -server -client -out=./service/proto.gen.go`
+  * `webrpc-gen -schema=example.ridl -target=ts -pkg=client -client -out=./web/client.ts`
 4. Implement the handlers for your server -- of course, it can't guess the server logic :)
 
 another option is copy the [hello-webrpc](./_examples/hello-webrpc) example, and adapt for your own webapp and server.
@@ -100,18 +101,45 @@ another option is copy the [hello-webrpc](./_examples/hello-webrpc) example, and
 
 ## Schema
 
-The schema for webrpc we've designed is inspired by Go and TypeScript type systems, and
-is simple enough to cover the wide variety of language targets, designed to target RPC
-communication with Web applications and other Web services.
+Here is an example webrpc schema in RIDL format (a new documentation-like format introduced by webrpc)
 
-High-level schema features:
+```
+webrpc = v1
 
-  * integers, floats, byte, bool, any, null, date/time
-  * lists (multi-dimensional arrays supported too)
-  * maps (with nesting / complex structures)
-  * structs / objects
-    * optional fields, default values, and pluggable code-generation for a language target
-  * enums
+name = your-app
+version = v0.1.0
+
+message User
+  - id: uint64
+  - username: string
+  - createdAt?: timestamp
+
+service ExampleService
+  - Ping(): bool
+  - GetUser(id: uint64): User
+```
+
+WebRPC is a design/schema-driven approach to writing backend servers. Write your server's
+schema in [RIDL](./_examples/example.idl) or [JSON](./_examples/example.webrpc.json) format,
+and run the `webrpc-gen` tool to code-generate your server scaffolding and a complete and fully
+complete client library in the your client's app language of your choice.
+
+The webrpc schema type system is inspired by Go and TypeScript, and is simple and flexible enough
+to cover the wide variety of language targets, designed to target RPC communication with Web
+applications and other Web services.
+
+High-level features:
+
+  * RIDL, aka "RPC interface design language", format - a documentation-like schema format for
+  describing a server application.
+  * JSON schema format is also supported if you prefer to write tools to target webrpc's code-gen tools
+  * Type system inspired by Go + Typescript
+    * integers, floats, byte, bool, any, null, date/time
+    * lists (multi-dimensional arrays supported too)
+    * maps (with nesting / complex structures)
+    * structs / objects
+      * optional fields, default values, and pluggable code-generation for a language target
+    * enums
 
 For more information please see the [schema readme](./schema/README.md).
 
