@@ -101,7 +101,7 @@ Future goals/work:
 another option is copy the [hello-webrpc](./_examples/hello-webrpc) example, and adapt for your own webapp and server.
 
 
-## Schema
+## Quick example
 
 Here is an example webrpc schema in RIDL format (a new documentation-like format introduced by webrpc)
 
@@ -133,6 +133,9 @@ bin/webrpc-gen -schema=example.ridl -target=go -pkg=main -server -client -out=./
 ```
 
 and see the generated `./example.gen.go` file of types, server and client in Go.
+
+
+## Schema
 
 The webrpc schema type system is inspired by Go and TypeScript, and is simple and flexible enough
 to cover the wide variety of language targets, designed to target RPC communication with Web
