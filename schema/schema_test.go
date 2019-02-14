@@ -77,7 +77,7 @@ func TestSchema(t *testing.T) {
 							{ "go.tag.db": "created_at" }
 						]
 					}
-	
+
 				]
 			},
 			{
@@ -166,4 +166,21 @@ func TestSchema(t *testing.T) {
 	jout, err := schema.ToJSON(true)
 	assert.NoError(t, err)
 	fmt.Println("schema JSON:", jout)
+}
+
+func TestFoo(t *testing.T) {
+	assert.True(t, IsValidArgName("a"))
+	assert.True(t, IsValidArgName("a1"))
+	assert.False(t, IsValidArgName("1a"))
+	assert.False(t, IsValidArgName("12222"))
+	assert.False(t, IsValidArgName("1_"))
+	assert.False(t, IsValidArgName("1_2"))
+	assert.False(t, IsValidArgName(""))
+	assert.True(t, IsValidArgName("a"))
+	assert.False(t, IsValidArgName("-1_2"))
+	assert.False(t, IsValidArgName("_ddd"))
+	assert.False(t, IsValidArgName("aAA--"))
+	assert.True(t, IsValidArgName("a3_44aass"))
+	assert.True(t, IsValidArgName("a55_____cdDDDD"))
+	assert.False(t, IsValidArgName("asSS_E_##$"))
 }
