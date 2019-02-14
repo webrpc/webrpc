@@ -34,7 +34,8 @@ message User
 
 service ExampleService
   - Ping(): bool
-  - GetUser(id: uint64): User
+  - GetUserByID(uint64): User
+  - IsOnline(User): bool
 ```
 
 WebRPC is a design/schema-driven approach to writing backend servers. Write your server's

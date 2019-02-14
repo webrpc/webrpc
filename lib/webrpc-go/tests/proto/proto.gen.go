@@ -132,9 +132,9 @@ func (c *exampleRPCClient) Ping(ctx context.Context) (*bool, error) {
 	return out, nil
 }
 
-func (c *exampleRPCClient) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
+func (c *exampleRPCClient) GetUser(ctx context.Context, rreq *GetUserRequest) (*User, error) {
 	out := new(User)
-	err := doJSONRequest(ctx, c.client, c.urls[1], req, out)
+	err := doJSONRequest(ctx, c.client, c.urls[1], rreq, out)
 	if err != nil {
 		return nil, err
 	}
@@ -298,7 +298,7 @@ func (s *exampleRPCServer) serveGetUserJSON(ctx context.Context, w http.Response
 
 	err = json.Unmarshal(reqBody, reqContent)
 	if err != nil {
-		err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to unmarshal request data")
+		err = webrpc.WrapError(webrpc.ErrInvalidArgument, err, "failed to unmarshal request data")
 		writeJSONError(ctx, w, r, err)
 		return
 	}

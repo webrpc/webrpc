@@ -131,7 +131,7 @@ func methodInputName(in *schema.MethodArgument) string {
 		name = in.Type.String()
 	}
 	if name != "" {
-		return strings.ToLower(name[0:1]) + name[1:]
+		return "r" + name
 	}
 	return ""
 }

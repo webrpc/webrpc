@@ -213,7 +213,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 
 	err = json.Unmarshal(reqBody, reqContent)
 	if err != nil {
-		err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to unmarshal request data")
+		err = webrpc.WrapError(webrpc.ErrInvalidArgument, err, "failed to unmarshal request data")
 		writeJSONError(ctx, w, r, err)
 		return
 	}
