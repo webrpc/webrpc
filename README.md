@@ -17,6 +17,40 @@ Current code-generation language targets:
 * .. contribute more! they're just templates
 
 
+## Quick example
+
+Here is an example webrpc schema in RIDL format (a new documentation-like format introduced by webrpc)
+
+```
+webrpc = v1
+
+name = your-app
+version = v0.1.0
+
+message User
+  - id: uint64
+  - username: string
+  - createdAt?: timestamp
+
+service ExampleService
+  - Ping(): bool
+  - GetUser(id: uint64): User
+```
+
+WebRPC is a design/schema-driven approach to writing backend servers. Write your server's
+api interface in a schema format of [RIDL](./_examples/golang-basics/example.ridl) or
+[JSON](./_examples/golang-basics/example.webrpc.json) format and run `webrpc-gen` to generate
+source code for your target language.
+
+For example, to generate webrpc server+client code -- run:
+
+```
+bin/webrpc-gen -schema=example.ridl -target=go -pkg=main -server -client -out=./example.gen.go
+```
+
+and see the generated `./example.gen.go` file of types, server and client in Go.
+
+
 ## Why
 
 Writing a Web service / microservice takes a lot of work and time. There are many pieces
@@ -99,40 +133,6 @@ Future goals/work:
 4. Implement the handlers for your server -- of course, it can't guess the server logic :)
 
 another option is copy the [hello-webrpc](./_examples/hello-webrpc) example, and adapt for your own webapp and server.
-
-
-## Quick example
-
-Here is an example webrpc schema in RIDL format (a new documentation-like format introduced by webrpc)
-
-```
-webrpc = v1
-
-name = your-app
-version = v0.1.0
-
-message User
-  - id: uint64
-  - username: string
-  - createdAt?: timestamp
-
-service ExampleService
-  - Ping(): bool
-  - GetUser(id: uint64): User
-```
-
-WebRPC is a design/schema-driven approach to writing backend servers. Write your server's
-api interface in a schema format of [RIDL](./_examples/golang-basics/example.ridl) or
-[JSON](./_examples/golang-basics/example.webrpc.json) format and run `webrpc-gen` to generate
-source code for your target language.
-
-For example, to generate webrpc server+client code -- run:
-
-```
-bin/webrpc-gen -schema=example.ridl -target=go -pkg=main -server -client -out=./example.gen.go
-```
-
-and see the generated `./example.gen.go` file of types, server and client in Go.
 
 
 ## Schema
