@@ -1,10 +1,19 @@
 WebRPC Schema
 =============
 
-Below is the type system for the webrpc schema. Here is an [example webrpc schema file](../_examples/golang-basics/example.webrpc.json)
-for an example service.
+WebRPC is a design/schema driven approach to writing backend servers, with fully-generated
+client libraries. Write your schema, and it will generate strongly-typed bindings between
+your server and client. The type system is described below.
 
-## Basics
+Some example webrpc schemas:
+  * from the _examples/, here is a schema in [RIDL](../_examples/golang-basics/example.ridl) or
+  in [JSON](../_examples/golang-basics/example.webrpc.json)
+  * ..find more in ./_examples
+
+
+## Type system
+
+### Basics
 
 - `byte` (aka uint8)
 - `bool`
@@ -12,7 +21,7 @@ for an example service.
 - `null`
 
 
-## Integers
+### Integers
 
 - `uint8`
 - `uint16`
@@ -25,23 +34,23 @@ for an example service.
 - `int64`
 
 
-## Floats
+### Floats
 
 - `float32`
 - `float64`
 
 
-## Strings
+### Strings
 
 - `string`
 
 
-## Timestamps (date/time)
+### Timestamps (date/time)
 
 - `timestamp` - for date/time
 
 
-## Lists
+### Lists
 
 - form: `[]<type>`
 - ie.
@@ -51,7 +60,7 @@ for an example service.
   * ..
 
 
-## Map
+### Map
 
 - form: `map<key,value>`
 - ie.
@@ -62,24 +71,24 @@ for an example service.
   * `map<string,User>` - where `User` is a struct type defined in schema
 
 
-## Enums
+### Enums
 
 - enum, see examples
 
 
-## Binary (future / v2)
+### Binary (future / v2)
 
 - `blob` aka.. `[]byte`
   * TODO: https://github.com/PsychoLlama/bin-json might have some ideas for us
 
 
-## Structs aka Objects / Messages
+### Structs aka Objects / Messages
 
 - struct or object
   * think of it just as a Javascript object or JSON object
 
 
-### Some notes on structs
+#### Some notes on structs
 
 - fields of an object can be `optional`
 - fields of an object are by default required, unless made optional

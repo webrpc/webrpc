@@ -1,10 +1,11 @@
 <img alt="webrpc" src="https://github.com/webrpc/webrpc/raw/master/webrpc.png" width="1024" />
 
-webrpc is a design/schema-driven approach to writing backend servers for the Web. Write your
-server's schema in [RIDL](./_examples/example.idl) or [JSON](./_examples/example.webrpc.json) format,
-and run the `webrpc-gen` tool to code-generate your server scaffolding/interface, payload serializers,
-and network communication with a fully complete client library in the your client's app language
-of your choice. Enjoy strongly-typed Web services and never having to write an API client library again.
+webrpc is a design/schema-driven approach to writing backend servers for the Web. Write your server's
+api interface in a schema format of [RIDL](./_examples/example.idl) or [JSON](./_examples/example.webrpc.json),
+and then run `webrpc-gen` to generate the networking source code for your server and client apps. From the schema,
+webrpc-gen will generate application base class types/interfaces, JSON encoders, and network io code. In doing
+so, it's able to generate completely typed client libraries to communicate with your server. Enjoy strongly-typed
+Web services and never having to write an API client library again.
 
 Under the hood, webrpc is a Web service meta-protocol, schema and code-generator tool for
 simplifying the development of backend services for modern Web applications.
@@ -50,7 +51,8 @@ of cases, for this to be a bottleneck or costly tradeoff.
 webrpc is heavily inspired by gRPC and Twirp. It is architecturally the same and has a similar
 workflow, but simpler. In fact, the webrpc schema is similar in design to protobuf, as
 in we have messages and rpc methods, but the type system is arguably more flexible and
-code-gen tooling is simpler. The [webrpc type system](./schema/README.md) is inspired by Go,
+code-gen tooling is simpler. The [webrpc schema](./schema/README.md) is a documentation-like
+language for describing a server's api interface and the type system within is inspired by Go,
 Typescript and WASM.
 
 We've been thinking about webrpc's design for years, and were happy to see gRPC and Twirp
@@ -120,9 +122,8 @@ service ExampleService
 ```
 
 WebRPC is a design/schema-driven approach to writing backend servers. Write your server's
-schema in [RIDL](./_examples/example.idl) or [JSON](./_examples/example.webrpc.json) format,
-and run the `webrpc-gen` tool to code-generate your server scaffolding and a complete and fully
-complete client library in the your client's app language of your choice.
+api interface in a schema format of [RIDL](./_examples/example.idl) or [JSON](./_examples/example.webrpc.json)
+format and run `webrpc-gen` to generate source code for your target language.
 
 The webrpc schema type system is inspired by Go and TypeScript, and is simple and flexible enough
 to cover the wide variety of language targets, designed to target RPC communication with Web
