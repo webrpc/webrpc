@@ -27,6 +27,9 @@ build:
 	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen
 	go generate ./...
 
+install: build
+	go install ./cmd/webrpc-gen
+
 test: generate
 	go test -v ./...
 

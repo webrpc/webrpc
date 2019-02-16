@@ -101,9 +101,9 @@ libraries like [chi](https://github.com/go-chi/chi), a HTTP router for Go -- we 
 Why have "Rails" and "Django" been such productive frameworks for writing webapps? And the answer
 we came to is that its productive because the server and client are the same program,
 running in the same process on the same computer. Rails/Django/others like it, when rendering
-client-state can just call a function on the in the same program, the client and the server
-are within the same domain and same state - everything is a function-call away. Compare this to
-modern app development, as writing a React.js SPA or a native iOS mobile app, where the app
+client-state can just call a function in the same program, the client and the server
+are within the same domain and same state -- everything is a function-call away. Compare this to
+modern app development such as writing a React.js SPA or a native iOS mobile app, where the app
 speaks to an external API server with now the huge added effort to bridge data/runtime from
 one namespace (the app) to an entirely other namespace (the server). It's too much work and
 takes too much time, and is too brittle. There is a better way! instead of writing the code..
@@ -123,7 +123,7 @@ and code-generate it instead - Enter gRPC / Twirp .. and now, webrpc :)
 
 
 Future goals/work:
-1. Add RPC streaming support from client/server using websockets
+1. Add RPC streaming support for client/server via websockets
 2. More code generators.. for Rust, Python, ..
 
 
@@ -136,7 +136,7 @@ Future goals/work:
   * `webrpc-gen -schema=example.ridl -target=ts -pkg=client -client -out=./web/client.ts`
 4. Implement the handlers for your server -- of course, it can't guess the server logic :)
 
-another option is copy the [hello-webrpc](./_examples/hello-webrpc) example, and adapt for your own webapp and server.
+another option is to copy the [hello-webrpc](./_examples/hello-webrpc) example, and adapt for your own webapp and server.
 
 
 ## Schema
