@@ -13,8 +13,10 @@ import (
   "io/ioutil"
   "net/http"
   "net/url"
-  "strings"
   "time"
+{{- if and (.TargetOpts.Server) (gt (len .Services) 0) }}
+  "strings"
+{{- end}}
 
   "github.com/webrpc/webrpc/lib/webrpc-go"
 )
