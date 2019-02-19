@@ -73,7 +73,7 @@ func TestSchema(t *testing.T) {
 						"type": "timestamp",
 						"optional": true,
 						"meta": [
-							{ "json": "created_at,omitempty" },
+							{ "go.tag.json": "created_at,omitempty" },
 							{ "go.tag.db": "created_at" }
 						]
 					}
@@ -132,7 +132,7 @@ func TestSchema(t *testing.T) {
 						"inputs": [],
 						"outputs": [
 							{
-								"name": "",
+								"name": "status",
 								"type": "bool"
 							}
 						]
@@ -151,11 +151,11 @@ func TestSchema(t *testing.T) {
 						],
 						"outputs": [
 							{
-								"name": "",
+								"name": "code",
 								"type": "uint32"
 							},
 							{
-								"name": "",
+								"name": "user",
 								"type": "User"
 							}
 						]

@@ -32,16 +32,20 @@ message GetUserRequest
 
 
 message User
-  - ID: uint64          # hmm.. TODO, think about the name of the filed we want..? should it represent the JSON field name? prob
-    + json = id         # if so, we then need to add the json thing here .....
+  - ID: uint64
+    + json = id
     + go.tag.db = id
 
   - username: string
     + json = USERNAME
     + go.tag.db = username
 
+  - role: string
+    + go.tag.db = -
+
   - createdAt?: timestamp
-    + json = created_at,omitempty
+    + json = created_at
+    + go.tag.json = created_at,omitempty
     + go.tag.db = created_at
 
 
@@ -63,15 +67,15 @@ service ExampleService
 
   # comment can go here
   # too .. :)
-  - Ping(): bool
+  - Ping() => (status: bool)
 
-  - GetUser(GetUserRequest): User
+  - GetUser(req: GetUserRequest) => (user: User)
 
-  - Recv(stream string)
+  - Recv(req: stream string)
 
-  - Send(): stream string
+  - Send() => (resp: stream string)
 
-  - SendAndRecv(stream string): stream string
+  - SendAndRecv(req: stream string) => (resp: stream string)
 
-  - Broadcast(): stream Notice
+  - Broadcast() => (resp: stream Notice)
 
