@@ -74,7 +74,7 @@ const input = `
           "type": "timestamp",
           "optional": true,
           "meta": [
-            { "json": "created_at,omitempty" },
+            { "go.tag.json": "created_at,omitempty" },
             { "go.tag.db": "created_at" }
           ]
         }
@@ -133,7 +133,7 @@ const input = `
           "inputs": [],
           "outputs": [
             {
-              "name": "",
+              "name": "status",
               "type": "bool"
             }
           ]
@@ -148,7 +148,7 @@ const input = `
           ],
           "outputs": [
             {
-              "name": "",
+              "name": "user",
               "type": "User"
             }
           ]
