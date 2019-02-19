@@ -26,17 +26,6 @@
       ]
     },
     {
-      "name": "GetUserRequest",
-      "type": "struct",
-      "fields": [
-        {
-          "name": "userID",
-          "type": "uint64",
-          "optional": false
-        }
-      ]
-    },
-    {
       "name": "User",
       "type": "struct",
       "fields": [
@@ -80,7 +69,7 @@
       ]
     },
     {
-      "name": "RandomStuff",
+      "name": "ComplexType",
       "type": "struct",
       "fields": [
         {
@@ -149,8 +138,8 @@
               "type": "map<string,string>"
             },
             {
-              "name": "req",
-              "type": "GetUserRequest"
+              "name": "userID",
+              "type": "uint64"
             }
           ],
           "outputs": [

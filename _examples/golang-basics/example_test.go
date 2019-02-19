@@ -41,9 +41,7 @@ func TestStatus(t *testing.T) {
 func TestGetUser(t *testing.T) {
 	{
 		arg1 := map[string]string{"a": "1"}
-		code, user, err := client.GetUser(context.Background(), arg1, &GetUserRequest{
-			UserID: 12,
-		})
+		code, user, err := client.GetUser(context.Background(), arg1, 12)
 		assert.Equal(t, uint32(200), code)
 		assert.Equal(t, &User{ID: 12, Username: "hihi"}, user)
 		assert.NoError(t, err)
@@ -51,9 +49,7 @@ func TestGetUser(t *testing.T) {
 
 	{
 		// Error case, expecting to receive an error
-		code, user, err := client.GetUser(context.Background(), nil, &GetUserRequest{
-			UserID: 911,
-		})
+		code, user, err := client.GetUser(context.Background(), nil, 911)
 
 		// TODO: err should be webrpc.Error type
 		// so we can decode the .Code(), .Msg(), etc..

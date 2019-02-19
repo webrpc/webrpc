@@ -45,15 +45,15 @@ func (s *ExampleServiceRPC) Status(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]string, req *GetUserRequest) (uint32, *User, error) {
-	if req.UserID == 911 {
+func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error) {
+	if userID == 911 {
 		return 0, nil, webrpc.ErrorNotFound("unknown userID %d", 911)
 		// return nil, webrpc.Errorf(webrpc.ErrNotFound, "unknown userID %d", 911)
 		// return nil, webrpc.WrapError(webrpc.ErrNotFound, err, "unknown userID %d", 911)
 	}
 
 	return 200, &User{
-		ID:       req.UserID,
+		ID:       userID,
 		Username: "hihi",
 	}, nil
 }
