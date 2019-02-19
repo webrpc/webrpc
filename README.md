@@ -33,9 +33,11 @@ message User
   - createdAt?: timestamp
 
 service ExampleService
-  - Ping(): bool
-  - GetUserByID(uint64): User
-  - IsOnline(User): bool
+  - Ping()
+  - Status() => (status: bool)
+  - GetUserByID(userID: uint64) => (user: User)
+  - IsOnline(user: User) => (online: bool)
+  - ListUsers(q?: UsersQueryFilter) => (page: Page, users: []User)
 ```
 
 WebRPC is a design/schema-driven approach to writing backend servers. Write your server's

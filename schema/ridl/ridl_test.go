@@ -210,6 +210,9 @@ func TestMessages(t *testing.T) {
 	- Field2: uint64 # one two #t
 			+ json = field_2 # a comment
 				+ go.tag.db = field_2
+	- Field3: bool
+		+ go.tag.db = - # omits the field from db
+
 
 	message Simple2 # with a-comment an,d meta fields
 	`
@@ -280,8 +283,9 @@ func TestService(t *testing.T) {
 	name = hello-webrpc
 
 	service Simple
-	-	Ping(): bool
-	-	PingStream(): stream bool`
+	- Ping()
+	-	Status() => (status: bool)
+	-	StatusStream() => (status: stream bool)`
 		schema, err := Parse(input)
 		assert.NoError(t, err)
 
@@ -299,8 +303,8 @@ func TestService(t *testing.T) {
 	name = hello-webrpc
 
 	service Simple
-	-	Ping(stream uint32): bool
-	-	PingStream(string): stream bool`
+	-	Ping(code: stream uint32) => (code: bool)
+	-	PingStream(text: string) => (code: stream bool)`
 		schema, err := Parse(input)
 		assert.NoError(t, err)
 
