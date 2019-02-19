@@ -141,11 +141,19 @@ func TestSchema(t *testing.T) {
 						"name": "GetUser",
 						"inputs": [
 							{
+								"name": "header",
+								"type": "map<string,string>"
+							},
+							{
 								"name": "req",
 								"type": "GetUserRequest"
 							}
 						],
 						"outputs": [
+							{
+								"name": "",
+								"type": "uint32"
+							},
 							{
 								"name": "",
 								"type": "User"

@@ -59,11 +59,20 @@
           ]
         },
         {
+          "name": "role",
+          "type": "string",
+          "optional": false,
+          "meta": [
+            { "go.tag.db": "-" }
+          ]
+        },
+        {
           "name": "createdAt",
           "type": "timestamp",
           "optional": true,
           "meta": [
-            { "json": "created_at,omitempty" },
+            { "json": "created_at" },
+            { "go.tag.json": "created_at,omitempty" },
             { "go.tag.db": "created_at" }
           ]
         }
@@ -120,9 +129,14 @@
         {
           "name": "Ping",
           "inputs": [],
+          "outputs": []
+        },
+        {
+          "name": "Status",
+          "inputs": [],
           "outputs": [
             {
-              "name": "",
+              "name": "status",
               "type": "bool"
             }
           ]
@@ -131,13 +145,21 @@
           "name": "GetUser",
           "inputs": [
             {
+              "name": "header",
+              "type": "map<string,string>"
+            },
+            {
               "name": "req",
               "type": "GetUserRequest"
             }
           ],
           "outputs": [
             {
-              "name": "",
+              "name": "code",
+              "type": "uint32"
+            },
+            {
+              "name": "user",
               "type": "User"
             }
           ]

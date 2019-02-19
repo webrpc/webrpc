@@ -103,17 +103,19 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out i
 		return errorFromResponse(resp)
 	}
 
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return clientError("failed to read response body", err)
-	}
+	if out != nil {
+		respBody, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return clientError("failed to read response body", err)
+		}
 
-	err = json.Unmarshal(respBody, &out)
-	if err != nil {
-		return clientError("failed to unmarshal json response body", err)
-	}
-	if err = ctx.Err(); err != nil {
-		return clientError("aborted because context was done", err)
+		err = json.Unmarshal(respBody, &out)
+		if err != nil {
+			return clientError("failed to unmarshal json response body", err)
+		}
+		if err = ctx.Err(); err != nil {
+			return clientError("aborted because context was done", err)
+		}
 	}
 
 	return nil

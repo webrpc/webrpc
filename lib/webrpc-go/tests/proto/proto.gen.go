@@ -76,18 +76,18 @@ type RandomStuff struct {
 	NumsList          []int64
 	DoubleArray       [][]string
 	ListOfMaps        []map[string]uint32
-	ListOfUsers       []User
-	MapOfUsers        map[string]User
-	User              User
+	ListOfUsers       []*User
+	MapOfUsers        map[string]*User
+	User              *User
 }
 
 type ExampleRPC interface {
-	Ping(context.Context) (*bool, error)
-	GetUser(context.Context, *GetUserRequest) (*User, error)
+	Ping(ctx context.Context) (bool, error)
+	GetUser(ctx context.Context, req *GetUserRequest) (*User, error)
 }
 
 type AnotherRPC interface {
-	Owner(context.Context) (*User, error)
+	Owner(ctx context.Context) (*User, error)
 }
 
 var Services = map[string][]string{
@@ -123,22 +123,25 @@ func NewExampleRPCClient(addr string, client HTTPClient) ExampleRPC {
 	}
 }
 
-func (c *exampleRPCClient) Ping(ctx context.Context) (*bool, error) {
-	out := new(bool)
-	err := doJSONRequest(ctx, c.client, c.urls[0], nil, out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
+func (c *exampleRPCClient) Ping(ctx context.Context) (bool, error) {
+	out := struct {
+		Ret0 bool `json:""`
+	}{}
+
+	err := doJSONRequest(ctx, c.client, c.urls[0], nil, &out)
+	return out.Ret0, err
 }
 
-func (c *exampleRPCClient) GetUser(ctx context.Context, rreq *GetUserRequest) (*User, error) {
-	out := new(User)
-	err := doJSONRequest(ctx, c.client, c.urls[1], rreq, out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
+func (c *exampleRPCClient) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
+	in := struct {
+		Arg0 *GetUserRequest `json:"req"`
+	}{req}
+	out := struct {
+		Ret0 *User `json:""`
+	}{}
+
+	err := doJSONRequest(ctx, c.client, c.urls[1], in, &out)
+	return out.Ret0, err
 }
 
 type anotherRPCClient struct {
@@ -158,12 +161,12 @@ func NewAnotherRPCClient(addr string, client HTTPClient) AnotherRPC {
 }
 
 func (c *anotherRPCClient) Owner(ctx context.Context) (*User, error) {
-	out := new(User)
-	err := doJSONRequest(ctx, c.client, c.urls[0], nil, out)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
+	out := struct {
+		Ret0 *User `json:""`
+	}{}
+
+	err := doJSONRequest(ctx, c.client, c.urls[0], nil, &out)
+	return out.Ret0, err
 }
 
 // Server
@@ -232,7 +235,7 @@ func (s *exampleRPCServer) servePingJSON(ctx context.Context, w http.ResponseWri
 	ctx = webrpc.WithMethodName(ctx, "Ping")
 
 	// Call service method
-	var respContent *bool
+	var ret0 bool
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -241,14 +244,16 @@ func (s *exampleRPCServer) servePingJSON(ctx context.Context, w http.ResponseWri
 				panic(rr)
 			}
 		}()
-		respContent, err = s.ExampleRPC.Ping(ctx)
+		ret0, err = s.ExampleRPC.Ping(ctx)
 	}()
+	respContent := struct {
+		Ret0 bool `json:""`
+	}{ret0}
 
 	if err != nil {
 		writeJSONError(ctx, w, r, err)
 		return
 	}
-
 	respBody, err := json.Marshal(respContent)
 	if err != nil {
 		err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to marshal json response")
@@ -258,13 +263,7 @@ func (s *exampleRPCServer) servePingJSON(ctx context.Context, w http.ResponseWri
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
-	if n, err := w.Write(respBody); err != nil {
-		_ = n
-		_ = err
-		// TODO: failing silently for now..
-		// msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
-	}
+	w.Write(respBody)
 }
 
 func (s *exampleRPCServer) serveGetUser(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -286,7 +285,9 @@ func (s *exampleRPCServer) serveGetUser(ctx context.Context, w http.ResponseWrit
 func (s *exampleRPCServer) serveGetUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx = webrpc.WithMethodName(ctx, "GetUser")
-	reqContent := new(GetUserRequest)
+	reqContent := struct {
+		Arg0 *GetUserRequest `json:"req"`
+	}{}
 
 	reqBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -296,7 +297,7 @@ func (s *exampleRPCServer) serveGetUserJSON(ctx context.Context, w http.Response
 	}
 	defer r.Body.Close()
 
-	err = json.Unmarshal(reqBody, reqContent)
+	err = json.Unmarshal(reqBody, &reqContent)
 	if err != nil {
 		err = webrpc.WrapError(webrpc.ErrInvalidArgument, err, "failed to unmarshal request data")
 		writeJSONError(ctx, w, r, err)
@@ -304,7 +305,7 @@ func (s *exampleRPCServer) serveGetUserJSON(ctx context.Context, w http.Response
 	}
 
 	// Call service method
-	var respContent *User
+	var ret0 *User
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -313,14 +314,16 @@ func (s *exampleRPCServer) serveGetUserJSON(ctx context.Context, w http.Response
 				panic(rr)
 			}
 		}()
-		respContent, err = s.ExampleRPC.GetUser(ctx, reqContent)
+		ret0, err = s.ExampleRPC.GetUser(ctx, reqContent.Arg0)
 	}()
+	respContent := struct {
+		Ret0 *User `json:""`
+	}{ret0}
 
 	if err != nil {
 		writeJSONError(ctx, w, r, err)
 		return
 	}
-
 	respBody, err := json.Marshal(respContent)
 	if err != nil {
 		err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to marshal json response")
@@ -330,13 +333,7 @@ func (s *exampleRPCServer) serveGetUserJSON(ctx context.Context, w http.Response
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
-	if n, err := w.Write(respBody); err != nil {
-		_ = n
-		_ = err
-		// TODO: failing silently for now..
-		// msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
-	}
+	w.Write(respBody)
 }
 
 type anotherRPCServer struct {
@@ -400,7 +397,7 @@ func (s *anotherRPCServer) serveOwnerJSON(ctx context.Context, w http.ResponseWr
 	ctx = webrpc.WithMethodName(ctx, "Owner")
 
 	// Call service method
-	var respContent *User
+	var ret0 *User
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -409,14 +406,16 @@ func (s *anotherRPCServer) serveOwnerJSON(ctx context.Context, w http.ResponseWr
 				panic(rr)
 			}
 		}()
-		respContent, err = s.AnotherRPC.Owner(ctx)
+		ret0, err = s.AnotherRPC.Owner(ctx)
 	}()
+	respContent := struct {
+		Ret0 *User `json:""`
+	}{ret0}
 
 	if err != nil {
 		writeJSONError(ctx, w, r, err)
 		return
 	}
-
 	respBody, err := json.Marshal(respContent)
 	if err != nil {
 		err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to marshal json response")
@@ -426,13 +425,7 @@ func (s *anotherRPCServer) serveOwnerJSON(ctx context.Context, w http.ResponseWr
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
-	if n, err := w.Write(respBody); err != nil {
-		_ = n
-		_ = err
-		// TODO: failing silently for now..
-		// msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
-	}
+	w.Write(respBody)
 }
 
 //
@@ -539,17 +532,19 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out i
 		return errorFromResponse(resp)
 	}
 
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return clientError("failed to read response body", err)
-	}
+	if out != nil {
+		respBody, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return clientError("failed to read response body", err)
+		}
 
-	err = json.Unmarshal(respBody, &out)
-	if err != nil {
-		return clientError("failed to unmarshal json response body", err)
-	}
-	if err = ctx.Err(); err != nil {
-		return clientError("aborted because context was done", err)
+		err = json.Unmarshal(respBody, &out)
+		if err != nil {
+			return clientError("failed to unmarshal json response body", err)
+		}
+		if err = ctx.Err(); err != nil {
+			return clientError("aborted because context was done", err)
+		}
 	}
 
 	return nil

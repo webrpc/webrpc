@@ -25,8 +25,12 @@ message User
     + json = USERNAME
     + go.tag.db = username
 
+  - role: string
+    + go.tag.db = -
+
   - createdAt?: timestamp
-    + json = created_at,omitempty
+    + json = created_at
+    + go.tag.json = created_at,omitempty
     + go.tag.db = created_at
 
 
@@ -42,6 +46,6 @@ message ComplexType
 
 
 service ExampleService
-  - Ping(): bool
-  - GetUser(GetUserRequest): User
-
+  - Ping()
+  - Status() => (status: bool)
+  - GetUser(req: GetUserRequest) => (user: User)

@@ -1,6 +1,7 @@
 package golang
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -78,8 +79,7 @@ func fieldType(in *schema.VarType) (string, error) {
 		}
 		return "[]" + z, nil
 	case schema.T_Struct:
-		// TODO: add in.Struct.Message to global structs
-		return in.Struct.Name, nil
+		return "*" + in.Struct.Name, nil
 	default:
 		if fieldTypeMap[in.Type] != "" {
 			return fieldTypeMap[in.Type], nil
@@ -98,7 +98,7 @@ func fieldOptional(field *schema.MessageField) (string, error) {
 	case schema.T_List:
 		return "", nil // noop
 	case schema.T_Struct:
-		return "*", nil
+		return "", nil // noop because by default struct uses '*' prefix
 	default:
 		if fieldTypeMap[field.Type.Type] != "" {
 			return "*", nil
@@ -131,50 +131,71 @@ func methodInputName(in *schema.MethodArgument) string {
 		name = in.Type.String()
 	}
 	if name != "" {
-		return "r" + name
+		return name
 	}
 	return ""
 }
 
 func methodInputType(in *schema.MethodArgument) string {
-	// TODO: how do we know when we have a pointer?
 	z, err := fieldType(in.Type)
 	if err != nil {
 		panic(err.Error())
 	}
-	return "*" + z
+
+	var prefix string
+	typ := in.Type.Type
+
+	if in.Optional {
+		prefix = "*"
+	}
+	if typ == schema.T_Struct {
+		prefix = "" // noop, as already pointer applied elsewhere
+	}
+	if typ == schema.T_List || typ == schema.T_Map {
+		prefix = ""
+	}
+
+	return prefix + z
 }
 
 func methodInputs(in []*schema.MethodArgument) (string, error) {
 	inputs := []string{"ctx context.Context"}
-
 	for i := range in {
 		inputs = append(inputs, fmt.Sprintf("%s %s", methodInputName(in[i]), methodInputType(in[i])))
 	}
-
-	return strings.Join(inputs, ", "), nil
-}
-
-func methodInterfaceInputs(in []*schema.MethodArgument) (string, error) {
-	inputs := []string{"context.Context"}
-
-	for i := range in {
-		inputs = append(inputs, fmt.Sprintf("%s", methodInputType(in[i])))
-	}
-
 	return strings.Join(inputs, ", "), nil
 }
 
 func methodOutputs(in []*schema.MethodArgument) (string, error) {
 	outputs := []string{}
-
 	for i := range in {
 		outputs = append(outputs, methodInputType(in[i]))
 	}
-
 	outputs = append(outputs, "error")
-
 	return strings.Join(outputs, ", "), nil
+}
+
+func methodInputNames(in []*schema.MethodArgument) (string, error) {
+	inputs := []string{}
+	for i := range in {
+		inputs = append(inputs, fmt.Sprintf("%s", methodInputName(in[i])))
+	}
+	return strings.Join(inputs, ", "), nil
+}
+
+func argsList(in []*schema.MethodArgument, prefix string) (string, error) {
+	ins := []string{}
+	for i := range in {
+		ins = append(ins, fmt.Sprintf("%s%d", prefix, i))
+	}
+	return strings.Join(ins, ", "), nil
+}
+
+func commaIfLen(in []*schema.MethodArgument) string {
+	if len(in) > 0 {
+		return ","
+	}
+	return ""
 }
 
 func isStruct(t schema.MessageType) bool {
@@ -184,6 +205,23 @@ func isStruct(t schema.MessageType) bool {
 func exportedField(in schema.VarName) (string, error) {
 	s := string(in)
 	return strings.ToUpper(s[0:1]) + s[1:], nil
+}
+
+func downcaseName(v interface{}) (string, error) {
+	downFn := func(s string) string {
+		if s == "" {
+			return ""
+		}
+		return strings.ToLower(s[0:1]) + s[1:]
+	}
+	switch t := v.(type) {
+	case schema.VarName:
+		return downFn(string(t)), nil
+	case string:
+		return downFn(t), nil
+	default:
+		return "", errors.New("downcaseFieldName, unknown arg type")
+	}
 }
 
 func isEnum(t schema.MessageType) bool {
@@ -202,11 +240,14 @@ var templateFuncMap = map[string]interface{}{
 	"countMethods":          countMethods,
 	"clientServiceName":     clientServiceName,
 	"serverServiceName":     serverServiceName,
-	"methodInterfaceInputs": methodInterfaceInputs,
 	"methodInputs":          methodInputs,
 	"methodOutputs":         methodOutputs,
 	"methodInputName":       methodInputName,
+	"methodInputNames":      methodInputNames,
+	"argsList":              argsList,
+	"commaIfLen":            commaIfLen,
 	"isStruct":              isStruct,
 	"isEnum":                isEnum,
 	"exportedField":         exportedField,
+	"downcaseName":          downcaseName,
 }

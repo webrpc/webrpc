@@ -28,30 +28,38 @@ func init() {
 }
 
 func TestPing(t *testing.T) {
-	resp, err := client.Ping(context.Background())
-	assert.Equal(t, true, *resp)
+	err := client.Ping(context.Background())
+	assert.NoError(t, err)
+}
+
+func TestStatus(t *testing.T) {
+	resp, err := client.Status(context.Background())
+	assert.Equal(t, true, resp)
 	assert.NoError(t, err)
 }
 
 func TestGetUser(t *testing.T) {
 	{
-		resp, err := client.GetUser(context.Background(), &GetUserRequest{
+		arg1 := map[string]string{"a": "1"}
+		code, user, err := client.GetUser(context.Background(), arg1, &GetUserRequest{
 			UserID: 12,
 		})
-		assert.Equal(t, &User{ID: 12, Username: "hihi"}, resp)
+		assert.Equal(t, uint32(200), code)
+		assert.Equal(t, &User{ID: 12, Username: "hihi"}, user)
 		assert.NoError(t, err)
 	}
 
 	{
 		// Error case, expecting to receive an error
-		resp, err := client.GetUser(context.Background(), &GetUserRequest{
+		code, user, err := client.GetUser(context.Background(), nil, &GetUserRequest{
 			UserID: 911,
 		})
 
 		// TODO: err should be webrpc.Error type
 		// so we can decode the .Code(), .Msg(), etc..
 
-		assert.Nil(t, resp)
+		assert.Nil(t, user)
+		assert.Equal(t, uint32(0), code)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not_found")
 	}

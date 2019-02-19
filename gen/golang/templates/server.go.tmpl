@@ -70,10 +70,11 @@
         ctx = webrpc.WithMethodName(ctx, "{{.Name}}")
 
         {{- if .Inputs|len}}
-
-        {{- range .Inputs}}
-        reqContent := new({{.Type | fieldType}})
+        reqContent := struct {
+        {{- range $i, $input := .Inputs}}
+          Arg{{$i}} {{.Type | fieldType}} `json:"{{$input.Name | downcaseName}}"`
         {{- end}}
+        }{}
 
         reqBody, err := ioutil.ReadAll(r.Body)
         if err != nil {
@@ -83,7 +84,7 @@
         }
         defer r.Body.Close()
 
-        err = json.Unmarshal(reqBody, reqContent)
+        err = json.Unmarshal(reqBody, &reqContent)
         if err != nil {
           err = webrpc.WrapError(webrpc.ErrInvalidArgument, err, "failed to unmarshal request data")
           writeJSONError(ctx, w, r, err)
@@ -92,8 +93,8 @@
         {{- end}}
 
         // Call service method
-        {{- range .Outputs}}
-        var respContent *{{.Type | fieldType}}
+        {{- range $i, $output := .Outputs}}
+        var ret{{$i}} {{$output.Type | fieldType}}
         {{- end}}
         func() {
           defer func() {
@@ -103,34 +104,36 @@
               panic(rr)
             }
           }()
-          {{- if .Inputs|len}}
-          respContent, err = s.{{$name}}.{{.Name}}(ctx, reqContent)
-          {{- else}}
-          respContent, err = s.{{$name}}.{{.Name}}(ctx)
-          {{- end}}
+          {{argsList .Outputs "ret"}}{{.Outputs | commaIfLen}} err = s.{{$name}}.{{.Name}}(ctx{{.Inputs | commaIfLen}}{{argsList .Inputs "reqContent.Arg"}})
         }()
+        {{- if .Outputs | len}}
+        respContent := struct {
+        {{- range $i, $output := .Outputs}}
+          Ret{{$i}} {{$output.Type | fieldType}} `json:"{{$output.Name | downcaseName}}"`
+        {{- end}}         
+        }{ {{argsList .Outputs "ret"}} }
+        {{- end}}
 
         if err != nil {
           writeJSONError(ctx, w, r, err)
           return
         }
 
+        {{- if .Outputs | len}}
         respBody, err := json.Marshal(respContent)
         if err != nil {
           err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to marshal json response")
           writeJSONError(ctx, w, r, err)
           return
         }
+        {{- end}}
 
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(http.StatusOK)
 
-        if n, err := w.Write(respBody); err != nil {
-          _ = n
-          _ = err
-          // TODO: failing silently for now..
-          // msg := fmt.Sprintf("failed to write response, %d of %d bytes written: %s", n, len(respBytes), err.Error())
-        }
+        {{- if .Outputs | len}}
+        w.Write(respBody)
+        {{- end}}
       }
     {{end}}
   {{- end}}
