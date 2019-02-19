@@ -1,4 +1,4 @@
-//go:generate ../../bin/webrpc-gen -schema=example.ridl -target=go -pkg=main -server -client -out=./example.gen.go
+//go:generate ../../bin/webrpc-gen -schema=example.webrpc.json -target=go -pkg=main -server -client -out=./example.gen.go
 package main
 
 import (
@@ -37,19 +37,22 @@ func startServer() error {
 type ExampleServiceRPC struct {
 }
 
-func (s *ExampleServiceRPC) Ping(ctx context.Context) (*bool, error) {
-	resp := true
-	return &resp, nil
+func (s *ExampleServiceRPC) Ping(ctx context.Context) error {
+	return nil
 }
 
-func (s *ExampleServiceRPC) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
+func (s *ExampleServiceRPC) Status(ctx context.Context) (bool, error) {
+	return true, nil
+}
+
+func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]string, req *GetUserRequest) (uint32, *User, error) {
 	if req.UserID == 911 {
-		return nil, webrpc.ErrorNotFound("unknown userID %d", 911)
+		return 0, nil, webrpc.ErrorNotFound("unknown userID %d", 911)
 		// return nil, webrpc.Errorf(webrpc.ErrNotFound, "unknown userID %d", 911)
 		// return nil, webrpc.WrapError(webrpc.ErrNotFound, err, "unknown userID %d", 911)
 	}
 
-	return &User{
+	return 200, &User{
 		ID:       req.UserID,
 		Username: "hihi",
 	}, nil

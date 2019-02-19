@@ -1,6 +1,7 @@
 package golang
 
 import (
+	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -140,13 +141,22 @@ const input = `
         },
         {
           "name": "GetUser",
+          "name": "GetUser",
           "inputs": [
+            {
+              "name": "header",
+              "type": "map<string,string>"
+            },
             {
               "name": "req",
               "type": "GetUserRequest"
             }
           ],
           "outputs": [
+            {
+              "name": "",
+              "type": "uint32"
+            },
             {
               "name": "",
               "type": "User"
@@ -165,9 +175,9 @@ func TestGenTypescript(t *testing.T) {
 	s, err := schema.ParseSchemaJSON([]byte(input))
 	assert.NoError(t, err)
 
-	o, err := g.Gen(s, gen.TargetOptions{PkgName: "test"})
+	o, err := g.Gen(s, gen.TargetOptions{PkgName: "test", Client: true, Server: true})
 	assert.NoError(t, err)
 	_ = o
 
-	// log.Printf("o: %v", o)
+	log.Printf("o: %v", o)
 }

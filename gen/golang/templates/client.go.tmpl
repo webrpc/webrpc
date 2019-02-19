@@ -28,18 +28,27 @@
 
     {{range $i, $method := .Methods}}
       func (c *{{$serviceName}}) {{.Name}}({{.Inputs | methodInputs}}) ({{.Outputs | methodOutputs }}) {
-        {{- range .Outputs}}
-          out := new({{.Type | fieldType}})
-        {{- end}}
+        {{- $inputVar := "nil" -}}
+        {{- $outputVar := "nil" -}}
         {{- if .Inputs | len}}
-        err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], {{index .Inputs 0 | methodInputName}}, out)
-        {{- else}}
-        err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], nil, out)
+        {{- $inputVar = "in"}}
+        in := struct {
+          {{- range $i, $input := .Inputs}}
+            Arg{{$i}} {{$input.Type | fieldType}} `json:"{{$input.Name | downcaseName}}"`
+          {{- end}}          
+        }{ {{.Inputs | methodInputNames}} }
         {{- end}}
-        if err != nil {
-          return nil, err
-        }
-        return out, nil
+        {{- if .Outputs | len}}
+        {{- $outputVar = "&out"}}
+        out := struct {
+          {{- range $i, $output := .Outputs}}
+            Ret{{$i}} {{$output.Type | fieldType}} `json:"{{$output.Name | downcaseName}}"`
+          {{- end}}          
+        }{}
+        {{- end}}
+
+        err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}})
+        return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} err
       }
     {{end}}
   {{end}}

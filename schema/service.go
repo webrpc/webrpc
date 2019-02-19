@@ -18,9 +18,10 @@ type Method struct {
 }
 
 type MethodArgument struct {
-	Name   VarName  `json:"name"`
-	Type   *VarType `json:"type"`
-	Stream bool     `json:"stream"` // TOOD(future)
+	Name     VarName  `json:"name"`
+	Type     *VarType `json:"type"`
+	Optional bool     `json:"optional"`
+	Stream   bool     `json:"stream"` // TOOD(future)
 }
 
 func (s *Service) Parse(schema *WebRPCSchema) error {
@@ -61,7 +62,7 @@ func (s *Service) Parse(schema *WebRPCSchema) error {
 
 	// Parse+validate methods
 	for _, method := range s.Methods {
-		err := method.Parse(schema)
+		err := method.Parse(schema, serviceName)
 		if err != nil {
 			return err
 		}
@@ -70,47 +71,30 @@ func (s *Service) Parse(schema *WebRPCSchema) error {
 	return nil
 }
 
-func (m *Method) Parse(schema *WebRPCSchema) error {
-	testValidFn := func(info string, arg *MethodArgument) error {
-		if isListExpr(arg.Type.expr) {
-			return errors.Errorf("schema error: rpc %s argument '%s' cannot be a list type in method '%s'", info, arg.Type.expr, m.Name)
-		}
-		if isMapExpr(arg.Type.expr) {
-			return errors.Errorf("schema error: rpc %s argument '%s' cannot be a map type in method '%s'", info, arg.Type.expr, m.Name)
-		}
-		return nil
-	}
-
-	// Parse+validate inputs, before/after
+func (m *Method) Parse(schema *WebRPCSchema, serviceName string) error {
+	// Parse+validate inputs
 	for _, input := range m.Inputs {
-		if err := testValidFn("input", input); err != nil {
-			return err
-		}
+		// if input.Name == "" {
+		// 	return errors.Errorf("schema error: detected empty input argument name for method '%s' in service '%s'", m.Name, serviceName)
+		// }
 		err := input.Type.Parse(schema)
 		if err != nil {
 			return err
 		}
-		if err := testValidFn("input", input); err != nil {
-			return err
-		}
-
 	}
 
-	// Parse+validate outputs, before/after
+	// Parse+validate outputs
 	for _, output := range m.Outputs {
-		if err := testValidFn("output", output); err != nil {
-			return err
-		}
+		// if output.Name == "" {
+		// 	return errors.Errorf("schema error: detected empty output name for method '%s' in service '%s'", m.Name, serviceName)
+		// }
 		err := output.Type.Parse(schema)
 		if err != nil {
 			return err
 		}
-		if err := testValidFn("output", output); err != nil {
-			return err
-		}
 	}
 
-	// So far, we allow zero inputs and zero outputs
+	// Note, we allow zero inputs and zero outputs
 
 	return nil
 }
