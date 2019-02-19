@@ -59,10 +59,6 @@ func (x *Kind) UnmarshalJSON(b []byte) error {
 type Empty struct {
 }
 
-type GetUserRequest struct {
-	UserID uint64
-}
-
 type User struct {
 	ID        uint64     `json:"id" db:"id"`
 	Username  string     `json:"USERNAME" db:"username"`
@@ -70,7 +66,7 @@ type User struct {
 	CreatedAt *time.Time `json:"created_at" json:"created_at,omitempty" db:"created_at"`
 }
 
-type RandomStuff struct {
+type ComplexType struct {
 	Meta              map[string]interface{}
 	MetaNestedExample map[string]map[string]uint32
 	NamesList         []string
@@ -85,7 +81,7 @@ type RandomStuff struct {
 type ExampleService interface {
 	Ping(ctx context.Context) error
 	Status(ctx context.Context) (bool, error)
-	GetUser(ctx context.Context, header map[string]string, req *GetUserRequest) (uint32, *User, error)
+	GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error)
 }
 
 var Services = map[string][]string{
@@ -133,11 +129,11 @@ func (c *exampleServiceClient) Status(ctx context.Context) (bool, error) {
 	return out.Ret0, err
 }
 
-func (c *exampleServiceClient) GetUser(ctx context.Context, header map[string]string, req *GetUserRequest) (uint32, *User, error) {
+func (c *exampleServiceClient) GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error) {
 	in := struct {
 		Arg0 map[string]string `json:"header"`
-		Arg1 *GetUserRequest   `json:"req"`
-	}{header, req}
+		Arg1 uint64            `json:"userID"`
+	}{header, userID}
 	out := struct {
 		Ret0 uint32 `json:"code"`
 		Ret1 *User  `json:"user"`
@@ -309,7 +305,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	ctx = webrpc.WithMethodName(ctx, "GetUser")
 	reqContent := struct {
 		Arg0 map[string]string `json:"header"`
-		Arg1 *GetUserRequest   `json:"req"`
+		Arg1 uint64            `json:"userID"`
 	}{}
 
 	reqBody, err := ioutil.ReadAll(r.Body)
