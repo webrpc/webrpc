@@ -13,26 +13,25 @@ var wordCharset = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01
 type tokenType uint8
 
 const (
-	tokenInvalid tokenType = iota
-	tokenSpace
-	tokenNewLine
-	tokenEqual
-	tokenOpenParen
-	tokenCloseParen
-	tokenOpenBracket
-	tokenCloseBracket
-	tokenOpenAngleBracket
-	tokenCloseAngleBracket
-	tokenOpenMap
-	tokenCloseMap
-	tokenPlusSign
-	tokenMinusSign
-	tokenHash
-	tokenColon
-	tokenComma
-	tokenQuestionMark
-	tokenWord
-	tokenExtra
+	tokenInvalid           tokenType = iota
+	tokenSpace                       // " "
+	tokenNewLine                     // "\n"
+	tokenEqual                       // "="
+	tokenOpenParen                   // "("
+	tokenCloseParen                  // ")"
+	tokenOpenBracket                 // "["
+	tokenCloseBracket                // "]"
+	tokenOpenAngleBracket            // "<"
+	tokenCloseAngleBracket           // ">"
+	tokenPlusSign                    // "+"
+	tokenMinusSign                   // "-"
+	tokenHash                        // "#"
+	tokenColon                       // ":"
+	tokenComma                       // ","
+	tokenQuestionMark                // "?"
+	tokenRocket                      // "=>"
+	tokenWord                        // ..wordCharset..
+	tokenExtra                       // other
 	tokenComposed
 	tokenEOF
 )
@@ -54,6 +53,7 @@ var tokenTypeName = map[tokenType]string{
 	tokenColon:             "[colon]",
 	tokenComma:             "[comma]",
 	tokenQuestionMark:      "[question mark]",
+	tokenRocket:            "[rocket]",
 	tokenWord:              "[word]",
 	tokenExtra:             "[extra]",
 	tokenComposed:          "[composed]",
@@ -110,18 +110,26 @@ func newLexer(inputString string) *lexer {
 	return lx
 }
 
-func (lx *lexer) peek() rune {
-	if lx.pos >= lx.length {
-		return empty
-	}
-	return lx.input[lx.pos]
+func (lx *lexer) peek() []rune {
+	return lx.peekMore(1)
 }
 
-func (lx *lexer) next() bool {
+func (lx *lexer) peekMore(chars int) []rune {
+	if lx.pos >= lx.length {
+		return []rune{empty}
+	}
+	n := lx.pos + chars
+	if lx.length-n <= 0 {
+		n = lx.length
+	}
+	return lx.input[lx.pos:n]
+}
+
+func (lx *lexer) next(num int) bool {
 	if lx.pos >= lx.length {
 		return false
 	}
-	lx.pos = lx.pos + 1
+	lx.pos = lx.pos + num
 	return true
 }
 
@@ -145,7 +153,7 @@ func (lx *lexer) String() string {
 type lexState func(*lexer) lexState
 
 func lexStateSpace(lx *lexer) lexState {
-	for lx.next() {
+	for lx.next(1) {
 		if !isSpace(lx.peek()) {
 			break
 		}
@@ -155,7 +163,7 @@ func lexStateSpace(lx *lexer) lexState {
 }
 
 func lexStateNewLine(lx *lexer) lexState {
-	for lx.next() {
+	for lx.next(1) {
 		lx.col = lx.pos
 		lx.line++
 		if !isNewLine(lx.peek()) {
@@ -167,52 +175,51 @@ func lexStateNewLine(lx *lexer) lexState {
 }
 
 func lexStateEqual(lx *lexer) lexState {
-	lx.next()
+	lx.next(1)
 	lx.emit(tokenEqual)
 	return lexStateStart
 }
 
 func lexStateStart(lx *lexer) lexState {
-	c := lx.peek()
+	r := lx.peekMore(4)
 
-	// TODO: rewrite to "switch string(c) {" and handle character ranges as
-	// special cases
 	switch {
-	case isEmpty(c):
+	case isEmpty(r):
 		return nil
-	case isSpace(c):
+	case isSpace(r):
 		return lexStateSpace
-	case isNewLine(c):
+	case isNewLine(r):
 		return lexStateNewLine
-	case isEqual(c):
+	case isRocket(r):
+		return lexStatePushToken(lx, tokenRocket, 2)
+	case isEqual(r):
 		return lexStateEqual
-	case isOpenParen(c):
+	case isOpenParen(r):
 		return lexStateOpenParen
-	case isCloseParen(c):
+	case isCloseParen(r):
 		return lexStateCloseParen
-	case isPlusSign(c):
+	case isPlusSign(r):
 		return lexStatePlusSign
-	case isMinusSign(c):
+	case isMinusSign(r):
 		return lexStateMinusSign
-	case isHash(c):
+	case isHash(r):
 		return lexStateHash
-	case isColon(c):
+	case isColon(r):
 		return lexStateColon
-	case isQuestionMark(c):
+	case isQuestionMark(r):
 		return lexStateQuestionMark
-	// TODO: move simple one-char checks here
-	case string(c) == "<":
+	case string(r[0]) == "<":
 		// TODO: use lexStatePushToken to replace above funcs
-		return lexStatePushToken(lx, tokenOpenAngleBracket)
-	case string(c) == ">":
-		return lexStatePushToken(lx, tokenCloseAngleBracket)
-	case string(c) == "[":
-		return lexStatePushToken(lx, tokenOpenBracket)
-	case string(c) == "]":
-		return lexStatePushToken(lx, tokenCloseBracket)
-	case string(c) == ",":
-		return lexStatePushToken(lx, tokenComma)
-	case isWord(c):
+		return lexStatePushToken(lx, tokenOpenAngleBracket, 1)
+	case string(r[0]) == ">":
+		return lexStatePushToken(lx, tokenCloseAngleBracket, 1)
+	case string(r[0]) == "[":
+		return lexStatePushToken(lx, tokenOpenBracket, 1)
+	case string(r[0]) == "]":
+		return lexStatePushToken(lx, tokenCloseBracket, 1)
+	case string(r[0]) == ",":
+		return lexStatePushToken(lx, tokenComma, 1)
+	case isWord(r):
 		return lexStateWord
 	default:
 		return lexStateExtra
@@ -222,55 +229,55 @@ func lexStateStart(lx *lexer) lexState {
 }
 
 func lexStateOpenParen(lx *lexer) lexState {
-	lx.next()
+	lx.next(1)
 	lx.emit(tokenOpenParen)
 	return lexStateStart
 }
 
 func lexStateCloseParen(lx *lexer) lexState {
-	lx.next()
+	lx.next(1)
 	lx.emit(tokenCloseParen)
 	return lexStateStart
 }
 
 func lexStateColon(lx *lexer) lexState {
-	lx.next()
+	lx.next(1)
 	lx.emit(tokenColon)
 	return lexStateStart
 }
 
 func lexStateQuestionMark(lx *lexer) lexState {
-	lx.next()
+	lx.next(1)
 	lx.emit(tokenQuestionMark)
 	return lexStateStart
 }
 
 func lexStatePlusSign(lx *lexer) lexState {
-	lx.next()
+	lx.next(1)
 	lx.emit(tokenPlusSign)
 	return lexStateStart
 }
 
-func lexStatePushToken(lx *lexer, tt tokenType) lexState {
-	lx.next()
+func lexStatePushToken(lx *lexer, tt tokenType, num int) lexState {
+	lx.next(num)
 	lx.emit(tt)
 	return lexStateStart
 }
 
 func lexStateMinusSign(lx *lexer) lexState {
-	lx.next()
+	lx.next(1)
 	lx.emit(tokenMinusSign)
 	return lexStateStart
 }
 
 func lexStateHash(lx *lexer) lexState {
-	lx.next()
+	lx.next(1)
 	lx.emit(tokenHash)
 	return lexStateStart
 }
 
 func lexStateWord(lx *lexer) lexState {
-	for lx.next() {
+	for lx.next(1) {
 		if !isWord(lx.peek()) {
 			break
 		}
@@ -280,66 +287,70 @@ func lexStateWord(lx *lexer) lexState {
 }
 
 func lexStateExtra(lx *lexer) lexState {
-	lx.next()
+	lx.next(1)
 	lx.emit(tokenExtra)
 	return lexStateStart
 }
 
-func isEmpty(r rune) bool {
-	return r == empty
+func isEmpty(r []rune) bool {
+	return r[0] == empty
 }
 
-func isSpace(r rune) bool {
-	s := string(r)
+func isSpace(r []rune) bool {
+	s := string(r[0])
 	if s == " " || s == "\t" || s == "\r" {
 		return true
 	}
 	return false
 }
 
-func isNewLine(r rune) bool {
-	s := string(r)
+func isNewLine(r []rune) bool {
+	s := string(r[0:1])
 	if s == "\n" || s == "\r" {
 		return true
 	}
 	return false
 }
 
-func isEqual(r rune) bool {
-	return string(r) == "="
+func isEqual(r []rune) bool {
+	return string(r[0]) == "="
 }
 
-func isPlusSign(r rune) bool {
-	return string(r) == "+"
+func isPlusSign(r []rune) bool {
+	return string(r[0]) == "+"
 }
 
-func isMinusSign(r rune) bool {
-	return string(r) == "-"
+func isMinusSign(r []rune) bool {
+	return string(r[0]) == "-"
 }
 
-func isOpenParen(r rune) bool {
-	return string(r) == "("
+func isOpenParen(r []rune) bool {
+	return string(r[0]) == "("
 }
 
-func isCloseParen(r rune) bool {
-	return string(r) == ")"
+func isCloseParen(r []rune) bool {
+	return string(r[0]) == ")"
 }
 
-func isHash(r rune) bool {
-	return string(r) == "#"
+func isHash(r []rune) bool {
+	return string(r[0]) == "#"
 }
 
-func isColon(r rune) bool {
-	return string(r) == ":"
+func isColon(r []rune) bool {
+	return string(r[0]) == ":"
 }
 
-func isQuestionMark(r rune) bool {
-	return string(r) == "?"
+func isQuestionMark(r []rune) bool {
+	return string(r[0]) == "?"
 }
 
-func isWord(r rune) bool {
+func isRocket(r []rune) bool {
+	return string(r[0:2]) == "=>"
+}
+
+func isWord(r []rune) bool {
 	for i := range wordCharset {
-		if r == wordCharset[i] {
+		if r[0] == wordCharset[i] {
 			return true
 		}
 	}

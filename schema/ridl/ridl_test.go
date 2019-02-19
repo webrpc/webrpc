@@ -285,7 +285,7 @@ func TestService(t *testing.T) {
 	service Simple
 	- Ping()
 	-	Status() => (status: bool)
-	-	StatusStream() => (status: stream bool)`
+	-	StatusStream(q: string) => (status: stream bool)`
 		schema, err := Parse(input)
 		assert.NoError(t, err)
 
