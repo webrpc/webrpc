@@ -35,6 +35,8 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 		return nil, err
 	}
 
+	fmt.Println("done parse run..")
+
 	if p.tree.definitions["webrpc"] == nil {
 		return nil, errors.New(`missing "webrpc" declaration`)
 	}

@@ -80,6 +80,7 @@ func newParser(input string) (*parser, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	p := &parser{
 		tokens: tokens,
 		length: len(tokens),
@@ -322,48 +323,117 @@ loop:
 				inputs:  []*methodArgument{},
 				outputs: []*methodArgument{},
 			}
+			var methodArg *methodArgument
 
+			// INPUTS
 			if err := p.expectNext(tokenOpenParen); err != nil {
 				return p.stateError(err)
 			}
+			if !p.next() {
+				return parseStateUnexpectedEOF
+			}
+			if p.cursor().tt == tokenCloseParen {
+				goto outputs
+			}
 
-			if err := p.expectNext(tokenWord); err == nil {
-				methodArgument := &methodArgument{}
-				if p.cursor().val == "stream" {
-					methodArgument.stream = true
-					if err := p.expectNext(tokenWord); err != nil {
-						return p.stateError(err)
-					}
+		inputargs:
+			if p.cursor().tt != tokenWord {
+				return p.stateError(errors.New("expecting word"))
+			}
+			methodArg = &methodArgument{}
+
+			methodArg.left = p.cursor()
+			if err := p.expectNext(tokenColon); err != nil {
+				return p.stateError(err)
+			}
+
+			if err := p.expectNext(tokenWord); err != nil {
+				return p.stateError(err)
+			}
+
+			if p.cursor().val == "stream" {
+				methodArg.stream = true
+				if err := p.expectNext(tokenWord); err != nil {
+					return p.stateError(err)
 				}
-				methodArgument.right = p.cursor()
-				// check for close parens
-				methodDefinition.inputs = append(methodDefinition.inputs, methodArgument)
-				if !p.next() {
-					return parseStateUnexpectedEOF
-				}
+			}
+
+			methodArg.right = p.cursor()
+
+			methodDefinition.inputs = append(methodDefinition.inputs, methodArg)
+
+			if !p.next() {
+				return parseStateUnexpectedEOF
+			}
+
+			if p.cursor().tt == tokenComma {
+				// next input arg
+				goto inputargs
 			}
 			if p.cursor().tt != tokenCloseParen {
 				return p.stateError(errors.New("expecting close paren"))
 			}
 
-			if err := p.expectNext(tokenColon); err == nil {
-				if err := p.expectNext(tokenWord); err != nil {
-					//return p.stateError(err)
-				}
-				methodArgument := &methodArgument{}
-				if p.cursor().val == "stream" {
-					methodArgument.stream = true
-					if err := p.expectNext(tokenWord); err != nil {
-						return p.stateError(err)
-					}
-				}
-				methodArgument.right = p.cursor()
-				methodDefinition.outputs = append(methodDefinition.outputs, methodArgument)
+			// OUTPUTS
+		outputs:
+			// empty outputs?
+			if !p.next() {
+				return parseStateUnexpectedEOF
 			}
 
+			if p.cursor().tt == tokenNewLine || p.cursor().tt == tokenHash {
+				goto methoddef // we done with this line
+			}
+
+			// output args provided
+			if p.cursor().tt != tokenRocket {
+				return p.stateError(errors.New("expecting rocket"))
+			}
+			if err := p.expectNext(tokenOpenParen); err != nil {
+				return p.stateError(err)
+			}
+
+		outputargs:
+			if err := p.expectNext(tokenWord); err != nil {
+				return p.stateError(err)
+			}
+			methodArg = &methodArgument{}
+
+			methodArg.left = p.cursor()
+			if err := p.expectNext(tokenColon); err != nil {
+				return p.stateError(err)
+			}
+			if err := p.expectNext(tokenWord); err != nil {
+				return p.stateError(err)
+			}
+
+			if p.cursor().val == "stream" {
+				methodArg.stream = true
+				if err := p.expectNext(tokenWord); err != nil {
+					return p.stateError(err)
+				}
+			}
+
+			methodArg.right = p.cursor()
+
+			methodDefinition.outputs = append(methodDefinition.outputs, methodArg)
+
+			if !p.next() {
+				return parseStateUnexpectedEOF
+			}
+
+			if p.cursor().tt == tokenComma {
+				// next input arg
+				goto outputargs
+			}
+			if p.cursor().tt != tokenCloseParen {
+				return p.stateError(errors.New("expecting close paren"))
+			}
+
+		methoddef:
 			methods = append(methods, methodDefinition)
 			if !p.next() {
-				break loop
+				goto loop
 			}
 		default:
 			break loop
@@ -418,8 +488,8 @@ loop:
 				return p.stateError(err)
 			}
 
-			if err := p.expectNext(tokenWord); err != nil {
-				return p.stateError(err)
+			if !p.next() {
+				return parseStateUnexpectedEOF
 			}
 
 			composedToken, err := p.expectDelimiter(p.cursor(), tokenSpace, tokenHash, tokenNewLine)

@@ -5,6 +5,6 @@ import (
 	"runtime"
 )
 
-func stateName(fn interface{}) string {
+func stateFnName(fn interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
 }
