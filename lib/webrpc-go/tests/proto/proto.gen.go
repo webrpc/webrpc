@@ -125,7 +125,7 @@ func NewExampleRPCClient(addr string, client HTTPClient) ExampleRPC {
 
 func (c *exampleRPCClient) Ping(ctx context.Context) (bool, error) {
 	out := struct {
-		Ret0 bool `json:""`
+		Ret0 bool `json:"status"`
 	}{}
 
 	err := doJSONRequest(ctx, c.client, c.urls[0], nil, &out)
@@ -137,7 +137,7 @@ func (c *exampleRPCClient) GetUser(ctx context.Context, req *GetUserRequest) (*U
 		Arg0 *GetUserRequest `json:"req"`
 	}{req}
 	out := struct {
-		Ret0 *User `json:""`
+		Ret0 *User `json:"user"`
 	}{}
 
 	err := doJSONRequest(ctx, c.client, c.urls[1], in, &out)
@@ -162,7 +162,7 @@ func NewAnotherRPCClient(addr string, client HTTPClient) AnotherRPC {
 
 func (c *anotherRPCClient) Owner(ctx context.Context) (*User, error) {
 	out := struct {
-		Ret0 *User `json:""`
+		Ret0 *User `json:"user"`
 	}{}
 
 	err := doJSONRequest(ctx, c.client, c.urls[0], nil, &out)
@@ -247,7 +247,7 @@ func (s *exampleRPCServer) servePingJSON(ctx context.Context, w http.ResponseWri
 		ret0, err = s.ExampleRPC.Ping(ctx)
 	}()
 	respContent := struct {
-		Ret0 bool `json:""`
+		Ret0 bool `json:"status"`
 	}{ret0}
 
 	if err != nil {
@@ -317,7 +317,7 @@ func (s *exampleRPCServer) serveGetUserJSON(ctx context.Context, w http.Response
 		ret0, err = s.ExampleRPC.GetUser(ctx, reqContent.Arg0)
 	}()
 	respContent := struct {
-		Ret0 *User `json:""`
+		Ret0 *User `json:"user"`
 	}{ret0}
 
 	if err != nil {
@@ -409,7 +409,7 @@ func (s *anotherRPCServer) serveOwnerJSON(ctx context.Context, w http.ResponseWr
 		ret0, err = s.AnotherRPC.Owner(ctx)
 	}()
 	respContent := struct {
-		Ret0 *User `json:""`
+		Ret0 *User `json:"user"`
 	}{ret0}
 
 	if err != nil {

@@ -24,9 +24,8 @@ func NewRPCHandler() http.Handler {
 
 type exampleRPC struct{}
 
-func (s *exampleRPC) Ping(ctx context.Context) (*bool, error) {
-	resp := true
-	return &resp, nil
+func (s *exampleRPC) Ping(ctx context.Context) (bool, error) {
+	return true, nil
 }
 
 func (s *exampleRPC) GetUser(ctx context.Context, req *proto.GetUserRequest) (*proto.User, error) {
