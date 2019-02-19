@@ -74,9 +74,9 @@ func (s *Service) Parse(schema *WebRPCSchema) error {
 func (m *Method) Parse(schema *WebRPCSchema, serviceName string) error {
 	// Parse+validate inputs
 	for _, input := range m.Inputs {
-		// if input.Name == "" {
-		// 	return errors.Errorf("schema error: detected empty input argument name for method '%s' in service '%s'", m.Name, serviceName)
-		// }
+		if input.Name == "" {
+			return errors.Errorf("schema error: detected empty input argument name for method '%s' in service '%s'", m.Name, serviceName)
+		}
 		err := input.Type.Parse(schema)
 		if err != nil {
 			return err
@@ -85,9 +85,9 @@ func (m *Method) Parse(schema *WebRPCSchema, serviceName string) error {
 
 	// Parse+validate outputs
 	for _, output := range m.Outputs {
-		// if output.Name == "" {
-		// 	return errors.Errorf("schema error: detected empty output name for method '%s' in service '%s'", m.Name, serviceName)
-		// }
+		if output.Name == "" {
+			return errors.Errorf("schema error: detected empty output name for method '%s' in service '%s'", m.Name, serviceName)
+		}
 		err := output.Type.Parse(schema)
 		if err != nil {
 			return err
