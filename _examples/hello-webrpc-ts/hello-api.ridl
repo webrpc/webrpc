@@ -26,4 +26,3 @@ message User
 service ExampleService
   - Ping() => (status: bool)
   - GetUser(userID: uint64) => (user: User)
-

@@ -66,6 +66,10 @@ type User struct {
 	CreatedAt *time.Time `json:"created_at,omitempty" db:"created_at"`
 }
 
+type SearchFilter struct {
+	Q string `json:"q"`
+}
+
 type ComplexType struct {
 	Meta              map[string]interface{}       `json:"meta"`
 	MetaNestedExample map[string]map[string]uint32 `json:"metaNestedExample"`
@@ -82,6 +86,7 @@ type ExampleService interface {
 	Ping(ctx context.Context) error
 	Status(ctx context.Context) (bool, error)
 	GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error)
+	FindUser(ctx context.Context, s *SearchFilter) (string, *User, error)
 }
 
 var Services = map[string][]string{
@@ -89,6 +94,7 @@ var Services = map[string][]string{
 		"Ping",
 		"Status",
 		"GetUser",
+		"FindUser",
 	},
 }
 
@@ -98,15 +104,16 @@ const ExampleServicePathPrefix = "/rpc/ExampleService/"
 
 type exampleServiceClient struct {
 	client HTTPClient
-	urls   [3]string
+	urls   [4]string
 }
 
 func NewExampleServiceClient(addr string, client HTTPClient) ExampleService {
 	prefix := urlBase(addr) + ExampleServicePathPrefix
-	urls := [3]string{
+	urls := [4]string{
 		prefix + "Ping",
 		prefix + "Status",
 		prefix + "GetUser",
+		prefix + "FindUser",
 	}
 	return &exampleServiceClient{
 		client: client,
@@ -140,6 +147,19 @@ func (c *exampleServiceClient) GetUser(ctx context.Context, header map[string]st
 	}{}
 
 	err := doJSONRequest(ctx, c.client, c.urls[2], in, &out)
+	return out.Ret0, out.Ret1, err
+}
+
+func (c *exampleServiceClient) FindUser(ctx context.Context, s *SearchFilter) (string, *User, error) {
+	in := struct {
+		Arg0 *SearchFilter `json:"s"`
+	}{s}
+	out := struct {
+		Ret0 string `json:"name"`
+		Ret1 *User  `json:"user"`
+	}{}
+
+	err := doJSONRequest(ctx, c.client, c.urls[3], in, &out)
 	return out.Ret0, out.Ret1, err
 }
 
@@ -183,6 +203,9 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	case "/rpc/ExampleService/GetUser":
 		s.serveGetUser(ctx, w, r)
+		return
+	case "/rpc/ExampleService/FindUser":
+		s.serveFindUser(ctx, w, r)
 		return
 	default:
 		err := webrpc.Errorf(webrpc.ErrBadRoute, "no handler for path %q", r.URL.Path)
@@ -338,6 +361,78 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	}()
 	respContent := struct {
 		Ret0 uint32 `json:"code"`
+		Ret1 *User  `json:"user"`
+	}{ret0, ret1}
+
+	if err != nil {
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+	respBody, err := json.Marshal(respContent)
+	if err != nil {
+		err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to marshal json response")
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(respBody)
+}
+
+func (s *exampleServiceServer) serveFindUser(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	header := r.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveFindUserJSON(ctx, w, r)
+	default:
+		err := webrpc.Errorf(webrpc.ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
+		writeJSONError(ctx, w, r, err)
+	}
+}
+
+func (s *exampleServiceServer) serveFindUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	var err error
+	ctx = webrpc.WithMethodName(ctx, "FindUser")
+	reqContent := struct {
+		Arg0 *SearchFilter `json:"s"`
+	}{}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to read request data")
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+	defer r.Body.Close()
+
+	err = json.Unmarshal(reqBody, &reqContent)
+	if err != nil {
+		err = webrpc.WrapError(webrpc.ErrInvalidArgument, err, "failed to unmarshal request data")
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+
+	// Call service method
+	var ret0 string
+	var ret1 *User
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if rr := recover(); rr != nil {
+				writeJSONError(ctx, w, r, webrpc.ErrorInternal("internal service panic"))
+				panic(rr)
+			}
+		}()
+		ret0, ret1, err = s.ExampleService.FindUser(ctx, reqContent.Arg0)
+	}()
+	respContent := struct {
+		Ret0 string `json:"name"`
 		Ret1 *User  `json:"user"`
 	}{ret0, ret1}
 

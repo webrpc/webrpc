@@ -59,4 +59,11 @@ func TestGetUser(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not_found")
 	}
+
+	{
+		name, user, err := client.FindUser(context.Background(), &SearchFilter{Q: "joe"})
+		assert.Equal(t, "joe", name)
+		assert.Equal(t, &User{ID: 123, Username: "joe"}, user)
+		assert.NoError(t, err)
+	}
 }

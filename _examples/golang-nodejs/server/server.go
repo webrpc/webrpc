@@ -38,9 +38,8 @@ func startServer() error {
 type ExampleServiceRPC struct {
 }
 
-func (s *ExampleServiceRPC) Ping(ctx context.Context) (*bool, error) {
-	resp := true
-	return &resp, nil
+func (s *ExampleServiceRPC) Ping(ctx context.Context) (bool, error) {
+	return true, nil
 }
 
 func (s *ExampleServiceRPC) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
