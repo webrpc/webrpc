@@ -265,6 +265,7 @@ func TestService(t *testing.T) {
 	name = hello-webrpc
 
 	service Empty
+		- Ping()
 	`
 		schema, err := Parse(input)
 		assert.NoError(t, err)
