@@ -12,10 +12,6 @@ enum Kind: uint32
 message Empty
 
 
-message GetUserRequest
-  - userID: uint64
-
-
 message User
   - ID: uint64
     + json = id
@@ -35,14 +31,15 @@ message User
 
 
 message ComplexType
-  - user: User
   - meta: map<string,any>
-  - metaNestExample: map<string,map<string,uint32>>
+  - metaNestedExample: map<string,map<string,uint32>>
   - namesList: []string
   - numsList: []int64
   - doubleArray: [][]string
   - listOfMaps: []map<string,uint32>
+  - listOfUsers: []User
   - mapOfUsers: map<string,User>
+  - user: User
 
 
 service ExampleService

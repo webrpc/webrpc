@@ -134,7 +134,7 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 			return err
 		}
 
-	case T_Invalid:
+	case T_Unknown:
 
 		structExpr := expr
 		msg, ok := getMessageType(schema, structExpr)
@@ -185,8 +185,8 @@ func parseMapExpr(expr string) (string, string, error) {
 
 func buildVarTypeExpr(vt *VarType, expr string) string {
 	switch vt.Type {
-	case T_Invalid:
-		return "<invalid>"
+	case T_Unknown:
+		return "<unknown>"
 
 	case T_List:
 		expr += "[]" + buildVarTypeExpr(vt.List.Elem, expr)
