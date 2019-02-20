@@ -14,30 +14,27 @@ import (
 // just run.. `make build && make test`
 
 func TestPing(t *testing.T) {
-	resp, err := Client.Ping(context.Background())
-	assert.Equal(t, true, resp)
+	err := Client.Ping(context.Background())
 	assert.NoError(t, err)
 }
 
 func TestGetUser(t *testing.T) {
 	{
-		resp, err := Client.GetUser(context.Background(), &proto.GetUserRequest{
-			UserID: 12,
-		})
-		assert.Equal(t, &proto.User{ID: 12, Username: "hihi"}, resp)
+		code, user, err := Client.GetUser(context.Background(), nil, 12)
+		assert.Equal(t, &proto.User{ID: 12, Username: "hihi"}, user)
+		assert.Equal(t, uint32(1), code)
 		assert.NoError(t, err)
 	}
 
 	{
 		// Error case, expecting to receive an error
-		resp, err := Client.GetUser(context.Background(), &proto.GetUserRequest{
-			UserID: 911,
-		})
+		code, user, err := Client.GetUser(context.Background(), nil, 911)
 
 		// TODO: err should be webrpc.Error type
 		// so we can decode the .Code(), .Msg(), etc..
 
-		assert.Nil(t, resp)
+		assert.Equal(t, uint32(0), code)
+		assert.Nil(t, user)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not_found")
 	}

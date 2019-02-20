@@ -1,4 +1,4 @@
-//go:generate ../../../bin/webrpc-gen -schema=sample.webrpc.json -target=go -pkg=proto -server -client -out=./proto/proto.gen.go
+//go:generate ../../../bin/webrpc-gen -schema=sample.ridl -target=go -pkg=proto -server -client -out=./proto/proto.gen.go
 package tests
 
 import (
@@ -24,28 +24,32 @@ func NewRPCHandler() http.Handler {
 
 type exampleRPC struct{}
 
-func (s *exampleRPC) Ping(ctx context.Context) (bool, error) {
+func (s *exampleRPC) Ping(ctx context.Context) error {
+	return nil
+}
+
+func (s *exampleRPC) Status(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (s *exampleRPC) GetUser(ctx context.Context, req *proto.GetUserRequest) (*proto.User, error) {
-	if req.UserID == 911 {
-		return nil, webrpc.ErrorNotFound("unknown userID %d", 911)
+func (s *exampleRPC) GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *proto.User, error) {
+	if userID == 911 {
+		return 0, nil, webrpc.ErrorNotFound("unknown userID %d", 911)
 		// return nil, webrpc.Errorf(webrpc.ErrNotFound, "unknown userID %d", 911)
 		// return nil, webrpc.WrapError(webrpc.ErrNotFound, err, "unknown userID %d", 911)
 	}
 
-	return &proto.User{
-		ID:       req.UserID,
+	return 1, &proto.User{
+		ID:       userID,
 		Username: "hihi",
 	}, nil
 }
 
 type anotherRPC struct{}
 
-func (s *anotherRPC) Owner(ctx context.Context) (*proto.User, error) {
-	return &proto.User{
+func (s *anotherRPC) Owner(ctx context.Context, q *string, id *uint64, desc string) (uint32, *proto.User, []string, error) {
+	return 100, &proto.User{
 		ID:       42,
 		Username: "magic",
-	}, nil
+	}, []string{"hi"}, nil
 }

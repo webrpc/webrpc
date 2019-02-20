@@ -47,7 +47,7 @@ func init() {
 
 	start := time.Now()
 	for {
-		_, err := Client.Ping(context.Background())
+		err := Client.Ping(context.Background())
 		if err == nil {
 			break
 		}
