@@ -13,8 +13,9 @@ message Empty
 
 
 message User
-  - ID: uint64
+  - id: uint64
     + json = id
+    + go.field.name = ID
     + go.tag.db = id
 
   - username: string

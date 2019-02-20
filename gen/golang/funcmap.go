@@ -3,6 +3,7 @@ package golang
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -36,43 +37,6 @@ func serviceMethodName(in schema.VarName) (string, error) {
 func serviceMethodJSONName(in schema.VarName) (string, error) {
 	s := string(in)
 	return "serve" + strings.ToUpper(s[0:1]) + s[1:] + "JSON", nil
-}
-
-func fieldTags(in *schema.MessageField) (string, error) {
-	fieldTags := map[string]interface{}{}
-
-	jsonFieldName, err := downcaseName(in.Name)
-	if err != nil {
-		return "", err
-	}
-	fieldTags["json"] = fmt.Sprintf("%s", jsonFieldName)
-
-	goTagJSON := false
-
-	meta := in.Meta
-	for kk := range meta {
-		for k := range meta[kk] {
-
-			switch {
-			case strings.HasPrefix(k, "go.tag."):
-				if k == "go.tag.json" {
-					goTagJSON = true
-				}
-				fieldTags[k[7:]] = fmt.Sprintf("%v", meta[kk][k])
-			case k == "json":
-				if !goTagJSON {
-					fieldTags["json"] = fmt.Sprintf("%v", meta[kk][k])
-				}
-			}
-		}
-	}
-
-	tags := []string{}
-	for k, v := range fieldTags {
-		tags = append(tags, fmt.Sprintf(`%s:"%v"`, k, v))
-	}
-
-	return "`" + strings.Join(tags, " ") + "`", nil
 }
 
 func newServerServiceName(in schema.VarName) (string, error) {
@@ -124,6 +88,61 @@ func fieldOptional(field *schema.MessageField) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("could not represent type: %#v", field)
+}
+
+func fieldTags(in *schema.MessageField) (string, error) {
+	fieldTags := map[string]interface{}{}
+
+	jsonFieldName, err := downcaseName(in.Name)
+	if err != nil {
+		return "", err
+	}
+	fieldTags["json"] = fmt.Sprintf("%s", jsonFieldName)
+
+	goTagJSON := ""
+
+	meta := in.Meta
+	for kk := range meta {
+		for k, v := range meta[kk] {
+
+			switch {
+			case k == "json":
+				if goTagJSON == "" {
+					fieldTags["json"] = fmt.Sprintf("%v", v)
+				}
+
+			case strings.HasPrefix(k, "go.tag.json"):
+				goTagJSON = fmt.Sprintf("%v", v)
+				if !strings.HasPrefix(goTagJSON, fmt.Sprintf("%v", fieldTags["json"])) {
+					return "", errors.New("go.tag.json is invalid, it must match the json fieldname")
+				}
+				fieldTags[k[7:]] = fmt.Sprintf("%v", v)
+
+			case strings.HasPrefix(k, "go.tag."):
+				if k == "go.tag.json" {
+					goTagJSON = fmt.Sprintf("%v", v)
+				}
+				fieldTags[k[7:]] = fmt.Sprintf("%v", v)
+			}
+
+		}
+	}
+
+	tagKeys := []string{}
+	for k, _ := range fieldTags {
+		if k != "json" {
+			tagKeys = append(tagKeys, k)
+		}
+	}
+	sort.StringSlice(tagKeys).Sort()
+	tagKeys = append([]string{"json"}, tagKeys...)
+
+	tags := []string{}
+	for _, k := range tagKeys {
+		tags = append(tags, fmt.Sprintf(`%s:"%v"`, k, fieldTags[k]))
+	}
+
+	return "`" + strings.Join(tags, " ") + "`", nil
 }
 
 func constPathPrefix(in schema.VarName) (string, error) {
@@ -221,9 +240,20 @@ func isStruct(t schema.MessageType) bool {
 	return t == "struct"
 }
 
-func exportedField(in schema.VarName) (string, error) {
-	s := string(in)
-	return strings.ToUpper(s[0:1]) + s[1:], nil
+func exportedField(in *schema.MessageField) (string, error) {
+	s := string(in.Name)
+	s = strings.ToUpper(s[0:1]) + s[1:]
+
+	nameTag := "go.field.name"
+	for k := range in.Meta {
+		for k, v := range in.Meta[k] {
+			if k == nameTag {
+				s = fmt.Sprintf("%v", v)
+			}
+		}
+	}
+
+	return s, nil
 }
 
 func downcaseName(v interface{}) (string, error) {
