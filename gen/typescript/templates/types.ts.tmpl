@@ -49,13 +49,27 @@ export class {{.Name}} implements {{.Name | interfaceName}} {
 {{end -}}
 
 {{if .Services}}
-{{range .Services -}}
+{{- range .Services -}}
 export interface {{.Name | serviceInterfaceName}} {
   {{range .Methods -}}
-    {{.Name}}({{.Inputs | methodInputs}}): {{.Outputs | methodOutputs}}
+    {{.Name}}({{. | methodInputs}}): {{. | methodOutputs}}
   {{end}}
 }
+
+{{range .Methods -}}
+export interface {{. | methodArgumentInputInterfaceName}} {
+  {{- range .Inputs}}
+  {{.Name}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}
+  {{- end}}
+}
+
+export interface {{. | methodArgumentOutputInterfaceName}} {
+  {{- range .Outputs}}
+  {{.Name}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}
+  {{- end}}  
+}
+{{end}}
+
 {{- end}}
 {{end -}}
-
 {{end}}

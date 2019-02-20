@@ -28,32 +28,6 @@ export class Empty implements IEmpty {
   }
 }
 
-export interface IGetUserRequest {
-  userID: number
-  toJSON?(): object
-}
-
-export class GetUserRequest implements IGetUserRequest {
-  private _data: IGetUserRequest
-  constructor(_data?: IGetUserRequest) {
-    this._data = {} as IGetUserRequest
-    if (_data) {
-      this._data['userID'] = _data['userID']!
-      
-    }
-  }
-  public get userID(): number {
-    return this._data['userID']!
-  }
-  public set userID(value: number) {
-    this._data['userID'] = value
-  }
-  
-  public toJSON(): object {
-    return this._data
-  }
-}
-
 export interface IUser {
   id: number
   USERNAME: string
@@ -95,12 +69,26 @@ export class User implements IUser {
     return this._data
   }
 }
-
 export interface IExampleServiceService {
-  Ping(headers: object): Promise<boolean>
-  GetUser(params: IGetUserRequest, headers: object): Promise<User>
+  Ping(headers: object): Promise<IExampleServicePingReturn>
+  GetUser(args: IExampleServiceGetUserArgs, headers: object): Promise<IExampleServiceGetUserReturn>
   
 }
+
+export interface IExampleServicePingArgs {
+}
+
+export interface IExampleServicePingReturn {
+  status: boolean  
+}
+export interface IExampleServiceGetUserArgs {
+  userID: number
+}
+
+export interface IExampleServiceGetUserReturn {
+  user: IUser  
+}
+
 
   
 // Client
@@ -122,7 +110,7 @@ export class ExampleService implements IExampleServiceService {
   }
 
   
-  Ping(headers: object = {}): Promise<boolean> {
+  Ping(headers: object = {}): Promise<IExampleServicePingReturn> {
     return this.fetch(
       this.url('Ping'),
       
@@ -132,25 +120,29 @@ export class ExampleService implements IExampleServiceService {
       if (!res.ok) {
         return throwHTTPError(res)
       }
-      
-      return res.json().then((_data) => {return <boolean>(_data)})
-      
+      return res.json().then((_data) => {
+        return {
+          status: <boolean>(_data.status)
+        }
+      })
     })
   }
   
-  GetUser(params: IGetUserRequest, headers: object = {}): Promise<User> {
+  GetUser(args: IExampleServiceGetUserArgs, headers: object = {}): Promise<IExampleServiceGetUserReturn> {
     return this.fetch(
       this.url('GetUser'),
       
-      createHTTPRequest(params, headers)
+      createHTTPRequest(args, headers)
       
     ).then((res) => {
       if (!res.ok) {
         return throwHTTPError(res)
       }
-      
-      return res.json().then((_data) => {return new User(_data)})
-      
+      return res.json().then((_data) => {
+        return {
+          user: new User(_data.user)
+        }
+      })
     })
   }
   
