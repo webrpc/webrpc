@@ -38,7 +38,7 @@ func methodInputs(in []*schema.MethodArgument) (string, error) {
 
 	for i := range in {
 		_ = i
-		inputs = append(inputs, fmt.Sprintf("params"))
+		inputs = append(inputs, fmt.Sprintf("args"))
 	}
 
 	inputs = append(inputs, "headers")
@@ -73,17 +73,31 @@ func isEnum(t schema.MessageType) bool {
 	return t == "enum"
 }
 
-func newResponseConcreteType(in schema.MethodArgument) (string, error) {
+func listComma(item int, count int) string {
+	if item+1 < count {
+		return ", "
+	}
+	return ""
+}
+
+func newOutputArgResponse(in *schema.MethodArgument) (string, error) {
 	z, err := fieldConcreteType(in.Type)
 	if err != nil {
 		return "", err
 	}
 
+	typ := ""
 	switch in.Type.Type {
 	case schema.T_Struct:
-		return fmt.Sprintf("new %s", z), nil
+		typ = fmt.Sprintf("new %s", z)
+	default:
+		typ = ""
+		// 	typ = fmt.Sprintf("<%s>", z)
 	}
-	return "", nil
+
+	line := fmt.Sprintf("%s: %s(_data.%s)", in.Name, typ, in.Name)
+
+	return line, nil
 }
 
 func exportKeyword(opts gen.TargetOptions) func() string {
@@ -98,13 +112,14 @@ func exportKeyword(opts gen.TargetOptions) func() string {
 
 func templateFuncMap(opts gen.TargetOptions) map[string]interface{} {
 	return map[string]interface{}{
-		"newResponseConcreteType": newResponseConcreteType,
-		"constPathPrefix":         constPathPrefix,
-		"methodInputs":            methodInputs,
-		"isStruct":                isStruct,
-		"isEnum":                  isEnum,
-		"exportedField":           exportedField,
-		"exportedJSONField":       exportedJSONField,
-		"exportKeyword":           exportKeyword(opts),
+		"constPathPrefix":      constPathPrefix,
+		"methodInputs":         methodInputs,
+		"isStruct":             isStruct,
+		"isEnum":               isEnum,
+		"listComma":            listComma,
+		"exportedField":        exportedField,
+		"exportedJSONField":    exportedJSONField,
+		"newOutputArgResponse": newOutputArgResponse,
+		"exportKeyword":        exportKeyword(opts),
 	}
 }

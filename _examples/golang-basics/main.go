@@ -57,3 +57,10 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]strin
 		Username: "hihi",
 	}, nil
 }
+
+func (s *ExampleServiceRPC) FindUser(ctx context.Context, f *SearchFilter) (string, *User, error) {
+	name := f.Q
+	return f.Q, &User{
+		ID: 123, Username: name,
+	}, nil
+}

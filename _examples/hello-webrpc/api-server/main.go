@@ -50,20 +50,19 @@ func startServer() error {
 type ExampleServiceRPC struct {
 }
 
-func (s *ExampleServiceRPC) Ping(ctx context.Context) (*bool, error) {
-	resp := true
-	return &resp, nil
+func (s *ExampleServiceRPC) Ping(ctx context.Context) (bool, error) {
+	return true, nil
 }
 
-func (s *ExampleServiceRPC) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
-	if req.UserID == 911 {
+func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, error) {
+	if userID == 911 {
 		return nil, webrpc.ErrorNotFound("unknown userID %d", 911)
 		// return nil, webrpc.Errorf(webrpc.ErrNotFound, "unknown userID %d", 911)
 		// return nil, webrpc.WrapError(webrpc.ErrNotFound, err, "unknown userID %d", 911)
 	}
 
 	return &User{
-		ID:       req.UserID,
+		ID:       userID,
 		Username: "hihi",
 	}, nil
 }

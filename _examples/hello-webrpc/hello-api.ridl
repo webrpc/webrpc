@@ -1,16 +1,13 @@
 webrpc = v1
 
 name = hello-webrpc
-version = v0.0.1
+version = v1.0.0
 
 enum Kind: uint32
   - USER = 1
   - ADMIN = 2
 
 message Empty
-
-message GetUserRequest
-  - userID: uint64
 
 message User
   - ID: uint64
@@ -27,6 +24,5 @@ message User
 
 
 service ExampleService
-  - Ping(): bool
-  - GetUser(GetUserRequest): User
-
+  - Ping() => (status: bool)
+  - GetUser(userID: uint64) => (user: User)

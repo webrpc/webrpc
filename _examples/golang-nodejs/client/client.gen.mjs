@@ -180,25 +180,31 @@ export class ExampleService {
       if (!res.ok) {
         return throwHTTPError(res);
       }
-      
-      return res.json().then((_data) => {return (_data);});
-      
+      return res.json().then((_data) => {
+        return {
+          status: (_data.status)
+        }
+      })
+
     })
   }
   
-  GetUser(params, headers = {}) {
+  GetUser(args, headers = {}) {
     return this.fetch(
       this.url('GetUser'),
       
-      createHTTPRequest(params, headers)
+      createHTTPRequest(args, headers)
       
     ).then((res) => {
       if (!res.ok) {
         return throwHTTPError(res);
       }
-      
-      return res.json().then((_data) => {return new User(_data);});
-      
+      return res.json().then((_data) => {
+        return {
+          user: new User(_data.user)
+        }
+      })
+
     })
   }
   
