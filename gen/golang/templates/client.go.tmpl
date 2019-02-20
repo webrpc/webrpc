@@ -34,15 +34,15 @@
         {{- $inputVar = "in"}}
         in := struct {
           {{- range $i, $input := .Inputs}}
-            Arg{{$i}} {{$input.Type | fieldType}} `json:"{{$input.Name | downcaseName}}"`
+            Arg{{$i}} {{$input | methodArgType}} `json:"{{$input.Name | downcaseName}}"`
           {{- end}}          
-        }{ {{.Inputs | methodInputNames}} }
+        }{ {{.Inputs | methodArgNames}} }
         {{- end}}
         {{- if .Outputs | len}}
         {{- $outputVar = "&out"}}
         out := struct {
           {{- range $i, $output := .Outputs}}
-            Ret{{$i}} {{$output.Type | fieldType}} `json:"{{$output.Name | downcaseName}}"`
+            Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name | downcaseName}}"`
           {{- end}}          
         }{}
         {{- end}}

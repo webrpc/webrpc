@@ -125,7 +125,7 @@ func serverServiceName(in schema.VarName) (string, error) {
 	return strings.ToLower(s[0:1]) + s[1:] + "Server", nil
 }
 
-func methodInputName(in *schema.MethodArgument) string {
+func methodArgName(in *schema.MethodArgument) string {
 	name := string(in.Name)
 	if name == "" && in.Type != nil {
 		name = in.Type.String()
@@ -136,7 +136,7 @@ func methodInputName(in *schema.MethodArgument) string {
 	return ""
 }
 
-func methodInputType(in *schema.MethodArgument) string {
+func methodArgType(in *schema.MethodArgument) string {
 	z, err := fieldType(in.Type)
 	if err != nil {
 		panic(err.Error())
@@ -161,7 +161,7 @@ func methodInputType(in *schema.MethodArgument) string {
 func methodInputs(in []*schema.MethodArgument) (string, error) {
 	inputs := []string{"ctx context.Context"}
 	for i := range in {
-		inputs = append(inputs, fmt.Sprintf("%s %s", methodInputName(in[i]), methodInputType(in[i])))
+		inputs = append(inputs, fmt.Sprintf("%s %s", methodArgName(in[i]), methodArgType(in[i])))
 	}
 	return strings.Join(inputs, ", "), nil
 }
@@ -169,16 +169,16 @@ func methodInputs(in []*schema.MethodArgument) (string, error) {
 func methodOutputs(in []*schema.MethodArgument) (string, error) {
 	outputs := []string{}
 	for i := range in {
-		outputs = append(outputs, methodInputType(in[i]))
+		outputs = append(outputs, methodArgType(in[i]))
 	}
 	outputs = append(outputs, "error")
 	return strings.Join(outputs, ", "), nil
 }
 
-func methodInputNames(in []*schema.MethodArgument) (string, error) {
+func methodArgNames(in []*schema.MethodArgument) (string, error) {
 	inputs := []string{}
 	for i := range in {
-		inputs = append(inputs, fmt.Sprintf("%s", methodInputName(in[i])))
+		inputs = append(inputs, fmt.Sprintf("%s", methodArgName(in[i])))
 	}
 	return strings.Join(inputs, ", "), nil
 }
@@ -242,8 +242,9 @@ var templateFuncMap = map[string]interface{}{
 	"serverServiceName":     serverServiceName,
 	"methodInputs":          methodInputs,
 	"methodOutputs":         methodOutputs,
-	"methodInputName":       methodInputName,
-	"methodInputNames":      methodInputNames,
+	"methodArgName":         methodArgName,
+	"methodArgType":         methodArgType,
+	"methodArgNames":        methodArgNames,
 	"argsList":              argsList,
 	"commaIfLen":            commaIfLen,
 	"isStruct":              isStruct,
