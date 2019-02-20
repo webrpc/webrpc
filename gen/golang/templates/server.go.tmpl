@@ -72,7 +72,7 @@
         {{- if .Inputs|len}}
         reqContent := struct {
         {{- range $i, $input := .Inputs}}
-          Arg{{$i}} {{.Type | fieldType}} `json:"{{$input.Name | downcaseName}}"`
+          Arg{{$i}} {{. | methodArgType}} `json:"{{$input.Name | downcaseName}}"`
         {{- end}}
         }{}
 
@@ -94,7 +94,7 @@
 
         // Call service method
         {{- range $i, $output := .Outputs}}
-        var ret{{$i}} {{$output.Type | fieldType}}
+        var ret{{$i}} {{$output | methodArgType}}
         {{- end}}
         func() {
           defer func() {
@@ -109,7 +109,7 @@
         {{- if .Outputs | len}}
         respContent := struct {
         {{- range $i, $output := .Outputs}}
-          Ret{{$i}} {{$output.Type | fieldType}} `json:"{{$output.Name | downcaseName}}"`
+          Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name | downcaseName}}"`
         {{- end}}         
         }{ {{argsList .Outputs "ret"}} }
         {{- end}}
