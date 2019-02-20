@@ -16,15 +16,12 @@ enum Kind: uint32
   - ADMIN = 2            # comment..
 
 # or.. just..
-enum Kind: uint32
+enum Kind2: uint32
   - USER                 # aka, = 0
   - ADMIN                # aka, = 1
 
 
 message Empty
-
-
-message Notice
 
 
 message GetUserRequest

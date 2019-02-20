@@ -62,20 +62,20 @@ type Empty struct {
 type User struct {
 	ID        uint64     `json:"id" db:"id"`
 	Username  string     `json:"USERNAME" db:"username"`
-	Role      string     `db:"-"`
-	CreatedAt *time.Time `json:"created_at" json:"created_at,omitempty" db:"created_at"`
+	Role      string     `json:"role" db:"-"`
+	CreatedAt *time.Time `json:"created_at,omitempty" db:"created_at"`
 }
 
 type ComplexType struct {
-	Meta              map[string]interface{}
-	MetaNestedExample map[string]map[string]uint32
-	NamesList         []string
-	NumsList          []int64
-	DoubleArray       [][]string
-	ListOfMaps        []map[string]uint32
-	ListOfUsers       []*User
-	MapOfUsers        map[string]*User
-	User              *User
+	Meta              map[string]interface{}       `json:"meta"`
+	MetaNestedExample map[string]map[string]uint32 `json:"metaNestedExample"`
+	NamesList         []string                     `json:"namesList"`
+	NumsList          []int64                      `json:"numsList"`
+	DoubleArray       [][]string                   `json:"doubleArray"`
+	ListOfMaps        []map[string]uint32          `json:"listOfMaps"`
+	ListOfUsers       []*User                      `json:"listOfUsers"`
+	MapOfUsers        map[string]*User             `json:"mapOfUsers"`
+	User              *User                        `json:"user"`
 }
 
 type ExampleRPC interface {

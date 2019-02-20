@@ -38,22 +38,41 @@ func serviceMethodJSONName(in schema.VarName) (string, error) {
 	return "serve" + strings.ToUpper(s[0:1]) + s[1:] + "JSON", nil
 }
 
-func fieldTags(in []schema.MessageFieldMeta) (string, error) {
-	if len(in) < 1 {
-		return "", nil
+func fieldTags(in *schema.MessageField) (string, error) {
+	fieldTags := map[string]interface{}{}
+
+	jsonFieldName, err := downcaseName(in.Name)
+	if err != nil {
+		return "", err
 	}
-	fieldTags := []string{}
-	for kk := range in {
-		for k := range in[kk] {
+	fieldTags["json"] = fmt.Sprintf("%s", jsonFieldName)
+
+	goTagJSON := false
+
+	meta := in.Meta
+	for kk := range meta {
+		for k := range meta[kk] {
+
 			switch {
 			case strings.HasPrefix(k, "go.tag."):
-				fieldTags = append(fieldTags, fmt.Sprintf(`%s:"%v"`, k[7:], in[kk][k]))
+				if k == "go.tag.json" {
+					goTagJSON = true
+				}
+				fieldTags[k[7:]] = fmt.Sprintf("%v", meta[kk][k])
 			case k == "json":
-				fieldTags = append(fieldTags, fmt.Sprintf(`json:"%v"`, in[kk][k]))
+				if !goTagJSON {
+					fieldTags["json"] = fmt.Sprintf("%v", meta[kk][k])
+				}
 			}
 		}
 	}
-	return "`" + strings.Join(fieldTags, " ") + "`", nil
+
+	tags := []string{}
+	for k, v := range fieldTags {
+		tags = append(tags, fmt.Sprintf(`%s:"%v"`, k, v))
+	}
+
+	return "`" + strings.Join(tags, " ") + "`", nil
 }
 
 func newServerServiceName(in schema.VarName) (string, error) {
