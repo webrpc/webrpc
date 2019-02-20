@@ -21,18 +21,18 @@ import (
 type Kind uint32
 
 const (
-	Kind_USER  Kind = 1
-	Kind_ADMIN Kind = 2
+	Kind_USER  Kind = 0
+	Kind_ADMIN Kind = 1
 )
 
 var Kind_name = map[uint32]string{
-	1: "USER",
-	2: "ADMIN",
+	0: "USER",
+	1: "ADMIN",
 }
 
 var Kind_value = map[string]uint32{
-	"USER":  1,
-	"ADMIN": 2,
+	"USER":  0,
+	"ADMIN": 1,
 }
 
 func (x Kind) String() string {

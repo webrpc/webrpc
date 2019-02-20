@@ -345,7 +345,7 @@ func isQuestionMark(r []rune) bool {
 }
 
 func isRocket(r []rune) bool {
-	return string(r[0:2]) == "=>"
+	return len(r) >= 2 && string(r[0:2]) == "=>"
 }
 
 func isWord(r []rune) bool {

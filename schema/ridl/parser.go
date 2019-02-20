@@ -11,9 +11,10 @@ var (
 )
 
 type methodArgument struct {
-	left   *token
-	right  *token
-	stream bool
+	left     *token
+	right    *token
+	stream   bool
+	optional bool
 }
 
 type method struct {
@@ -148,6 +149,104 @@ func (p *parser) expectCommentOrNewLine() error {
 		}
 	}
 	return nil
+}
+
+func (p *parser) expectTypeExpr(baseToken *token) (*token, error) {
+	invalidErr := errors.New("invalid data type")
+
+	if baseToken == nil {
+		baseToken = &token{}
+	}
+
+	tokens := []*token{}
+	mapopen := []int{}
+	mapclose := []int{}
+
+	inmap := false
+
+	for {
+		if !p.next() {
+			break
+		}
+
+		// start of a map
+		if p.cursor().tt == tokenWord && p.cursor().val == "map" {
+
+			tokens = append(tokens, p.cursor())
+			if err := p.expectNext(tokenOpenAngleBracket); err != nil {
+				return nil, invalidErr
+			}
+			tokens = append(tokens, p.cursor())
+
+			mapopen = append(mapopen, len(tokens))
+			inmap = true
+
+			continue
+		}
+
+		// primitive
+		if p.cursor().tt == tokenWord {
+			tokens = append(tokens, p.cursor())
+			if inmap {
+				if err := p.expectNext(tokenComma); err != nil {
+					return nil, invalidErr
+				}
+				tokens = append(tokens, p.cursor())
+				inmap = false
+			}
+			continue
+		}
+
+		// list
+		if p.cursor().tt == tokenOpenBracket {
+			tokens = append(tokens, p.cursor())
+			if err := p.expectNext(tokenCloseBracket); err != nil {
+				return nil, invalidErr
+			}
+			tokens = append(tokens, p.cursor())
+			if inmap {
+				if err := p.expectNext(tokenComma); err != nil {
+					return nil, invalidErr
+				}
+				tokens = append(tokens, p.cursor())
+				inmap = false
+			}
+			continue
+		}
+
+		// closing a map
+		if p.cursor().tt == tokenCloseAngleBracket {
+			if len(mapclose) >= len(mapopen) {
+				return nil, invalidErr
+			}
+			mapclose = append(mapclose, len(tokens))
+			tokens = append(tokens, p.cursor())
+			continue
+		}
+
+		// end expr
+		if len(mapopen) > 0 {
+			if len(mapopen) == len(mapclose) {
+				break
+			}
+		} else if p.cursor().tt == tokenComma || p.cursor().tt == tokenCloseParen {
+			break
+		}
+
+		return nil, invalidErr
+	}
+
+	values := []string{}
+	for _, t := range tokens {
+		values = append(values, t.val)
+	}
+
+	return &token{
+		tt:   tokenComposed,
+		val:  strings.Join(values, ""),
+		line: baseToken.line,
+		col:  baseToken.col,
+	}, nil
 }
 
 func (p *parser) expectDelimiter(baseToken *token, delimiters ...tokenType) (*token, error) {
@@ -300,7 +399,9 @@ func parseStateService(p *parser) parseState {
 		return parseStateUnexpectedEOF
 	}
 
+	var err error
 	var methodDefinition *method
+	var composedToken *token
 
 loop:
 	for {
@@ -341,33 +442,45 @@ loop:
 				return p.stateError(errors.New("expecting word"))
 			}
 			methodArg = &methodArgument{}
-
 			methodArg.left = p.cursor()
-			if err := p.expectNext(tokenColon); err != nil {
-				return p.stateError(err)
-			}
-
-			if err := p.expectNext(tokenWord); err != nil {
-				return p.stateError(err)
-			}
-
-			if p.cursor().val == "stream" {
-				methodArg.stream = true
-				if err := p.expectNext(tokenWord); err != nil {
-					return p.stateError(err)
-				}
-			}
-
-			methodArg.right = p.cursor()
-
-			methodDefinition.inputs = append(methodDefinition.inputs, methodArg)
 
 			if !p.next() {
 				return parseStateUnexpectedEOF
 			}
+			if p.cursor().tt == tokenQuestionMark {
+				methodArg.optional = true
+				if !p.next() {
+					return parseStateUnexpectedEOF
+				}
+			}
+
+			if p.cursor().tt != tokenColon {
+				return p.stateError(errors.New("expecting colon"))
+			}
+
+			// type definition
+			if !p.next() {
+				return parseStateUnexpectedEOF
+			}
+			if p.cursor().val == "stream" {
+				methodArg.stream = true
+			} else {
+				p.back()
+			}
+
+			composedToken, err = p.expectTypeExpr(p.cursor())
+			if err != nil {
+				return p.stateError(err)
+			}
+
+			methodArg.right = composedToken
+			methodDefinition.inputs = append(methodDefinition.inputs, methodArg)
 
 			if p.cursor().tt == tokenComma {
 				// next input arg
+				if !p.next() {
+					return parseStateUnexpectedEOF
+				}
 				goto inputargs
 			}
 			if p.cursor().tt != tokenCloseParen {
@@ -393,37 +506,55 @@ loop:
 				return p.stateError(err)
 			}
 
-		outputargs:
-			if err := p.expectNext(tokenWord); err != nil {
-				return p.stateError(err)
-			}
-			methodArg = &methodArgument{}
-
-			methodArg.left = p.cursor()
-			if err := p.expectNext(tokenColon); err != nil {
-				return p.stateError(err)
-			}
-			if err := p.expectNext(tokenWord); err != nil {
-				return p.stateError(err)
-			}
-
-			if p.cursor().val == "stream" {
-				methodArg.stream = true
-				if err := p.expectNext(tokenWord); err != nil {
-					return p.stateError(err)
-				}
-			}
-
-			methodArg.right = p.cursor()
-
-			methodDefinition.outputs = append(methodDefinition.outputs, methodArg)
-
 			if !p.next() {
 				return parseStateUnexpectedEOF
 			}
 
+		outputargs:
+			if p.cursor().tt != tokenWord {
+				return p.stateError(errors.New("expecting word"))
+			}
+			methodArg = &methodArgument{}
+			methodArg.left = p.cursor()
+
+			if !p.next() {
+				return parseStateUnexpectedEOF
+			}
+			if p.cursor().tt == tokenQuestionMark {
+				methodArg.optional = true
+				if !p.next() {
+					return parseStateUnexpectedEOF
+				}
+			}
+
+			if p.cursor().tt != tokenColon {
+				return p.stateError(errors.New("expecting colon"))
+			}
+
+			// type definition
+			if !p.next() {
+				return parseStateUnexpectedEOF
+			}
+			if p.cursor().val == "stream" {
+				methodArg.stream = true
+			} else {
+				p.back()
+			}
+
+			composedToken, err = p.expectTypeExpr(p.cursor())
+			if err != nil {
+				return p.stateError(err)
+			}
+
+			methodArg.right = composedToken
+
+			methodDefinition.outputs = append(methodDefinition.outputs, methodArg)
+
 			if p.cursor().tt == tokenComma {
-				// next input arg
+				// next output arg
+				if !p.next() {
+					return parseStateUnexpectedEOF
+				}
 				goto outputargs
 			}
 			if p.cursor().tt != tokenCloseParen {

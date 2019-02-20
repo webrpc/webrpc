@@ -10,12 +10,12 @@
         {
           "name": "USER",
           "type": "uint32",
-          "value": "1"
+          "value": "0"
         },
         {
           "name": "ADMIN",
           "type": "uint32",
-          "value": "2"
+          "value": "1"
         }
       ]
     },

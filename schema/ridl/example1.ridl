@@ -79,3 +79,6 @@ service ExampleService
 
   - Broadcast() => (resp: stream Notice)
 
+  -	VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code: bool, ids: []bool)
+	
+  - MoreTest(n: uint64, stuff: []map<uint64,string>, etc: string) => (code?: bool)

@@ -314,6 +314,24 @@ func TestService(t *testing.T) {
 		assert.NoError(t, err)
 		log.Printf("schema JSON: %v", string(buf))
 	}
+
+	{
+		input := `
+		webrpc = v1
+		version = v0.1.1
+	name = hello-webrpc
+
+	service Simple
+	-	Ping(header: map<string,[][]string>) => (code: bool)
+-	VerifyUsers(seq: int32, header?: stream map<string,[]string>, ids: []uint64) => (code?: bool, ids: []bool)
+	- MoreTest(n: uint64, stuff: []map<uint64,map<int32,string>>, etc: string) => (code: bool)`
+		schema, err := Parse(input)
+		assert.NoError(t, err)
+
+		jout, err := schema.ToJSON(true)
+		assert.NoError(t, err)
+		log.Printf("schema JSON: %v", jout)
+	}
 }
 
 func TestParse(t *testing.T) {

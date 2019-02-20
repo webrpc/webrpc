@@ -160,8 +160,9 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 						return nil, fmt.Errorf("unknown data type: %v", arg.right.val)
 					}
 					methodArgument := &schema.MethodArgument{
-						Type:   &varType,
-						Stream: arg.stream,
+						Type:     &varType,
+						Stream:   arg.stream,
+						Optional: arg.optional,
 					}
 					if arg.left != nil {
 						methodArgument.Name = schema.VarName(arg.left.val)
@@ -177,8 +178,9 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 						return nil, fmt.Errorf("unknown data type: %v", arg.right.val)
 					}
 					methodArgument := &schema.MethodArgument{
-						Type:   &varType,
-						Stream: arg.stream,
+						Type:     &varType,
+						Stream:   arg.stream,
+						Optional: arg.optional,
 					}
 					if arg.left != nil {
 						methodArgument.Name = schema.VarName(arg.left.val)
