@@ -75,7 +75,7 @@ const input = `
           "type": "timestamp",
           "optional": true,
           "meta": [
-            { "go.tag.json": "created_at,omitempty" },
+            { "go.tag.json": "createdAt,omitempty" },
             { "go.tag.db": "created_at" }
           ]
         }
