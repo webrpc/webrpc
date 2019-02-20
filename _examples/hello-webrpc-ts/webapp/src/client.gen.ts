@@ -32,6 +32,7 @@ export interface IUser {
   id: number
   USERNAME: string
   role: Kind
+  meta: object
   created_at?: string
   toJSON?(): object
 }
@@ -44,6 +45,7 @@ export class User implements IUser {
       this._data['id'] = _data['id']!
       this._data['USERNAME'] = _data['USERNAME']!
       this._data['role'] = _data['role']!
+      this._data['meta'] = _data['meta']!
       this._data['created_at'] = _data['created_at']!
       
     }
@@ -65,6 +67,12 @@ export class User implements IUser {
   }
   public set role(value: Kind) {
     this._data['role'] = value
+  }
+  public get meta(): object {
+    return this._data['meta']!
+  }
+  public set meta(value: object) {
+    this._data['meta'] = value
   }
   public get created_at(): string {
     return this._data['created_at']!

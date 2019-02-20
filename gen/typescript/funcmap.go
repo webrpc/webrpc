@@ -30,11 +30,12 @@ var fieldTypeMap = map[schema.DataType]string{
 func fieldConcreteType(in *schema.VarType) (string, error) {
 	switch in.Type {
 	case schema.T_Map:
-		z, err := fieldType(in.Map.Value)
-		if err != nil {
-			return "", err
-		}
-		return fmt.Sprintf("Map<%v,%s>", in.Map.Key, z), nil
+		// z, err := fieldType(in.Map.Value)
+		// if err != nil {
+		// 	return "", err
+		// }
+		// return fmt.Sprintf("Map<%v,%s>", in.Map.Key, z), nil
+		return "object", nil
 	case schema.T_List:
 		z, err := fieldType(in.List.Elem)
 		if err != nil {
@@ -54,11 +55,12 @@ func fieldConcreteType(in *schema.VarType) (string, error) {
 func fieldType(in *schema.VarType) (string, error) {
 	switch in.Type {
 	case schema.T_Map:
-		z, err := fieldType(in.Map.Value)
-		if err != nil {
-			return "", err
-		}
-		return fmt.Sprintf("Map<%v,%s>", in.Map.Key, z), nil
+		// z, err := fieldType(in.Map.Value)
+		// if err != nil {
+		// 	return "", err
+		// }
+		// return fmt.Sprintf("Map<%v,%s>", in.Map.Key, z), nil
+		return "object", nil
 	case schema.T_List:
 		z, err := fieldType(in.List.Elem)
 		if err != nil {
@@ -125,6 +127,10 @@ func methodName(in interface{}) string {
 	v, _ := downcaseName(in)
 	return v
 }
+
+// func isFieldMap(t *schema.VarType) bool {
+// 	return t.Map != nil
+// }
 
 func isStruct(t schema.MessageType) bool {
 	return t == "struct"

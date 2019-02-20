@@ -63,5 +63,6 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, 
 	return &User{
 		ID:       userID,
 		Username: "hihi",
+		Meta:     map[string]interface{}{"location": "Toronto"},
 	}, nil
 }

@@ -20,6 +20,8 @@ message User
 
   - role: Kind
 
+  - meta: map<string,any>
+
   - createdAt?: timestamp
     + json = created_at,omitempty
     + go.tag.db = created_at
