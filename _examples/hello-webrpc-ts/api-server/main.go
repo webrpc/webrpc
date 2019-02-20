@@ -1,4 +1,3 @@
-//go:generate ../../../bin/webrpc-gen -schema=../hello-api.webrpc.json -target=go -pkg=main -server -out=hello_api.gen.go
 package main
 
 import (

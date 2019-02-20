@@ -59,6 +59,11 @@
           ]
         },
         {
+          "name": "role",
+          "type": "Kind",
+          "optional": false
+        },
+        {
           "name": "createdAt",
           "type": "timestamp",
           "optional": true,

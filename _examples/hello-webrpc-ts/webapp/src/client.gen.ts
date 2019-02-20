@@ -31,6 +31,7 @@ export class Empty implements IEmpty {
 export interface IUser {
   id: number
   USERNAME: string
+  role: Kind
   created_at?: string
   toJSON?(): object
 }
@@ -42,6 +43,7 @@ export class User implements IUser {
     if (_data) {
       this._data['id'] = _data['id']!
       this._data['USERNAME'] = _data['USERNAME']!
+      this._data['role'] = _data['role']!
       this._data['created_at'] = _data['created_at']!
       
     }
@@ -57,6 +59,12 @@ export class User implements IUser {
   }
   public set USERNAME(value: string) {
     this._data['USERNAME'] = value
+  }
+  public get role(): Kind {
+    return this._data['role']!
+  }
+  public set role(value: Kind) {
+    this._data['role'] = value
   }
   public get created_at(): string {
     return this._data['created_at']!

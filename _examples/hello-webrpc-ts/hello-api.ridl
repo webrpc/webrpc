@@ -18,6 +18,8 @@ message User
     + json = USERNAME
     + go.tag.db = username
 
+  - role: Kind
+
   - createdAt?: timestamp
     + json = created_at,omitempty
     + go.tag.db = created_at

@@ -41,7 +41,6 @@ func fieldConcreteType(in *schema.VarType) (string, error) {
 		}
 		return "Array<" + z + ">", nil
 	case schema.T_Struct:
-		// TODO: add in.Struct.Message to global structs
 		return in.Struct.Name, nil
 	default:
 		if fieldTypeMap[in.Type] != "" {
@@ -66,8 +65,12 @@ func fieldType(in *schema.VarType) (string, error) {
 		}
 		return "Array<" + z + ">", nil
 	case schema.T_Struct:
-		// TODO: add in.Struct.Message to global structs
-		return "I" + in.Struct.Name, nil
+		if in.Struct == nil || in.Struct.Message.EnumType != nil {
+			return in.Struct.Name, nil // enum
+		} else {
+			return "I" + in.Struct.Name, nil // struct
+		}
+
 	default:
 		if fieldTypeMap[in.Type] != "" {
 			return fieldTypeMap[in.Type], nil
