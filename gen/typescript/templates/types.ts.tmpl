@@ -52,7 +52,7 @@ export class {{.Name}} implements {{.Name | interfaceName}} {
 {{- range .Services -}}
 export interface {{.Name | serviceInterfaceName}} {
   {{range .Methods -}}
-    {{.Name}}({{. | methodInputs}}): {{. | methodOutputs}}
+    {{.Name | methodName}}({{. | methodInputs}}): {{. | methodOutputs}}
   {{end}}
 }
 

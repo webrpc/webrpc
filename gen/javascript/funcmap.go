@@ -1,6 +1,7 @@
 package javascript
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -20,6 +21,11 @@ func fieldConcreteType(in *schema.VarType) (string, error) {
 
 func constPathPrefix(in schema.VarName) (string, error) {
 	return string(in) + "PathPrefix", nil
+}
+
+func methodName(in interface{}) string {
+	v, _ := downcaseName(in)
+	return v
 }
 
 func methodInputName(in *schema.MethodArgument) string {
@@ -73,6 +79,23 @@ func isEnum(t schema.MessageType) bool {
 	return t == "enum"
 }
 
+func downcaseName(v interface{}) (string, error) {
+	downFn := func(s string) string {
+		if s == "" {
+			return ""
+		}
+		return strings.ToLower(s[0:1]) + s[1:]
+	}
+	switch t := v.(type) {
+	case schema.VarName:
+		return downFn(string(t)), nil
+	case string:
+		return downFn(t), nil
+	default:
+		return "", errors.New("downcaseFieldName, unknown arg type")
+	}
+}
+
 func listComma(item int, count int) string {
 	if item+1 < count {
 		return ", "
@@ -113,6 +136,7 @@ func exportKeyword(opts gen.TargetOptions) func() string {
 func templateFuncMap(opts gen.TargetOptions) map[string]interface{} {
 	return map[string]interface{}{
 		"constPathPrefix":      constPathPrefix,
+		"methodName":           methodName,
 		"methodInputs":         methodInputs,
 		"isStruct":             isStruct,
 		"isEnum":               isEnum,

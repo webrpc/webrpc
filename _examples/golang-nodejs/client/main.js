@@ -11,7 +11,7 @@ async function main() {
   // Expecting "true"
   console.log('[A] webrpc -- calling Ping() rpc method (expecting true):')
 
-  svc.Ping().then(resp => {
+  svc.ping().then(resp => {
     console.log('[A]', {resp})
   }).catch((err) => {
     console.log('[A]', {err})
@@ -20,7 +20,7 @@ async function main() {
   // Expecting an error
   console.log('[B] webrpc -- calling GetUser() rpc method of an unknown user (expecting a 404):')
 
-  svc.GetUser({ req: new GetUserRequest({userID: 911}) }).then(resp => {
+  svc.getUser({ req: new GetUserRequest({userID: 911}) }).then(resp => {
     console.log('[B]', {resp})
   }).catch((err, res) => {
     console.log('[B]', {err})
@@ -29,7 +29,7 @@ async function main() {
   // Expecting some user data
   console.log('[C] webrpc -- calling GetUser() rpc method (expecting User object):')
 
-  svc.GetUser({ req: new GetUserRequest({userID: 966}) }).then(resp => {
+  svc.getUser({ req: new GetUserRequest({userID: 966}) }).then(resp => {
     console.log('[C]', {resp})
   }).catch((err, res) => {
     console.log('[C]', {err})

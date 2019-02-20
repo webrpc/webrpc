@@ -77,9 +77,9 @@ export class User implements IUser {
     return this._data
   }
 }
-export interface IExampleServiceService {
-  Ping(headers: object): Promise<IExampleServicePingReturn>
-  GetUser(args: IExampleServiceGetUserArgs, headers: object): Promise<IExampleServiceGetUserReturn>
+export interface IExampleService {
+  ping(headers: object): Promise<IExampleServicePingReturn>
+  getUser(args: IExampleServiceGetUserArgs, headers: object): Promise<IExampleServiceGetUserReturn>
   
 }
 
@@ -103,7 +103,7 @@ export interface IExampleServiceGetUserReturn {
 
 const ExampleServicePathPrefix = "/rpc/ExampleService/"
 
-export class ExampleService implements IExampleServiceService {
+export class ExampleService implements IExampleService {
   private hostname: string
   private fetch: Fetch
   private path = '/rpc/ExampleService/'
@@ -118,7 +118,7 @@ export class ExampleService implements IExampleServiceService {
   }
 
   
-  Ping(headers: object = {}): Promise<IExampleServicePingReturn> {
+  ping(headers: object = {}): Promise<IExampleServicePingReturn> {
     return this.fetch(
       this.url('Ping'),
       
@@ -136,7 +136,7 @@ export class ExampleService implements IExampleServiceService {
     })
   }
   
-  GetUser(args: IExampleServiceGetUserArgs, headers: object = {}): Promise<IExampleServiceGetUserReturn> {
+  getUser(args: IExampleServiceGetUserArgs, headers: object = {}): Promise<IExampleServiceGetUserReturn> {
     return this.fetch(
       this.url('GetUser'),
       

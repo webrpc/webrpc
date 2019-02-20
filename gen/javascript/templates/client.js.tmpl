@@ -19,7 +19,7 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
   }
 
   {{range .Methods}}
-  {{.Name}}({{.Inputs | methodInputs}} = {}) {
+  {{.Name | methodName}}({{.Inputs | methodInputs}} = {}) {
     return this.fetch(
       this.url('{{.Name}}'),
       {{if .Inputs | len}}

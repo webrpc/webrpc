@@ -1,6 +1,7 @@
 package typescript
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -120,6 +121,11 @@ func methodOutputs(in *schema.Method) (string, error) {
 	return fmt.Sprintf("Promise<%s>", methodArgumentOutputInterfaceName(in)), nil
 }
 
+func methodName(in interface{}) string {
+	v, _ := downcaseName(in)
+	return v
+}
+
 func isStruct(t schema.MessageType) bool {
 	return t == "struct"
 }
@@ -149,6 +155,23 @@ func isEnum(t schema.MessageType) bool {
 	return t == "enum"
 }
 
+func downcaseName(v interface{}) (string, error) {
+	downFn := func(s string) string {
+		if s == "" {
+			return ""
+		}
+		return strings.ToLower(s[0:1]) + s[1:]
+	}
+	switch t := v.(type) {
+	case schema.VarName:
+		return downFn(string(t)), nil
+	case string:
+		return downFn(t), nil
+	default:
+		return "", errors.New("downcaseFieldName, unknown arg type")
+	}
+}
+
 func listComma(item int, count int) string {
 	if item+1 < count {
 		return ", "
@@ -158,7 +181,7 @@ func listComma(item int, count int) string {
 
 func serviceInterfaceName(in schema.VarName) (string, error) {
 	s := string(in)
-	return "I" + s + "Service", nil
+	return "I" + s, nil
 }
 
 func newOutputArgResponse(in *schema.MethodArgument) (string, error) {
@@ -184,6 +207,7 @@ var templateFuncMap = map[string]interface{}{
 	"fieldType":                         fieldType,
 	"constPathPrefix":                   constPathPrefix,
 	"interfaceName":                     interfaceName,
+	"methodName":                        methodName,
 	"methodInputs":                      methodInputs,
 	"methodOutputs":                     methodOutputs,
 	"methodArgumentInputInterfaceName":  methodArgumentInputInterfaceName,
@@ -195,4 +219,5 @@ var templateFuncMap = map[string]interface{}{
 	"exportedField":                     exportedField,
 	"exportedJSONField":                 exportedJSONField,
 	"newOutputArgResponse":              newOutputArgResponse,
+	"downcaseName":                      downcaseName,
 }

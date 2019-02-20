@@ -74,7 +74,7 @@ class ExampleService {
   }
 
   
-  Ping(headers = {}) {
+  ping(headers = {}) {
     return this.fetch(
       this.url('Ping'),
       
@@ -93,7 +93,7 @@ class ExampleService {
     })
   }
   
-  GetUser(args, headers = {}) {
+  getUser(args, headers = {}) {
     return this.fetch(
       this.url('GetUser'),
       
