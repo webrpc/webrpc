@@ -15,6 +15,8 @@ type Method struct {
 	Name    VarName           `json:"name"`
 	Inputs  []*MethodArgument `json:"inputs"`
 	Outputs []*MethodArgument `json:"outputs"`
+
+	Service *Service `json:"-"` // denormalize/back-reference
 }
 
 type MethodArgument struct {
@@ -22,6 +24,9 @@ type MethodArgument struct {
 	Type     *VarType `json:"type"`
 	Optional bool     `json:"optional"`
 	Stream   bool     `json:"stream"` // TOOD(future)
+
+	InputArg  bool `json:"-"` // denormalize/back-reference
+	OutputArg bool `json:"-"` // denormalize/back-reference
 }
 
 func (s *Service) Parse(schema *WebRPCSchema) error {
@@ -62,7 +67,7 @@ func (s *Service) Parse(schema *WebRPCSchema) error {
 
 	// Parse+validate methods
 	for _, method := range s.Methods {
-		err := method.Parse(schema, serviceName)
+		err := method.Parse(schema, s)
 		if err != nil {
 			return err
 		}
@@ -71,9 +76,16 @@ func (s *Service) Parse(schema *WebRPCSchema) error {
 	return nil
 }
 
-func (m *Method) Parse(schema *WebRPCSchema, serviceName string) error {
+func (m *Method) Parse(schema *WebRPCSchema, service *Service) error {
+	if service == nil {
+		return errors.Errorf("parse error, service arg cannot be nil")
+	}
+	m.Service = service // back-ref
+	serviceName := string(service.Name)
+
 	// Parse+validate inputs
 	for _, input := range m.Inputs {
+		input.InputArg = true // back-ref
 		if input.Name == "" {
 			return errors.Errorf("schema error: detected empty input argument name for method '%s' in service '%s'", m.Name, serviceName)
 		}
@@ -85,6 +97,7 @@ func (m *Method) Parse(schema *WebRPCSchema, serviceName string) error {
 
 	// Parse+validate outputs
 	for _, output := range m.Outputs {
+		output.OutputArg = true // back-ref
 		if output.Name == "" {
 			return errors.Errorf("schema error: detected empty output name for method '%s' in service '%s'", m.Name, serviceName)
 		}

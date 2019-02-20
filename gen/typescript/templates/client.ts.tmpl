@@ -22,11 +22,11 @@ export class {{.Name}} implements {{.Name | serviceInterfaceName}} {
   }
 
   {{range .Methods}}
-  {{.Name}}({{.Inputs | methodInputs}} = {}): {{.Outputs | methodOutputs}} {
+  {{.Name}}({{. | methodInputs}} = {}): {{. | methodOutputs}} {
     return this.fetch(
       this.url('{{.Name}}'),
       {{if .Inputs | len}}
-      createHTTPRequest(params, headers)
+      createHTTPRequest(args, headers)
       {{else}}
       createHTTPRequest({}, headers)
       {{end}}
@@ -34,9 +34,14 @@ export class {{.Name}} implements {{.Name | serviceInterfaceName}} {
       if (!res.ok) {
         return throwHTTPError(res)
       }
-      {{range $output := .Outputs}}
-      return res.json().then((_data) => {return {{$output | newResponseConcreteType}}(_data)})
-      {{end}}
+      return res.json().then((_data) => {
+        return {
+        {{- $outputsCount := .Outputs|len -}}
+        {{- range $i, $output := .Outputs}}
+          {{$output | newOutputArgResponse}}{{listComma $i $outputsCount}}
+        {{- end}}
+        }
+      })
     })
   }
   {{end}}

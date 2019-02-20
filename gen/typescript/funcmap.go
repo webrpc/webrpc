@@ -96,27 +96,25 @@ func methodInputType(in *schema.MethodArgument) string {
 	return z
 }
 
-func methodInputs(in []*schema.MethodArgument) (string, error) {
+func methodArgumentInputInterfaceName(in *schema.Method) string {
+	return fmt.Sprintf("I%s%s%s", in.Service.Name, in.Name, "Args")
+}
+
+func methodArgumentOutputInterfaceName(in *schema.Method) string {
+	return fmt.Sprintf("I%s%s%s", in.Service.Name, in.Name, "Return")
+}
+
+func methodInputs(in *schema.Method) (string, error) {
 	inputs := []string{}
-
-	for i := range in {
-		inputs = append(inputs, fmt.Sprintf("params: %s", methodInputType(in[i])))
+	if len(in.Inputs) > 0 {
+		inputs = append(inputs, fmt.Sprintf("args: %s", methodArgumentInputInterfaceName(in)))
 	}
-
 	inputs = append(inputs, "headers: object")
-
 	return strings.Join(inputs, ", "), nil
 }
 
-func methodOutputs(in []*schema.MethodArgument) (string, error) {
-	outputs := []string{}
-
-	for i := range in {
-		z, _ := fieldConcreteType(in[i].Type)
-		outputs = append(outputs, z)
-	}
-
-	return fmt.Sprintf("Promise<%s>", strings.Join(outputs, ", ")), nil
+func methodOutputs(in *schema.Method) (string, error) {
+	return fmt.Sprintf("Promise<%s>", methodArgumentOutputInterfaceName(in)), nil
 }
 
 func isStruct(t schema.MessageType) bool {
@@ -148,34 +146,50 @@ func isEnum(t schema.MessageType) bool {
 	return t == "enum"
 }
 
+func listComma(item int, count int) string {
+	if item+1 < count {
+		return ", "
+	}
+	return ""
+}
+
 func serviceInterfaceName(in schema.VarName) (string, error) {
 	s := string(in)
 	return "I" + s + "Service", nil
 }
 
-func newResponseConcreteType(in schema.MethodArgument) (string, error) {
+func newOutputArgResponse(in *schema.MethodArgument) (string, error) {
 	z, err := fieldConcreteType(in.Type)
 	if err != nil {
 		return "", err
 	}
 
+	typ := ""
 	switch in.Type.Type {
 	case schema.T_Struct:
-		return fmt.Sprintf("new %s", z), nil
+		typ = fmt.Sprintf("new %s", z)
+	default:
+		typ = fmt.Sprintf("<%s>", z)
 	}
-	return fmt.Sprintf("<%s>", z), nil
+
+	line := fmt.Sprintf("%s: %s(_data.%s)", in.Name, typ, in.Name)
+
+	return line, nil
 }
 
 var templateFuncMap = map[string]interface{}{
-	"fieldType":               fieldType,
-	"newResponseConcreteType": newResponseConcreteType,
-	"constPathPrefix":         constPathPrefix,
-	"interfaceName":           interfaceName,
-	"methodInputs":            methodInputs,
-	"methodOutputs":           methodOutputs,
-	"isStruct":                isStruct,
-	"isEnum":                  isEnum,
-	"serviceInterfaceName":    serviceInterfaceName,
-	"exportedField":           exportedField,
-	"exportedJSONField":       exportedJSONField,
+	"fieldType":                         fieldType,
+	"constPathPrefix":                   constPathPrefix,
+	"interfaceName":                     interfaceName,
+	"methodInputs":                      methodInputs,
+	"methodOutputs":                     methodOutputs,
+	"methodArgumentInputInterfaceName":  methodArgumentInputInterfaceName,
+	"methodArgumentOutputInterfaceName": methodArgumentOutputInterfaceName,
+	"isStruct":                          isStruct,
+	"isEnum":                            isEnum,
+	"listComma":                         listComma,
+	"serviceInterfaceName":              serviceInterfaceName,
+	"exportedField":                     exportedField,
+	"exportedJSONField":                 exportedJSONField,
+	"newOutputArgResponse":              newOutputArgResponse,
 }
