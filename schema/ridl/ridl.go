@@ -200,5 +200,11 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 		}
 	}
 
+	// run through schema validator, last step to ensure all is good.
+	err = s.Parse(nil)
+	if err != nil {
+		return s, err
+	}
+
 	return s, nil
 }
