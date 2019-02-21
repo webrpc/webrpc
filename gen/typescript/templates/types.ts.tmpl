@@ -24,7 +24,7 @@ export interface {{.Name | interfaceName}} {
 {{end -}}
 
 {{if .Services}}
-{{- range .Services -}}
+{{- range .Services}}
 export interface {{.Name | serviceInterfaceName}} {
 {{- range .Methods}}
   {{.Name | methodName}}({{. | methodInputs}}): {{. | methodOutputs}}

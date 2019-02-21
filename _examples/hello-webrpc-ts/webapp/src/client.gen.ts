@@ -21,6 +21,7 @@ export interface User {
 export interface Page {
   num: number
 }
+
 export interface ExampleService {
   ping(headers: object): Promise<PingReturn>
   getUser(args: GetUserArgs, headers: object): Promise<GetUserReturn>
