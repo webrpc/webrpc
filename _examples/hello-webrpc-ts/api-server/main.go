@@ -68,5 +68,12 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, 
 }
 
 func (s *ExampleServiceRPC) FindUsers(ctx context.Context, q string) (*Page, []*User, error) {
-	return nil, nil, nil
+	page := &Page{Num: 1}
+
+	users := []*User{
+		&User{ID: 1, Username: "a", Meta: map[string]interface{}{"location": "Montreal"}},
+		&User{ID: 2, Username: "b", Meta: map[string]interface{}{"age": 10}},
+	}
+
+	return page, users, nil
 }

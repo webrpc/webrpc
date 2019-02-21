@@ -10,116 +10,43 @@ export enum Kind {
   ADMIN = 'ADMIN'
 }
 
-export interface IUser {
+export interface User {
   id: number
   USERNAME: string
   role: Kind
-  meta: object
+  meta: {[key: string]: any}
   created_at?: string
-  toJSON?(): object
 }
 
-export class User implements IUser {
-  private _data: IUser
-  constructor(_data?: IUser) {
-    this._data = {} as IUser
-    if (_data) {
-      this._data['id'] = _data['id']!
-      this._data['USERNAME'] = _data['USERNAME']!
-      this._data['role'] = _data['role']!
-      this._data['meta'] = _data['meta']!
-      this._data['created_at'] = _data['created_at']!
-      
-    }
-  }
-  public get id(): number {
-    return this._data['id']!
-  }
-  public set id(value: number) {
-    this._data['id'] = value
-  }
-  public get USERNAME(): string {
-    return this._data['USERNAME']!
-  }
-  public set USERNAME(value: string) {
-    this._data['USERNAME'] = value
-  }
-  public get role(): Kind {
-    return this._data['role']!
-  }
-  public set role(value: Kind) {
-    this._data['role'] = value
-  }
-  public get meta(): object {
-    return this._data['meta']!
-  }
-  public set meta(value: object) {
-    this._data['meta'] = value
-  }
-  public get created_at(): string {
-    return this._data['created_at']!
-  }
-  public set created_at(value: string) {
-    this._data['created_at'] = value
-  }
-  
-  public toJSON(): object {
-    return this._data
-  }
+export interface Page {
+  num: number
+}
+export interface ExampleService {
+  ping(headers: object): Promise<PingReturn>
+  getUser(args: GetUserArgs, headers: object): Promise<GetUserReturn>
+  findUsers(args: FindUsersArgs, headers: object): Promise<FindUsersReturn>
 }
 
-export interface IPage {
-  num?: number
-  toJSON?(): object
+export interface PingArgs {
 }
 
-export class Page implements IPage {
-  private _data: IPage
-  constructor(_data?: IPage) {
-    this._data = {} as IPage
-    if (_data) {
-      this._data['num'] = _data['num']!
-      
-    }
-  }
-  public get num(): number {
-    return this._data['num']!
-  }
-  public set num(value: number) {
-    this._data['num'] = value
-  }
-  
-  public toJSON(): object {
-    return this._data
-  }
-}
-export interface IExampleService {
-  ping(headers: object): Promise<IPingReturn>
-  getUser(args: IGetUserArgs, headers: object): Promise<IGetUserReturn>
-  findUsers(args: IFindUsersArgs, headers: object): Promise<IFindUsersReturn>
-  
-}
-
-export interface IPingArgs {
-}
-
-export interface IPingReturn {
+export interface PingReturn {
   status: boolean  
 }
-export interface IGetUserArgs {
+export interface GetUserArgs {
   userID: number
 }
 
-export interface IGetUserReturn {
-  user: IUser  
+export interface GetUserReturn {
+  user: User  
 }
-export interface IFindUsersArgs {
+export interface FindUsersArgs {
   q: string
 }
 
-export interface IFindUsersReturn {
-  page: IPage
-  users: Array<IUser>  
+export interface FindUsersReturn {
+  page: Page
+  users: Array<User>  
 }
 
 
@@ -128,7 +55,7 @@ export interface IFindUsersReturn {
 
 const ExampleServicePathPrefix = "/rpc/ExampleService/"
 
-export class ExampleService implements IExampleService {
+export class ExampleService implements ExampleService {
   private hostname: string
   private fetch: Fetch
   private path = '/rpc/ExampleService/'
@@ -141,9 +68,8 @@ export class ExampleService implements IExampleService {
   private url(name: string): string {
     return this.hostname + this.path + name
   }
-
   
-  ping(headers: object = {}): Promise<IPingReturn> {
+  ping(headers: object = {}): Promise<PingReturn> {
     return this.fetch(
       this.url('Ping'),
       
@@ -161,7 +87,7 @@ export class ExampleService implements IExampleService {
     })
   }
   
-  getUser(args: IGetUserArgs, headers: object = {}): Promise<IGetUserReturn> {
+  getUser(args: GetUserArgs, headers: object = {}): Promise<GetUserReturn> {
     return this.fetch(
       this.url('GetUser'),
       
@@ -173,13 +99,13 @@ export class ExampleService implements IExampleService {
       }
       return res.json().then((_data) => {
         return {
-          user: new User(_data.user)
+          user: <User>(_data.user)
         }
       })
     })
   }
   
-  findUsers(args: IFindUsersArgs, headers: object = {}): Promise<IFindUsersReturn> {
+  findUsers(args: FindUsersArgs, headers: object = {}): Promise<FindUsersReturn> {
     return this.fetch(
       this.url('FindUsers'),
       
@@ -191,15 +117,14 @@ export class ExampleService implements IExampleService {
       }
       return res.json().then((_data) => {
         return {
-          page: new Page(_data.page), 
-          users: <Array<IUser>>(_data.users)
+          page: <Page>(_data.page), 
+          users: <Array<User>>(_data.users)
         }
       })
     })
   }
   
 }
-
 
 
 export interface WebRPCError extends Error {

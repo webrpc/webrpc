@@ -25,7 +25,7 @@ message User
     + go.tag.db = created_at
 
 message Page
-  - num?: uint32
+  - num: uint32
 
 service ExampleService
   - Ping() => (status: bool)

@@ -15,34 +15,9 @@ export enum {{$enumName}} {
 
 {{- if .Type | isStruct  }}
 export interface {{.Name | interfaceName}} {
-  {{range .Fields -}}
+  {{- range .Fields}}
   {{. | exportedJSONField}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}
-  {{end -}}
-
-  toJSON?(): object
-}
-
-export class {{.Name}} implements {{.Name | interfaceName}} {
-  private _data: {{.Name | interfaceName}}
-  constructor(_data?: {{.Name | interfaceName}}) {
-    this._data = {} as {{.Name | interfaceName}}
-    if (_data) {
-      {{range .Fields -}}
-      this._data['{{. | exportedJSONField}}'] = _data['{{. | exportedJSONField}}']!
-      {{end}}
-    }
-  }
-  {{ range .Fields -}}
-  public get {{. | exportedJSONField}}(): {{.Type | fieldType}} {
-    return this._data['{{. | exportedJSONField }}']!
-  }
-  public set {{. | exportedJSONField}}(value: {{.Type | fieldType}}) {
-    this._data['{{. | exportedJSONField}}'] = value
-  }
-  {{end}}
-  public toJSON(): object {
-    return this._data
-  }
+  {{- end}}
 }
 {{end -}}
 {{end -}}
@@ -51,22 +26,22 @@ export class {{.Name}} implements {{.Name | interfaceName}} {
 {{if .Services}}
 {{- range .Services -}}
 export interface {{.Name | serviceInterfaceName}} {
-  {{range .Methods -}}
-    {{.Name | methodName}}({{. | methodInputs}}): {{. | methodOutputs}}
-  {{end}}
+{{- range .Methods}}
+  {{.Name | methodName}}({{. | methodInputs}}): {{. | methodOutputs}}
+{{- end}}
 }
 
 {{range .Methods -}}
 export interface {{. | methodArgumentInputInterfaceName}} {
-  {{- range .Inputs}}
+{{- range .Inputs}}
   {{.Name}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}
-  {{- end}}
+{{- end}}
 }
 
 export interface {{. | methodArgumentOutputInterfaceName}} {
-  {{- range .Outputs}}
+{{- range .Outputs}}
   {{.Name}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}
-  {{- end}}  
+{{- end}}  
 }
 {{end}}
 

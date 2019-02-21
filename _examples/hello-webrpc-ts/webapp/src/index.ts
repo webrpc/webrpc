@@ -1,43 +1,79 @@
+//
+// hello-webrpc-ts example program.
+// --
+// see the `hello-api.ridl` schema where the API is defined
+// and the client.gen.ts file is code-generated which we use below..
+//
 import { fetch as polyfetch } from 'whatwg-fetch'
 import * as client from './client.gen'
 
-const svc = new client.ExampleService('http://127.0.01:4242', polyfetch)
+const api = new client.ExampleService('http://127.0.01:4242', polyfetch)
 
-// Expecting "true"
-console.log('[A] webrpc -- calling Ping() rpc method (expecting true):')
+async function main() {
 
-svc.ping().then(resp => {
-  console.log('[A]', resp.status)
-}).catch(err => {
-  console.log('[A]', {err})
-})
+  //
+  // Ping the API
+  //
+  console.log('[A] webrpc -- calling Ping() rpc method (expecting true):')
 
-// Expecting an error
-console.log('[B] webrpc -- calling GetUser() rpc method of an unknown user (expecting a 404):')
+  try {
+    const resp = await api.ping()
+    console.log('[A]', resp.status)
+  } catch (err) {
+    console.log('[A]', {err})
+  }
+    
+  //
+  // Get a user from the API
+  //
+  console.log('[B] webrpc -- calling GetUser() rpc method (expecting User object):')
 
-svc.getUser({userID: 911}).then(resp => {
-  console.log('[B]', resp.user)
-}).catch((err: client.WebRPCError) => {
-  console.log('[B]', {err})
-})
+  try {
+    const { user }: client.GetUserReturn = await api.getUser({ userID: 966 })
+    console.log('[B]', user)
+    console.log('[B] welcome user ID', user.id, 'with username', user.USERNAME)
+  } catch (err) {
+    console.log('[B]', {err})
+  }
 
-// Expecting some user data, using object destructuring syntax for response
-console.log('[C] webrpc -- calling GetUser() rpc method (expecting User object):')
+  //
+  // Get an unknown user from the API -- we expect a 404 from the server
+  //
+  console.log('[C] webrpc -- calling GetUser() rpc method of an unknown user (expecting a 404):')
 
-svc.getUser({userID: 966}).then(({ user }: client.IExampleServiceGetUserReturn) => {
-  console.log('[C]', user)
-  console.log('[C] welcome user ID', user.id, 'with username', user.USERNAME)
-}).catch(err => {
-  console.log('[C]', {err})
-})
+  try {
+    const resp = await api.getUser({ userID: 911 })
+    console.log('[C]', resp.user)
+  } catch (err) {
+    console.log('[C]', {err})
+  }
 
-// Expecting some user data - again, with differen response syntax
-console.log('[D] webrpc -- calling GetUser() rpc method (expecting User object):')
+  //
+  // Get a user from the API -- different code syntax example
+  //
+  console.log('[D] webrpc -- calling GetUser() rpc method (expecting User object):')
 
-svc.getUser({userID: 1337}).then(resp => {
-  const user = resp.user
-  console.log('[D]', user)
-  console.log('[D] welcome user ID', user.id, 'with username', user.USERNAME)
-}).catch(err => {
-  console.log('[D]', {err})
-})
+  await api.getUser({ userID: 1337 }).then(resp => {
+    const user = resp.user
+    console.log('[D]', user)
+    const meta = user.meta
+    console.log('[D]', {meta})
+    console.log('[D] welcome user ID', user.id, 'with username', user.USERNAME)
+  }).catch(err => {
+    console.log('[D]', {err})
+  })
+
+  //
+  // Find users from the API
+  //
+  try {
+    const resp = await api.findUsers({ q: 'a-z' })
+    console.log('[E]', {resp})
+  } catch (err) {
+    console.log('[E]', {err})
+  }
+
+
+}
+
+main()

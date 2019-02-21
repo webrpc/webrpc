@@ -20,7 +20,6 @@ export class {{.Name}} implements {{.Name | serviceInterfaceName}} {
   private url(name: string): string {
     return this.hostname + this.path + name
   }
-
   {{range .Methods}}
   {{.Name | methodName}}({{. | methodInputs}} = {}): {{. | methodOutputs}} {
     return this.fetch(
@@ -47,6 +46,5 @@ export class {{.Name}} implements {{.Name | serviceInterfaceName}} {
   {{end}}
 }
 {{end -}}
-
 {{end -}}
 {{end}}

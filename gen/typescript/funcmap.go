@@ -27,52 +27,24 @@ var fieldTypeMap = map[schema.DataType]string{
 	schema.T_Bool:      "boolean",
 }
 
-func fieldConcreteType(in *schema.VarType) (string, error) {
-	switch in.Type {
-	case schema.T_Map:
-		// z, err := fieldType(in.Map.Value)
-		// if err != nil {
-		// 	return "", err
-		// }
-		// return fmt.Sprintf("Map<%v,%s>", in.Map.Key, z), nil
-		return "object", nil
-	case schema.T_List:
-		z, err := fieldType(in.List.Elem)
-		if err != nil {
-			return "", err
-		}
-		return "Array<" + z + ">", nil
-	case schema.T_Struct:
-		return in.Struct.Name, nil
-	default:
-		if fieldTypeMap[in.Type] != "" {
-			return fieldTypeMap[in.Type], nil
-		}
-	}
-	return "", fmt.Errorf("could not represent type: %#v", in)
-}
-
 func fieldType(in *schema.VarType) (string, error) {
 	switch in.Type {
 	case schema.T_Map:
-		// z, err := fieldType(in.Map.Value)
-		// if err != nil {
-		// 	return "", err
-		// }
-		// return fmt.Sprintf("Map<%v,%s>", in.Map.Key, z), nil
-		return "object", nil
+		z, err := fieldType(in.Map.Value)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("{[key: %v]: %s}", in.Map.Key, z), nil
+
 	case schema.T_List:
 		z, err := fieldType(in.List.Elem)
 		if err != nil {
 			return "", err
 		}
 		return "Array<" + z + ">", nil
+
 	case schema.T_Struct:
-		if in.Struct == nil || in.Struct.Message.EnumType != nil {
-			return in.Struct.Name, nil // enum
-		} else {
-			return "I" + in.Struct.Name, nil // struct
-		}
+		return in.Struct.Name, nil
 
 	default:
 		if fieldTypeMap[in.Type] != "" {
@@ -104,17 +76,17 @@ func methodInputType(in *schema.MethodArgument) string {
 
 func methodArgumentInputInterfaceName(in *schema.Method) string {
 	if len(in.Service.Schema.Services) == 1 {
-		return fmt.Sprintf("I%s%s", in.Name, "Args")
+		return fmt.Sprintf("%s%s", in.Name, "Args")
 	} else {
-		return fmt.Sprintf("I%s%s%s", in.Service.Name, in.Name, "Args")
+		return fmt.Sprintf("%s%s%s", in.Service.Name, in.Name, "Args")
 	}
 }
 
 func methodArgumentOutputInterfaceName(in *schema.Method) string {
 	if len(in.Service.Schema.Services) == 1 {
-		return fmt.Sprintf("I%s%s", in.Name, "Return")
+		return fmt.Sprintf("%s%s", in.Name, "Return")
 	} else {
-		return fmt.Sprintf("I%s%s%s", in.Service.Name, in.Name, "Return")
+		return fmt.Sprintf("%s%s%s", in.Service.Name, in.Name, "Return")
 	}
 }
 
@@ -135,10 +107,6 @@ func methodName(in interface{}) string {
 	v, _ := downcaseName(in)
 	return v
 }
-
-// func isFieldMap(t *schema.VarType) bool {
-// 	return t.Map != nil
-// }
 
 func isStruct(t schema.MessageType) bool {
 	return t == "struct"
@@ -162,7 +130,7 @@ func exportedJSONField(in schema.MessageField) (string, error) {
 
 func interfaceName(in schema.VarName) (string, error) {
 	s := string(in)
-	return "I" + s, nil
+	return s, nil
 }
 
 func isEnum(t schema.MessageType) bool {
@@ -195,23 +163,16 @@ func listComma(item int, count int) string {
 
 func serviceInterfaceName(in schema.VarName) (string, error) {
 	s := string(in)
-	return "I" + s, nil
+	return s, nil
 }
 
 func newOutputArgResponse(in *schema.MethodArgument) (string, error) {
-	z, err := fieldConcreteType(in.Type)
+	z, err := fieldType(in.Type)
 	if err != nil {
 		return "", err
 	}
 
-	typ := ""
-	switch in.Type.Type {
-	case schema.T_Struct:
-		typ = fmt.Sprintf("new %s", z)
-	default:
-		typ = fmt.Sprintf("<%s>", z)
-	}
-
+	typ := fmt.Sprintf("<%s>", z)
 	line := fmt.Sprintf("%s: %s(_data.%s)", in.Name, typ, in.Name)
 
 	return line, nil

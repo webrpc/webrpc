@@ -65,7 +65,7 @@ type User struct {
 }
 
 type Page struct {
-	Num *uint32 `json:"num"`
+	Num uint32 `json:"num"`
 }
 
 type ExampleService interface {
