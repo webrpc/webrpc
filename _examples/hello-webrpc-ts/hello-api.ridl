@@ -7,8 +7,6 @@ enum Kind: uint32
   - USER = 1
   - ADMIN = 2
 
-message Empty
-
 message User
   - ID: uint64
     + json = id
@@ -26,7 +24,10 @@ message User
     + json = created_at,omitempty
     + go.tag.db = created_at
 
+message Page
+  - num?: uint32
 
 service ExampleService
   - Ping() => (status: bool)
   - GetUser(userID: uint64) => (user: User)
+  - FindUsers(q: string) => (page: Page, users: []User)

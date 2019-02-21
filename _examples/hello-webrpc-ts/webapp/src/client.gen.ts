@@ -10,24 +10,6 @@ export enum Kind {
   ADMIN = 'ADMIN'
 }
 
-export interface IEmpty {
-  toJSON?(): object
-}
-
-export class Empty implements IEmpty {
-  private _data: IEmpty
-  constructor(_data?: IEmpty) {
-    this._data = {} as IEmpty
-    if (_data) {
-      
-    }
-  }
-  
-  public toJSON(): object {
-    return this._data
-  }
-}
-
 export interface IUser {
   id: number
   USERNAME: string
@@ -85,24 +67,59 @@ export class User implements IUser {
     return this._data
   }
 }
+
+export interface IPage {
+  num?: number
+  toJSON?(): object
+}
+
+export class Page implements IPage {
+  private _data: IPage
+  constructor(_data?: IPage) {
+    this._data = {} as IPage
+    if (_data) {
+      this._data['num'] = _data['num']!
+      
+    }
+  }
+  public get num(): number {
+    return this._data['num']!
+  }
+  public set num(value: number) {
+    this._data['num'] = value
+  }
+  
+  public toJSON(): object {
+    return this._data
+  }
+}
 export interface IExampleService {
-  ping(headers: object): Promise<IExampleServicePingReturn>
-  getUser(args: IExampleServiceGetUserArgs, headers: object): Promise<IExampleServiceGetUserReturn>
+  ping(headers: object): Promise<IPingReturn>
+  getUser(args: IGetUserArgs, headers: object): Promise<IGetUserReturn>
+  findUsers(args: IFindUsersArgs, headers: object): Promise<IFindUsersReturn>
   
 }
 
-export interface IExampleServicePingArgs {
+export interface IPingArgs {
 }
 
-export interface IExampleServicePingReturn {
+export interface IPingReturn {
   status: boolean  
 }
-export interface IExampleServiceGetUserArgs {
+export interface IGetUserArgs {
   userID: number
 }
 
-export interface IExampleServiceGetUserReturn {
+export interface IGetUserReturn {
   user: IUser  
+}
+export interface IFindUsersArgs {
+  q: string
+}
+
+export interface IFindUsersReturn {
+  page: IPage
+  users: Array<IUser>  
 }
 
 
@@ -126,7 +143,7 @@ export class ExampleService implements IExampleService {
   }
 
   
-  ping(headers: object = {}): Promise<IExampleServicePingReturn> {
+  ping(headers: object = {}): Promise<IPingReturn> {
     return this.fetch(
       this.url('Ping'),
       
@@ -144,7 +161,7 @@ export class ExampleService implements IExampleService {
     })
   }
   
-  getUser(args: IExampleServiceGetUserArgs, headers: object = {}): Promise<IExampleServiceGetUserReturn> {
+  getUser(args: IGetUserArgs, headers: object = {}): Promise<IGetUserReturn> {
     return this.fetch(
       this.url('GetUser'),
       
@@ -157,6 +174,25 @@ export class ExampleService implements IExampleService {
       return res.json().then((_data) => {
         return {
           user: new User(_data.user)
+        }
+      })
+    })
+  }
+  
+  findUsers(args: IFindUsersArgs, headers: object = {}): Promise<IFindUsersReturn> {
+    return this.fetch(
+      this.url('FindUsers'),
+      
+      createHTTPRequest(args, headers)
+      
+    ).then((res) => {
+      if (!res.ok) {
+        return throwHTTPError(res)
+      }
+      return res.json().then((_data) => {
+        return {
+          page: new Page(_data.page), 
+          users: <Array<IUser>>(_data.users)
         }
       })
     })

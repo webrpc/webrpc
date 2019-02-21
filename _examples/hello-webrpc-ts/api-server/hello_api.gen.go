@@ -56,9 +56,6 @@ func (x *Kind) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type Empty struct {
-}
-
 type User struct {
 	ID        uint64                 `json:"id" db:"id"`
 	Username  string                 `json:"USERNAME" db:"username"`
@@ -67,15 +64,21 @@ type User struct {
 	CreatedAt *time.Time             `json:"created_at,omitempty" db:"created_at"`
 }
 
+type Page struct {
+	Num *uint32 `json:"num"`
+}
+
 type ExampleService interface {
 	Ping(ctx context.Context) (bool, error)
 	GetUser(ctx context.Context, userID uint64) (*User, error)
+	FindUsers(ctx context.Context, q string) (*Page, []*User, error)
 }
 
 var Services = map[string][]string{
 	"ExampleService": {
 		"Ping",
 		"GetUser",
+		"FindUsers",
 	},
 }
 
@@ -116,6 +119,9 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	case "/rpc/ExampleService/GetUser":
 		s.serveGetUser(ctx, w, r)
+		return
+	case "/rpc/ExampleService/FindUsers":
+		s.serveFindUsers(ctx, w, r)
 		return
 	default:
 		err := webrpc.Errorf(webrpc.ErrBadRoute, "no handler for path %q", r.URL.Path)
@@ -229,6 +235,78 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	respContent := struct {
 		Ret0 *User `json:"user"`
 	}{ret0}
+
+	if err != nil {
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+	respBody, err := json.Marshal(respContent)
+	if err != nil {
+		err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to marshal json response")
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(respBody)
+}
+
+func (s *exampleServiceServer) serveFindUsers(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	header := r.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveFindUsersJSON(ctx, w, r)
+	default:
+		err := webrpc.Errorf(webrpc.ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
+		writeJSONError(ctx, w, r, err)
+	}
+}
+
+func (s *exampleServiceServer) serveFindUsersJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	var err error
+	ctx = webrpc.WithMethodName(ctx, "FindUsers")
+	reqContent := struct {
+		Arg0 string `json:"q"`
+	}{}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to read request data")
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+	defer r.Body.Close()
+
+	err = json.Unmarshal(reqBody, &reqContent)
+	if err != nil {
+		err = webrpc.WrapError(webrpc.ErrInvalidArgument, err, "failed to unmarshal request data")
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+
+	// Call service method
+	var ret0 *Page
+	var ret1 []*User
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if rr := recover(); rr != nil {
+				writeJSONError(ctx, w, r, webrpc.ErrorInternal("internal service panic"))
+				panic(rr)
+			}
+		}()
+		ret0, ret1, err = s.ExampleService.FindUsers(ctx, reqContent.Arg0)
+	}()
+	respContent := struct {
+		Ret0 *Page   `json:"page"`
+		Ret1 []*User `json:"users"`
+	}{ret0, ret1}
 
 	if err != nil {
 		writeJSONError(ctx, w, r, err)

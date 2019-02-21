@@ -66,3 +66,7 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, 
 		Meta:     map[string]interface{}{"location": "Toronto"},
 	}, nil
 }
+
+func (s *ExampleServiceRPC) FindUsers(ctx context.Context, q string) (*Page, []*User, error) {
+	return nil, nil, nil
+}

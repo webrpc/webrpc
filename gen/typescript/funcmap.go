@@ -103,11 +103,19 @@ func methodInputType(in *schema.MethodArgument) string {
 }
 
 func methodArgumentInputInterfaceName(in *schema.Method) string {
-	return fmt.Sprintf("I%s%s%s", in.Service.Name, in.Name, "Args")
+	if len(in.Service.Schema.Services) == 1 {
+		return fmt.Sprintf("I%s%s", in.Name, "Args")
+	} else {
+		return fmt.Sprintf("I%s%s%s", in.Service.Name, in.Name, "Args")
+	}
 }
 
 func methodArgumentOutputInterfaceName(in *schema.Method) string {
-	return fmt.Sprintf("I%s%s%s", in.Service.Name, in.Name, "Return")
+	if len(in.Service.Schema.Services) == 1 {
+		return fmt.Sprintf("I%s%s", in.Name, "Return")
+	} else {
+		return fmt.Sprintf("I%s%s%s", in.Service.Name, in.Name, "Return")
+	}
 }
 
 func methodInputs(in *schema.Method) (string, error) {

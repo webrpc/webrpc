@@ -9,6 +9,8 @@ import (
 type Service struct {
 	Name    VarName   `json:"name"`
 	Methods []*Method `json:"methods"`
+
+	Schema *WebRPCSchema `json:"-"` // denormalize/back-reference
 }
 
 type Method struct {
@@ -30,6 +32,8 @@ type MethodArgument struct {
 }
 
 func (s *Service) Parse(schema *WebRPCSchema) error {
+	s.Schema = schema // back-ref
+
 	// Service name
 	serviceName := string(s.Name)
 	if string(s.Name) == "" {
