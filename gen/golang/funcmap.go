@@ -90,6 +90,25 @@ func fieldOptional(field *schema.MessageField) (string, error) {
 	return "", fmt.Errorf("could not represent type: %#v", field)
 }
 
+func fieldTypeDef(in *schema.MessageField) (string, error) {
+	goFieldType := ""
+
+	meta := in.Meta
+	for kk := range meta {
+		for k, v := range meta[kk] {
+			if k == "go.field.type" {
+				goFieldType = fmt.Sprintf("%v", v)
+			}
+		}
+	}
+
+	if goFieldType != "" {
+		return goFieldType, nil
+	}
+
+	return fieldType(in.Type)
+}
+
 func fieldTags(in *schema.MessageField) (string, error) {
 	fieldTags := map[string]interface{}{}
 
@@ -283,6 +302,7 @@ var templateFuncMap = map[string]interface{}{
 	"fieldTags":             fieldTags,
 	"fieldType":             fieldType,
 	"fieldOptional":         fieldOptional,
+	"fieldTypeDef":          fieldTypeDef,
 	"newClientServiceName":  newClientServiceName,
 	"newServerServiceName":  newServerServiceName,
 	"constPathPrefix":       constPathPrefix,

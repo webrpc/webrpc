@@ -61,7 +61,7 @@ type Empty struct {
 
 type User struct {
 	ID        uint64     `json:"id" db:"id"`
-	Username  string     `json:"USERNAME" db:"username"`
+	Username  *Username  `json:"USERNAME" db:"username"`
 	Role      string     `json:"role" db:"-"`
 	CreatedAt *time.Time `json:"created_at,omitempty" db:"created_at"`
 }
