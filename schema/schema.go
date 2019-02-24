@@ -3,6 +3,7 @@ package schema
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -68,4 +69,25 @@ func (s *WebRPCSchema) ToJSON(optIndent ...bool) (string, error) {
 	}
 
 	return string(buf.Bytes()), nil
+}
+
+func (s *WebRPCSchema) GetMessageByName(name string) *Message {
+	name = strings.ToLower(name)
+	for _, message := range s.Messages {
+		if strings.ToLower(string(message.Name)) == name {
+			return message
+		}
+	}
+	return nil
+}
+
+func (s *WebRPCSchema) GetServiceByName(name string) *Service {
+	name = strings.ToLower(name)
+	for _, service := range s.Services {
+		if strings.ToLower(string(service.Name)) == name {
+			return service
+		}
+	}
+	return nil
+
 }

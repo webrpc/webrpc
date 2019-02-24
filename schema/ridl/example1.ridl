@@ -28,6 +28,16 @@ message GetUserRequest
   - userID: uint64
 
 
+message Role
+  - name: string
+
+  - users: map<uint64,User>
+
+  - perms: []string # comment
+
+  - other: map<uint64,map<string,string>> # comment
+
+
 message User
   - ID: uint64
     + json = id
@@ -44,17 +54,7 @@ message User
     + json = created_at
     + go.tag.json = created_at,omitempty
     + go.tag.db = created_at
-
-
-message Role
-  - name: string
-
-  - users: map<uint64,User>
-
-  - perms: []string # comment
-
-  - other: map<uint64,map<string,string>> # comment
-
+    
 
 message Notice
   - msg: string

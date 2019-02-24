@@ -47,40 +47,6 @@ func TestSchema(t *testing.T) {
 				]
 			},
 			{
-				"name": "User",
-				"type": "struct",
-				"fields": [
-					{
-						"name": "ID",
-						"type": "uint64",
-						"optional": false,
-						"meta": [
-							{ "json": "id" },
-							{ "go.tag.db": "id" }
-						]
-					},
-					{
-						"name": "username",
-						"type": "string",
-						"optional": false,
-						"meta": [
-							{ "json": "USERNAME" },
-							{ "go.tag.db": "username" }
-						]
-					},
-					{
-						"name": "createdAt",
-						"type": "timestamp",
-						"optional": true,
-						"meta": [
-							{ "go.tag.json": "created_at,omitempty" },
-							{ "go.tag.db": "created_at" }
-						]
-					}
-
-				]
-			},
-			{
 				"name": "RandomStuff",
 				"type": "struct",
 				"fields": [
@@ -120,6 +86,40 @@ func TestSchema(t *testing.T) {
 						"name": "user",
 						"type": "User"
 					}
+				]
+			},
+			{
+				"name": "User",
+				"type": "struct",
+				"fields": [
+					{
+						"name": "ID",
+						"type": "uint64",
+						"optional": false,
+						"meta": [
+							{ "json": "id" },
+							{ "go.tag.db": "id" }
+						]
+					},
+					{
+						"name": "username",
+						"type": "string",
+						"optional": false,
+						"meta": [
+							{ "json": "USERNAME" },
+							{ "go.tag.db": "username" }
+						]
+					},
+					{
+						"name": "createdAt",
+						"type": "timestamp",
+						"optional": true,
+						"meta": [
+							{ "go.tag.json": "created_at,omitempty" },
+							{ "go.tag.db": "created_at" }
+						]
+					}
+
 				]
 			}
 		],

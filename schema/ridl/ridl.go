@@ -64,11 +64,42 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 		}
 	}
 
+	// Init enum and message nodes
 	if len(p.tree.enums) > 0 {
 		if s.Messages == nil {
 			s.Messages = []*schema.Message{}
 		}
 		for _, enum := range p.tree.enums {
+			s.Messages = append(s.Messages, &schema.Message{
+				Name:     schema.VarName(enum.name.val),
+				Type:     schema.MessageType("enum"),
+				Fields:   nil,
+				EnumType: nil,
+			})
+		}
+	}
+	if len(p.tree.messages) > 0 {
+		if s.Messages == nil {
+			s.Messages = []*schema.Message{}
+		}
+		for _, message := range p.tree.messages {
+			s.Messages = append(s.Messages, &schema.Message{
+				Name:   schema.VarName(message.name.val),
+				Type:   schema.MessageType("struct"),
+				Fields: nil,
+			})
+		}
+	}
+
+	// Schema enum fields
+	if len(p.tree.enums) > 0 {
+		for _, enum := range p.tree.enums {
+			name := schema.VarName(enum.name.val)
+			messageDef := s.GetMessageByName(string(name))
+			if messageDef == nil {
+				return nil, fmt.Errorf("unexpected error, could not find definition for: %v", name)
+			}
+
 			fields := []*schema.MessageField{}
 
 			var varType schema.VarType
@@ -91,20 +122,20 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 				fields = append(fields, field)
 			}
 
-			s.Messages = append(s.Messages, &schema.Message{
-				Name:     schema.VarName(enum.name.val),
-				Type:     schema.MessageType("enum"),
-				Fields:   fields,
-				EnumType: &varType,
-			})
+			messageDef.Fields = fields
+			messageDef.EnumType = &varType
 		}
 	}
 
+	// Schema message fields
 	if len(p.tree.messages) > 0 {
-		if s.Messages == nil {
-			s.Messages = []*schema.Message{}
-		}
 		for _, message := range p.tree.messages {
+			name := schema.VarName(message.name.val)
+			messageDef := s.GetMessageByName(string(name))
+			if messageDef == nil {
+				return nil, fmt.Errorf("unexpected error, could not find definition for: %v", name)
+			}
+
 			fields := []*schema.MessageField{}
 
 			for i := range message.fields {
@@ -128,11 +159,7 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 				fields = append(fields, field)
 			}
 
-			s.Messages = append(s.Messages, &schema.Message{
-				Name:   schema.VarName(message.name.val),
-				Type:   schema.MessageType("struct"),
-				Fields: fields,
-			})
+			messageDef.Fields = fields
 		}
 	}
 
