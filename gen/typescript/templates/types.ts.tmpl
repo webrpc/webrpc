@@ -16,7 +16,7 @@ export enum {{$enumName}} {
 {{- if .Type | isStruct  }}
 export interface {{.Name | interfaceName}} {
   {{- range .Fields}}
-  {{. | exportedJSONField}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}
+  {{if . | exportableField -}}{{. | exportedJSONField}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}{{- end -}}
   {{- end}}
 }
 {{end -}}

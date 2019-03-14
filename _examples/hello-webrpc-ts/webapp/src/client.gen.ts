@@ -15,6 +15,7 @@ export interface User {
   USERNAME: string
   role: Kind
   meta: {[key: string]: any}
+  
   created_at?: string
 }
 

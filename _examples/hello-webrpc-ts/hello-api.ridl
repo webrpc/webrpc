@@ -20,6 +20,9 @@ message User
 
   - meta: map<string,any>
 
+  - internalID: uint64
+    + json = -
+
   - createdAt?: timestamp
     + json = created_at,omitempty
     + go.tag.db = created_at
