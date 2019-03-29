@@ -3,52 +3,76 @@ webrpc = v1             # version of webrpc schema format (ridl or json)
 name = example          # name if your backend app
 version = v0.0.1        # version of your app
 
-
 enum Kind: uint32
-  - USER
-  - ADMIN
-
-
-message Empty
-
+  - USER = 1
+  - ADMIN = 2
 
 message User
   - id: uint64
-    + json = id
-    + go.field.name = ID
-    + go.tag.db = id
-
   - username: string
-    + json = USERNAME
-    + go.tag.db = username
-
-  - role: string
-    + go.tag.db = -
-
+  - role: Kind
+  - meta: map<string,any>
   - createdAt?: timestamp
-    + json = created_at
-    + go.tag.json = created_at,omitempty
+    + json = created_at,omitempty
     + go.tag.db = created_at
 
+#message Message
+#  - hash: string
+#  - seq: uint64
+#  - msg: string
+#  - createdAt?: timestamp
 
-message SearchFilter
-  - q: string
+
+message ChatMsg
+  - channel: string
+  - from: User
+  - msg: string
 
 
-message ComplexType
-  - meta: map<string,any>
-  - metaNestedExample: map<string,map<string,uint32>>
-  - namesList: []string
-  - numsList: []int64
-  - doubleArray: [][]string
-  - listOfMaps: []map<string,uint32>
-  - listOfUsers: []User
-  - mapOfUsers: map<string,User>
-  - user: User
+#message ChatRequest
+#  - channel: string
+#  - from: User
+#  - msg: string
+#
+#message ChatResponse
+#  - 
+#
 
+# all methods available over http and websocket
 
 service ExampleService
-  - Ping()
-  - Status() => (status: bool)
-  - GetUser(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
-  - FindUser(s: SearchFilter) => (name: string, user: User)
+  - Ping() => (status: bool)
+  - GetUser(userID: uint64) => (user: User)
+
+  - Auth(t: string) => (status: bool)
+
+  - Chat(msg: stream ChatMsg) => (msg: stream ChatMsg)
+  #- Chat(msg: stream ChatRequest) => (msg: stream ChatResponse)
+  #- Challenge(msg: stream ChallengeRequest) => (msg: stream ChallengeResponse)
+
+
+  ##--
+
+  # client sends a message to the server
+  #- ChatSendMsg(msg: stream ChatMsg)                 # client ---------> server 
+  #- ChatRecvMsg() => (msg: stream ChatMsg)           # client <--------- server
+
+  #- ChallengeRecvMsg() => (msg: stream ChallengeMsg) # client <--------- server
+
+
+  # the issue with this syntax is we take multiple args..
+  #- Chat(sendMsg: stream ChatMsg) => (recvMsg: stream ChatMsg)
+
+  #so, prob should be ..
+  # - stream Chat(sendMsg: ChatMsg) => stream (recvMsg: ChatMsg)
+
+  # or.. for all combinations..
+  # - Chat(sendMsg: ChatMsg) <=> (recvMsg: ChatMsg)
+  # - Chat(clientMsg: ChatMsg) => ()
+  # - Chat() <= (serverMsg: ChatMsg)
+  # - Chat() streams (serverMsg: ChatMsg)
+
+  # and rpc could be ..
+  # - Chat(senMsg: ChatMsg) returns (recvMsg: ChatMsg)
+  # - Chat(senMsg: ChatMsg) -- (recvMsg: ChatMsg)
+  

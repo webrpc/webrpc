@@ -8,31 +8,34 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/webrpc/webrpc/lib/webrpc-go"
 )
 
 type Kind uint32
 
 const (
-	Kind_USER  Kind = 0
-	Kind_ADMIN Kind = 1
+	Kind_USER  Kind = 1
+	Kind_ADMIN Kind = 2
 )
 
 var Kind_name = map[uint32]string{
-	0: "USER",
-	1: "ADMIN",
+	1: "USER",
+	2: "ADMIN",
 }
 
 var Kind_value = map[string]uint32{
-	"USER":  0,
-	"ADMIN": 1,
+	"USER":  1,
+	"ADMIN": 2,
 }
 
 func (x Kind) String() string {
@@ -56,51 +59,139 @@ func (x *Kind) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type Empty struct {
-}
-
 type User struct {
-	ID        uint64     `json:"id" db:"id"`
-	Username  string     `json:"USERNAME" db:"username"`
-	Role      string     `json:"role" db:"-"`
-	CreatedAt *time.Time `json:"created_at,omitempty" db:"created_at"`
+	Id        uint64                 `json:"id"`
+	Username  string                 `json:"username"`
+	Role      *Kind                  `json:"role"`
+	Meta      map[string]interface{} `json:"meta"`
+	CreatedAt *time.Time             `json:"created_at,omitempty" db:"created_at"`
 }
 
-type SearchFilter struct {
-	Q string `json:"q"`
-}
-
-type ComplexType struct {
-	Meta              map[string]interface{}       `json:"meta"`
-	MetaNestedExample map[string]map[string]uint32 `json:"metaNestedExample"`
-	NamesList         []string                     `json:"namesList"`
-	NumsList          []int64                      `json:"numsList"`
-	DoubleArray       [][]string                   `json:"doubleArray"`
-	ListOfMaps        []map[string]uint32          `json:"listOfMaps"`
-	ListOfUsers       []*User                      `json:"listOfUsers"`
-	MapOfUsers        map[string]*User             `json:"mapOfUsers"`
-	User              *User                        `json:"user"`
+type ChatMsg struct {
+	Channel string `json:"channel"`
+	From    *User  `json:"from"`
+	Msg     string `json:"msg"`
 }
 
 type ExampleService interface {
-	Ping(ctx context.Context) error
-	Status(ctx context.Context) (bool, error)
-	GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error)
-	FindUser(ctx context.Context, s *SearchFilter) (string, *User, error)
+	Ping(ctx context.Context) (bool, error)
+	GetUser(ctx context.Context, userID uint64) (*User, error)
+	Auth(ctx context.Context, t string) (bool, error)
+	Chat(ctx context.Context, msg *ChatMsg) (*ChatMsg, error)
 }
+
+// type ExampleService2 interface {
+// 	Ping(ctx context.Context) (bool, error)
+// 	GetUser(ctx context.Context, userID uint64) (*User, error)
+// 	Auth(ctx context.Context, t string) (bool, error)
+//
+//  // client -- server
+// 	Chat(ctx context.Context) (*ChatStreamClient, error)
+// }
 
 var Services = map[string][]string{
 	"ExampleService": {
 		"Ping",
-		"Status",
 		"GetUser",
-		"FindUser",
+		"Auth",
+		"Chat",
 	},
 }
 
 // Client
 
 const ExampleServicePathPrefix = "/rpc/ExampleService/"
+
+type exampleServiceWSClient struct {
+	conn  *websocket.Conn
+	seqID int64
+}
+
+func NewExampleServiceWSClient(addr string) (ExampleService, error) {
+	u := url.URL{Scheme: "ws", Host: addr, Path: "/rpc/ExampleService"}
+	log.Printf("ws: connecting to %s", u.String())
+
+	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &exampleServiceWSClient{
+		conn: c,
+	}, nil
+}
+
+// --> {"jsonrpc": "2.0", "method": "subtract", "params": {"subtrahend": 23, "minuend": 42}, "id": 3}
+// <-- {"jsonrpc": "2.0", "result": 19, "id": 3}
+//
+// --> {"jsonrpc": "2.0", "method": "subtract", "params": {"minuend": 42, "subtrahend": 23}, "id": 4}
+// <-- {"jsonrpc": "2.0", "result": 19, "id": 4}
+
+type JSONRPCRequest struct {
+	Version string      `json:"jsonrpc"`
+	ID      int64       `json:"id"`
+	Method  string      `json:"method"`
+	Params  interface{} `json:"params"`
+}
+
+type JSONRPCResponse struct {
+	Version string      `json:"jsonrpc"`
+	ID      int64       `json:"id"`
+	Result  interface{} `json:"result"`
+}
+
+func (c *exampleServiceWSClient) Ping(ctx context.Context) (bool, error) {
+	// fnOut := struct {
+	// 	Ret0 bool `json:"status"`
+	// }{}
+
+	// err := doJSONRequest(ctx, c.client, c.urls[0], nil, &out)
+	// return out.Ret0, err
+
+	c.seqID += 1
+	reqId := c.seqID
+
+	req := JSONRPCRequest{
+		Version: "2.0",
+		ID:      reqId,
+		Method:  "Ping",
+		Params:  nil,
+	}
+
+	reqBody, err := json.Marshal(req)
+	if err != nil {
+		return false, clientError("failed to marshal json request", err)
+	}
+
+	err = c.conn.WriteMessage(websocket.TextMessage, reqBody)
+	if err != nil {
+		return false, err
+	}
+
+	// TODO: lets timeout for how long we wait, etc...
+	_, message, err := c.conn.ReadMessage()
+	if err != nil {
+		log.Println("read:", err)
+		return false, err
+	}
+	log.Printf("client recv: %s", message)
+
+	// TODO: unmarshal, tec...........
+
+	return false, nil
+}
+
+func (c *exampleServiceWSClient) GetUser(ctx context.Context, userID uint64) (*User, error) {
+	return nil, nil
+}
+
+func (c *exampleServiceWSClient) Auth(ctx context.Context, t string) (bool, error) {
+	return false, nil
+}
+
+func (c *exampleServiceWSClient) Chat(ctx context.Context, msg *ChatMsg) (*ChatMsg, error) {
+	return nil, nil
+}
 
 type exampleServiceClient struct {
 	client HTTPClient
@@ -111,9 +202,9 @@ func NewExampleServiceClient(addr string, client HTTPClient) ExampleService {
 	prefix := urlBase(addr) + ExampleServicePathPrefix
 	urls := [4]string{
 		prefix + "Ping",
-		prefix + "Status",
 		prefix + "GetUser",
-		prefix + "FindUser",
+		prefix + "Auth",
+		prefix + "Chat",
 	}
 	return &exampleServiceClient{
 		client: client,
@@ -121,57 +212,65 @@ func NewExampleServiceClient(addr string, client HTTPClient) ExampleService {
 	}
 }
 
-func (c *exampleServiceClient) Ping(ctx context.Context) error {
-
-	err := doJSONRequest(ctx, c.client, c.urls[0], nil, nil)
-	return err
-}
-
-func (c *exampleServiceClient) Status(ctx context.Context) (bool, error) {
+func (c *exampleServiceClient) Ping(ctx context.Context) (bool, error) {
 	out := struct {
 		Ret0 bool `json:"status"`
 	}{}
 
-	err := doJSONRequest(ctx, c.client, c.urls[1], nil, &out)
+	err := doJSONRequest(ctx, c.client, c.urls[0], nil, &out)
 	return out.Ret0, err
 }
 
-func (c *exampleServiceClient) GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error) {
+func (c *exampleServiceClient) GetUser(ctx context.Context, userID uint64) (*User, error) {
 	in := struct {
-		Arg0 map[string]string `json:"header"`
-		Arg1 uint64            `json:"userID"`
-	}{header, userID}
+		Arg0 uint64 `json:"userID"`
+	}{userID}
 	out := struct {
-		Ret0 uint32 `json:"code"`
-		Ret1 *User  `json:"user"`
+		Ret0 *User `json:"user"`
+	}{}
+
+	err := doJSONRequest(ctx, c.client, c.urls[1], in, &out)
+	return out.Ret0, err
+}
+
+func (c *exampleServiceClient) Auth(ctx context.Context, t string) (bool, error) {
+	in := struct {
+		Arg0 string `json:"t"`
+	}{t}
+	out := struct {
+		Ret0 bool `json:"status"`
 	}{}
 
 	err := doJSONRequest(ctx, c.client, c.urls[2], in, &out)
-	return out.Ret0, out.Ret1, err
+	return out.Ret0, err
 }
 
-func (c *exampleServiceClient) FindUser(ctx context.Context, s *SearchFilter) (string, *User, error) {
+func (c *exampleServiceClient) Chat(ctx context.Context, msg *ChatMsg) (*ChatMsg, error) {
 	in := struct {
-		Arg0 *SearchFilter `json:"s"`
-	}{s}
+		Arg0 *ChatMsg `json:"msg"`
+	}{msg}
 	out := struct {
-		Ret0 string `json:"name"`
-		Ret1 *User  `json:"user"`
+		Ret0 *ChatMsg `json:"msg"`
 	}{}
 
 	err := doJSONRequest(ctx, c.client, c.urls[3], in, &out)
-	return out.Ret0, out.Ret1, err
+	return out.Ret0, err
 }
 
 // Server
 
 type exampleServiceServer struct {
 	ExampleService
+	wsUpgrader websocket.Upgrader
 }
 
 func NewExampleServiceServer(svc ExampleService) WebRPCServer {
 	return &exampleServiceServer{
 		ExampleService: svc,
+		wsUpgrader: websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+		},
 	}
 }
 
@@ -188,30 +287,117 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	ctx = webrpc.WithResponseWriter(ctx, w)
 	ctx = webrpc.WithServiceName(ctx, "ExampleService")
 
+	// websocket upgrade
+	if r.URL.Path == "/rpc/ExampleService" {
+		// GET method
+		s.upgradeToWebsocket(ctx, w, r)
+		return
+	}
+
+	// http
 	if r.Method != "POST" {
 		err := webrpc.Errorf(webrpc.ErrBadRoute, "unsupported method %q (only POST is allowed)", r.Method)
 		writeJSONError(ctx, w, r, err)
 		return
 	}
 
+	// TODO: could also just have..
+	// /rpc/ExampleService/Call
+	// /rpc/ExampleService/Connect
+
+	// but how about http2? prob best to use json-rpc everywhere...
+
+	// and using json-rpc, we include the method and args, etc......
+	// its an idea anyways......
+
 	switch r.URL.Path {
 	case "/rpc/ExampleService/Ping":
 		s.servePing(ctx, w, r)
 		return
-	case "/rpc/ExampleService/Status":
-		s.serveStatus(ctx, w, r)
-		return
 	case "/rpc/ExampleService/GetUser":
 		s.serveGetUser(ctx, w, r)
 		return
-	case "/rpc/ExampleService/FindUser":
-		s.serveFindUser(ctx, w, r)
+	case "/rpc/ExampleService/Auth":
+		s.serveAuth(ctx, w, r)
+		return
+	case "/rpc/ExampleService/Chat":
+		s.serveChat(ctx, w, r)
 		return
 	default:
 		err := webrpc.Errorf(webrpc.ErrBadRoute, "no handler for path %q", r.URL.Path)
 		writeJSONError(ctx, w, r, err)
 		return
 	}
+}
+
+func (s *exampleServiceServer) upgradeToWebsocket(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	conn, err := s.wsUpgrader.Upgrade(w, r, nil)
+	if err != nil {
+		// TODO: ensure we respond with error -- prob assumee Upgrader does this for us ..
+		log.Println("upgrade", err)
+		return
+	}
+	defer conn.Close()
+	for {
+		// request
+		mt, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("read:", err)
+			// break
+		}
+		log.Printf("server recv: %s", message)
+
+		if websocket.TextMessage != mt {
+			log.Println("invalid message type..", mt)
+			// options:
+			// TextMessage = 1
+			// BinaryMessage = 2
+			// CloseMessage = 8
+			// PingMessage = 9
+			// PongMessage = 10
+
+			// TODO: check for various, and handle type, ie. ping/pong/close
+			// skip binary for now..
+			break
+		}
+
+		// TODO: client cancel, timeout, etc.......
+		// encoding like gzip..?
+		// and send binary etc...? maybe.......
+		// for encrypted messaging.. data will be binary
+		// so, can prob use WriteMessage() with Binary encoding
+		// pretty fine.. json unmarshaller tho?
+
+		// handle
+		var req JSONRPCRequest
+		err = json.Unmarshal(message, &req)
+		if err != nil {
+			log.Println("server handle/parse err", err)
+			break
+		}
+
+		log.Println("handle......................", req)
+
+		// response
+		resp := JSONRPCResponse{
+			Version: "2.0",
+			ID:      req.ID,
+			Result:  "reply..........",
+		}
+
+		respBody, err := json.Marshal(resp)
+		if err != nil {
+			log.Println("server marshal error", err)
+			break
+		}
+
+		err = conn.WriteMessage(mt, respBody)
+		if err != nil {
+			log.Println("write:", err)
+			break
+		}
+	}
+	fmt.Println("upgrade end")
 }
 
 func (s *exampleServiceServer) servePing(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -235,47 +421,6 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 	ctx = webrpc.WithMethodName(ctx, "Ping")
 
 	// Call service method
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if rr := recover(); rr != nil {
-				writeJSONError(ctx, w, r, webrpc.ErrorInternal("internal service panic"))
-				panic(rr)
-			}
-		}()
-		err = s.ExampleService.Ping(ctx)
-	}()
-
-	if err != nil {
-		writeJSONError(ctx, w, r, err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-}
-
-func (s *exampleServiceServer) serveStatus(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Content-Type")
-	i := strings.Index(header, ";")
-	if i == -1 {
-		i = len(header)
-	}
-
-	switch strings.TrimSpace(strings.ToLower(header[:i])) {
-	case "application/json":
-		s.serveStatusJSON(ctx, w, r)
-	default:
-		err := webrpc.Errorf(webrpc.ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
-		writeJSONError(ctx, w, r, err)
-	}
-}
-
-func (s *exampleServiceServer) serveStatusJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	var err error
-	ctx = webrpc.WithMethodName(ctx, "Status")
-
-	// Call service method
 	var ret0 bool
 	func() {
 		defer func() {
@@ -285,7 +430,7 @@ func (s *exampleServiceServer) serveStatusJSON(ctx context.Context, w http.Respo
 				panic(rr)
 			}
 		}()
-		ret0, err = s.ExampleService.Status(ctx)
+		ret0, err = s.ExampleService.Ping(ctx)
 	}()
 	respContent := struct {
 		Ret0 bool `json:"status"`
@@ -327,8 +472,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	var err error
 	ctx = webrpc.WithMethodName(ctx, "GetUser")
 	reqContent := struct {
-		Arg0 map[string]string `json:"header"`
-		Arg1 uint64            `json:"userID"`
+		Arg0 uint64 `json:"userID"`
 	}{}
 
 	reqBody, err := ioutil.ReadAll(r.Body)
@@ -347,8 +491,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	}
 
 	// Call service method
-	var ret0 uint32
-	var ret1 *User
+	var ret0 *User
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -357,12 +500,11 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 				panic(rr)
 			}
 		}()
-		ret0, ret1, err = s.ExampleService.GetUser(ctx, reqContent.Arg0, reqContent.Arg1)
+		ret0, err = s.ExampleService.GetUser(ctx, reqContent.Arg0)
 	}()
 	respContent := struct {
-		Ret0 uint32 `json:"code"`
-		Ret1 *User  `json:"user"`
-	}{ret0, ret1}
+		Ret0 *User `json:"user"`
+	}{ret0}
 
 	if err != nil {
 		writeJSONError(ctx, w, r, err)
@@ -380,7 +522,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	w.Write(respBody)
 }
 
-func (s *exampleServiceServer) serveFindUser(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *exampleServiceServer) serveAuth(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	header := r.Header.Get("Content-Type")
 	i := strings.Index(header, ";")
 	if i == -1 {
@@ -389,18 +531,18 @@ func (s *exampleServiceServer) serveFindUser(ctx context.Context, w http.Respons
 
 	switch strings.TrimSpace(strings.ToLower(header[:i])) {
 	case "application/json":
-		s.serveFindUserJSON(ctx, w, r)
+		s.serveAuthJSON(ctx, w, r)
 	default:
 		err := webrpc.Errorf(webrpc.ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
 		writeJSONError(ctx, w, r, err)
 	}
 }
 
-func (s *exampleServiceServer) serveFindUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *exampleServiceServer) serveAuthJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var err error
-	ctx = webrpc.WithMethodName(ctx, "FindUser")
+	ctx = webrpc.WithMethodName(ctx, "Auth")
 	reqContent := struct {
-		Arg0 *SearchFilter `json:"s"`
+		Arg0 string `json:"t"`
 	}{}
 
 	reqBody, err := ioutil.ReadAll(r.Body)
@@ -419,8 +561,7 @@ func (s *exampleServiceServer) serveFindUserJSON(ctx context.Context, w http.Res
 	}
 
 	// Call service method
-	var ret0 string
-	var ret1 *User
+	var ret0 bool
 	func() {
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
@@ -429,12 +570,81 @@ func (s *exampleServiceServer) serveFindUserJSON(ctx context.Context, w http.Res
 				panic(rr)
 			}
 		}()
-		ret0, ret1, err = s.ExampleService.FindUser(ctx, reqContent.Arg0)
+		ret0, err = s.ExampleService.Auth(ctx, reqContent.Arg0)
 	}()
 	respContent := struct {
-		Ret0 string `json:"name"`
-		Ret1 *User  `json:"user"`
-	}{ret0, ret1}
+		Ret0 bool `json:"status"`
+	}{ret0}
+
+	if err != nil {
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+	respBody, err := json.Marshal(respContent)
+	if err != nil {
+		err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to marshal json response")
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(respBody)
+}
+
+func (s *exampleServiceServer) serveChat(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	header := r.Header.Get("Content-Type")
+	i := strings.Index(header, ";")
+	if i == -1 {
+		i = len(header)
+	}
+
+	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	case "application/json":
+		s.serveChatJSON(ctx, w, r)
+	default:
+		err := webrpc.Errorf(webrpc.ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
+		writeJSONError(ctx, w, r, err)
+	}
+}
+
+func (s *exampleServiceServer) serveChatJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	var err error
+	ctx = webrpc.WithMethodName(ctx, "Chat")
+	reqContent := struct {
+		Arg0 *ChatMsg `json:"msg"`
+	}{}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		err = webrpc.WrapError(webrpc.ErrInternal, err, "failed to read request data")
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+	defer r.Body.Close()
+
+	err = json.Unmarshal(reqBody, &reqContent)
+	if err != nil {
+		err = webrpc.WrapError(webrpc.ErrInvalidArgument, err, "failed to unmarshal request data")
+		writeJSONError(ctx, w, r, err)
+		return
+	}
+
+	// Call service method
+	var ret0 *ChatMsg
+	func() {
+		defer func() {
+			// In case of a panic, serve a 500 error and then panic.
+			if rr := recover(); rr != nil {
+				writeJSONError(ctx, w, r, webrpc.ErrorInternal("internal service panic"))
+				panic(rr)
+			}
+		}()
+		ret0, err = s.ExampleService.Chat(ctx, reqContent.Arg0)
+	}()
+	respContent := struct {
+		Ret0 *ChatMsg `json:"msg"`
+	}{ret0}
 
 	if err != nil {
 		writeJSONError(ctx, w, r, err)
