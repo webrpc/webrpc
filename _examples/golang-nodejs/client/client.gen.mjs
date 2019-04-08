@@ -155,9 +155,6 @@ export class RandomStuff {
 
   
 // Client
-
-const ExampleServicePathPrefix = "/rpc/ExampleService/"
-
 export class ExampleService {
   constructor(hostname, fetch) {
     this.path = '/rpc/ExampleService/';

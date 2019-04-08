@@ -2,9 +2,6 @@
 
 {{- if .Services}}
 // Client
-{{range .Services}}
-const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
-{{end}}
 
 {{- range .Services}}
 {{exportKeyword}}class {{.Name}} {

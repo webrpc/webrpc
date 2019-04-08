@@ -59,9 +59,6 @@ class User {
 
   
 // Client
-
-const ExampleServicePathPrefix = "/rpc/ExampleService/"
-
 class ExampleService {
   constructor(hostname, fetch) {
     this.path = '/rpc/ExampleService/';
