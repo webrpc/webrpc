@@ -526,6 +526,8 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+const requestHeaderKey = "requestHeaderKey"
+
 type WebRPCServer interface {
 	http.Handler
 	WebRPCVersion() string
@@ -668,8 +670,6 @@ func errorFromResponse(resp *http.Response) webrpc.Error {
 func clientError(desc string, err error) webrpc.Error {
 	return webrpc.WrapError(webrpc.ErrInternal, err, desc)
 }
-
-const requestHeaderKey = "requestHeaderKey"
 
 func WithHTTPRequestHeaders(ctx context.Context, h http.Header) (context.Context, error) {
 	// stolen from https://github.com/twitchtv/twirp/blob/master/context.go

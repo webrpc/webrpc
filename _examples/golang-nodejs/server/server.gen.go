@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -271,6 +272,8 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+const requestHeaderKey = "requestHeaderKey"
+
 type WebRPCServer interface {
 	http.Handler
 	WebRPCVersion() string
@@ -327,6 +330,13 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 	}
 	req.Header.Set("Accept", contentType)
 	req.Header.Set("Content-Type", contentType)
+	if headers, ok := HTTPRequestHeaders(ctx); ok {
+		for k := range headers {
+			for _, v := range headers[k] {
+				req.Header.Add(k, v)
+			}
+		}
+	}
 	return req, nil
 }
 
@@ -405,4 +415,32 @@ func errorFromResponse(resp *http.Response) webrpc.Error {
 
 func clientError(desc string, err error) webrpc.Error {
 	return webrpc.WrapError(webrpc.ErrInternal, err, desc)
+}
+
+func WithHTTPRequestHeaders(ctx context.Context, h http.Header) (context.Context, error) {
+	// stolen from https://github.com/twitchtv/twirp/blob/master/context.go
+	if _, ok := h["Accept"]; ok {
+		return nil, errors.New("provided header cannot set Accept")
+	}
+	if _, ok := h["Content-Type"]; ok {
+		return nil, errors.New("provided header cannot set Content-Type")
+	}
+
+	copied := make(http.Header, len(h))
+	for k, vv := range h {
+		if vv == nil {
+			copied[k] = nil
+			continue
+		}
+		copied[k] = make([]string, len(vv))
+		copy(copied[k], vv)
+	}
+
+	return context.WithValue(ctx, requestHeaderKey, copied), nil
+}
+
+func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
+	// stolen from https://github.com/twitchtv/twirp/blob/master/context.go
+	h, ok := ctx.Value(requestHeaderKey).(http.Header)
+	return h, ok
 }
