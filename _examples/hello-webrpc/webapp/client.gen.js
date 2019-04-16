@@ -114,7 +114,15 @@ class ExampleService {
 
 
 const throwHTTPError = (resp) => {
-  return resp.json().then((err) => { throw err; });
+  return resp.text().then(text => {
+    try {
+      const err = JSON.parse(text)
+
+      throw err
+    } catch (err) {
+      throw new Error(text);
+    }
+  })
 }
 
 const createHTTPRequest = (body = {}, headers = {}) => {
