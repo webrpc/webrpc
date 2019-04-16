@@ -1,7 +1,7 @@
 {{define "server"}}
 
 {{- if .Services}}
-class WebRPCError extends Error {
+export class WebRPCError extends Error {
     statusCode?: number
 
     constructor(msg: string = "error", statusCode?: number) {
@@ -17,7 +17,7 @@ import express from 'express'
         {{$name := .Name}}
         {{$serviceName := .Name | serviceInterfaceName}}
 
-        type {{$serviceName}}Service = {
+        export type {{$serviceName}}Service = {
             {{range .Methods}}
                 {{.Name}}: (args: {{.Name}}Args) => {{.Name}}Return | Promise<{{.Name}}Return>
             {{end}}
@@ -49,8 +49,8 @@ import express from 'express'
                                     }
                                 {{end -}}
 
-                                if (typeof req.body["{{.Name}}"] !== "{{ .Type | jsFieldType }}") {
-                                    throw new WebRPCError("Invalid arg: {{ .Name }}, got type " + typeof req.body["{{ .Name }}"] + " expected " + "{{ .Type | jsFieldType }}", 400);
+                                if ("{{ .Name }}" in req.body && !validateType(req.body["{{ .Name }}"], "{{ .Type }}")) {
+                                    throw new WebRPCError("Invalid arg: {{ .Name }}")
                                 }
                             {{end}}
 

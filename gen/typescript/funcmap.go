@@ -32,6 +32,15 @@ func jsFieldType(in *schema.VarType) (string, error) {
 	case schema.T_Map:
 		return "object", nil
 
+	case schema.T_List:
+		z, err := fieldType(in.List.Elem)
+
+		if err != nil {
+			return "", err
+		}
+
+		return z + "[]", nil
+
 	case schema.T_Struct:
 		return in.Struct.Name, nil
 
