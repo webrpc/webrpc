@@ -61,7 +61,7 @@ export interface GetUserReturn {
 
 
   
-class WebRPCError extends Error {
+export class WebRPCError extends Error {
     statusCode?: number
 
     constructor(msg: string = "error", statusCode?: number) {
@@ -75,7 +75,7 @@ import express from 'express'
         
         
 
-        type ExampleServiceService = {
+        export type ExampleServiceService = {
             
                 Ping: (args: PingArgs) => PingReturn | Promise<PingReturn>
             
@@ -184,15 +184,15 @@ import express from 'express'
                                     if (!("header" in req.body)) {
                                         throw new WebRPCError("Missing Argument `header`")
                                     }
-                                if (typeof req.body["header"] !== "object") {
-                                    throw new WebRPCError("Invalid arg: header, got type " + typeof req.body["header"] + " expected " + "object", 400);
+                                if ("header" in req.body && !validateType(req.body["header"], "map<string,string>")) {
+                                    throw new WebRPCError("Invalid arg: header")
                                 }
                             
                                     if (!("userID" in req.body)) {
                                         throw new WebRPCError("Missing Argument `userID`")
                                     }
-                                if (typeof req.body["userID"] !== "number") {
-                                    throw new WebRPCError("Invalid arg: userID, got type " + typeof req.body["userID"] + " expected " + "number", 400);
+                                if ("userID" in req.body && !validateType(req.body["userID"], "uint64")) {
+                                    throw new WebRPCError("Invalid arg: userID")
                                 }
                             
 
@@ -244,3 +244,159 @@ import express from 'express'
 
             return app;
         };
+
+  
+
+const JS_TYPES = [
+    "bigint",
+    "boolean",
+    "function",
+    "number",
+    "object",
+    "string",
+    "symbol",
+    "undefined"
+]
+
+
+    const validateKind = (value: any) => {
+        
+            
+                if (!("USER" in value) || !validateType(value["USER"], "number")) {
+                    return false
+                }
+            
+        
+            
+                if (!("ADMIN" in value) || !validateType(value["ADMIN"], "number")) {
+                    return false
+                }
+            
+        
+
+        return true
+    }
+
+    const validateEmpty = (value: any) => {
+        
+
+        return true
+    }
+
+    const validateUser = (value: any) => {
+        
+            
+                if (!("id" in value) || !validateType(value["id"], "number")) {
+                    return false
+                }
+            
+        
+            
+                if (!("USERNAME" in value) || !validateType(value["USERNAME"], "string")) {
+                    return false
+                }
+            
+        
+            
+                if (!("role" in value) || !validateType(value["role"], "string")) {
+                    return false
+                }
+            
+        
+            
+                if ("created_at" in value && !validateType(value["created_at"], "string")) {
+                    return false
+                }
+            
+        
+
+        return true
+    }
+
+    const validateComplexType = (value: any) => {
+        
+            
+                if (!("meta" in value) || !validateType(value["meta"], "object")) {
+                    return false
+                }
+            
+        
+            
+                if (!("metaNestedExample" in value) || !validateType(value["metaNestedExample"], "object")) {
+                    return false
+                }
+            
+        
+            
+                if (!("namesList" in value) || !validateType(value["namesList"], "string[]")) {
+                    return false
+                }
+            
+        
+            
+                if (!("numsList" in value) || !validateType(value["numsList"], "number[]")) {
+                    return false
+                }
+            
+        
+            
+                if (!("doubleArray" in value) || !validateType(value["doubleArray"], "Array<string>[]")) {
+                    return false
+                }
+            
+        
+            
+                if (!("listOfMaps" in value) || !validateType(value["listOfMaps"], "{[key: string]: number}[]")) {
+                    return false
+                }
+            
+        
+            
+                if (!("listOfUsers" in value) || !validateType(value["listOfUsers"], "User[]")) {
+                    return false
+                }
+            
+        
+            
+                if (!("mapOfUsers" in value) || !validateType(value["mapOfUsers"], "object")) {
+                    return false
+                }
+            
+        
+            
+                if (!("user" in value) || !validateType(value["user"], "User")) {
+                    return false
+                }
+            
+        
+
+        return true
+    }
+
+
+const TYPE_VALIDATORS: { [type: string]: (value: any) => boolean } = {
+    
+        Kind: validateKind,
+    
+        Empty: validateEmpty,
+    
+        User: validateUser,
+    
+        ComplexType: validateComplexType,
+    
+}
+
+const validateType = (value: any, type: string) => {
+    if (JS_TYPES.indexOf(type) > -1) {
+        return typeof value === type;
+    }
+
+    const validator = TYPE_VALIDATORS[type];
+
+    if (!validator) {
+        return false;
+    }
+
+    return validator(value);
+}
+
