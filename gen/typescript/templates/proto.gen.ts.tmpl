@@ -8,9 +8,9 @@
 {{template "types" .}}
 {{- if .TargetOpts.Client}}
   {{template "client" .}}
+  {{template "client_helpers" .}}
 {{- end}}
 {{- if .TargetOpts.Server}}
   {{template "server" .}}
 {{- end}}
-{{template "helpers" .}}
 {{- end}}

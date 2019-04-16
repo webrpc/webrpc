@@ -1,5 +1,87 @@
 {{define "server"}}
+
 {{- if .Services}}
-// TODO: Server
+class WebRPCError extends Error {
+    statusCode?: number
+
+    constructor(msg: string = "error", statusCode?: number) {
+        super("webrpc eror: " + msg);
+
+        this.statusCode = statusCode
+    }
+}
+
+import express from 'express'
+
+    {{- range .Services}}
+        {{$name := .Name}}
+        {{$serviceName := .Name | serviceInterfaceName}}
+
+        type {{$serviceName}}Service = {
+            {{range .Methods}}
+                {{.Name}}: (args: {{.Name}}Args) => {{.Name}}Return | Promise<{{.Name}}Return>
+            {{end}}
+        }
+
+        export const create{{$serviceName}}App = (serviceImplementation: {{$serviceName}}Service) => {
+            const app = express();
+
+            app.post('/*', async (req, res) => {
+                const requestPath = req.baseUrl + req.path
+
+                switch(requestPath) {
+                    {{range .Methods}}
+
+                    case "/rpc/{{$name}}/{{.Name}}": {                        
+                        try {
+                            {{ range .Inputs }}
+                                if (!req.body["{{.Name}}"] || typeof req.body["{{.Name}}"] !== "{{ .Type | jsFieldType }}") {
+                                    throw new WebRPCError("Invalid arg: {{ .Name }}, got type " + typeof req.body["{{ .Name }}"] + " expected " + "{{ .Type | jsFieldType }}", 400);
+                                }
+                            {{end}}
+
+                            const response = await serviceImplementation["{{.Name}}"](req.body);
+
+                            {{ range .Outputs}}
+                                if (!response["{{ .Name }}"]) {
+                                    throw new WebRPCError("internal", 500);
+                                }
+                            {{end}}
+
+                            res.status(200).json(response);
+                        } catch (err) {
+                            if (err instanceof WebRPCError) {
+                                const statusCode = err.statusCode || 400
+                                const message = err.message
+
+                                res.status(statusCode).json({
+                                    msg: message,
+                                    status: statusCode,
+                                    code: ""
+                                });
+
+                                return
+                            }
+
+                            if (err.message) {
+                                res.status(400).send(err.message);
+
+                                return;
+                            }
+
+                            res.status(400).end();
+                        }
+                    }
+                    {{end}}
+
+                    default: {
+                        res.status(404).end()
+                    }
+                }
+            });
+
+            return app;
+        };
+    {{- end}}
 {{end -}}
 {{end}}
