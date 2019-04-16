@@ -3,7 +3,7 @@ all:
 
 generate:
 	../../bin/webrpc-gen -schema=example.webrpc.json -target=ts -server -out=./server/server.gen.ts
-	../../bin/webrpc-gen -schema=example.webrpc.json -target=ts -client -out=./client/client.gen.ts
+	../../bin/webrpc-gen -schema=example.webrpc.json -target=ts -client -out=./webapp/client.gen.ts
 
 run-server:
 	# go run ./server

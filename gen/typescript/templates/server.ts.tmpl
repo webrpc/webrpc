@@ -26,8 +26,16 @@ import express from 'express'
         export const create{{$serviceName}}App = (serviceImplementation: {{$serviceName}}Service) => {
             const app = express();
 
+            app.use(express.json())
+
             app.post('/*', async (req, res) => {
                 const requestPath = req.baseUrl + req.path
+
+                if (!req.body) {
+                    res.status(400).send("webrpc error: missing body");
+
+                    return
+                }
 
                 switch(requestPath) {
                     {{range .Methods}}
@@ -35,7 +43,13 @@ import express from 'express'
                     case "/rpc/{{$name}}/{{.Name}}": {                        
                         try {
                             {{ range .Inputs }}
-                                if (!req.body["{{.Name}}"] || typeof req.body["{{.Name}}"] !== "{{ .Type | jsFieldType }}") {
+                                {{- if not .Optional}}
+                                    if (!("{{ .Name }}" in req.body)) {
+                                        throw new WebRPCError("Missing Argument `{{ .Name }}`")
+                                    }
+                                {{end -}}
+
+                                if (typeof req.body["{{.Name}}"] !== "{{ .Type | jsFieldType }}") {
                                     throw new WebRPCError("Invalid arg: {{ .Name }}, got type " + typeof req.body["{{ .Name }}"] + " expected " + "{{ .Type | jsFieldType }}", 400);
                                 }
                             {{end}}
@@ -43,7 +57,7 @@ import express from 'express'
                             const response = await serviceImplementation["{{.Name}}"](req.body);
 
                             {{ range .Outputs}}
-                                if (!response["{{ .Name }}"]) {
+                                if (!("{{ .Name }}" in response)) {
                                     throw new WebRPCError("internal", 500);
                                 }
                             {{end}}
@@ -72,6 +86,8 @@ import express from 'express'
                             res.status(400).end();
                         }
                     }
+
+                    return;
                     {{end}}
 
                     default: {
