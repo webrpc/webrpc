@@ -88,8 +88,16 @@ import express from 'express'
         export const createExampleServiceApp = (serviceImplementation: ExampleServiceService) => {
             const app = express();
 
+            app.use(express.json())
+
             app.post('/*', async (req, res) => {
                 const requestPath = req.baseUrl + req.path
+
+                if (!req.body) {
+                    res.status(400).send("webrpc error: missing body");
+
+                    return
+                }
 
                 switch(requestPath) {
                     
@@ -126,6 +134,8 @@ import express from 'express'
                             res.status(400).end();
                         }
                     }
+
+                    return;
                     
 
                     case "/rpc/ExampleService/Status": {                        
@@ -135,7 +145,7 @@ import express from 'express'
                             const response = await serviceImplementation["Status"](req.body);
 
                             
-                                if (!response["status"]) {
+                                if (!("status" in response)) {
                                     throw new WebRPCError("internal", 500);
                                 }
                             
@@ -164,16 +174,24 @@ import express from 'express'
                             res.status(400).end();
                         }
                     }
+
+                    return;
                     
 
                     case "/rpc/ExampleService/GetUser": {                        
                         try {
                             
-                                if (!req.body["header"] || typeof req.body["header"] !== "object") {
+                                    if (!("header" in req.body)) {
+                                        throw new WebRPCError("Missing Argument `header`")
+                                    }
+                                if (typeof req.body["header"] !== "object") {
                                     throw new WebRPCError("Invalid arg: header, got type " + typeof req.body["header"] + " expected " + "object", 400);
                                 }
                             
-                                if (!req.body["userID"] || typeof req.body["userID"] !== "number") {
+                                    if (!("userID" in req.body)) {
+                                        throw new WebRPCError("Missing Argument `userID`")
+                                    }
+                                if (typeof req.body["userID"] !== "number") {
                                     throw new WebRPCError("Invalid arg: userID, got type " + typeof req.body["userID"] + " expected " + "number", 400);
                                 }
                             
@@ -181,11 +199,11 @@ import express from 'express'
                             const response = await serviceImplementation["GetUser"](req.body);
 
                             
-                                if (!response["code"]) {
+                                if (!("code" in response)) {
                                     throw new WebRPCError("internal", 500);
                                 }
                             
-                                if (!response["user"]) {
+                                if (!("user" in response)) {
                                     throw new WebRPCError("internal", 500);
                                 }
                             
@@ -214,6 +232,8 @@ import express from 'express'
                             res.status(400).end();
                         }
                     }
+
+                    return;
                     
 
                     default: {
