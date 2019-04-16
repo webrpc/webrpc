@@ -6,7 +6,7 @@ generate:
 	../../bin/webrpc-gen -schema=example.webrpc.json -target=ts -client -out=./webapp/client.gen.ts
 
 run-server:
-	# go run ./server
+	yarn start
 
 run-client:
-	cd ./client && npm start
+	yarn --cwd ./webapp start

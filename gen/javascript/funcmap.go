@@ -9,6 +9,25 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
+var fieldTypeMap = map[schema.DataType]string{
+	schema.T_Uint8:     "number",
+	schema.T_Uint16:    "number",
+	schema.T_Uint32:    "number",
+	schema.T_Uint64:    "number",
+	schema.T_Int8:      "number",
+	schema.T_Int16:     "number",
+	schema.T_Int32:     "number",
+	schema.T_Int64:     "number",
+	schema.T_Float32:   "number",
+	schema.T_Float64:   "number",
+	schema.T_String:    "string",
+	schema.T_Timestamp: "string",
+	schema.T_Null:      "null",
+	schema.T_Any:       "any",
+	schema.T_Byte:      "string",
+	schema.T_Bool:      "boolean",
+}
+
 func fieldConcreteType(in *schema.VarType) (string, error) {
 	switch in.Type {
 	case schema.T_Struct:
@@ -133,6 +152,33 @@ func exportKeyword(opts gen.TargetOptions) func() string {
 	}
 }
 
+func serverServiceName(in schema.VarName) (string, error) {
+	s := string(in)
+	return strings.ToLower(s[0:1]) + s[1:] + "Server", nil
+}
+
+func jsFieldType(in *schema.VarType) (string, error) {
+	switch in.Type {
+	case schema.T_Map:
+		return "object", nil
+
+	case schema.T_Struct:
+		return in.Struct.Name, nil
+
+	default:
+		if fieldTypeMap[in.Type] != "" {
+			return fieldTypeMap[in.Type], nil
+		}
+	}
+
+	return "", fmt.Errorf("could not represent type: %#v", in)
+}
+
+func serviceInterfaceName(in schema.VarName) (string, error) {
+	s := string(in)
+	return s, nil
+}
+
 func templateFuncMap(opts gen.TargetOptions) map[string]interface{} {
 	return map[string]interface{}{
 		"constPathPrefix":      constPathPrefix,
@@ -145,5 +191,8 @@ func templateFuncMap(opts gen.TargetOptions) map[string]interface{} {
 		"exportedJSONField":    exportedJSONField,
 		"newOutputArgResponse": newOutputArgResponse,
 		"exportKeyword":        exportKeyword(opts),
+		"serverServiceName":    serverServiceName,
+		"jsFieldType":          jsFieldType,
+		"serviceInterfaceName": serviceInterfaceName,
 	}
 }
