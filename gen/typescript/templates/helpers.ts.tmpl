@@ -9,12 +9,16 @@ export const throwHTTPError = (resp: Response) => {
   return resp.json().then((err: WebRPCError) => { throw err })
 }
 
-export const createHTTPRequest = (body: object = {}, headers: object = {}): object => {
-  return {
-    method: 'POST',
-    headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body || {})
-  }
+export const throwHTTPError = (resp: Response) => {
+  return resp.text().then(text => {
+    try {
+      const err = JSON.parse(text)
+
+      throw err
+    } catch (err) {
+      throw new Error(text);
+    }
+  })
 }
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>

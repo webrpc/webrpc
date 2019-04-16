@@ -1,7 +1,15 @@
 {{define "helpers"}}
 
-{{exportKeyword}}const throwHTTPError = (resp) => {
-  return resp.json().then((err) => { throw err; });
+{{ exportKeyword }}const throwHTTPError = (resp) => {
+  return resp.text().then(text => {
+    try {
+      const err = JSON.parse(text)
+
+      throw err
+    } catch (err) {
+      throw new Error(text);
+    }
+  })
 }
 
 {{exportKeyword}}const createHTTPRequest = (body = {}, headers = {}) => {
