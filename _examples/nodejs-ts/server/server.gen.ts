@@ -184,14 +184,14 @@ import express from 'express'
                                     if (!("header" in req.body)) {
                                         throw new WebRPCError("Missing Argument `header`")
                                     }
-                                if ("header" in req.body && !validateType(req.body["header"], "map<string,string>")) {
+                                if ("header" in req.body && !validateType(req.body["header"], "object")) {
                                     throw new WebRPCError("Invalid arg: header")
                                 }
                             
                                     if (!("userID" in req.body)) {
                                         throw new WebRPCError("Missing Argument `userID`")
                                     }
-                                if ("userID" in req.body && !validateType(req.body["userID"], "uint64")) {
+                                if ("userID" in req.body && !validateType(req.body["userID"], "number")) {
                                     throw new WebRPCError("Invalid arg: userID")
                                 }
                             

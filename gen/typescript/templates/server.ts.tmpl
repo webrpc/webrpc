@@ -49,7 +49,7 @@ import express from 'express'
                                     }
                                 {{end -}}
 
-                                if ("{{ .Name }}" in req.body && !validateType(req.body["{{ .Name }}"], "{{ .Type }}")) {
+                                if ("{{ .Name }}" in req.body && !validateType(req.body["{{ .Name }}"], "{{ .Type | jsFieldType }}")) {
                                     throw new WebRPCError("Invalid arg: {{ .Name }}")
                                 }
                             {{end}}
