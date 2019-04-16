@@ -65,9 +65,11 @@ export class WebRPCError extends Error {
     statusCode?: number
 
     constructor(msg: string = "error", statusCode?: number) {
-        super("webrpc eror: " + msg);
+        super("webrpc error: " + msg);
 
-        this.statusCode = statusCode
+        Object.setPrototypeOf(this, WebRPCError.prototype);
+        
+        this.statusCode = statusCode;
     }
 }
 
@@ -112,6 +114,7 @@ import express from 'express'
 
                             res.status(200).json(response);
                         } catch (err) {
+                            console.log(err instanceof WebRPCError);
                             if (err instanceof WebRPCError) {
                                 const statusCode = err.statusCode || 400
                                 const message = err.message
@@ -152,6 +155,7 @@ import express from 'express'
 
                             res.status(200).json(response);
                         } catch (err) {
+                            console.log(err instanceof WebRPCError);
                             if (err instanceof WebRPCError) {
                                 const statusCode = err.statusCode || 400
                                 const message = err.message
@@ -210,6 +214,7 @@ import express from 'express'
 
                             res.status(200).json(response);
                         } catch (err) {
+                            console.log(err instanceof WebRPCError);
                             if (err instanceof WebRPCError) {
                                 const statusCode = err.statusCode || 400
                                 const message = err.message
