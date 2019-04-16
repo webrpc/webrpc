@@ -68,7 +68,7 @@ export class WebRPCError extends Error {
         super("webrpc error: " + msg);
 
         Object.setPrototypeOf(this, WebRPCError.prototype);
-        
+
         this.statusCode = statusCode;
     }
 }
@@ -114,7 +114,6 @@ import express from 'express'
 
                             res.status(200).json(response);
                         } catch (err) {
-                            console.log(err instanceof WebRPCError);
                             if (err instanceof WebRPCError) {
                                 const statusCode = err.statusCode || 400
                                 const message = err.message
@@ -155,7 +154,6 @@ import express from 'express'
 
                             res.status(200).json(response);
                         } catch (err) {
-                            console.log(err instanceof WebRPCError);
                             if (err instanceof WebRPCError) {
                                 const statusCode = err.statusCode || 400
                                 const message = err.message
@@ -189,14 +187,14 @@ import express from 'express'
                                         throw new WebRPCError("Missing Argument `header`")
                                     }
                                 if ("header" in req.body && !validateType(req.body["header"], "object")) {
-                                    throw new WebRPCError("Invalid arg: header")
+                                    throw new WebRPCError("Invalid Argument: header")
                                 }
                             
                                     if (!("userID" in req.body)) {
                                         throw new WebRPCError("Missing Argument `userID`")
                                     }
                                 if ("userID" in req.body && !validateType(req.body["userID"], "number")) {
-                                    throw new WebRPCError("Invalid arg: userID")
+                                    throw new WebRPCError("Invalid Argument: userID")
                                 }
                             
 
@@ -214,7 +212,6 @@ import express from 'express'
 
                             res.status(200).json(response);
                         } catch (err) {
-                            console.log(err instanceof WebRPCError);
                             if (err instanceof WebRPCError) {
                                 const statusCode = err.statusCode || 400
                                 const message = err.message

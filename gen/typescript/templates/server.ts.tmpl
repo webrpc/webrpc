@@ -8,7 +8,7 @@ export class WebRPCError extends Error {
         super("webrpc error: " + msg);
 
         Object.setPrototypeOf(this, WebRPCError.prototype);
-        
+
         this.statusCode = statusCode;
     }
 }
@@ -52,7 +52,7 @@ import express from 'express'
                                 {{end -}}
 
                                 if ("{{ .Name }}" in req.body && !validateType(req.body["{{ .Name }}"], "{{ .Type | jsFieldType }}")) {
-                                    throw new WebRPCError("Invalid arg: {{ .Name }}")
+                                    throw new WebRPCError("Invalid Argument: {{ .Name }}")
                                 }
                             {{end}}
 
@@ -66,7 +66,6 @@ import express from 'express'
 
                             res.status(200).json(response);
                         } catch (err) {
-                            console.log(err instanceof WebRPCError);
                             if (err instanceof WebRPCError) {
                                 const statusCode = err.statusCode || 400
                                 const message = err.message
