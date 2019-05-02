@@ -8,31 +8,31 @@
 {{exportKeyword}}var {{$enumName}};
 (function ({{$enumName}}) {
 {{- range $i, $field := .Fields}}
-  {{$enumName}}["{{$field.Name}}"] = "{{$field.Name}}";
+  {{$enumName}}["{{$field.Name}}"] = "{{$field.Name}}"
 {{- end}}
-})({{$enumName}} || ({{$enumName}} = {}));
+})({{$enumName}} || ({{$enumName}} = {}))
 {{end -}}
 
 {{- if .Type | isStruct  }}
 {{exportKeyword}}class {{.Name}} {
   constructor(_data) {
-    this._data = {};
+    this._data = {}
     if (_data) {
       {{range .Fields -}}
-      this._data['{{. | exportedJSONField}}'] = _data['{{. | exportedJSONField}}'];
+      this._data['{{. | exportedJSONField}}'] = _data['{{. | exportedJSONField}}']
       {{end}}
     }
   }
   {{ range .Fields -}}
   get {{. | exportedJSONField}}() {
-    return this._data['{{. | exportedJSONField }}'];
+    return this._data['{{. | exportedJSONField }}']
   }
   set {{. | exportedJSONField}}(value) {
-    this._data['{{. | exportedJSONField}}'] = value;
+    this._data['{{. | exportedJSONField}}'] = value
   }
   {{end}}
   toJSON() {
-    return this._data;
+    return this._data
   }
 }
 {{end -}}

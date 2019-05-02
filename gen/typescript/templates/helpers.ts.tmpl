@@ -5,19 +5,26 @@ export interface WebRPCError extends Error {
 	status: number
 }
 
-export const throwHTTPError = (resp: Response) => {
-  return resp.json().then((err: WebRPCError) => { throw err })
+const createHTTPRequest = (body: object = {}, headers: object = {}): object => {
+  return {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {})
+  }
 }
 
-export const throwHTTPError = (resp: Response) => {
-  return resp.text().then(text => {
+const buildResponse = (res: Response): Promise<any> => {
+  return res.text().then(text => {
+    let data
     try {
-      const err = JSON.parse(text)
-
-      throw err
-    } catch (err) {
-      throw new Error(text);
+      data = JSON.parse(text)
+    } catch(err) {
+      throw { code: 'unknown', msg: `expecting JSON, got: ${text}`, status: res.status } as WebRPCError
     }
+    if (!res.ok) {
+      throw data // webrpc error response
+    }
+    return data
   })
 }
 

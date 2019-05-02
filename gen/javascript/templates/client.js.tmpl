@@ -6,29 +6,25 @@
 {{- range .Services}}
 {{exportKeyword}}class {{.Name}} {
   constructor(hostname, fetch) {
-    this.path = '/rpc/{{.Name}}/';
-    this.hostname = hostname;
-    this.fetch = fetch;
+    this.path = '/rpc/{{.Name}}/'
+    this.hostname = hostname
+    this.fetch = fetch
   }
 
   url(name) {
-    return this.hostname + this.path + name;
+    return this.hostname + this.path + name
   }
-
   {{range .Methods}}
   {{.Name | methodName}}({{.Inputs | methodInputs}} = {}) {
     return this.fetch(
       this.url('{{.Name}}'),
-      {{if .Inputs | len}}
+      {{- if .Inputs | len}}
       createHTTPRequest(args, headers)
-      {{else}}
+      {{- else}}
       createHTTPRequest({}, headers)
-      {{end}}
+      {{- end}}
     ).then((res) => {
-      if (!res.ok) {
-        return throwHTTPError(res);
-      }
-      return res.json().then((_data) => {
+      return buildResponse(res).then(_data => {
         return {
         {{- $outputsCount := .Outputs|len -}}
         {{- range $i, $output := .Outputs}}
@@ -36,7 +32,6 @@
         {{- end}}
         }
       })
-
     })
   }
   {{end}}

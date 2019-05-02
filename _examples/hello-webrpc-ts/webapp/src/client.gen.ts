@@ -71,14 +71,9 @@ export class ExampleService implements ExampleService {
   ping(headers: object = {}): Promise<PingReturn> {
     return this.fetch(
       this.url('Ping'),
-      
       createHTTPRequest({}, headers)
-      
-    ).then((res) => {
-      if (!res.ok) {
-        return throwHTTPError(res)
-      }
-      return res.json().then((_data) => {
+      ).then((res) => {
+      return buildResponse(res).then(_data => {
         return {
           status: <boolean>(_data.status)
         }
@@ -89,14 +84,8 @@ export class ExampleService implements ExampleService {
   getUser(args: GetUserArgs, headers: object = {}): Promise<GetUserReturn> {
     return this.fetch(
       this.url('GetUser'),
-      
-      createHTTPRequest(args, headers)
-      
-    ).then((res) => {
-      if (!res.ok) {
-        return throwHTTPError(res)
-      }
-      return res.json().then((_data) => {
+      createHTTPRequest(args, headers)).then((res) => {
+      return buildResponse(res).then(_data => {
         return {
           user: <User>(_data.user)
         }
@@ -107,14 +96,8 @@ export class ExampleService implements ExampleService {
   findUsers(args: FindUsersArgs, headers: object = {}): Promise<FindUsersReturn> {
     return this.fetch(
       this.url('FindUsers'),
-      
-      createHTTPRequest(args, headers)
-      
-    ).then((res) => {
-      if (!res.ok) {
-        return throwHTTPError(res)
-      }
-      return res.json().then((_data) => {
+      createHTTPRequest(args, headers)).then((res) => {
+      return buildResponse(res).then(_data => {
         return {
           page: <Page>(_data.page), 
           users: <Array<User>>(_data.users)
@@ -132,19 +115,26 @@ export interface WebRPCError extends Error {
 	status: number
 }
 
-export const throwHTTPError = (resp: Response) => {
-  return resp.json().then((err: WebRPCError) => { throw err })
+const createHTTPRequest = (body: object = {}, headers: object = {}): object => {
+  return {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {})
+  }
 }
 
-export const throwHTTPError = (resp: Response) => {
-  return resp.text().then(text => {
+const buildResponse = (res: Response): Promise<any> => {
+  return res.text().then(text => {
+    let data
     try {
-      const err = JSON.parse(text)
-
-      throw err
-    } catch (err) {
-      throw new Error(text);
+      data = JSON.parse(text)
+    } catch(err) {
+      throw { code: 'unknown', msg: `expecting JSON, got: ${text}`, status: res.status } as WebRPCError
     }
+    if (!res.ok) {
+      throw data // webrpc error response
+    }
+    return data
   })
 }
 

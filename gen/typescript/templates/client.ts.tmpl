@@ -1,5 +1,4 @@
 {{define "client"}}
-
 {{- if .Services}}
 // Client
 
@@ -21,16 +20,13 @@ export class {{.Name}} implements {{.Name | serviceInterfaceName}} {
   {{.Name | methodName}}({{. | methodInputs}} = {}): {{. | methodOutputs}} {
     return this.fetch(
       this.url('{{.Name}}'),
-      {{if .Inputs | len}}
+      {{- if .Inputs | len}}
       createHTTPRequest(args, headers)
-      {{else}}
+      {{- else}}
       createHTTPRequest({}, headers)
-      {{end}}
+      {{end -}}
     ).then((res) => {
-      if (!res.ok) {
-        return throwHTTPError(res)
-      }
-      return res.json().then((_data) => {
+      return buildResponse(res).then(_data => {
         return {
         {{- $outputsCount := .Outputs|len -}}
         {{- range $i, $output := .Outputs}}

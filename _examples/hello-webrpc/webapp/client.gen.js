@@ -6,54 +6,54 @@
 
 var Kind;
 (function (Kind) {
-  Kind["USER"] = "USER";
-  Kind["ADMIN"] = "ADMIN";
-})(Kind || (Kind = {}));
+  Kind["USER"] = "USER"
+  Kind["ADMIN"] = "ADMIN"
+})(Kind || (Kind = {}))
 
 class Empty {
   constructor(_data) {
-    this._data = {};
+    this._data = {}
     if (_data) {
       
     }
   }
   
   toJSON() {
-    return this._data;
+    return this._data
   }
 }
 
 class User {
   constructor(_data) {
-    this._data = {};
+    this._data = {}
     if (_data) {
-      this._data['id'] = _data['id'];
-      this._data['USERNAME'] = _data['USERNAME'];
-      this._data['created_at'] = _data['created_at'];
+      this._data['id'] = _data['id']
+      this._data['USERNAME'] = _data['USERNAME']
+      this._data['created_at'] = _data['created_at']
       
     }
   }
   get id() {
-    return this._data['id'];
+    return this._data['id']
   }
   set id(value) {
-    this._data['id'] = value;
+    this._data['id'] = value
   }
   get USERNAME() {
-    return this._data['USERNAME'];
+    return this._data['USERNAME']
   }
   set USERNAME(value) {
-    this._data['USERNAME'] = value;
+    this._data['USERNAME'] = value
   }
   get created_at() {
-    return this._data['created_at'];
+    return this._data['created_at']
   }
   set created_at(value) {
-    this._data['created_at'] = value;
+    this._data['created_at'] = value
   }
   
   toJSON() {
-    return this._data;
+    return this._data
   }
 }
 
@@ -61,75 +61,63 @@ class User {
 // Client
 class ExampleService {
   constructor(hostname, fetch) {
-    this.path = '/rpc/ExampleService/';
-    this.hostname = hostname;
-    this.fetch = fetch;
+    this.path = '/rpc/ExampleService/'
+    this.hostname = hostname
+    this.fetch = fetch
   }
 
   url(name) {
-    return this.hostname + this.path + name;
+    return this.hostname + this.path + name
   }
-
   
   ping(headers = {}) {
     return this.fetch(
       this.url('Ping'),
-      
       createHTTPRequest({}, headers)
-      
     ).then((res) => {
-      if (!res.ok) {
-        return throwHTTPError(res);
-      }
-      return res.json().then((_data) => {
+      return buildResponse(res).then(_data => {
         return {
           status: (_data.status)
         }
       })
-
     })
   }
   
   getUser(args, headers = {}) {
     return this.fetch(
       this.url('GetUser'),
-      
       createHTTPRequest(args, headers)
-      
     ).then((res) => {
-      if (!res.ok) {
-        return throwHTTPError(res);
-      }
-      return res.json().then((_data) => {
+      return buildResponse(res).then(_data => {
         return {
           user: new User(_data.user)
         }
       })
-
     })
   }
   
 }
 
 
-
-const throwHTTPError = (resp) => {
-  return resp.text().then(text => {
-    try {
-      const err = JSON.parse(text)
-
-      throw err
-    } catch (err) {
-      throw new Error(text);
-    }
-  })
-}
-
 const createHTTPRequest = (body = {}, headers = {}) => {
   return {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
     body: JSON.stringify(body || {})
-  };
+  }
 }
 
+const buildResponse = (res) => {
+  return res.text().then(text => {
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch(err) {
+      throw { code: 'unknown', msg: `expecting JSON, got: ${text}`, status: res.status }
+    }
+    if (!res.ok) {
+      throw data // webrpc error response
+    }
+    return data
+  })
+}
