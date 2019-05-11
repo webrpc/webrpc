@@ -1,14 +1,14 @@
 hello-webrpc-ts
 ===============
 
-* Client: Web Browser (Typescript)
 * Server: Go
+* Client: Web Browser (Typescript)
 
 Simple client+server app with Go api backend (server) and Typescript Webapp (client).
 
-1. `$ cd client && npm install`
-2. `$ make serve-webapp` - build+start webapp via webpack dev server at http://localhost:4444/
-3. `$ make start-api-server` - to start the Go server at http://localhost:4242/
+1. `$ make bootstrap` - installs node modules for the webapp (client)
+2. `$ make run-server` - to start the Go server at http://localhost:4242/
+3. `$ make run-client` - build+start webapp via webpack dev server at http://localhost:4444/
 4. Open your browser to https://localhost:4444/ and open your console, and see rpc calls, tada
 
 webrpc comes with its own schema design language called RIDL, which stands for "RPC interface

@@ -6,11 +6,15 @@
 // Do not edit by hand. Update your webrpc schema and re-generate.
 
 {{template "types" .}}
+
 {{- if .TargetOpts.Client}}
   {{template "client" .}}
+  {{template "client_helpers" .}}
 {{- end}}
+
 {{- if .TargetOpts.Server}}
   {{template "server" .}}
+  {{template "server_helpers" .}}
 {{- end}}
-{{template "helpers" .}}
+
 {{- end}}

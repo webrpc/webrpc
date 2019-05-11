@@ -1,0 +1,24 @@
+<html>
+  <head>
+    <style>
+      .user {
+        display: none;
+      }
+
+      .user.loaded {
+        display: block;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="js-user user">
+      <h1>Username:</h1>
+      <p class="js-username"></p>
+    </div>
+
+    <button class="js-load-user-btn">Get user</button>
+
+    <script src="./index.ts"></script>
+  </body>
+</html>

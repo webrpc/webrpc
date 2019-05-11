@@ -27,6 +27,32 @@ var fieldTypeMap = map[schema.DataType]string{
 	schema.T_Bool:      "boolean",
 }
 
+func jsFieldType(in *schema.VarType) (string, error) {
+	switch in.Type {
+	case schema.T_Map:
+		return "object", nil
+
+	case schema.T_List:
+		z, err := fieldType(in.List.Elem)
+
+		if err != nil {
+			return "", err
+		}
+
+		return z + "[]", nil
+
+	case schema.T_Struct:
+		return in.Struct.Name, nil
+
+	default:
+		if fieldTypeMap[in.Type] != "" {
+			return fieldTypeMap[in.Type], nil
+		}
+	}
+
+	return "", fmt.Errorf("could not represent type: %#v", in)
+}
+
 func fieldType(in *schema.VarType) (string, error) {
 	switch in.Type {
 	case schema.T_Map:
@@ -191,6 +217,34 @@ func newOutputArgResponse(in *schema.MethodArgument) (string, error) {
 	return line, nil
 }
 
+func serverServiceName(in schema.VarName) (string, error) {
+	s := string(in)
+	return strings.ToLower(s[0:1]) + s[1:] + "Server", nil
+}
+
+func methodArgType(in *schema.MethodArgument) string {
+	z, err := fieldType(in.Type)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var prefix string
+	typ := in.Type.Type
+
+	if in.Optional {
+		prefix = "*"
+	}
+	if typ == schema.T_Struct {
+		prefix = "" // noop, as already pointer applied elsewhere
+	}
+	if typ == schema.T_List || typ == schema.T_Map {
+		prefix = ""
+	}
+
+	return prefix + z
+}
+
 var templateFuncMap = map[string]interface{}{
 	"fieldType":                         fieldType,
 	"constPathPrefix":                   constPathPrefix,
@@ -209,4 +263,7 @@ var templateFuncMap = map[string]interface{}{
 	"exportedJSONField":                 exportedJSONField,
 	"newOutputArgResponse":              newOutputArgResponse,
 	"downcaseName":                      downcaseName,
+	"serverServiceName":                 serverServiceName,
+	"methodArgType":                     methodArgType,
+	"jsFieldType":                       jsFieldType,
 }
