@@ -1,0 +1,35 @@
+webrpc = v1
+
+name = node-ts
+version = v1.0.0
+
+
+enum Kind: uint32
+  - USER
+  - ADMIN
+
+
+message User
+  - ID: uint64
+    + json = id
+
+  - username: string
+    + json = USERNAME
+
+  - role: Kind
+
+  - meta: map<string,any>
+
+  - internalID: uint64
+    + json = -
+
+  - createdAt?: timestamp
+
+
+message Page
+  - num: uint32
+
+
+service ExampleService
+  - Ping() => (status: bool)
+  - GetUser(userID: uint64) => (code: uint32, user: User)

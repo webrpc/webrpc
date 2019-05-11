@@ -1,42 +1,24 @@
 {{define "client_helpers"}}
-
-{{- if .Services}}
-// Client
-
-{{- range .Services}}
-{{exportKeyword}}class {{.Name}} {
-  constructor(hostname, fetch) {
-    this.path = '/rpc/{{.Name}}/'
-    this.hostname = hostname
-    this.fetch = fetch
+const createHTTPRequest = (body = {}, headers = {}) => {
+  return {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {})
   }
-
-  url(name) {
-    return this.hostname + this.path + name
-  }
-  {{range .Methods}}
-  {{.Name | methodName}}({{.Inputs | methodInputs}} = {}) {
-    return this.fetch(
-      this.url('{{.Name}}'),
-      {{- if .Inputs | len}}
-      createHTTPRequest(args, headers)
-      {{- else}}
-      createHTTPRequest({}, headers)
-      {{- end}}
-    ).then((res) => {
-      return buildResponse(res).then(_data => {
-        return {
-        {{- $outputsCount := .Outputs|len -}}
-        {{- range $i, $output := .Outputs}}
-          {{$output | newOutputArgResponse}}{{listComma $i $outputsCount}}
-        {{- end}}
-        }
-      })
-    })
-  }
-  {{end}}
 }
-{{end -}}
 
-{{end -}}
+const buildResponse = (res) => {
+  return res.text().then(text => {
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch(err) {
+      throw { code: 'unknown', msg: `expecting JSON, got: ${text}`, status: res.status }
+    }
+    if (!res.ok) {
+      throw data // webrpc error response
+    }
+    return data
+  })
+}
 {{end}}

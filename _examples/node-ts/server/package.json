@@ -1,5 +1,5 @@
 {
-  "name": "nodejs-ts",
+  "name": "node-ts-server",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
@@ -12,6 +12,6 @@
     "typescript": "^3.4.3"
   },
   "scripts": {
-    "start": "./node_modules/.bin/ts-node ./server"
+    "start": "./node_modules/.bin/ts-node ."
   }
 }

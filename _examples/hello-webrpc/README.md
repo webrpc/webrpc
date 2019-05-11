@@ -1,14 +1,14 @@
 hello-webrpc
 ============
 
-* Client: Web Browser (Javascript)
 * Server: Go
+* Client: Web Browser (Javascript)
 
 Simple client+server app with Go api backend (server) and Javascript Webapp (client).
 
 1. `$ make tools` - to download `webify` cli to serve the 'webapp/' local files
-2. `$ make serve-webapp` - to serve webapp files at http://localhost:4444/
-3. `$ make start-api-server` - to start the Go server at http://localhost:4242/
+2. `$ make run-server` - to start the Go server at http://localhost:4242/
+3. `$ make run-client` - to serve webapp files at http://localhost:4444/
 4. Open your browser to https://localhost:4444/ and open your console, and see rpc calls, tada
 
 webrpc comes with its own schema design language called RIDL, which stands for "RPC interface

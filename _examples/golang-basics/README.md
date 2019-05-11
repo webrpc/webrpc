@@ -1,8 +1,8 @@
 webrpc golang-basics example
 ============================
 
-* Client: Go
 * Server: Go
+* Client: Go
 
 A simple example of a Go web service built using webrpc.
 

@@ -108,7 +108,7 @@ export class ExampleService implements ExampleService {
   
 }
 
-
+  
 export interface WebRPCError extends Error {
   code: string
   msg: string

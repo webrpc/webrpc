@@ -1,5 +1,5 @@
 {
-  "name": "webapp",
+  "name": "node-ts-webapp",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
@@ -7,6 +7,9 @@
     "parcel": "^1.12.3"
   },
   "scripts": {
-    "start": "parcel index.html"
+    "start": "parcel --port 4444 index.html"
+  },
+  "devDependencies": {
+    "typescript": "^3.4.5"
   }
 }
