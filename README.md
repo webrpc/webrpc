@@ -65,7 +65,8 @@ how the `golang-basics` example was built.
 * [hello-webrpc](./_examples/hello-webrpc) - webrpc service with Go server and Javascript webapp
 * [hello-webrpc-ts](./_examples/hello-webrpc-ts) - webrpc service with Go server and Typescript webapp
 * [golang-basics](./_examples/golang-basics) - webrpc service with Go server and Go client
-* [golang-nodejs](./_examples/golang-nodejs) - webrpc service with Go server and nodejs (Javascript ES6) client 
+* [golang-nodejs](./_examples/golang-nodejs) - webrpc service with Go server and nodejs (Javascript ES6) client
+* [node-ts](./_examples/node-ts) - webrpc service with nodejs server and Typescript webapp client
 
 
 ## Why
