@@ -1,59 +1,63 @@
 {{define "types"}}
 
 {{if .Messages}}
-  {{range .Messages}}
-    {{if .Type | isEnum}}
-      {{$enumName := .Name}}
-      {{$enumType := .EnumType}}
-      type {{$enumName}} {{$enumType}}
+//
+// Types
+//
 
-      const (
-        {{- range .Fields}}
-          {{$enumName}}_{{.Name}} {{$enumName}} = {{.Value}}
-        {{- end}}
-      )
+{{range .Messages}}
+  {{if .Type | isEnum}}
+    {{$enumName := .Name}}
+    {{$enumType := .EnumType}}
+    type {{$enumName}} {{$enumType}}
 
-      var {{$enumName}}_name = map[{{$enumType}}]string {
-        {{- range .Fields}}
-          {{.Value}}: "{{.Name}}",
-        {{- end}}
-      }
+    const (
+      {{- range .Fields}}
+        {{$enumName}}_{{.Name}} {{$enumName}} = {{.Value}}
+      {{- end}}
+    )
 
-      var {{$enumName}}_value = map[string]{{$enumType}} {
-        {{- range .Fields}}
-          "{{.Name}}": {{.Value}},
-        {{- end}}
-      }
+    var {{$enumName}}_name = map[{{$enumType}}]string {
+      {{- range .Fields}}
+        {{.Value}}: "{{.Name}}",
+      {{- end}}
+    }
 
-      func (x {{$enumName}}) String() string {
-        return {{$enumName}}_name[{{$enumType}}(x)]
-      }
+    var {{$enumName}}_value = map[string]{{$enumType}} {
+      {{- range .Fields}}
+        "{{.Name}}": {{.Value}},
+      {{- end}}
+    }
 
-      func (x {{$enumName}}) MarshalJSON() ([]byte, error) {
-        buf := bytes.NewBufferString(`"`)
-        buf.WriteString({{$enumName}}_name[{{$enumType}}(x)])
-        buf.WriteString(`"`)
-        return buf.Bytes(), nil
-      }
+    func (x {{$enumName}}) String() string {
+      return {{$enumName}}_name[{{$enumType}}(x)]
+    }
 
-      func (x *{{$enumName}}) UnmarshalJSON(b []byte) error {
-        var j string
-        err := json.Unmarshal(b, &j)
-        if err != nil {
-          return err
-        }
-        *x = {{$enumName}}({{$enumName}}_value[j])
-        return nil
+    func (x {{$enumName}}) MarshalJSON() ([]byte, error) {
+      buf := bytes.NewBufferString(`"`)
+      buf.WriteString({{$enumName}}_name[{{$enumType}}(x)])
+      buf.WriteString(`"`)
+      return buf.Bytes(), nil
+    }
+
+    func (x *{{$enumName}}) UnmarshalJSON(b []byte) error {
+      var j string
+      err := json.Unmarshal(b, &j)
+      if err != nil {
+        return err
       }
-    {{end}}
-    {{if .Type | isStruct  }}
-      type {{.Name}} struct {
-        {{- range .Fields}}
-          {{. | exportedField}} {{. | fieldOptional}}{{. | fieldTypeDef}} {{. | fieldTags}}
-        {{- end}}
-      }
-    {{end}}
+      *x = {{$enumName}}({{$enumName}}_value[j])
+      return nil
+    }
   {{end}}
+  {{if .Type | isStruct  }}
+    type {{.Name}} struct {
+      {{- range .Fields}}
+        {{. | exportedField}} {{. | fieldOptional}}{{. | fieldTypeDef}} {{. | fieldTags}}
+      {{- end}}
+    }
+  {{end}}
+{{end}}
 {{end}}
 {{if .Services}}
   {{range .Services}}
@@ -63,7 +67,7 @@
       {{- end}}
     }
   {{end}}
-  var Services = map[string][]string{
+  var WebRPCServices = map[string][]string{
     {{- range .Services}}
       "{{.Name}}": {
         {{- range .Methods}}

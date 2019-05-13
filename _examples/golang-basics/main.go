@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/webrpc/webrpc/lib/webrpc-go"
 )
 
 func main() {
@@ -47,9 +46,9 @@ func (s *ExampleServiceRPC) Status(ctx context.Context) (bool, error) {
 
 func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error) {
 	if userID == 911 {
-		return 0, nil, webrpc.ErrorNotFound("unknown userID %d", 911)
-		// return nil, webrpc.Errorf(webrpc.ErrNotFound, "unknown userID %d", 911)
-		// return nil, webrpc.WrapError(webrpc.ErrNotFound, err, "unknown userID %d", 911)
+		return 0, nil, ErrorNotFound("unknown userID %d", 911)
+		// return nil, Errorf(ErrNotFound, "unknown userID %d", 911)
+		// return nil, WrapError(ErrNotFound, err, "unknown userID %d", 911)
 	}
 
 	return 200, &User{

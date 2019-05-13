@@ -9,27 +9,28 @@ import (
   "bytes"
   "context"
   "encoding/json"
-  "errors"
-  "io"
+  "fmt"
   "io/ioutil"
   "net/http"
-  "net/url"
   "time"
 {{- if and (.TargetOpts.Server) (gt (len .Services) 0) }}
   "strings"
 {{- end}}
-
-  "github.com/webrpc/webrpc/lib/webrpc-go"
+{{- if .TargetOpts.Client }}
+  "errors"
+  "io"
+  "net/url"
+{{- end }}
 )
 
 {{template "types" .}}
 
-{{if .TargetOpts.Client}}
-  {{template "client" .}}
-{{end}}
-
 {{if .TargetOpts.Server}}
   {{template "server" .}}
+{{end}}
+
+{{if .TargetOpts.Client}}
+  {{template "client" .}}
 {{end}}
 
 {{template "helpers" .}}
