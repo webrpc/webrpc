@@ -51,13 +51,11 @@ func TestGetUser(t *testing.T) {
 		// Error case, expecting to receive an error
 		code, user, err := client.GetUser(context.Background(), nil, 911)
 
-		// TODO: err should be webrpc.Error type
-		// so we can decode the .Code(), .Msg(), etc..
-
+		assert.True(t, IsErrorCode(err, ErrNotFound))
 		assert.Nil(t, user)
 		assert.Equal(t, uint32(0), code)
 		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "not_found")
+		assert.Contains(t, err.Error(), "not found")
 	}
 
 	{
