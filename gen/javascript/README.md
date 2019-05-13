@@ -15,10 +15,7 @@ server like nodejs -- both without needing any dependencies. I suggest to read t
 output of the generated code, and you shall see, its nothing fancy, just the sort of thing you'd
 write by hand.
 
-2. Server (TODO) -- a nodejs-compatible Javascript server handler. TODO / still needs to be written,
-but shouldn't be too hard, its just a simple interface that would use the same types are the client
-code. For someone interested to writing it, look at how we reuse types in the Go generator between
-client and server.
+2. Server -- a nodejs Javascript server handler. See examples.
 
 
 ## webrpc-gen extras
