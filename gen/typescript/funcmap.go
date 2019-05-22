@@ -121,7 +121,7 @@ func methodInputs(in *schema.Method) (string, error) {
 	if len(in.Inputs) > 0 {
 		inputs = append(inputs, fmt.Sprintf("args: %s", methodArgumentInputInterfaceName(in)))
 	}
-	inputs = append(inputs, "headers: object")
+	inputs = append(inputs, "headers?: object")
 	return strings.Join(inputs, ", "), nil
 }
 

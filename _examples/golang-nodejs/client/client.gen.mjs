@@ -166,7 +166,7 @@ export class ExampleService {
     return this.hostname + this.path + name
   }
   
-  ping(headers = {}) {
+  ping = (headers) => {
     return this.fetch(
       this.url('Ping'),
       createHTTPRequest({}, headers)
@@ -179,7 +179,7 @@ export class ExampleService {
     })
   }
   
-  getUser(args, headers = {}) {
+  getUser = (args, headers) => {
     return this.fetch(
       this.url('GetUser'),
       createHTTPRequest(args, headers)

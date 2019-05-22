@@ -24,8 +24,8 @@ export interface Page {
 }
 
 export interface ExampleService {
-  ping(headers: object): Promise<PingReturn>
-  getUser(args: GetUserArgs, headers: object): Promise<GetUserReturn>
+  ping(headers?: object): Promise<PingReturn>
+  getUser(args: GetUserArgs, headers?: object): Promise<GetUserReturn>
 }
 
 export interface PingArgs {
@@ -60,7 +60,7 @@ export class ExampleService implements ExampleService {
     return this.hostname + this.path + name
   }
   
-  ping(headers: object = {}): Promise<PingReturn> {
+  ping = (headers?: object): Promise<PingReturn> => {
     return this.fetch(
       this.url('Ping'),
       createHTTPRequest({}, headers)
@@ -73,7 +73,7 @@ export class ExampleService implements ExampleService {
     })
   }
   
-  getUser(args: GetUserArgs, headers: object = {}): Promise<GetUserReturn> {
+  getUser = (args: GetUserArgs, headers?: object): Promise<GetUserReturn> => {
     return this.fetch(
       this.url('GetUser'),
       createHTTPRequest(args, headers)).then((res) => {

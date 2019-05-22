@@ -24,8 +24,8 @@ export interface Page {
 }
 
 export interface ExampleService {
-  ping(headers: object): Promise<PingReturn>
-  getUser(args: GetUserArgs, headers: object): Promise<GetUserReturn>
+  ping(headers?: object): Promise<PingReturn>
+  getUser(args: GetUserArgs, headers?: object): Promise<GetUserReturn>
 }
 
 export interface PingArgs {
