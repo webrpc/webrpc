@@ -411,16 +411,7 @@ func writeJSONError(ctx context.Context, w http.ResponseWriter, r *http.Request,
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
-	errResp := errResponse{
-		Status: statusCode,
-		Code:   string(rpcErr.Code()),
-		Msg:    rpcErr.Msg(),
-		Error:  rpcErr.Error(),
-	}
-	if rpcErr.Cause() != nil {
-		errResp.Cause = rpcErr.Cause().Error()
-	}
-	respBody, _ := json.Marshal(errResp)
+	respBody, _ := json.Marshal(rpcErr.Payload())
 	w.Write(respBody)
 }
 
@@ -590,7 +581,7 @@ func errorFromResponse(resp *http.Response) Error {
 		return clientError("failed to read server error response body", err)
 	}
 
-	var respErr errResponse
+	var respErr ErrorPayload
 	if err := json.Unmarshal(respBody, &respErr); err != nil {
 		return clientError("failed unmarshal error response", err)
 	}
@@ -638,7 +629,7 @@ func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 // Helpers
 //
 
-type errResponse struct {
+type ErrorPayload struct {
 	Status int    `json:"status"`
 	Code   string `json:"code"`
 	Cause  string `json:"cause,omitempty"`
@@ -658,6 +649,9 @@ type Error interface {
 
 	// Error returns a string of the form "webrpc error <Code>: <Msg>"
 	Error() string
+
+	// Error response payload
+	Payload() ErrorPayload
 }
 
 func Errorf(code ErrorCode, msgf string, args ...interface{}) Error {
@@ -865,6 +859,20 @@ func (e *rpcErr) Error() string {
 	} else {
 		return fmt.Sprintf("webrpc %s error: %s", e.code, e.msg)
 	}
+}
+
+func (e *rpcErr) Payload() ErrorPayload {
+	statusCode := HTTPStatusFromErrorCode(e.Code())
+	errPayload := ErrorPayload{
+		Status: statusCode,
+		Code:   string(e.Code()),
+		Msg:    e.Msg(),
+		Error:  e.Error(),
+	}
+	if e.Cause() != nil {
+		errPayload.Cause = e.Cause().Error()
+	}
+	return errPayload
 }
 
 type contextKey struct {

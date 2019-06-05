@@ -149,27 +149,18 @@ type WebRPCServer interface {
 {{- end}}
 
 func writeJSONError(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
-  rpcErr, ok := err.(Error)
-  if !ok {
-    rpcErr = WrapError(ErrInternal, err, "webrpc error")
-  }
-
-  statusCode := HTTPStatusFromErrorCode(rpcErr.Code())
-
-  w.Header().Set("Content-Type", "application/json")
-  w.WriteHeader(statusCode)
-
-	errResp := errResponse{
-		Status: statusCode,
-		Code:   string(rpcErr.Code()),
-		Msg:    rpcErr.Msg(),
-		Error:  rpcErr.Error(),
+	rpcErr, ok := err.(Error)
+	if !ok {
+		rpcErr = WrapError(ErrInternal, err, "webrpc error")
 	}
-	if rpcErr.Cause() != nil {
-		errResp.Cause = rpcErr.Cause().Error()
-	}
-  respBody, _ := json.Marshal(errResp)
-  w.Write(respBody)
+
+	statusCode := HTTPStatusFromErrorCode(rpcErr.Code())
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+
+	respBody, _ := json.Marshal(rpcErr.Payload())
+	w.Write(respBody)
 }
 {{end}}
 {{end}}

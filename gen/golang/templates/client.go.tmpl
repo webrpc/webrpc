@@ -154,7 +154,7 @@ func errorFromResponse(resp *http.Response) Error {
 		return clientError("failed to read server error response body", err)
 	}
 
-	var respErr errResponse
+	var respErr ErrorPayload
 	if err := json.Unmarshal(respBody, &respErr); err != nil {
 		return clientError("failed unmarshal error response", err)
 	}
