@@ -159,11 +159,15 @@ func writeJSONError(ctx context.Context, w http.ResponseWriter, r *http.Request,
   w.Header().Set("Content-Type", "application/json")
   w.WriteHeader(statusCode)
 
-  errResp := errResponse{
-    Status: statusCode,
-    Code:   string(rpcErr.Code()),
-    Msg:    rpcErr.Error(),
-  }
+	errResp := errResponse{
+		Status: statusCode,
+		Code:   string(rpcErr.Code()),
+		Msg:    rpcErr.Msg(),
+		Error:  rpcErr.Error(),
+	}
+	if rpcErr.Cause() != nil {
+		errResp.Cause = rpcErr.Cause().Error()
+	}
   respBody, _ := json.Marshal(errResp)
   w.Write(respBody)
 }

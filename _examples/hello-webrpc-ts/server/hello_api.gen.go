@@ -349,7 +349,11 @@ func writeJSONError(ctx context.Context, w http.ResponseWriter, r *http.Request,
 	errResp := errResponse{
 		Status: statusCode,
 		Code:   string(rpcErr.Code()),
-		Msg:    rpcErr.Error(),
+		Msg:    rpcErr.Msg(),
+		Error:  rpcErr.Error(),
+	}
+	if rpcErr.Cause() != nil {
+		errResp.Cause = rpcErr.Cause().Error()
 	}
 	respBody, _ := json.Marshal(errResp)
 	w.Write(respBody)
@@ -362,8 +366,9 @@ func writeJSONError(ctx context.Context, w http.ResponseWriter, r *http.Request,
 type errResponse struct {
 	Status int    `json:"status"`
 	Code   string `json:"code"`
-	Msg    string `json:"msg"`
 	Cause  string `json:"cause,omitempty"`
+	Msg    string `json:"msg"`
+	Error  string `json:"error"`
 }
 
 type Error interface {
@@ -380,8 +385,8 @@ type Error interface {
 	Error() string
 }
 
-func Errorf(code ErrorCode, format string, args ...interface{}) Error {
-	msg := fmt.Sprintf(format, args...)
+func Errorf(code ErrorCode, msgf string, args ...interface{}) Error {
+	msg := fmt.Sprintf(msgf, args...)
 	if IsValidErrorCode(code) {
 		return &rpcErr{code: code, msg: msg}
 	}
@@ -580,7 +585,11 @@ func (e *rpcErr) Cause() error {
 }
 
 func (e *rpcErr) Error() string {
-	return fmt.Sprintf("webrpc error %s: %s", e.code, e.msg)
+	if e.cause != nil {
+		return fmt.Sprintf("webrpc %s error: %s - %s", e.code, e.cause.Error(), e.msg)
+	} else {
+		return fmt.Sprintf("webrpc %s error: %s", e.code, e.msg)
+	}
 }
 
 type contextKey struct {
