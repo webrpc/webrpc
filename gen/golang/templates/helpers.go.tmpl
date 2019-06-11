@@ -230,7 +230,11 @@ func (e *rpcErr) Cause() error {
 
 func (e *rpcErr) Error() string {
 	if e.cause != nil {
-		return fmt.Sprintf("webrpc %s error: %s - %s", e.code, e.cause.Error(), e.msg)
+		if e.msg != "" {
+			return fmt.Sprintf("webrpc %s error: %s -- %s", e.code, e.cause.Error(), e.msg)
+		} else {
+			return fmt.Sprintf("webrpc %s error: %s", e.code, e.cause.Error())
+		}
 	} else {
 		return fmt.Sprintf("webrpc %s error: %s", e.code, e.msg)
 	}

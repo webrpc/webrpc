@@ -592,7 +592,11 @@ func errorFromResponse(resp *http.Response) Error {
 		return ErrorInternal("invalid code returned from server error response: %s", respErr.Code)
 	}
 
-	return Errorf(errCode, respErr.Msg)
+	return &rpcErr{
+		code:  errCode,
+		msg:   respErr.Msg,
+		cause: errors.New(respErr.Cause),
+	}
 }
 
 func clientError(desc string, err error) Error {
@@ -855,7 +859,11 @@ func (e *rpcErr) Cause() error {
 
 func (e *rpcErr) Error() string {
 	if e.cause != nil {
-		return fmt.Sprintf("webrpc %s error: %s - %s", e.code, e.cause.Error(), e.msg)
+		if e.msg != "" {
+			return fmt.Sprintf("webrpc %s error: %s -- %s", e.code, e.cause.Error(), e.msg)
+		} else {
+			return fmt.Sprintf("webrpc %s error: %s", e.code, e.cause.Error())
+		}
 	} else {
 		return fmt.Sprintf("webrpc %s error: %s", e.code, e.msg)
 	}

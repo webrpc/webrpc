@@ -165,7 +165,11 @@ func errorFromResponse(resp *http.Response) Error {
 		return ErrorInternal("invalid code returned from server error response: %s", respErr.Code)
 	}
 
-	return Errorf(errCode, respErr.Msg)
+	return &rpcErr{
+		code:  errCode,
+		msg:   respErr.Msg,
+		cause: errors.New(respErr.Cause),
+	}
 }
 
 func clientError(desc string, err error) Error {
