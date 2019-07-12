@@ -6,7 +6,6 @@
 package {{.TargetOpts.PkgName}}
 
 import (
-  "bytes"
   "context"
   "encoding/json"
   "fmt"
@@ -17,6 +16,7 @@ import (
   "strings"
 {{- end}}
 {{- if .TargetOpts.Client }}
+  "bytes"
   "errors"
   "io"
   "net/url"

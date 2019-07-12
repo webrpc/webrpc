@@ -61,8 +61,7 @@ func methodInputName(in *schema.MethodArgument) string {
 func methodInputs(in []*schema.MethodArgument) (string, error) {
 	inputs := []string{}
 
-	for i := range in {
-		_ = i
+	if len(in) > 0 {
 		inputs = append(inputs, fmt.Sprintf("args"))
 	}
 
