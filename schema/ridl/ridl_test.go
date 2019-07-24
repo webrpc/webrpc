@@ -351,3 +351,12 @@ func TestParse(t *testing.T) {
 	assert.NoError(t, err)
 	log.Printf("schema JSON: %v", jout)
 }
+
+func TestIssue_51(t *testing.T) {
+	input := "webrpc = v1\n \nname = test\n   \nversion=v1.1\n"
+
+	schema, err := Parse(input)
+	assert.NoError(t, err)
+
+	log.Printf("schema: %v", schema)
+}
