@@ -355,9 +355,16 @@ func (p *parser) cursor() *token {
 }
 
 func parseStateNewLine(p *parser) parseState {
-	for p.next(); p.cursor().tt == tokenNewLine; {
+	for {
+		tok := p.cursor()
+		if tok.tt != tokenNewLine {
+			return parseStateStart
+		}
+
+		p.next()
 	}
-	return parseStateStart
+
+	panic("unreachable")
 }
 
 func parseStateContinue(p *parser) parseState {
