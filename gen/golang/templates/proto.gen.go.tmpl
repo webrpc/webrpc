@@ -11,7 +11,9 @@ import (
   "fmt"
   "io/ioutil"
   "net/http"
+{{- if "timestamp" | hasFieldType }}
   "time"
+{{- end }}
 {{- if and (.TargetOpts.Server) (gt (len .Services) 0) }}
   "strings"
 {{- end}}

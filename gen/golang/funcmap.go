@@ -296,28 +296,37 @@ func isEnum(t schema.MessageType) bool {
 	return t == "enum"
 }
 
-var templateFuncMap = map[string]interface{}{
-	"serviceMethodName":     serviceMethodName,
-	"serviceMethodJSONName": serviceMethodJSONName,
-	"fieldTags":             fieldTags,
-	"fieldType":             fieldType,
-	"fieldOptional":         fieldOptional,
-	"fieldTypeDef":          fieldTypeDef,
-	"newClientServiceName":  newClientServiceName,
-	"newServerServiceName":  newServerServiceName,
-	"constPathPrefix":       constPathPrefix,
-	"countMethods":          countMethods,
-	"clientServiceName":     clientServiceName,
-	"serverServiceName":     serverServiceName,
-	"methodInputs":          methodInputs,
-	"methodOutputs":         methodOutputs,
-	"methodArgName":         methodArgName,
-	"methodArgType":         methodArgType,
-	"methodArgNames":        methodArgNames,
-	"argsList":              argsList,
-	"commaIfLen":            commaIfLen,
-	"isStruct":              isStruct,
-	"isEnum":                isEnum,
-	"exportedField":         exportedField,
-	"downcaseName":          downcaseName,
+func hasFieldType(proto *schema.WebRPCSchema) func(fieldType string) (bool, error) {
+	return func(fieldType string) (bool, error) {
+		return proto.HasFieldType(fieldType)
+	}
+}
+
+func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
+	return map[string]interface{}{
+		"serviceMethodName":     serviceMethodName,
+		"serviceMethodJSONName": serviceMethodJSONName,
+		"hasFieldType":          hasFieldType(proto),
+		"fieldTags":             fieldTags,
+		"fieldType":             fieldType,
+		"fieldOptional":         fieldOptional,
+		"fieldTypeDef":          fieldTypeDef,
+		"newClientServiceName":  newClientServiceName,
+		"newServerServiceName":  newServerServiceName,
+		"constPathPrefix":       constPathPrefix,
+		"countMethods":          countMethods,
+		"clientServiceName":     clientServiceName,
+		"serverServiceName":     serverServiceName,
+		"methodInputs":          methodInputs,
+		"methodOutputs":         methodOutputs,
+		"methodArgName":         methodArgName,
+		"methodArgType":         methodArgType,
+		"methodArgNames":        methodArgNames,
+		"argsList":              argsList,
+		"commaIfLen":            commaIfLen,
+		"isStruct":              isStruct,
+		"isEnum":                isEnum,
+		"exportedField":         exportedField,
+		"downcaseName":          downcaseName,
+	}
 }

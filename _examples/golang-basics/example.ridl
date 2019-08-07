@@ -25,12 +25,6 @@ message User
   - role: string
     + go.tag.db = -
 
-  - createdAt?: timestamp
-    + json = created_at
-    + go.tag.json = created_at,omitempty
-    + go.tag.db = created_at
-
-
 message SearchFilter
   - q: string
 
