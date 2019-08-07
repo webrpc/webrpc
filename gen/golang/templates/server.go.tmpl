@@ -41,7 +41,7 @@ type WebRPCServer interface {
 
     if r.Method != "POST" {
       err := Errorf(ErrBadRoute, "unsupported method %q (only POST is allowed)", r.Method)
-      writeJSONError(ctx, w, r, err)
+      RespondWithError(w, err)
       return
     }
 
@@ -53,7 +53,7 @@ type WebRPCServer interface {
     {{- end}}
     default:
       err := Errorf(ErrBadRoute, "no handler for path %q", r.URL.Path)
-      writeJSONError(ctx, w, r, err)
+      RespondWithError(w, err)
       return
     }
   }
@@ -71,7 +71,7 @@ type WebRPCServer interface {
         s.{{ .Name | serviceMethodJSONName }}(ctx, w, r)
       default:
         err := Errorf(ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
-        writeJSONError(ctx, w, r, err)
+        RespondWithError(w, err)
       }
     }
 
@@ -89,7 +89,7 @@ type WebRPCServer interface {
       reqBody, err := ioutil.ReadAll(r.Body)
       if err != nil {
         err = WrapError(ErrInternal, err, "failed to read request data")
-        writeJSONError(ctx, w, r, err)
+        RespondWithError(w, err)
         return
       }
       defer r.Body.Close()
@@ -97,7 +97,7 @@ type WebRPCServer interface {
       err = json.Unmarshal(reqBody, &reqContent)
       if err != nil {
         err = WrapError(ErrInvalidArgument, err, "failed to unmarshal request data")
-        writeJSONError(ctx, w, r, err)
+        RespondWithError(w, err)
         return
       }
       {{- end}}
@@ -110,7 +110,7 @@ type WebRPCServer interface {
         defer func() {
           // In case of a panic, serve a 500 error and then panic.
           if rr := recover(); rr != nil {
-            writeJSONError(ctx, w, r, ErrorInternal("internal service panic"))
+            RespondWithError(w, ErrorInternal("internal service panic"))
             panic(rr)
           }
         }()
@@ -125,7 +125,7 @@ type WebRPCServer interface {
       {{- end}}
 
       if err != nil {
-        writeJSONError(ctx, w, r, err)
+        RespondWithError(w, err)
         return
       }
 
@@ -133,7 +133,7 @@ type WebRPCServer interface {
       respBody, err := json.Marshal(respContent)
       if err != nil {
         err = WrapError(ErrInternal, err, "failed to marshal json response")
-        writeJSONError(ctx, w, r, err)
+        RespondWithError(w, err)
         return
       }
       {{- end}}
@@ -148,7 +148,7 @@ type WebRPCServer interface {
   {{end}}
 {{- end}}
 
-func writeJSONError(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
+func RespondWithError(w http.ResponseWriter, err error) {
 	rpcErr, ok := err.(Error)
 	if !ok {
 		rpcErr = WrapError(ErrInternal, err, "webrpc error")

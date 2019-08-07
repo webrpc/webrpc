@@ -114,7 +114,7 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	if r.Method != "POST" {
 		err := Errorf(ErrBadRoute, "unsupported method %q (only POST is allowed)", r.Method)
-		writeJSONError(ctx, w, r, err)
+		RespondWithError(w, err)
 		return
 	}
 
@@ -127,7 +127,7 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	default:
 		err := Errorf(ErrBadRoute, "no handler for path %q", r.URL.Path)
-		writeJSONError(ctx, w, r, err)
+		RespondWithError(w, err)
 		return
 	}
 }
@@ -144,7 +144,7 @@ func (s *exampleServiceServer) servePing(ctx context.Context, w http.ResponseWri
 		s.servePingJSON(ctx, w, r)
 	default:
 		err := Errorf(ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
-		writeJSONError(ctx, w, r, err)
+		RespondWithError(w, err)
 	}
 }
 
@@ -158,7 +158,7 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if rr := recover(); rr != nil {
-				writeJSONError(ctx, w, r, ErrorInternal("internal service panic"))
+				RespondWithError(w, ErrorInternal("internal service panic"))
 				panic(rr)
 			}
 		}()
@@ -169,13 +169,13 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 	}{ret0}
 
 	if err != nil {
-		writeJSONError(ctx, w, r, err)
+		RespondWithError(w, err)
 		return
 	}
 	respBody, err := json.Marshal(respContent)
 	if err != nil {
 		err = WrapError(ErrInternal, err, "failed to marshal json response")
-		writeJSONError(ctx, w, r, err)
+		RespondWithError(w, err)
 		return
 	}
 
@@ -196,7 +196,7 @@ func (s *exampleServiceServer) serveGetUser(ctx context.Context, w http.Response
 		s.serveGetUserJSON(ctx, w, r)
 	default:
 		err := Errorf(ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
-		writeJSONError(ctx, w, r, err)
+		RespondWithError(w, err)
 	}
 }
 
@@ -210,7 +210,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	reqBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		err = WrapError(ErrInternal, err, "failed to read request data")
-		writeJSONError(ctx, w, r, err)
+		RespondWithError(w, err)
 		return
 	}
 	defer r.Body.Close()
@@ -218,7 +218,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	err = json.Unmarshal(reqBody, &reqContent)
 	if err != nil {
 		err = WrapError(ErrInvalidArgument, err, "failed to unmarshal request data")
-		writeJSONError(ctx, w, r, err)
+		RespondWithError(w, err)
 		return
 	}
 
@@ -228,7 +228,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if rr := recover(); rr != nil {
-				writeJSONError(ctx, w, r, ErrorInternal("internal service panic"))
+				RespondWithError(w, ErrorInternal("internal service panic"))
 				panic(rr)
 			}
 		}()
@@ -239,13 +239,13 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	}{ret0}
 
 	if err != nil {
-		writeJSONError(ctx, w, r, err)
+		RespondWithError(w, err)
 		return
 	}
 	respBody, err := json.Marshal(respContent)
 	if err != nil {
 		err = WrapError(ErrInternal, err, "failed to marshal json response")
-		writeJSONError(ctx, w, r, err)
+		RespondWithError(w, err)
 		return
 	}
 
@@ -254,7 +254,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	w.Write(respBody)
 }
 
-func writeJSONError(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
+func RespondWithError(w http.ResponseWriter, err error) {
 	rpcErr, ok := err.(Error)
 	if !ok {
 		rpcErr = WrapError(ErrInternal, err, "webrpc error")
@@ -265,12 +265,7 @@ func writeJSONError(ctx context.Context, w http.ResponseWriter, r *http.Request,
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
-	errResp := errResponse{
-		Status: statusCode,
-		Code:   string(rpcErr.Code()),
-		Msg:    rpcErr.Error(),
-	}
-	respBody, _ := json.Marshal(errResp)
+	respBody, _ := json.Marshal(rpcErr.Payload())
 	w.Write(respBody)
 }
 
@@ -278,11 +273,12 @@ func writeJSONError(ctx context.Context, w http.ResponseWriter, r *http.Request,
 // Helpers
 //
 
-type errResponse struct {
+type ErrorPayload struct {
 	Status int    `json:"status"`
 	Code   string `json:"code"`
-	Msg    string `json:"msg"`
 	Cause  string `json:"cause,omitempty"`
+	Msg    string `json:"msg"`
+	Error  string `json:"error"`
 }
 
 type Error interface {
@@ -297,10 +293,13 @@ type Error interface {
 
 	// Error returns a string of the form "webrpc error <Code>: <Msg>"
 	Error() string
+
+	// Error response payload
+	Payload() ErrorPayload
 }
 
-func Errorf(code ErrorCode, format string, args ...interface{}) Error {
-	msg := fmt.Sprintf(format, args...)
+func Errorf(code ErrorCode, msgf string, args ...interface{}) Error {
+	msg := fmt.Sprintf(msgf, args...)
 	if IsValidErrorCode(code) {
 		return &rpcErr{code: code, msg: msg}
 	}
@@ -499,7 +498,29 @@ func (e *rpcErr) Cause() error {
 }
 
 func (e *rpcErr) Error() string {
-	return fmt.Sprintf("webrpc error %s: %s", e.code, e.msg)
+	if e.cause != nil && e.cause.Error() != "" {
+		if e.msg != "" {
+			return fmt.Sprintf("webrpc %s error: %s -- %s", e.code, e.cause.Error(), e.msg)
+		} else {
+			return fmt.Sprintf("webrpc %s error: %s", e.code, e.cause.Error())
+		}
+	} else {
+		return fmt.Sprintf("webrpc %s error: %s", e.code, e.msg)
+	}
+}
+
+func (e *rpcErr) Payload() ErrorPayload {
+	statusCode := HTTPStatusFromErrorCode(e.Code())
+	errPayload := ErrorPayload{
+		Status: statusCode,
+		Code:   string(e.Code()),
+		Msg:    e.Msg(),
+		Error:  e.Error(),
+	}
+	if e.Cause() != nil {
+		errPayload.Cause = e.Cause().Error()
+	}
+	return errPayload
 }
 
 type contextKey struct {

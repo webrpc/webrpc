@@ -3,14 +3,12 @@ package golang
 
 import (
 	"bytes"
-	"go/format"
 	"io/ioutil"
 	"os"
 	"text/template"
 
-	"github.com/pkg/errors"
-
 	"github.com/goware/statik/fs"
+	"github.com/pkg/errors"
 	"github.com/webrpc/webrpc/gen"
 	"github.com/webrpc/webrpc/gen/golang/embed"
 	"github.com/webrpc/webrpc/schema"
@@ -61,7 +59,7 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 
 	// return string(genBuf.Bytes()), nil
 
-	src, err := format.Source(genBuf.Bytes())
+	src, err := FormatSource(genBuf.Bytes())
 	if err != nil {
 		return "", errors.Errorf("gofmt is failing to format the Go code because: %v", err)
 	}
