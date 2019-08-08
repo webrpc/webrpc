@@ -6,8 +6,6 @@
 
 type WebRPCServer interface {
   http.Handler
-  WebRPCVersion() string
-  ServiceVersion() string
 }
 
 {{- range .Services}}
@@ -22,15 +20,6 @@ type WebRPCServer interface {
     return &{{$serviceName}}{
       {{.Name}}: svc,
     }
-  }
-
-
-  func (s *{{$serviceName}}) WebRPCVersion() string {
-    return "v0.0.1"
-  }
-
-  func (s *{{$serviceName}}) ServiceVersion() string {
-    return "v0.1.0"
   }
 
   func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {

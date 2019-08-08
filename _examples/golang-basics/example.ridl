@@ -1,8 +1,8 @@
 webrpc = v1             # version of webrpc schema format (ridl or json)
 
 name = example          # name if your backend app
-version = v0.0.1        # version of your app
-
+version = v0.0.1        # version of your schema
+              
 
 enum Kind: uint32
   - USER
@@ -28,6 +28,10 @@ message User
 message SearchFilter
   - q: string
 
+message Version
+  - webrpcVersion: string
+  - schemaVersion: string
+  - schemaHash: string
 
 message ComplexType
   - meta: map<string,any>
@@ -44,5 +48,6 @@ message ComplexType
 service ExampleService
   - Ping()
   - Status() => (status: bool)
+  - Version() => (version: Version)
   - GetUser(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
   - FindUser(s: SearchFilter) => (name: string, user: User)

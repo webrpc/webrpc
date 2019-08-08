@@ -2,6 +2,8 @@ package schema
 
 import (
 	"bytes"
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"strings"
 
@@ -14,10 +16,10 @@ const (
 
 // schema of webrpc json file, and validations
 type WebRPCSchema struct {
-	Schema  string   `json:"webrpc"`
-	Name    string   `json:"name"`
-	Version string   `json:"version"`
-	Imports []string `json:"imports"`
+	WebRPCVersion string   `json:"webrpc"`
+	Name          string   `json:"name"`
+	SchemaVersion string   `json:"version"`
+	Imports       []string `json:"imports"`
 
 	Messages []*Message `json:"messages"`
 	Services []*Service `json:"services"`
@@ -30,8 +32,8 @@ func (s *WebRPCSchema) Parse(schema *WebRPCSchema) error {
 		schema = s // we can take nil here, as this is the schema
 	}
 
-	if schema.Schema != VERSION {
-		return errors.Errorf("webrpc schema version, '%s' is invalid, try '%s'", schema.Schema, VERSION)
+	if schema.WebRPCVersion != VERSION {
+		return errors.Errorf("webrpc schema version, '%s' is invalid, try '%s'", schema.WebRPCVersion, VERSION)
 	}
 
 	for _, msg := range s.Messages {
@@ -48,6 +50,19 @@ func (s *WebRPCSchema) Parse(schema *WebRPCSchema) error {
 	}
 
 	return nil
+}
+
+func (s *WebRPCSchema) SchemaHash() (string, error) {
+	// TODO: lets later make this even more deterministic in face of re-ordering
+	// definitions within the ridl file
+	jsonString, err := s.ToJSON(false)
+	if err != nil {
+		return "", err
+	}
+
+	h := sha1.New()
+	h.Write([]byte(jsonString))
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
 func (s *WebRPCSchema) ToJSON(optIndent ...bool) (string, error) {

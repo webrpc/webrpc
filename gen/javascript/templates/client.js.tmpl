@@ -1,8 +1,9 @@
 {{define "client"}}
 {{- if .Services}}
+//
 // Client
-
-{{- range .Services}}
+//
+{{ range .Services}}
 {{exportKeyword}}class {{.Name}} {
   constructor(hostname, fetch) {
     this.path = '/rpc/{{.Name}}/'

@@ -43,14 +43,22 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 		}
 	}
 
-	vars := struct {
-		*schema.WebRPCSchema
-		TargetOpts gen.TargetOptions
-	}{
-		proto, opts,
+	// generate deterministic schema hash of the proto file
+	schemaHash, err := proto.SchemaHash()
+	if err != nil {
+		return "", err
 	}
 
-	// Generate the template
+	// template vars
+	vars := struct {
+		*schema.WebRPCSchema
+		SchemaHash string
+		TargetOpts gen.TargetOptions
+	}{
+		proto, schemaHash, opts,
+	}
+
+	// generate the template
 	genBuf := bytes.NewBuffer(nil)
 	err = tmpl.ExecuteTemplate(genBuf, "proto", vars)
 	if err != nil {

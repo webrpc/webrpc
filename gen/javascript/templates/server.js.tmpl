@@ -1,6 +1,10 @@
 {{define "server"}}
 
 {{- if .Services}}
+//
+// Server
+//
+
 class WebRPCError extends Error {
     constructor(msg = "error", statusCode) {
         super("webrpc eror: " + msg);

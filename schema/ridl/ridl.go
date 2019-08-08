@@ -52,9 +52,9 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 	}
 
 	s := &schema.WebRPCSchema{
-		Schema:  webrpcInputVersion,
-		Name:    p.tree.definitions["name"].value(),
-		Version: p.tree.definitions["version"].value(),
+		WebRPCVersion: webrpcInputVersion,
+		Name:          p.tree.definitions["name"].value(),
+		SchemaVersion: p.tree.definitions["version"].value(),
 	}
 
 	if len(p.tree.imports) > 0 {

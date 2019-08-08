@@ -31,6 +31,7 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 	tmpl := template.
 		New("webrpc-gen-ts").
 		Funcs(templateFuncMap)
+
 	for _, tmplData := range templates {
 		_, err = tmpl.Parse(tmplData)
 		if err != nil {
@@ -38,11 +39,19 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 		}
 	}
 
+	// generate deterministic schema hash of the proto file
+	schemaHash, err := proto.SchemaHash()
+	if err != nil {
+		return "", err
+	}
+
+	// template vars
 	vars := struct {
 		*schema.WebRPCSchema
+		SchemaHash string
 		TargetOpts gen.TargetOptions
 	}{
-		proto, opts,
+		proto, schemaHash, opts,
 	}
 
 	// Generate the template
