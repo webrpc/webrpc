@@ -14,7 +14,12 @@ type Service struct {
 }
 
 type Method struct {
-	Name    VarName           `json:"name"`
+	Name VarName `json:"name"`
+
+	StreamInput  bool `json:"-"` // TODO: actual implementation
+	StreamOutput bool `json:"-"` // TODO: actual implementation
+	Proxy        bool `json:"-"` // TODO: actual implementation
+
 	Inputs  []*MethodArgument `json:"inputs"`
 	Outputs []*MethodArgument `json:"outputs"`
 

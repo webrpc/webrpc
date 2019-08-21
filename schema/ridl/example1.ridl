@@ -68,13 +68,13 @@ service ExampleService
 
   - GetUser(req: GetUserRequest) => (user: User)
 
-  - Recv(req: stream string)
+  - stream Recv(req: string)
 
-  - Send() => (resp: stream string)
+  - stream Send() => (resp: string)
 
-  - SendAndRecv(req: stream string) => (resp: stream string)
+  - stream SendAndRecv(req: string) => stream (resp: string)
 
-  - Broadcast() => (resp: stream Notice)
+  - Broadcast() => stream (resp: Notice)
 
   -	VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code: bool, ids: []bool)
 	

@@ -2,6 +2,8 @@
 .vscode/*
 .idea/*
 
+*.sw?
+
 bin/*
 
 # Ignore everything in vendor/, except for *.go files,

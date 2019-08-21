@@ -1,29 +1,39 @@
 package ridl
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
 	"github.com/webrpc/webrpc/schema"
 )
 
-func tokenize(input string) ([]token, error) {
-	lx := newLexer(string(input))
+var (
+	schemaMessageTypeEnum   = schema.MessageType("enum")
+	schemaMessageTypeStruct = schema.MessageType("struct")
+)
 
-	tokens := []token{}
-	for {
-		tok := <-lx.tokens
-		if tok.tt == tokenSpace {
-			continue
+func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema.MethodArgument, error) {
+	output := []*schema.MethodArgument{}
+
+	for _, arg := range args {
+
+		var varType schema.VarType
+		err := schema.ParseVarTypeExpr(s, arg.TypeName().String(), &varType)
+		if err != nil {
+			return nil, fmt.Errorf("unknown data type: %v", arg.TypeName().String())
 		}
-		if tok.tt == tokenEOF {
-			break
+
+		methodArgument := &schema.MethodArgument{
+			Name:     schema.VarName(arg.Name().String()),
+			Type:     &varType,
+			Stream:   arg.Stream(),
+			Optional: arg.Optional(),
 		}
-		tokens = append(tokens, tok)
+
+		output = append(output, methodArgument)
 	}
 
-	return tokens, nil
+	return output, nil
 }
 
 func Parse(input string) (*schema.WebRPCSchema, error) {
@@ -31,206 +41,166 @@ func Parse(input string) (*schema.WebRPCSchema, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if err = p.run(); err != nil {
 		return nil, err
 	}
 
-	if p.tree.definitions["webrpc"] == nil {
-		return nil, errors.New(`missing "webrpc" declaration`)
-	}
-	webrpcInputVersion := p.tree.definitions["webrpc"].value()
-	if webrpcInputVersion != schema.VERSION {
-		return nil, errors.New("invalid webrpc declaration in ridl file")
-	}
-
-	if p.tree.definitions["name"] == nil {
-		return nil, errors.New(`missing "name" declaration`)
-	}
-
-	if p.tree.definitions["version"] == nil {
-		return nil, errors.New(`missing "version" declaration`)
-	}
-
 	s := &schema.WebRPCSchema{
-		WebRPCVersion: webrpcInputVersion,
-		Name:          p.tree.definitions["name"].value(),
-		SchemaVersion: p.tree.definitions["version"].value(),
+		Imports:  []string{},
+		Messages: []*schema.Message{},
+		Services: []*schema.Service{},
 	}
 
-	if len(p.tree.imports) > 0 {
-		s.Imports = []string{}
-		for _, tok := range p.tree.imports {
-			s.Imports = append(s.Imports, tok.val)
-		}
-	}
+	// main definitions
+	for _, line := range p.root.Definitions() {
+		key, value := line.Left().String(), line.Right().String()
 
-	// Init enum and message nodes
-	if len(p.tree.enums) > 0 {
-		if s.Messages == nil {
-			s.Messages = []*schema.Message{}
-		}
-		for _, enum := range p.tree.enums {
-			s.Messages = append(s.Messages, &schema.Message{
-				Name:     schema.VarName(enum.name.val),
-				Type:     schema.MessageType("enum"),
-				Fields:   nil,
-				EnumType: nil,
-			})
-		}
-	}
-	if len(p.tree.messages) > 0 {
-		if s.Messages == nil {
-			s.Messages = []*schema.Message{}
-		}
-		for _, message := range p.tree.messages {
-			s.Messages = append(s.Messages, &schema.Message{
-				Name:   schema.VarName(message.name.val),
-				Type:   schema.MessageType("struct"),
-				Fields: nil,
-			})
+		switch key {
+		case wordWebRPC:
+			if s.WebRPCVersion != "" {
+				return nil, fmt.Errorf(`webrpc was previously declared`)
+			}
+			s.WebRPCVersion = value
+		case wordName:
+			if s.Name != "" {
+				return nil, fmt.Errorf(`name was previously declared`)
+			}
+			s.Name = value
+		case wordVersion:
+			if s.SchemaVersion != "" {
+				return nil, fmt.Errorf(`version was previously declared`)
+			}
+			s.SchemaVersion = value
+		default:
+			return nil, fmt.Errorf("unknown definition %q", key)
 		}
 	}
 
-	// Schema enum fields
-	if len(p.tree.enums) > 0 {
-		for _, enum := range p.tree.enums {
-			name := schema.VarName(enum.name.val)
-			messageDef := s.GetMessageByName(string(name))
-			if messageDef == nil {
-				return nil, fmt.Errorf("unexpected error, could not find definition for: %v", name)
+	// imports
+	for _, line := range p.root.Imports() {
+		s.Imports = append(s.Imports, line.Path())
+	}
+
+	// pushing enums (1st pass)
+	for _, line := range p.root.Enums() {
+		s.Messages = append(s.Messages, &schema.Message{
+			Name:   schema.VarName(line.Name().String()),
+			Type:   schemaMessageTypeEnum,
+			Fields: []*schema.MessageField{},
+		})
+	}
+
+	// pushing messages (1st pass)
+	for _, line := range p.root.Messages() {
+		s.Messages = append(s.Messages, &schema.Message{
+			Name: schema.VarName(line.Name().String()),
+			Type: schemaMessageTypeStruct,
+		})
+	}
+
+	// enum fields
+	for _, line := range p.root.Enums() {
+		name := schema.VarName(line.Name().String())
+		enumDef := s.GetMessageByName(string(name))
+
+		if enumDef == nil {
+			return nil, fmt.Errorf("unexpected error, could not find definition for: %v", name)
+		}
+
+		var enumType schema.VarType
+		err := schema.ParseVarTypeExpr(s, line.TypeName().String(), &enumType)
+		if err != nil {
+			return nil, fmt.Errorf("unknown data type: %v", line.TypeName())
+		}
+
+		for i, def := range line.Values() {
+			key, val := def.Left().String(), def.Right().String()
+
+			if val == "" {
+				val = strconv.Itoa(i)
 			}
 
-			fields := []*schema.MessageField{}
+			enumDef.Fields = append(enumDef.Fields, &schema.MessageField{
+				Name:  schema.VarName(key),
+				Type:  &enumType,
+				Value: val,
+			})
+		}
+
+		enumDef.EnumType = &enumType
+	}
+
+	// message fields
+	for _, line := range p.root.Messages() {
+		name := schema.VarName(line.Name().String())
+		messageDef := s.GetMessageByName(string(name))
+
+		if messageDef == nil {
+			return nil, fmt.Errorf("unexpected error, could not find definition for: %v", name)
+		}
+
+		for _, def := range line.Fields() {
+			fieldName, fieldType := def.Left().String(), def.Right().String()
 
 			var varType schema.VarType
-			err := schema.ParseVarTypeExpr(s, enum.enumType.val, &varType)
+			err := schema.ParseVarTypeExpr(s, fieldType, &varType)
 			if err != nil {
-				return nil, fmt.Errorf("unknown data type: %v", enum.enumType)
+				return nil, fmt.Errorf("unknown data type: %v", fieldType)
 			}
 
-			for i := range enum.values {
-				value := enum.values[i]
-				field := &schema.MessageField{
-					Name: schema.VarName(value.left.val),
-					Type: &varType,
-				}
-				if value.right != nil {
-					field.Value = value.right.val
-				} else {
-					field.Value = strconv.Itoa(i)
-				}
-				fields = append(fields, field)
+			field := &schema.MessageField{
+				Name:     schema.VarName(fieldName),
+				Optional: def.Optional(),
+				Type:     &varType,
 			}
-
-			messageDef.Fields = fields
-			messageDef.EnumType = &varType
+			for _, meta := range def.Meta() {
+				key, val := meta.Left().String(), meta.Right().String()
+				field.Meta = append(field.Meta, schema.MessageFieldMeta{
+					key: val,
+				})
+			}
+			messageDef.Fields = append(messageDef.Fields, field)
 		}
 	}
 
-	// Schema message fields
-	if len(p.tree.messages) > 0 {
-		for _, message := range p.tree.messages {
-			name := schema.VarName(message.name.val)
-			messageDef := s.GetMessageByName(string(name))
-			if messageDef == nil {
-				return nil, fmt.Errorf("unexpected error, could not find definition for: %v", name)
+	// Services
+	for _, service := range p.root.Services() {
+		methods := []*schema.Method{}
+
+		for _, method := range service.Methods() {
+
+			inputs, err := buildArgumentsList(s, method.Inputs())
+			if err != nil {
+				return nil, err
 			}
 
-			fields := []*schema.MessageField{}
-
-			for i := range message.fields {
-				value := message.fields[i]
-
-				var varType schema.VarType
-				err := schema.ParseVarTypeExpr(s, value.right.val, &varType)
-				if err != nil {
-					return nil, fmt.Errorf("unknown data type: %v", value.right.val)
-				}
-				field := &schema.MessageField{
-					Name:     schema.VarName(value.left.val),
-					Optional: value.optional,
-					Type:     &varType,
-				}
-				for _, meta := range value.meta {
-					field.Meta = append(field.Meta, schema.MessageFieldMeta{
-						meta.left.val: meta.right.val,
-					})
-				}
-				fields = append(fields, field)
+			outputs, err := buildArgumentsList(s, method.Outputs())
+			if err != nil {
+				return nil, err
 			}
 
-			messageDef.Fields = fields
-		}
-	}
-
-	if len(p.tree.services) > 0 {
-		if s.Services == nil {
-			s.Services = []*schema.Service{}
-		}
-		for _, service := range p.tree.services {
-			methods := []*schema.Method{}
-
-			for i := range service.methods {
-				value := service.methods[i]
-
-				method := &schema.Method{
-					Name:    schema.VarName(value.name.val),
-					Inputs:  []*schema.MethodArgument{},
-					Outputs: []*schema.MethodArgument{},
-				}
-
-				// add inputs
-				for _, arg := range value.inputs {
-					var varType schema.VarType
-					err := schema.ParseVarTypeExpr(s, arg.right.val, &varType)
-					if err != nil {
-						return nil, fmt.Errorf("unknown data type: %v", arg.right.val)
-					}
-					methodArgument := &schema.MethodArgument{
-						Type:     &varType,
-						Stream:   arg.stream,
-						Optional: arg.optional,
-					}
-					if arg.left != nil {
-						methodArgument.Name = schema.VarName(arg.left.val)
-					}
-					method.Inputs = append(method.Inputs, methodArgument)
-				}
-
-				// add outputs
-				for _, arg := range value.outputs {
-					var varType schema.VarType
-					err := schema.ParseVarTypeExpr(s, arg.right.val, &varType)
-					if err != nil {
-						return nil, fmt.Errorf("unknown data type: %v", arg.right.val)
-					}
-					methodArgument := &schema.MethodArgument{
-						Type:     &varType,
-						Stream:   arg.stream,
-						Optional: arg.optional,
-					}
-					if arg.left != nil {
-						methodArgument.Name = schema.VarName(arg.left.val)
-					}
-					method.Outputs = append(method.Outputs, methodArgument)
-				}
-
-				// push method
-				methods = append(methods, method)
-			}
-
-			// push service
-			s.Services = append(s.Services, &schema.Service{
-				Name:    schema.VarName(service.name.val),
-				Methods: methods,
+			// push method
+			methods = append(methods, &schema.Method{
+				Name:         schema.VarName(method.Name().String()),
+				StreamInput:  method.StreamInput(),
+				StreamOutput: method.StreamOutput(),
+				Inputs:       inputs,
+				Outputs:      outputs,
 			})
 		}
+
+		// push service
+		s.Services = append(s.Services, &schema.Service{
+			Name:    schema.VarName(service.Name().String()),
+			Methods: methods,
+		})
 	}
 
 	// run through schema validator, last step to ensure all is good.
 	err = s.Parse(nil)
 	if err != nil {
-		return s, err
+		return nil, err
 	}
 
 	return s, nil
