@@ -15,11 +15,13 @@ const (
 	T_Byte
 	T_Bool
 
+	T_Uint
 	T_Uint8
 	T_Uint16
 	T_Uint32
 	T_Uint64
 
+	T_Int
 	T_Int8
 	T_Int16
 	T_Int32
@@ -45,11 +47,13 @@ var DataTypeToString = map[DataType]string{
 	T_Byte: "byte",
 	T_Bool: "bool",
 
+	T_Uint:   "uint",
 	T_Uint8:  "uint8",
 	T_Uint16: "uint16",
 	T_Uint32: "uint32",
 	T_Uint64: "uint64",
 
+	T_Int:   "int",
 	T_Int8:  "int8",
 	T_Int16: "int16",
 	T_Int32: "int32",
@@ -72,11 +76,13 @@ var DataTypeFromString = map[string]DataType{
 	"byte": T_Byte,
 	"bool": T_Bool,
 
+	"uint":   T_Uint,
 	"uint8":  T_Uint8,
 	"uint16": T_Uint16,
 	"uint32": T_Uint32,
 	"uint64": T_Uint64,
 
+	"int":   T_Int,
 	"int8":  T_Int8,
 	"int16": T_Int16,
 	"int32": T_Int32,

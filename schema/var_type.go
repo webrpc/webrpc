@@ -227,11 +227,11 @@ func getMessageType(schema *WebRPCSchema, structExpr string) (*Message, bool) {
 }
 
 var VarKeyDataTypes = []DataType{
-	T_String, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int8, T_Int16, T_Int32, T_Int64,
+	T_String, T_Uint, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
 var VarIntegerDataTypes = []DataType{
-	T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int8, T_Int16, T_Int32, T_Int64,
+	T_Uint, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
 func isValidVarKeyType(s string) bool {

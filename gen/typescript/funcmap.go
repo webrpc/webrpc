@@ -9,10 +9,12 @@ import (
 )
 
 var fieldTypeMap = map[schema.DataType]string{
+	schema.T_Uint:      "number",
 	schema.T_Uint8:     "number",
 	schema.T_Uint16:    "number",
 	schema.T_Uint32:    "number",
 	schema.T_Uint64:    "number",
+	schema.T_Int:       "number",
 	schema.T_Int8:      "number",
 	schema.T_Int16:     "number",
 	schema.T_Int32:     "number",
