@@ -49,7 +49,7 @@ func Failf(format string, args ...interface{}) Error {
 	return Errorf(ErrFail, format, args...)
 }
 
-func ErrorFailf(cause error, format string, args ...interface{}) Error {
+func WrapFailf(cause error, format string, args ...interface{}) Error {
 	return WrapError(ErrFail, cause, format, args...)
 }
 
