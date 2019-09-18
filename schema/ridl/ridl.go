@@ -116,7 +116,7 @@ func parse(input string) (*schema.WebRPCSchema, error) {
 	// imports
 	for _, line := range p.root.Imports() {
 		importDef := &schema.Import{
-			Path:    line.Path(),
+			Path:    line.Path().String(),
 			Members: []string{},
 		}
 		for _, member := range line.Members() {

@@ -197,11 +197,11 @@ func (in ImportNode) Members() []*TokenNode {
 	return in.members
 }
 
-func (in ImportNode) Path() string {
+func (in ImportNode) Path() *TokenNode {
 	if in.path == nil {
-		return ""
+		return invalidToken
 	}
-	return in.path.String()
+	return in.path
 }
 
 func (in ImportNode) Type() NodeType {

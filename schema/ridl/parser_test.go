@@ -154,7 +154,7 @@ func TestParserImport(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.NotZero(t, len(p.root.Children()))
-		assert.Equal(t, "packageName.ridl", p.root.Imports()[0].Path())
+		assert.Equal(t, "packageName.ridl", p.root.Imports()[0].Path().String())
 	}
 
 	{
@@ -167,7 +167,7 @@ func TestParserImport(t *testing.T) {
 		err = p.run()
 		assert.NoError(t, err)
 
-		assert.Equal(t, "foo", p.root.Imports()[0].Path())
+		assert.Equal(t, "foo", p.root.Imports()[0].Path().String())
 	}
 
 	{
@@ -182,7 +182,7 @@ func TestParserImport(t *testing.T) {
 		err = p.run()
 		assert.NoError(t, err)
 
-		assert.Equal(t, "foo", p.root.Imports()[0].Path())
+		assert.Equal(t, "foo", p.root.Imports()[0].Path().String())
 	}
 
 	{
@@ -197,7 +197,7 @@ func TestParserImport(t *testing.T) {
 		err = p.run()
 		assert.NoError(t, err)
 
-		assert.Equal(t, "foo", p.root.Imports()[0].Path())
+		assert.Equal(t, "foo", p.root.Imports()[0].Path().String())
 	}
 
 	{
@@ -213,7 +213,7 @@ func TestParserImport(t *testing.T) {
 
 		assert.Equal(t, 1, len(p.root.Imports()))
 		assert.Equal(t, 1, len(p.root.Children()))
-		assert.Equal(t, "foo.ridl", p.root.Imports()[0].Path())
+		assert.Equal(t, "foo.ridl", p.root.Imports()[0].Path().String())
 	}
 
 	{
@@ -242,7 +242,7 @@ func TestParserImport(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.NotZero(t, len(p.root.Children()))
-		assert.Equal(t, "x", p.root.Imports()[0].Path())
+		assert.Equal(t, "x", p.root.Imports()[0].Path().String())
 	}
 
 	{
@@ -262,9 +262,9 @@ func TestParserImport(t *testing.T) {
 
 		assert.Equal(t, 3, len(p.root.Imports()))
 
-		assert.Equal(t, "foo.ridl", p.root.Imports()[0].Path())
-		assert.Equal(t, "./path/to/bar.ridl", p.root.Imports()[1].Path())
-		assert.Equal(t, "baz_-", p.root.Imports()[2].Path())
+		assert.Equal(t, "foo.ridl", p.root.Imports()[0].Path().String())
+		assert.Equal(t, "./path/to/bar.ridl", p.root.Imports()[1].Path().String())
+		assert.Equal(t, "baz_-", p.root.Imports()[2].Path().String())
 	}
 
 	{
@@ -296,11 +296,11 @@ func TestParserImport(t *testing.T) {
 		err = p.run()
 		assert.NoError(t, err)
 
-		assert.Equal(t, "/path/to/file.ridl", p.root.Imports()[0].Path())
+		assert.Equal(t, "/path/to/file.ridl", p.root.Imports()[0].Path().String())
 		assert.Equal(t, "Member", p.root.Imports()[0].Members()[0].String())
 		assert.Equal(t, "Name", p.root.Imports()[0].Members()[1].String())
 
-		assert.Equal(t, "/path/to/file2.ridl", p.root.Imports()[1].Path())
+		assert.Equal(t, "/path/to/file2.ridl", p.root.Imports()[1].Path().String())
 		assert.Equal(t, "Member", p.root.Imports()[1].Members()[0].String())
 		assert.Equal(t, "Name", p.root.Imports()[1].Members()[1].String())
 	}
@@ -315,7 +315,7 @@ func TestParserImport(t *testing.T) {
 
 		err = p.run()
 		assert.Error(t, err, "expecting import")
-		assert.Equal(t, "/path /to foo.ridl", p.root.Imports()[0].Path())
+		assert.Equal(t, "/path /to foo.ridl", p.root.Imports()[0].Path().String())
 	}
 
 	{
@@ -332,10 +332,10 @@ func TestParserImport(t *testing.T) {
 
 		err = p.run()
 		assert.NoError(t, err)
-		assert.Equal(t, "/path /to foo.ridl", p.root.Imports()[0].Path())
-		assert.Equal(t, "skywalker.ridl", p.root.Imports()[1].Path())
-		assert.Equal(t, "  ", p.root.Imports()[2].Path())
-		assert.Equal(t, " \nABC \" DEF ", p.root.Imports()[3].Path())
+		assert.Equal(t, "/path /to foo.ridl", p.root.Imports()[0].Path().String())
+		assert.Equal(t, "skywalker.ridl", p.root.Imports()[1].Path().String())
+		assert.Equal(t, "  ", p.root.Imports()[2].Path().String())
+		assert.Equal(t, " \nABC \" DEF ", p.root.Imports()[3].Path().String())
 	}
 
 	{
@@ -361,10 +361,10 @@ func TestParserImport(t *testing.T) {
 		assert.Equal(t, "webrpc", p.root.Definitions()[0].Left().String())
 		assert.Equal(t, "v1", p.root.Definitions()[0].Right().String())
 
-		assert.Equal(t, "./users.ridl", p.root.Imports()[0].Path())
-		assert.Equal(t, "./users # .ridl", p.root.Imports()[1].Path())
-		assert.Equal(t, "uno", p.root.Imports()[2].Path())
-		assert.Equal(t, "dos", p.root.Imports()[3].Path())
+		assert.Equal(t, "./users.ridl", p.root.Imports()[0].Path().String())
+		assert.Equal(t, "./users # .ridl", p.root.Imports()[1].Path().String())
+		assert.Equal(t, "uno", p.root.Imports()[2].Path().String())
+		assert.Equal(t, "dos", p.root.Imports()[3].Path().String())
 	}
 
 	{
@@ -379,7 +379,7 @@ func TestParserImport(t *testing.T) {
 		err = p.run()
 		assert.NoError(t, err)
 
-		assert.Equal(t, "../contacts/proto/contacts.ridl", p.root.Imports()[0].Path())
+		assert.Equal(t, "../contacts/proto/contacts.ridl", p.root.Imports()[0].Path().String())
 	}
 }
 
@@ -463,7 +463,7 @@ func TestParserEnum(t *testing.T) {
 
 		err = p.run()
 		assert.NoError(t, err)
-		assert.Equal(t, "hello", p.root.Imports()[0].Path())
+		assert.Equal(t, "hello", p.root.Imports()[0].Path().String())
 
 		assert.Equal(t, "Value", p.root.Enums()[0].values[0].Left().String())
 		assert.Equal(t, "value2", p.root.Enums()[0].values[1].Left().String())
@@ -510,7 +510,7 @@ func TestParserEnum(t *testing.T) {
 
 		err = p.run()
 		assert.NoError(t, err)
-		assert.Equal(t, "hello", p.root.Imports()[0].Path())
+		assert.Equal(t, "hello", p.root.Imports()[0].Path().String())
 
 		assert.Equal(t, "Value", p.root.Enums()[0].values[0].Left().String())
 		assert.Equal(t, "SKY", p.root.Enums()[0].values[0].Right().String())
