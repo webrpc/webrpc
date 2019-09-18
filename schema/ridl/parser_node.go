@@ -188,7 +188,13 @@ func (tn TokenNode) Type() NodeType {
 
 type ImportNode struct {
 	node
-	path *TokenNode
+
+	path    *TokenNode
+	members []*TokenNode
+}
+
+func (in ImportNode) Members() []*TokenNode {
+	return in.members
 }
 
 func (in ImportNode) Path() string {

@@ -1,16 +1,39 @@
 package ridl
 
-func (p *parser) expectImportPath() error {
-	// <value>
-	value, err := p.expectPath()
-	if err != nil {
-		return err
+func parserStateImportMembers(p *parser, in *ImportNode) parserState {
+
+	tok := p.cursor()
+
+	switch tok.tt {
+	case tokenNewLine, tokenWhitespace:
+		// ignore whitespace
+		p.next()
+
+	case tokenDash:
+
+		// - <value> [<# comment>][EOL]
+		if _, err := p.match(tokenDash, tokenWhitespace); err != nil {
+			return p.stateError(err)
+		}
+
+		member, err := p.expectLiteralValue()
+		if err != nil {
+			return p.stateError(err)
+		}
+
+		in.members = append(in.members, newTokenNode(member))
+
+	case tokenHash:
+		p.continueUntilEOL()
+
+	default:
+		p.emit(in)
+
+		return parserDefaultState
+
 	}
 
-	p.emit(&ImportNode{path: newTokenNode(value)})
-
-	return nil
-
+	return parserStateImportMembers(p, in)
 }
 
 func parserStateImportValue(p *parser) parserState {
@@ -29,9 +52,15 @@ func parserStateImportValue(p *parser) parserState {
 			return p.stateError(err)
 		}
 
-		if err := p.expectImportPath(); err != nil {
+		path, err := p.expectPath()
+		if err != nil {
 			return p.stateError(err)
 		}
+
+		p.emit(&ImportNode{
+			path:    newTokenNode(path),
+			members: []*TokenNode{},
+		})
 
 		return parserStateImportValue
 
@@ -52,7 +81,7 @@ func parserStateImport(p *parser) parserState {
 		// import[<space>][<# comment>]<EOL>
 		matches, err := p.match(tokenWord, tokenEOL)
 		if err == nil {
-			if err = expectWord(matches[0], "import"); err != nil {
+			if err = expectWord(matches[0], wordImport); err != nil {
 				return p.stateError(err)
 			}
 			return parserStateImportValue
@@ -66,9 +95,16 @@ func parserStateImport(p *parser) parserState {
 			return p.stateError(err)
 		}
 
-		if err := p.expectImportPath(); err != nil {
+		path, err := p.expectPath()
+		if err != nil {
 			return p.stateError(err)
 		}
+
+		importNode := &ImportNode{
+			path: newTokenNode(path),
+		}
+
+		return parserStateImportMembers(p, importNode)
 	}
 
 	return parserDefaultState

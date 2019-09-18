@@ -281,6 +281,32 @@ func TestParserImport(t *testing.T) {
 
 	{
 		p, err := newParser(`
+			import /path/to/file.ridl
+				- Member
+				- Name # hello
+
+			import /path/to/file2.ridl # hello
+			# comment
+				- Member
+				- Name # hello
+				#comment
+		`)
+		assert.NoError(t, err)
+
+		err = p.run()
+		assert.NoError(t, err)
+
+		assert.Equal(t, "/path/to/file.ridl", p.root.Imports()[0].Path())
+		assert.Equal(t, "Member", p.root.Imports()[0].Members()[0].String())
+		assert.Equal(t, "Name", p.root.Imports()[0].Members()[1].String())
+
+		assert.Equal(t, "/path/to/file2.ridl", p.root.Imports()[1].Path())
+		assert.Equal(t, "Member", p.root.Imports()[1].Members()[0].String())
+		assert.Equal(t, "Name", p.root.Imports()[1].Members()[1].String())
+	}
+
+	{
+		p, err := newParser(`
 			import
 				-        "/path /to foo.ridl"
 				-
