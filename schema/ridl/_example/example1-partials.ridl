@@ -4,11 +4,6 @@ name = hello-webrpc
 version = v0.0.1
 
 
-import
-  - ./blah.ridl
-  - ./abc.json
-
-
 # this is a comment
 # yep
 enum Kind: uint32
