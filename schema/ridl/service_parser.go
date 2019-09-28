@@ -67,7 +67,7 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 				if matches[0].val == wordStream {
 					mn.outputs.stream = true
 				} else {
-					return p.stateError(errUnexpectedToken(matches[0]))
+					return p.stateError(errUnexpectedToken)
 				}
 			}
 
@@ -119,7 +119,7 @@ func parserStateService(p *parser) parserState {
 	}
 
 	if matches[0].val != "service" {
-		return p.stateError(errUnexpectedToken(matches[0]))
+		return p.stateError(errUnexpectedToken)
 	}
 
 	return parserStateServiceMethod(&ServiceNode{

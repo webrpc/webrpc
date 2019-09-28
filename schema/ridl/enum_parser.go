@@ -60,8 +60,8 @@ func parserStateEnum(p *parser) parserState {
 		return p.stateError(err)
 	}
 
-	if matches[0].val != "enum" {
-		return p.stateError(errUnexpectedToken(matches[0]))
+	if matches[0].val != wordEnum {
+		return p.stateError(errUnexpectedToken)
 	}
 
 	return parserStateEnumDefinition(&EnumNode{

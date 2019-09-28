@@ -32,7 +32,10 @@ type token struct {
 }
 
 func (t token) String() string {
-	return fmt.Sprintf("%s (line: %d, col: %d): %q", t.tt, t.line, t.col, t.val)
+	if t.val != "" {
+		return t.val
+	}
+	return t.tt.String()
 }
 
 type lexState func(*lexer) lexState

@@ -23,8 +23,9 @@ const (
 )
 
 var (
-	errUnexpectedEOF = errors.New(`unexpected EOF`)
-	errUnexpectedEOL = errors.New(`unexpected EOL`)
+	errUnexpectedToken = errors.New(`unexpected token`)
+	errUnexpectedEOF   = errors.New(`unexpected EOF`)
+	errUnexpectedEOL   = errors.New(`unexpected EOL`)
 )
 
 var eofToken = &token{tt: tokenEOF}
@@ -135,7 +136,7 @@ func (p *parser) expectOptionalCommentOrEOL() error {
 
 		default:
 			// another kind of token, stop
-			return fmt.Errorf("unexpected token: %s", tok)
+			return errUnexpectedToken
 		}
 
 		panic("unreachable")
@@ -145,7 +146,8 @@ func (p *parser) expectOptionalCommentOrEOL() error {
 }
 
 func (p *parser) stateError(err error) parserState {
-	err = fmt.Errorf("error: %v, near: %v \n", err, p.cursor())
+	cur := p.cursor()
+	err = fmt.Errorf("parse error: %q near %q (line: %d, col: %d)", err, cur.val, cur.line, cur.col)
 	p.emit(err)
 	return nil
 }
@@ -319,7 +321,7 @@ loop:
 			tokens = append(tokens, matches...)
 			continue
 		default:
-			return nil, fmt.Errorf("unexpected token %v", tok.tt)
+			return nil, errUnexpectedToken
 		}
 
 		p.next()
@@ -347,32 +349,32 @@ func parserStateComment(p *parser) parserState {
 func parserStateDeclaration(p *parser) parserState {
 	word := p.cursor()
 	if word.tt != tokenWord {
-		return p.stateError(errUnexpectedToken(word))
+		return p.stateError(errUnexpectedToken)
 	}
 
 	switch word.val {
-	case "webrpc", "name", "version":
+	case wordWebRPC, wordName, wordVersion:
 		// <word> = <value> # optional comment
 		return parserStateDefinition
-	case "import":
+	case wordImport:
 		// import
 		//   - <value> [<# comment>]
 		return parserStateImport
-	case "enum":
+	case wordEnum:
 		// enum <name>: <type>
 		//   - <name>[<space>=<space><value>][<#comment>]
 		return parserStateEnum
-	case "message":
+	case wordMessage:
 		// message <name>
 		//   - <name>: <type>
 		//     + <tag.name> = <VALUE>
 		return parserStateMessage
-	case "service":
+	case wordService:
 		// service <name>
 		//   - <name>([arguments]) [=> ([arguments])]
 		return parserStateService
 	default:
-		return p.stateError(fmt.Errorf("unknown definition near: %v", word))
+		return p.stateError(errUnexpectedToken)
 	}
 
 	return parserDefaultState
@@ -399,7 +401,7 @@ func parserDefaultState(p *parser) parserState {
 		return parserStateEOF
 
 	default:
-		return p.stateError(errUnexpectedToken(tok))
+		return p.stateError(errUnexpectedToken)
 	}
 
 	return nil
@@ -445,7 +447,7 @@ func parserStateContinue(p *parser) parserState {
 
 func composedValue(tokens []*token) (*token, error) {
 	if len(tokens) < 1 {
-		return nil, errors.New("invalid composed value")
+		return nil, errors.New("expecting token")
 	}
 
 	baseToken := tokens[0]

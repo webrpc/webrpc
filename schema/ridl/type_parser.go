@@ -38,7 +38,7 @@ loop:
 			continue loop
 
 		default:
-			return nil, errUnexpectedToken(tok)
+			return nil, errUnexpectedToken
 		}
 	}
 
@@ -51,7 +51,7 @@ func (p *parser) expectArgumentList() ([]*ArgumentNode, error) {
 	matches, err := p.match(tokenWord, tokenWhitespace)
 	if err == nil {
 		if matches[0].val != "stream" {
-			return nil, errUnexpectedToken(matches[0])
+			return nil, errUnexpectedToken
 		}
 	}
 
@@ -115,7 +115,7 @@ loop:
 			tokens = append(tokens, append(argument, varType)...)
 
 		default:
-			return nil, errUnexpectedToken(tok)
+			return nil, errUnexpectedToken
 
 		}
 	}
@@ -161,7 +161,7 @@ loop:
 			tokens = append(tokens, tok)
 
 		default:
-			return nil, errUnexpectedToken(tok)
+			return nil, errUnexpectedToken
 		}
 	}
 
@@ -218,7 +218,7 @@ loop:
 			continue
 
 		default:
-			return nil, errUnexpectedToken(tok)
+			return nil, errUnexpectedToken
 		}
 
 		p.next()

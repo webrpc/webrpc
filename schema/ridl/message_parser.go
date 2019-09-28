@@ -132,8 +132,8 @@ func parserStateMessage(p *parser) parserState {
 		return p.stateError(err)
 	}
 
-	if matches[0].val != "message" {
-		return p.stateError(errUnexpectedToken(matches[0]))
+	if matches[0].val != wordMessage {
+		return p.stateError(errUnexpectedToken)
 	}
 
 	return parserStateMessageField(&MessageNode{

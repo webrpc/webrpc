@@ -5,13 +5,9 @@ import (
 	"fmt"
 )
 
-func errUnexpectedToken(tok *token) error {
-	return fmt.Errorf(`unexpected token %q`, tok.tt)
-}
-
 func expectWord(tok *token, value string) error {
 	if tok.tt != tokenWord || tok.val != value {
-		return errUnexpectedToken(tok)
+		return errUnexpectedToken
 	}
 	return nil
 }
