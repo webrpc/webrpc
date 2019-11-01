@@ -58,11 +58,15 @@ func jsFieldType(in *schema.VarType) (string, error) {
 func fieldType(in *schema.VarType) (string, error) {
 	switch in.Type {
 	case schema.T_Map:
-		z, err := fieldType(in.Map.Value)
+		typK, ok := fieldTypeMap[in.Map.Key]
+		if !ok {
+			return "", fmt.Errorf("unknown type mapping %v", in.Map.Key)
+		}
+		typV, err := fieldType(in.Map.Value)
 		if err != nil {
 			return "", err
 		}
-		return fmt.Sprintf("{[key: %v]: %s}", in.Map.Key, z), nil
+		return fmt.Sprintf("{[key: %s]: %s}", typK, typV), nil
 
 	case schema.T_List:
 		z, err := fieldType(in.List.Elem)

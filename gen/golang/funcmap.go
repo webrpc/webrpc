@@ -52,19 +52,26 @@ func newClientServiceName(in schema.VarName) (string, error) {
 func fieldType(in *schema.VarType) (string, error) {
 	switch in.Type {
 	case schema.T_Map:
-		z, err := fieldType(in.Map.Value)
+		typK, ok := fieldTypeMap[in.Map.Key]
+		if !ok {
+			return "", fmt.Errorf("unknown type mapping %v", in.Map.Key)
+		}
+		typV, err := fieldType(in.Map.Value)
 		if err != nil {
 			return "", err
 		}
-		return fmt.Sprintf("map[%v]%s", in.Map.Key, z), nil
+		return fmt.Sprintf("map[%v]%s", typK, typV), nil
+
 	case schema.T_List:
 		z, err := fieldType(in.List.Elem)
 		if err != nil {
 			return "", err
 		}
 		return "[]" + z, nil
+
 	case schema.T_Struct:
 		return "*" + in.Struct.Name, nil
+
 	default:
 		if fieldTypeMap[in.Type] != "" {
 			return fieldTypeMap[in.Type], nil
