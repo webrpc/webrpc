@@ -40,9 +40,7 @@ clean:
 	rm -rf ./bin
 
 dep:
-	@export GO111MODULE=on && \
-		go mod tidy && \
-		rm -rf ./vendor && go mod vendor
+	@export GO111MODULE=on && go mod tidy
 
 dep-upgrade-all:
 	@GO111MODULE=on go get -u
