@@ -10,6 +10,8 @@ import (
 	"github.com/webrpc/webrpc/schema/ridl"
 )
 
+const VERSION = "v0.5.0"
+
 func ParseSchemaFile(schemaFilePath string) (*schema.WebRPCSchema, error) {
 	cwd, err := os.Getwd()
 	if err != nil {

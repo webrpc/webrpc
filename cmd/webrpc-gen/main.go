@@ -17,6 +17,7 @@ import (
 var flags = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
 
 func main() {
+	versionFlag := flags.Bool("version", false, "print webrpc version and exit")
 	schemaFlag := flags.String("schema", "", "webrpc schema file (required)")
 	pkgFlag := flags.String("pkg", "proto", "generated package name for target language, default: proto")
 	outFlag := flags.String("out", "", "generated output file, default: stdout")
@@ -34,6 +35,11 @@ func main() {
 	targetExtra := flags.String("extra", "", "target language extra/custom options")
 
 	flags.Parse(os.Args[1:])
+
+	if *versionFlag {
+		fmt.Printf("webrpc %s\n", webrpc.VERSION)
+		os.Exit(0)
+	}
 
 	if *schemaFlag == "" {
 		fmt.Println("oops, you must pass a -schema flag, see -h for help/usage")
