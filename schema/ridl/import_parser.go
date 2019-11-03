@@ -141,25 +141,3 @@ loop:
 
 	return composedValue(tokens)
 }
-
-func (p *parser) expectMetadataValue() (*token, error) {
-	tokens := []*token{}
-
-loop:
-	for {
-		// TODO: should we allow enclosing literal values with quotes?
-		tok := p.cursor()
-
-		switch tok.tt {
-
-		case tokenWord, tokenDash, tokenDot, tokenComma:
-			tokens = append(tokens, tok)
-			p.next()
-
-		default:
-			break loop
-		}
-	}
-
-	return composedValue(tokens)
-}

@@ -330,6 +330,24 @@ loop:
 	return composedValue(tokens)
 }
 
+func (p *parser) expectMetadataValue() (*token, error) {
+	tokens := []*token{}
+
+loop:
+	for {
+		tok := p.cursor()
+
+		if tok.tt != tokenNewLine {
+			tokens = append(tokens, tok)
+			p.next()
+		} else {
+			break loop
+		}
+	}
+
+	return composedValue(tokens)
+}
+
 func parserStateEOL(p *parser) parserState {
 	err := p.expectOptionalCommentOrEOL()
 	if err != nil {
