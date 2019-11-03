@@ -8,6 +8,22 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
+func Parse(input string) (*schema.WebRPCSchema, error) {
+	s, err := parse(input)
+	if err != nil {
+		return nil, err
+	}
+
+	// run through schema validator, last step to
+	// ensure all is good.
+	err = s.Parse(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
+
 var (
 	schemaMessageTypeEnum   = schema.MessageType("enum")
 	schemaMessageTypeStruct = schema.MessageType("struct")
@@ -37,7 +53,6 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 		methodArgument := &schema.MethodArgument{
 			Name:     schema.VarName(arg.Name().String()),
 			Type:     &varType,
-			Stream:   arg.Stream(),
 			Optional: arg.Optional(),
 		}
 
@@ -260,22 +275,6 @@ func parse(input string) (*schema.WebRPCSchema, error) {
 
 		serviceDef := s.GetServiceByName(service.Name().String())
 		serviceDef.Methods = methods
-	}
-
-	return s, nil
-}
-
-func Parse(input string) (*schema.WebRPCSchema, error) {
-	s, err := parse(input)
-	if err != nil {
-		return nil, err
-	}
-
-	// run through schema validator, last step to
-	// ensure all is good.
-	err = s.Parse(nil)
-	if err != nil {
-		return nil, err
 	}
 
 	return s, nil

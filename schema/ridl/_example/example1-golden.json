@@ -195,8 +195,7 @@
       {
        "name": "status",
        "type": "bool",
-       "optional": false,
-       "stream": false
+       "optional": false
       }
      ]
     }
@@ -212,8 +211,7 @@
       {
        "name": "status",
        "type": "bool",
-       "optional": false,
-       "stream": false
+       "optional": false
       }
      ]
     },
@@ -223,71 +221,69 @@
       {
        "name": "req",
        "type": "GetUserRequest",
-       "optional": false,
-       "stream": false
+       "optional": false
       }
      ],
      "outputs": [
       {
        "name": "user",
        "type": "User",
-       "optional": false,
-       "stream": false
+       "optional": false
       }
      ]
     },
     {
      "name": "Recv",
+     "streamInput": true,
      "inputs": [
       {
        "name": "req",
        "type": "string",
-       "optional": false,
-       "stream": false
+       "optional": false
       }
      ],
      "outputs": []
     },
     {
      "name": "Send",
+     "streamInput": true,
      "inputs": [],
      "outputs": [
       {
        "name": "resp",
        "type": "string",
-       "optional": false,
-       "stream": false
+       "optional": false
       }
      ]
     },
     {
      "name": "SendAndRecv",
+     "streamInput": true,
+     "streamOutput": true,
      "inputs": [
       {
        "name": "req",
        "type": "string",
-       "optional": false,
-       "stream": false
+       "optional": false
       }
      ],
      "outputs": [
       {
        "name": "resp",
        "type": "string",
-       "optional": false,
-       "stream": false
+       "optional": false
       }
      ]
     },
     {
      "name": "Broadcast",
+     "streamOutput": true,
      "inputs": [],
      "outputs": [
       {
        "name": "resp",
        "type": "Notice",
-       "optional": false,
-       "stream": false
+       "optional": false
       }
      ]
     },
@@ -297,34 +293,29 @@
       {
        "name": "seq",
        "type": "int32",
-       "optional": false,
-       "stream": false
+       "optional": false
       },
       {
        "name": "header",
        "type": "map<string,[]string>",
-       "optional": true,
-       "stream": false
+       "optional": true
       },
       {
        "name": "ids",
        "type": "[]uint64",
-       "optional": false,
-       "stream": false
+       "optional": false
       }
      ],
      "outputs": [
       {
        "name": "code",
        "type": "bool",
-       "optional": false,
-       "stream": false
+       "optional": false
       },
       {
        "name": "ids",
        "type": "[]bool",
-       "optional": false,
-       "stream": false
+       "optional": false
       }
      ]
     },
@@ -334,28 +325,24 @@
       {
        "name": "n",
        "type": "uint64",
-       "optional": false,
-       "stream": false
+       "optional": false
       },
       {
        "name": "stuff",
        "type": "[]map<uint64,string>",
-       "optional": false,
-       "stream": false
+       "optional": false
       },
       {
        "name": "etc",
        "type": "string",
-       "optional": false,
-       "stream": false
+       "optional": false
       }
      ],
      "outputs": [
       {
        "name": "code",
        "type": "bool",
-       "optional": true,
-       "stream": false
+       "optional": true
       }
      ]
     }

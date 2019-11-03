@@ -280,10 +280,6 @@ func (an *ArgumentNode) Optional() bool {
 	return an.optional
 }
 
-func (an *ArgumentNode) Stream() bool {
-	return an.stream
-}
-
 func (an *ArgumentNode) Type() NodeType {
 	return ArgumentNodeType
 }

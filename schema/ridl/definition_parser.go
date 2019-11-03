@@ -2,7 +2,6 @@ package ridl
 
 func parserStateDefinitionValue(dn *DefinitionNode) parserState {
 	return func(p *parser) parserState {
-
 		value, err := p.expectLiteralValue()
 		if err != nil {
 			return p.stateError(err)
