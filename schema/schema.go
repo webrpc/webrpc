@@ -11,13 +11,8 @@ import (
 )
 
 const (
-	VERSION = "v1"
+	VERSION = "v1" // todo rename to schema_version
 )
-
-type Import struct {
-	Path    string   `json:"path"`
-	Members []string `json:"members"`
-}
 
 // schema of webrpc json file, and validations
 type WebRPCSchema struct {
@@ -28,6 +23,11 @@ type WebRPCSchema struct {
 
 	Messages []*Message `json:"messages"`
 	Services []*Service `json:"services"`
+}
+
+type Import struct {
+	Path    string   `json:"path"`
+	Members []string `json:"members"`
 }
 
 // Parse parses the schema through the AST, intended to be called

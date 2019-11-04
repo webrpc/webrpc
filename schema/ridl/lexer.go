@@ -397,15 +397,6 @@ type lexer struct {
 	tokens chan token
 }
 
-func (lx *lexer) run() {
-	for state := lexDefaultState; state != nil; {
-		state = state(lx)
-	}
-
-	lx.emit(tokenEOF)
-	close(lx.tokens)
-}
-
 func newLexer(inputString string) *lexer {
 	input := []rune(inputString)
 	lx := &lexer{
@@ -416,6 +407,15 @@ func newLexer(inputString string) *lexer {
 
 	go lx.run()
 	return lx
+}
+
+func (lx *lexer) run() {
+	for state := lexDefaultState; state != nil; {
+		state = state(lx)
+	}
+
+	lx.emit(tokenEOF)
+	close(lx.tokens)
 }
 
 func (lx *lexer) peek() rune {
