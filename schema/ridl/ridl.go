@@ -2,26 +2,43 @@ package ridl
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/webrpc/webrpc/schema"
 )
 
-func Parse(input string) (*schema.WebRPCSchema, error) {
-	s, err := parse(input)
+type Parser struct {
+	parent  *Parser
+	imports map[string]struct{}
+
+	reader *schema.Reader
+}
+
+func (p *Parser) Parse() (*schema.WebRPCSchema, error) {
+	s, err := p.parse()
 	if err != nil {
 		return nil, err
 	}
 
-	// run through schema validator, last step to
-	// ensure all is good.
-	err = s.Parse(nil)
+	// run through schema validator, last step to ensure all is good.
+	err = s.Validate()
 	if err != nil {
 		return nil, err
 	}
 
 	return s, nil
+}
+
+func NewParser(r *schema.Reader) *Parser {
+	return &Parser{
+		reader: r,
+		imports: map[string]struct{}{
+			// this file imports itself
+			r.File: struct{}{},
+		},
+	}
 }
 
 var (
@@ -62,16 +79,27 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 	return output, nil
 }
 
-func importRIDLFile(path string) (*schema.WebRPCSchema, error) {
+func (p *Parser) importRIDLFile(path string) (*schema.WebRPCSchema, error) {
 	if mockImport {
 		return &schema.WebRPCSchema{}, nil
 	}
 
-	buf, err := ioutil.ReadFile(path)
+	for node := p; node != nil; node = node.parent {
+		if _, imported := node.imports[path]; imported {
+			return nil, fmt.Errorf("circular import %q in file %q", filepath.Base(path), p.reader.File)
+		}
+		node.imports[path] = struct{}{}
+	}
+
+	fp, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
-	return parse(string(buf))
+	defer fp.Close()
+
+	m := NewParser(schema.NewReader(fp, path))
+	m.parent = p
+	return m.Parse()
 }
 
 func isImportAllowed(name string, whitelist []string) bool {
@@ -86,13 +114,13 @@ func isImportAllowed(name string, whitelist []string) bool {
 	return false
 }
 
-func parse(input string) (*schema.WebRPCSchema, error) {
-	p, err := newParser(input)
+func (p *Parser) parse() (*schema.WebRPCSchema, error) {
+	q, err := newParser(p.reader)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = p.run(); err != nil {
+	if err = q.run(); err != nil {
 		return nil, err
 	}
 
@@ -103,7 +131,7 @@ func parse(input string) (*schema.WebRPCSchema, error) {
 	}
 
 	// main definitions
-	for _, line := range p.root.Definitions() {
+	for _, line := range q.root.Definitions() {
 		key, value := line.Left().String(), line.Right().String()
 
 		switch key {
@@ -127,20 +155,21 @@ func parse(input string) (*schema.WebRPCSchema, error) {
 		}
 	}
 
-	// TODO: circular import detection
 	// imports
-	for _, line := range p.root.Imports() {
+	for _, line := range q.root.Imports() {
+		importPath := filepath.Join(filepath.Dir(p.reader.File), line.Path().String())
+
 		importDef := &schema.Import{
-			Path:    line.Path().String(),
+			Path:    importPath,
 			Members: []string{},
 		}
 		for _, member := range line.Members() {
 			importDef.Members = append(importDef.Members, member.String())
 		}
 
-		imported, err := importRIDLFile(importDef.Path)
+		imported, err := p.importRIDLFile(importDef.Path)
 		if err != nil {
-			return nil, err
+			return nil, p.trace(err, line.Path())
 		}
 
 		for i := range imported.Messages {
@@ -158,7 +187,7 @@ func parse(input string) (*schema.WebRPCSchema, error) {
 	}
 
 	// pushing enums (1st pass)
-	for _, line := range p.root.Enums() {
+	for _, line := range q.root.Enums() {
 		s.Messages = append(s.Messages, &schema.Message{
 			Name:   schema.VarName(line.Name().String()),
 			Type:   schemaMessageTypeEnum,
@@ -167,7 +196,7 @@ func parse(input string) (*schema.WebRPCSchema, error) {
 	}
 
 	// pushing messages (1st pass)
-	for _, line := range p.root.Messages() {
+	for _, line := range q.root.Messages() {
 		s.Messages = append(s.Messages, &schema.Message{
 			Name: schema.VarName(line.Name().String()),
 			Type: schemaMessageTypeStruct,
@@ -175,7 +204,7 @@ func parse(input string) (*schema.WebRPCSchema, error) {
 	}
 
 	// pushing services (1st pass)
-	for _, service := range p.root.Services() {
+	for _, service := range q.root.Services() {
 		// push service
 		s.Services = append(s.Services, &schema.Service{
 			Name: schema.VarName(service.Name().String()),
@@ -183,7 +212,7 @@ func parse(input string) (*schema.WebRPCSchema, error) {
 	}
 
 	// enum fields
-	for _, line := range p.root.Enums() {
+	for _, line := range q.root.Enums() {
 		name := schema.VarName(line.Name().String())
 		enumDef := s.GetMessageByName(string(name))
 
@@ -215,7 +244,7 @@ func parse(input string) (*schema.WebRPCSchema, error) {
 	}
 
 	// message fields
-	for _, line := range p.root.Messages() {
+	for _, line := range q.root.Messages() {
 		name := schema.VarName(line.Name().String())
 		messageDef := s.GetMessageByName(string(name))
 
@@ -248,7 +277,7 @@ func parse(input string) (*schema.WebRPCSchema, error) {
 	}
 
 	// Services
-	for _, service := range p.root.Services() {
+	for _, service := range q.root.Services() {
 		methods := []*schema.Method{}
 
 		for _, method := range service.Methods() {
@@ -278,4 +307,15 @@ func parse(input string) (*schema.WebRPCSchema, error) {
 	}
 
 	return s, nil
+}
+
+func (p *Parser) trace(err error, tok *TokenNode) error {
+	return fmt.Errorf(
+		"%v\nnear string %q\n\tfrom %v:%d:%d",
+		err,
+		tok.tok.val,
+		p.reader.File,
+		tok.tok.line,
+		tok.tok.col,
+	)
 }

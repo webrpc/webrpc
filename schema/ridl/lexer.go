@@ -397,11 +397,11 @@ type lexer struct {
 	tokens chan token
 }
 
-func newLexer(inputString string) *lexer {
-	input := []rune(inputString)
+func newLexer(in string) *lexer {
+	s := []rune(in)
 	lx := &lexer{
-		input:  input,
-		length: len(input),
+		input:  s,
+		length: len(s),
 		tokens: make(chan token),
 	}
 

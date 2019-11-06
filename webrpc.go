@@ -1,7 +1,6 @@
 package webrpc
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -30,17 +29,28 @@ func ParseSchemaFile(schemaFilePath string) (*schema.WebRPCSchema, error) {
 		return nil, err
 	}
 
-	// read file contents
-	contents, err := ioutil.ReadFile(path)
+	// open file
+	fp, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
+	defer fp.Close()
 
 	ext := filepath.Ext(path)
 	if ext == ".json" {
-		return schema.ParseSchemaJSON(contents)
+		// TODO: implement ParseSchemaJSON with io.Reader or read contents
+		// before passing them.
+
+		//return schema.ParseSchemaJSON(contents)
+		return nil, errors.New("not implemented")
 	} else if ext == ".ridl" {
-		return ridl.Parse(string(contents))
+		rdr := ridl.NewParser(schema.NewReader(fp, path))
+		s, err := rdr.Parse()
+		if err != nil {
+			return nil, err
+		}
+
+		return s, nil
 	} else {
 		return nil, errors.Errorf("error! invalid extension, %s", ext)
 	}

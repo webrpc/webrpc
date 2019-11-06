@@ -3,6 +3,7 @@ package ridl
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"reflect"
 	"runtime"
@@ -42,8 +43,8 @@ type parser struct {
 	root RootNode
 }
 
-func newParser(input string) (*parser, error) {
-	tokens, err := tokenize(input)
+func newParser(r io.Reader) (*parser, error) {
+	tokens, err := tokenize(r)
 	if err != nil {
 		return nil, err
 	}

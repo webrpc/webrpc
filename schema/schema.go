@@ -30,15 +30,11 @@ type Import struct {
 	Members []string `json:"members"`
 }
 
-// Parse parses the schema through the AST, intended to be called
-// after the json has been unmarshalled
-func (s *WebRPCSchema) Parse(schema *WebRPCSchema) error {
-	if schema == nil {
-		schema = s // we can take nil here, as this is the schema
-	}
-
-	if schema.WebRPCVersion != VERSION {
-		return errors.Errorf("webrpc schema version, '%s' is invalid, try '%s'", schema.WebRPCVersion, VERSION)
+// Validate validates the schema through the AST, intended to be called after
+// the json has been unmarshalled
+func (s *WebRPCSchema) Validate() error {
+	if s.WebRPCVersion != VERSION {
+		return errors.Errorf("webrpc schema version, '%s' is invalid, try '%s'", s.WebRPCVersion, VERSION)
 	}
 
 	for _, msg := range s.Messages {

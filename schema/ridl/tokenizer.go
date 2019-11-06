@@ -1,7 +1,17 @@
 package ridl
 
-func tokenize(input string) ([]token, error) {
-	lx := newLexer(string(input))
+import (
+	"io"
+	"io/ioutil"
+)
+
+func tokenize(r io.Reader) ([]token, error) {
+	in, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+
+	lx := newLexer(string(in))
 
 	tokens := []token{}
 	for tok := range lx.tokens {
