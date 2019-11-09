@@ -1,6 +1,7 @@
 package webrpc
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -40,9 +41,12 @@ func ParseSchemaFile(schemaFilePath string) (*schema.WebRPCSchema, error) {
 	if ext == ".json" {
 		// TODO: implement ParseSchemaJSON with io.Reader or read contents
 		// before passing them.
+		contents, err := ioutil.ReadAll(fp)
+		if err != nil {
+			return nil, err
+		}
 
-		//return schema.ParseSchemaJSON(contents)
-		return nil, errors.New("not implemented")
+		return schema.ParseSchemaJSON(contents)
 	} else if ext == ".ridl" {
 		rdr := ridl.NewParser(schema.NewReader(fp, path))
 		s, err := rdr.Parse()
