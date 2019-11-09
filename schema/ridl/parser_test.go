@@ -658,6 +658,7 @@ func TestParserMessage(t *testing.T) {
 				+ json = created_at
 				+ go.tag.json = created_at,omitempty
 				+ go.tag.db = created_at
+				+ go.tag.other = created_at,omitempty
 
 
 		message Notice
@@ -703,6 +704,9 @@ func TestParserMessage(t *testing.T) {
 
 		assert.Equal(t, "go.tag.db", p.root.Messages()[0].Fields()[3].Meta()[2].Left().String())
 		assert.Equal(t, "created_at", p.root.Messages()[0].Fields()[3].Meta()[2].Right().String())
+
+		assert.Equal(t, "go.tag.other", p.root.Messages()[0].Fields()[3].Meta()[3].Left().String())
+		assert.Equal(t, "created_at,omitempty", p.root.Messages()[0].Fields()[3].Meta()[3].Right().String())
 	}
 }
 
