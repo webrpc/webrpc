@@ -1,6 +1,7 @@
 package ridl
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,14 +47,31 @@ func TestLexerColumnAndLine(t *testing.T) {
 			},
 		},
 		{
-			" ABC\nDEF ",
+			" ABC\nZ\nDEF ",
 			[]lc{
 				{1, 1}, // " "
 				{1, 4}, // ABC
 				{1, 5}, // \n
-				{2, 3}, // DEF
-				{2, 4}, // " "
-				{2, 4}, // EOF
+				{2, 1}, // Z
+				{2, 2}, // \n
+				{3, 3}, // DEF
+				{3, 4}, // " "
+				{3, 4}, // EOF
+			},
+		},
+		{
+			" ABC\n\n\nZ\nDEF ",
+			[]lc{
+				{1, 1}, // " "
+				{1, 4}, // ABC
+				{1, 5}, // \n
+				{2, 1}, // \n
+				{3, 1}, // \n
+				{4, 1}, // Z
+				{4, 2}, // \n
+				{5, 3}, // DEF
+				{5, 4}, // " "
+				{5, 4}, // EOF
 			},
 		},
 		{
@@ -326,7 +344,9 @@ func TestLexerStringTokens(t *testing.T) {
 				"=>",
 				"\n",
 				"=",
-				"\n\n\n",
+				"\n",
+				"\n",
+				"\n",
 				"=>",
 				"=>",
 				"=",
@@ -335,14 +355,16 @@ func TestLexerStringTokens(t *testing.T) {
 				".",
 				".",
 				"ABC",
-				"\n\n",
+				"\n",
+				"\n",
 			},
 		},
 		{
 			" \n\n\t\twebrpc    =v1 + foo = bar",
 			[]string{
 				" ",
-				"\n\n",
+				"\n",
+				"\n",
 				"\t\t",
 				"webrpc",
 				"    ",
@@ -511,7 +533,7 @@ func TestLexerSimpleTokens(t *testing.T) {
 	}
 
 	for _, input := range inputs {
-		tokens, err := tokenize(input.in)
+		tokens, err := tokenize(strings.NewReader(input.in))
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(input.out), len(tokens))
@@ -531,14 +553,18 @@ func TestLexerRIDLTokens(t *testing.T) {
 		{
 			"\n\n\nwebrpc",
 			[]string{
-				"\n\n\n",
+				"\n",
+				"\n",
+				"\n",
 				"webrpc",
 			},
 		},
 		{
 			"\n\n\nwebrpc\n=v1",
 			[]string{
-				"\n\n\n",
+				"\n",
+				"\n",
+				"\n",
 				"webrpc",
 				"\n",
 				"=",
@@ -548,7 +574,9 @@ func TestLexerRIDLTokens(t *testing.T) {
 		{
 			"\n\n\nwebrpc\n=v1\n\t\t\t+   foo = bar - baz = 56 # a    comment\n\nversion = v0.0.0.1",
 			[]string{
-				"\n\n\n",
+				"\n",
+				"\n",
+				"\n",
 				"webrpc",
 				"\n",
 				"=",
@@ -576,7 +604,8 @@ func TestLexerRIDLTokens(t *testing.T) {
 				"a",
 				"    ",
 				"comment",
-				"\n\n",
+				"\n",
+				"\n",
 				"version",
 				" ",
 				"=",
@@ -587,7 +616,7 @@ func TestLexerRIDLTokens(t *testing.T) {
 	}
 
 	for _, input := range inputs {
-		tokens, err := tokenize(input.in)
+		tokens, err := tokenize(strings.NewReader(input.in))
 		assert.NoError(t, err)
 
 		for i, tok := range tokens {

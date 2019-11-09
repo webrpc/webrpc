@@ -6,10 +6,20 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/webrpc/webrpc/schema"
 )
+
+func newStringParser(s string) (*parser, error) {
+	return newParser(strings.NewReader(s))
+}
+
+func parseString(s string) (*schema.WebRPCSchema, error) {
+	return NewParser(schema.NewReader(strings.NewReader(s), "./main.ridl")).Parse()
+}
 
 func compactJSON(src []byte) string {
 	buf := bytes.NewBuffer(nil)
@@ -27,7 +37,7 @@ func TestRIDLHeader(t *testing.T) {
 		buf := `
     name = myapi
   `
-		_, err := Parse(buf)
+		_, err := parseString(buf)
 		assert.Error(t, err, `"version" is required`)
 	}
 
@@ -38,7 +48,7 @@ func TestRIDLHeader(t *testing.T) {
     name = myapi1
     name = myapi2
   `
-		_, err := Parse(buf)
+		_, err := parseString(buf)
 		assert.Error(t, err, `should not be able to declare "ridl" twice`)
 	}
 
@@ -50,7 +60,7 @@ func TestRIDLHeader(t *testing.T) {
 
   name= h_ello-webrpc
   `
-		s, err := parse(buf)
+		s, err := parseString(buf)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "v1", s.WebRPCVersion)
@@ -77,7 +87,7 @@ func TestRIDLImport(t *testing.T) {
       # comment
     `
 
-		s, err := parse(input)
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "v1", s.WebRPCVersion)
@@ -98,7 +108,7 @@ func TestRIDLImport(t *testing.T) {
   - foo1 # foo-comment with spaces
     - bar2 # # # bar-comment
   `
-		s, err := parse(input)
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "v1", s.WebRPCVersion)
@@ -129,7 +139,7 @@ func TestRIDLEnum(t *testing.T) {
           - ADMIN         # aka, = 1
           - OTHER
   `
-		s, err := parse(input)
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "v1", s.WebRPCVersion)
@@ -170,7 +180,7 @@ func TestRIDLMessages(t *testing.T) {
 
   message Empty
   `
-		s, err := parse(input)
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "Empty", string(s.Messages[0].Name))
@@ -185,7 +195,7 @@ func TestRIDLMessages(t *testing.T) {
 
   message Empty # with a, comment
   `
-		s, err := parse(input)
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "Empty", string(s.Messages[0].Name))
@@ -203,7 +213,7 @@ func TestRIDLMessages(t *testing.T) {
     - ID: uint32
     - Value?: uint32
   `
-		s, err := parse(input)
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "Simple", string(s.Messages[0].Name))
@@ -237,7 +247,7 @@ func TestRIDLMessages(t *testing.T) {
 
   message Simple2 # with a-comment an,d meta fields
   `
-		s, err := parse(input)
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "Simple", string(s.Messages[0].Name))
@@ -276,7 +286,7 @@ func TestRIDLMessages(t *testing.T) {
 
   message Simple2 # with a-comment an,d meta fields
   `
-		s, err := parse(input)
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "map<string,string>", string(s.Messages[0].Fields[1].Type.String()))
@@ -295,7 +305,7 @@ func TestRIDLService(t *testing.T) {
   service Pinger
     - Ping()
   `
-		s, err := parse(input)
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "Pinger", string(s.Services[0].Name))
@@ -313,7 +323,7 @@ func TestRIDLService(t *testing.T) {
           -  Status() => (status: bool)
           -  StatusStream(q: string) => stream (status: bool)`
 
-		s, err := parse(input)
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "Ping", string(s.Services[0].Methods[0].Name))
@@ -341,7 +351,7 @@ func TestRIDLService(t *testing.T) {
       -  stream Ping(code?: uint32) => (code: bool)
       -  PingStream(text: string) => stream (code?: bool)
     `
-		s, err := parse(input)
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "Ping", string(s.Services[0].Methods[0].Name))
@@ -365,7 +375,7 @@ func TestRIDLService(t *testing.T) {
     -  Ping(header: map<string,[][]string>) => (code: bool)
       -  stream VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code?: bool, ids: []bool)
     - MoreTest(n: uint64, stuff: []map<uint64,   map<int32,             string>>, etc: string) => (code: bool)`
-		s, err := parse(input)
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "map<string,[][]string>", s.Services[0].Methods[0].Inputs[0].Type.String())
@@ -373,14 +383,14 @@ func TestRIDLService(t *testing.T) {
 	}
 }
 
-func TestRIDLparse(t *testing.T) {
+func TestRIDLParse(t *testing.T) {
 	fp, err := os.Open("_example/example0.ridl")
 	assert.NoError(t, err)
 
 	buf, err := ioutil.ReadAll(fp)
 	assert.NoError(t, err)
 
-	s, err := parse(string(buf))
+	s, err := parseString(string(buf))
 	assert.NoError(t, err)
 
 	jout, err := s.ToJSON(true)
@@ -442,11 +452,11 @@ func TestRIDLTables(t *testing.T) {
 				 "version": "v0.0.1",
 				 "imports": [
 					{
-					 "path": "./blah.ridl",
+					 "path": "blah.ridl",
 					 "members": []
 					},
 					{
-					 "path": "./abc.json",
+					 "path": "abc.json",
 					 "members": []
 					}
 				 ],
@@ -458,13 +468,13 @@ func TestRIDLTables(t *testing.T) {
 	}
 
 	for i := range table {
-		s, err := parse(table[i].Input)
+		s, err := parseString(table[i].Input)
 		assert.NoError(t, err)
 
 		jout, err := s.ToJSON(true)
 		assert.NoError(t, err)
 
-		assert.Equal(t, compactJSON(table[i].Output), compactJSON([]byte(jout)), fmt.Sprintf("GOT:\n\n%s\n\nEXPECTING:\n\n%s\n\n", jout, string(table[i].Output)))
+		assert.JSONEq(t, compactJSON(table[i].Output), compactJSON([]byte(jout)), fmt.Sprintf("GOT:\n\n%s\n\nEXPECTING:\n\n%s\n\n", jout, string(table[i].Output)))
 	}
 }
 
@@ -477,7 +487,7 @@ func TestRIDLImports(t *testing.T) {
 	buf, err := ioutil.ReadAll(fp)
 	assert.NoError(t, err)
 
-	s, err := Parse(string(buf))
+	s, err := parseString(string(buf))
 	assert.NoError(t, err)
 
 	jout, err := s.ToJSON(true)
@@ -488,5 +498,5 @@ func TestRIDLImports(t *testing.T) {
 	golden, err := ioutil.ReadFile("example1-golden.json")
 	assert.NoError(t, err)
 
-	assert.Equal(t, compactJSON([]byte(jout)), compactJSON(golden))
+	assert.JSONEq(t, compactJSON(golden), compactJSON([]byte(jout)))
 }

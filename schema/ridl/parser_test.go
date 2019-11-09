@@ -14,7 +14,7 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 	}
 
 	{
-		p, err := newParser("\n\n\n\n# a comment\n")
+		p, err := newStringParser("\n\n\n\n# a comment\n")
 		assert.NoError(t, err)
 
 		err = p.run()
@@ -23,7 +23,7 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 	}
 
 	{
-		p, err := newParser("\n\n\n\nwebrpc =   v1 # a comment\n")
+		p, err := newStringParser("\n\n\n\nwebrpc =   v1 # a comment\n")
 		assert.NoError(t, err)
 
 		err = p.run()
@@ -35,7 +35,7 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 	}
 
 	{
-		p, err := newParser("\n\n\n\nwebrpc=v1 #a comment\n")
+		p, err := newStringParser("\n\n\n\nwebrpc=v1 #a comment\n")
 		assert.NoError(t, err)
 
 		err = p.run()
@@ -46,7 +46,7 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 	}
 
 	{
-		p, err := newParser("\n\n\n\nwebrpc\t=\tv1. # a comment\n")
+		p, err := newStringParser("\n\n\n\nwebrpc\t=\tv1. # a comment\n")
 		assert.NoError(t, err)
 
 		err = p.run()
@@ -57,7 +57,7 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 	}
 
 	{
-		p, err := newParser("\n\n\n\nwebrpc = v1 .# a comment\nname=FOO")
+		p, err := newStringParser("\n\n\n\nwebrpc = v1 .# a comment\nname=FOO")
 		assert.NoError(t, err)
 
 		err = p.run()
@@ -67,7 +67,7 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 	}
 
 	{
-		p, err := newParser("\n\n\n\nwebrpc = v1 # a comment\t\t\n\n\tname   = \tEXAMPLE_SERVICE   \n\nversion = v1.2.3")
+		p, err := newStringParser("\n\n\n\nwebrpc = v1 # a comment\t\t\n\n\tname   = \tEXAMPLE_SERVICE   \n\nversion = v1.2.3")
 		assert.NoError(t, err)
 
 		err = p.run()
@@ -86,7 +86,7 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 	}
 
 	{
-		p, err := newParser("\n\n\n\nwebrpc = v1 # a comment\n\tname =foo-bar#")
+		p, err := newStringParser("\n\n\n\nwebrpc = v1 # a comment\n\tname =foo-bar#")
 		assert.NoError(t, err)
 
 		err = p.run()
@@ -107,7 +107,7 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 
 func TestParserImport(t *testing.T) {
 	{
-		p, err := newParser(`import`)
+		p, err := newStringParser(`import`)
 		assert.NoError(t, err)
 
 		err = p.run()
@@ -117,7 +117,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			# comment
 			import #comment
 		`)
@@ -130,7 +130,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import #comment
 			# comment
 			# comment
@@ -145,7 +145,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import packageName.ridl
 		`)
 		assert.NoError(t, err)
@@ -158,7 +158,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import # comment
 			-foo
 		`)
@@ -171,7 +171,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import # comment
 			- foo # comment
 
@@ -186,7 +186,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import # comment
 		# comment
 			#comment
@@ -201,7 +201,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import # comment
 			# comment
 				-        foo.ridl # comment
@@ -217,7 +217,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import # comment
 			# comment
 				- # comment
@@ -231,7 +231,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import # comment
 			# comment
 				- x # # comment
@@ -246,7 +246,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			# comment
 			 # comment
 			import #comment
@@ -268,7 +268,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import
 				-        foo.ridl
 				- t
@@ -280,7 +280,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import /path/to/file.ridl
 				- Member
 				- Name # hello
@@ -306,7 +306,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import
 				-        "/path /to foo.ridl"
 				-
@@ -319,7 +319,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import
 				-        "/path /to foo.ridl"
 				# coment
@@ -339,7 +339,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			# api.ridl
 			webrpc = v1
 
@@ -368,7 +368,7 @@ func TestParserImport(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import  "../contacts/proto/contacts.ridl"
 				# - Counter # only Counter is imported from the contacts.ridl schema, or add more with more -'s
 				# - Message2
@@ -385,7 +385,7 @@ func TestParserImport(t *testing.T) {
 
 func TestParserEnum(t *testing.T) {
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			enum
 		`)
 		assert.NoError(t, err)
@@ -395,7 +395,7 @@ func TestParserEnum(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			enum Foo
 		`)
 		assert.NoError(t, err)
@@ -405,7 +405,7 @@ func TestParserEnum(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			enum Foo:
 		`)
 		assert.NoError(t, err)
@@ -415,7 +415,7 @@ func TestParserEnum(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			enum Foo: uint
 		`)
 		assert.NoError(t, err)
@@ -425,7 +425,7 @@ func TestParserEnum(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			enum Foo: uint # comment
 			# comment
 		`)
@@ -436,7 +436,7 @@ func TestParserEnum(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import
 				- "hello"
 			# comment
@@ -473,7 +473,7 @@ func TestParserEnum(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			import
 			# comment
 				- "hello"
@@ -528,7 +528,7 @@ func TestParserEnum(t *testing.T) {
 
 func TestParserMessage(t *testing.T) {
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			message
 		`)
 		assert.NoError(t, err)
@@ -538,7 +538,7 @@ func TestParserMessage(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			message Empty
 		`)
 		assert.NoError(t, err)
@@ -548,7 +548,7 @@ func TestParserMessage(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 		message Role
 			- name: string
 		`)
@@ -562,7 +562,7 @@ func TestParserMessage(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 		message ComplexTypes
 			- arrayOfStrings: []string
 			- arrayOfArrayOfStrings: [][]string
@@ -592,7 +592,7 @@ func TestParserMessage(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 		message Role # comment
 		# comment
 			- name: string # comment
@@ -611,7 +611,7 @@ func TestParserMessage(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 		message Role
 			- name: string
 				# comment
@@ -640,7 +640,7 @@ func TestParserMessage(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 		message User
 			- ID: uint64
 				+json = id
@@ -708,7 +708,7 @@ func TestParserMessage(t *testing.T) {
 
 func TestParserService(t *testing.T) {
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			service
 		`)
 		assert.NoError(t, err)
@@ -718,7 +718,7 @@ func TestParserService(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			service Empty
 		`)
 		assert.NoError(t, err)
@@ -728,7 +728,7 @@ func TestParserService(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			service Pinger
 				- Ping()
 		`)
@@ -739,7 +739,7 @@ func TestParserService(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			service Pinger
 				- Ping() => ()
 		`)
@@ -750,7 +750,7 @@ func TestParserService(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			service Demo
 				- DemoService(in: input) => (out: output)
 				- DemoService2(in: map<string,map<string,uint64>>) => (out: map<string,uint64>)
@@ -767,7 +767,7 @@ func TestParserService(t *testing.T) {
 
 func TestParserExamples(t *testing.T) {
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			# contacts.ridl
 			webrpc = v1
 
@@ -789,7 +789,7 @@ func TestParserExamples(t *testing.T) {
 	}
 
 	{
-		p, err := newParser(`
+		p, err := newStringParser(`
 			# api.ridl
 			webrpc = v1
 

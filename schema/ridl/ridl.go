@@ -9,11 +9,26 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
+var (
+	schemaMessageTypeEnum   = schema.MessageType("enum")
+	schemaMessageTypeStruct = schema.MessageType("struct")
+)
+
 type Parser struct {
 	parent  *Parser
 	imports map[string]struct{}
 
 	reader *schema.Reader
+}
+
+func NewParser(r *schema.Reader) *Parser {
+	return &Parser{
+		reader: r,
+		imports: map[string]struct{}{
+			// this file imports itself
+			r.File: struct{}{},
+		},
+	}
 }
 
 func (p *Parser) Parse() (*schema.WebRPCSchema, error) {
@@ -29,54 +44,6 @@ func (p *Parser) Parse() (*schema.WebRPCSchema, error) {
 	}
 
 	return s, nil
-}
-
-func NewParser(r *schema.Reader) *Parser {
-	return &Parser{
-		reader: r,
-		imports: map[string]struct{}{
-			// this file imports itself
-			r.File: struct{}{},
-		},
-	}
-}
-
-var (
-	schemaMessageTypeEnum   = schema.MessageType("enum")
-	schemaMessageTypeStruct = schema.MessageType("struct")
-)
-
-var mockImport bool
-
-func enableMockImport() {
-	mockImport = true
-}
-
-func disableMockImport() {
-	mockImport = false
-}
-
-func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema.MethodArgument, error) {
-	output := []*schema.MethodArgument{}
-
-	for _, arg := range args {
-
-		var varType schema.VarType
-		err := schema.ParseVarTypeExpr(s, arg.TypeName().String(), &varType)
-		if err != nil {
-			return nil, fmt.Errorf("unknown data type: %v", arg.TypeName().String())
-		}
-
-		methodArgument := &schema.MethodArgument{
-			Name:     schema.VarName(arg.Name().String()),
-			Type:     &varType,
-			Optional: arg.Optional(),
-		}
-
-		output = append(output, methodArgument)
-	}
-
-	return output, nil
 }
 
 func (p *Parser) importRIDLFile(path string) (*schema.WebRPCSchema, error) {
@@ -100,18 +67,6 @@ func (p *Parser) importRIDLFile(path string) (*schema.WebRPCSchema, error) {
 	m := NewParser(schema.NewReader(fp, path))
 	m.parent = p
 	return m.Parse()
-}
-
-func isImportAllowed(name string, whitelist []string) bool {
-	if len(whitelist) < 1 {
-		return true
-	}
-	for i := range whitelist {
-		if name == whitelist[i] {
-			return true
-		}
-	}
-	return false
 }
 
 func (p *Parser) parse() (*schema.WebRPCSchema, error) {
@@ -318,4 +273,39 @@ func (p *Parser) trace(err error, tok *TokenNode) error {
 		tok.tok.line,
 		tok.tok.col,
 	)
+}
+
+func isImportAllowed(name string, whitelist []string) bool {
+	if len(whitelist) < 1 {
+		return true
+	}
+	for i := range whitelist {
+		if name == whitelist[i] {
+			return true
+		}
+	}
+	return false
+}
+
+func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema.MethodArgument, error) {
+	output := []*schema.MethodArgument{}
+
+	for _, arg := range args {
+
+		var varType schema.VarType
+		err := schema.ParseVarTypeExpr(s, arg.TypeName().String(), &varType)
+		if err != nil {
+			return nil, fmt.Errorf("unknown data type: %v", arg.TypeName().String())
+		}
+
+		methodArgument := &schema.MethodArgument{
+			Name:     schema.VarName(arg.Name().String()),
+			Type:     &varType,
+			Optional: arg.Optional(),
+		}
+
+		output = append(output, methodArgument)
+	}
+
+	return output, nil
 }

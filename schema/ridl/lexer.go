@@ -284,11 +284,6 @@ func lexStateSpace(lx *lexer) lexState {
 
 func lexStateNewLine(lx *lexer) lexState {
 	lx.next()
-
-	for isNewLine(lx.peek()) {
-		lx.next()
-	}
-
 	lx.emit(tokenNewLine)
 	lx.col = 0
 	return lexDefaultState

@@ -338,10 +338,11 @@ loop:
 	for {
 		tok := p.cursor()
 
-		if tok.tt != tokenNewLine {
+		switch tok.tt {
+		case tokenComma, tokenWord, tokenMinusSign:
 			tokens = append(tokens, tok)
 			p.next()
-		} else {
+		default:
 			break loop
 		}
 	}

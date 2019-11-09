@@ -8,30 +8,41 @@ import (
 
 func TestError(t *testing.T) {
 	syntaxErrors := []string{
-		`namex = myapi`,
+		`
+
+
+
+
+
+		####
+
+		####
+
+
+		namex = myapi`,
 		`name`,
 		`name = myapi$`,
 		`name = myapi1
-		name = myapi2`,
+			name = myapi2`,
 		`
-			webrpc = v1
-			name = foo
-			version = v1
+				webrpc = v1
+				name = foo
+				version = v1
 
-			import -
-		`,
+				import -
+			`,
 		`
-			webrpc = v1
-			name = foo
-			version = v1
+				webrpc = v1
+				name = foo
+				version = v1
 
-			import
-			$
-		`,
+				import
+				$
+			`,
 	}
 
 	for i := range syntaxErrors {
-		_, err := Parse(syntaxErrors[i])
+		_, err := parseString(syntaxErrors[i])
 		assert.Error(t, err)
 		t.Logf("%v", err)
 	}
