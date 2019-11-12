@@ -1,362 +1,502 @@
 package ridl
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/webrpc/webrpc/schema"
 )
 
-func TestLexer(t *testing.T) {
-	buf := `
-
-
-		webrpc						 =  v1
-
-				+     foo=bar
-
-					-baz   = 56 # a comment
-
-													version=                    v0.0.1
-
-
-foo=bar`
-
-	tokens, err := tokenize(buf)
-	assert.NoError(t, err)
-
-	log.Printf("buf: %v", string(buf))
-	log.Printf("tokens: %v", tokens)
+func newStringParser(s string) (*parser, error) {
+	return newParser(strings.NewReader(s))
 }
 
-func TestRidlHeader(t *testing.T) {
+func parseString(s string) (*schema.WebRPCSchema, error) {
+	return NewParser(schema.NewReader(strings.NewReader(s), "./main.ridl")).Parse()
+}
+
+func compactJSON(src []byte) string {
+	buf := bytes.NewBuffer(nil)
+
+	err := json.Compact(buf, src)
+	if err != nil {
+		panic(fmt.Sprintf("json.Compact: %v", err))
+	}
+
+	return buf.String()
+}
+
+func TestRIDLHeader(t *testing.T) {
 	{
 		buf := `
-		webrpc = v1
-	`
-		_, err := Parse(buf)
+    name = myapi
+  `
+		_, err := parseString(buf)
 		assert.Error(t, err, `"version" is required`)
 	}
+
 	{
 		buf := `
-	webrpc = v0
-	webrpc = v1
-	`
-		_, err := Parse(buf)
+    webrpc = v1
+
+    name = myapi1
+    name = myapi2
+  `
+		_, err := parseString(buf)
 		assert.Error(t, err, `should not be able to declare "ridl" twice`)
 	}
-}
 
-func TestHeaders(t *testing.T) {
 	{
 		buf := `
-		webrpc = v1
-	version = v0.1.1
+    webrpc = v1 #comment
+    # comment
+  version = v0.1.1
 
-	name= hello-webrpc
-	`
-		_, err := Parse(buf)
+  name= h_ello-webrpc
+  `
+		s, err := parseString(buf)
 		assert.NoError(t, err)
+
+		assert.Equal(t, "v1", s.WebRPCVersion)
+		assert.Equal(t, "h_ello-webrpc", s.Name)
+		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 	}
 }
 
-func TestImport(t *testing.T) {
+func TestRIDLImport(t *testing.T) {
+	enableMockImport()
+	defer disableMockImport()
+
 	{
 		input := `
-		webrpc = v1
-			version = v0.1.1
-	name = hello-webrpc
+    webrpc = v1
+      version = v0.1.1
+  name = hello-webrpc
 
-		import
-		- foo # ko ment
-		# ko ment
+    import
+    - foo # ko ment
+    # ko ment
 
-			- bar
-			# comment
-		`
-		schema, err := Parse(input)
-		log.Printf("ERR: %v", err)
+      - bar
+      # comment
+    `
+
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		log.Printf("schema: %v", schema)
-		buf, err := json.Marshal(schema)
-		assert.NoError(t, err)
-		log.Printf("schema JSON: %v", string(buf))
+		assert.Equal(t, "v1", s.WebRPCVersion)
+		assert.Equal(t, "hello-webrpc", s.Name)
+		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
+		assert.Equal(t, "foo", s.Imports[0].Path)
+		assert.Equal(t, "bar", s.Imports[1].Path)
 	}
 
 	{
 		input := `
-		webrpc = v1
-		version = v0.1.1 # version number
-	name		 = hello-webrpc
+    webrpc = v1
+    version = v0.1.1 # version number
+  name     = hello-webrpc
 
-	import # import line
-	- foo1 # foo-comment with spaces
-		- bar2 # # # bar-comment
-	`
-		schema, err := Parse(input)
+  import # import line
+  - foo1 # foo-comment with spaces
+    - bar2 # # # bar-comment
+  `
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		log.Printf("schema: %v", schema)
+		assert.Equal(t, "v1", s.WebRPCVersion)
+		assert.Equal(t, "hello-webrpc", s.Name)
+		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
-		buf, err := json.MarshalIndent(schema, "", "  ")
-		assert.NoError(t, err)
-		log.Printf("schema JSON: %v", string(buf))
-	}
-}
-
-func TestEnum(t *testing.T) {
-	{
-		input := `
-		webrpc = v1
-		version = v0.1.1
-	name = hello-webrpc
-
-					# this is a comment
-						# yep
-					enum Kind:uint32
-						- USER = 1             # comment
-						- ADMIN = 2            # comment..
-
-				# or.. just..
-				enum	 KindTwo:		uint32
-					- USER                 # aka, = 0
-					- ADMIN         # aka, = 1
-					- OTHER
-	`
-		schema, err := Parse(input)
-		assert.NoError(t, err)
-
-		log.Printf("schema: %v", schema)
-
-		buf, err := json.MarshalIndent(schema, "", "  ")
-		assert.NoError(t, err)
-		log.Printf("schema JSON: %v", string(buf))
-
+		assert.Equal(t, "foo1", s.Imports[0].Path)
+		assert.Equal(t, "bar2", s.Imports[1].Path)
 	}
 }
 
-func TestMessages(t *testing.T) {
+func TestRIDLEnum(t *testing.T) {
 	{
 		input := `
-		webrpc = v1
-		version = v0.1.1
-	name = hello-webrpc
+    webrpc = v1
+    version = v0.1.1
+  name = hello-webrpc
 
-	message Empty
-	`
-		schema, err := Parse(input)
+          # this is a comment
+            # yep
+          enum Kind:uint32
+            - USER = 33             # comment
+            - ADMIN = 44            # comment..
+
+        # or.. just..
+        enum   KindTwo:    uint32
+          - USER                 # aka, = 0
+          - ADMIN         # aka, = 1
+          - OTHER
+  `
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		log.Printf("schema: %v", schema)
+		assert.Equal(t, "v1", s.WebRPCVersion)
+		assert.Equal(t, "hello-webrpc", s.Name)
+		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
-		buf, err := json.MarshalIndent(schema, "", "  ")
-		assert.NoError(t, err)
-		log.Printf("schema JSON: %v", string(buf))
+		assert.Equal(t, "Kind", string(s.Messages[0].Name))
+		assert.Equal(t, "enum", string(s.Messages[0].Type))
 
-	}
+		assert.Equal(t, "USER", string(s.Messages[0].Fields[0].Name))
+		assert.Equal(t, "ADMIN", string(s.Messages[0].Fields[1].Name))
 
-	{
-		input := `
-		webrpc = v1
-		version = v0.1.1
-	name = hello-webrpc
+		assert.Equal(t, "33", string(s.Messages[0].Fields[0].Value))
+		assert.Equal(t, "44", string(s.Messages[0].Fields[1].Value))
 
-	message Empty # with a, comment
-	`
-		schema, err := Parse(input)
-		assert.NoError(t, err)
+		assert.Equal(t, "uint32", string(s.Messages[0].Fields[0].Type.String()))
+		assert.Equal(t, "uint32", string(s.Messages[0].Fields[1].Type.String()))
 
-		log.Printf("schema: %v", schema)
+		assert.Equal(t, "KindTwo", string(s.Messages[1].Name))
+		assert.Equal(t, "enum", string(s.Messages[1].Type))
 
-		buf, err := json.MarshalIndent(schema, "", "  ")
-		assert.NoError(t, err)
-		log.Printf("schema JSON: %v", string(buf))
+		assert.Equal(t, "uint32", string(s.Messages[1].Fields[0].Type.String()))
+		assert.Equal(t, "uint32", string(s.Messages[1].Fields[1].Type.String()))
+		assert.Equal(t, "uint32", string(s.Messages[1].Fields[2].Type.String()))
 
-	}
-
-	{
-		input := `
-		webrpc = v1
-		version = v0.1.1
-	name = hello-webrpc
-
-	message Simple # with a, comment
-		- ID: uint32
-	`
-		schema, err := Parse(input)
-		assert.NoError(t, err)
-
-		log.Printf("schema: %v", schema)
-
-		buf, err := json.MarshalIndent(schema, "", "  ")
-		assert.NoError(t, err)
-		log.Printf("schema JSON: %v", string(buf))
-
-	}
-
-	{
-		input := `
-		webrpc = v1
-		version = v0.1.1
-	name = hello-webrpc
-
-	message Simple # with a-comment an,d meta fields
-		- ID: uint32
-	- Field2: uint64 # one two #t
-			+ json = field_2 # a comment
-				+ go.tag.db = field_2
-	- Field3: bool
-		+ go.tag.db = - # omits the field from db
-
-
-	message Simple2 # with a-comment an,d meta fields
-	`
-		schema, err := Parse(input)
-		assert.NoError(t, err)
-
-		log.Printf("schema: %v", schema)
-
-		buf, err := json.MarshalIndent(schema, "", "  ")
-		assert.NoError(t, err)
-		log.Printf("schema JSON: %v", string(buf))
-	}
-
-	{
-		input := `
-		webrpc = v1
-		version = v0.1.1
-	name = hello-webrpc
-
-	message Simple # with a-comment an,d meta fields
-		- ID: uint32
-	- Field2: map<string, string> # one two #t
-			+ json = field_2 # a comment
-				+ go.tag.db = field_2
-	- Field3: []bool # one two #t
-			+ json = field_2 # a comment
-				+ go.tag.db = field_2
-	- Field4: [][][]bool # one two #t
-			+ json = field_2 # a comment
-				+ go.tag.db = field_2
-
-	message Simple2 # with a-comment an,d meta fields
-	`
-		schema, err := Parse(input)
-		assert.NoError(t, err)
-
-		log.Printf("schema: %v", schema)
-
-		buf, err := json.MarshalIndent(schema, "", "  ")
-		assert.NoError(t, err)
-		log.Printf("schema JSON: %v", string(buf))
+		assert.Equal(t, "0", string(s.Messages[1].Fields[0].Value))
+		assert.Equal(t, "1", string(s.Messages[1].Fields[1].Value))
+		assert.Equal(t, "2", string(s.Messages[1].Fields[2].Value))
 	}
 }
 
-func TestService(t *testing.T) {
+func TestRIDLMessages(t *testing.T) {
 	{
 		input := `
-		webrpc = v1
-		version = v0.1.1
-	name = hello-webrpc
+    webrpc = v1
+    version = v0.1.1
+  name = hello-webrpc
 
-	service Empty
-		- Ping()
-	`
-		schema, err := Parse(input)
+  message Empty
+  `
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		log.Printf("schema: %v", schema)
-
-		buf, err := json.MarshalIndent(schema, "", "  ")
-		assert.NoError(t, err)
-		log.Printf("schema JSON: %v", string(buf))
+		assert.Equal(t, "Empty", string(s.Messages[0].Name))
+		assert.Equal(t, "struct", string(s.Messages[0].Type))
 	}
 
 	{
 		input := `
-		webrpc = v1
-		version = v0.1.1
-	name = hello-webrpc
+    webrpc = v1
+    version = v0.1.1
+  name = hello-webrpc
 
-	service Simple
-	- Ping()
-	-	Status() => (status: bool)
-	-	StatusStream(q: string) => (status: stream bool)`
-		schema, err := Parse(input)
+  message Empty # with a, comment
+  `
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		log.Printf("schema: %v", schema)
+		assert.Equal(t, "Empty", string(s.Messages[0].Name))
+		assert.Equal(t, "struct", string(s.Messages[0].Type))
 
-		buf, err := json.MarshalIndent(schema, "", "  ")
-		assert.NoError(t, err)
-		log.Printf("schema JSON: %v", string(buf))
 	}
 
 	{
 		input := `
-		webrpc = v1
-		version = v0.1.1
-	name = hello-webrpc
+    webrpc = v1
+    version = v0.1.1
+  name = hello-webrpc
 
-	service Simple
-	-	Ping(code: stream uint32) => (code: bool)
-	-	PingStream(text: string) => (code: stream bool)`
-		schema, err := Parse(input)
+  message Simple # with a, comment
+    - ID: uint32
+    - Value?: uint32
+  `
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		log.Printf("schema: %v", schema)
+		assert.Equal(t, "Simple", string(s.Messages[0].Name))
+		assert.Equal(t, "struct", string(s.Messages[0].Type))
 
-		buf, err := json.MarshalIndent(schema, "", "  ")
-		assert.NoError(t, err)
-		log.Printf("schema JSON: %v", string(buf))
+		assert.Equal(t, "ID", string(s.Messages[0].Fields[0].Name))
+		assert.Equal(t, "uint32", string(s.Messages[0].Fields[0].Type.String()))
+		assert.Equal(t, false, s.Messages[0].Fields[0].Optional)
+
+		assert.Equal(t, "Value", string(s.Messages[0].Fields[1].Name))
+		assert.Equal(t, "uint32", string(s.Messages[0].Fields[1].Type.String()))
+		assert.Equal(t, true, s.Messages[0].Fields[1].Optional)
 	}
 
 	{
 		input := `
-		webrpc = v1
-		version = v0.1.1
-	name = hello-webrpc
+    webrpc = v1
+    version = v0.1.1
+  name = hello-webrpc
 
-	service Simple
-	-	Ping(header: map<string,[][]string>) => (code: bool)
--	VerifyUsers(seq: int32, header?: stream map<string,[]string>, ids: []uint64) => (code?: bool, ids: []bool)
-	- MoreTest(n: uint64, stuff: []map<uint64,map<int32,string>>, etc: string) => (code: bool)`
-		schema, err := Parse(input)
+  message Simple # with a-comment an,d meta fields
+    - ID: uint32
+  - Field2: uint64 # one two #t
+      + json = field_2 # a comment
+      #
+        + go.tag.db = field_3
+        #
+  - Field3: bool
+    + go.tag.db = - # omits the field from db
+
+
+  message Simple2 # with a-comment an,d meta fields
+  `
+		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		jout, err := schema.ToJSON(true)
+		assert.Equal(t, "Simple", string(s.Messages[0].Name))
+		assert.Equal(t, "struct", string(s.Messages[0].Type))
+
+		assert.Equal(t, "Simple2", string(s.Messages[1].Name))
+		assert.Equal(t, "struct", string(s.Messages[1].Type))
+
+		assert.Equal(t, "ID", string(s.Messages[0].Fields[0].Name))
+		assert.Equal(t, "Field2", string(s.Messages[0].Fields[1].Name))
+		assert.Equal(t, "Field3", string(s.Messages[0].Fields[2].Name))
+
+		assert.Equal(t, "field_2", s.Messages[0].Fields[1].Meta[0]["json"])
+		assert.Equal(t, "field_3", s.Messages[0].Fields[1].Meta[1]["go.tag.db"])
+
+		assert.Equal(t, "-", s.Messages[0].Fields[2].Meta[0]["go.tag.db"])
+	}
+
+	{
+		input := `
+    webrpc = v1
+    version = v0.1.1
+  name = hello-webrpc
+
+  message Simple # with a-comment an,d meta fields
+    - ID: uint32
+  - Field2: map<string, string> # one two #t
+      + json = field_2 # a comment
+        + go.tag.db = field_2
+  - Field3: []bool # one two #t
+      + json = field_2 # a comment
+        + go.tag.db = field_2
+  - Field4: [][][]bool # one two #t
+      + json = field_2 # a comment
+        + go.tag.db = field_2
+
+  message Simple2 # with a-comment an,d meta fields
+  `
+		s, err := parseString(input)
 		assert.NoError(t, err)
-		log.Printf("schema JSON: %v", jout)
+
+		assert.Equal(t, "map<string,string>", string(s.Messages[0].Fields[1].Type.String()))
+		assert.Equal(t, "[]bool", string(s.Messages[0].Fields[2].Type.String()))
+		assert.Equal(t, "[][][]bool", string(s.Messages[0].Fields[3].Type.String()))
 	}
 }
 
-func TestParse(t *testing.T) {
+func TestRIDLService(t *testing.T) {
+	{
+		input := `
+    webrpc = v1
+    version = v0.1.1
+  name = hello-webrpc
+
+  service Pinger
+    - Ping()
+  `
+		s, err := parseString(input)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "Pinger", string(s.Services[0].Name))
+		assert.Equal(t, "Ping", string(s.Services[0].Methods[0].Name))
+	}
+
+	{
+		input := `
+    webrpc = v1
+    version = v0.1.1
+          name = hello-webrpc
+
+          service Simple
+          - Ping()
+          -  Status() => (status: bool)
+          -  StatusStream(q: string) => stream (status: bool)`
+
+		s, err := parseString(input)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "Ping", string(s.Services[0].Methods[0].Name))
+		assert.Equal(t, "Status", string(s.Services[0].Methods[1].Name))
+		assert.Equal(t, "StatusStream", string(s.Services[0].Methods[2].Name))
+
+		assert.Equal(t, 0, len(s.Services[0].Methods[1].Inputs))
+		assert.Equal(t, "status", string(s.Services[0].Methods[1].Outputs[0].Name))
+		assert.Equal(t, "bool", s.Services[0].Methods[1].Outputs[0].Type.String())
+
+		assert.Equal(t, "q", string(s.Services[0].Methods[2].Inputs[0].Name))
+		assert.Equal(t, "string", s.Services[0].Methods[2].Inputs[0].Type.String())
+
+		assert.Equal(t, "status", string(s.Services[0].Methods[2].Outputs[0].Name))
+		assert.Equal(t, "bool", s.Services[0].Methods[2].Outputs[0].Type.String())
+	}
+
+	{
+		input := `
+    webrpc = v1
+    version = v0.1.1
+    name = hello-webrpc
+
+    service Simple
+      -  stream Ping(code?: uint32) => (code: bool)
+      -  PingStream(text: string) => stream (code?: bool)
+    `
+		s, err := parseString(input)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "Ping", string(s.Services[0].Methods[0].Name))
+		assert.True(t, s.Services[0].Methods[0].StreamInput)
+		assert.False(t, s.Services[0].Methods[0].StreamOutput)
+		assert.True(t, s.Services[0].Methods[0].Inputs[0].Optional)
+
+		assert.False(t, s.Services[0].Methods[1].StreamInput)
+		assert.True(t, s.Services[0].Methods[1].StreamOutput)
+		assert.True(t, s.Services[0].Methods[1].Outputs[0].Optional)
+
+	}
+
+	{
+		input := `
+    webrpc = v1
+    version = v0.1.1
+    name = hello-webrpc
+
+    service Simple
+    -  Ping(header: map<string,[][]string>) => (code: bool)
+      -  stream VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code?: bool, ids: []bool)
+    - MoreTest(n: uint64, stuff: []map<uint64,   map<int32,             string>>, etc: string) => (code: bool)`
+		s, err := parseString(input)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "map<string,[][]string>", s.Services[0].Methods[0].Inputs[0].Type.String())
+		assert.Equal(t, "[]map<uint64,map<int32,string>>", s.Services[0].Methods[2].Inputs[1].Type.String())
+	}
+}
+
+func TestRIDLParse(t *testing.T) {
+	fp, err := os.Open("_example/example0.ridl")
+	assert.NoError(t, err)
+
+	buf, err := ioutil.ReadAll(fp)
+	assert.NoError(t, err)
+
+	s, err := parseString(string(buf))
+	assert.NoError(t, err)
+
+	jout, err := s.ToJSON(true)
+	assert.NoError(t, err)
+
+	assert.NotZero(t, jout)
+}
+
+func TestRIDLTables(t *testing.T) {
+	enableMockImport()
+	defer disableMockImport()
+
+	table := []struct {
+		Input  string
+		Output []byte
+	}{
+		{
+			// Whitespace bug
+			"webrpc = v1\n \nname = test\n   \nversion=v1.1\n",
+			[]byte(`
+        {
+         "webrpc": "v1",
+         "name": "test",
+         "version": "v1.1",
+         "imports": [],
+         "messages": [],
+         "services": []
+        }
+    `),
+		},
+		{
+			"webrpc = v1\n \nname = test\n",
+			[]byte(`
+        {
+         "webrpc": "v1",
+         "name": "test",
+         "version": "",
+         "imports": [],
+         "messages": [],
+         "services": []
+        }
+    `),
+		},
+		{
+			`
+        webrpc = v1
+
+        name = hello-webrpc
+        version = v0.0.1
+
+        import
+          - ./blah.ridl
+          - ./abc.json
+      `,
+			[]byte(`
+				{
+				 "webrpc": "v1",
+				 "name": "hello-webrpc",
+				 "version": "v0.0.1",
+				 "imports": [
+					{
+					 "path": "blah.ridl",
+					 "members": []
+					},
+					{
+					 "path": "abc.json",
+					 "members": []
+					}
+				 ],
+				 "messages": [],
+				 "services": []
+				}
+      `),
+		},
+	}
+
+	for i := range table {
+		s, err := parseString(table[i].Input)
+		assert.NoError(t, err)
+
+		jout, err := s.ToJSON(true)
+		assert.NoError(t, err)
+
+		assert.JSONEq(t, compactJSON(table[i].Output), compactJSON([]byte(jout)), fmt.Sprintf("GOT:\n\n%s\n\nEXPECTING:\n\n%s\n\n", jout, string(table[i].Output)))
+	}
+}
+
+func TestRIDLImports(t *testing.T) {
+	os.Chdir("_example")
+
 	fp, err := os.Open("example1.ridl")
 	assert.NoError(t, err)
 
 	buf, err := ioutil.ReadAll(fp)
 	assert.NoError(t, err)
 
-	schema, err := Parse(string(buf))
+	s, err := parseString(string(buf))
 	assert.NoError(t, err)
 
-	log.Printf("buf: %v", string(buf))
-
-	jout, err := schema.ToJSON(true)
-	assert.NoError(t, err)
-	log.Printf("schema JSON: %v", jout)
-}
-
-func TestWhitespaceParseBug(t *testing.T) {
-	input := "webrpc = v1\n \nname = test\n   \nversion=v1.1\n"
-
-	schema, err := Parse(input)
+	jout, err := s.ToJSON(true)
 	assert.NoError(t, err)
 
-	log.Printf("schema: %v", schema)
+	assert.NotZero(t, jout)
+
+	golden, err := ioutil.ReadFile("example1-golden.json")
+	assert.NoError(t, err)
+
+	assert.JSONEq(t, compactJSON(golden), compactJSON([]byte(jout)))
 }

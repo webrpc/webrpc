@@ -16,7 +16,7 @@ func ParseSchemaJSON(jsondata []byte) (*WebRPCSchema, error) {
 		return nil, err
 	}
 
-	err = schema.Parse(nil)
+	err = schema.Validate()
 	if err != nil {
 		return schema, err
 	}

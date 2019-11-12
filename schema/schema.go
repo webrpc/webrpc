@@ -11,29 +11,30 @@ import (
 )
 
 const (
-	VERSION = "v1"
+	VERSION = "v1" // todo rename to schema_version
 )
 
 // schema of webrpc json file, and validations
 type WebRPCSchema struct {
-	WebRPCVersion string   `json:"webrpc"`
-	Name          string   `json:"name"`
-	SchemaVersion string   `json:"version"`
-	Imports       []string `json:"imports"`
+	WebRPCVersion string    `json:"webrpc"`
+	Name          string    `json:"name"`
+	SchemaVersion string    `json:"version"`
+	Imports       []*Import `json:"imports"`
 
 	Messages []*Message `json:"messages"`
 	Services []*Service `json:"services"`
 }
 
-// Parse parses the schema through the AST, intended to be called
-// after the json has been unmarshalled
-func (s *WebRPCSchema) Parse(schema *WebRPCSchema) error {
-	if schema == nil {
-		schema = s // we can take nil here, as this is the schema
-	}
+type Import struct {
+	Path    string   `json:"path"`
+	Members []string `json:"members"`
+}
 
-	if schema.WebRPCVersion != VERSION {
-		return errors.Errorf("webrpc schema version, '%s' is invalid, try '%s'", schema.WebRPCVersion, VERSION)
+// Validate validates the schema through the AST, intended to be called after
+// the json has been unmarshalled
+func (s *WebRPCSchema) Validate() error {
+	if s.WebRPCVersion != VERSION {
+		return errors.Errorf("webrpc schema version, '%s' is invalid, try '%s'", s.WebRPCVersion, VERSION)
 	}
 
 	for _, msg := range s.Messages {

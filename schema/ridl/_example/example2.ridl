@@ -1,0 +1,60 @@
+webrpc = v1
+
+name = hello-webrpc
+version = v0.0.1
+
+
+import
+  - ./lib/types.ridl
+
+message Role
+  - name: string
+
+  - users: map<uint64,User>
+
+  - perms: []string # comment
+
+  - other: map<uint64,map<string,string>> # comment
+
+
+message User
+  - ID: uint64
+    + json = id
+    + go.tag.db = id
+
+  - username: string
+    + json = USERNAME
+    + go.tag.db = username
+
+  - role: string
+    + go.tag.db = -
+
+  - createdAt?: timestamp
+    + json = created_at
+    + go.tag.json = created_at,omitempty
+    + go.tag.db = created_at
+    
+
+message Notice
+  - msg: string
+
+
+service ExampleService
+
+  # comment can go here
+  # too .. :)
+  - Ping() => (status: bool)
+
+  - GetUser(req: GetUserRequest) => (user: User)
+
+  - stream Recv(req: string)
+
+  - stream Send() => (resp: string)
+
+  - stream SendAndRecv(req: string) => stream (resp: string)
+
+  - Broadcast() => stream (resp: Notice)
+
+  -	VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code: bool, ids: []bool)
+	
+  - MoreTest(n: uint64, stuff: []map<uint64,string>, etc: string) => (code?: bool)

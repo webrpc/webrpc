@@ -1,0 +1,352 @@
+{
+    "imports": [
+        {
+            "members": [],
+            "path": "example1-definitions.ridl"
+        },
+        {
+            "members": [
+                "Empty",
+                "GetUserRequest"
+            ],
+            "path": "example1-partials.ridl"
+        }
+    ],
+    "messages": [
+        {
+            "fields": [
+                {
+                    "meta": null,
+                    "name": "USER",
+                    "optional": false,
+                    "type": "uint32",
+                    "value": "1"
+                },
+                {
+                    "meta": null,
+                    "name": "ADMIN",
+                    "optional": false,
+                    "type": "uint32",
+                    "value": "2"
+                }
+            ],
+            "name": "Kind",
+            "type": "enum"
+        },
+        {
+            "fields": [
+                {
+                    "meta": null,
+                    "name": "USER",
+                    "optional": false,
+                    "type": "uint32",
+                    "value": "0"
+                },
+                {
+                    "meta": null,
+                    "name": "ADMIN",
+                    "optional": false,
+                    "type": "uint32",
+                    "value": "1"
+                }
+            ],
+            "name": "Kind2",
+            "type": "enum"
+        },
+        {
+            "fields": null,
+            "name": "Empty",
+            "type": "struct"
+        },
+        {
+            "fields": [
+                {
+                    "meta": null,
+                    "name": "userID",
+                    "optional": false,
+                    "type": "uint64",
+                    "value": ""
+                }
+            ],
+            "name": "GetUserRequest",
+            "type": "struct"
+        },
+        {
+            "fields": [
+                {
+                    "meta": null,
+                    "name": "name",
+                    "optional": false,
+                    "type": "string",
+                    "value": ""
+                },
+                {
+                    "meta": null,
+                    "name": "users",
+                    "optional": false,
+                    "type": "map<uint64,User>",
+                    "value": ""
+                },
+                {
+                    "meta": null,
+                    "name": "perms",
+                    "optional": false,
+                    "type": "[]string",
+                    "value": ""
+                },
+                {
+                    "meta": null,
+                    "name": "other",
+                    "optional": false,
+                    "type": "map<uint64,map<string,string>>",
+                    "value": ""
+                }
+            ],
+            "name": "Role",
+            "type": "struct"
+        },
+        {
+            "fields": [
+                {
+                    "meta": [
+                        {
+                            "json": "id"
+                        },
+                        {
+                            "go.tag.db": "id"
+                        }
+                    ],
+                    "name": "ID",
+                    "optional": false,
+                    "type": "uint64",
+                    "value": ""
+                },
+                {
+                    "meta": [
+                        {
+                            "json": "USERNAME"
+                        },
+                        {
+                            "go.tag.db": "username"
+                        }
+                    ],
+                    "name": "username",
+                    "optional": false,
+                    "type": "string",
+                    "value": ""
+                },
+                {
+                    "meta": [
+                        {
+                            "go.tag.db": "-"
+                        }
+                    ],
+                    "name": "role",
+                    "optional": false,
+                    "type": "string",
+                    "value": ""
+                },
+                {
+                    "meta": [
+                        {
+                            "json": "created_at"
+                        },
+                        {
+                            "go.tag.json": "created_at,omitempty"
+                        },
+                        {
+                            "go.tag.db": "created_at"
+                        }
+                    ],
+                    "name": "createdAt",
+                    "optional": true,
+                    "type": "timestamp",
+                    "value": ""
+                }
+            ],
+            "name": "User",
+            "type": "struct"
+        },
+        {
+            "fields": [
+                {
+                    "meta": null,
+                    "name": "msg",
+                    "optional": false,
+                    "type": "string",
+                    "value": ""
+                }
+            ],
+            "name": "Notice",
+            "type": "struct"
+        }
+    ],
+    "name": "hello-webrpc",
+    "services": [
+        {
+            "methods": [
+                {
+                    "inputs": [],
+                    "name": "Ping",
+                    "outputs": [
+                        {
+                            "name": "status",
+                            "optional": false,
+                            "type": "bool"
+                        }
+                    ]
+                }
+            ],
+            "name": "PingerService"
+        },
+        {
+            "methods": [
+                {
+                    "inputs": [],
+                    "name": "Ping",
+                    "outputs": [
+                        {
+                            "name": "status",
+                            "optional": false,
+                            "type": "bool"
+                        }
+                    ]
+                },
+                {
+                    "inputs": [
+                        {
+                            "name": "req",
+                            "optional": false,
+                            "type": "GetUserRequest"
+                        }
+                    ],
+                    "name": "GetUser",
+                    "outputs": [
+                        {
+                            "name": "user",
+                            "optional": false,
+                            "type": "User"
+                        }
+                    ]
+                },
+                {
+                    "inputs": [
+                        {
+                            "name": "req",
+                            "optional": false,
+                            "type": "string"
+                        }
+                    ],
+                    "name": "Recv",
+                    "outputs": [],
+                    "streamInput": true
+                },
+                {
+                    "inputs": [],
+                    "name": "Send",
+                    "outputs": [
+                        {
+                            "name": "resp",
+                            "optional": false,
+                            "type": "string"
+                        }
+                    ],
+                    "streamInput": true
+                },
+                {
+                    "inputs": [
+                        {
+                            "name": "req",
+                            "optional": false,
+                            "type": "string"
+                        }
+                    ],
+                    "name": "SendAndRecv",
+                    "outputs": [
+                        {
+                            "name": "resp",
+                            "optional": false,
+                            "type": "string"
+                        }
+                    ],
+                    "streamInput": true,
+                    "streamOutput": true
+                },
+                {
+                    "inputs": [],
+                    "name": "Broadcast",
+                    "outputs": [
+                        {
+                            "name": "resp",
+                            "optional": false,
+                            "type": "Notice"
+                        }
+                    ],
+                    "streamOutput": true
+                },
+                {
+                    "inputs": [
+                        {
+                            "name": "seq",
+                            "optional": false,
+                            "type": "int32"
+                        },
+                        {
+                            "name": "header",
+                            "optional": true,
+                            "type": "map<string,[]string>"
+                        },
+                        {
+                            "name": "ids",
+                            "optional": false,
+                            "type": "[]uint64"
+                        }
+                    ],
+                    "name": "VerifyUsers",
+                    "outputs": [
+                        {
+                            "name": "code",
+                            "optional": false,
+                            "type": "bool"
+                        },
+                        {
+                            "name": "ids",
+                            "optional": false,
+                            "type": "[]bool"
+                        }
+                    ]
+                },
+                {
+                    "inputs": [
+                        {
+                            "name": "n",
+                            "optional": false,
+                            "type": "uint64"
+                        },
+                        {
+                            "name": "stuff",
+                            "optional": false,
+                            "type": "[]map<uint64,string>"
+                        },
+                        {
+                            "name": "etc",
+                            "optional": false,
+                            "type": "string"
+                        }
+                    ],
+                    "name": "MoreTest",
+                    "outputs": [
+                        {
+                            "name": "code",
+                            "optional": true,
+                            "type": "bool"
+                        }
+                    ]
+                }
+            ],
+            "name": "ExampleService"
+        }
+    ],
+    "version": "v0.0.1",
+    "webrpc": "v1"
+}

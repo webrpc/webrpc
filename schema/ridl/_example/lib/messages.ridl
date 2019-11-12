@@ -1,0 +1,15 @@
+webrpc = v1
+
+name = messages
+version = v0.1
+
+import
+  - ../example1-partials.ridl
+
+message MessageA
+  - name: string
+  - last_name: string
+
+message MessageB
+  - foo: string
+  - bar: string
