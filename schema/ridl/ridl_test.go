@@ -309,9 +309,7 @@ func TestRIDLMessages(t *testing.T) {
 
         + go.tag.db.2 = default**:**now**()**,use_zero,"// # a comment
         + go.tag.db.3 = "default**:**now**()**,use_zero,// # not a comment" # a comment
-
-  message Simple2 # with a-comment an,d meta fields
-  `
+        + go.tag.db.4 = default**:**now**()**,use_zero`
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
@@ -320,6 +318,7 @@ func TestRIDLMessages(t *testing.T) {
 		assert.Equal(t, "default**:**now**()**,use_zero#000", s.Messages[0].Fields[1].Meta[2]["go.tag.db.1"])
 		assert.Equal(t, `default**:**now**()**,use_zero,"//`, s.Messages[0].Fields[1].Meta[3]["go.tag.db.2"])
 		assert.Equal(t, "default**:**now**()**,use_zero,// # not a comment", s.Messages[0].Fields[1].Meta[4]["go.tag.db.3"])
+		assert.Equal(t, "default**:**now**()**,use_zero", s.Messages[0].Fields[1].Meta[5]["go.tag.db.4"])
 	}
 }
 

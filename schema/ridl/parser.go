@@ -349,7 +349,7 @@ loop:
 		tok := p.cursor()
 
 		switch tok.tt {
-		case tokenWhitespace, tokenNewLine:
+		case tokenWhitespace, tokenNewLine, tokenEOF:
 			break loop
 		}
 
