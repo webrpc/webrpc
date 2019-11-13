@@ -332,19 +332,29 @@ loop:
 }
 
 func (p *parser) expectMetadataValue() (*token, error) {
-	tokens := []*token{}
+	tok := p.cursor()
 
+	if tok.tt == tokenQuote {
+		var err error
+		tok, err = p.expectStringValue()
+		if err != nil {
+			return nil, err
+		}
+		return tok, nil
+	}
+
+	tokens := []*token{}
 loop:
 	for {
 		tok := p.cursor()
 
 		switch tok.tt {
-		case tokenComma, tokenWord, tokenMinusSign:
-			tokens = append(tokens, tok)
-			p.next()
-		default:
+		case tokenWhitespace, tokenNewLine:
 			break loop
 		}
+
+		tokens = append(tokens, tok)
+		p.next()
 	}
 
 	return composedValue(tokens)
