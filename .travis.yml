@@ -3,4 +3,6 @@ language: go
 go:
   - 1.13
 
-script: make test
+script:
+  - make tools
+  - make test
