@@ -293,6 +293,33 @@ func TestRIDLMessages(t *testing.T) {
 		assert.Equal(t, "[]bool", string(s.Messages[0].Fields[2].Type.String()))
 		assert.Equal(t, "[][][]bool", string(s.Messages[0].Fields[3].Type.String()))
 	}
+
+	{
+		input := `
+    webrpc = v1
+    version = v0.1.1
+  name = hello-webrpc
+
+  message Simple # with a-comment an,d meta fields
+    - ID: uint32
+  - Field2: map<string, string> # one two #t
+      + json = field_2 # a comment
+        + go.tag.db = field_2 # a comment
+    + go.tag.db.1 = default**:**now**()**,use_zero#000 # # # a comment
+
+        + go.tag.db.2 = default**:**now**()**,use_zero,"// # a comment
+        + go.tag.db.3 = "default**:**now**()**,use_zero,// # not a comment" # a comment
+        + go.tag.db.4 = default**:**now**()**,use_zero`
+		s, err := parseString(input)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "map<string,string>", string(s.Messages[0].Fields[1].Type.String()))
+		assert.Equal(t, "field_2", s.Messages[0].Fields[1].Meta[1]["go.tag.db"])
+		assert.Equal(t, "default**:**now**()**,use_zero#000", s.Messages[0].Fields[1].Meta[2]["go.tag.db.1"])
+		assert.Equal(t, `default**:**now**()**,use_zero,"//`, s.Messages[0].Fields[1].Meta[3]["go.tag.db.2"])
+		assert.Equal(t, "default**:**now**()**,use_zero,// # not a comment", s.Messages[0].Fields[1].Meta[4]["go.tag.db.3"])
+		assert.Equal(t, "default**:**now**()**,use_zero", s.Messages[0].Fields[1].Meta[5]["go.tag.db.4"])
+	}
 }
 
 func TestRIDLService(t *testing.T) {
