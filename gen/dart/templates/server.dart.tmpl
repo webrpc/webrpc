@@ -1,0 +1,155 @@
+{{define "server"}}
+{{if .Services}}
+//
+// Server
+//
+
+type WebRPCServer interface {
+  http.Handler
+}
+
+{{- range .Services}}
+  {{$name := .Name}}
+  {{$serviceName := .Name | serverServiceName}}
+
+  type {{$serviceName}} struct {
+    {{.Name}}
+  }
+
+  func {{ .Name | newServerServiceName }}(svc {{.Name}}) WebRPCServer {
+    return &{{$serviceName}}{
+      {{.Name}}: svc,
+    }
+  }
+
+  func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    ctx := r.Context()
+    ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
+    ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
+    ctx = context.WithValue(ctx, ServiceNameCtxKey, "{{.Name}}")
+
+    if r.Method != "POST" {
+      err := Errorf(ErrBadRoute, "unsupported method %q (only POST is allowed)", r.Method)
+      RespondWithError(w, err)
+      return
+    }
+
+    switch r.URL.Path {
+    {{- range .Methods}}
+    case "/rpc/{{$name}}/{{.Name}}":
+      s.{{.Name | serviceMethodName}}(ctx, w, r)
+      return
+    {{- end}}
+    default:
+      err := Errorf(ErrBadRoute, "no handler for path %q", r.URL.Path)
+      RespondWithError(w, err)
+      return
+    }
+  }
+
+  {{range .Methods}}
+    func (s *{{$serviceName}}) {{.Name | serviceMethodName}}(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+      header := r.Header.Get("Content-Type")
+      i := strings.Index(header, ";")
+      if i == -1 {
+        i = len(header)
+      }
+
+      switch strings.TrimSpace(strings.ToLower(header[:i])) {
+      case "application/json":
+        s.{{ .Name | serviceMethodJSONName }}(ctx, w, r)
+      default:
+        err := Errorf(ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
+        RespondWithError(w, err)
+      }
+    }
+
+    func (s *{{$serviceName}}) {{.Name | serviceMethodJSONName}}(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+      var err error
+      ctx = context.WithValue(ctx, MethodNameCtxKey, "{{.Name}}")
+
+      {{- if .Inputs|len}}
+      reqContent := struct {
+      {{- range $i, $input := .Inputs}}
+        Arg{{$i}} {{. | methodArgType}} `json:"{{$input.Name | downcaseName}}"`
+      {{- end}}
+      }{}
+
+      reqBody, err := ioutil.ReadAll(r.Body)
+      if err != nil {
+        err = WrapError(ErrInternal, err, "failed to read request data")
+        RespondWithError(w, err)
+        return
+      }
+      defer r.Body.Close()
+
+      err = json.Unmarshal(reqBody, &reqContent)
+      if err != nil {
+        err = WrapError(ErrInvalidArgument, err, "failed to unmarshal request data")
+        RespondWithError(w, err)
+        return
+      }
+      {{- end}}
+
+      // Call service method
+      {{- range $i, $output := .Outputs}}
+      var ret{{$i}} {{$output | methodArgType}}
+      {{- end}}
+      func() {
+        defer func() {
+          // In case of a panic, serve a 500 error and then panic.
+          if rr := recover(); rr != nil {
+            RespondWithError(w, ErrorInternal("internal service panic"))
+            panic(rr)
+          }
+        }()
+        {{argsList .Outputs "ret"}}{{.Outputs | commaIfLen}} err = s.{{$name}}.{{.Name}}(ctx{{.Inputs | commaIfLen}}{{argsList .Inputs "reqContent.Arg"}})
+      }()
+      {{- if .Outputs | len}}
+      respContent := struct {
+      {{- range $i, $output := .Outputs}}
+        Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name | downcaseName}}"`
+      {{- end}}         
+      }{ {{argsList .Outputs "ret"}} }
+      {{- end}}
+
+      if err != nil {
+        RespondWithError(w, err)
+        return
+      }
+
+      {{- if .Outputs | len}}
+      respBody, err := json.Marshal(respContent)
+      if err != nil {
+        err = WrapError(ErrInternal, err, "failed to marshal json response")
+        RespondWithError(w, err)
+        return
+      }
+      {{- end}}
+
+      w.Header().Set("Content-Type", "application/json")
+      w.WriteHeader(http.StatusOK)
+
+      {{- if .Outputs | len}}
+      w.Write(respBody)
+      {{- end}}
+    }
+  {{end}}
+{{- end}}
+
+func RespondWithError(w http.ResponseWriter, err error) {
+	rpcErr, ok := err.(Error)
+	if !ok {
+		rpcErr = WrapError(ErrInternal, err, "webrpc error")
+	}
+
+	statusCode := HTTPStatusFromErrorCode(rpcErr.Code())
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+
+	respBody, _ := json.Marshal(rpcErr.Payload())
+	w.Write(respBody)
+}
+{{end}}
+{{end}}

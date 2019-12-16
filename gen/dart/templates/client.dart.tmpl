@@ -1,0 +1,27 @@
+{{define "client"}}
+{{if .Services}}
+//
+// Client
+//
+import 'package:http/http.dart' as http;
+
+String _removeSlash(String host) => host.endsWith('/')
+? host.replaceRange(host.length - 1, host.length, '')
+: host;
+
+{{range .Services}}
+class {{.Name}} {
+  final http.Client client;
+  final String host;
+  final String path = '/rpc/{{.Name}}/';
+  String url(String name) => '${_removeSlash(host)}$path$name';
+  {{range .Methods}}
+
+  {{end}}
+  {{.Name}}(this.client, this.host);
+}
+{{end}}
+
+
+{{end}}
+{{end}}
