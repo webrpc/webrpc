@@ -1,6 +1,7 @@
 package dart
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	"github.com/webrpc/webrpc/schema"
 	"strings"
@@ -27,6 +28,37 @@ var fieldTypeMap = map[schema.DataType]string{
 	schema.T_Bool:      "bool",
 }
 
+func fieldType(in *schema.VarType) (string, error) {
+	switch in.Type {
+	case schema.T_Map:
+		typK, ok := fieldTypeMap[in.Map.Key]
+		if !ok {
+			return "", fmt.Errorf("unknown type mapping %v", in.Map.Key)
+		}
+		typV, err := fieldType(in.Map.Value)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("Map<%s, %s>", typK, typV), nil
+
+	case schema.T_List:
+		z, err := fieldType(in.List.Elem)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("List<%s>", z), nil
+
+	case schema.T_Struct:
+		return in.Struct.Name, nil
+
+	default:
+		if fieldTypeMap[in.Type] != "" {
+			return fieldTypeMap[in.Type], nil
+		}
+	}
+	return "", fmt.Errorf("could not represent type: %#v", in)
+}
+
 func downcaseName(v interface{}) (string, error) {
 	downFn := func(s string) string {
 		if s == "" {
@@ -48,8 +80,40 @@ func methodName(in interface{}) string {
 	v, _ := downcaseName(in)
 	return v
 }
+func isEnum(t schema.MessageType) bool {
+	return t == "enum"
+}
+
+func exportableField(in schema.MessageField) bool {
+	for _, meta := range in.Meta {
+		for k := range meta {
+			if k == "json" {
+				if meta[k] == "-" {
+					return false
+				}
+			}
+		}
+	}
+	return true
+}
+
+func exportedJSONField(in schema.MessageField) (string, error) {
+	for _, meta := range in.Meta {
+		for k := range meta {
+			if k == "json" {
+				s := strings.Split(fmt.Sprintf("%v", meta[k]), ",")
+				return s[0], nil
+			}
+		}
+	}
+	return string(in.Name), nil
+}
+
 func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 	return map[string]interface{}{
-		"methodName": methodName,
+		"methodName":        methodName,
+		"isEnum":            isEnum,
+		"exportedJSONField": exportedJSONField,
+		"exportableField":   exportableField,
 	}
 }
