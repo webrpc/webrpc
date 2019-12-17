@@ -84,6 +84,10 @@ func isEnum(t schema.MessageType) bool {
 	return t == "enum"
 }
 
+func isStruct(t schema.MessageType) bool {
+	return t == "struct"
+}
+
 func exportableField(in schema.MessageField) bool {
 	for _, meta := range in.Meta {
 		for k := range meta {
@@ -115,5 +119,6 @@ func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 		"isEnum":            isEnum,
 		"exportedJSONField": exportedJSONField,
 		"exportableField":   exportableField,
+		"isStruct":          isStruct,
 	}
 }
