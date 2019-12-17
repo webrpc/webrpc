@@ -3,27 +3,35 @@
   // Types
   //
 
-  {{- if .Messages -}}
-    {{range .Messages -}}
+{{- if .Messages -}}
+{{range .Messages -}}
 
-      {{if .Type | isEnum -}}
-        {{$enumName := .Name}}
-        enum {{$enumName}} {
-        {{- range $i, $field := .Fields}}
-          {{- if $i}},{{end}}
-          {{$field.Name}}
-        {{- end}}
-        }
-      {{end -}}
+{{if .Type | isEnum -}}
+{{$enumName := .Name}}
+enum {{$enumName}} {
+{{- range $i, $field := .Fields}}
+  {{- if $i}},{{end}}
+  {{$field.Name}}
+{{- end}}
+}
+{{end -}}
 
-      {{- if .Type | isStruct  }}
-        class {{.Name}} {
-        {{- range .Fields}}
-          {{.Type | fieldType}}{{if .Optional}}? {{if . | exportableField -}}{{. | exportedJSONField}}{{end}}{{- end -}}
-        {{- end}}
-        }
-      {{end -}}
-    {{end -}}
-  {{end -}}
+{{- if .Type | isStruct  }}
+class {{.Name}} {
+{{- range .Fields}}
+  {{.Type | fieldType}}{{- if .Optional}}?{{end}}{{" "}}{{if . | exportableField -}}{{. | exportedJSONField}};{{- end -}}{{end}}
 
-{{end}}
+  {{.Name}}({
+  {{- range .Fields}}
+  {{- if not .Optional}}
+    @required this.{{ if . | exportableField -}}{{. | exportedJSONField}};{{- end -}}
+  {{else}}
+    this.{{ if . | exportableField -}}{{. | exportedJSONField}};{{- end -}}
+  {{- end -}}
+  {{- end}}
+  });
+{{- end}}
+}
+{{end -}}
+{{end -}}
+{{end -}}

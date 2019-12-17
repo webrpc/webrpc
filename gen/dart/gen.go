@@ -9,7 +9,7 @@ import (
 
 	"github.com/goware/statik/fs"
 	"github.com/webrpc/webrpc/gen"
-	"github.com/webrpc/webrpc/gen/golang/embed"
+	"github.com/webrpc/webrpc/gen/dart/embed"
 	"github.com/webrpc/webrpc/schema"
 )
 
@@ -26,9 +26,6 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 	if err != nil {
 		return "", err
 	}
-
-	// TODO: we can move a bunch of this code to the core gen package at githb.com/webrpc/webrpc/gen
-	// .. then typescript gen, and others can use it too..
 
 	// Load templates
 	tmpl := template.
@@ -57,7 +54,7 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 		proto, schemaHash, opts,
 	}
 
-	// generate the template
+	// Generate the template
 	genBuf := bytes.NewBuffer(nil)
 	err = tmpl.ExecuteTemplate(genBuf, "proto", vars)
 	if err != nil {

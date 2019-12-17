@@ -115,6 +115,7 @@ func exportedJSONField(in schema.MessageField) (string, error) {
 
 func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 	return map[string]interface{}{
+		"fieldType":         fieldType,
 		"methodName":        methodName,
 		"isEnum":            isEnum,
 		"exportedJSONField": exportedJSONField,
