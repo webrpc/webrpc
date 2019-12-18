@@ -88,6 +88,10 @@ func isStruct(t schema.MessageType) bool {
 	return t == "struct"
 }
 
+func lastField(msg schema.Message) schema.MessageField {
+	return *msg.Fields[len(msg.Fields)-1]
+}
+
 func exportableField(in schema.MessageField) bool {
 	for _, meta := range in.Meta {
 		for k := range meta {
@@ -121,5 +125,6 @@ func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 		"exportedJSONField": exportedJSONField,
 		"exportableField":   exportableField,
 		"isStruct":          isStruct,
+		"lastField":         lastField,
 	}
 }
