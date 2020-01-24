@@ -1,0 +1,14 @@
+webrpc = v1
+
+name = example-api-service
+version = v1.0.0
+
+import ./types.ridl
+
+import ./util.ridl
+  - Location
+
+service ExampleAPI
+  - Ping()
+  - Status() => (status: bool)
+  - GetUsers() => (users: []User, location: Location)

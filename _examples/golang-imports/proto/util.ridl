@@ -1,0 +1,8 @@
+webrpc = v1
+
+enum Location: uint32
+  - TORONTO
+  - NEW_YORK
+
+message Setting
+  - config: map<string,string>

@@ -27,6 +27,9 @@ build:
 	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen
 	go generate ./...
 
+clean:
+	rm -rf ./bin
+
 install: build
 	go install ./cmd/webrpc-gen
 
@@ -35,9 +38,6 @@ test: generate
 
 generate:
 	go generate ./...
-
-clean:
-	rm -rf ./bin
 
 dep:
 	@export GO111MODULE=on && go mod tidy

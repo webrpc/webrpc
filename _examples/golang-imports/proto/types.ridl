@@ -1,0 +1,5 @@
+webrpc = v1
+
+message User
+  - username: string
+  - age: uint32
