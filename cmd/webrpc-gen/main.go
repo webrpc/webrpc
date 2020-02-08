@@ -24,7 +24,6 @@ func main() {
 	testFlag := flags.Bool("test", false, "test schema parsing (skips code-gen)")
 	clientFlag := flags.Bool("client", false, "enable webrpc client library generation, default: off")
 	serverFlag := flags.Bool("server", false, "enable webrpc server library generation, default: off")
-	websocketFlag := flags.Bool("websocket", false, "enable websocket transport generation, default: off")
 
 	// registered/available target languages
 	targets := []string{}
@@ -84,11 +83,10 @@ func main() {
 	}
 
 	targetOpts := gen.TargetOptions{
-		PkgName:   *pkgFlag,
-		Client:    *clientFlag,
-		Server:    *serverFlag,
-		Extra:     *targetExtra,
-		Websocket: *websocketFlag,
+		PkgName: *pkgFlag,
+		Client:  *clientFlag,
+		Server:  *serverFlag,
+		Extra:   *targetExtra,
 	}
 
 	protoGen, err := generator.Gen(schema, targetOpts)
