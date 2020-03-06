@@ -206,7 +206,7 @@ for code-generating the bindings between client and server from a common IDL.
 
 ## We're hiring!
 
-Our team at https://horizongames.net is building [Arcadeum.net](https://arcadeum.net), a distributed
+Our team at https://horizon.io is building [Arcadeum.net](https://arcadeum.net), a distributed
 network and platform for blockchain based video games :) built for Ethereum.
 
 If you're passionate about distributed systems, cryptography, privacy, and
