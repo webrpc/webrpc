@@ -125,13 +125,13 @@ to RPC services. Picture the flow of data when a client calls out to a server --
 runtime proxy-object, we encode that object, send it over the wire, the server decodes it into
 a server runtime proxy-object, the server handler queries the db, returns a proxy object,
 encodes it, and sends the function return data over the wire again. That is a ton of work,
-especially if you have to write it by hand and then maintain robust code in both namespaces --
-aka REST. But, I just want to call a function on my server! Save yourself the work and time,
-and code-generate it instead - Enter gRPC / Twirp .. and now, webrpc :) 
+especially if you have to write it by hand and then maintain robust code in both the client and
+the server. Ahh, I just want to call a function on my server from my app! Save yourself the work
+and time, and code-generate it instead - Enter gRPC / Twirp .. and now, webrpc :) 
 
 
 Future goals/work:
-1. Add RPC streaming support for client/server via websockets
+1. Add RPC streaming support for client/server
 2. More code generators.. for Rust, Python, ..
 
 
