@@ -1,6 +1,6 @@
 <img alt="webrpc" src="https://github.com/webrpc/webrpc/raw/master/webrpc.png" width="1024" />
 
-webrpc is a design/schema-driven approach to writing backend servers for the Web. Write your server's
+webrpc is a schema-driven approach to writing backend servers for the Web. Write your server's
 api interface in a schema format of [RIDL](./_examples/golang-basics/example.ridl) or [JSON](./_examples/golang-basics/example.webrpc.json),
 and then run `webrpc-gen` to generate the networking source code for your server and client apps. From the schema,
 webrpc-gen will generate application base class types/interfaces, JSON encoders, and networking code. In doing
