@@ -91,8 +91,8 @@ you can use the `webrpc-gen` cli to generate source code for:
 webrpc services speak JSON, as our goals are to build services that communicate with webapps.
 We optimize for developer experience, ease of use and productivity when building backends
 for modern webapps. However, webrpc also works great for service<->service communication,
-but it won't be as fast as gRPC in that scenario, but I'd be surprised hear, for majority cases
-of cases, for this to be a bottleneck or costly tradeoff.
+but it won't be as fast as gRPC in that scenario, but I'd be surprised to hear if for the majority
+of cases that this would be a bottleneck or costly tradeoff.
 
 webrpc is heavily inspired by gRPC and Twirp. It is architecturally the same and has a similar
 workflow, but simpler. In fact, the webrpc schema is similar in design to protobuf, as
