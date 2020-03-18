@@ -5,7 +5,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -55,7 +54,7 @@ type exampleService interface {
 	GetUser(ctx context.Context, id uint64) (*User, error)
 }
 
-type ExampleService interface {
+type ExampleService interface { // ExampleServiceServer ?
 	exampleService
 	Download(ctx context.Context, file string, stream DownloadResponseWriter) // error ?
 }
@@ -66,14 +65,23 @@ type ExampleServiceClient interface {
 }
 
 type DownloadResponseWriter interface {
-	Write(base64 string, err error) error
+	Write(base64 string) error
 	WriteEOF() error
 }
 
+// or................................ ***********8
 type DownloadResponseWriter2 interface {
 	Write(base64 string) error
 	WriteError(err error) error
+	// WritePing() error // Hmm.. perhaps we do this, which writes the {}
+	// so client can send keep-alive..
 	WriteEOF() error
+
+	// other method names..
+	// Stream(base64 string) error
+	// Error(err error) error
+	// Ping() error
+	// EOF() error
 }
 
 type DownloadResponseReader interface {
@@ -197,6 +205,8 @@ func (s *exampleServiceServer) serveGetUser(ctx context.Context, w http.Response
 	if i == -1 {
 		i = len(header)
 	}
+
+	// TODO: we don't need an extra method.. clean this up.
 
 	switch strings.TrimSpace(strings.ToLower(header[:i])) {
 	case "application/json":
@@ -374,36 +384,15 @@ func (s *exampleServiceServer) serveDownloadJSON(ctx context.Context, w http.Res
 
 	streamWriter := &streamDownloadWriter{w: w}
 	s.ExampleService.Download(ctx, reqContent.Arg0, streamWriter)
+	// TODO: receive err := s.ExampleService.Download() ...
+	// which will call streamWriter.WriteError(err) ?
+	// or.. we can respond with error ourselves, and then flush / disconnect.. in case of error
 
-	// 	var ret0 string
-	// 	func() {
-	// 		defer func() {
-	// 			// In case of a panic, serve a 500 error and then panic.
-	// 			if rr := recover(); rr != nil {
-	// 				RespondWithError(w, ErrorInternal("internal service panic"))
-	// 				panic(rr)
-	// 			}
-	// 		}()
-	// 		ret0, err = s.ExampleService.Download(ctx, reqContent.Arg0)
-	// 	}()
-	// 	respContent := struct {
-	// 		Ret0 string `json:"base64"`
-	// 	}{ret0}
+	// perhaps return nil will just send EOF? thats another idea..
+	// kinda a simple idea too, and clean.
 
-	// 	if err != nil {
-	// 		RespondWithError(w, err)
-	// 		return
-	// 	}
-	// 	respBody, err := json.Marshal(respContent)
-	// 	if err != nil {
-	// 		err = WrapError(ErrInternal, err, "failed to marshal json response")
-	// 		RespondWithError(w, err)
-	// 		return
-	// 	}
+	//---
 
-	// 	w.Header().Set("Content-Type", "application/json")
-	// 	w.WriteHeader(http.StatusOK)
-	// 	w.Write(respBody)
 }
 
 func RespondWithError(w http.ResponseWriter, err error) {
@@ -493,95 +482,23 @@ func newClientDownloadResponseReader(resp *http.Response) *clientDownloadRespons
 func (c *clientDownloadResponseReader) Read() (base64 string, err error) {
 	// fmt.Println("==>", c.resp.Status)
 
-	b := bufio.NewReaderSize(c.resp.Body, 64) // TODO: amount of bytes read at a time..
-	cr := httputil.NewChunkedReader(b)
-	buf := make([]byte, 64) // buf..
-
-	// TODO: prob need to join buffers, or does ChunkedReader do this for us perhaps?
-
-	// for {
-	n, err := cr.Read(buf)
-
-	if err == io.EOF {
-		fmt.Println("EOF, we done.")
-		return "", io.EOF
-		// break
-	}
-	if err != nil {
-		// panic(err)
-		return "", err
-	}
-	// fmt.Println("n:", n)
-	// fmt.Println("buf:", string(buf))
-
-	if n == 0 {
-		return
-	}
-
-	// data size.. prob if n == 64, we should keep loading it up, etc..
-	data := buf[:n]
+	reader := httputil.NewChunkedReader(c.resp.Body)
+	decoder := json.NewDecoder(reader)
 
 	out := struct {
-		Ret0 string `json:"base64"`
+		Data struct {
+			Ret0 string `json:"base64"`
+		} `json:"data"`
+		Error ErrorPayload `json:"error"`
 	}{}
 
-	err = json.Unmarshal(data, &out)
-	if err != nil {
-		return "", clientError("failed to unmarshal json response body", err)
-	}
+	err = decoder.Decode(&out)
 
-	return out.Ret0, nil
+	// TODO: if its keep alive, both data and error will be empty
+	// in which case, we should go back to top of this function..
 
-	// }
+	return out.Data.Ret0, nil
 
-	//--
-
-	// buf := make([]byte, 0, 512)
-	// // time.Sleep(100 * time.Millisecond)
-	// n, err := c.resp.Body.Read(buf)
-	// if err != nil {
-	// 	if err == io.EOF {
-	// 		return "", nil
-	// 	}
-	// 	panic(err)
-	// }
-	// fmt.Println("got.....", n)
-
-	// return "", nil
-
-	//--------
-
-	// cr := httputil.NewChunkedReader(c.resp.Body)
-	// respBody := make([]byte, 0, 100)
-	// n, err := cr.Read(respBody)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println("got..", n)
-
-	// respBody, err := ioutil.ReadAll(c.resp.Body)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// fmt.Println("READ:", string(respBody), "len:", len(respBody))
-
-	// return "", nil
-
-	// if len(respBody) == 0 { // done..
-	// 	return
-	// }
-
-	// out := struct {
-	// 	Ret0 string `json:"base64"`
-	// }{}
-
-	// err = json.Unmarshal(respBody, &out)
-	// if err != nil {
-	// 	return "", clientError("failed to unmarshal json response body", err)
-	// }
-
-	// return out.Ret0, nil
 }
 
 func (c *clientDownloadResponseReader) Done() <-chan struct{} {
@@ -635,48 +552,10 @@ func (c *exampleServiceClient) Download(ctx context.Context, file string) (Downl
 	}
 
 	fmt.Println("resp, status:", resp.Status)
-
-	// TODO: we prob don't want to be reading the response body here,
-	// instead, defer this to the Reader below
-
-	// b := bufio.NewReaderSize(resp.Body, 32) // TODO: amount of bytes read at a time..
-	// cr := httputil.NewChunkedReader(b)
-	// buf := make([]byte, 32) // buf..
-
-	// for {
-	// 	n, err := cr.Read(buf)
-
-	// 	if err == io.EOF {
-	// 		fmt.Println("EOF, we done.")
-	// 		break
-	// 	}
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	fmt.Println("n:", n)
-	// 	fmt.Println("buf:", string(buf))
-	// }
-
-	// time.Sleep(1 * time.Second)
+	// TODO: .. handle status..
 
 	reader := newClientDownloadResponseReader(resp)
-	return reader, nil
-
-	// defer func() {
-	// 	cerr := resp.Body.Close()
-	// 	if err == nil && cerr != nil {
-	// 		err = clientError("failed to close response body", cerr)
-	// 	}
-	// }()
-
-	// if err = ctx.Err(); err != nil {
-	// 	return nil, clientError("aborted because context was done", err)
-	// }
-
-	// if resp.StatusCode != 200 {
-	// 	return nil, errorFromResponse(resp)
-	// }
-
+	return reader, nil // TODO: error .......? hmpf.. prob just return "streamReader"
 }
 
 // HTTPClient is the interface used by generated clients to send HTTP requests.

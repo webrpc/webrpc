@@ -55,7 +55,7 @@ func TestGetUser(t *testing.T) {
 
 func TestDownload(t *testing.T) {
 	{
-		reader, err := client.Download(context.Background(), "hi")
+		stream, err := client.Download(context.Background(), "hi")
 		assert.NoError(t, err)
 
 		// time.Sleep(100 * time.Millisecond)
@@ -67,13 +67,22 @@ func TestDownload(t *testing.T) {
 		// 	default:
 		// 	}
 
+		//
+		// stream.Next()
+		// stream.Read() ..
+		// check again io.EOF ? or .Done() with chan thing.. maybe..
+
 		for {
-			resp, err := reader.Read()
+			resp, err := stream.Read()
 			if err != nil {
 				t.Fatal(err)
 				panic("test-error")
 			}
 			fmt.Println("=> resp:", resp)
+			if resp == "" {
+				fmt.Println("emptym, done", err)
+				break
+			}
 			// time.Sleep(3500 * time.Millisecond)
 		}
 

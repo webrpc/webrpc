@@ -20,3 +20,5 @@ service ExampleService
 
   # single request, streaming response body
   - Download(file: string) => stream (base64: string)
+
+  # TODO: do not allow stream on both sides? cuz, its confusing and doesn't make sense.

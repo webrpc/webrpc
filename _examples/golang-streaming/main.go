@@ -58,6 +58,15 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, 
 // 	return false, nil
 // }
 
+// UploadStream
+// DownloadStream
+// stream.Read() -- this works, cuz we can't have both kinds?
+// stream.Write()
+
+// TODO: it could return err
+// which would close the conncetion etc...
+
+// func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream DownloadStream) error {
 func (s *ExampleServiceRPC) Download(ctx context.Context, file string, writer DownloadResponseWriter) {
 
 	// TODO: what do we do about error..?
@@ -75,13 +84,13 @@ func (s *ExampleServiceRPC) Download(ctx context.Context, file string, writer Do
 
 	i := 0
 	for {
-		err := writer.Write(fmt.Sprintf("send %d", i), nil)
+		err := writer.Write(fmt.Sprintf("hiii send %d", i))
 		if err != nil {
 			fmt.Println("ERR!!", err)
 			return
 		}
-		time.Sleep(3 * time.Second)
-		if i >= 100 {
+		time.Sleep(1 * time.Second)
+		if i >= 3 {
 			break
 		}
 
@@ -120,7 +129,7 @@ var _ DownloadResponseWriter = &streamDownloadWriter{}
 // 	return nil
 // }
 
-func (s *streamDownloadWriter) Write(base64 string, err error) error {
+func (s *streamDownloadWriter) Write(base64 string) error {
 	flusher, ok := s.w.(http.Flusher)
 	if !ok {
 		return errors.Errorf("expected http.ResponseWriter to be an http.Flusher")
@@ -131,14 +140,18 @@ func (s *streamDownloadWriter) Write(base64 string, err error) error {
 
 	if !s.headerWritten {
 		w.Header().Set("Content-Type", "application/json")
-		s.headerWritten = true // TODO: this doesnt mean written, this is set..
+		w.Header().Set("Transfer-Encoding", "chunked")
+		w.Header().Set("Connection", "keep-alive")
+		w.Header().Set("Cache-Control", "no-cache")
+		s.headerWritten = true
+		// TODO: this doesnt mean written, this is set..
 		// perhaps we track number of flushes, etc. "n" then chcek if n == 0..?
 	}
 
-	if err != nil {
-		RespondWithError(w, err)
-		return nil //..
-	}
+	// if err != nil {
+	// 	RespondWithError(w, err)
+	// 	return nil //..
+	// }
 
 	respContent := struct {
 		Ret0 string `json:"base64"`
@@ -151,13 +164,16 @@ func (s *streamDownloadWriter) Write(base64 string, err error) error {
 		return nil //..
 	}
 
+	finalBody := fmt.Sprintf(`{"data":%s}`, string(respBody))
+	finalBodyBytes := []byte(finalBody)
+
 	// TODO: lets write initial 1024 stuff -- prob need a flag like seedWritten
 
-	s.w.Write([]byte(fmt.Sprintf("%x\r\n", len(respBody))))
-	s.w.Write(respBody)
+	s.w.Write([]byte(fmt.Sprintf("%x\r\n", len(finalBodyBytes))))
+	s.w.Write(finalBodyBytes)
 	s.w.Write([]byte("\r\n"))
 
-	fmt.Printf("SEND: %s\n", respBody)
+	fmt.Printf("SEND: %s\n", finalBodyBytes)
 
 	flusher.Flush() // Trigger "chunked" encoding and send a chunk...
 
@@ -172,7 +188,7 @@ func (s *streamDownloadWriter) WriteEOF() error {
 
 	// s.doneCh <- struct{}{}
 
-	fmt.Fprintf(s.w, "0\r\n\r\n")
+	fmt.Fprintf(s.w, "0\r\n")
 	flusher.Flush() // Trigger "chunked" encoding and send a chunk...
 
 	return nil
