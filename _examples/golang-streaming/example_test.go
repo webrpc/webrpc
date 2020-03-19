@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -74,6 +75,11 @@ func TestDownload(t *testing.T) {
 
 		for {
 			resp, err := stream.Read()
+			if err == io.EOF {
+				// we're done
+				fmt.Println("we done.")
+				break
+			}
 			if err != nil {
 				t.Fatal(err)
 				panic("test-error")

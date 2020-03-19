@@ -493,9 +493,18 @@ func (c *clientDownloadResponseReader) Read() (base64 string, err error) {
 	}{}
 
 	err = decoder.Decode(&out)
+	if err != nil {
+		if err == io.EOF {
+			return out.Data.Ret0, err
+		} else {
+			return out.Data.Ret0, errors.New("hmmmTODO..") // out.Error somehow..
+		}
+	}
 
 	// TODO: if its keep alive, both data and error will be empty
 	// in which case, we should go back to top of this function..
+
+	// TODO: if out.Error is set, return that instead..
 
 	return out.Data.Ret0, nil
 

@@ -84,6 +84,10 @@ func (s *ExampleServiceRPC) Download(ctx context.Context, file string, writer Do
 
 	i := 0
 	for {
+
+		// TODO: add writer.Ping()
+		// would be useful, server can send it out on its own ..
+
 		err := writer.Write(fmt.Sprintf("hiii send %d", i))
 		if err != nil {
 			fmt.Println("ERR!!", err)
