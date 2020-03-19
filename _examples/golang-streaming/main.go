@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -66,82 +67,94 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, 
 // TODO: it could return err
 // which would close the conncetion etc...
 
-// func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream DownloadStream) error {
-func (s *ExampleServiceRPC) Download(ctx context.Context, file string, writer DownloadResponseWriter) {
-
-	// TODO: what do we do about error..?
-
-	// I think writer.Error(err) looks better too btw.. or WriteError()
-	// and WriteData ..
-
-	// or.. just .Write() and take []byte() is another option..
-	// or .Write(v interface{}) might work? we can test if its an error easily then..
-
-	// I think best is .Write(), .WriteError() and .WriteEOF() -- lets consider if .WriteError() should EOF automatically?
-
-	// TODO: write something every 3 seconds
-	// up to N seconds, say, 100?
+func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream DownloadStreamWriter) error {
+	// TODO: the middleware.Logger in chi isn't suitable here as well, it will be reading all of this, wrapping it etc.
+	// and we don't want that.. ideally chi logger after amount of bytes stops tracking and drops count
 
 	i := 0
 	for {
 
-		// TODO: add writer.Ping()
-		// would be useful, server can send it out on its own ..
+		// TODO: add code that checks if the connection is open
+		// ie, <-stream.Connected()
+		// or something.. or <-stream.Disconnected() perhaps? or .Closed()
+		// in case the client disconnects we must know this.
+		// perhaps we do this test right inside of .Data() though, and return the err that client is gone, even cleaner..
 
-		err := writer.Write(fmt.Sprintf("hiii send %d", i))
+		// select {
+		// // case <-stream.ClientDisconnected():
+		// case <-stream.Done():
+		// 	fmt.Println("stream is done!")
+		// 	return nil
+		// 	// scenarios:
+		// 	// 1. client disconnected unexpectedly but we're still sending stream? ok, not okay? .. they might reconnect, we can track them..
+		// 	// 2. stream has been closed by us, which is fine.
+		// default:
+		// }
+
+		// select {
+		// case <-stream.Done():
+		// 	fmt.Println("stream is done!")
+		// 	return nil
+		// default:
+		// }
+
+		fmt.Println("hi..")
+
+		err := stream.Data(fmt.Sprintf("hiii send %d", i))
+		if err == ErrStreamClosed {
+			fmt.Println("client is gone.....")
+			return nil
+		}
+
 		if err != nil {
 			fmt.Println("ERR!!", err)
-			return
+			return nil
 		}
 		time.Sleep(1 * time.Second)
-		if i >= 3 {
+		if i >= 6 {
 			break
 		}
 
 		i += 1
 	}
 
-	// err := writer.Write("f1", nil)
-	// if err != nil {
-	// 	fmt.Println("ERR!!", err)
-	// 	return
-	// }
-	// time.Sleep(1000 * time.Millisecond)
+	// stream will close on its own when we return actually, nice.
+	// we can close ourselves too if we want though
+	// stream.Close()
 
-	// writer.Write("f2", nil)
-	// time.Sleep(1000 * time.Millisecond)
-
-	// writer.Write("f3", nil)
-	// time.Sleep(1000 * time.Millisecond)
-
-	writer.WriteEOF() // we done ..
+	return nil
 
 }
 
-// NOTE: the code belong here would be code-generated..
-// also possible we have just a sinle streamResponseWriter
+//--
+// move this to the gen..
 
-type streamDownloadWriter struct {
+type httpStreamWriter struct {
 	w             http.ResponseWriter
-	doneCh        chan struct{}
 	headerWritten bool
+	done          chan struct{}
+	mu            sync.Mutex
 }
 
-var _ DownloadResponseWriter = &streamDownloadWriter{}
+// newHTTPStreamWriter() ? .. perhaps, set the flusher.. etc.. kinda nice.
 
-// func (s *streamDownloadWriter) Error(err error) error {
-// 	return nil
-// }
+func (s *httpStreamWriter) Write(payload []byte) error {
+	select {
+	case <-s.Done():
+		return ErrStreamClosed
+	default:
+	}
 
-func (s *streamDownloadWriter) Write(base64 string) error {
 	flusher, ok := s.w.(http.Flusher)
 	if !ok {
 		return errors.Errorf("expected http.ResponseWriter to be an http.Flusher")
 	}
 
-	w := s.w
-	ret0 := base64
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
+	w := s.w
+	// TODO: review, etc.
 	if !s.headerWritten {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Transfer-Encoding", "chunked")
@@ -152,10 +165,65 @@ func (s *streamDownloadWriter) Write(base64 string) error {
 		// perhaps we track number of flushes, etc. "n" then chcek if n == 0..?
 	}
 
-	// if err != nil {
-	// 	RespondWithError(w, err)
-	// 	return nil //..
-	// }
+	// TODO: error check .....
+	s.w.Write([]byte(fmt.Sprintf("%x\r\n", len(payload))))
+	s.w.Write(payload)
+	s.w.Write([]byte("\r\n"))
+
+	fmt.Printf("SEND: %s\n", payload)
+
+	flusher.Flush()
+
+	return nil
+}
+
+func (s *httpStreamWriter) Error(err error) error {
+	return nil
+}
+
+func (s *httpStreamWriter) Ping() error {
+	return s.Write([]byte(`{"ping":true}`))
+}
+
+func (s *httpStreamWriter) Close() error {
+	flusher, ok := s.w.(http.Flusher)
+	if !ok {
+		return errors.Errorf("expected http.ResponseWriter to be an http.Flusher")
+	}
+
+	select {
+	case <-s.Done():
+		return nil
+	default:
+	}
+
+	s.mu.Lock()
+	fmt.Fprintf(s.w, "0\r\n")
+	flusher.Flush() // Trigger "chunked" encoding and send a chunk...
+	close(s.done)
+	s.mu.Unlock()
+
+	return nil
+}
+
+func (s *httpStreamWriter) Done() <-chan struct{} {
+	s.mu.Lock()
+	if s.done == nil {
+		s.done = make(chan struct{})
+	}
+	d := s.done
+	s.mu.Unlock()
+	return d
+}
+
+type downloadStreamWriter struct {
+	httpStreamWriter
+}
+
+// var _ DownloadStreamWriter = &downloadStreamWriter{}
+
+func (s *downloadStreamWriter) Data(base64 string) error {
+	ret0 := base64
 
 	respContent := struct {
 		Ret0 string `json:"base64"`
@@ -164,36 +232,10 @@ func (s *streamDownloadWriter) Write(base64 string) error {
 	respBody, err := json.Marshal(respContent)
 	if err != nil {
 		err = WrapError(ErrInternal, err, "failed to marshal json response")
-		RespondWithError(w, err)
+		RespondWithError(s.w, err)
 		return nil //..
 	}
 
-	finalBody := fmt.Sprintf(`{"data":%s}`, string(respBody))
-	finalBodyBytes := []byte(finalBody)
-
-	// TODO: lets write initial 1024 stuff -- prob need a flag like seedWritten
-
-	s.w.Write([]byte(fmt.Sprintf("%x\r\n", len(finalBodyBytes))))
-	s.w.Write(finalBodyBytes)
-	s.w.Write([]byte("\r\n"))
-
-	fmt.Printf("SEND: %s\n", finalBodyBytes)
-
-	flusher.Flush() // Trigger "chunked" encoding and send a chunk...
-
-	return nil
-}
-
-func (s *streamDownloadWriter) WriteEOF() error {
-	flusher, ok := s.w.(http.Flusher)
-	if !ok {
-		return errors.Errorf("expected http.ResponseWriter to be an http.Flusher")
-	}
-
-	// s.doneCh <- struct{}{}
-
-	fmt.Fprintf(s.w, "0\r\n")
-	flusher.Flush() // Trigger "chunked" encoding and send a chunk...
-
-	return nil
+	data := []byte(fmt.Sprintf(`{"data":%s}`, string(respBody)))
+	return s.Write(data)
 }

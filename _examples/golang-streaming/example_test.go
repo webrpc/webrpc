@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -22,9 +21,14 @@ func init() {
 	// 	startServer()
 	// }()
 
-	client = NewExampleServiceClient("http://0.0.0.0:4242", &http.Client{
-		Timeout: time.Duration(20 * time.Second),
-	})
+	url := "http://0.0.0.0:4242"
+	// url := "https://pkgrok.0xhorizon.net"
+
+	// client = NewExampleServiceClient(url, &http.Client{
+	// 	Timeout: time.Duration(31 * time.Second),
+	// })
+	client = NewExampleServiceClient(url, &http.Client{})
+
 	time.Sleep(time.Millisecond * 500)
 
 }
@@ -59,38 +63,28 @@ func TestDownload(t *testing.T) {
 		stream, err := client.Download(context.Background(), "hi")
 		assert.NoError(t, err)
 
-		// time.Sleep(100 * time.Millisecond)
-
-		// for {
-		// 	select {
-		// 	case <-reader.Done():
-		// 		break
-		// 	default:
-		// 	}
-
-		//
-		// stream.Next()
-		// stream.Read() ..
-		// check again io.EOF ? or .Done() with chan thing.. maybe..
-
+	loop:
 		for {
-			resp, err := stream.Read()
-			if err == io.EOF {
-				// we're done
+			respBase64, err := stream.Read()
+
+			switch err {
+			case ErrStreamClosed:
 				fmt.Println("we done.")
-				break
-			}
-			if err != nil {
+				break loop
+			default:
+				// some error,
 				t.Fatal(err)
-				panic("test-error")
+				panic(err)
+			case nil:
+				// no error
 			}
-			fmt.Println("=> resp:", resp)
-			if resp == "" {
-				fmt.Println("emptym, done", err)
-				break
-			}
-			// time.Sleep(3500 * time.Millisecond)
+
+			fmt.Println("=> resp:", respBase64)
 		}
+
+		respBase64, err := stream.Read()
+		fmt.Println("=> ha,", respBase64)
+		fmt.Println("=> err", err)
 
 		/*
 			base64, err := reader.Read() // returns (base64 string, err error)
@@ -109,9 +103,5 @@ func TestDownload(t *testing.T) {
 			// time.Sleep(100 * time.Millisecond)
 		*/
 
-		// TODO: query until EOF..
-		// or a disconnect..
-
-		// }
 	}
 }

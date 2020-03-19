@@ -16,6 +16,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // WebRPC description and code-gen version
@@ -42,62 +43,42 @@ type User struct {
 	Username string `json:"username"`
 }
 
-// type ExampleService interface {
-// 	Ping(ctx context.Context) error
-// 	GetUser(ctx context.Context, id uint64) (*User, error)
-// 	// Upload(ctx context.Context, rstream UploadReader) (bool, error)
-// 	Download(ctx context.Context, file string, wstream DownloadWriter)
-// }
-
 type exampleService interface {
 	Ping(ctx context.Context) error
 	GetUser(ctx context.Context, id uint64) (*User, error)
 }
 
-type ExampleService interface { // ExampleServiceServer ?
+type ExampleServiceServer interface {
 	exampleService
-	Download(ctx context.Context, file string, stream DownloadResponseWriter) // error ?
+	Download(ctx context.Context, file string, stream DownloadStreamWriter) error
 }
 
 type ExampleServiceClient interface {
 	exampleService
-	Download(ctx context.Context, file string) (DownloadResponseReader, error)
+	Download(ctx context.Context, file string) (DownloadStreamReader, error)
 }
 
-type DownloadResponseWriter interface {
-	Write(base64 string) error
-	WriteEOF() error
-}
-
-// or................................ ***********8
-type DownloadResponseWriter2 interface {
-	Write(base64 string) error
-	WriteError(err error) error
-	// WritePing() error // Hmm.. perhaps we do this, which writes the {}
-	// so client can send keep-alive..
-	WriteEOF() error
-
-	// other method names..
-	// Stream(base64 string) error
-	// Error(err error) error
-	// Ping() error
-	// EOF() error
-}
-
-type DownloadResponseReader interface {
-	Read() (base64 string, err error)
+type streamWriter interface {
+	Write(payload []byte) error
+	Error(err error) error
+	Ping() error
+	Close() error
 	Done() <-chan struct{}
 }
 
-// type streamResponseWriter interface {
-// 	Write(v interface{}, err error) error
-// 	WriteEOF() error
-// }
+type DownloadStreamWriter interface {
+	streamWriter
+	Data(base64 string) error
+	// Error(err error) error
+	// Ping() error
+	// Close() error
+	// Done() <-chan struct{}
+}
 
-// type streamResponseReader interface {
-// 	Reader() (interface{}, error)
-// 	Done() <-chan struct{}
-// }
+type DownloadStreamReader interface {
+	Read() (base64 string, err error)
+	// Done() <-chan struct{} // hmm.. we don't need it, but maybe keep it?
+}
 
 var WebRPCServices = map[string][]string{
 	"ExampleService": {
@@ -117,12 +98,12 @@ type WebRPCServer interface {
 }
 
 type exampleServiceServer struct {
-	ExampleService
+	service ExampleServiceServer
 }
 
-func NewExampleServiceServer(svc ExampleService) WebRPCServer {
+func NewExampleServiceServer(svc ExampleServiceServer) WebRPCServer {
 	return &exampleServiceServer{
-		ExampleService: svc,
+		service: svc,
 	}
 }
 
@@ -187,7 +168,7 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 				panic(rr)
 			}
 		}()
-		err = s.ExampleService.Ping(ctx)
+		err = s.service.Ping(ctx)
 	}()
 
 	if err != nil {
@@ -205,8 +186,6 @@ func (s *exampleServiceServer) serveGetUser(ctx context.Context, w http.Response
 	if i == -1 {
 		i = len(header)
 	}
-
-	// TODO: we don't need an extra method.. clean this up.
 
 	switch strings.TrimSpace(strings.ToLower(header[:i])) {
 	case "application/json":
@@ -249,7 +228,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 				panic(rr)
 			}
 		}()
-		ret0, err = s.ExampleService.GetUser(ctx, reqContent.Arg0)
+		ret0, err = s.service.GetUser(ctx, reqContent.Arg0)
 	}()
 	respContent := struct {
 		Ret0 *User `json:"user"`
@@ -382,17 +361,38 @@ func (s *exampleServiceServer) serveDownloadJSON(ctx context.Context, w http.Res
 	// Call service method
 	w.Header().Set("Content-Type", "application/json")
 
-	streamWriter := &streamDownloadWriter{w: w}
-	s.ExampleService.Download(ctx, reqContent.Arg0, streamWriter)
+	streamWriter := &downloadStreamWriter{httpStreamWriter{w: w}}
+
+	// keep-alive
+	go func() {
+		for {
+			select {
+			case <-time.After(StreamKeepAliveInterval):
+				streamWriter.Ping()
+			case <-r.Context().Done():
+				fmt.Println("request is gone!..")
+				streamWriter.Close()
+				return
+			case <-streamWriter.Done():
+				return
+			}
+		}
+	}()
+
+	err = s.service.Download(ctx, reqContent.Arg0, streamWriter)
 	// TODO: receive err := s.ExampleService.Download() ...
 	// which will call streamWriter.WriteError(err) ?
 	// or.. we can respond with error ourselves, and then flush / disconnect.. in case of error
 
 	// perhaps return nil will just send EOF? thats another idea..
 	// kinda a simple idea too, and clean.
+	fmt.Println("we got an err.. ya", err)
+	if err != nil {
+		streamWriter.Error(err) // send the error to the client..
+	}
 
-	//---
-
+	// always ensure we close this up
+	streamWriter.Close()
 }
 
 func RespondWithError(w http.ResponseWriter, err error) {
@@ -465,60 +465,90 @@ func (c *exampleServiceClient) GetUser(ctx context.Context, id uint64) (*User, e
 // 	return out.Ret0, err
 // }
 
-type clientDownloadResponseReader struct {
-	resp *http.Response
-	// cr   io.Reader
+type clientDownloadStreamReader struct {
+	resp    *http.Response
+	reader  io.Reader
+	decoder *json.Decoder
+	// closed  bool // TODO ..
 }
 
-var _ DownloadResponseReader = &clientDownloadResponseReader{}
+var _ DownloadStreamReader = &clientDownloadStreamReader{}
 
-func newClientDownloadResponseReader(resp *http.Response) *clientDownloadResponseReader {
-	// cr := httputil.NewChunkedReader(resp.Body)
-	return &clientDownloadResponseReader{
-		resp: resp, //cr: cr,
+func newClientDownloadStreamReader(resp *http.Response) *clientDownloadStreamReader {
+	reader := httputil.NewChunkedReader(resp.Body)
+	decoder := json.NewDecoder(reader)
+	return &clientDownloadStreamReader{
+		resp: resp, reader: reader, decoder: decoder,
 	}
 }
 
-func (c *clientDownloadResponseReader) Read() (base64 string, err error) {
+var ErrStreamClosed = errors.New("stream closed")
+var ErrStreamDisconnected = errors.New("stream disconnected") // useful.. in case we disconnect before we receive an ending chunk
+// what is error on client we get, io.EOF ? on disconenct, etc.....
+
+const StreamKeepAliveInterval = 1 * time.Second
+
+func (c *clientDownloadStreamReader) Read() (base64 string, err error) {
 	// fmt.Println("==>", c.resp.Status)
 
-	reader := httputil.NewChunkedReader(c.resp.Body)
-	decoder := json.NewDecoder(reader)
+	// TODO: also, if someone tries to read from a closed stream, should return ErrStreamClosed right away
+	// lets not reattempt this..? or perhaps we should auto-reconnect is another idea..
 
-	out := struct {
-		Data struct {
-			Ret0 string `json:"base64"`
-		} `json:"data"`
-		Error ErrorPayload `json:"error"`
-	}{}
+	for {
+		out := struct {
+			Data struct {
+				Ret0 string `json:"base64"`
+			} `json:"data"`
+			Error ErrorPayload `json:"error"`
+			Ping  bool         `json:"ping"`
+		}{}
 
-	err = decoder.Decode(&out)
-	if err != nil {
-		if err == io.EOF {
-			return out.Data.Ret0, err
-		} else {
-			return out.Data.Ret0, errors.New("hmmmTODO..") // out.Error somehow..
+		// maybe some other way of decoding this stuff..?
+
+		err = c.decoder.Decode(&out)
+
+		if err == nil && out.Ping {
+			// ping noop, lets skip
+			// fmt.Println("pinggzzing")
+			continue
 		}
+
+		// TODO: need switch err {
+		// case io.EOF:
+		// caa unexpected EOF (when server goes away)
+		// case try cloudflare to disappear..
+		// }
+
+		if err != nil {
+			if err == io.EOF {
+				return out.Data.Ret0, ErrStreamClosed // HMM... closing stream isn't an error if we're done...
+			} else {
+				fmt.Println("clientDownloadStreamReader err..")
+				return out.Data.Ret0, err // TODO
+			}
+		}
+
+		// TODO: error could also be from out.Error
+
+		// TODO: if its keep alive, both data and error will be empty
+		// in which case, we should go back to top of this function..
+
+		// TODO: if out.Error is set, return that instead..
+
+		return out.Data.Ret0, nil
 	}
 
-	// TODO: if its keep alive, both data and error will be empty
-	// in which case, we should go back to top of this function..
-
-	// TODO: if out.Error is set, return that instead..
-
-	return out.Data.Ret0, nil
-
 }
 
-func (c *clientDownloadResponseReader) Done() <-chan struct{} {
-	return nil
-}
-
-func (c *exampleServiceClient) Download(ctx context.Context, file string) (DownloadResponseReader, error) {
+func (c *exampleServiceClient) Download(ctx context.Context, file string) (DownloadStreamReader, error) {
 	// func (c *exampleServiceClient) Download(ctx context.Context, file string) (string, error) {
 	in := struct {
 		Arg0 string `json:"file"`
 	}{file}
+
+	// TODO
+	// TODO.. REVISE..
+
 	// out := struct {
 	// 	Ret0 string `json:"base64"`
 	// }{}
@@ -549,6 +579,10 @@ func (c *exampleServiceClient) Download(ctx context.Context, file string) (Downl
 	// 	return nil, clientError("could not build request", err)
 	// }
 
+	// TODO: review / test the "timeout" here.. server can take any amount of time to get
+	// back to us which is fine.. should have no timeout. maybe 60 seconds since our keep-alive
+	// will kick in..
+
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte("{}")))
 	if err != nil {
 		panic(err)
@@ -563,7 +597,7 @@ func (c *exampleServiceClient) Download(ctx context.Context, file string) (Downl
 	fmt.Println("resp, status:", resp.Status)
 	// TODO: .. handle status..
 
-	reader := newClientDownloadResponseReader(resp)
+	reader := newClientDownloadStreamReader(resp)
 	return reader, nil // TODO: error .......? hmpf.. prob just return "streamReader"
 }
 
