@@ -68,6 +68,10 @@ func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream Do
 			return nil
 		}
 
+		// if i == 2 {
+		// 	panic("oh shit..")
+		// }
+
 		if err != nil {
 			fmt.Println("ERR!!", err)
 			return nil

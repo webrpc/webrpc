@@ -14,6 +14,9 @@ type Error struct {
 }
 
 func (e Error) Error() string {
+	if e.Code == nil {
+		return e.Message
+	}
 	return fmt.Sprintf("%s: %s", e.Code, e.Message)
 }
 
