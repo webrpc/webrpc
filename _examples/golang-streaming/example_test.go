@@ -50,7 +50,6 @@ func TestGetUser(t *testing.T) {
 		// Error case, expecting to receive an error
 		user, err := client.GetUser(context.Background(), 911)
 		fmt.Println(err.Error())
-		// assert.True(t, IsErrorCode(err, ErrNotFound))
 		assert.Nil(t, user)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not found")

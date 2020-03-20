@@ -72,7 +72,6 @@ var WebRPCServices = map[string][]string{
 	"ExampleService": {
 		"Ping",
 		"GetUser",
-		"Upload",
 		"Download",
 	},
 }
@@ -118,9 +117,6 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	case "/rpc/ExampleService/GetUser":
 		s.serveGetUser(ctx, w, r)
 		return
-	// case "/rpc/ExampleService/Upload":
-	// 	s.serveUpload(ctx, w, r)
-	// 	return
 	case "/rpc/ExampleService/Download":
 		s.serveDownload(ctx, w, r)
 		return
@@ -206,60 +202,6 @@ func (s *exampleServiceServer) serveGetUser(ctx context.Context, w http.Response
 	w.Write(respBody)
 }
 
-// func (s *exampleServiceServer) serveUpload(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-// 	var err error
-// 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Upload")
-// 	reqContent := struct {
-// 		Arg0 string `json:"base64"`
-// 	}{}
-
-// 	reqBody, err := ioutil.ReadAll(r.Body)
-// 	if err != nil {
-// 		err = WrapError(ErrInternal, err, "failed to read request data")
-// 		RespondWithError(w, err)
-// 		return
-// 	}
-// 	defer r.Body.Close()
-
-// 	err = json.Unmarshal(reqBody, &reqContent)
-// 	if err != nil {
-// 		err = WrapError(ErrInvalidArgument, err, "failed to unmarshal request data")
-// 		RespondWithError(w, err)
-// 		return
-// 	}
-
-// 	// Call service method
-// 	var ret0 bool
-// 	func() {
-// 		defer func() {
-// 			// In case of a panic, serve a 500 error and then panic.
-// 			if rr := recover(); rr != nil {
-// 				RespondWithError(w, ErrorInternal("internal service panic"))
-// 				panic(rr)
-// 			}
-// 		}()
-// 		ret0, err = s.ExampleService.Upload(ctx, reqContent.Arg0)
-// 	}()
-// 	respContent := struct {
-// 		Ret0 bool `json:"status"`
-// 	}{ret0}
-
-// 	if err != nil {
-// 		RespondWithError(w, err)
-// 		return
-// 	}
-// 	respBody, err := json.Marshal(respContent)
-// 	if err != nil {
-// 		err = WrapError(ErrInternal, err, "failed to marshal json response")
-// 		RespondWithError(w, err)
-// 		return
-// 	}
-
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.WriteHeader(http.StatusOK)
-// 	w.Write(respBody)
-// }
-
 func (s *exampleServiceServer) serveDownload(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Download")
@@ -341,8 +283,10 @@ func (s *downloadStreamWriter) Data(base64 string) error {
 
 	payload, err := json.Marshal(body)
 	if err != nil {
-		RespondWithError(s.w, Errorf(ErrInternal, err, "failed to marshal json response"))
-		return nil //..
+		werr := Errorf(ErrStreamLost, err, "failed to marshal json response")
+		s.Error(werr)
+		s.Close()
+		return werr
 	}
 
 	return s.Write(payload)
@@ -433,8 +377,9 @@ func (s *serverStreamWriter) Error(err error) error {
 
 	payload, err := json.Marshal(body)
 	if err != nil {
-		RespondWithError(s.w, Errorf(ErrInternal, err, "failed to marshal json response"))
-		return nil
+		werr := Errorf(ErrStreamLost, err, "failed to marshal json response")
+		s.Close()
+		return werr
 	}
 
 	return s.Write(payload)
@@ -485,7 +430,6 @@ func NewExampleServiceClient(addr string, client HTTPClient) ExampleServiceClien
 	urls := [4]string{
 		prefix + "Ping",
 		prefix + "GetUser",
-		prefix + "Upload",
 		prefix + "Download",
 	}
 	return &exampleServiceClient{
@@ -511,26 +455,14 @@ func (c *exampleServiceClient) GetUser(ctx context.Context, id uint64) (*User, e
 	return out.Ret0, err
 }
 
-// func (c *exampleServiceClient) Upload(ctx context.Context, base64 string) (bool, error) {
-// 	in := struct {
-// 		Arg0 string `json:"base64"`
-// 	}{base64}
-// 	out := struct {
-// 		Ret0 bool `json:"status"`
-// 	}{}
-
-// 	err := clientRequest(ctx, c.client, c.urls[2], in, &out)
-// 	return out.Ret0, err
-// }
-
 func (c *exampleServiceClient) Download(ctx context.Context, file string) (DownloadStreamReader, error) {
 	in := struct {
 		Arg0 string `json:"file"`
 	}{file}
 
-	resp, err := clientRequest(ctx, c.client, c.urls[3], in, nil)
+	resp, err := clientRequest(ctx, c.client, c.urls[2], in, nil)
 	if err != nil {
-		return nil, err // TODO, hmmm.,......
+		return nil, err
 	}
 
 	return newClientDownloadStreamReader(resp), nil
@@ -550,8 +482,6 @@ type HTTPClient interface {
 // urlBase helps ensure that addr specifies a scheme. If it is unparsable
 // as a URL, it returns addr unchanged.
 func urlBase(addr string) string {
-	// If the addr specifies a scheme, use it. If not, default to
-	// http. If url.Parse fails on it, return it unchanged.
 	url, err := url.Parse(addr)
 	if err != nil {
 		return addr
@@ -562,26 +492,6 @@ func urlBase(addr string) string {
 	return url.String()
 }
 
-// newRequest makes an http.Request from a client, adding common headers.
-// func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType string) (*http.Request, error) {
-// 	req, err := http.NewRequest("POST", url, reqBody)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	// req.Header.Set("Accept", contentType)
-// 	// req.Header.Set("Accept", "*/*") // TODO: content-type..
-// 	req.Header.Set("Content-Type", contentType)
-// 	if headers, ok := HTTPRequestHeaders(ctx); ok {
-// 		for k := range headers {
-// 			for _, v := range headers[k] {
-// 				fmt.Println("HEADER", k, v)
-// 				req.Header.Add(k, v)
-// 			}
-// 		}
-// 	}
-// 	return req, nil
-// }
-
 func clientRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
 	reqBody, err := json.Marshal(in)
 	if err != nil {
@@ -590,12 +500,6 @@ func clientRequest(ctx context.Context, client HTTPClient, url string, in, out i
 	if err = ctx.Err(); err != nil {
 		return nil, Errorf(ErrAborted, err, "aborted because context was done")
 	}
-
-	// TODO: review
-	// req, err := newRequest(ctx, url, bytes.NewBuffer(reqBody), "application/json")
-	// if err != nil {
-	// 	return nil, clientError("could not build request", err)
-	// }
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqBody))
 	if err != nil {
@@ -615,7 +519,8 @@ func clientRequest(ctx context.Context, client HTTPClient, url string, in, out i
 		return resp, Errorf(ErrFail, err, "request failed")
 	}
 
-	if out != nil { // TODO hmm.. or test if stream true .....
+	// auto-close body for non-streaming outputs
+	if out != nil {
 		defer func() {
 			cerr := resp.Body.Close()
 			if err == nil && cerr != nil {

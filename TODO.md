@@ -13,7 +13,6 @@ Streaming TODO
 - [x] reconnect pattern..?
 - [x] client ErrConnectionLost -- losing connection to server
 - [x] panics from server?
-- [ ] upload code
 
 
 # Go server
@@ -21,7 +20,6 @@ Streaming TODO
 - [x] succint code: single streamWriter? smaller impl..?
 - [x] ErrorPayload + Error review, kinda ugly..
 - [x] panics inside of a handler..?
-- [ ] upload code
 
 
 
@@ -36,3 +34,4 @@ Streaming TODO
 # Misc
 
 - [ ] chi middleware.Logger -- hmmpf.. when handling streams?
+- [ ] webrpc-gen: input streaming

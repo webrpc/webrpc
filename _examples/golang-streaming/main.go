@@ -52,10 +52,6 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, 
 	}, nil
 }
 
-// func (s *ExampleServiceRPC) Upload(ctx context.Context, reader UploadReader) (bool, error) {
-// 	return false, nil
-// }
-
 func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream DownloadStreamWriter) error {
 	// TODO: the middleware.Logger in chi isn't suitable here as well, it will be reading all of this, wrapping it etc.
 	// and we don't want that.. ideally chi logger after amount of bytes stops tracking and drops count

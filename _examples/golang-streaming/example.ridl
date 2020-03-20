@@ -15,10 +15,7 @@ service ExampleService
  
   - GetUser(id: uint64) => (user: User)
 
-  # streaming request body, single response
-  - stream Upload(base64: string) => (status: bool)
-
   # single request, streaming response body
   - Download(file: string) => stream (base64: string)
 
-  # TODO: do not allow stream on both sides? cuz, its confusing and doesn't make sense.
+  # TODO: do not allow streaming input, just out
