@@ -63,8 +63,6 @@ func TestDownload(t *testing.T) {
 		assert.NoError(t, err)
 
 		for {
-			// TODO: would be nice to have stream.IsConnected() or something? or .Status(), "Connected", "ConnectionLost", "StreamClosed"
-
 			respBase64, err := stream.Read()
 
 			if errors.Is(err, ErrStreamClosed) {
@@ -93,28 +91,5 @@ func TestDownload(t *testing.T) {
 		fmt.Println("=> ha,", respBase64)
 		fmt.Println("=> err", err)
 
-		/*
-			base64, err := reader.Read() // returns (base64 string, err error)
-			assert.NoError(t, err)
-			fmt.Println("==> a", base64)
-			// time.Sleep(100 * time.Millisecond)
-
-			base64, err = reader.Read() // returns (base64 string, err error)
-			assert.NoError(t, err)
-			fmt.Println("==> b", base64)
-			// time.Sleep(100 * time.Millisecond)
-
-			base64, err = reader.Read() // returns (base64 string, err error)
-			assert.NoError(t, err)
-			fmt.Println("==> c", base64)
-			// time.Sleep(100 * time.Millisecond)
-		*/
-
 	}
-}
-
-var ErrBlah = errors.New("blah")
-
-func TestErrors(t *testing.T) {
-	// werr := fmt.Errorf("%w", )
 }
