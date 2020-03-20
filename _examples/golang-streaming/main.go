@@ -129,68 +129,61 @@ func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream Do
 //--
 // move this to the gen..
 
-type httpStreamWriter struct {
+type serverStreamWriter struct {
 	w             http.ResponseWriter
+	flusher       http.Flusher
 	headerWritten bool
 	done          chan struct{}
 	mu            sync.Mutex
 }
 
-// newHTTPStreamWriter() ? .. perhaps, set the flusher.. etc.. kinda nice.
+func newServerStreamWriter(w http.ResponseWriter) (serverStreamWriter, error) {
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		return serverStreamWriter{}, errors.Errorf("expected http.ResponseWriter to be an http.Flusher")
+	}
+	return serverStreamWriter{w: w, flusher: flusher}, nil
+}
 
-func (s *httpStreamWriter) Write(payload []byte) error {
+func (s *serverStreamWriter) Write(payload []byte) error {
 	select {
 	case <-s.Done():
 		return ErrStreamClosed
 	default:
 	}
 
-	flusher, ok := s.w.(http.Flusher)
-	if !ok {
-		return errors.Errorf("expected http.ResponseWriter to be an http.Flusher")
-	}
-
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	w := s.w
-	// TODO: review, etc.
 	if !s.headerWritten {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Transfer-Encoding", "chunked")
 		w.Header().Set("Connection", "keep-alive")
 		w.Header().Set("Cache-Control", "no-cache")
 		s.headerWritten = true
-		// TODO: this doesnt mean written, this is set..
-		// perhaps we track number of flushes, etc. "n" then chcek if n == 0..?
 	}
-
-	// TODO: error check .....
-	s.w.Write([]byte(fmt.Sprintf("%x\r\n", len(payload))))
-	s.w.Write(payload)
-	s.w.Write([]byte("\r\n"))
 
 	fmt.Printf("SEND: %s\n", payload)
 
-	flusher.Flush()
+	s.w.Write([]byte(fmt.Sprintf("%x\r\n", len(payload))))
+	s.w.Write(payload)
+	s.w.Write([]byte("\r\n"))
+	s.flusher.Flush()
 
 	return nil
 }
 
-func (s *httpStreamWriter) Error(err error) error {
+func (s *serverStreamWriter) Error(err error) error {
+	// TODO: get the errorpayload, send, etc. et..c
 	return nil
 }
 
-func (s *httpStreamWriter) Ping() error {
+func (s *serverStreamWriter) Ping() error {
 	return s.Write([]byte(`{"ping":true}`))
 }
 
-func (s *httpStreamWriter) Close() error {
-	flusher, ok := s.w.(http.Flusher)
-	if !ok {
-		return errors.Errorf("expected http.ResponseWriter to be an http.Flusher")
-	}
-
+func (s *serverStreamWriter) Close() error {
 	select {
 	case <-s.Done():
 		return nil
@@ -199,14 +192,13 @@ func (s *httpStreamWriter) Close() error {
 
 	s.mu.Lock()
 	fmt.Fprintf(s.w, "0\r\n")
-	flusher.Flush() // Trigger "chunked" encoding and send a chunk...
+	s.flusher.Flush()
 	close(s.done)
 	s.mu.Unlock()
-
 	return nil
 }
 
-func (s *httpStreamWriter) Done() <-chan struct{} {
+func (s *serverStreamWriter) Done() <-chan struct{} {
 	s.mu.Lock()
 	if s.done == nil {
 		s.done = make(chan struct{})
@@ -217,10 +209,8 @@ func (s *httpStreamWriter) Done() <-chan struct{} {
 }
 
 type downloadStreamWriter struct {
-	httpStreamWriter
+	serverStreamWriter
 }
-
-// var _ DownloadStreamWriter = &downloadStreamWriter{}
 
 func (s *downloadStreamWriter) Data(base64 string) error {
 	ret0 := base64

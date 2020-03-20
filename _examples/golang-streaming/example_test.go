@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"testing"
@@ -25,7 +26,7 @@ func init() {
 	// url := "https://pkgrok.0xhorizon.net"
 
 	// client = NewExampleServiceClient(url, &http.Client{
-	// 	Timeout: time.Duration(31 * time.Second),
+	// 	Timeout: time.Duration(10 * time.Second),
 	// })
 	client = NewExampleServiceClient(url, &http.Client{})
 
@@ -56,27 +57,33 @@ func TestGetUser(t *testing.T) {
 	}
 }
 
-// TODO: lets do specific http1.1 test and another http2 test
-
 func TestDownload(t *testing.T) {
 	{
 		stream, err := client.Download(context.Background(), "hi")
 		assert.NoError(t, err)
 
-	loop:
 		for {
+			// TODO: would be nice to have stream.IsConnected() or something? or .Status(), "Connected", "ConnectionLost", "StreamClosed"
+
 			respBase64, err := stream.Read()
 
-			switch err {
-			case ErrStreamClosed:
-				fmt.Println("we done.")
-				break loop
-			default:
-				// some error,
+			if errors.Is(err, ErrStreamClosed) {
+				fmt.Println("success. stream is done.")
+				break
+			}
+
+			if errors.Is(err, ErrStreamLost) {
+				fmt.Println("connection lost..", err)
+				// 	// lets reconnect..
+				// 	stream, err = client.Download(context.Background(), "hi")
+				// 	if err != nil {
+				// 		// ..
+				// 	}
+				// 	continue
+				return
+			}
+			if err != nil {
 				t.Fatal(err)
-				panic(err)
-			case nil:
-				// no error
 			}
 
 			fmt.Println("=> resp:", respBase64)

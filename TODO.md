@@ -6,23 +6,21 @@ Streaming TODO
 
 - [x] timeout for first chunk response.. should be no timeout, or the keep-alive * 2
 - [x] reading + discarding keep-alive packets
+- [x] ErrStreamClosed, not really an error? the stream is just done.. what is right client interface here?
+
 - [ ] returning { "error": .. } responses, and closing..
-- [ ] ErrStreamClosed, not really an error? the stream is just done.. what is right client interface here?
 - [ ] review application-level errors (Download handler returning err)
-- [ ] review transport-level errors, ie. server disconnecting..
-- [ ] reconnect pattern..?
+- [x] review transport-level errors, ie. server disconnecting..
+
+- [x] reconnect pattern..?
+
 - [ ] upload code
-- [ ] connection scenarios
-      - [ ] server disconnects
-      - [ ] client disconnects
-      - [ ] server finished stream transmission
-      - [ ] client finishes stream retrieval
-      - [ ] client wants to reconnect after disconnect
+- [x] client ErrConnectionLost -- losing connection to server
 
 
 # Go server
 
-- [ ] succint code: single streamWriter? smaller impl..?
+- [x] succint code: single streamWriter? smaller impl..?
 - [ ] ErrorPayload + Error review, kinda ugly..
 - [ ] upload code
 

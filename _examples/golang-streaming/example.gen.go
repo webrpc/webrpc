@@ -361,9 +361,15 @@ func (s *exampleServiceServer) serveDownloadJSON(ctx context.Context, w http.Res
 	// Call service method
 	w.Header().Set("Content-Type", "application/json")
 
-	streamWriter := &downloadStreamWriter{httpStreamWriter{w: w}}
+	serverStreamWriter, err := newServerStreamWriter(w)
+	if err != nil {
+		err = WrapError(ErrUnsupported, err, "http connection does not support streams")
+		RespondWithError(w, err)
+		return
+	}
+	streamWriter := &downloadStreamWriter{serverStreamWriter}
 
-	// keep-alive
+	// connection monitoring and keep-alive
 	go func() {
 		for {
 			select {
@@ -465,81 +471,6 @@ func (c *exampleServiceClient) GetUser(ctx context.Context, id uint64) (*User, e
 // 	return out.Ret0, err
 // }
 
-type clientDownloadStreamReader struct {
-	resp    *http.Response
-	reader  io.Reader
-	decoder *json.Decoder
-	// closed  bool // TODO ..
-}
-
-var _ DownloadStreamReader = &clientDownloadStreamReader{}
-
-func newClientDownloadStreamReader(resp *http.Response) *clientDownloadStreamReader {
-	reader := httputil.NewChunkedReader(resp.Body)
-	decoder := json.NewDecoder(reader)
-	return &clientDownloadStreamReader{
-		resp: resp, reader: reader, decoder: decoder,
-	}
-}
-
-var ErrStreamClosed = errors.New("stream closed")
-var ErrStreamDisconnected = errors.New("stream disconnected") // useful.. in case we disconnect before we receive an ending chunk
-// what is error on client we get, io.EOF ? on disconenct, etc.....
-
-const StreamKeepAliveInterval = 1 * time.Second
-
-func (c *clientDownloadStreamReader) Read() (base64 string, err error) {
-	// fmt.Println("==>", c.resp.Status)
-
-	// TODO: also, if someone tries to read from a closed stream, should return ErrStreamClosed right away
-	// lets not reattempt this..? or perhaps we should auto-reconnect is another idea..
-
-	for {
-		out := struct {
-			Data struct {
-				Ret0 string `json:"base64"`
-			} `json:"data"`
-			Error ErrorPayload `json:"error"`
-			Ping  bool         `json:"ping"`
-		}{}
-
-		// maybe some other way of decoding this stuff..?
-
-		err = c.decoder.Decode(&out)
-
-		if err == nil && out.Ping {
-			// ping noop, lets skip
-			// fmt.Println("pinggzzing")
-			continue
-		}
-
-		// TODO: need switch err {
-		// case io.EOF:
-		// caa unexpected EOF (when server goes away)
-		// case try cloudflare to disappear..
-		// }
-
-		if err != nil {
-			if err == io.EOF {
-				return out.Data.Ret0, ErrStreamClosed // HMM... closing stream isn't an error if we're done...
-			} else {
-				fmt.Println("clientDownloadStreamReader err..")
-				return out.Data.Ret0, err // TODO
-			}
-		}
-
-		// TODO: error could also be from out.Error
-
-		// TODO: if its keep alive, both data and error will be empty
-		// in which case, we should go back to top of this function..
-
-		// TODO: if out.Error is set, return that instead..
-
-		return out.Data.Ret0, nil
-	}
-
-}
-
 func (c *exampleServiceClient) Download(ctx context.Context, file string) (DownloadStreamReader, error) {
 	// func (c *exampleServiceClient) Download(ctx context.Context, file string) (string, error) {
 	in := struct {
@@ -600,6 +531,60 @@ func (c *exampleServiceClient) Download(ctx context.Context, file string) (Downl
 	reader := newClientDownloadStreamReader(resp)
 	return reader, nil // TODO: error .......? hmpf.. prob just return "streamReader"
 }
+
+type clientDownloadStreamReader struct {
+	resp    *http.Response
+	reader  io.Reader
+	decoder *json.Decoder
+}
+
+var _ DownloadStreamReader = &clientDownloadStreamReader{}
+
+func newClientDownloadStreamReader(resp *http.Response) *clientDownloadStreamReader {
+	reader := httputil.NewChunkedReader(resp.Body)
+	decoder := json.NewDecoder(reader)
+	return &clientDownloadStreamReader{
+		resp: resp, reader: reader, decoder: decoder,
+	}
+}
+
+var ErrStreamClosed = errors.New("stream closed")
+var ErrStreamLost = errors.New("stream lost")
+
+const StreamKeepAliveInterval = 1 * time.Second
+
+func (c *clientDownloadStreamReader) Read() (base64 string, err error) {
+	for {
+		out := struct {
+			Data struct {
+				Ret0 string `json:"base64"`
+			} `json:"data"`
+			Error ErrorPayload `json:"error"`
+			Ping  bool         `json:"ping"`
+		}{}
+
+		err = c.decoder.Decode(&out)
+
+		// Skip ping payloads
+		if err == nil && out.Ping {
+			continue
+		}
+
+		// Error checking
+		if err != nil {
+			if err == io.EOF {
+				return out.Data.Ret0, ErrStreamClosed
+			}
+			return out.Data.Ret0, fmt.Errorf("%w: %v", ErrStreamLost, err)
+		}
+
+		// TODO: if out.Error is set, return that instead..
+
+		return out.Data.Ret0, nil
+	}
+}
+
+//--
 
 // HTTPClient is the interface used by generated clients to send HTTP requests.
 // It is fulfilled by *(net/http).Client, which is sufficient for most users.
@@ -898,6 +883,10 @@ const (
 
 	// DataLoss indicates unrecoverable data loss or corruption.
 	ErrDataLoss ErrorCode = "data loss"
+
+	// Unsupported indicates the request was unsupported by the server. Perhaps
+	// incorrect protocol version or missing feature.
+	ErrUnsupported ErrorCode = "unsupported"
 
 	// ErrNone is the zero-value, is considered an empty error and should not be
 	// used.
