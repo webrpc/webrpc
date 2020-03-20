@@ -112,3 +112,9 @@ func TestDownload(t *testing.T) {
 
 	}
 }
+
+var ErrBlah = errors.New("blah")
+
+func TestErrors(t *testing.T) {
+	// werr := fmt.Errorf("%w", )
+}

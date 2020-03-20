@@ -17,12 +17,15 @@ Streaming TODO
 - [ ] upload code
 - [x] client ErrConnectionLost -- losing connection to server
 
+- [ ] panics from server?
+
 
 # Go server
 
 - [x] succint code: single streamWriter? smaller impl..?
 - [ ] ErrorPayload + Error review, kinda ugly..
 - [ ] upload code
+- [ ] panics inside of a handler..?
 
 
 

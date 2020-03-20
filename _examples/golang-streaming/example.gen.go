@@ -16,6 +16,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -35,7 +36,7 @@ func WebRPCSchemaHash() string {
 }
 
 //
-// Types
+// Service types
 //
 
 type User struct {
@@ -58,26 +59,13 @@ type ExampleServiceClient interface {
 	Download(ctx context.Context, file string) (DownloadStreamReader, error)
 }
 
-type streamWriter interface {
-	Write(payload []byte) error
-	Error(err error) error
-	Ping() error
-	Close() error
-	Done() <-chan struct{}
-}
-
 type DownloadStreamWriter interface {
 	streamWriter
 	Data(base64 string) error
-	// Error(err error) error
-	// Ping() error
-	// Close() error
-	// Done() <-chan struct{}
 }
 
 type DownloadStreamReader interface {
 	Read() (base64 string, err error)
-	// Done() <-chan struct{} // hmm.. we don't need it, but maybe keep it?
 }
 
 var WebRPCServices = map[string][]string{
@@ -119,6 +107,12 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if !strings.HasPrefix(r.Header.Get("Content-Type"), "application/json") {
+		err := Errorf(ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
+		RespondWithError(w, err)
+		return
+	}
+
 	switch r.URL.Path {
 	case "/rpc/ExampleService/Ping":
 		s.servePing(ctx, w, r)
@@ -140,22 +134,6 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 }
 
 func (s *exampleServiceServer) servePing(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Content-Type")
-	i := strings.Index(header, ";")
-	if i == -1 {
-		i = len(header)
-	}
-
-	switch strings.TrimSpace(strings.ToLower(header[:i])) {
-	case "application/json":
-		s.servePingJSON(ctx, w, r)
-	default:
-		err := Errorf(ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
-		RespondWithError(w, err)
-	}
-}
-
-func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Ping")
 
@@ -181,22 +159,6 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 }
 
 func (s *exampleServiceServer) serveGetUser(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Content-Type")
-	i := strings.Index(header, ";")
-	if i == -1 {
-		i = len(header)
-	}
-
-	switch strings.TrimSpace(strings.ToLower(header[:i])) {
-	case "application/json":
-		s.serveGetUserJSON(ctx, w, r)
-	default:
-		err := Errorf(ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
-		RespondWithError(w, err)
-	}
-}
-
-func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetUser")
 	reqContent := struct {
@@ -251,22 +213,6 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 }
 
 // func (s *exampleServiceServer) serveUpload(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-// 	header := r.Header.Get("Content-Type")
-// 	i := strings.Index(header, ";")
-// 	if i == -1 {
-// 		i = len(header)
-// 	}
-
-// 	switch strings.TrimSpace(strings.ToLower(header[:i])) {
-// 	case "application/json":
-// 		s.serveUploadJSON(ctx, w, r)
-// 	default:
-// 		err := Errorf(ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
-// 		RespondWithError(w, err)
-// 	}
-// }
-
-// func (s *exampleServiceServer) serveUploadJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 // 	var err error
 // 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Upload")
 // 	reqContent := struct {
@@ -321,22 +267,6 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 // }
 
 func (s *exampleServiceServer) serveDownload(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Content-Type")
-	i := strings.Index(header, ";")
-	if i == -1 {
-		i = len(header)
-	}
-
-	switch strings.TrimSpace(strings.ToLower(header[:i])) {
-	case "application/json":
-		s.serveDownloadJSON(ctx, w, r)
-	default:
-		err := Errorf(ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
-		RespondWithError(w, err)
-	}
-}
-
-func (s *exampleServiceServer) serveDownloadJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	var err error
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Download")
 	reqContent := struct {
@@ -361,13 +291,14 @@ func (s *exampleServiceServer) serveDownloadJSON(ctx context.Context, w http.Res
 	// Call service method
 	w.Header().Set("Content-Type", "application/json")
 
-	serverStreamWriter, err := newServerStreamWriter(w)
+	sw, err := newServerStreamWriter(w)
 	if err != nil {
 		err = WrapError(ErrUnsupported, err, "http connection does not support streams")
 		RespondWithError(w, err)
 		return
 	}
-	streamWriter := &downloadStreamWriter{serverStreamWriter}
+
+	streamWriter := &downloadStreamWriter{sw}
 
 	// connection monitoring and keep-alive
 	go func() {
@@ -376,7 +307,6 @@ func (s *exampleServiceServer) serveDownloadJSON(ctx context.Context, w http.Res
 			case <-time.After(StreamKeepAliveInterval):
 				streamWriter.Ping()
 			case <-r.Context().Done():
-				fmt.Println("request is gone!..")
 				streamWriter.Close()
 				return
 			case <-streamWriter.Done():
@@ -385,21 +315,44 @@ func (s *exampleServiceServer) serveDownloadJSON(ctx context.Context, w http.Res
 		}
 	}()
 
-	err = s.service.Download(ctx, reqContent.Arg0, streamWriter)
-	// TODO: receive err := s.ExampleService.Download() ...
-	// which will call streamWriter.WriteError(err) ?
-	// or.. we can respond with error ourselves, and then flush / disconnect.. in case of error
+	// TODO: should we have any func(){} and panic recovery..? lets check..
+	// + respond, close, etc. etc.......?
 
-	// perhaps return nil will just send EOF? thats another idea..
-	// kinda a simple idea too, and clean.
-	fmt.Println("we got an err.. ya", err)
+	err = s.service.Download(ctx, reqContent.Arg0, streamWriter)
 	if err != nil {
-		streamWriter.Error(err) // send the error to the client..
+		streamWriter.Error(err) // send the error to the client
+	}
+	streamWriter.Close() // always ensure we close the stream
+}
+
+type downloadStreamWriter struct {
+	*serverStreamWriter
+}
+
+func (s *downloadStreamWriter) Data(base64 string) error {
+	ret0 := base64
+
+	type data struct {
+		Ret0 string `json:"base64"`
 	}
 
-	// always ensure we close this up
-	streamWriter.Close()
+	body := struct {
+		Data data `json:"data"`
+	}{data{ret0}}
+
+	payload, err := json.Marshal(body)
+	if err != nil {
+		err = WrapError(ErrInternal, err, "failed to marshal json response")
+		RespondWithError(s.w, err)
+		return nil //..
+	}
+
+	return s.Write(payload)
 }
+
+//
+// Server helpers
+//
 
 func RespondWithError(w http.ResponseWriter, err error) {
 	rpcErr, ok := err.(Error)
@@ -414,6 +367,108 @@ func RespondWithError(w http.ResponseWriter, err error) {
 
 	respBody, _ := json.Marshal(rpcErr.Payload())
 	w.Write(respBody)
+}
+
+//
+// Server streaming helpers
+//
+
+const StreamKeepAliveInterval = 1 * time.Second
+
+type streamWriter interface {
+	Write(payload []byte) error
+	Error(err error) error
+	Ping() error
+	Close() error
+	Done() <-chan struct{}
+}
+
+type serverStreamWriter struct {
+	w             http.ResponseWriter
+	flusher       http.Flusher
+	headerWritten bool
+	done          chan struct{}
+	mu            sync.Mutex
+}
+
+func newServerStreamWriter(w http.ResponseWriter) (*serverStreamWriter, error) {
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		return nil, errors.New("expected http.ResponseWriter to be an http.Flusher")
+	}
+	return &serverStreamWriter{w: w, flusher: flusher}, nil
+}
+
+func (s *serverStreamWriter) Write(payload []byte) error {
+	select {
+	case <-s.Done():
+		return ErrStreamClosed
+	default:
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	w := s.w
+	if !s.headerWritten {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Transfer-Encoding", "chunked")
+		w.Header().Set("Connection", "keep-alive")
+		w.Header().Set("Cache-Control", "no-cache")
+		s.headerWritten = true
+	}
+
+	fmt.Printf("SEND: %s\n", payload)
+
+	s.w.Write([]byte(fmt.Sprintf("%x\r\n", len(payload))))
+	s.w.Write(payload)
+	s.w.Write([]byte("\r\n"))
+	s.flusher.Flush()
+	return nil
+}
+
+func (s *serverStreamWriter) Error(err error) error {
+	body := struct {
+		Error ErrorPayload `json:"error"`
+	}{} // TODO... set the ErrorPayload thing..
+
+	payload, err := json.Marshal(body)
+	if err != nil {
+		err = WrapError(ErrInternal, err, "failed to marshal json response")
+		RespondWithError(s.w, err)
+		return nil
+	}
+
+	return s.Write(payload)
+}
+
+func (s *serverStreamWriter) Ping() error {
+	return s.Write([]byte(`{"ping":true}`))
+}
+
+func (s *serverStreamWriter) Close() error {
+	select {
+	case <-s.Done():
+		return nil
+	default:
+	}
+
+	s.mu.Lock()
+	fmt.Fprintf(s.w, "0\r\n")
+	s.flusher.Flush()
+	close(s.done)
+	s.mu.Unlock()
+	return nil
+}
+
+func (s *serverStreamWriter) Done() <-chan struct{} {
+	s.mu.Lock()
+	if s.done == nil {
+		s.done = make(chan struct{})
+	}
+	d := s.done
+	s.mu.Unlock()
+	return d
 }
 
 //
@@ -442,8 +497,7 @@ func NewExampleServiceClient(addr string, client HTTPClient) ExampleServiceClien
 }
 
 func (c *exampleServiceClient) Ping(ctx context.Context) error {
-
-	err := doJSONRequest(ctx, c.client, c.urls[0], nil, nil)
+	_, err := clientRequest(ctx, c.client, c.urls[0], nil, nil)
 	return err
 }
 
@@ -455,7 +509,7 @@ func (c *exampleServiceClient) GetUser(ctx context.Context, id uint64) (*User, e
 		Ret0 *User `json:"user"`
 	}{}
 
-	err := doJSONRequest(ctx, c.client, c.urls[1], in, &out)
+	_, err := clientRequest(ctx, c.client, c.urls[1], in, &out)
 	return out.Ret0, err
 }
 
@@ -467,124 +521,26 @@ func (c *exampleServiceClient) GetUser(ctx context.Context, id uint64) (*User, e
 // 		Ret0 bool `json:"status"`
 // 	}{}
 
-// 	err := doJSONRequest(ctx, c.client, c.urls[2], in, &out)
+// 	err := clientRequest(ctx, c.client, c.urls[2], in, &out)
 // 	return out.Ret0, err
 // }
 
 func (c *exampleServiceClient) Download(ctx context.Context, file string) (DownloadStreamReader, error) {
-	// func (c *exampleServiceClient) Download(ctx context.Context, file string) (string, error) {
 	in := struct {
 		Arg0 string `json:"file"`
 	}{file}
 
-	// TODO
-	// TODO.. REVISE..
-
-	// out := struct {
-	// 	Ret0 string `json:"base64"`
-	// }{}
-
-	// call doJSONRequest()
-	// pass &out
-	// which is a stream reader..
-
-	// err := doJSONRequest(ctx, c.client, c.urls[3], in, &out)
-	// return out.Ret0, err
-	// _ = out
-
-	// NOTE: below is part of doJSONRequest code
-	client := c.client
-	url := c.urls[3]
-
-	_ = in
-	// reqBody, err := json.Marshal(in)
-	// if err != nil {
-	// 	return nil, clientError("failed to marshal json request", err)
-	// }
-	// if err = ctx.Err(); err != nil {
-	// 	return nil, clientError("aborted because context was done", err)
-	// }
-
-	// req, err := newRequest(ctx, url, bytes.NewBuffer(reqBody), "application/json")
-	// if err != nil {
-	// 	return nil, clientError("could not build request", err)
-	// }
-
-	// TODO: review / test the "timeout" here.. server can take any amount of time to get
-	// back to us which is fine.. should have no timeout. maybe 60 seconds since our keep-alive
-	// will kick in..
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte("{}")))
+	resp, err := clientRequest(ctx, c.client, c.urls[3], in, nil)
 	if err != nil {
-		panic(err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, clientError("request failed", err)
+		return nil, err // TODO, hmmm.,......
 	}
 
-	fmt.Println("resp, status:", resp.Status)
-	// TODO: .. handle status..
-
-	reader := newClientDownloadStreamReader(resp)
-	return reader, nil // TODO: error .......? hmpf.. prob just return "streamReader"
+	return newClientDownloadStreamReader(resp), nil
 }
 
-type clientDownloadStreamReader struct {
-	resp    *http.Response
-	reader  io.Reader
-	decoder *json.Decoder
-}
-
-var _ DownloadStreamReader = &clientDownloadStreamReader{}
-
-func newClientDownloadStreamReader(resp *http.Response) *clientDownloadStreamReader {
-	reader := httputil.NewChunkedReader(resp.Body)
-	decoder := json.NewDecoder(reader)
-	return &clientDownloadStreamReader{
-		resp: resp, reader: reader, decoder: decoder,
-	}
-}
-
-var ErrStreamClosed = errors.New("stream closed")
-var ErrStreamLost = errors.New("stream lost")
-
-const StreamKeepAliveInterval = 1 * time.Second
-
-func (c *clientDownloadStreamReader) Read() (base64 string, err error) {
-	for {
-		out := struct {
-			Data struct {
-				Ret0 string `json:"base64"`
-			} `json:"data"`
-			Error ErrorPayload `json:"error"`
-			Ping  bool         `json:"ping"`
-		}{}
-
-		err = c.decoder.Decode(&out)
-
-		// Skip ping payloads
-		if err == nil && out.Ping {
-			continue
-		}
-
-		// Error checking
-		if err != nil {
-			if err == io.EOF {
-				return out.Data.Ret0, ErrStreamClosed
-			}
-			return out.Data.Ret0, fmt.Errorf("%w: %v", ErrStreamLost, err)
-		}
-
-		// TODO: if out.Error is set, return that instead..
-
-		return out.Data.Ret0, nil
-	}
-}
-
-//--
+//
+// Client helpers
+//
 
 // HTTPClient is the interface used by generated clients to send HTTP requests.
 // It is fulfilled by *(net/http).Client, which is sufficient for most users.
@@ -609,75 +565,90 @@ func urlBase(addr string) string {
 }
 
 // newRequest makes an http.Request from a client, adding common headers.
-func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType string) (*http.Request, error) {
-	req, err := http.NewRequest("POST", url, reqBody)
+// func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType string) (*http.Request, error) {
+// 	req, err := http.NewRequest("POST", url, reqBody)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	// req.Header.Set("Accept", contentType)
+// 	// req.Header.Set("Accept", "*/*") // TODO: content-type..
+// 	req.Header.Set("Content-Type", contentType)
+// 	if headers, ok := HTTPRequestHeaders(ctx); ok {
+// 		for k := range headers {
+// 			for _, v := range headers[k] {
+// 				fmt.Println("HEADER", k, v)
+// 				req.Header.Add(k, v)
+// 			}
+// 		}
+// 	}
+// 	return req, nil
+// }
+
+func clientRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
+	reqBody, err := json.Marshal(in)
+	if err != nil {
+		return nil, clientError("failed to marshal json request", err)
+	}
+	if err = ctx.Err(); err != nil {
+		return nil, clientError("aborted because context was done", err)
+	}
+
+	// req, err := newRequest(ctx, url, bytes.NewBuffer(reqBody), "application/json")
+	// if err != nil {
+	// 	return nil, clientError("could not build request", err)
+	// }
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
 	}
-	// req.Header.Set("Accept", contentType)
-	// req.Header.Set("Accept", "*/*") // TODO: content-type..
-	req.Header.Set("Content-Type", contentType)
-	if headers, ok := HTTPRequestHeaders(ctx); ok {
+	req.Header.Set("Content-Type", "application/json")
+	if headers, ok := GetClientRequestHeaders(ctx); ok {
 		for k := range headers {
 			for _, v := range headers[k] {
-				fmt.Println("HEADER", k, v)
 				req.Header.Add(k, v)
 			}
 		}
 	}
-	return req, nil
-}
 
-// doJSONRequest is common code to make a request to the remote service.
-func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) error {
-	reqBody, err := json.Marshal(in)
-	if err != nil {
-		return clientError("failed to marshal json request", err)
-	}
-	if err = ctx.Err(); err != nil {
-		return clientError("aborted because context was done", err)
-	}
-
-	req, err := newRequest(ctx, url, bytes.NewBuffer(reqBody), "application/json")
-	if err != nil {
-		return clientError("could not build request", err)
-	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return clientError("request failed", err)
+		return resp, clientError("request failed", err)
 	}
 
-	defer func() {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = clientError("failed to close response body", cerr)
-		}
-	}()
+	if out != nil { // hmm.. or test if stream true .....
+		defer func() {
+			cerr := resp.Body.Close()
+			if err == nil && cerr != nil {
+				err = clientError("failed to close response body", cerr)
+			}
+		}()
+	}
 
 	if err = ctx.Err(); err != nil {
-		return clientError("aborted because context was done", err)
+		return resp, clientError("aborted because context was done", err)
 	}
 
 	if resp.StatusCode != 200 {
-		return errorFromResponse(resp)
+		return resp, errorFromResponse(resp)
 	}
 
 	if out != nil {
 		respBody, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return clientError("failed to read response body", err)
+			return resp, clientError("failed to read response body", err)
 		}
 
 		err = json.Unmarshal(respBody, &out)
 		if err != nil {
-			return clientError("failed to unmarshal json response body", err)
+			return resp, clientError("failed to unmarshal json response body", err)
 		}
 		if err = ctx.Err(); err != nil {
-			return clientError("aborted because context was done", err)
+			return resp, clientError("aborted because context was done", err)
 		}
 	}
 
-	return nil
+	return resp, nil
 }
 
 // errorFromResponse builds a webrpc Error from a non-200 HTTP response.
@@ -709,7 +680,7 @@ func clientError(desc string, err error) Error {
 	return WrapError(ErrInternal, err, desc)
 }
 
-func WithHTTPRequestHeaders(ctx context.Context, h http.Header) (context.Context, error) {
+func WithClientRequestHeaders(ctx context.Context, h http.Header) (context.Context, error) {
 	if _, ok := h["Accept"]; ok {
 		return nil, errors.New("provided header cannot set Accept")
 	}
@@ -730,22 +701,65 @@ func WithHTTPRequestHeaders(ctx context.Context, h http.Header) (context.Context
 	return context.WithValue(ctx, HTTPClientRequestHeadersCtxKey, copied), nil
 }
 
-func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
+func GetClientRequestHeaders(ctx context.Context) (http.Header, bool) {
 	h, ok := ctx.Value(HTTPClientRequestHeadersCtxKey).(http.Header)
 	return h, ok
 }
 
 //
-// Helpers
+// Client streaming helpers
 //
 
-type ErrorPayload struct {
-	Status int    `json:"status"`
-	Code   string `json:"code"`
-	Cause  string `json:"cause,omitempty"`
-	Msg    string `json:"msg"`
-	Error  string `json:"error"`
+type clientDownloadStreamReader struct {
+	resp    *http.Response
+	reader  io.Reader
+	decoder *json.Decoder
 }
+
+func newClientDownloadStreamReader(resp *http.Response) *clientDownloadStreamReader {
+	reader := httputil.NewChunkedReader(resp.Body)
+	decoder := json.NewDecoder(reader)
+	return &clientDownloadStreamReader{
+		resp: resp, reader: reader, decoder: decoder,
+	}
+}
+
+func (c *clientDownloadStreamReader) Read() (base64 string, err error) {
+	for {
+		out := struct {
+			Data struct {
+				Ret0 string `json:"base64"`
+			} `json:"data"`
+			Error ErrorPayload `json:"error"`
+			Ping  bool         `json:"ping"`
+		}{}
+
+		err = c.decoder.Decode(&out)
+
+		// Skip ping payloads
+		if err == nil && out.Ping {
+			continue
+		}
+
+		// Error checking
+		if err != nil {
+			if err == io.EOF {
+				return out.Data.Ret0, ErrStreamClosed
+			}
+			return out.Data.Ret0, fmt.Errorf("%w: %v", ErrStreamLost, err)
+		}
+
+		// TODO: if out.Error is set, return that instead..
+
+		// TODO: ... what ErrorPayload .. ... umm... ..
+
+		return out.Data.Ret0, nil
+	}
+}
+
+//
+// Error helpers
+//
 
 type Error interface {
 	// Code is of the valid error codes
@@ -757,44 +771,25 @@ type Error interface {
 	// Cause is reason for the error
 	Cause() error
 
-	// Error returns a string of the form "webrpc error <Code>: <Msg>"
+	// Error returns a string of the form "server error <Code>: <Msg>"
 	Error() string
 
 	// Error response payload
 	Payload() ErrorPayload
 }
 
-func Errorf(code ErrorCode, msgf string, args ...interface{}) Error {
-	msg := fmt.Sprintf(msgf, args...)
-	if IsValidErrorCode(code) {
-		return &rpcErr{code: code, msg: msg}
-	}
-	return &rpcErr{code: ErrInternal, msg: "invalid error type " + string(code)}
+type ErrorPayload struct {
+	Status int    `json:"status"`
+	Code   string `json:"code"`
+	Cause  string `json:"cause,omitempty"`
+	Msg    string `json:"msg"`
+	Error  string `json:"error"`
 }
 
-func WrapError(code ErrorCode, cause error, format string, args ...interface{}) Error {
-	msg := fmt.Sprintf(format, args...)
-	if IsValidErrorCode(code) {
-		return &rpcErr{code: code, msg: msg, cause: cause}
-	}
-	return &rpcErr{code: ErrInternal, msg: "invalid error type " + string(code), cause: cause}
-}
-
-func ErrorNotFound(format string, args ...interface{}) Error {
-	return Errorf(ErrNotFound, format, args...)
-}
-
-func ErrorInvalidArgument(argument string, validationMsg string) Error {
-	return Errorf(ErrInvalidArgument, argument+" "+validationMsg)
-}
-
-func ErrorRequiredArgument(argument string) Error {
-	return ErrorInvalidArgument(argument, "is required")
-}
-
-func ErrorInternal(format string, args ...interface{}) Error {
-	return Errorf(ErrInternal, format, args...)
-}
+var (
+	ErrStreamClosed = errors.New("stream closed")
+	ErrStreamLost   = errors.New("stream lost")
+)
 
 type ErrorCode string
 
@@ -811,6 +806,10 @@ const (
 	// system (i.e. a malformed file name, required argument, number out of range,
 	// etc.).
 	ErrInvalidArgument ErrorCode = "invalid argument"
+
+	// Unsupported indicates the request was unsupported by the server. Perhaps
+	// incorrect protocol version or missing feature.
+	ErrUnsupported ErrorCode = "unsupported"
 
 	// DeadlineExceeded means operation expired before completion. For operations
 	// that change the state of the system, this error may be returned even if the
@@ -884,14 +883,42 @@ const (
 	// DataLoss indicates unrecoverable data loss or corruption.
 	ErrDataLoss ErrorCode = "data loss"
 
-	// Unsupported indicates the request was unsupported by the server. Perhaps
-	// incorrect protocol version or missing feature.
-	ErrUnsupported ErrorCode = "unsupported"
-
 	// ErrNone is the zero-value, is considered an empty error and should not be
 	// used.
 	ErrNone ErrorCode = ""
 )
+
+func Errorf(code ErrorCode, msgf string, args ...interface{}) Error {
+	msg := fmt.Sprintf(msgf, args...)
+	if IsValidErrorCode(code) {
+		return &rpcErr{code: code, msg: msg}
+	}
+	return &rpcErr{code: ErrInternal, msg: "invalid error type " + string(code)}
+}
+
+func WrapError(code ErrorCode, cause error, format string, args ...interface{}) Error {
+	msg := fmt.Sprintf(format, args...)
+	if IsValidErrorCode(code) {
+		return &rpcErr{code: code, msg: msg, cause: cause}
+	}
+	return &rpcErr{code: ErrInternal, msg: "invalid error type " + string(code), cause: cause}
+}
+
+func ErrorNotFound(format string, args ...interface{}) Error {
+	return Errorf(ErrNotFound, format, args...)
+}
+
+func ErrorInvalidArgument(argument string, validationMsg string) Error {
+	return Errorf(ErrInvalidArgument, argument+" "+validationMsg)
+}
+
+func ErrorRequiredArgument(argument string) Error {
+	return ErrorInvalidArgument(argument, "is required")
+}
+
+func ErrorInternal(format string, args ...interface{}) Error {
+	return Errorf(ErrInternal, format, args...)
+}
 
 func HTTPStatusFromErrorCode(code ErrorCode) int {
 	switch code {
@@ -900,6 +927,8 @@ func HTTPStatusFromErrorCode(code ErrorCode) int {
 	case ErrUnknown:
 		return 500 // Internal Server Error
 	case ErrInvalidArgument:
+		return 400 // BadRequest
+	case ErrUnsupported:
 		return 400 // BadRequest
 	case ErrDeadlineExceeded:
 		return 408 // RequestTimeout
@@ -970,12 +999,12 @@ func (e *rpcErr) Cause() error {
 func (e *rpcErr) Error() string {
 	if e.cause != nil && e.cause.Error() != "" {
 		if e.msg != "" {
-			return fmt.Sprintf("webrpc %s error: %s -- %s", e.code, e.cause.Error(), e.msg)
+			return fmt.Sprintf("server %s error: %s -- %s", e.code, e.cause.Error(), e.msg)
 		} else {
-			return fmt.Sprintf("webrpc %s error: %s", e.code, e.cause.Error())
+			return fmt.Sprintf("server %s error: %s", e.code, e.cause.Error())
 		}
 	} else {
-		return fmt.Sprintf("webrpc %s error: %s", e.code, e.msg)
+		return fmt.Sprintf("server %s error: %s", e.code, e.msg)
 	}
 }
 
@@ -993,6 +1022,10 @@ func (e *rpcErr) Payload() ErrorPayload {
 	return errPayload
 }
 
+//
+// Misc helpers
+//
+
 type contextKey struct {
 	name string
 }
@@ -1007,10 +1040,7 @@ var (
 
 	// For Server
 	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"}
-
-	HTTPRequestCtxKey = &contextKey{"HTTPRequest"}
-
-	ServiceNameCtxKey = &contextKey{"ServiceName"}
-
-	MethodNameCtxKey = &contextKey{"MethodName"}
+	HTTPRequestCtxKey        = &contextKey{"HTTPRequest"}
+	ServiceNameCtxKey        = &contextKey{"ServiceName"}
+	MethodNameCtxKey         = &contextKey{"MethodName"}
 )
