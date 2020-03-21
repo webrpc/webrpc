@@ -34,4 +34,15 @@ Streaming TODO
 # Misc
 
 - [ ] chi middleware.Logger -- hmmpf.. when handling streams?
-- [ ] webrpc-gen: input streaming
+- [ ] webrpc-gen: input streaming error checking
+
+
+
+-------
+
+
+Web client / node client
+------------------------
+
+1. switch everything to XHR ..? and on node say we require `xmlhttprequest` polyfill.. thats fine.
+2. node version would need `node-fetch` and `web-streams-polyfill`, and still doesnt work

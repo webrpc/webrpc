@@ -149,6 +149,7 @@ func (s *exampleServiceServer) servePing(ctx context.Context, w http.ResponseWri
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{}`)) // TODO: send when there is no response
 }
 
 func (s *exampleServiceServer) serveGetUser(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -1015,8 +1016,8 @@ var (
 	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"}
 
 	// For Server
-	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"}
-	HTTPRequestCtxKey        = &contextKey{"HTTPRequest"}
-	ServiceNameCtxKey        = &contextKey{"ServiceName"}
-	MethodNameCtxKey         = &contextKey{"MethodName"}
+	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"} // http.ResponseWriter
+	HTTPRequestCtxKey        = &contextKey{"HTTPRequest"}        // *http.Request
+	ServiceNameCtxKey        = &contextKey{"ServiceName"}        // string
+	MethodNameCtxKey         = &contextKey{"MethodName"}         // string
 )

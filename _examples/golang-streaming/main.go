@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
 )
 
 func main() {
@@ -23,6 +24,18 @@ func startServer() error {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+
+	cors := cors.New(cors.Options{
+		// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedMethods:   []string{"POST", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Custom"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	})
+	r.Use(cors.Handler)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("."))
@@ -43,7 +56,7 @@ func (s *ExampleServiceRPC) Ping(ctx context.Context) error {
 
 func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, error) {
 	if userID == 911 {
-		return nil, ErrorNotFound("fdf")
+		return nil, ErrorNotFound("user doest exist")
 	}
 
 	return &User{
@@ -55,6 +68,11 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, 
 func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream DownloadStreamWriter) error {
 	// TODO: the middleware.Logger in chi isn't suitable here as well, it will be reading all of this, wrapping it etc.
 	// and we don't want that.. ideally chi logger after amount of bytes stops tracking and drops count
+
+	req, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
+	fmt.Println("==??", req.Header.Get("X-Hi"))
+
+	fmt.Println("req, file:", file)
 
 	i := 0
 	for {
