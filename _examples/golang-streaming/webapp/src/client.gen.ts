@@ -14,8 +14,6 @@ export const WebRPCSchemaVersion = "v1.0.0"
 export const WebRPCSchemaHash = "87ce8159bce3ad056518dfb1f1877b1a1012b34d"
 
 
-// import { ReadableStream } from "web-streams-polyfill/ponyfill"
-
 
 //
 // Types
@@ -73,11 +71,12 @@ export interface DownloadStream {
   ondata(handler: (data: DownloadReturn) => void): void
 }
 
+
 class StreamClient<TArgs,TReturn> {
   private handlers: string
   private ondataListeners: Array<(data: TReturn) => void>
   private oncloseListeners: Array<(err?: WebRPCError) => void>
-  // private signalController: AbortController
+  private signal: AbortController
 
   // readyState ? opened, closed, closed-lost
 
@@ -89,37 +88,21 @@ class StreamClient<TArgs,TReturn> {
   ) {
     this.oncloseListeners = []
     this.ondataListeners = []
-    // this.signalController = new AbortController()
   }
 
   open = (args?: TArgs | object, headers?: object): Promise<boolean|WebRPCError> => {
     console.log('open() top')
 
-    // Check if browser supports ReadableStream api. A polyfill like web-streams-polyfill
-    // may be required for older browsers.
-    // @ts-ignore
-    // if (typeof ReadableStream == 'undefined') {
-    //   throw new Error(`browser does not support ReadableStreams`)
-    // }
-
-    // Check if this.fetch supports streaming response bodies. A polyfill like whatwg-fetch
-    // combined with web-streams-polyfill may be required for older browsers.
-    // if (this.fetch.polyfill)
-    // TODO ...
-    // ..
-
-    // TODO: try this with node.........
-    const that = this // hehe..?
-
-
     return new Promise<boolean>((resolve) => {
       // TODO: review this call, either something or nothing..
+
+      this.signal = new AbortController()
 
       this.fetch(
         this.url, 
         {
-          ...createHTTPRequest((args || this.args) as object, headers || this.headers)//,
-          // signal: this.signalController.signal
+          ...createHTTPRequest((args || this.args) as object, headers || this.headers),
+          signal: this.signal.signal
         }
       ).then(resp => {
 
@@ -137,46 +120,47 @@ class StreamClient<TArgs,TReturn> {
   read = async (resp: Response) => {
     console.log('read me..')
 
-    // const source = new ReadableStream(resp.body as any)
-    const source = resp.body!
+    // TODO: test this with build on other projects..
 
-    console.log('wtfffffffffffffffff...?', source)
+    let count = 0
 
-    const reader = source.getReader()
+    try {
 
-    var count = 0
-
-    const stream = () => {
-      return reader.read().then(result => {
-        console.log('payload:', result)
-        // const payload = decoder.decode(result.value || new Uint8Array, { stream: !result.done })
-        // console.log('got:', payload)
-
-        // @ts-ignore
-        this.emitData({ data: { base64: JSON.stringify(result) } })
+      // @ts-ignore
+      for await (const chunk of resp.body) {
 
         count++
-
-        if (count == 3) {
-          reader.cancel()
-          return
+        if (count == 5) {
+          this.close()
         }
 
-        if (result.done) {
-          // resolve(true)
-          // return true
-          return
-        }
-        stream()
-      })
+        const chunkString = Utf8ArrayToStr(chunk)
+
+        // TODO: catch, and return {} ..
+        const payload = JSON.parse(chunkString.slice(chunkString.indexOf("\r\n")+2))
+
+        console.log('JSON-PAYLOAD:', payload)
+
+
+        // @ts-ignore
+        // this.emitData({ data: { base64: JSON.stringify(chunk) } })
+
+      }
+
+    } catch(err) {
+      // TODO: catch abort errors, and do nothing..
+      console.log('read error.......', err)
     }
-    stream()
-
   }
 
   close = () => {
     // instead, this.reader.cancel() // .. thank goodness..
     // this.signalController.abort()
+    try {
+      this.signal.abort()
+    } catch (err) {
+
+    }
   }
 
   // TODO, onopen ?
@@ -287,3 +271,55 @@ const buildResponse = (res: Response): Promise<any> => {
 }
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
+
+
+//
+// Compatibility layer for node and web platforms
+//
+
+// for node
+// install `node-fetch` and `abort-controller` packages
+
+// for web
+if (typeof ReadableStream != 'undefined') {
+  if (!ReadableStream.prototype[Symbol.asyncIterator]) {
+    ReadableStream.prototype[Symbol.asyncIterator] = async function* () {
+      let value
+      const reader = this.getReader()
+      while (1) {
+        const r = await reader.read()
+        if (r.done) {
+          return value
+        }
+        yield r.value
+      }
+    }
+  }
+}
+
+export function Utf8ArrayToStr(bytes: Uint8Array): string {
+  let str = '', i = 0, len = bytes.length, c = 0, char2 = 0, char3 = 0
+  while(i < len) {
+    c = bytes[i++]
+    switch(c >> 4) { 
+      case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+        // 0xxxxxxx
+        str += String.fromCharCode(c)
+        break
+      case 12: case 13:
+        // 110x xxxx   10xx xxxx
+        char2 = bytes[i++]
+        str += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F))
+        break
+      case 14:
+        // 1110 xxxx  10xx xxxx  10xx xxxx
+        char2 = bytes[i++]
+        char3 = bytes[i++]
+        str += String.fromCharCode(((c & 0x0F) << 12) |
+                      ((char2 & 0x3F) << 6) |
+                      ((char3 & 0x3F) << 0))
+        break
+    }
+  }
+  return str
+}

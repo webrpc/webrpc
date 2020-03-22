@@ -91,7 +91,7 @@ func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream Do
 			return nil
 		}
 		time.Sleep(1 * time.Second)
-		if i >= 6 {
+		if i >= 100 {
 			break
 		}
 

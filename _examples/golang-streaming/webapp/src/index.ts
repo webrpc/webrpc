@@ -9,13 +9,9 @@
 
 // import * as polyfetch from 'node-fetch' // for now..
 
-// import { ReadableStream } from "web-streams-polyfill/ponyfill"
-
+// import * as client from './client-xhr.gen'
 import * as client from './client.gen'
 
-// TODO: install whatwg-fetch and web-streams-polyfill only if necessary..
-
-// console.log('????????', ReadableStream)
 
 let fetch: client.Fetch
 
@@ -46,7 +42,7 @@ const appFetch = (input: RequestInfo, init?: RequestInit): Promise<Response> => 
 
 
 
-const api = new client.ExampleService('http://127.0.01:4242', appFetch)
+const api = new client.ExampleService('http://localhost:4242', appFetch)
 
 // const appFetch: Fetch = async (input: RequestInfo, init?: RequestInit) => {
 //   try {
@@ -80,6 +76,7 @@ async function main() {
     console.log('[A]', {err})
   }
     
+
   //
   // Get a user from the API
   //
@@ -104,6 +101,7 @@ async function main() {
   } catch (err) {
     console.log('[C]', {err})
   }
+
 
   //
   // Get a user from the API -- different code syntax example
@@ -145,6 +143,7 @@ async function main() {
   // })
 
   // await stream.close() // close the connection
+
 
 }
 
