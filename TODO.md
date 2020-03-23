@@ -26,6 +26,9 @@ Streaming TODO
 # TS client
 
 - [ ] test on older browsers
+
+- [ ] chunk decoder..
+
 - [ ] finish .ondata, .onclose, etc. handlers
 - [ ] keep-alive ping skipping
 - [ ] webrpc error enum list

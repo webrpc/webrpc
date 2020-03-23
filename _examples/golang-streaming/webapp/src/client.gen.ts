@@ -76,7 +76,6 @@ class StreamClient<TArgs,TReturn> {
   private handlers: string
   private ondataListeners: Array<(data: TReturn) => void>
   private oncloseListeners: Array<(err?: WebRPCError) => void>
-  private signal: AbortController
 
   // readyState ? opened, closed, closed-lost
 
@@ -96,13 +95,10 @@ class StreamClient<TArgs,TReturn> {
     return new Promise<boolean>((resolve) => {
       // TODO: review this call, either something or nothing..
 
-      this.signal = new AbortController()
-
       this.fetch(
         this.url, 
         {
-          ...createHTTPRequest((args || this.args) as object, headers || this.headers),
-          signal: this.signal.signal
+          ...createHTTPRequest((args || this.args) as object, headers || this.headers)
         }
       ).then(resp => {
 
@@ -118,49 +114,66 @@ class StreamClient<TArgs,TReturn> {
   }
 
   read = async (resp: Response) => {
-    console.log('read me..')
+    console.log('read()')
 
-    // TODO: test this with build on other projects..
+    const el = document.getElementById('log')?.parentNode
 
-    let count = 0
+    // @ts-ignore
+    el?.textContent += "test"
 
-    try {
 
-      // @ts-ignore
-      for await (const chunk of resp.body) {
+    const reader = resp.body!.getReader()
 
-        count++
-        if (count == 5) {
-          this.close()
+    const decoder = new ChunkDecoder()
+
+
+    var count = 0
+
+    const stream = () => {
+      return reader.read().then(result => {
+        if (result.done) {
+          // do we get final value or done first..? I think .done ..
+          return
         }
 
-        const chunkString = Utf8ArrayToStr(chunk)
+        decoder.push(result.value).then((chunks) => {
+          if (chunks.length > 0) {
+            console.log('chunk:', chunks)
+          }
+        })
 
-        // TODO: catch, and return {} ..
-        const payload = JSON.parse(chunkString.slice(chunkString.indexOf("\r\n")+2))
+        //   // @ts-ignore
+        //   // el.textContent += chunk
+        // }
 
-        console.log('JSON-PAYLOAD:', payload)
-
+        // const chunkString = Utf8ArrayToStr(result.value)
+        // console.log('chunk:', chunkString)
 
         // @ts-ignore
-        // this.emitData({ data: { base64: JSON.stringify(chunk) } })
+        // this.emitData({ data: { base64: JSON.stringify(result) } })
 
-      }
+        // count++
 
-    } catch(err) {
-      // TODO: catch abort errors, and do nothing..
-      console.log('read error.......', err)
+        // if (count == 3) {
+        //   console.log('cancelling stream..')
+        //   reader.cancel()
+        //   return
+        // }
+
+        if (result.done) {
+          // resolve(true)
+          // return true
+          return
+        }
+        stream()
+      })
     }
+    stream()
+
   }
 
   close = () => {
-    // instead, this.reader.cancel() // .. thank goodness..
-    // this.signalController.abort()
-    try {
-      this.signal.abort()
-    } catch (err) {
-
-    }
+    // instead, this.reader.cancel()
   }
 
   // TODO, onopen ?
@@ -181,6 +194,102 @@ class StreamClient<TArgs,TReturn> {
 
   private emitClose = async () => {
 
+  }
+}
+
+class ChunkDecoder {
+  private decoded: string[] = []
+  private size: number = -1
+  private value: number[] = []
+  private state: number = 0 // 0=size, 1=reading data, 2=term
+
+  push(bytes: Uint8Array): Promise<string[]> {
+    this.decoded.length = 0
+    return new Promise<string[]>((resolve, reject) => {
+      let i = 0, c = -1, l = -1
+      const v = this.value
+
+      while (i < bytes.length) {
+        c = bytes[i]
+        if (v.length > 0) {
+          l = v[v.length-1]
+        }
+
+        switch (this.state) {
+          case 0: // new chunk
+            if (l == 13 && c == 10) {
+              this.size = parseInt("0x"+this.utf8ArrayToStr(v.slice(0,v.length-1)))
+              if (this.size == 0) {
+                this.size = -1
+                this.state = 3
+              } else {
+                this.state = 1
+              }
+              v.length = 0
+            } else {
+              v.push(c)
+            }
+            break
+
+          case 1: // reading data
+            v.push(c)
+            if (v.length == this.size) {
+              this.state = 2
+            }
+            break
+
+          case 2: // reading crlf
+            if (v.length > this.size+2) {
+              reject('chunk invalid')
+            }
+
+            // lets read off crlf, then resolve
+            v.push(c)
+            if (l == 13 && c == 10) {
+              const value = this.utf8ArrayToStr(v.splice(0,v.length-2))
+              v.length = 0
+              this.state = 0
+              this.decoded.push(value)
+            }
+            break
+
+          case 3: // done
+            // console.log('STATE 3, TODO...')
+            break
+        }
+        
+        i++
+      }
+
+      resolve(this.decoded)
+    })
+  }
+
+  utf8ArrayToStr(bytes: Uint8Array | number[]): string {
+    let str = '', i = 0, len = bytes.length, c = 0, char2 = 0, char3 = 0
+    while(i < len) {
+      c = bytes[i++]
+      switch(c >> 4) { 
+        case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+          // 0xxxxxxx
+          str += String.fromCharCode(c)
+          break
+        case 12: case 13:
+          // 110x xxxx   10xx xxxx
+          char2 = bytes[i++]
+          str += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F))
+          break
+        case 14:
+          // 1110 xxxx  10xx xxxx  10xx xxxx
+          char2 = bytes[i++]
+          char3 = bytes[i++]
+          str += String.fromCharCode(
+            ((c & 0x0F) << 12) | ((char2 & 0x3F) << 6) | ((char3 & 0x3F) << 0)
+          )
+          break
+      }
+    }
+    return str
   }
 }
 
@@ -271,55 +380,3 @@ const buildResponse = (res: Response): Promise<any> => {
 }
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
-
-
-//
-// Compatibility layer for node and web platforms
-//
-
-// for node
-// install `node-fetch` and `abort-controller` packages
-
-// for web
-if (typeof ReadableStream != 'undefined') {
-  if (!ReadableStream.prototype[Symbol.asyncIterator]) {
-    ReadableStream.prototype[Symbol.asyncIterator] = async function* () {
-      let value
-      const reader = this.getReader()
-      while (1) {
-        const r = await reader.read()
-        if (r.done) {
-          return value
-        }
-        yield r.value
-      }
-    }
-  }
-}
-
-export function Utf8ArrayToStr(bytes: Uint8Array): string {
-  let str = '', i = 0, len = bytes.length, c = 0, char2 = 0, char3 = 0
-  while(i < len) {
-    c = bytes[i++]
-    switch(c >> 4) { 
-      case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
-        // 0xxxxxxx
-        str += String.fromCharCode(c)
-        break
-      case 12: case 13:
-        // 110x xxxx   10xx xxxx
-        char2 = bytes[i++]
-        str += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F))
-        break
-      case 14:
-        // 1110 xxxx  10xx xxxx  10xx xxxx
-        char2 = bytes[i++]
-        char3 = bytes[i++]
-        str += String.fromCharCode(((c & 0x0F) << 12) |
-                      ((char2 & 0x3F) << 6) |
-                      ((char3 & 0x3F) << 0))
-        break
-    }
-  }
-  return str
-}

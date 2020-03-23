@@ -224,8 +224,6 @@ func (s *exampleServiceServer) serveDownload(ctx context.Context, w http.Respons
 	}
 
 	// Call service method
-	w.Header().Set("Content-Type", "application/json")
-
 	sw, err := newServerStreamWriter(w)
 	if err != nil {
 		RespondWithError(w, Errorf(ErrUnsupported, err, "http connection does not support streams"))
@@ -350,7 +348,10 @@ func (s *serverStreamWriter) Write(payload []byte) error {
 
 	w := s.w
 	if !s.headerWritten {
-		w.Header().Set("Content-Type", "application/json")
+		// content-type is very improve here as proxy servers treat it differently
+		// w.Header().Set("Content-Type", "application/stream+json")
+		w.Header().Set("Content-Type", "application/json") // TODO: just for testing purposes..
+
 		w.Header().Set("Transfer-Encoding", "chunked")
 		w.Header().Set("Connection", "keep-alive")
 		w.Header().Set("Cache-Control", "no-cache")

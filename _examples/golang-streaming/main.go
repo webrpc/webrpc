@@ -90,8 +90,8 @@ func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream Do
 			fmt.Println("ERR!!", err)
 			return nil
 		}
-		time.Sleep(1 * time.Second)
-		if i >= 100 {
+		time.Sleep(100 * time.Millisecond)
+		if i >= 5 {
 			break
 		}
 

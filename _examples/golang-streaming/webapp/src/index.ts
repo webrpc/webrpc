@@ -42,7 +42,10 @@ const appFetch = (input: RequestInfo, init?: RequestInit): Promise<Response> => 
 
 
 
-const api = new client.ExampleService('http://localhost:4242', appFetch)
+// const api = new client.ExampleService('http://localhost:4242', appFetch)
+const api = new client.ExampleService('https://pkgrok.0xhorizon.net', appFetch)
+// const api = new client.ExampleService('https://pkgrok.ngrok.io', appFetch)
+
 
 // const appFetch: Fetch = async (input: RequestInfo, init?: RequestInit) => {
 //   try {
