@@ -204,8 +204,15 @@ class ChunkDecoder {
   private state: number = 0 // 0=size, 1=reading data, 2=term
 
   push(bytes: Uint8Array): Promise<string[]> {
+
     this.decoded.length = 0
+
     return new Promise<string[]>((resolve, reject) => {
+      if (this.state == 3) {
+        resolve([])
+        return
+      }
+
       let i = 0, c = -1, l = -1
       const v = this.value
 
@@ -220,7 +227,6 @@ class ChunkDecoder {
             if (l == 13 && c == 10) {
               this.size = parseInt("0x"+this.utf8ArrayToStr(v.slice(0,v.length-1)))
               if (this.size == 0) {
-                this.size = -1
                 this.state = 3
               } else {
                 this.state = 1
@@ -240,7 +246,7 @@ class ChunkDecoder {
 
           case 2: // reading crlf
             if (v.length > this.size+2) {
-              reject('chunk invalid')
+              reject('invalid chunk encoding')
             }
 
             // lets read off crlf, then resolve
@@ -254,7 +260,6 @@ class ChunkDecoder {
             break
 
           case 3: // done
-            // console.log('STATE 3, TODO...')
             break
         }
         
