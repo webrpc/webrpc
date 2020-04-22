@@ -1,7 +1,7 @@
 {{define "types"}}
-  //
-  // Types
-  //
+//
+// Types
+//
 
 {{- if .Messages -}}
 {{range .Messages -}}
@@ -33,13 +33,7 @@ class {{.Name}} {
 
   @override
   bool operator ==(Object other) =>
-  {{ $last := . | lastField -}}
-  identical(this, other) ||
-  (other is {{.Name}} &&
-    runtimeType == other.runtimeType &&
-    {{- range .Fields}}
-    {{ if . | exportableField -}}{{. | exportedJSONField}}{{- end }} == other.{{ if . | exportableField -}}{{. | exportedJSONField}} {{if ne .Name $last.Name}}&&{{- end -}}{{- end}}
-    {{- end -}});
+
 {{- end}}
 //</editor-fold>
 }
