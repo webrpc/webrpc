@@ -24,82 +24,62 @@ String WebRPCSchemaHash() {
 }
 
 
-  //
-  // Types
-  //
+//
+// Types
+//
 enum Kind {
   USER,
   ADMIN
 }
 
-//</editor-fold>
-}
-
 class Empty {
-//<editor-fold desc="Data Methods" defaultstate="collapsed">
-  Empty({
-  });
 
-  @override
-  bool operator ==(Object other) =>
-//</editor-fold>
+  Empty();
+
 }
-
 class User {
-  int id;
-  String USERNAME;
-  String role;
-//<editor-fold desc="Data Methods" defaultstate="collapsed">
+  final int id;
+  final String USERNAME;
+  final String role;
+
   User({
     @required this.id;
     @required this.USERNAME;
     @required this.role;
   });
 
-  @override
-  bool operator ==(Object other) =>
-//</editor-fold>
 }
-
 class SearchFilter {
-  String q;
-//<editor-fold desc="Data Methods" defaultstate="collapsed">
+  final String q;
+
   SearchFilter({
     @required this.q;
   });
 
-  @override
-  bool operator ==(Object other) =>
-//</editor-fold>
 }
-
 class Version {
-  String webrpcVersion;
-  String schemaVersion;
-  String schemaHash;
-//<editor-fold desc="Data Methods" defaultstate="collapsed">
+  final String webrpcVersion;
+  final String schemaVersion;
+  final String schemaHash;
+
   Version({
     @required this.webrpcVersion;
     @required this.schemaVersion;
     @required this.schemaHash;
   });
 
-  @override
-  bool operator ==(Object other) =>
-//</editor-fold>
 }
-
 class ComplexType {
-  Map<String, dynamic> meta;
-  Map<String, Map<String, int>> metaNestedExample;
-  List<String> namesList;
-  List<int> numsList;
-  List<List<String>> doubleArray;
-  List<Map<String, int>> listOfMaps;
-  List<User> listOfUsers;
-  Map<String, User> mapOfUsers;
-  User user;
-//<editor-fold desc="Data Methods" defaultstate="collapsed">
+  final Map<String, dynamic> meta;
+  final Map<String, Map<String, int>> metaNestedExample;
+  final List<String> namesList;
+  final List<int> numsList;
+  final List<List<String>> doubleArray;
+  final List<Map<String, int>> listOfMaps;
+  final List<User> listOfUsers;
+  final Map<String, User> mapOfUsers;
+  final User user;
+
   ComplexType({
     @required this.meta;
     @required this.metaNestedExample;
@@ -112,11 +92,7 @@ class ComplexType {
     @required this.user;
   });
 
-  @override
-  bool operator ==(Object other) =>
-//</editor-fold>
 }
-
 
 
 

@@ -6,6 +6,9 @@
 {{- if .Messages -}}
 {{range .Messages -}}
 
+
+
+
 {{if .Type | isEnum -}}
 {{$enumName := .Name}}
 enum {{$enumName}} {
@@ -19,8 +22,8 @@ enum {{$enumName}} {
 {{- if .Type | isStruct  }}
 class {{.Name}} {
 {{- range .Fields}}
-  {{.Type | fieldType}}{{- if .Optional}}?{{end}}{{" "}}{{if . | exportableField -}}{{. | exportedJSONField}};{{- end -}}{{end}}
-//<editor-fold desc="Data Methods" defaultstate="collapsed">
+  final {{.Type | fieldType}}{{" "}}{{if . | exportableField -}}{{. | exportedJSONField}};{{- end -}}{{end}}
+
   {{.Name}}({
   {{- range .Fields}}
   {{- if not .Optional}}
@@ -31,12 +34,10 @@ class {{.Name}} {
   {{- end}}
   });
 
-  @override
-  bool operator ==(Object other) =>
-
-{{- end}}
-//</editor-fold>
 }
+{{- end -}}
+
+
 {{end -}}
 {{end -}}
 {{end -}}
