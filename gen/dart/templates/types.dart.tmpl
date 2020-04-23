@@ -22,18 +22,46 @@ enum {{$enumName}} {
 {{- if .Type | isStruct  }}
 class {{.Name}} {
 {{- range .Fields}}
-  final {{.Type | fieldType}}{{" "}}{{if . | exportableField -}}{{. | exportedJSONField}};{{- end -}}{{end}}
+  final {{.Type | fieldType}}{{" "}}{{.Name}};{{end}}
 
-  {{.Name}}({
-  {{- range .Fields}}
+  const {{.Name}}({{if .Fields}}{
+  {{- range $i, $field := .Fields}}
   {{- if not .Optional}}
-    @required this.{{ if . | exportableField -}}{{. | exportedJSONField}};{{- end -}}
-  {{else}}
-    this.{{ if . | exportableField -}}{{. | exportedJSONField}};{{- end -}}
+    @required this.{{.Name}},
+    {{- end -}}
+    {{- end -}}
+    {{- range $i, $field := .Fields}}
+  {{- if .Optional}}
+    this.{{.Name}},
   {{- end -}}
-  {{- end}}
-  });
+  {{- end }}
+  }{{ end }});
+  {{if .Fields}}
+  {{.Name}} copyWith({
+      {{- range .Fields}}
+      {{.Type | fieldType}}{{" "}}{{.Name}},{{end}}
+  }) {
+    return {{.Name}}(
+      {{- range .Fields}}
+      {{.Name}}: {{.Name}} ?? this.{{.Name}},{{end}}
+    );
+  }
 
+    Map<String, dynamic> toMap() {
+    return {
+      {{- range .Fields}}
+      {{$fieldType := .Type | }}
+      '{{.Name}}': {{if .Type | isStruct}} {{.Name}}.toMap()
+      {{end}}
+      'name': name,
+      'age': age,
+      'data': data.toMap(),
+      'list': List<dynamic>.from(list.map((x) => x)),
+      'hasMore': hasMore,
+    };
+  }
+
+  {{- end -}}
 }
 {{- end -}}
 

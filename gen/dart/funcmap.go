@@ -2,9 +2,10 @@ package dart
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/pkg/errors"
 	"github.com/webrpc/webrpc/schema"
-	"strings"
 )
 
 var fieldTypeMap = map[schema.DataType]string{
@@ -57,6 +58,18 @@ func fieldType(in *schema.VarType) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("could not represent type: %#v", in)
+}
+
+func isStructField(in *schema.VarType) bool {
+	return in.Type == schema.T_Struct
+}
+
+func isListField(in *schema.VarType) bool {
+	return in.Type == schema.T_List
+}
+
+func isMapField(in *schema.VarType) bool {
+	return in.Type == schema.T_Map
 }
 
 func downcaseName(v interface{}) (string, error) {
@@ -126,5 +139,8 @@ func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 		"exportableField":   exportableField,
 		"isStruct":          isStruct,
 		"lastField":         lastField,
+		"isStructField":     isStructField,
+		"isListField":       isListField,
+		"isMapField":        isMapField,
 	}
 }

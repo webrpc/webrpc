@@ -39,7 +39,7 @@ message ComplexType
   - namesList: []string
   - numsList: []int64
   - doubleArray: [][]string
-  - listOfMaps: []map<string,uint32>
+  - listOfMaps?: []map<string,uint32>
   - listOfUsers: []User
   - mapOfUsers: map<string,User>
   - user: User
