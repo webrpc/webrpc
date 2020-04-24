@@ -11,11 +11,12 @@
 
 {{if .Type | isEnum -}}
 {{$enumName := .Name}}
-enum {{$enumName}} {
-{{- range $i, $field := .Fields}}
-  {{- if $i}},{{end}}
-  {{$field.Name}}
+@freezed
+abstract class {{$enumName}} with _${{$enumName}} {
+{{- range .Fields}}
+  const factory {{$enumName}}.{{. | makeLowerCase}}() = {{.Name}};
 {{- end}}
+  factory {{$enumName}}.fromJson(Map<String, dynamic> json) => _${{$enumName}}FromJson(json);
 }
 {{end -}}
 
@@ -91,17 +92,6 @@ abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgument
 {{end}} {{/* end of if .Outputs */}}
 {{- end -}} {{/* end of range .Methods */}}
 {{- end -}}  {{/* end of range .Services For Inputs and Outputs */}}
-
-{{range .Services -}}
-// *********************************************************************
-// SERVICE INTERFACES.
-// *********************************************************************
-abstract class {{.Name}} {
-  {{- range .Methods}}
-  {{. | methodOutputs}} {{.Name | methodName}}({{. | methodInputs}});
-  {{- end}}
-}
-{{- end -}}  {{/* end of range .Services for INTERFACES */}}
 
 {{- end -}} {{/* end of if .Services */}}
 

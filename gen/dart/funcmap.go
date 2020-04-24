@@ -77,6 +77,9 @@ func downcaseName(v interface{}) (string, error) {
 	}
 }
 
+func makeLowerCase(in *schema.MessageField) (string, error) {
+	return strings.ToLower(string(in.Name)), nil
+}
 func methodName(in interface{}) string {
 	v, _ := downcaseName(in)
 	return v
@@ -167,13 +170,23 @@ func methodArgumentOutputClassName(in *schema.Method) string {
 	}
 }
 
-func methodInputs(in *schema.Method) (string, error) {
+func clientMethodInputs(in *schema.Method) (string, error) {
 	inputs := []string{}
 	if len(in.Inputs) > 0 {
 		inputs = append(inputs, fmt.Sprintf("@required %s args", methodArgumentInputClassName(in)))
+		inputs = append(inputs, "Map<String, String> headers")
+		return fmt.Sprintf("{%s}", strings.Join(inputs, ", ")), nil
 	}
-	inputs = append(inputs, "Map<String, String> headers")
-	return fmt.Sprintf("{%s}", strings.Join(inputs, ", ")), nil
+	return "", nil
+}
+
+func serverMethodInputs(in *schema.Method) (string, error) {
+	inputs := []string{}
+	if len(in.Inputs) > 0 {
+		inputs = append(inputs, fmt.Sprintf("@required %s args", methodArgumentInputClassName(in)))
+		return fmt.Sprintf("{%s}", strings.Join(inputs, ", ")), nil
+	}
+	return "", nil
 }
 
 func methodOutputs(in *schema.Method) (string, error) {
@@ -199,7 +212,10 @@ func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 		"methodArgumentInputClassName":  methodArgumentInputClassName,
 		"methodArgumentOutputClassName": methodArgumentOutputClassName,
 		"constPathPrefix":               constPathPrefix,
-		"methodInputs":                  methodInputs,
+		"clientMethodInputs":            clientMethodInputs,
+		"serverMethodInputs":            serverMethodInputs,
 		"methodOutputs":                 methodOutputs,
+		"downcaseName":                  downcaseName,
+		"makeLowerCase":                 makeLowerCase,
 	}
 }

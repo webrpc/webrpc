@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'package:http/http.dart' as http;
 
+import 'package:shelf_router/shelf_router.dart';
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart' as io;
+import 'package:logging/logging.dart';
 
 
 // example v0.0.1 b22daedd801edc99b28353f3d7912365ee85ad73
@@ -31,9 +34,11 @@ String WebRPCSchemaHash() {
 // **********************************************************************
 // MESSAGE TYPES.
 // **********************************************************************
-enum Kind {
-  USER,
-  ADMIN
+@freezed
+abstract class Kind with _$Kind {
+  const factory Kind.user() = USER;
+  const factory Kind.admin() = ADMIN;
+  factory Kind.fromJson(Map<String, dynamic> json) => _$KindFromJson(json);
 }
 
 @freezed
@@ -135,53 +140,70 @@ abstract class FindUserReturn with _$FindUserReturn {
 }
  
 
+
+
+
+  
+
 // *********************************************************************
 // SERVICE INTERFACES.
 // *********************************************************************
-abstract class ExampleServiceRPC {
-  FutureOr<void> ping({Map<String, String> headers});
-  FutureOr<StatusReturn> status({Map<String, String> headers});
-  FutureOr<VersionReturn> version({Map<String, String> headers});
-  FutureOr<GetUserReturn> getUser({@required GetUserArgs args, Map<String, String> headers});
-  FutureOr<FindUserReturn> findUser({@required FindUserArgs args, Map<String, String> headers});
+abstract class ExampleService {
+  FutureOr<void> ping();
+  FutureOr<StatusReturn> status();
+  FutureOr<VersionReturn> version();
+  FutureOr<GetUserReturn> getUser({@required GetUserArgs args});
+  FutureOr<FindUserReturn> findUser({@required FindUserArgs args});
 }
 
+// *********************************************************************
+// SERVER IMPLEMENTATION.
+// *********************************************************************
 
+// For Google Cloud Run, set _hostname to '0.0.0.0'.
+const _hostname = 'localhost';
 
-
-
-
-  
-
-//
-// Client
-//
-
-String _removeSlash(String host) => host.endsWith('/')
-? host.replaceRange(host.length - 1, host.length, '')
-: host;
-
-
-class ExampleService {
-  final http.Client client;
-  final String host;
-  final String path = '/rpc/ExampleService/';
-  String url(String name) => '${_removeSlash(host)}$path$name';
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-  ExampleService(this.client, this.host);
+FutureOr<shelf.Response> Function(shelf.Request) router() {
+  final me = Example('gary', 36, DateTime(2020));
+  final app = Router();
+  app.get('/favicon.ico', (shelf.Request r) async => shelf.Response(303));
+  app.get('/example', (shelf.Request r) async {
+    return shelf.Response.ok(me.toJson(),
+        headers: {'Content-Type': 'application/json'});
+  });
+  return app.handler;
 }
 
+void main(List<String> args) async {
+  var parser = ArgParser()..addOption('port', abbr: 'p');
+  var result = parser.parse(args);
 
+  // For Google Cloud Run, we respect the PORT environment variable
+  var portStr = result['port'] ?? Platform.environment['PORT'] ?? '8080';
+  var port = int.tryParse(portStr);
+
+  if (port == null) {
+    stdout.writeln('Could not parse port value "$portStr" into a number.');
+    // 64: command line usage error
+    exitCode = 64;
+    return;
+  }
+
+  var handler = const shelf.Pipeline()
+      .addMiddleware(shelf.logRequests())
+      .addHandler(_echoRequest);
+
+  var server = await io.serve(handler, _hostname, port);
+  print('Serving at http://${server.address.host}:${server.port}');
+}
+
+final app = Router();
+
+Future<shelf.Response> _echoRequest(shelf.Request request) async =>
+    shelf.Response.ok('Request for "${request.url}"');
+
+
+ 
 
 
 

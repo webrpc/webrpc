@@ -1,21 +1,33 @@
 {{define "server"}}
 {{if .Services}}
-//
-// Server
-//
-
-{{- range .Services}}
-{{$name := .Name}}
-{{$serviceName := .Name | serviceClassName}}
-abstract class {{$serviceName}}Service {
-{{range .Methods}}
-    {{.Name}}: (args: {{.Name}}Args) => {{.Name}}Return | Promise<{{.Name}}Return>
-{{end}}    
+// *********************************************************************
+// SERVICE INTERFACES.
+// *********************************************************************
+{{range .Services -}}
+abstract class {{.Name}} {
+  {{- range .Methods}}
+  {{. | methodOutputs}} {{.Name | methodName}}({{. | serverMethodInputs}});
+  {{- end}}
 }
-{{end}}
+{{- end -}}  {{/* end of range .Services for INTERFACES */}}
+
+// *********************************************************************
+// SERVER IMPLEMENTATION.
+// *********************************************************************
 
 // For Google Cloud Run, set _hostname to '0.0.0.0'.
 const _hostname = 'localhost';
+
+FutureOr<shelf.Response> Function(shelf.Request) router() {
+  final me = Example('gary', 36, DateTime(2020));
+  final app = Router();
+  app.get('/favicon.ico', (shelf.Request r) async => shelf.Response(303));
+  app.get('/example', (shelf.Request r) async {
+    return shelf.Response.ok(me.toJson(),
+        headers: {'Content-Type': 'application/json'});
+  });
+  return app.handler;
+}
 
 void main(List<String> args) async {
   var parser = ArgParser()..addOption('port', abbr: 'p');
@@ -46,5 +58,5 @@ Future<shelf.Response> _echoRequest(shelf.Request request) async =>
     shelf.Response.ok('Request for "${request.url}"');
 
 
-{{end}}
-{{end}}
+{{end}} {{/* end of if .Services */}}
+{{end}} {{/* end of top level define */}}
