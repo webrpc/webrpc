@@ -37,7 +37,42 @@ abstract class {{.Name}} with _${{.Name}} {
 }
 {{- end -}}
 
+{{end -}}
+{{end -}}
 
-{{end -}}
-{{end -}}
+
+{{if .Services}}
+{{range .Services}}
+
+{{range .Methods -}}
+{{if .Inputs}}
+@freezed
+abstract class {{. | methodArgumentInputClassName}} {
+{{- range .Inputs}}
+  {{.Name}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}
+{{- end}}
+}
+{{end}}
+
+
+{{if .Outputs}}
+@freezed
+abstract class {{. | methodArgumentOutputClassName}} {
+  const factory {{. | methodArgumentOutputClassName}}({
+    {{- range .Outputs}}
+  {{- if not .Optional}} @required{{end}} {{.Type | fieldType}} {{.Name}},
+{{- end}}
+  }) = _{{. | methodArgumentOutputClassName}};
+}
+{{end}}
+{{end}}
+
+abstract class {{.Name}} {
+  {{- range .Methods}}
+{{. | methodOutputs}} {{.Name | methodName}}({{. | methodInputs}});
+  {{- end}}
+}
+{{end}}
+{{- end -}}
+
 {{end -}}

@@ -8,7 +8,9 @@
 {{$name := .Name}}
 {{$serviceName := .Name | serviceClassName}}
 abstract class {{$serviceName}}Service {
-    
+{{range .Methods}}
+    {{.Name}}: (args: {{.Name}}Args) => {{.Name}}Return | Promise<{{.Name}}Return>
+{{end}}    
 }
 {{end}}
 

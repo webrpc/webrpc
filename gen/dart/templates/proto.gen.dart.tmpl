@@ -1,6 +1,7 @@
 {{- define "proto" -}}
 
 import 'package:meta/meta.dart';
+import 'dart:async';
 {{if .TargetOpts.Client}}
 import 'package:http/http.dart' as http;
 {{end}}

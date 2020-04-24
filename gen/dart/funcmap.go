@@ -131,16 +131,72 @@ func jsonKey(in schema.MessageField) (string, error) {
 	return "", nil
 }
 
+func constPathPrefix(in schema.VarName) (string, error) {
+	return string(in) + "PathPrefix", nil
+}
+
+func methodInputName(in *schema.MethodArgument) string {
+	name := string(in.Name)
+	if name != "" {
+		return name
+	}
+	if in.Type != nil {
+		return in.Type.String()
+	}
+	return ""
+}
+
+func methodInputType(in *schema.MethodArgument) string {
+	z, _ := fieldType(in.Type)
+	return z
+}
+
+func methodArgumentInputClassName(in *schema.Method) string {
+	if len(in.Service.Schema.Services) == 1 {
+		return fmt.Sprintf("%s%s", in.Name, "Args")
+	} else {
+		return fmt.Sprintf("%s%s%s", in.Service.Name, in.Name, "Args")
+	}
+}
+
+func methodArgumentOutputClassName(in *schema.Method) string {
+	if len(in.Service.Schema.Services) == 1 {
+		return fmt.Sprintf("%s%s", in.Name, "Return")
+	} else {
+		return fmt.Sprintf("%s%s%s", in.Service.Name, in.Name, "Return")
+	}
+}
+
+func methodInputs(in *schema.Method) (string, error) {
+	inputs := []string{}
+	if len(in.Inputs) > 0 {
+		inputs = append(inputs, fmt.Sprintf("@required %s args", methodArgumentInputClassName(in)))
+	}
+	inputs = append(inputs, "Map<String, String> headers")
+	return fmt.Sprintf("{%s}", strings.Join(inputs, ", ")), nil
+}
+
+func methodOutputs(in *schema.Method) (string, error) {
+	return fmt.Sprintf("FutureOr<%s>", methodArgumentOutputClassName(in)), nil
+}
+
 func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 	return map[string]interface{}{
-		"fieldType":         fieldType,
-		"methodName":        methodName,
-		"isEnum":            isEnum,
-		"exportedJSONField": exportedJSONField,
-		"exportableField":   exportableField,
-		"isStruct":          isStruct,
-		"lastField":         lastField,
-		"jsonKey":           jsonKey,
-		"serviceClassName":  serviceClassName,
+		"fieldType":                     fieldType,
+		"methodName":                    methodName,
+		"isEnum":                        isEnum,
+		"exportedJSONField":             exportedJSONField,
+		"exportableField":               exportableField,
+		"isStruct":                      isStruct,
+		"lastField":                     lastField,
+		"jsonKey":                       jsonKey,
+		"serviceClassName":              serviceClassName,
+		"methodInputName":               methodInputName,
+		"methodInputType":               methodInputType,
+		"methodArgumentInputClassName":  methodArgumentInputClassName,
+		"methodArgumentOutputClassName": methodArgumentOutputClassName,
+		"constPathPrefix":               constPathPrefix,
+		"methodInputs":                  methodInputs,
+		"methodOutputs":                 methodOutputs,
 	}
 }
