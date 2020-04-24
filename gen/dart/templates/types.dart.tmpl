@@ -1,7 +1,7 @@
 {{define "types"}}
-//
-// Types
-//
+// **********************************************************************
+// MESSAGE TYPES.
+// **********************************************************************
 
 {{- if .Messages -}}
 {{range .Messages -}}
@@ -34,18 +34,21 @@ abstract class {{.Name}} with _${{.Name}} {
   {{- end -}}
   {{- end }}
   }{{ end }}) = _{{.Name}};
+  factory {{.Name}}.fromJson(Map<String, dynamic> json) => _${{.Name}}FromJson(json);
 }
 {{- end -}}
 
-{{end -}}
-{{end -}}
+{{- end -}}
+{{- end}}
 
 
-{{if .Services}}
-{{range .Services}}
-
-{{range .Methods -}}
-{{if .Inputs}}
+{{if .Services -}}
+{{range .Services -}}
+// *********************************************************************
+// METHOD ARGUMENT TYPES.
+// *********************************************************************
+{{- range .Methods -}}
+{{- if .Inputs}}
 @freezed
 abstract class {{. | methodArgumentInputClassName}} with _${{. | methodArgumentInputClassName}} {
   const factory {{. | methodArgumentInputClassName}} ({
@@ -59,12 +62,17 @@ abstract class {{. | methodArgumentInputClassName}} with _${{. | methodArgumentI
   {{- end -}}
 {{- end}}
   }) = _{{. | methodArgumentInputClassName}};
-
+  factory {{. | methodArgumentInputClassName}}.fromJson(Map<String, dynamic> json) => _${{. | methodArgumentInputClassName}}FromJson(json);
 }
-{{end}} {{/* end of if .Inputs */}}
+{{- end -}} {{/* end of if .Inputs */}}
+{{- end -}} {{/* end of range .Methods */}}
 
-
+// *********************************************************************
+// METHOD RETURN TYPES.
+// *********************************************************************
+{{range .Methods -}}
 {{if .Outputs}}
+
 @freezed
 abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgumentOutputClassName}} {
   const factory {{. | methodArgumentOutputClassName}}({
@@ -78,18 +86,23 @@ abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgument
   {{- end -}}
   {{- end -}}
   }) = _{{. | methodArgumentOutputClassName}};
+  factory {{. | methodArgumentOutputClassName}}.fromJson(Map<String, dynamic> json) => _${{. | methodArgumentOutputClassName}}FromJson(json);
 }
 {{end}} {{/* end of if .Outputs */}}
-{{end}} {{/* end of range .Methods */}}
+{{- end -}} {{/* end of range .Methods */}}
+{{- end -}}  {{/* end of range .Services For Inputs and Outputs */}}
 
-abstract class {{.Name}} {
+{{range .Services -}}
+// *********************************************************************
+// SERVICE INTERFACES.
+// *********************************************************************
+abstract class {{.Name}}RPC {
   {{- range .Methods}}
   {{. | methodOutputs}} {{.Name | methodName}}({{. | methodInputs}});
   {{- end}}
 }
+{{- end -}}  {{/* end of range .Services for INTERFACES */}}
 
-
-{{end}}  {{/* end of range .Services */}}
 {{- end -}} {{/* end of if .Services */}}
 
 {{end -}} {{/* end of top level define */}}

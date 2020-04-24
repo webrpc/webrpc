@@ -1,5 +1,7 @@
-import 'package:meta/meta.dart';
 import 'dart:async';
+
+import 'package:meta/meta.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -26,9 +28,9 @@ String WebRPCSchemaHash() {
 }
 
 
-//
-// Types
-//
+// **********************************************************************
+// MESSAGE TYPES.
+// **********************************************************************
 enum Kind {
   USER,
   ADMIN
@@ -37,6 +39,7 @@ enum Kind {
 @freezed
 abstract class Empty with _$Empty {
   const factory Empty() = _Empty;
+  factory Empty.fromJson(Map<String, dynamic> json) => _$EmptyFromJson(json);
 }
 @freezed
 abstract class User with _$User {
@@ -45,12 +48,14 @@ abstract class User with _$User {
     @Jsonkey(name: 'USERNAME') @required String username,
      @required String role,
   }) = _User;
+  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 }
 @freezed
 abstract class SearchFilter with _$SearchFilter {
   const factory SearchFilter({
      @required String q,
   }) = _SearchFilter;
+  factory SearchFilter.fromJson(Map<String, dynamic> json) => _$SearchFilterFromJson(json);
 }
 @freezed
 abstract class Version with _$Version {
@@ -59,6 +64,7 @@ abstract class Version with _$Version {
      @required String schemaVersion,
      @required String schemaHash,
   }) = _Version;
+  factory Version.fromJson(Map<String, dynamic> json) => _$VersionFromJson(json);
 }
 @freezed
 abstract class ComplexType with _$ComplexType {
@@ -73,78 +79,72 @@ abstract class ComplexType with _$ComplexType {
      @required User user,
     List<Map<String, int>> listOfMaps,
   }) = _ComplexType;
+  factory ComplexType.fromJson(Map<String, dynamic> json) => _$ComplexTypeFromJson(json);
 }
 
 
- 
-
-
- 
- 
-
-
-
-@freezed
-abstract class StatusReturn with _$StatusReturn {
-  const factory StatusReturn({@required bool status,}) = _StatusReturn;
-}
- 
- 
-
-
-
-@freezed
-abstract class VersionReturn with _$VersionReturn {
-  const factory VersionReturn({@required Version version,}) = _VersionReturn;
-}
- 
-
+// *********************************************************************
+// METHOD ARGUMENT TYPES.
+// *********************************************************************
 @freezed
 abstract class GetUserArgs with _$GetUserArgs {
   const factory GetUserArgs ({@required Map<String, String> header,@required int userID,
   
   
   }) = _GetUserArgs;
-
+  factory GetUserArgs.fromJson(Map<String, dynamic> json) => _$GetUserArgsFromJson(json);
 }
- 
-
-
-
-@freezed
-abstract class GetUserReturn with _$GetUserReturn {
-  const factory GetUserReturn({@required int code,@required User user,}) = _GetUserReturn;
-}
- 
-
 @freezed
 abstract class FindUserArgs with _$FindUserArgs {
   const factory FindUserArgs ({@required SearchFilter s,
   
   }) = _FindUserArgs;
+  factory FindUserArgs.fromJson(Map<String, dynamic> json) => _$FindUserArgsFromJson(json);
+}
 
+// *********************************************************************
+// METHOD RETURN TYPES.
+// *********************************************************************
+ 
+
+@freezed
+abstract class StatusReturn with _$StatusReturn {
+  const factory StatusReturn({@required bool status,}) = _StatusReturn;
+  factory StatusReturn.fromJson(Map<String, dynamic> json) => _$StatusReturnFromJson(json);
 }
  
 
+@freezed
+abstract class VersionReturn with _$VersionReturn {
+  const factory VersionReturn({@required Version version,}) = _VersionReturn;
+  factory VersionReturn.fromJson(Map<String, dynamic> json) => _$VersionReturnFromJson(json);
+}
+ 
 
+@freezed
+abstract class GetUserReturn with _$GetUserReturn {
+  const factory GetUserReturn({@required int code,@required User user,}) = _GetUserReturn;
+  factory GetUserReturn.fromJson(Map<String, dynamic> json) => _$GetUserReturnFromJson(json);
+}
+ 
 
 @freezed
 abstract class FindUserReturn with _$FindUserReturn {
   const factory FindUserReturn({@required String name,@required User user,}) = _FindUserReturn;
+  factory FindUserReturn.fromJson(Map<String, dynamic> json) => _$FindUserReturnFromJson(json);
 }
  
- 
 
+// *********************************************************************
+// SERVICE INTERFACES.
+// *********************************************************************
 abstract class ExampleService {
-FutureOr<void> ping({Map<String, String> headers});
-FutureOr<StatusReturn> status({Map<String, String> headers});
-FutureOr<VersionReturn> version({Map<String, String> headers});
-FutureOr<GetUserReturn> getUser({@required GetUserArgs args, Map<String, String> headers});
-FutureOr<FindUserReturn> findUser({@required FindUserArgs args, Map<String, String> headers});
+  FutureOr<void> ping({Map<String, String> headers});
+  FutureOr<StatusReturn> status({Map<String, String> headers});
+  FutureOr<VersionReturn> version({Map<String, String> headers});
+  FutureOr<GetUserReturn> getUser({@required GetUserArgs args, Map<String, String> headers});
+  FutureOr<FindUserReturn> findUser({@required FindUserArgs args, Map<String, String> headers});
 }
-
-
-  
 
 
 
