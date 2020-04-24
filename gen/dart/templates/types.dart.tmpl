@@ -96,7 +96,7 @@ abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgument
 // *********************************************************************
 // SERVICE INTERFACES.
 // *********************************************************************
-abstract class {{.Name}}RPC {
+abstract class {{.Name}} {
   {{- range .Methods}}
   {{. | methodOutputs}} {{.Name | methodName}}({{. | methodInputs}});
   {{- end}}

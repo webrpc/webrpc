@@ -138,7 +138,7 @@ abstract class FindUserReturn with _$FindUserReturn {
 // *********************************************************************
 // SERVICE INTERFACES.
 // *********************************************************************
-abstract class ExampleService {
+abstract class ExampleServiceRPC {
   FutureOr<void> ping({Map<String, String> headers});
   FutureOr<StatusReturn> status({Map<String, String> headers});
   FutureOr<VersionReturn> version({Map<String, String> headers});
