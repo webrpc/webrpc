@@ -106,6 +106,11 @@ func exportableField(in schema.MessageField) bool {
 	return true
 }
 
+func serviceClassName(in schema.VarName) (string, error) {
+	s := string(in)
+	return s, nil
+}
+
 func exportedJSONField(in schema.MessageField) (string, error) {
 	for _, meta := range in.Meta {
 		for k := range meta {
@@ -136,5 +141,6 @@ func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 		"isStruct":          isStruct,
 		"lastField":         lastField,
 		"jsonKey":           jsonKey,
+		"serviceClassName":  serviceClassName,
 	}
 }
