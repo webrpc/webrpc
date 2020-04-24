@@ -47,32 +47,49 @@ abstract class {{.Name}} with _${{.Name}} {
 {{range .Methods -}}
 {{if .Inputs}}
 @freezed
-abstract class {{. | methodArgumentInputClassName}} {
-{{- range .Inputs}}
-  {{.Name}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}
+abstract class {{. | methodArgumentInputClassName}} with _${{. | methodArgumentInputClassName}} {
+  const factory {{. | methodArgumentInputClassName}} ({
+  {{- range .Inputs}}
+  {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+  {{- end -}} {{/* end of range .Inputs */}}
+  {{- range .Inputs}}
+  {{if .Optional}}
+  {{.Type | fieldType}} {{.Name}},
+  {{- end -}}
 {{- end}}
+  }) = _{{. | methodArgumentInputClassName}};
+
 }
-{{end}}
+{{end}} {{/* end of if .Inputs */}}
 
 
 {{if .Outputs}}
 @freezed
-abstract class {{. | methodArgumentOutputClassName}} {
+abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgumentOutputClassName}} {
   const factory {{. | methodArgumentOutputClassName}}({
     {{- range .Outputs}}
-  {{- if not .Optional}} @required{{end}} {{.Type | fieldType}} {{.Name}},
-{{- end}}
+  {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+  {{- end -}} {{/* end of range .Outputs */}}
+  {{- range .Outputs }}
+  {{- if .Optional}}
+  {{.Type | fieldType}} {{.Name}},
+  {{- end -}}
+  {{- end -}}
   }) = _{{. | methodArgumentOutputClassName}};
 }
-{{end}}
-{{end}}
+{{end}} {{/* end of if .Outputs */}}
+{{end}} {{/* end of range .Methods */}}
 
 abstract class {{.Name}} {
   {{- range .Methods}}
-{{. | methodOutputs}} {{.Name | methodName}}({{. | methodInputs}});
+  {{. | methodOutputs}} {{.Name | methodName}}({{. | methodInputs}});
   {{- end}}
 }
-{{end}}
-{{- end -}}
 
-{{end -}}
+
+{{end}}  {{/* end of range .Services */}}
+{{- end -}} {{/* end of if .Services */}}
+
+{{end -}} {{/* end of top level define */}}

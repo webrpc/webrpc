@@ -76,70 +76,76 @@ abstract class ComplexType with _$ComplexType {
 }
 
 
+ 
 
 
-
-
-
-
-
-
-@freezed
-abstract class StatusReturn {
-  const factory StatusReturn({ @required bool status,
-  }) = _StatusReturn;
-}
-
-
+ 
+ 
 
 
 
 @freezed
-abstract class VersionReturn {
-  const factory VersionReturn({ @required Version version,
-  }) = _VersionReturn;
+abstract class StatusReturn with _$StatusReturn {
+  const factory StatusReturn({@required bool status,}) = _StatusReturn;
 }
-
-
-@freezed
-abstract class GetUserArgs {
-  header: Map<String, String>
-  userID: int
-}
-
+ 
+ 
 
 
 
 @freezed
-abstract class GetUserReturn {
-  const factory GetUserReturn({ @required int code, @required User user,
-  }) = _GetUserReturn;
+abstract class VersionReturn with _$VersionReturn {
+  const factory VersionReturn({@required Version version,}) = _VersionReturn;
 }
+ 
+
+@freezed
+abstract class GetUserArgs with _$GetUserArgs {
+  const factory GetUserArgs ({@required Map<String, String> header,@required int userID,
+  
+  
+  }) = _GetUserArgs;
+
+}
+ 
+
 
 
 @freezed
-abstract class FindUserArgs {
-  s: SearchFilter
+abstract class GetUserReturn with _$GetUserReturn {
+  const factory GetUserReturn({@required int code,@required User user,}) = _GetUserReturn;
 }
+ 
 
+@freezed
+abstract class FindUserArgs with _$FindUserArgs {
+  const factory FindUserArgs ({@required SearchFilter s,
+  
+  }) = _FindUserArgs;
+
+}
+ 
 
 
 
 @freezed
-abstract class FindUserReturn {
-  const factory FindUserReturn({ @required String name, @required User user,
-  }) = _FindUserReturn;
+abstract class FindUserReturn with _$FindUserReturn {
+  const factory FindUserReturn({@required String name,@required User user,}) = _FindUserReturn;
 }
-
-
+ 
+ 
 
 abstract class ExampleService {
-FutureOr<PingReturn> ping({Map<String, String> headers});
+FutureOr<void> ping({Map<String, String> headers});
 FutureOr<StatusReturn> status({Map<String, String> headers});
 FutureOr<VersionReturn> version({Map<String, String> headers});
 FutureOr<GetUserReturn> getUser({@required GetUserArgs args, Map<String, String> headers});
 FutureOr<FindUserReturn> findUser({@required FindUserArgs args, Map<String, String> headers});
 }
+
+
+  
+
 
 
 
