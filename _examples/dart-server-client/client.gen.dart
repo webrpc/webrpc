@@ -32,114 +32,46 @@ enum Kind {
   ADMIN
 }
 
-class Empty {
-
-  const Empty();
-  }
-class User {
-  final int id;
-  final String username;
-  final String role;
-
-  const User({
-    @required this.id,
-    @required this.username,
-    @required this.role,
-  });
-  
-  User copyWith({
-      int id,
-      String username,
-      String role,
-  }) {
-    return User(
-      id: id ?? this.id,
-      username: username ?? this.username,
-      role: role ?? this.role,
-    );
-  }}
-class SearchFilter {
-  final String q;
-
-  const SearchFilter({
-    @required this.q,
-  });
-  
-  SearchFilter copyWith({
-      String q,
-  }) {
-    return SearchFilter(
-      q: q ?? this.q,
-    );
-  }}
-class Version {
-  final String webrpcVersion;
-  final String schemaVersion;
-  final String schemaHash;
-
-  const Version({
-    @required this.webrpcVersion,
-    @required this.schemaVersion,
-    @required this.schemaHash,
-  });
-  
-  Version copyWith({
-      String webrpcVersion,
-      String schemaVersion,
-      String schemaHash,
-  }) {
-    return Version(
-      webrpcVersion: webrpcVersion ?? this.webrpcVersion,
-      schemaVersion: schemaVersion ?? this.schemaVersion,
-      schemaHash: schemaHash ?? this.schemaHash,
-    );
-  }}
-class ComplexType {
-  final Map<String, dynamic> meta;
-  final Map<String, Map<String, int>> metaNestedExample;
-  final List<String> namesList;
-  final List<int> numsList;
-  final List<List<String>> doubleArray;
-  final List<Map<String, int>> listOfMaps;
-  final List<User> listOfUsers;
-  final Map<String, User> mapOfUsers;
-  final User user;
-
-  const ComplexType({
-    @required this.meta,
-    @required this.metaNestedExample,
-    @required this.namesList,
-    @required this.numsList,
-    @required this.doubleArray,
-    @required this.listOfUsers,
-    @required this.mapOfUsers,
-    @required this.user,
-    this.listOfMaps,
-  });
-  
-  ComplexType copyWith({
-      Map<String, dynamic> meta,
-      Map<String, Map<String, int>> metaNestedExample,
-      List<String> namesList,
-      List<int> numsList,
-      List<List<String>> doubleArray,
-      List<Map<String, int>> listOfMaps,
-      List<User> listOfUsers,
-      Map<String, User> mapOfUsers,
-      User user,
-  }) {
-    return ComplexType(
-      meta: meta ?? this.meta,
-      metaNestedExample: metaNestedExample ?? this.metaNestedExample,
-      namesList: namesList ?? this.namesList,
-      numsList: numsList ?? this.numsList,
-      doubleArray: doubleArray ?? this.doubleArray,
-      listOfMaps: listOfMaps ?? this.listOfMaps,
-      listOfUsers: listOfUsers ?? this.listOfUsers,
-      mapOfUsers: mapOfUsers ?? this.mapOfUsers,
-      user: user ?? this.user,
-    );
-  }}
+@freezed
+abstract class Empty with _$Empty {
+  const factory Empty() = _Empty;
+}
+@freezed
+abstract class User with _$User {
+  const factory User({
+     @required int id,
+    @Jsonkey(name: 'USERNAME') @required String username,
+     @required String role,
+  }) = _User;
+}
+@freezed
+abstract class SearchFilter with _$SearchFilter {
+  const factory SearchFilter({
+     @required String q,
+  }) = _SearchFilter;
+}
+@freezed
+abstract class Version with _$Version {
+  const factory Version({
+     @required String webrpcVersion,
+     @required String schemaVersion,
+     @required String schemaHash,
+  }) = _Version;
+}
+@freezed
+abstract class ComplexType with _$ComplexType {
+  const factory ComplexType({
+     @required Map<String, dynamic> meta,
+     @required Map<String, Map<String, int>> metaNestedExample,
+     @required List<String> namesList,
+     @required List<int> numsList,
+     @required List<List<String>> doubleArray,
+     @required List<User> listOfUsers,
+     @required Map<String, User> mapOfUsers,
+     @required User user,
+    List<Map<String, int>> listOfMaps,
+  }) = _ComplexType;
+}
 
 
 

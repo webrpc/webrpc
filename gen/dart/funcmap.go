@@ -60,18 +60,6 @@ func fieldType(in *schema.VarType) (string, error) {
 	return "", fmt.Errorf("could not represent type: %#v", in)
 }
 
-func isStructField(in *schema.VarType) bool {
-	return in.Type == schema.T_Struct
-}
-
-func isListField(in *schema.VarType) bool {
-	return in.Type == schema.T_List
-}
-
-func isMapField(in *schema.VarType) bool {
-	return in.Type == schema.T_Map
-}
-
 func downcaseName(v interface{}) (string, error) {
 	downFn := func(s string) string {
 		if s == "" {
@@ -130,6 +118,14 @@ func exportedJSONField(in schema.MessageField) (string, error) {
 	return string(in.Name), nil
 }
 
+func jsonKey(in schema.MessageField) (string, error) {
+	field, err := exportedJSONField(in)
+	if field != string(in.Name) {
+		return fmt.Sprintf("@Jsonkey(name: '%s')", field), err
+	}
+	return "", nil
+}
+
 func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 	return map[string]interface{}{
 		"fieldType":         fieldType,
@@ -139,8 +135,6 @@ func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 		"exportableField":   exportableField,
 		"isStruct":          isStruct,
 		"lastField":         lastField,
-		"isStructField":     isStructField,
-		"isListField":       isListField,
-		"isMapField":        isMapField,
+		"jsonKey":           jsonKey,
 	}
 }
