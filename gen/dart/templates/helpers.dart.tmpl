@@ -1,8 +1,139 @@
 {{define "helpers"}}
 
 //
-// Helpers
+// HELPER CODE.
 //
+
+abstract class Logger {
+  void _log(message, [Object error, StackTrace stackTrace]) => print(
+      '{message: $message}, error: $error, stackTrace: $stackTrace, time: ${DateTime.now()}');
+  void finest(message, [Object error, StackTrace stackTrace]) =>
+      _log(message, error, stackTrace);
+  void finer(message, [Object error, StackTrace stackTrace]) =>
+      _log(message, error, stackTrace);
+  void fine(message, [Object error, StackTrace stackTrace]) =>
+      _log(message, error, stackTrace);
+  void config(message, [Object error, StackTrace stackTrace]) =>
+      _log(message, error, stackTrace);
+  void info(message, [Object error, StackTrace stackTrace]) =>
+      _log(message, error, stackTrace);
+  void warning(message, [Object error, StackTrace stackTrace]) =>
+      _log(message, error, stackTrace);
+  void severe(message, [Object error, StackTrace stackTrace]) =>
+      _log(message, error, stackTrace);
+  void shout(message, [Object error, StackTrace stackTrace]) =>
+      _log(message, error, stackTrace);
+}
+
+class _Logger extends Logger {
+  _Logger();
+}
+
+final _rpcLogger = _Logger();
+
+
+class HttpErr {
+  final String status;
+  final int code;
+  const HttpErr(this.status, this.code);
+
+  Map<String, dynamic> toMap() => {'status': status, 'code': code};
+  String toJson() => jsonEncode(toMap());
+  static HttpErr fromMap(Map<String, dynamic> map) =>
+      HttpErr(map['status'], map['code']);
+
+  static HttpErr fromJson(json) => fromMap(jsonDecode(json));
+}
+
+class RpcErr {
+  final String message;
+  final String path;
+  final HttpErr httpErr;
+  const RpcErr({this.message, this.path, this.httpErr});
+
+  Map<String, dynamic> toMap() =>
+      {'message': message, 'path': path, 'httpErr': httpErr.toMap()};
+  String toJson() => jsonEncode(toMap());
+  static RpcErr fromMap(Map<String, dynamic> map) => RpcErr(
+      message: map['message'],
+      path: map['path'],
+      httpErr: HttpErr.fromMap(map['httpErr']));
+  static RpcErr fromJson(json) => fromMap(jsonDecode(json));    
+}
+
+class Err {
+  // Unknown error. For example when handling errors raised by APIs that do not
+  // return enough error information.
+  static HttpErr Unknown = HttpErr('unknown', 400);
+  // 422 (Unprocessable Entity) Fail error. General failure error type.
+  static HttpErr Fail = HttpErr('fail', 422);
+  // RequestTimeout Canceled indicates the operation was cancelled (typically by the caller).
+  static HttpErr Canceled = HttpErr('canceled', 408);
+  // InvalidArgument indicates client specified an invalid argument. It
+  // indicates arguments that are problematic regardless of the state of the
+  // system (i.e. a malformed file name, required argument, number out of range,
+  // etc.).
+  static HttpErr InvalidArgument = HttpErr('invalid argument', 422);
+  // RequestTimeOut. DeadlineExceeded means operation expired before completion. For operations
+  // that change the state of the system, this error may be returned even if the
+  // operation has completed successfully (timeout).
+  static HttpErr DeadlineExceeded = HttpErr('deadline exceeded', 408);
+  // NotFound means some requested entity was not found.
+  static HttpErr NotFound = HttpErr('not found', 404);
+  // BadRoute means that the requested URL path wasn't routable to a webrpc
+  // service and method. This is returned by the generated server, and usually
+  // shouldn't be returned by applications. Instead, applications should use
+  // NotFound or Unimplemented.
+  static HttpErr BadRoute = HttpErr('bad route', 404);
+  // AlreadyExists means an attempt to create an entity failed because one
+  // already exists. Conflict.
+  static HttpErr AlreadyExists = HttpErr('already exists', 409);
+  // PermissionDenied indicates the caller does not have permission to execute
+  // the specified operation. It must not be used if the caller cannot be
+  // identified (Unauthenticated).
+  static HttpErr PermissionDenied = HttpErr('permission denied', 403);
+  // Unauthenticated indicates the request does not have valid authentication
+  // credentials for the operation. Unauthorized.
+  static HttpErr Unauthenticated = HttpErr('unauthenticated', 401);
+  // ResourceExhausted indicates some resource has been exhausted, perhaps a
+  // per-user quota, or perhaps the entire file system is out of space. Forbidden.
+  static HttpErr ResourceExhausted = HttpErr('resource exhausted', 403);
+  // FailedPrecondition indicates operation was rejected because the system is
+  // not in a state required for the operation's execution. For example, doing
+  // an rmdir operation on a directory that is non-empty, or on a non-directory
+  // object, or when having conflicting read-modify-write on the same resource. Precondition failed.
+  static HttpErr FailedPrecondition = HttpErr('failed precondition', 412);
+  // Aborted indicates the operation was aborted, typically due to a concurrency
+  // issue like sequencer check failures, transaction aborts, etc.
+  static HttpErr Aborted = HttpErr('aborted', 409);
+  // OutOfRange means operation was attempted past the valid range. For example,
+  // seeking or reading past end of a paginated collection.
+  //
+  // Unlike InvalidArgument, this error indicates a problem that may be fixed if
+  // the system state changes (i.e. adding more items to the collection).
+  //
+  // There is a fair bit of overlap between FailedPrecondition and OutOfRange.
+  // We recommend using OutOfRange (the more specific error) when it applies so
+  // that callers who are iterating through a space can easily look for an
+  // OutOfRange error to detect when they are done.
+  static HttpErr OutOfRange = HttpErr('out of range', 400);
+  // Unimplemented indicates operation is not implemented or not
+  // supported/enabled in this service.
+  static HttpErr Unimplemented = HttpErr('unimplemented', 501);
+  // Internal errors. When some invariants expected by the underlying system
+  // have been broken. In other words, something bad happened in the library or
+  // backend service. Do not confuse with HTTP Internal Server Error; an
+  // Internal error could also happen on the client code, i.e. when parsing a
+  // server response.
+  static HttpErr Internal = HttpErr('internal', 500);
+  // Unavailable indicates the service is currently unavailable. This is a most
+  // likely a transient condition and may be corrected by retrying with a
+  // backoff. Service Unavailable.
+  static HttpErr Unavailable = HttpErr('unavailable', 503);
+  // DataLoss indicates unrecoverable data loss or corruption.
+  static HttpErr DataLoss = HttpErr('data loss', 500);
+}
+
 
 
 {{end}}

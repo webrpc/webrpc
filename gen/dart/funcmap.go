@@ -196,6 +196,10 @@ func methodOutputs(in *schema.Method) (string, error) {
 	return fmt.Sprintf("FutureOr<%s>", methodArgumentOutputClassName(in)), nil
 }
 
+func serviceImplName(in schema.VarName) (string, error) {
+	return downcaseName(string(in))
+}
+
 func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 	return map[string]interface{}{
 		"fieldType":                     fieldType,
@@ -217,5 +221,6 @@ func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 		"methodOutputs":                 methodOutputs,
 		"downcaseName":                  downcaseName,
 		"makeLowerCase":                 makeLowerCase,
+		"serviceImplName":               serviceImplName,
 	}
 }

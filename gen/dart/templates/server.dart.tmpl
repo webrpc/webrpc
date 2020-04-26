@@ -1,4 +1,5 @@
 {{define "server"}}
+
 {{if .Services}}
 // *********************************************************************
 // SERVICE INTERFACES.
@@ -9,53 +10,80 @@ abstract class {{.Name}} {
   {{. | methodOutputs}} {{.Name | methodName}}({{. | serverMethodInputs}});
   {{- end}}
 }
-{{- end -}}  {{/* end of range .Services for INTERFACES */}}
+{{end}}  {{/* end of range .Services for INTERFACES */}}
 
 // *********************************************************************
 // SERVER IMPLEMENTATION.
 // *********************************************************************
-
-// For Google Cloud Run, set _hostname to '0.0.0.0'.
-const _hostname = 'localhost';
-
-FutureOr<shelf.Response> Function(shelf.Request) router() {
-  final me = Example('gary', 36, DateTime(2020));
-  final app = Router();
-  app.get('/favicon.ico', (shelf.Request r) async => shelf.Response(303));
-  app.get('/example', (shelf.Request r) async {
-    return shelf.Response.ok(me.toJson(),
-        headers: {'Content-Type': 'application/json'});
-  });
-  return app.handler;
-}
-
-void main(List<String> args) async {
-  var parser = ArgParser()..addOption('port', abbr: 'p');
-  var result = parser.parse(args);
-
-  // For Google Cloud Run, we respect the PORT environment variable
-  var portStr = result['port'] ?? Platform.environment['PORT'] ?? '8080';
-  var port = int.tryParse(portStr);
-
-  if (port == null) {
-    stdout.writeln('Could not parse port value "$portStr" into a number.');
-    // 64: command line usage error
-    exitCode = 64;
-    return;
+class WebRpcServer {
+  // For Google Cloud Run, set _hostname to '0.0.0.0'.
+  String _hostname;
+  // Provide a {Logger} implementation to log failed requests.
+  Logger _log;
+  // Provide a preconfigured shelf.Pipeline with desired middleware.
+  Set<shelf.Middleware> _middleware;
+{{- range .Services}}
+  final {{.Name}} {{.Name | serviceImplName}};
+{{- end}}  
+  WebRpcServer(
+    { {{ range .Services }}@required this.{{.Name | serviceImplName}},
+      {{end -}}
+      Logger log,
+      String hostName = 'localhost',
+      List<shelf.Middleware> middleware}) {
+      _hostname = hostName;
+      _log = log ?? _rpcLogger;
+      _middleware = middleware?.toSet() ?? [shelf.logRequests()];
   }
 
-  var handler = const shelf.Pipeline()
-      .addMiddleware(shelf.logRequests())
-      .addHandler(_echoRequest);
+  bool _jsonFriendly(shelf.Request r) =>
+      r.headers['Content-Type'].contains('application/json') &&
+      r.headers['Accept'].contains('application/json');  
 
-  var server = await io.serve(handler, _hostname, port);
-  print('Serving at http://${server.address.host}:${server.port}');
+  FutureOr<shelf.Response> _requestHandler(shelf.Request r) {
+    final route = r.url.path;
+    if (r.method != 'POST') {
+      final info =
+          'unsupported method: ${r.method}, (only POST is allowed. path: $route';
+      _log.info(info);
+      return rpcResp.BadRoute(route, msg: info);
+    }
+
+    if (!_jsonFriendly(r)) {
+      final info =
+          'unexpected Content-Type: ${r.headers['Content-Type']} or Accept: ${r.headers['Accept']}. path: $route';
+      _log.info(info);
+      return rpcResp.BadRoute(route, msg: info);
+    }
+    
+    switch (r.url.path) {
+      {{ range .Services }}
+      {{$name := .Name}}
+      {{- range .Methods}}
+      case '/rpc/{{$name}}/{{.Name}}': {
+         return _handle{{$name}}{{.Name}}(r);
+      }
+      break;
+      {{end -}} {{/* end of range .Methods */}}
+      {{end -}} {{/* end of range .Services */}}
+      default:
+        {
+          return rpcResp.BadRoute(route, msg: 'no handler for path: $route');
+        }
+        break;
+    }
+  }
+  {{- range .Services}}
+  {{$name := .Name}}
+  {{- range .Methods}}
+  FutureOr<shelf.Response> _handle{{$name}}{{.Name}}(shelf.Request r) {
+    
+  }
+  {{end}}{{/* end of range .Methods */}}
+  {{- end -}} {{/* end of range .Services for Methods */}}
+  FutureOr<void> run() async {}
+  //// SERVICES SHOULD END HERE DEBUG!!!!!!
 }
-
-final app = Router();
-
-Future<shelf.Response> _echoRequest(shelf.Request request) async =>
-    shelf.Response.ok('Request for "${request.url}"');
 
 
 {{end}} {{/* end of if .Services */}}

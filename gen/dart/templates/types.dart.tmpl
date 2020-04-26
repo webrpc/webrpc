@@ -49,7 +49,7 @@ abstract class {{.Name}} with _${{.Name}} {
 // METHOD ARGUMENT TYPES.
 // *********************************************************************
 {{- range .Methods -}}
-{{- if .Inputs}}
+{{- if .Inputs }}
 @freezed
 abstract class {{. | methodArgumentInputClassName}} with _${{. | methodArgumentInputClassName}} {
   const factory {{. | methodArgumentInputClassName}} ({

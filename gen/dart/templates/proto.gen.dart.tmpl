@@ -7,10 +7,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:http/http.dart' as http;
 {{end}}
 {{if .TargetOpts.Server}}
-import 'package:shelf_router/shelf_router.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
-import 'package:logging/logging.dart';
 {{end}}
 
 // {{.Name}} {{.SchemaVersion}} {{.SchemaHash}}
