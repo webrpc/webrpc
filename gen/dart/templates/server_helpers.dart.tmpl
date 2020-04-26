@@ -1,0 +1,233 @@
+{{ define "server_helpers" }}
+// Contains static method helpers for handling requests.
+class rpcResp {
+  static String _message(String status, {String info}) =>
+      'webrpc error: $status, details: $info';
+
+  static const _jsonHeader = {
+    'Content-Type': 'application/json',
+    'X-Content-Type-Options': 'nosniff'
+  };
+
+  static shelf.Response _jsonResp(int code, {dynamic json}) => shelf.Response(
+        code,
+        headers: _jsonHeader,
+        body: json,
+      );
+
+  static shelf.Response Ok({String json}) => shelf.Response.ok(
+        json,
+        headers: _jsonHeader,
+      );
+
+  static shelf.Response Found(String route, {String msg = ''}) =>
+      shelf.Response.found(route, headers: _jsonHeader, body: msg);
+
+  static shelf.Response MovedPerm(String route, {String msg = ''}) =>
+      shelf.Response.movedPermanently(
+        route,
+        headers: _jsonHeader,
+      );
+
+  static shelf.Response NotModified() =>
+      shelf.Response.notModified(headers: _jsonHeader);
+
+  static shelf.Response SeeOther(String route, {String msg = ''}) =>
+      shelf.Response.seeOther(
+        route,
+        headers: _jsonHeader,
+        body: msg,
+      );
+
+  static shelf.Response Unknown(String route, {String msg = ''}) => _jsonResp(
+        err.Unknown.code,
+        json: RpcErr(
+                message: _message(err.Unknown.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.Unknown)
+            .toJson(),
+      );
+
+  static shelf.Response Fail(String route, {String msg = ''}) => _jsonResp(
+        err.Fail.code,
+        json: RpcErr(
+                message: _message(err.Fail.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.Fail)
+            .toJson(),
+      );
+
+  static shelf.Response Canceled(String route, {String msg = ''}) => _jsonResp(
+        err.Canceled.code,
+        json: RpcErr(
+                message: _message(err.Canceled.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.Canceled)
+            .toJson(),
+      );
+
+  static shelf.Response InvalidArgument(String route, {String msg = ''}) =>
+      _jsonResp(
+        err.InvalidArgument.code,
+        json: RpcErr(
+                message: _message(err.InvalidArgument.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.InvalidArgument)
+            .toJson(),
+      );
+
+  static shelf.Response DeadlineExceeded(String route, {String msg = ''}) =>
+      _jsonResp(
+        err.DeadlineExceeded.code,
+        json: RpcErr(
+                message: _message(err.DeadlineExceeded.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.DeadlineExceeded)
+            .toJson(),
+      );
+
+  static shelf.Response NotFound(String route, {String msg = ''}) => _jsonResp(
+        err.NotFound.code,
+        json: RpcErr(
+                message: _message(err.NotFound.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.NotFound)
+            .toJson(),
+      );
+
+  static shelf.Response BadRoute(String route, {String msg = ''}) => _jsonResp(
+        err.BadRoute.code,
+        json: RpcErr(
+                message: _message(err.BadRoute.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.BadRoute)
+            .toJson(),
+      );
+
+  static shelf.Response AlreadyExists(String route, {String msg = ''}) =>
+      _jsonResp(
+        err.AlreadyExists.code,
+        json: RpcErr(
+                message: _message(err.AlreadyExists.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.AlreadyExists)
+            .toJson(),
+      );
+
+  static shelf.Response PermissionDenied(String route, {String msg = ''}) =>
+      _jsonResp(
+        err.PermissionDenied.code,
+        json: RpcErr(
+                message: _message(err.PermissionDenied.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.PermissionDenied)
+            .toJson(),
+      );
+
+  static shelf.Response Unauthenticated(String route, {String msg = ''}) =>
+      _jsonResp(
+        err.Unauthenticated.code,
+        json: RpcErr(
+                message: _message(err.Unauthenticated.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.Unauthenticated)
+            .toJson(),
+      );
+
+  static shelf.Response ResourceExhausted(String route, {String msg = ''}) =>
+      _jsonResp(
+        err.ResourceExhausted.code,
+        json: RpcErr(
+                message: _message(err.ResourceExhausted.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.ResourceExhausted)
+            .toJson(),
+      );
+
+  static shelf.Response FailedPrecondition(String route, {String msg = ''}) =>
+      _jsonResp(
+        err.FailedPrecondition.code,
+        json: RpcErr(
+                message: _message(err.FailedPrecondition.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.FailedPrecondition)
+            .toJson(),
+      );
+
+  static shelf.Response Aborted(String route, {String msg = ''}) => _jsonResp(
+        err.Aborted.code,
+        json: RpcErr(
+                message: _message(err.Aborted.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.Aborted)
+            .toJson(),
+      );
+
+  static shelf.Response OutOfRange(String route, {String msg = ''}) =>
+      _jsonResp(
+        err.OutOfRange.code,
+        json: RpcErr(
+                message: _message(err.OutOfRange.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.OutOfRange)
+            .toJson(),
+      );
+
+  static shelf.Response Unimplemented(String route, {String msg = ''}) =>
+      _jsonResp(
+        err.Unimplemented.code,
+        json: RpcErr(
+                message: _message(err.Unimplemented.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.Unimplemented)
+            .toJson(),
+      );
+
+  static shelf.Response Internal(String route, {String msg = ''}) => _jsonResp(
+        err.Internal.code,
+        json: RpcErr(
+                message: _message(err.Internal.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.Internal)
+            .toJson(),
+      );
+
+  static shelf.Response Unavailable(String route, {String msg = ''}) =>
+      _jsonResp(
+        err.Unavailable.code,
+        json: RpcErr(
+                message: _message(err.Unavailable.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.Unavailable)
+            .toJson(),
+      );
+
+  static shelf.Response DataLoss(String route, {String msg = ''}) => _jsonResp(
+        err.DataLoss.code,
+        json: RpcErr(
+                message: _message(err.DataLoss.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: err.DataLoss)
+            .toJson(),
+      );
+}
+
+{{ end }}
