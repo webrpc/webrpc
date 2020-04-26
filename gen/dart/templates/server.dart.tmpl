@@ -79,7 +79,21 @@ class WebRpcServer {
   {{$name := .Name}}
   {{- range .Methods}}
   FutureOr<shelf.Response> _handle{{$name}}{{.Name}}(shelf.Request r) async {
-    
+    try {
+      // Attempt to call service method.
+    {{- if .Inputs|len}}
+      final json = await r.readAsString();
+      final {{. | methodArgumentInputClassName}} args = {{. | methodArgumentInputClassName}}.fromJson(json);
+      final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}(params: args);
+      return rpcResp.Ok(result.toJson());
+    {{end}} {{/* end if .Inputs */}}
+    }
+    // Catch WebRPCExceptions.
+    on WebRPCException catch (e, stackTrace) {
+      _logWebRpcExc(_log, e, null, stackTrace);
+    } on Exception catch (e, stackTrace) {
+      _logExc(_log, e, null, stackTrace);
+    }
   }
   {{end}}{{/* end of range .Methods */}}
   {{- end -}} {{/* end of range .Services for Methods */}}

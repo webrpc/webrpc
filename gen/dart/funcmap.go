@@ -183,7 +183,7 @@ func clientMethodInputs(in *schema.Method) (string, error) {
 func serverMethodInputs(in *schema.Method) (string, error) {
 	inputs := []string{}
 	if len(in.Inputs) > 0 {
-		inputs = append(inputs, fmt.Sprintf("@required %s args", methodArgumentInputClassName(in)))
+		inputs = append(inputs, fmt.Sprintf("@required %s params", methodArgumentInputClassName(in)))
 		return fmt.Sprintf("{%s}", strings.Join(inputs, ", ")), nil
 	}
 	return "", nil
