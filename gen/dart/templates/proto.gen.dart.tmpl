@@ -1,5 +1,7 @@
 {{- define "proto" -}}
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:meta/meta.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -35,6 +37,7 @@ String WebRPCSchemaHash() {
 
 {{if .TargetOpts.Server}}
   {{template "server" .}}
+  {{template "server_helpers" .}}
 {{end}}
 
 {{if .TargetOpts.Client}}

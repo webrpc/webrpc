@@ -55,7 +55,7 @@ class WebRpcServer {
       _log.info(info);
       return rpcResp.BadRoute(route, msg: info);
     }
-    
+
     switch (r.url.path) {
       {{ range .Services }}
       {{$name := .Name}}
@@ -68,7 +68,9 @@ class WebRpcServer {
       {{end -}} {{/* end of range .Services */}}
       default:
         {
-          return rpcResp.BadRoute(route, msg: 'no handler for path: $route');
+          final info = 'no handler for path: $route';
+          _log.info(info);
+          return rpcResp.BadRoute(route, msg: info);
         }
         break;
     }
