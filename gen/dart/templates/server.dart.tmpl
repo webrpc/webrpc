@@ -1,10 +1,10 @@
 {{define "server"}}
-
-{{if .Services}}
+{{- if .Services}}
 // *********************************************************************
 // SERVICE INTERFACES.
 // *********************************************************************
 {{range .Services -}}
+// TODO implement {{.Name}}.
 abstract class {{.Name}} {
   {{- range .Methods}}
   {{. | methodOutputs}} {{.Name | methodName}}({{. | serverMethodInputs}});
@@ -86,7 +86,5 @@ class WebRpcServer {
   FutureOr<void> run() async {}
 
 }
-
-
 {{end}} {{/* end of if .Services */}}
 {{end}} {{/* end of top level define */}}

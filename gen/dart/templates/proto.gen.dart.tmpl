@@ -38,11 +38,11 @@ String WebRPCSchemaHash() {
 {{if .TargetOpts.Server}}
   {{template "server" .}}
   {{template "server_helpers" .}}
-{{end}}
+{{end -}}
 
 {{if .TargetOpts.Client}}
   {{template "client" .}}
-{{end}}
+{{end -}}
 
 {{template "helpers" .}}
 

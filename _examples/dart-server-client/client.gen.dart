@@ -28,7 +28,7 @@ String WebRPCSchemaHash() {
 }
 
 // **********************************************************************
-// MESSAGE TYPES.
+// MESSAGE TYPES. DO NOT EDIT DIRECTLY!
 // **********************************************************************
 @freezed
 abstract class Kind with _$Kind {
@@ -91,7 +91,7 @@ abstract class ComplexType with _$ComplexType {
 }
 
 // *********************************************************************
-// METHOD ARGUMENT TYPES.
+// ExampleService METHOD ARGUMENT TYPES. DO NOT EDIT DIRECTLY!
 // *********************************************************************
 @freezed
 abstract class ExampleServiceGetUserArgs with _$ExampleServiceGetUserArgs {
@@ -113,7 +113,7 @@ abstract class ExampleServiceFindUserArgs with _$ExampleServiceFindUserArgs {
 }
 
 // *********************************************************************
-// METHOD RETURN TYPES.
+// ExampleService METHOD RETURN TYPES. DO NOT EDIT DIRECTLY!
 // *********************************************************************
 
 @freezed
@@ -156,7 +156,7 @@ abstract class ExampleServiceFindUserReturn
 }
 
 // *********************************************************************
-// METHOD ARGUMENT TYPES.
+// AnotherExampleService METHOD ARGUMENT TYPES. DO NOT EDIT DIRECTLY!
 // *********************************************************************
 @freezed
 abstract class AnotherExampleServiceGetUserArgs
@@ -181,8 +181,8 @@ abstract class AnotherExampleServiceFindUserArgs
       _$AnotherExampleServiceFindUserArgsFromJson(json);
 }
 
-// *********************************************************************
-// METHOD RETURN TYPES.
+// E*********************************************************************
+// AnotherExampleService METHOD RETURN TYPES. DO NOT EDIT DIRECTLY!
 // *********************************************************************
 
 @freezed
@@ -234,6 +234,7 @@ abstract class AnotherExampleServiceFindUserReturn
 // *********************************************************************
 // SERVICE INTERFACES.
 // *********************************************************************
+// TODO implement ExampleService.
 abstract class ExampleService {
   FutureOr<void> ping();
   FutureOr<ExampleServiceStatusReturn> status();
@@ -244,6 +245,7 @@ abstract class ExampleService {
       {@required ExampleServiceFindUserArgs args});
 }
 
+// TODO implement AnotherExampleService.
 abstract class AnotherExampleService {
   FutureOr<void> ping();
   FutureOr<AnotherExampleServiceStatusReturn> status();
@@ -393,9 +395,11 @@ class WebRpcServer {
       shelf.Request r) {}
 
   FutureOr<void> run() async {}
-  //// SERVICES SHOULD END HERE DEBUG!!!!!!
 }
 
+// *********************************************************************
+// SERVER-SIDE HELPER CODE. DO NOT EDIT DIRECTLY!
+// *********************************************************************
 // Contains static method helpers for handling requests.
 class rpcResp {
   static String _message(String status, {String info}) =>

@@ -2,12 +2,8 @@
 // **********************************************************************
 // MESSAGE TYPES.
 // **********************************************************************
-
 {{- if .Messages -}}
 {{range .Messages -}}
-
-
-
 
 {{if .Type | isEnum -}}
 {{$enumName := .Name}}
@@ -46,7 +42,7 @@ abstract class {{.Name}} with _${{.Name}} {
 {{if .Services -}}
 {{range .Services -}}
 // *********************************************************************
-// METHOD ARGUMENT TYPES.
+// {{.Name}} METHOD ARGUMENT TYPES.
 // *********************************************************************
 {{- range .Methods -}}
 {{- if .Inputs }}
@@ -69,7 +65,7 @@ abstract class {{. | methodArgumentInputClassName}} with _${{. | methodArgumentI
 {{- end -}} {{/* end of range .Methods */}}
 
 // *********************************************************************
-// METHOD RETURN TYPES.
+// {{.Name}} METHOD RETURN TYPES.
 // *********************************************************************
 {{range .Methods -}}
 {{if .Outputs}}
@@ -95,4 +91,4 @@ abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgument
 
 {{- end -}} {{/* end of if .Services */}}
 
-{{end -}} {{/* end of top level define */}}
+{{- end -}} {{/* end of top level define */}}
