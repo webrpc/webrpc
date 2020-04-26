@@ -19,7 +19,7 @@ class WebRpcServer {
   // For Google Cloud Run, set _hostname to '0.0.0.0'.
   String _hostname;
   // Provide a {Logger} implementation to log failed requests.
-  Logger _log;
+  RpcLogger _log;
   // Provide a preconfigured shelf.Pipeline with desired middleware.
   Set<shelf.Middleware> _middleware;
 {{- range .Services}}
@@ -28,7 +28,7 @@ class WebRpcServer {
   WebRpcServer(
     { {{ range .Services }}@required this.{{.Name | serviceImplName}},
       {{end -}}
-      Logger log,
+      RpcLogger log,
       String hostName = 'localhost',
       List<shelf.Middleware> middleware}) {
       _hostname = hostName;
@@ -40,7 +40,7 @@ class WebRpcServer {
       r.headers['Content-Type'].contains('application/json') &&
       r.headers['Accept'].contains('application/json');  
 
-  FutureOr<shelf.Response> _requestHandler(shelf.Request r) {
+  FutureOr<shelf.Response> _requestHandler(shelf.Request r) async {
     final route = r.url.path;
     if (r.method != 'POST') {
       final info =
@@ -61,7 +61,7 @@ class WebRpcServer {
       {{$name := .Name}}
       {{- range .Methods}}
       case '/rpc/{{$name}}/{{.Name}}': {
-         return _handle{{$name}}{{.Name}}(r);
+         return await _handle{{$name}}{{.Name}}(r);
       }
       break;
       {{end -}} {{/* end of range .Methods */}}
@@ -78,7 +78,7 @@ class WebRpcServer {
   {{- range .Services}}
   {{$name := .Name}}
   {{- range .Methods}}
-  FutureOr<shelf.Response> _handle{{$name}}{{.Name}}(shelf.Request r) {
+  FutureOr<shelf.Response> _handle{{$name}}{{.Name}}(shelf.Request r) async {
     
   }
   {{end}}{{/* end of range .Methods */}}

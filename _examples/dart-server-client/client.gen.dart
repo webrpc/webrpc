@@ -28,7 +28,7 @@ String WebRPCSchemaHash() {
 }
 
 // **********************************************************************
-// MESSAGE TYPES. DO NOT EDIT DIRECTLY!
+// MESSAGE TYPES.
 // **********************************************************************
 @freezed
 abstract class Kind with _$Kind {
@@ -91,7 +91,7 @@ abstract class ComplexType with _$ComplexType {
 }
 
 // *********************************************************************
-// ExampleService METHOD ARGUMENT TYPES. DO NOT EDIT DIRECTLY!
+// ExampleService METHOD ARGUMENT TYPES.
 // *********************************************************************
 @freezed
 abstract class ExampleServiceGetUserArgs with _$ExampleServiceGetUserArgs {
@@ -113,7 +113,7 @@ abstract class ExampleServiceFindUserArgs with _$ExampleServiceFindUserArgs {
 }
 
 // *********************************************************************
-// ExampleService METHOD RETURN TYPES. DO NOT EDIT DIRECTLY!
+// ExampleService METHOD RETURN TYPES.
 // *********************************************************************
 
 @freezed
@@ -156,7 +156,7 @@ abstract class ExampleServiceFindUserReturn
 }
 
 // *********************************************************************
-// AnotherExampleService METHOD ARGUMENT TYPES. DO NOT EDIT DIRECTLY!
+// AnotherExampleService METHOD ARGUMENT TYPES.
 // *********************************************************************
 @freezed
 abstract class AnotherExampleServiceGetUserArgs
@@ -181,8 +181,8 @@ abstract class AnotherExampleServiceFindUserArgs
       _$AnotherExampleServiceFindUserArgsFromJson(json);
 }
 
-// E*********************************************************************
-// AnotherExampleService METHOD RETURN TYPES. DO NOT EDIT DIRECTLY!
+// *********************************************************************
+// AnotherExampleService METHOD RETURN TYPES.
 // *********************************************************************
 
 @freezed
@@ -263,7 +263,7 @@ class WebRpcServer {
   // For Google Cloud Run, set _hostname to '0.0.0.0'.
   String _hostname;
   // Provide a {Logger} implementation to log failed requests.
-  Logger _log;
+  RpcLogger _log;
   // Provide a preconfigured shelf.Pipeline with desired middleware.
   Set<shelf.Middleware> _middleware;
   final ExampleService exampleService;
@@ -271,7 +271,7 @@ class WebRpcServer {
   WebRpcServer(
       {@required this.exampleService,
       @required this.anotherExampleService,
-      Logger log,
+      RpcLogger log,
       String hostName = 'localhost',
       List<shelf.Middleware> middleware}) {
     _hostname = hostName;
@@ -283,7 +283,7 @@ class WebRpcServer {
       r.headers['Content-Type'].contains('application/json') &&
       r.headers['Accept'].contains('application/json');
 
-  FutureOr<shelf.Response> _requestHandler(shelf.Request r) {
+  FutureOr<shelf.Response> _requestHandler(shelf.Request r) async {
     final route = r.url.path;
     if (r.method != 'POST') {
       final info =
@@ -302,61 +302,61 @@ class WebRpcServer {
     switch (r.url.path) {
       case '/rpc/ExampleService/Ping':
         {
-          return _handleExampleServicePing(r);
+          return await _handleExampleServicePing(r);
         }
         break;
 
       case '/rpc/ExampleService/Status':
         {
-          return _handleExampleServiceStatus(r);
+          return await _handleExampleServiceStatus(r);
         }
         break;
 
       case '/rpc/ExampleService/Version':
         {
-          return _handleExampleServiceVersion(r);
+          return await _handleExampleServiceVersion(r);
         }
         break;
 
       case '/rpc/ExampleService/GetUser':
         {
-          return _handleExampleServiceGetUser(r);
+          return await _handleExampleServiceGetUser(r);
         }
         break;
 
       case '/rpc/ExampleService/FindUser':
         {
-          return _handleExampleServiceFindUser(r);
+          return await _handleExampleServiceFindUser(r);
         }
         break;
 
       case '/rpc/AnotherExampleService/Ping':
         {
-          return _handleAnotherExampleServicePing(r);
+          return await _handleAnotherExampleServicePing(r);
         }
         break;
 
       case '/rpc/AnotherExampleService/Status':
         {
-          return _handleAnotherExampleServiceStatus(r);
+          return await _handleAnotherExampleServiceStatus(r);
         }
         break;
 
       case '/rpc/AnotherExampleService/Version':
         {
-          return _handleAnotherExampleServiceVersion(r);
+          return await _handleAnotherExampleServiceVersion(r);
         }
         break;
 
       case '/rpc/AnotherExampleService/GetUser':
         {
-          return _handleAnotherExampleServiceGetUser(r);
+          return await _handleAnotherExampleServiceGetUser(r);
         }
         break;
 
       case '/rpc/AnotherExampleService/FindUser':
         {
-          return _handleAnotherExampleServiceFindUser(r);
+          return await _handleAnotherExampleServiceFindUser(r);
         }
         break;
 
@@ -370,35 +370,50 @@ class WebRpcServer {
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServicePing(shelf.Request r) {}
+  FutureOr<shelf.Response> _handleExampleServicePing(shelf.Request r) async {
+        try {
+      // Attempt to call service method.
+    }
+    // Catch WebRPCExceptions.
+    on WebRPCException catch (e, stackTrace) {
+      logWebRpcExc(_log, e, null, stackTrace);
+    } on Exception catch (e, stackTrace) {
+      _log.warning(e, null, stackTrace);
+    }
+  }
+  }
 
-  FutureOr<shelf.Response> _handleExampleServiceStatus(shelf.Request r) {}
+  FutureOr<shelf.Response> _handleExampleServiceStatus(shelf.Request r) async {}
 
-  FutureOr<shelf.Response> _handleExampleServiceVersion(shelf.Request r) {}
+  FutureOr<shelf.Response> _handleExampleServiceVersion(
+      shelf.Request r) async {}
 
-  FutureOr<shelf.Response> _handleExampleServiceGetUser(shelf.Request r) {}
+  FutureOr<shelf.Response> _handleExampleServiceGetUser(
+      shelf.Request r) async {}
 
-  FutureOr<shelf.Response> _handleExampleServiceFindUser(shelf.Request r) {}
+  FutureOr<shelf.Response> _handleExampleServiceFindUser(
+      shelf.Request r) async {}
 
-  FutureOr<shelf.Response> _handleAnotherExampleServicePing(shelf.Request r) {}
+  FutureOr<shelf.Response> _handleAnotherExampleServicePing(
+      shelf.Request r) async {}
 
   FutureOr<shelf.Response> _handleAnotherExampleServiceStatus(
-      shelf.Request r) {}
+      shelf.Request r) async {}
 
   FutureOr<shelf.Response> _handleAnotherExampleServiceVersion(
-      shelf.Request r) {}
+      shelf.Request r) async {}
 
   FutureOr<shelf.Response> _handleAnotherExampleServiceGetUser(
-      shelf.Request r) {}
+      shelf.Request r) async {}
 
   FutureOr<shelf.Response> _handleAnotherExampleServiceFindUser(
-      shelf.Request r) {}
+      shelf.Request r) async {}
 
   FutureOr<void> run() async {}
 }
 
 // *********************************************************************
-// SERVER-SIDE HELPER CODE. DO NOT EDIT DIRECTLY!
+// SERVER-SIDE HELPER CODE.
 // *********************************************************************
 // Contains static method helpers for handling requests.
 class rpcResp {
@@ -631,11 +646,84 @@ class rpcResp {
       );
 }
 
-//
-// HELPER CODE.
-//
+// *********************************************************************
+// WEBRPC-DART HELPER CODE.
+// *********************************************************************
 
-abstract class Logger {
+// Desired LogLevel For a thrown [WebRPCException].
+enum RpcLogLevel {
+  Info,
+  Fine,
+  Finer,
+  Finest,
+  Config,
+  Warning,
+  Severe,
+  Shout,
+}
+
+// This exception should be thrown from all WEBRPC-DART service method implementations.
+// Throwing this exception and providing an [RpcLogLevel] allows the rpc logging mechanism to log all caught excetpions at the correct level.
+class WebRPCException extends HttpException {
+  @override
+  final String message;
+  final RpcLogLevel level;
+  WebRPCException(
+      {this.message = 'webrpc error', this.level = RpcLogLevel.Info})
+      : super('$message');
+}
+
+String _rpcLogMsg(WebRPCException exc, [Object error, StackTrace stackTrace]) {
+  return '{message: ${exc.message}, level: ${exc.level}, timeStamp: ${DateTime.now().toString()}, error: $error, stackTrace: $stackTrace}';
+}
+
+// Helper Method for logging WebRPCExceptions.
+void logWebRpcExc(RpcLogger log, WebRPCException exc,
+    [Object error, StackTrace stackTrace]) {
+  switch (exc.level) {
+    case RpcLogLevel.Config:
+      {
+        log.config(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+      }
+      break;
+    case RpcLogLevel.Fine:
+      {
+        log.fine(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+      }
+      break;
+    case RpcLogLevel.Finer:
+      {
+        log.finer(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+      }
+      break;
+    case RpcLogLevel.Finest:
+      {
+        log.finest(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+      }
+      break;
+    case RpcLogLevel.Info:
+      {
+        log.info(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+      }
+      break;
+    case RpcLogLevel.Warning:
+      {
+        log.warning(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+      }
+      break;
+    case RpcLogLevel.Severe:
+      {
+        log.severe(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+      }
+      break;
+    case RpcLogLevel.Shout:
+      {
+        log.shout(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+      }
+  }
+}
+
+abstract class RpcLogger {
   void _log(message, [Object error, StackTrace stackTrace]) => print(
       '{message: $message}, error: $error, stackTrace: $stackTrace, time: ${DateTime.now()}');
   void finest(message, [Object error, StackTrace stackTrace]) =>
@@ -656,7 +744,7 @@ abstract class Logger {
       _log(message, error, stackTrace);
 }
 
-class _Logger extends Logger {
+class _Logger extends RpcLogger {
   _Logger();
 }
 

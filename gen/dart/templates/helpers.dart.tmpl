@@ -3,7 +3,76 @@
 // WEBRPC-DART HELPER CODE.
 // *********************************************************************
 
-abstract class Logger {
+// Desired LogLevel For a thrown [WebRPCException].
+enum RpcLogLevel {
+  Info,
+  Fine,
+  Finer,
+  Finest,
+  Config,
+  Warning,
+  Severe,
+  Shout,
+}
+
+// This exception should be thrown from all WEBRPC-DART service method implementations.
+// Throwing this exception and providing an [RpcLogLevel] allows the rpc logging mechanism to log all caught excetpions at the correct level.
+class WebRPCException extends HttpException {
+  @override
+  final String message;
+  final RpcLogLevel level;
+  WebRPCException({
+    this.message = 'webrpc error',
+    this.level = RpcLogLevel.Info
+  }) : super('$message');
+    
+  @override
+  String toString() => msg ?? 'WebRPCException';
+}
+
+String _rpcLogMsg(WebRPCException exc, [Object error, StackTrace stackTrace]) {
+  return '{message: ${exc.message}, level: ${exc.level}, timeStamp: ${DateTime.now().toString()}, error: $error, stackTrace: $stackTrace}';
+}
+
+// Helper Method for logging WebRPCExceptions.
+void logWebRpcExc(RpcLogger log , WebRPCException exc, [Object error, StackTrace stackTrace]) {
+  switch (exc.level) {
+    case RpcLogLevel.Config: {
+      log.config(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+    }
+    break;
+    case RpcLogLevel.Fine: {
+      log.fine(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+    }
+    break;
+    case RpcLogLevel.Finer: {
+      log.finer(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+    }
+    break;
+    case RpcLogLevel.Finest: {
+      log.finest(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+    }
+    break;
+    case RpcLogLevel.Info: {
+      log.info(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+    }
+    break;
+    case RpcLogLevel.Warning: {
+      log.warning(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+    }
+    break;
+    case RpcLogLevel.Severe: {
+      log.severe(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+    }
+    break;
+    case RpcLogLevel.Shout: {
+      log.shout(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
+    }
+  }
+
+}
+
+abstract class RpcLogger {
   void _log(message, [Object error, StackTrace stackTrace]) => print(
       '{message: $message}, error: $error, stackTrace: $stackTrace, time: ${DateTime.now()}');
   void finest(message, [Object error, StackTrace stackTrace]) =>
@@ -24,7 +93,7 @@ abstract class Logger {
       _log(message, error, stackTrace);
 }
 
-class _Logger extends Logger {
+class _Logger extends RpcLogger {
   _Logger();
 }
 
