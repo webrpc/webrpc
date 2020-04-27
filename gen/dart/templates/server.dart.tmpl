@@ -84,10 +84,19 @@ class WebRpcServer {
     {{- if .Inputs|len}}
       final json = await r.readAsString();
       final {{. | methodArgumentInputClassName}} args = {{. | methodArgumentInputClassName}}.fromJson(json);
-      final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}(params: args);
       {{if .Outputs | len}}
-      return rpcResp.Ok(result.toJson());
+      final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}(params: args);  
+      return rpcResp.Ok(json: result.toJson());
       {{else}}
+      final void result = await {{$name | serviceImplName}}.{{.Name | methodName}}(params: args);
+      return rpcResp.Ok();
+      {{end}} {{/* end if .Outputs */}}
+    {{else}}
+      {{if .Outputs | len}}
+      final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}();  
+      return rpcResp.Ok(json: result.toJson());
+      {{else}}
+      final void result = await {{$name | serviceImplName}}.{{.Name | methodName}}();
       return rpcResp.Ok();
       {{end}}
     {{end}} {{/* end if .Inputs */}}
@@ -95,10 +104,10 @@ class WebRpcServer {
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/{{$name}}/{{.Name}}')
+      return rpcResp.Fail('/rpc/{{$name}}/{{.Name}}');
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/{{$name}}/{{.Name}}')
+      return rpcResp.Fail('/rpc/{{$name}}/{{.Name}}');
     }
   }
   {{end}}{{/* end of range .Methods */}}

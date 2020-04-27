@@ -324,43 +324,58 @@ class WebRpcServer {
   
   FutureOr<shelf.Response> _handleExampleServicePing(shelf.Request r) async {
     try {
-      // Attempt to call service method. 
+      // Attempt to call service method.
+      
+      final void result = await exampleService.ping()
+      return rpcResp.Ok();
+      
+     
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/ExampleService/Ping')
+      return rpcResp.Fail('/rpc/ExampleService/Ping');
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/ExampleService/Ping')
+      return rpcResp.Fail('/rpc/ExampleService/Ping');
     }
   }
   
   FutureOr<shelf.Response> _handleExampleServiceStatus(shelf.Request r) async {
     try {
-      // Attempt to call service method. 
+      // Attempt to call service method.
+      
+      final ExampleServiceStatusReturn result = await exampleService.status();  
+      return rpcResp.Ok(json: result.toJson());
+      
+     
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/ExampleService/Status')
+      return rpcResp.Fail('/rpc/ExampleService/Status');
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/ExampleService/Status')
+      return rpcResp.Fail('/rpc/ExampleService/Status');
     }
   }
   
   FutureOr<shelf.Response> _handleExampleServiceVersion(shelf.Request r) async {
     try {
-      // Attempt to call service method. 
+      // Attempt to call service method.
+      
+      final ExampleServiceVersionReturn result = await exampleService.version();  
+      return rpcResp.Ok(json: result.toJson());
+      
+     
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/ExampleService/Version')
+      return rpcResp.Fail('/rpc/ExampleService/Version');
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/ExampleService/Version')
+      return rpcResp.Fail('/rpc/ExampleService/Version');
     }
   }
   
@@ -369,17 +384,19 @@ class WebRpcServer {
       // Attempt to call service method.
       final json = await r.readAsString();
       final ExampleServiceGetUserArgs args = ExampleServiceGetUserArgs.fromJson(json);
-      final ExampleServiceGetUserReturn result = await exampleService.getUser(params: args);
-      return rpcResp.Ok(result.toJson());
+      
+      final ExampleServiceGetUserReturn result = await exampleService.getUser(params: args);  
+      return rpcResp.Ok(json: result.toJson());
+       
      
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/ExampleService/GetUser')
+      return rpcResp.Fail('/rpc/ExampleService/GetUser');
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/ExampleService/GetUser')
+      return rpcResp.Fail('/rpc/ExampleService/GetUser');
     }
   }
   
@@ -388,60 +405,77 @@ class WebRpcServer {
       // Attempt to call service method.
       final json = await r.readAsString();
       final ExampleServiceFindUserArgs args = ExampleServiceFindUserArgs.fromJson(json);
-      final ExampleServiceFindUserReturn result = await exampleService.findUser(params: args);
-      return rpcResp.Ok(result.toJson());
+      
+      final ExampleServiceFindUserReturn result = await exampleService.findUser(params: args);  
+      return rpcResp.Ok(json: result.toJson());
+       
      
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/ExampleService/FindUser')
+      return rpcResp.Fail('/rpc/ExampleService/FindUser');
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/ExampleService/FindUser')
+      return rpcResp.Fail('/rpc/ExampleService/FindUser');
     }
   }
   
   
   FutureOr<shelf.Response> _handleAnotherExampleServicePing(shelf.Request r) async {
     try {
-      // Attempt to call service method. 
+      // Attempt to call service method.
+      
+      final void result = await anotherExampleService.ping()
+      return rpcResp.Ok();
+      
+     
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/AnotherExampleService/Ping')
+      return rpcResp.Fail('/rpc/AnotherExampleService/Ping');
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/AnotherExampleService/Ping')
+      return rpcResp.Fail('/rpc/AnotherExampleService/Ping');
     }
   }
   
   FutureOr<shelf.Response> _handleAnotherExampleServiceStatus(shelf.Request r) async {
     try {
-      // Attempt to call service method. 
+      // Attempt to call service method.
+      
+      final AnotherExampleServiceStatusReturn result = await anotherExampleService.status();  
+      return rpcResp.Ok(json: result.toJson());
+      
+     
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/AnotherExampleService/Status')
+      return rpcResp.Fail('/rpc/AnotherExampleService/Status');
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/AnotherExampleService/Status')
+      return rpcResp.Fail('/rpc/AnotherExampleService/Status');
     }
   }
   
   FutureOr<shelf.Response> _handleAnotherExampleServiceVersion(shelf.Request r) async {
     try {
-      // Attempt to call service method. 
+      // Attempt to call service method.
+      
+      final AnotherExampleServiceVersionReturn result = await anotherExampleService.version();  
+      return rpcResp.Ok(json: result.toJson());
+      
+     
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/AnotherExampleService/Version')
+      return rpcResp.Fail('/rpc/AnotherExampleService/Version');
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/AnotherExampleService/Version')
+      return rpcResp.Fail('/rpc/AnotherExampleService/Version');
     }
   }
   
@@ -450,17 +484,19 @@ class WebRpcServer {
       // Attempt to call service method.
       final json = await r.readAsString();
       final AnotherExampleServiceGetUserArgs args = AnotherExampleServiceGetUserArgs.fromJson(json);
-      final AnotherExampleServiceGetUserReturn result = await anotherExampleService.getUser(params: args);
-      return rpcResp.Ok(result.toJson());
+      
+      final AnotherExampleServiceGetUserReturn result = await anotherExampleService.getUser(params: args);  
+      return rpcResp.Ok(json: result.toJson());
+       
      
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/AnotherExampleService/GetUser')
+      return rpcResp.Fail('/rpc/AnotherExampleService/GetUser');
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/AnotherExampleService/GetUser')
+      return rpcResp.Fail('/rpc/AnotherExampleService/GetUser');
     }
   }
   
@@ -469,17 +505,19 @@ class WebRpcServer {
       // Attempt to call service method.
       final json = await r.readAsString();
       final AnotherExampleServiceFindUserArgs args = AnotherExampleServiceFindUserArgs.fromJson(json);
-      final AnotherExampleServiceFindUserReturn result = await anotherExampleService.findUser(params: args);
-      return rpcResp.Ok(result.toJson());
+      
+      final AnotherExampleServiceFindUserReturn result = await anotherExampleService.findUser(params: args);  
+      return rpcResp.Ok(json: result.toJson());
+       
      
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/AnotherExampleService/FindUser')
+      return rpcResp.Fail('/rpc/AnotherExampleService/FindUser');
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/AnotherExampleService/FindUser')
+      return rpcResp.Fail('/rpc/AnotherExampleService/FindUser');
     }
   }
   
