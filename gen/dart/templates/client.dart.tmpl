@@ -1,9 +1,9 @@
 {{define "client"}}
 
 {{if .Services}}
-//
-// Client
-//
+// ***********************************************************************
+// WEBRPC-DART SERVICE CLIENTS.
+// ***********************************************************************
 
 String _removeSlash(String host) => host.endsWith('/')
 ? host.replaceRange(host.length - 1, host.length, '')
@@ -13,15 +13,21 @@ String _removeSlash(String host) => host.endsWith('/')
 class {{.Name}} {
   final http.Client client;
   final String host;
-  final String path = '/rpc/{{.Name}}/';
-  String url(String name) => '${_removeSlash(host)}$path$name';
+  final String path;
+  RpcLogger _log; 
+  String _srvcPath = '/rpc/{{.Name}}/';
+  {{.Name}}({@required this.host, 
+             @required this.client,
+             RpcLogger logger}) {
+      _srvcPath = '${_removeSlash(host)}/rpc/{{.Name}}/';
+  }  
   {{range .Methods}}
 
-  {{end}}
-  {{.Name}}(this.client, this.host);
+  {{end}} {{/* end of range .Methods */}}
+
 }
-{{end}}
+{{end}} {{/* end of range .Services */}}
 
 
-{{end}}
-{{end}}
+{{end}} {{/* end of if .Services */}}
+{{end}} {{/* end of top level Define */}}

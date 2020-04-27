@@ -18,7 +18,7 @@ abstract class {{.Name}} {
 class WebRpcServer {
   // For Google Cloud Run, set _hostname to '0.0.0.0'.
   String _hostname;
-  // Provide a {Logger} implementation to log failed requests.
+  // Provide a {Logger} implementation to log exceptions.
   RpcLogger _log;
   // Provide a preconfigured shelf.Pipeline with desired middleware.
   Set<shelf.Middleware> _middleware;
@@ -34,11 +34,11 @@ class WebRpcServer {
   WebRpcServer(
     { {{ range .Services }}@required this.{{.Name | serviceImplName}},
       {{end -}}
-      RpcLogger log,
+      RpcLogger logger,
       String hostName = 'localhost',
       List<shelf.Middleware> middleware}) {
       _hostname = hostName;
-      _log = log ?? _rpcLogger;
+      _log = loggger ?? _rpcLogger;
       _middleware = middleware?.toSet() ?? [shelf.logRequests()];
   }
 
