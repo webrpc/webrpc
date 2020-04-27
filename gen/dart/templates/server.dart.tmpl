@@ -85,14 +85,20 @@ class WebRpcServer {
       final json = await r.readAsString();
       final {{. | methodArgumentInputClassName}} args = {{. | methodArgumentInputClassName}}.fromJson(json);
       final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}(params: args);
+      {{if .Outputs | len}}
       return rpcResp.Ok(result.toJson());
+      {{else}}
+      return rpcResp.Ok();
+      {{end}}
     {{end}} {{/* end if .Inputs */}}
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
+      return rpcResp.Fail('/rpc/{{$name}}/{{.Name}}')
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
+      return rpcResp.Fail('/rpc/{{$name}}/{{.Name}}')
     }
   }
   {{end}}{{/* end of range .Methods */}}
