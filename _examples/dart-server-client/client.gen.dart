@@ -326,7 +326,7 @@ class WebRpcServer {
     try {
       // Attempt to call service method.
       
-      final void result = await exampleService.ping()
+      final void result = await exampleService.ping();
       return rpcResp.Ok();
       
      
@@ -426,7 +426,7 @@ class WebRpcServer {
     try {
       // Attempt to call service method.
       
-      final void result = await anotherExampleService.ping()
+      final void result = await anotherExampleService.ping();
       return rpcResp.Ok();
       
      
