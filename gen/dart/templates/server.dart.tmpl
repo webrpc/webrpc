@@ -22,6 +22,12 @@ class WebRpcServer {
   RpcLogger _log;
   // Provide a preconfigured shelf.Pipeline with desired middleware.
   Set<shelf.Middleware> _middleware;
+  // Shelf Pipeline.
+  final shelf.Pipeline _pipeline = shelf.Pipeline();
+  // A reference to the http server.
+  HttpServer _server;
+  // Expose internal server for user customization.
+  HttpServer get server => _server;
 {{- range .Services}}
   final {{.Name}} {{.Name | serviceImplName}};
 {{- end}}  
@@ -81,38 +87,79 @@ class WebRpcServer {
   FutureOr<shelf.Response> _handle{{$name}}{{.Name}}(shelf.Request r) async {
     try {
       // Attempt to call service method.
-    {{- if .Inputs|len}}
+    {{ if .Inputs|len -}}
       final json = await r.readAsString();
       final {{. | methodArgumentInputClassName}} args = {{. | methodArgumentInputClassName}}.fromJson(json);
-      {{if .Outputs | len}}
+      {{- if .Outputs | len -}}
       final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}(params: args);  
       return rpcResp.Ok(json: result.toJson());
       {{else}}
       await {{$name | serviceImplName}}.{{.Name | methodName}}(params: args);
       return rpcResp.Ok();
-      {{end}} {{/* end if .Outputs */}}
+      {{- end -}} {{/* end if .Outputs */}}
     {{else}}
-      {{if .Outputs | len}}
+      {{ if .Outputs | len -}}
       final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}();  
       return rpcResp.Ok(json: result.toJson());
       {{else}}
       await {{$name | serviceImplName}}.{{.Name | methodName}}();
       return rpcResp.Ok();
-      {{end}}
-    {{end}} {{/* end if .Inputs */}}
+      {{- end -}}
+    {{- end -}} {{/* end if .Inputs */}}
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
       return rpcResp.Fail('/rpc/{{$name}}/{{.Name}}');
-    } on Exception catch (e, stackTrace) {
+    }
+    // Catch all other exceptions. 
+    on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
       return rpcResp.Fail('/rpc/{{$name}}/{{.Name}}');
     }
   }
   {{end}}{{/* end of range .Methods */}}
   {{- end -}} {{/* end of range .Services for Methods */}}
-  FutureOr<void> run() async {}
+  ArgResults _parseArgs(List<String> args) {
+  var parser = ArgParser()..addOption('port', abbr: 'p');
+  try {
+    return parser.parse(args);
+  } on ArgParserException catch (e, stackTrace) {
+    _logExc(_log, e, null, stackTrace);
+    print('arg parsing error occured: $e');
+    rethrow;
+  }
+}
+
+  // For Google Cloud Run, we respect the PORT environment variable
+  int _getPort(ArgResults args) =>
+      int.tryParse(args['port'] ?? Platform.environment['PORT'] ?? '8080');
+
+  void _configurePipeline() =>
+    _middleware.forEach((mddlwr) => _pipeline.addMiddleware(mddlwr));
+
+  Future<void> serve(List<String> args,
+      {SecurityContext securityContext,
+      int backlog,
+      bool shared = false}) async {
+    final result = _parseArgs(args);
+    final port = _getPort(result);
+
+    if (port == null) {
+      stdout.writeln(
+          'Could not parse port value "${port.toString()}" into a number.');
+      // 64: command line usage error
+      exitCode = 64;
+      return;
+    }
+
+    _configurePipeline();
+    final handler = _pipeline.addHandler(_requestHandler);
+    _server = await io.serve(handler, _hostname, port,
+        securityContext: securityContext, backlog: backlog, shared: shared);
+    print('Serving at http://${_server.address.host}:${_server.port}');
+  }
+
 
 }
 {{end}} {{/* end of if .Services */}}
