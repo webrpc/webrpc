@@ -177,7 +177,7 @@ func clientMethodInputs(in *schema.Method) (string, error) {
 		inputs = append(inputs, "Map<String, String> headers")
 		return fmt.Sprintf("{%s}", strings.Join(inputs, ", ")), nil
 	}
-	return "", nil
+	return fmt.Sprintf("{%s}", "Map<String, String> headers"), nil
 }
 
 func serverMethodInputs(in *schema.Method) (string, error) {
@@ -198,6 +198,10 @@ func methodOutputs(in *schema.Method) (string, error) {
 
 func serviceImplName(in schema.VarName) (string, error) {
 	return downcaseName(string(in))
+}
+
+func useFlutter(in string) bool {
+	return in == "flutter"
 }
 
 func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
@@ -222,5 +226,6 @@ func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 		"downcaseName":                  downcaseName,
 		"makeLowerCase":                 makeLowerCase,
 		"serviceImplName":               serviceImplName,
+		"useFlutter":                    useFlutter,
 	}
 }

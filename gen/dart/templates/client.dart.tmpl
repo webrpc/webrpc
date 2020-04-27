@@ -22,7 +22,9 @@ class {{.Name}} {
       _srvcPath = '${_removeSlash(host)}/rpc/{{.Name}}/';
   }  
   {{range .Methods}}
-
+  {{. | methodOutputs}} {{.Name | methodName}}({{. | clientMethodInputs}}) async {
+    
+  }
   {{end}} {{/* end of range .Methods */}}
 
 }

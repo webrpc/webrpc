@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+
+part 'client.freezed.dart';
+part 'client.g.dart';
 
 // example v0.0.1 ebe26b74a56342a2fb2bf54ac0c0b43300a257b0
 // --
@@ -230,9 +233,9 @@ abstract class AnotherExampleServiceFindUserReturn
       _$AnotherExampleServiceFindUserReturnFromJson(json);
 }
 
-//
-// Client
-//
+// ***********************************************************************
+// WEBRPC-DART SERVICE CLIENTS.
+// ***********************************************************************
 
 String _removeSlash(String host) => host.endsWith('/')
     ? host.replaceRange(host.length - 1, host.length, '')
@@ -248,6 +251,22 @@ class ExampleService {
       {@required this.host, @required this.client, RpcLogger logger}) {
     _srvcPath = '${_removeSlash(host)}/rpc/ExampleService/';
   }
+
+  FutureOr<void> ping({Map<String, String> headers}) async {}
+
+  FutureOr<ExampleServiceStatusReturn> status(
+      {Map<String, String> headers}) async {}
+
+  FutureOr<ExampleServiceVersionReturn> version(
+      {Map<String, String> headers}) async {}
+
+  FutureOr<ExampleServiceGetUserReturn> getUser(
+      {@required ExampleServiceGetUserArgs args,
+      Map<String, String> headers}) async {}
+
+  FutureOr<ExampleServiceFindUserReturn> findUser(
+      {@required ExampleServiceFindUserArgs args,
+      Map<String, String> headers}) async {}
 }
 
 class AnotherExampleService {
@@ -260,85 +279,30 @@ class AnotherExampleService {
       {@required this.host, @required this.client, RpcLogger logger}) {
     _srvcPath = '${_removeSlash(host)}/rpc/AnotherExampleService/';
   }
+
+  FutureOr<void> ping({Map<String, String> headers}) async {}
+
+  FutureOr<AnotherExampleServiceStatusReturn> status(
+      {Map<String, String> headers}) async {}
+
+  FutureOr<AnotherExampleServiceVersionReturn> version(
+      {Map<String, String> headers}) async {}
+
+  FutureOr<AnotherExampleServiceGetUserReturn> getUser(
+      {@required AnotherExampleServiceGetUserArgs args,
+      Map<String, String> headers}) async {}
+
+  FutureOr<AnotherExampleServiceFindUserReturn> findUser(
+      {@required AnotherExampleServiceFindUserArgs args,
+      Map<String, String> headers}) async {}
 }
 
 // *********************************************************************
 // WEBRPC-DART HELPER CODE.
 // *********************************************************************
 
-enum RpcLogLevel {
-  Info,
-  Fine,
-  Finer,
-  Finest,
-  Config,
-  Warning,
-  Severe,
-  Shout,
-}
-
-// This exception should be thrown from all WEBRPC-DART service method implementations.
-// Throwing this exception and providing an [RpcLogLevel] allows the rpc logging mechanism to log all caught excetpions at the correct level.
-class WebRPCException extends HttpException {
-  @override
-  final String message;
-  final RpcLogLevel level;
-  WebRPCException(
-      {this.message = 'webrpc error', this.level = RpcLogLevel.Info})
-      : super('$message');
-}
-
-String _rpcLogMsg(WebRPCException exc, [Object error, StackTrace stackTrace]) =>
-    '{message: ${exc.message}, level: ${exc.level}, timeStamp: ${DateTime.now().toString()}, error: $error, stackTrace: $stackTrace}';
-
 String _logMsg(Exception exc, [Object error, StackTrace stackTrace]) =>
     '{message: ${exc.toString()}, timeStamp: ${DateTime.now().toString()}, error: $error, stackTrace: $stackTrace}';
-
-// Helper Method for logging WebRPCExceptions.
-void _logWebRpcExc(RpcLogger log, WebRPCException exc,
-    [Object error, StackTrace stackTrace]) {
-  switch (exc.level) {
-    case RpcLogLevel.Config:
-      {
-        log.config(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
-      }
-      break;
-    case RpcLogLevel.Fine:
-      {
-        log.fine(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
-      }
-      break;
-    case RpcLogLevel.Finer:
-      {
-        log.finer(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
-      }
-      break;
-    case RpcLogLevel.Finest:
-      {
-        log.finest(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
-      }
-      break;
-    case RpcLogLevel.Info:
-      {
-        log.info(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
-      }
-      break;
-    case RpcLogLevel.Warning:
-      {
-        log.warning(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
-      }
-      break;
-    case RpcLogLevel.Severe:
-      {
-        log.severe(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
-      }
-      break;
-    case RpcLogLevel.Shout:
-      {
-        log.shout(_rpcLogMsg(exc, error, stackTrace), error, stackTrace);
-      }
-  }
-}
 
 void _logExc(RpcLogger log, Exception exc,
         [Object error, StackTrace stackTrace]) =>

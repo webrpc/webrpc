@@ -1,17 +1,26 @@
 {{- define "proto" -}}
 import 'dart:async';
 import 'dart:convert';
+{{if .TargetOpts.Server}}
 import 'dart:io';
-
+{{end}}
 import 'package:meta/meta.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 {{if .TargetOpts.Client}}
 import 'package:http/http.dart' as http;
+{{if .TargetOpts.Extra | useFlutter}}
+import 'package:flutter/foundation.dart';
+{{end}}
 {{end}}
 {{if .TargetOpts.Server}}
 import 'package:args/args.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
+{{end}}
+
+{{if .TargetOpts.PkgName}}
+part '{{.TargetOpts.PkgName}}.freezed.dart';
+part '{{.TargetOpts.PkgName}}.g.dart';
 {{end}}
 
 // {{.Name}} {{.SchemaVersion}} {{.SchemaHash}}
