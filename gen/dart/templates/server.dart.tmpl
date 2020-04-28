@@ -67,7 +67,7 @@ class WebRpcServer {
       {{$name := .Name}}
       {{- range .Methods}}
       case '/rpc/{{$name}}/{{.Name}}': {
-         return await _handle{{$name}}{{.Name}}(r);
+         return _handle{{$name}}{{.Name}}(r);
       }
       break;
       {{end -}} {{/* end of range .Methods */}}

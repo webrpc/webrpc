@@ -43,13 +43,13 @@ abstract class Kind with _$Kind {
 
 @freezed
 abstract class Empty with _$Empty {
-  const factory Empty() = _Empty;
+  factory Empty() = _Empty;
   factory Empty.fromJson(Map<String, dynamic> json) => _$EmptyFromJson(json);
 }
 
 @freezed
 abstract class User with _$User {
-  const factory User({
+  factory User({
     @required int id,
     @JsonKey(name: 'USERNAME') @required String username,
     @required String role,
@@ -59,7 +59,7 @@ abstract class User with _$User {
 
 @freezed
 abstract class SearchFilter with _$SearchFilter {
-  const factory SearchFilter({
+  factory SearchFilter({
     @required String q,
   }) = _SearchFilter;
   factory SearchFilter.fromJson(Map<String, dynamic> json) =>
@@ -68,7 +68,7 @@ abstract class SearchFilter with _$SearchFilter {
 
 @freezed
 abstract class Version with _$Version {
-  const factory Version({
+  factory Version({
     @required String webrpcVersion,
     @required String schemaVersion,
     @required String schemaHash,
@@ -79,7 +79,7 @@ abstract class Version with _$Version {
 
 @freezed
 abstract class ComplexType with _$ComplexType {
-  const factory ComplexType({
+  factory ComplexType({
     @required Map<String, dynamic> meta,
     @required Map<String, Map<String, int>> metaNestedExample,
     @required List<String> namesList,
@@ -99,7 +99,7 @@ abstract class ComplexType with _$ComplexType {
 // *********************************************************************
 @freezed
 abstract class ExampleServiceGetUserArgs with _$ExampleServiceGetUserArgs {
-  const factory ExampleServiceGetUserArgs({
+  factory ExampleServiceGetUserArgs({
     @required Map<String, String> header,
     @required int userID,
   }) = _ExampleServiceGetUserArgs;
@@ -109,7 +109,7 @@ abstract class ExampleServiceGetUserArgs with _$ExampleServiceGetUserArgs {
 
 @freezed
 abstract class ExampleServiceFindUserArgs with _$ExampleServiceFindUserArgs {
-  const factory ExampleServiceFindUserArgs({
+  factory ExampleServiceFindUserArgs({
     @required SearchFilter s,
   }) = _ExampleServiceFindUserArgs;
   factory ExampleServiceFindUserArgs.fromJson(Map<String, dynamic> json) =>
@@ -122,21 +122,21 @@ abstract class ExampleServiceFindUserArgs with _$ExampleServiceFindUserArgs {
 
 @freezed
 abstract class ExampleServiceStatusReturn with _$ExampleServiceStatusReturn {
-  const factory ExampleServiceStatusReturn({
+  factory ExampleServiceStatusReturn({
     @required bool status,
   }) = _ExampleServiceStatusReturn;
 }
 
 @freezed
 abstract class ExampleServiceVersionReturn with _$ExampleServiceVersionReturn {
-  const factory ExampleServiceVersionReturn({
+  factory ExampleServiceVersionReturn({
     @required Version version,
   }) = _ExampleServiceVersionReturn;
 }
 
 @freezed
 abstract class ExampleServiceGetUserReturn with _$ExampleServiceGetUserReturn {
-  const factory ExampleServiceGetUserReturn({
+  factory ExampleServiceGetUserReturn({
     @required int code,
     @required User user,
   }) = _ExampleServiceGetUserReturn;
@@ -145,7 +145,7 @@ abstract class ExampleServiceGetUserReturn with _$ExampleServiceGetUserReturn {
 @freezed
 abstract class ExampleServiceFindUserReturn
     with _$ExampleServiceFindUserReturn {
-  const factory ExampleServiceFindUserReturn({
+  factory ExampleServiceFindUserReturn({
     @required String name,
     @required User user,
   }) = _ExampleServiceFindUserReturn;
@@ -157,7 +157,7 @@ abstract class ExampleServiceFindUserReturn
 @freezed
 abstract class AnotherExampleServiceGetUserArgs
     with _$AnotherExampleServiceGetUserArgs {
-  const factory AnotherExampleServiceGetUserArgs({
+  factory AnotherExampleServiceGetUserArgs({
     @required Map<String, String> header,
     @required int userID,
   }) = _AnotherExampleServiceGetUserArgs;
@@ -169,7 +169,7 @@ abstract class AnotherExampleServiceGetUserArgs
 @freezed
 abstract class AnotherExampleServiceFindUserArgs
     with _$AnotherExampleServiceFindUserArgs {
-  const factory AnotherExampleServiceFindUserArgs({
+  factory AnotherExampleServiceFindUserArgs({
     @required SearchFilter s,
   }) = _AnotherExampleServiceFindUserArgs;
   factory AnotherExampleServiceFindUserArgs.fromJson(
@@ -184,7 +184,7 @@ abstract class AnotherExampleServiceFindUserArgs
 @freezed
 abstract class AnotherExampleServiceStatusReturn
     with _$AnotherExampleServiceStatusReturn {
-  const factory AnotherExampleServiceStatusReturn({
+  factory AnotherExampleServiceStatusReturn({
     @required bool status,
   }) = _AnotherExampleServiceStatusReturn;
 }
@@ -192,7 +192,7 @@ abstract class AnotherExampleServiceStatusReturn
 @freezed
 abstract class AnotherExampleServiceVersionReturn
     with _$AnotherExampleServiceVersionReturn {
-  const factory AnotherExampleServiceVersionReturn({
+  factory AnotherExampleServiceVersionReturn({
     @required Version version,
   }) = _AnotherExampleServiceVersionReturn;
 }
@@ -200,7 +200,7 @@ abstract class AnotherExampleServiceVersionReturn
 @freezed
 abstract class AnotherExampleServiceGetUserReturn
     with _$AnotherExampleServiceGetUserReturn {
-  const factory AnotherExampleServiceGetUserReturn({
+  factory AnotherExampleServiceGetUserReturn({
     @required int code,
     @required User user,
   }) = _AnotherExampleServiceGetUserReturn;
@@ -209,7 +209,7 @@ abstract class AnotherExampleServiceGetUserReturn
 @freezed
 abstract class AnotherExampleServiceFindUserReturn
     with _$AnotherExampleServiceFindUserReturn {
-  const factory AnotherExampleServiceFindUserReturn({
+  factory AnotherExampleServiceFindUserReturn({
     @required String name,
     @required User user,
   }) = _AnotherExampleServiceFindUserReturn;
@@ -293,61 +293,61 @@ class WebRpcServer {
     switch (r.url.path) {
       case '/rpc/ExampleService/Ping':
         {
-          return await _handleExampleServicePing(r);
+          return _handleExampleServicePing(r);
         }
         break;
 
       case '/rpc/ExampleService/Status':
         {
-          return await _handleExampleServiceStatus(r);
+          return _handleExampleServiceStatus(r);
         }
         break;
 
       case '/rpc/ExampleService/Version':
         {
-          return await _handleExampleServiceVersion(r);
+          return _handleExampleServiceVersion(r);
         }
         break;
 
       case '/rpc/ExampleService/GetUser':
         {
-          return await _handleExampleServiceGetUser(r);
+          return _handleExampleServiceGetUser(r);
         }
         break;
 
       case '/rpc/ExampleService/FindUser':
         {
-          return await _handleExampleServiceFindUser(r);
+          return _handleExampleServiceFindUser(r);
         }
         break;
 
       case '/rpc/AnotherExampleService/Ping':
         {
-          return await _handleAnotherExampleServicePing(r);
+          return _handleAnotherExampleServicePing(r);
         }
         break;
 
       case '/rpc/AnotherExampleService/Status':
         {
-          return await _handleAnotherExampleServiceStatus(r);
+          return _handleAnotherExampleServiceStatus(r);
         }
         break;
 
       case '/rpc/AnotherExampleService/Version':
         {
-          return await _handleAnotherExampleServiceVersion(r);
+          return _handleAnotherExampleServiceVersion(r);
         }
         break;
 
       case '/rpc/AnotherExampleService/GetUser':
         {
-          return await _handleAnotherExampleServiceGetUser(r);
+          return _handleAnotherExampleServiceGetUser(r);
         }
         break;
 
       case '/rpc/AnotherExampleService/FindUser':
         {
-          return await _handleAnotherExampleServiceFindUser(r);
+          return _handleAnotherExampleServiceFindUser(r);
         }
         break;
 
