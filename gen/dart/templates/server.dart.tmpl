@@ -36,9 +36,9 @@ class WebRpcServer {
       {{end -}}
       RpcLogger logger,
       String hostName = 'localhost',
-      List<shelf.Middleware> middleware}) {
+      List<shelf.Middleware> middleware,}) {
       _hostname = hostName;
-      _log = loggger ?? _rpcLogger;
+      _log = logger ?? _rpcLogger;
       _middleware = middleware?.toSet() ?? [shelf.logRequests()];
   }
 

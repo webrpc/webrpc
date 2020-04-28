@@ -129,7 +129,7 @@ func exportedJSONField(in schema.MessageField) (string, error) {
 func jsonKey(in schema.MessageField) (string, error) {
 	field, err := exportedJSONField(in)
 	if field != string(in.Name) {
-		return fmt.Sprintf("@Jsonkey(name: '%s')", field), err
+		return fmt.Sprintf("@JsonKey(name: '%s')", field), err
 	}
 	return "", nil
 }

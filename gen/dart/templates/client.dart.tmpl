@@ -13,17 +13,19 @@ String _removeSlash(String host) => host.endsWith('/')
 class {{.Name}} {
   final http.Client client;
   final String host;
-  final String path;
   RpcLogger _log; 
   String _srvcPath = '/rpc/{{.Name}}/';
-  {{.Name}}({@required this.host, 
-             @required this.client,
-             RpcLogger logger}) {
+  {{.Name}}({
+    @required this.client,
+    this.host = 'localhost',
+    RpcLogger logger,
+  }) {
       _srvcPath = '${_removeSlash(host)}/rpc/{{.Name}}/';
+      _log = logger ?? _rpcLogger;
   }  
   {{range .Methods}}
   {{. | methodOutputs}} {{.Name | methodName}}({{. | clientMethodInputs}}) async {
-    
+
   }
   {{end}} {{/* end of range .Methods */}}
 
