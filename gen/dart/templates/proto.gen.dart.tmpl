@@ -4,15 +4,10 @@ import 'dart:convert';
 {{if .TargetOpts.Server}}
 import 'dart:io';
 {{end}}
-{{if .TargetOpts.Client}}
-import 'dart:typed_data';
-{{end}}
 import 'package:meta/meta.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 {{if .TargetOpts.Client}}
 import 'package:http/http.dart' as http;
-
-import 'package:http_parser/http_parser.dart';
 {{if .TargetOpts.Extra | useFlutter}}
 import 'package:flutter/foundation.dart';
 {{end}}

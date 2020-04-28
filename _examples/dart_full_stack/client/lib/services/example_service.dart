@@ -49,10 +49,9 @@ abstract class Empty with _$Empty {
 
 @freezed
 abstract class User with _$User {
-  @JsonSerializable(explicitToJson: true)
   const factory User({
     @required int id,
-    @required @JsonKey(name: 'USERNAME') String username,
+    @JsonKey(name: 'USERNAME') @required String username,
     @required String role,
   }) = _User;
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
@@ -240,209 +239,15 @@ abstract class AnotherExampleServiceFindUserReturn
 // WEBRPC-DART SERVICE CLIENTS.
 // ***********************************************************************
 
-/// Converts [input] into a [Uint8List].
-///
-/// If [input] is a [TypedData], this just returns a view on [input].
-Uint8List toUint8List(List<int> input) {
-  if (input is Uint8List) return input;
-  if (input is TypedData) {
-    return Uint8List.view((input as TypedData).buffer);
-  }
-  return Uint8List.fromList(input);
-}
-
-/// Returns the [Encoding] that corresponds to [charset].
-///
-/// Throws a [FormatException] if no [Encoding] was found that corresponds to
-/// [charset].
-///
-/// [charset] may not be null.
-Encoding requiredEncodingForCharset(String charset) =>
-    Encoding.getByName(charset) ??
-    (throw FormatException('Unsupported encoding "$charset".'));
-
-/// Converts a [Map] from parameter names to values to a URL query string.
-///
-///     mapToQuery({"foo": "bar", "baz": "bang"});
-///     //=> "foo=bar&baz=bang"
-String mapToQuery(Map<String, String> map, {Encoding encoding}) {
-  var pairs = <List<String>>[];
-  map.forEach((key, value) => pairs.add([
-        Uri.encodeQueryComponent(key, encoding: encoding),
-        Uri.encodeQueryComponent(value, encoding: encoding)
-      ]));
-  return pairs.map((pair) => '${pair[0]}=${pair[1]}').join('&');
-}
-
-/// An HTTP request where the entire request body is known in advance.
-class Request extends http.BaseRequest {
-  /// The size of the request body, in bytes. This is calculated from
-  /// [bodyBytes].
-  ///
-  /// The content length cannot be set for [Request], since it's automatically
-  /// calculated from [bodyBytes].
-  @override
-  int get contentLength => bodyBytes.length;
-
-  @override
-  set contentLength(int value) {
-    throw UnsupportedError('Cannot set the contentLength property of '
-        'non-streaming Request objects.');
-  }
-
-  /// The default encoding to use when converting between [bodyBytes] and
-  /// [body].
-  ///
-  /// This is only used if [encoding] hasn't been manually set and if the
-  /// content-type header has no encoding information.
-  Encoding _defaultEncoding;
-
-  /// The encoding used for the request.
-  ///
-  /// This encoding is used when converting between [bodyBytes] and [body].
-  ///
-  /// If the request has a `Content-Type` header and that header has a `charset`
-  /// parameter, that parameter's value is used as the encoding. Otherwise, if
-  /// [encoding] has been set manually, that encoding is used. If that hasn't
-  /// been set either, this defaults to [utf8].
-  ///
-  /// If the `charset` parameter's value is not a known [Encoding], reading this
-  /// will throw a [FormatException].
-  ///
-  /// If the request has a `Content-Type` header, setting this will set the
-  /// charset parameter on that header.
-  Encoding get encoding {
-    if (_contentType == null ||
-        !_contentType.parameters.containsKey('charset')) {
-      return _defaultEncoding;
-    }
-    return requiredEncodingForCharset(_contentType.parameters['charset']);
-  }
-
-  set encoding(Encoding value) {
-    _checkFinalized();
-    _defaultEncoding = value;
-    var contentType = _contentType;
-    if (contentType == null) return;
-    _contentType = contentType.change(parameters: {'charset': value.name});
-  }
-
-  // TODO(nweiz): make this return a read-only view
-  /// The bytes comprising the body of the request.
-  ///
-  /// This is converted to and from [body] using [encoding].
-  ///
-  /// This list should only be set, not be modified in place.
-  Uint8List get bodyBytes => _bodyBytes;
-  Uint8List _bodyBytes;
-
-  set bodyBytes(List<int> value) {
-    _checkFinalized();
-    _bodyBytes = toUint8List(value);
-  }
-
-  /// The body of the request as a string.
-  ///
-  /// This is converted to and from [bodyBytes] using [encoding].
-  ///
-  /// When this is set, if the request does not yet have a `Content-Type`
-  /// header, one will be added with the type `text/plain`. Then the `charset`
-  /// parameter of the `Content-Type` header (whether new or pre-existing) will
-  /// be set to [encoding] if it wasn't already set.
-  String get body => encoding.decode(bodyBytes);
-
-  set body(String value) {
-    bodyBytes = encoding.encode(value);
-    var contentType = _contentType;
-    if (contentType == null) {
-      _contentType = MediaType('text', 'plain', {'charset': encoding.name});
-    } else if (!contentType.parameters.containsKey('charset')) {
-      _contentType = contentType.change(parameters: {'charset': encoding.name});
-    }
-  }
-
-  /// The form-encoded fields in the body of the request as a map from field
-  /// names to values.
-  ///
-  /// The form-encoded body is converted to and from [bodyBytes] using
-  /// [encoding] (in the same way as [body]).
-  ///
-  /// If the request doesn't have a `Content-Type` header of
-  /// `application/x-www-form-urlencoded`, reading this will throw a
-  /// [StateError].
-  ///
-  /// If the request has a `Content-Type` header with a type other than
-  /// `application/x-www-form-urlencoded`, setting this will throw a
-  /// [StateError]. Otherwise, the content type will be set to
-  /// `application/x-www-form-urlencoded`.
-  ///
-  /// This map should only be set, not modified in place.
-  Map<String, String> get bodyFields {
-    var contentType = _contentType;
-    if (contentType == null ||
-        contentType.mimeType != 'application/x-www-form-urlencoded') {
-      throw StateError('Cannot access the body fields of a Request without '
-          'content-type "application/x-www-form-urlencoded".');
-    }
-
-    return Uri.splitQueryString(body, encoding: encoding);
-  }
-
-  set bodyFields(Map<String, String> fields) {
-    var contentType = _contentType;
-    if (contentType == null) {
-      _contentType = MediaType('application', 'x-www-form-urlencoded');
-    } else if (contentType.mimeType != 'application/x-www-form-urlencoded') {
-      throw StateError('Cannot set the body fields of a Request with '
-          'content-type "${contentType.mimeType}".');
-    }
-
-    body = mapToQuery(fields, encoding: encoding);
-  }
-
-  Request(String method, Uri url)
-      : _defaultEncoding = utf8,
-        _bodyBytes = Uint8List(0),
-        super(method, url);
-
-  /// Freezes all mutable fields and returns a single-subscription [ByteStream]
-  /// containing the request body.
-  @override
-  http.ByteStream finalize() {
-    super.finalize();
-    return http.ByteStream.fromBytes(bodyBytes);
-  }
-
-  /// The `Content-Type` header of the request (if it exists) as a [MediaType].
-  MediaType get _contentType {
-    var contentType = headers['content-type'];
-    if (contentType == null) return null;
-    return MediaType.parse(contentType);
-  }
-
-  set _contentType(MediaType value) {
-    headers['content-type'] = value.toString();
-  }
-
-  /// Throw an error if this request has been finalized.
-  void _checkFinalized() {
-    if (!finalized) return;
-    throw StateError("Can't modify a finalized Request.");
-  }
-}
-
 String _removeSlash(String host) => host.endsWith('/')
     ? host.replaceRange(host.length - 1, host.length, '')
     : host;
 
 class ExampleService {
-  final http.Client client;
   final String host;
   RpcLogger _log;
   String _srvcPath = '/rpc/ExampleService/';
-  String _url(String route) => '$_srvcPath$route';
   ExampleService({
-    @required this.client,
     this.host = 'localhost',
     RpcLogger logger,
   }) {
@@ -450,9 +255,17 @@ class ExampleService {
     _log = logger ?? _rpcLogger;
   }
 
-  http.Request _createRequest() {
-    http.Request r = http.Request('POST', Uri());
-    r.headers = {};
+  Future<http.Response> _makeRequest(String route,
+      {dynamic json, Map<String, String> headers}) {
+    final path = '$_srvcPath/$route';
+    _log.info({'{"info": request to $path made at ${DateTime.now()}}'});
+    return http.post(path,
+        headers: {
+          ...?headers,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json);
   }
 
   FutureOr<void> ping({Map<String, String> headers}) async {}
@@ -501,6 +314,106 @@ class AnotherExampleService {
   FutureOr<AnotherExampleServiceFindUserReturn> findUser(
       {@required AnotherExampleServiceFindUserArgs args,
       Map<String, String> headers}) async {}
+}
+
+// ***********************************************************************
+// CLIENT SIDE HELPER CODE.
+// ***********************************************************************
+
+Uint8List _toUint8List(List<int> input) {
+  if (input is Uint8List) return input;
+  if (input is TypedData) {
+    return Uint8List.view((input as TypedData).buffer);
+  }
+  return Uint8List.fromList(input);
+}
+
+Encoding _requiredEncodingForCharset(String charset) =>
+    Encoding.getByName(charset) ??
+    (throw FormatException('Unsupported encoding "$charset".'));
+
+/// An HTTP request where the entire request body is known in advance.
+/// Only Supports POST requst and is used for making request to a webrpc serever.
+class WebRpcRequest extends http.BaseRequest {
+  @override
+  int get contentLength => bodyBytes.length;
+
+  @override
+  set contentLength(int value) {
+    throw UnsupportedError('Cannot set the contentLength property of '
+        'non-streaming Request objects.');
+  }
+
+  @override
+  final Map<String, String> headers = {
+    'Content-Type': 'application/json',
+    'Accept:': 'application/json',
+  };
+  Encoding _defaultEncoding;
+
+  Encoding get encoding {
+    if (_contentType == null ||
+        !_contentType.parameters.containsKey('charset')) {
+      return _defaultEncoding;
+    }
+    return _requiredEncodingForCharset(_contentType.parameters['charset']);
+  }
+
+  set encoding(Encoding value) {
+    _checkFinalized();
+    _defaultEncoding = value;
+    final contentType = _contentType;
+    if (contentType == null) return;
+    _contentType = contentType.change(parameters: {'charset': value.name});
+  }
+
+  Uint8List get bodyBytes => _bodyBytes;
+  Uint8List _bodyBytes;
+
+  set bodyBytes(List<int> value) {
+    _checkFinalized();
+    _bodyBytes = _toUint8List(value);
+  }
+
+  String get body => encoding.decode(bodyBytes);
+
+  set body(String value) {
+    bodyBytes = encoding.encode(value);
+    final contentType = _contentType;
+    if (contentType == null) {
+      _contentType =
+          MediaType('application', 'json', {'charset': encoding.name});
+    } else if (!contentType.parameters.containsKey('charset')) {
+      _contentType = contentType.change(parameters: {'charset': encoding.name});
+    }
+  }
+
+  WebRpcRequest(Uri url)
+      : _defaultEncoding = utf8,
+        _bodyBytes = Uint8List(0),
+        super('POST', url);
+
+  @override
+  http.ByteStream finalize() {
+    super.finalize();
+    return http.ByteStream.fromBytes(bodyBytes);
+  }
+
+  /// The `Content-Type` header of the request (if it exists) as a [MediaType].
+  MediaType get _contentType {
+    final contentType = headers['content-type'];
+    if (contentType == null) return null;
+    return MediaType.parse(contentType);
+  }
+
+  set _contentType(MediaType value) {
+    headers['content-type'] = value.toString();
+  }
+
+  void _checkFinalized() {
+    if (!finalized) return;
+    throw StateError("Can't modify a finalized Request.");
+  }
 }
 
 // *********************************************************************

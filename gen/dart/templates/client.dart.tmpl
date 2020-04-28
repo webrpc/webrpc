@@ -11,18 +11,30 @@ String _removeSlash(String host) => host.endsWith('/')
 
 {{range .Services}}
 class {{.Name}} {
-  final http.Client client;
   final String host;
   RpcLogger _log; 
   String _srvcPath = '/rpc/{{.Name}}/';
   {{.Name}}({
-    @required this.client,
     this.host = 'localhost',
     RpcLogger logger,
   }) {
       _srvcPath = '${_removeSlash(host)}/rpc/{{.Name}}/';
       _log = logger ?? _rpcLogger;
-  }  
+  } 
+   
+  Future<http.Response> _makeRequest(String route,
+      {dynamic json, Map<String, String> headers}) {
+    final path = '$_srvcPath/$route';
+    _log.info({'{"info": request to $path made at ${DateTime.now()}}'});
+    return http.post(path,
+        headers: {
+          ...?headers,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json);
+  }
+ 
   {{range .Methods}}
   {{. | methodOutputs}} {{.Name | methodName}}({{. | clientMethodInputs}}) async {
 
