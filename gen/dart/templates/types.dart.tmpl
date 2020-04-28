@@ -48,8 +48,8 @@ abstract class {{.Name}} with _${{.Name}} {
 {{- range .Methods -}}
 {{- if .Inputs }}
 @freezed
-abstract class {{. | methodArgumentInputClassName}} with _${{. | methodArgumentInputClassName}} {
-  factory {{. | methodArgumentInputClassName}} ({
+abstract class _{{. | methodArgumentInputClassName}} with _${{. | methodArgumentInputClassName}} {
+  factory _{{. | methodArgumentInputClassName}} ({
   {{- range .Inputs}}
   {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
   {{- end -}} {{/* end of if not .Optional */}}
@@ -59,7 +59,7 @@ abstract class {{. | methodArgumentInputClassName}} with _${{. | methodArgumentI
   {{.Type | fieldType}} {{.Name}},
   {{- end -}}
 {{- end}}
-  }) = _{{. | methodArgumentInputClassName}};
+  }) = _{{. | methodArgumentInputClassName}}_Freezed;
   factory {{. | methodArgumentInputClassName}}.fromJson(Map<String, dynamic> json) => _${{. | methodArgumentInputClassName}}FromJson(json);
 }
 {{- end -}} {{/* end of if .Inputs */}}

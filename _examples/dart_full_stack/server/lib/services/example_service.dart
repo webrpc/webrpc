@@ -922,31 +922,76 @@ class rpcResp {
 // WEBRPC-DART HELPER CODE.
 // *********************************************************************
 
-String _logMsg(Exception exc, [Object error, StackTrace stackTrace]) =>
+String _logMsg(
+  Exception exc, [
+  Object error,
+  StackTrace stackTrace,
+]) =>
     '{message: ${exc.toString()}, timeStamp: ${DateTime.now().toString()}, error: $error, stackTrace: $stackTrace}';
 
-void _logExc(RpcLogger log, Exception exc,
-        [Object error, StackTrace stackTrace]) =>
+void _logExc(
+  RpcLogger log,
+  Exception exc, [
+  Object error,
+  StackTrace stackTrace,
+]) =>
     log.warning(_logMsg(exc, error, stackTrace));
 
 abstract class RpcLogger {
-  void _log(message, [Object error, StackTrace stackTrace]) => print(
-      '{message: $message}, error: $error, stackTrace: $stackTrace, time: ${DateTime.now()}');
-  void finest(message, [Object error, StackTrace stackTrace]) =>
+  void _log(
+    message, [
+    Object error,
+    StackTrace stackTrace,
+  ]) =>
+      print(
+          '{message: $message}, error: $error, stackTrace: $stackTrace, time: ${DateTime.now()}');
+  void finest(
+    message, [
+    Object error,
+    StackTrace stackTrace,
+  ]) =>
       _log(message, error, stackTrace);
-  void finer(message, [Object error, StackTrace stackTrace]) =>
+  void finer(
+    message, [
+    Object error,
+    StackTrace stackTrace,
+  ]) =>
       _log(message, error, stackTrace);
-  void fine(message, [Object error, StackTrace stackTrace]) =>
+  void fine(
+    message, [
+    Object error,
+    StackTrace stackTrace,
+  ]) =>
       _log(message, error, stackTrace);
-  void config(message, [Object error, StackTrace stackTrace]) =>
+  void config(
+    message, [
+    Object error,
+    StackTrace stackTrace,
+  ]) =>
       _log(message, error, stackTrace);
-  void info(message, [Object error, StackTrace stackTrace]) =>
+  void info(
+    message, [
+    Object error,
+    StackTrace stackTrace,
+  ]) =>
       _log(message, error, stackTrace);
-  void warning(message, [Object error, StackTrace stackTrace]) =>
+  void warning(
+    message, [
+    Object error,
+    StackTrace stackTrace,
+  ]) =>
       _log(message, error, stackTrace);
-  void severe(message, [Object error, StackTrace stackTrace]) =>
+  void severe(
+    message, [
+    Object error,
+    StackTrace stackTrace,
+  ]) =>
       _log(message, error, stackTrace);
-  void shout(message, [Object error, StackTrace stackTrace]) =>
+  void shout(
+    message, [
+    Object error,
+    StackTrace stackTrace,
+  ]) =>
       _log(message, error, stackTrace);
 }
 

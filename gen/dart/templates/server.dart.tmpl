@@ -121,7 +121,7 @@ class WebRpcServer {
   {{end}}{{/* end of range .Methods */}}
   {{- end -}} {{/* end of range .Services for Methods */}}
   ArgResults _parseArgs(List<String> args) {
-  var parser = ArgParser()..addOption('port', abbr: 'p');
+  final parser = ArgParser()..addOption('port', abbr: 'p');
   try {
     return parser.parse(args);
   } on ArgParserException catch (e, stackTrace) {

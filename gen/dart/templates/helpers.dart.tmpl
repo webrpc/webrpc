@@ -3,33 +3,48 @@
 // WEBRPC-DART HELPER CODE.
 // *********************************************************************
 {{if .TargetOpts.Client}}
-const Set<int> nonErrorcodes = {200, 201,202,203, 204,205,206, 300,301,302,303,304,307,308,};
+const Set<int> nonErrorcodes = {
+  200,
+  201,
+  202,
+  203,
+  204,
+  205,
+  206,
+  300,
+  301,
+  302,
+  303,
+  304,
+  307,
+  308,
+};
 {{end}}
-String _logMsg(Exception exc, [Object error, StackTrace stackTrace]) =>
+String _logMsg(Exception exc, [Object error, StackTrace stackTrace,]) =>
     '{message: ${exc.toString()}, timeStamp: ${DateTime.now().toString()}, error: $error, stackTrace: $stackTrace}';
 
 void _logExc(RpcLogger log, Exception exc,
-        [Object error, StackTrace stackTrace]) =>
+        [Object error, StackTrace stackTrace,]) =>
     log.warning(_logMsg(exc, error, stackTrace));
 
 abstract class RpcLogger {
-  void _log(message, [Object error, StackTrace stackTrace]) => print(
+  void _log(String message, [Object error, StackTrace stackTrace,]) => print(
       '{message: $message}, error: $error, stackTrace: $stackTrace, time: ${DateTime.now()}');
-  void finest(message, [Object error, StackTrace stackTrace]) =>
+  void finest(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void finer(message, [Object error, StackTrace stackTrace]) =>
+  void finer(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void fine(message, [Object error, StackTrace stackTrace]) =>
+  void fine(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void config(message, [Object error, StackTrace stackTrace]) =>
+  void config(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void info(message, [Object error, StackTrace stackTrace]) =>
+  void info(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void warning(message, [Object error, StackTrace stackTrace]) =>
+  void warning(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void severe(message, [Object error, StackTrace stackTrace]) =>
+  void severe(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void shout(message, [Object error, StackTrace stackTrace]) =>
+  void shout(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
 }
 
@@ -39,7 +54,7 @@ class _Logger extends RpcLogger {
 
 final _rpcLogger = _Logger();
 
-// An error in the http stack.
+// An http error.
 class HttpErr {
   final String status;
   final int code;

@@ -25,7 +25,7 @@ class {{.Name}} {
   Future<http.Response> _makeRequest(String route,
       {dynamic json = "{}", Map<String, String> headers,}) {
     final path = '$_srvcPath/$route';
-    _log.info({'{"info": request to $path made at ${DateTime.now()}}'});
+    _log.info('{"info": request to $path made at ${DateTime.now()}}');
     return http.post(path,
         headers: {
           ...?headers,
@@ -37,18 +37,46 @@ class {{.Name}} {
 
   RpcErr _getErr(http.Response r) {
     try {
-      return RpcErr.fromJson(r.body); 
+      return RpcErr.fromJson(jsonDecode(r.body)); 
     } on Exception catch( e, stackTrace ) {
       _logExc(_log, e, null, stackTrace);
     }
   }
  
   {{range .Methods}}
-  {{. | methodOutputs}} {{.Name | methodName}}({{. | clientMethodInputs}}) async {
+  {{. | methodOutputs}} {{.Name | methodName}}({
+  {{if .Inputs}}  
+  {{- range .Inputs}}
+  {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+  {{- end -}} {{/* end of range .Inputs */}}
+  {{- range .Inputs}}
+  {{if .Optional}}
+  {{.Type | fieldType}} {{.Name}},
+  {{- end -}}
+{{- end}}
+{{- end}}
+  Map<String, String> headers,
+  }) async {
     try {
     {{- if .Inputs | len}} {{/* if method has args */}}
+      final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}({{- range .Inputs}}{{.Name}}:{{.Name}},{{- end}});  
       {{- if .Outputs | len}} {{/* if has args && returns something */}}
-
+      final http.Response response = await _makeRequest(
+        '',
+        json: jsonEncode(args.toJson()),
+        headers: headers,
+      );
+      if (!nonErrorcodes.contains(response.statusCode)) {
+        final RpcErr err = _getErr(response);
+        return {{. | methodArgumentOutputClassName}}.rpcErr(
+            message: err.message,
+            route: err.path,
+            statusCode: err.httpErr.code,
+            timeStamp: err.time,);
+      }
+      return {{. | methodArgumentOutputClassName}}.fromJson(
+          jsonDecode(response.body,),);           
       {{else}} {{/* if method has args but returns nothing */}}
 
       {{end}} {{/* end of if .Outputs */}}
