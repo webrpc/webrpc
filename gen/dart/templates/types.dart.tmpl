@@ -48,7 +48,7 @@ abstract class {{.Name}} with _${{.Name}} {
 {{- range .Methods -}}
 {{- if .Inputs }}
 @freezed
-abstract class _{{. | methodArgumentInputClassName}} with _${{. | methodArgumentInputClassName}} {
+abstract class _{{. | methodArgumentInputClassName}} with _$_{{. | methodArgumentInputClassName}} {
   factory _{{. | methodArgumentInputClassName}} ({
   {{- range .Inputs}}
   {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
@@ -60,7 +60,7 @@ abstract class _{{. | methodArgumentInputClassName}} with _${{. | methodArgument
   {{- end -}}
 {{- end}}
   }) = _{{. | methodArgumentInputClassName}}_Freezed;
-  factory {{. | methodArgumentInputClassName}}.fromJson(Map<String, dynamic> json) => _${{. | methodArgumentInputClassName}}FromJson(json);
+  factory _{{. | methodArgumentInputClassName}}.fromJson(Map<String, dynamic> json) => _$_{{. | methodArgumentInputClassName}}FromJson(json);
 }
 {{- end -}} {{/* end of if .Inputs */}}
 {{- end -}} {{/* end of range .Methods */}}
@@ -90,10 +90,10 @@ abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgument
     @required String route,
     @required int statusCode,
     @required DateTime timeStamp,    
-  }) = _{{. | methodArgumentOutputClassName}}RpcErr;  
+  }) = _{{. | methodArgumentOutputClassName}}RpcErr; 
+  {{end}} 
   factory {{. | methodArgumentOutputClassName}}.fromJson(Map<String, dynamic> json) => _${{. | methodArgumentOutputClassName}}FromJson(json);
-
-  {{end}}
+  
 }
 {{end}} {{/* end of if .Outputs */}}
 {{- end -}} {{/* end of range .Methods */}}

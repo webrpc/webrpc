@@ -1,13 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import 'package:http/http.dart' as http;
+
+import 'package:flutter/foundation.dart';
+
+
+
+
 
 part 'client.freezed.dart';
 part 'client.g.dart';
+
 
 // example v0.0.1 ebe26b74a56342a2fb2bf54ac0c0b43300a257b0
 // --
@@ -15,7 +22,7 @@ part 'client.g.dart';
 // Do not edit by hand. Update your webrpc schema and re-generate.
 
 // WebRPC description and code-gen version
-String webRPCVersion() {
+String webRPCVersion()  {
   return "v1";
 }
 
@@ -28,6 +35,7 @@ String WebRPCSchemaVersion() {
 String WebRPCSchemaHash() {
   return "ebe26b74a56342a2fb2bf54ac0c0b43300a257b0";
 }
+
 
 // **********************************************************************
 // MESSAGE TYPES.
@@ -44,276 +52,250 @@ abstract class Empty with _$Empty {
   factory Empty() = _Empty;
   factory Empty.fromJson(Map<String, dynamic> json) => _$EmptyFromJson(json);
 }
-
 @freezed
 abstract class User with _$User {
   factory User({
-    @required int id,
+     @required int id,
     @JsonKey(name: 'USERNAME') @required String username,
-    @required String role,
+     @required String role,
   }) = _User;
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 }
-
 @freezed
 abstract class SearchFilter with _$SearchFilter {
   factory SearchFilter({
-    @required String q,
+     @required String q,
   }) = _SearchFilter;
-  factory SearchFilter.fromJson(Map<String, dynamic> json) =>
-      _$SearchFilterFromJson(json);
+  factory SearchFilter.fromJson(Map<String, dynamic> json) => _$SearchFilterFromJson(json);
 }
-
 @freezed
 abstract class Version with _$Version {
   factory Version({
-    @required String webrpcVersion,
-    @required String schemaVersion,
-    @required String schemaHash,
+     @required String webrpcVersion,
+     @required String schemaVersion,
+     @required String schemaHash,
   }) = _Version;
-  factory Version.fromJson(Map<String, dynamic> json) =>
-      _$VersionFromJson(json);
+  factory Version.fromJson(Map<String, dynamic> json) => _$VersionFromJson(json);
 }
-
 @freezed
 abstract class ComplexType with _$ComplexType {
   factory ComplexType({
-    @required Map<String, dynamic> meta,
-    @required Map<String, Map<String, int>> metaNestedExample,
-    @required List<String> namesList,
-    @required List<int> numsList,
-    @required List<List<String>> doubleArray,
-    @required List<User> listOfUsers,
-    @required Map<String, User> mapOfUsers,
-    @required User user,
+     @required Map<String, dynamic> meta,
+     @required Map<String, Map<String, int>> metaNestedExample,
+     @required List<String> namesList,
+     @required List<int> numsList,
+     @required List<List<String>> doubleArray,
+     @required List<User> listOfUsers,
+     @required Map<String, User> mapOfUsers,
+     @required User user,
     List<Map<String, int>> listOfMaps,
   }) = _ComplexType;
-  factory ComplexType.fromJson(Map<String, dynamic> json) =>
-      _$ComplexTypeFromJson(json);
+  factory ComplexType.fromJson(Map<String, dynamic> json) => _$ComplexTypeFromJson(json);
 }
+
+
 
 // *********************************************************************
 // ExampleService METHOD ARGUMENT TYPES.
 // *********************************************************************
 @freezed
 abstract class _ExampleServiceGetUserArgs with _$ExampleServiceGetUserArgs {
-  factory _ExampleServiceGetUserArgs({
-    @required Map<String, String> header,
-    @required int userID,
+  factory _ExampleServiceGetUserArgs ({@required Map<String, String> header,@required int userID,
+  
+  
   }) = _ExampleServiceGetUserArgs_Freezed;
-  factory ExampleServiceGetUserArgs.fromJson(Map<String, dynamic> json) =>
-      _$ExampleServiceGetUserArgsFromJson(json);
+  factory ExampleServiceGetUserArgs.fromJson(Map<String, dynamic> json) => _$ExampleServiceGetUserArgsFromJson(json);
 }
-
 @freezed
 abstract class _ExampleServiceFindUserArgs with _$ExampleServiceFindUserArgs {
-  factory _ExampleServiceFindUserArgs({
-    @required SearchFilter s,
+  factory _ExampleServiceFindUserArgs ({@required SearchFilter s,
+  
   }) = _ExampleServiceFindUserArgs_Freezed;
-  factory ExampleServiceFindUserArgs.fromJson(Map<String, dynamic> json) =>
-      _$ExampleServiceFindUserArgsFromJson(json);
+  factory ExampleServiceFindUserArgs.fromJson(Map<String, dynamic> json) => _$ExampleServiceFindUserArgsFromJson(json);
 }
 
 // *********************************************************************
 // ExampleService METHOD RETURN TYPES.
 // *********************************************************************
+ 
 
 @freezed
 abstract class ExampleServiceStatusReturn with _$ExampleServiceStatusReturn {
-  factory ExampleServiceStatusReturn({
-    @required bool status,
-  }) = _ExampleServiceStatusReturn;
-
+  factory ExampleServiceStatusReturn({@required bool status,}) = _ExampleServiceStatusReturn;
+  
   factory ExampleServiceStatusReturn.rpcErr({
     @required String message,
     @required String route,
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _ExampleServiceStatusReturnRpcErr;
-  factory ExampleServiceStatusReturn.fromJson(Map<String, dynamic> json) =>
-      _$ExampleServiceStatusReturnFromJson(json);
+    @required DateTime timeStamp,    
+  }) = _ExampleServiceStatusReturnRpcErr;  
+  factory ExampleServiceStatusReturn.fromJson(Map<String, dynamic> json) => _$ExampleServiceStatusReturnFromJson(json);
+
+  
 }
+ 
 
 @freezed
 abstract class ExampleServiceVersionReturn with _$ExampleServiceVersionReturn {
-  factory ExampleServiceVersionReturn({
-    @required Version version,
-  }) = _ExampleServiceVersionReturn;
-
+  factory ExampleServiceVersionReturn({@required Version version,}) = _ExampleServiceVersionReturn;
+  
   factory ExampleServiceVersionReturn.rpcErr({
     @required String message,
     @required String route,
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _ExampleServiceVersionReturnRpcErr;
-  factory ExampleServiceVersionReturn.fromJson(Map<String, dynamic> json) =>
-      _$ExampleServiceVersionReturnFromJson(json);
+    @required DateTime timeStamp,    
+  }) = _ExampleServiceVersionReturnRpcErr;  
+  factory ExampleServiceVersionReturn.fromJson(Map<String, dynamic> json) => _$ExampleServiceVersionReturnFromJson(json);
+
+  
 }
+ 
 
 @freezed
 abstract class ExampleServiceGetUserReturn with _$ExampleServiceGetUserReturn {
-  factory ExampleServiceGetUserReturn({
-    @required int code,
-    @required User user,
-  }) = _ExampleServiceGetUserReturn;
-
+  factory ExampleServiceGetUserReturn({@required int code,@required User user,}) = _ExampleServiceGetUserReturn;
+  
   factory ExampleServiceGetUserReturn.rpcErr({
     @required String message,
     @required String route,
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _ExampleServiceGetUserReturnRpcErr;
-  factory ExampleServiceGetUserReturn.fromJson(Map<String, dynamic> json) =>
-      _$ExampleServiceGetUserReturnFromJson(json);
+    @required DateTime timeStamp,    
+  }) = _ExampleServiceGetUserReturnRpcErr;  
+  factory ExampleServiceGetUserReturn.fromJson(Map<String, dynamic> json) => _$ExampleServiceGetUserReturnFromJson(json);
+
+  
 }
+ 
 
 @freezed
-abstract class ExampleServiceFindUserReturn
-    with _$ExampleServiceFindUserReturn {
-  factory ExampleServiceFindUserReturn({
-    @required String name,
-    @required User user,
-  }) = _ExampleServiceFindUserReturn;
-
+abstract class ExampleServiceFindUserReturn with _$ExampleServiceFindUserReturn {
+  factory ExampleServiceFindUserReturn({@required String name,@required User user,}) = _ExampleServiceFindUserReturn;
+  
   factory ExampleServiceFindUserReturn.rpcErr({
     @required String message,
     @required String route,
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _ExampleServiceFindUserReturnRpcErr;
-  factory ExampleServiceFindUserReturn.fromJson(Map<String, dynamic> json) =>
-      _$ExampleServiceFindUserReturnFromJson(json);
-}
+    @required DateTime timeStamp,    
+  }) = _ExampleServiceFindUserReturnRpcErr;  
+  factory ExampleServiceFindUserReturn.fromJson(Map<String, dynamic> json) => _$ExampleServiceFindUserReturnFromJson(json);
 
-// *********************************************************************
+  
+}
+ // *********************************************************************
 // AnotherExampleService METHOD ARGUMENT TYPES.
 // *********************************************************************
 @freezed
-abstract class _AnotherExampleServiceGetUserArgs
-    with _$AnotherExampleServiceGetUserArgs {
-  factory _AnotherExampleServiceGetUserArgs({
-    @required Map<String, String> header,
-    @required int userID,
+abstract class _AnotherExampleServiceGetUserArgs with _$AnotherExampleServiceGetUserArgs {
+  factory _AnotherExampleServiceGetUserArgs ({@required Map<String, String> header,@required int userID,
+  
+  
   }) = _AnotherExampleServiceGetUserArgs_Freezed;
-  factory AnotherExampleServiceGetUserArgs.fromJson(
-          Map<String, dynamic> json) =>
-      _$AnotherExampleServiceGetUserArgsFromJson(json);
+  factory AnotherExampleServiceGetUserArgs.fromJson(Map<String, dynamic> json) => _$AnotherExampleServiceGetUserArgsFromJson(json);
 }
-
 @freezed
-abstract class _AnotherExampleServiceFindUserArgs
-    with _$AnotherExampleServiceFindUserArgs {
-  factory _AnotherExampleServiceFindUserArgs({
-    @required SearchFilter s,
+abstract class _AnotherExampleServiceFindUserArgs with _$AnotherExampleServiceFindUserArgs {
+  factory _AnotherExampleServiceFindUserArgs ({@required SearchFilter s,
+  
   }) = _AnotherExampleServiceFindUserArgs_Freezed;
-  factory AnotherExampleServiceFindUserArgs.fromJson(
-          Map<String, dynamic> json) =>
-      _$AnotherExampleServiceFindUserArgsFromJson(json);
+  factory AnotherExampleServiceFindUserArgs.fromJson(Map<String, dynamic> json) => _$AnotherExampleServiceFindUserArgsFromJson(json);
 }
 
 // *********************************************************************
 // AnotherExampleService METHOD RETURN TYPES.
 // *********************************************************************
+ 
 
 @freezed
-abstract class AnotherExampleServiceStatusReturn
-    with _$AnotherExampleServiceStatusReturn {
-  factory AnotherExampleServiceStatusReturn({
-    @required bool status,
-  }) = _AnotherExampleServiceStatusReturn;
-
+abstract class AnotherExampleServiceStatusReturn with _$AnotherExampleServiceStatusReturn {
+  factory AnotherExampleServiceStatusReturn({@required bool status,}) = _AnotherExampleServiceStatusReturn;
+  
   factory AnotherExampleServiceStatusReturn.rpcErr({
     @required String message,
     @required String route,
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _AnotherExampleServiceStatusReturnRpcErr;
-  factory AnotherExampleServiceStatusReturn.fromJson(
-          Map<String, dynamic> json) =>
-      _$AnotherExampleServiceStatusReturnFromJson(json);
+    @required DateTime timeStamp,    
+  }) = _AnotherExampleServiceStatusReturnRpcErr;  
+  factory AnotherExampleServiceStatusReturn.fromJson(Map<String, dynamic> json) => _$AnotherExampleServiceStatusReturnFromJson(json);
+
+  
 }
+ 
 
 @freezed
-abstract class AnotherExampleServiceVersionReturn
-    with _$AnotherExampleServiceVersionReturn {
-  factory AnotherExampleServiceVersionReturn({
-    @required Version version,
-  }) = _AnotherExampleServiceVersionReturn;
-
+abstract class AnotherExampleServiceVersionReturn with _$AnotherExampleServiceVersionReturn {
+  factory AnotherExampleServiceVersionReturn({@required Version version,}) = _AnotherExampleServiceVersionReturn;
+  
   factory AnotherExampleServiceVersionReturn.rpcErr({
     @required String message,
     @required String route,
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _AnotherExampleServiceVersionReturnRpcErr;
-  factory AnotherExampleServiceVersionReturn.fromJson(
-          Map<String, dynamic> json) =>
-      _$AnotherExampleServiceVersionReturnFromJson(json);
+    @required DateTime timeStamp,    
+  }) = _AnotherExampleServiceVersionReturnRpcErr;  
+  factory AnotherExampleServiceVersionReturn.fromJson(Map<String, dynamic> json) => _$AnotherExampleServiceVersionReturnFromJson(json);
+
+  
 }
+ 
 
 @freezed
-abstract class AnotherExampleServiceGetUserReturn
-    with _$AnotherExampleServiceGetUserReturn {
-  factory AnotherExampleServiceGetUserReturn({
-    @required int code,
-    @required User user,
-  }) = _AnotherExampleServiceGetUserReturn;
-
+abstract class AnotherExampleServiceGetUserReturn with _$AnotherExampleServiceGetUserReturn {
+  factory AnotherExampleServiceGetUserReturn({@required int code,@required User user,}) = _AnotherExampleServiceGetUserReturn;
+  
   factory AnotherExampleServiceGetUserReturn.rpcErr({
     @required String message,
     @required String route,
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _AnotherExampleServiceGetUserReturnRpcErr;
-  factory AnotherExampleServiceGetUserReturn.fromJson(
-          Map<String, dynamic> json) =>
-      _$AnotherExampleServiceGetUserReturnFromJson(json);
+    @required DateTime timeStamp,    
+  }) = _AnotherExampleServiceGetUserReturnRpcErr;  
+  factory AnotherExampleServiceGetUserReturn.fromJson(Map<String, dynamic> json) => _$AnotherExampleServiceGetUserReturnFromJson(json);
+
+  
 }
+ 
 
 @freezed
-abstract class AnotherExampleServiceFindUserReturn
-    with _$AnotherExampleServiceFindUserReturn {
-  factory AnotherExampleServiceFindUserReturn({
-    @required String name,
-    @required User user,
-  }) = _AnotherExampleServiceFindUserReturn;
-
+abstract class AnotherExampleServiceFindUserReturn with _$AnotherExampleServiceFindUserReturn {
+  factory AnotherExampleServiceFindUserReturn({@required String name,@required User user,}) = _AnotherExampleServiceFindUserReturn;
+  
   factory AnotherExampleServiceFindUserReturn.rpcErr({
     @required String message,
     @required String route,
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _AnotherExampleServiceFindUserReturnRpcErr;
-  factory AnotherExampleServiceFindUserReturn.fromJson(
-          Map<String, dynamic> json) =>
-      _$AnotherExampleServiceFindUserReturnFromJson(json);
+    @required DateTime timeStamp,    
+  }) = _AnotherExampleServiceFindUserReturnRpcErr;  
+  factory AnotherExampleServiceFindUserReturn.fromJson(Map<String, dynamic> json) => _$AnotherExampleServiceFindUserReturnFromJson(json);
+
+  
 }
+ 
+
+
+  
+
 
 // ***********************************************************************
 // WEBRPC-DART SERVICE CLIENTS.
 // ***********************************************************************
 
 String _removeSlash(String host) => host.endsWith('/')
-    ? host.replaceRange(host.length - 1, host.length, '')
-    : host;
+? host.replaceRange(host.length - 1, host.length, '')
+: host;
+
 
 class ExampleService {
   final String host;
-  RpcLogger _log;
+  RpcLogger _log; 
   String _srvcPath = '/rpc/ExampleService/';
   ExampleService({
     this.host = 'localhost',
     RpcLogger logger,
   }) {
-    _srvcPath = '${_removeSlash(host)}/rpc/ExampleService/';
-    _log = logger ?? _rpcLogger;
-  }
+      _srvcPath = '${_removeSlash(host)}/rpc/ExampleService/';
+      _log = logger ?? _rpcLogger;
+  } 
 
-  Future<http.Response> _makeRequest(
-    String route, {
-    dynamic json = "{}",
-    Map<String, String> headers,
-  }) {
+  Future<http.Response> _makeRequest(String route,
+      {dynamic json = "{}", Map<String, String> headers,}) {
     final path = '$_srvcPath/$route';
     _log.info('{"info": request to $path made at ${DateTime.now()}}');
     return http.post(path,
@@ -327,46 +309,63 @@ class ExampleService {
 
   RpcErr _getErr(http.Response r) {
     try {
-      return RpcErr.fromJson(jsonDecode(r.body));
+      return RpcErr.fromJson(jsonDecode(r.body)); 
+    } on Exception catch( e, stackTrace ) {
+      _logExc(_log, e, null, stackTrace);
+    }
+  }
+ 
+  
+  FutureOr<void> ping({
+  
+  Map<String, String> headers,
+  }) async {
+    try {  
+
+               
+          
+
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-    }
+    }    
   }
-
-  FutureOr<void> ping({
-    Map<String, String> headers,
-  }) async {
-    try {} on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
-  }
-
+  
   FutureOr<ExampleServiceStatusReturn> status({
-    Map<String, String> headers,
+  
+  Map<String, String> headers,
   }) async {
-    try {} on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
-  }
+    try {  
 
+               
+          
+
+    } on Exception catch (e, stackTrace) {
+      _logExc(_log, e, null, stackTrace);
+    }    
+  }
+  
   FutureOr<ExampleServiceVersionReturn> version({
-    Map<String, String> headers,
+  
+  Map<String, String> headers,
   }) async {
-    try {} on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
-  }
+    try {  
 
+               
+          
+
+    } on Exception catch (e, stackTrace) {
+      _logExc(_log, e, null, stackTrace);
+    }    
+  }
+  
   FutureOr<ExampleServiceGetUserReturn> getUser({
-    @required Map<String, String> header,
-    @required int userID,
-    Map<String, String> headers,
+  @required Map<String, String> header,@required int userID,
+  
+  
+  Map<String, String> headers,
   }) async {
-    try {
-      final _ExampleServiceGetUserArgs args = _ExampleServiceGetUserArgs(
-        header: header,
-        userID: userID,
-      );
+    try { 
+      final _ExampleServiceGetUserArgs args = _ExampleServiceGetUserArgs(header:header,userID:userID,); 
       final http.Response response = await _makeRequest(
         '',
         json: jsonEncode(args.toJson()),
@@ -375,30 +374,29 @@ class ExampleService {
       if (!nonErrorcodes.contains(response.statusCode)) {
         final RpcErr err = _getErr(response);
         return ExampleServiceGetUserReturn.rpcErr(
-          message: err.message,
-          route: err.path,
-          statusCode: err.httpErr.code,
-          timeStamp: err.time,
-        );
+            message: err.message,
+            route: err.path,
+            statusCode: err.httpErr.code,
+            timeStamp: err.time,);
       }
       return ExampleServiceGetUserReturn.fromJson(
-        jsonDecode(
-          response.body,
-        ),
-      );
+          jsonDecode(response.body,),);           
+       
+
+          
+
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-    }
+    }    
   }
-
+  
   FutureOr<ExampleServiceFindUserReturn> findUser({
-    @required SearchFilter s,
-    Map<String, String> headers,
+  @required SearchFilter s,
+  
+  Map<String, String> headers,
   }) async {
-    try {
-      final _ExampleServiceFindUserArgs args = _ExampleServiceFindUserArgs(
-        s: s,
-      );
+    try { 
+      final _ExampleServiceFindUserArgs args = _ExampleServiceFindUserArgs(s:s,); 
       final http.Response response = await _makeRequest(
         '',
         json: jsonEncode(args.toJson()),
@@ -407,40 +405,39 @@ class ExampleService {
       if (!nonErrorcodes.contains(response.statusCode)) {
         final RpcErr err = _getErr(response);
         return ExampleServiceFindUserReturn.rpcErr(
-          message: err.message,
-          route: err.path,
-          statusCode: err.httpErr.code,
-          timeStamp: err.time,
-        );
+            message: err.message,
+            route: err.path,
+            statusCode: err.httpErr.code,
+            timeStamp: err.time,);
       }
       return ExampleServiceFindUserReturn.fromJson(
-        jsonDecode(
-          response.body,
-        ),
-      );
+          jsonDecode(response.body,),);           
+       
+
+          
+
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-    }
+    }    
   }
+   
+
 }
 
 class AnotherExampleService {
   final String host;
-  RpcLogger _log;
+  RpcLogger _log; 
   String _srvcPath = '/rpc/AnotherExampleService/';
   AnotherExampleService({
     this.host = 'localhost',
     RpcLogger logger,
   }) {
-    _srvcPath = '${_removeSlash(host)}/rpc/AnotherExampleService/';
-    _log = logger ?? _rpcLogger;
-  }
+      _srvcPath = '${_removeSlash(host)}/rpc/AnotherExampleService/';
+      _log = logger ?? _rpcLogger;
+  } 
 
-  Future<http.Response> _makeRequest(
-    String route, {
-    dynamic json = "{}",
-    Map<String, String> headers,
-  }) {
+  Future<http.Response> _makeRequest(String route,
+      {dynamic json = "{}", Map<String, String> headers,}) {
     final path = '$_srvcPath/$route';
     _log.info('{"info": request to $path made at ${DateTime.now()}}');
     return http.post(path,
@@ -454,47 +451,63 @@ class AnotherExampleService {
 
   RpcErr _getErr(http.Response r) {
     try {
-      return RpcErr.fromJson(jsonDecode(r.body));
+      return RpcErr.fromJson(jsonDecode(r.body)); 
+    } on Exception catch( e, stackTrace ) {
+      _logExc(_log, e, null, stackTrace);
+    }
+  }
+ 
+  
+  FutureOr<void> ping({
+  
+  Map<String, String> headers,
+  }) async {
+    try {  
+
+               
+          
+
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-    }
+    }    
   }
-
-  FutureOr<void> ping({
-    Map<String, String> headers,
-  }) async {
-    try {} on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
-  }
-
+  
   FutureOr<AnotherExampleServiceStatusReturn> status({
-    Map<String, String> headers,
+  
+  Map<String, String> headers,
   }) async {
-    try {} on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
-  }
+    try {  
 
+               
+          
+
+    } on Exception catch (e, stackTrace) {
+      _logExc(_log, e, null, stackTrace);
+    }    
+  }
+  
   FutureOr<AnotherExampleServiceVersionReturn> version({
-    Map<String, String> headers,
+  
+  Map<String, String> headers,
   }) async {
-    try {} on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
-  }
+    try {  
 
+               
+          
+
+    } on Exception catch (e, stackTrace) {
+      _logExc(_log, e, null, stackTrace);
+    }    
+  }
+  
   FutureOr<AnotherExampleServiceGetUserReturn> getUser({
-    @required Map<String, String> header,
-    @required int userID,
-    Map<String, String> headers,
+  @required Map<String, String> header,@required int userID,
+  
+  
+  Map<String, String> headers,
   }) async {
-    try {
-      final _AnotherExampleServiceGetUserArgs args =
-          _AnotherExampleServiceGetUserArgs(
-        header: header,
-        userID: userID,
-      );
+    try { 
+      final _AnotherExampleServiceGetUserArgs args = _AnotherExampleServiceGetUserArgs(header:header,userID:userID,); 
       final http.Response response = await _makeRequest(
         '',
         json: jsonEncode(args.toJson()),
@@ -503,31 +516,29 @@ class AnotherExampleService {
       if (!nonErrorcodes.contains(response.statusCode)) {
         final RpcErr err = _getErr(response);
         return AnotherExampleServiceGetUserReturn.rpcErr(
-          message: err.message,
-          route: err.path,
-          statusCode: err.httpErr.code,
-          timeStamp: err.time,
-        );
+            message: err.message,
+            route: err.path,
+            statusCode: err.httpErr.code,
+            timeStamp: err.time,);
       }
       return AnotherExampleServiceGetUserReturn.fromJson(
-        jsonDecode(
-          response.body,
-        ),
-      );
+          jsonDecode(response.body,),);           
+       
+
+          
+
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-    }
+    }    
   }
-
+  
   FutureOr<AnotherExampleServiceFindUserReturn> findUser({
-    @required SearchFilter s,
-    Map<String, String> headers,
+  @required SearchFilter s,
+  
+  Map<String, String> headers,
   }) async {
-    try {
-      final _AnotherExampleServiceFindUserArgs args =
-          _AnotherExampleServiceFindUserArgs(
-        s: s,
-      );
+    try { 
+      final _AnotherExampleServiceFindUserArgs args = _AnotherExampleServiceFindUserArgs(s:s,); 
       final http.Response response = await _makeRequest(
         '',
         json: jsonEncode(args.toJson()),
@@ -536,22 +547,29 @@ class AnotherExampleService {
       if (!nonErrorcodes.contains(response.statusCode)) {
         final RpcErr err = _getErr(response);
         return AnotherExampleServiceFindUserReturn.rpcErr(
-          message: err.message,
-          route: err.path,
-          statusCode: err.httpErr.code,
-          timeStamp: err.time,
-        );
+            message: err.message,
+            route: err.path,
+            statusCode: err.httpErr.code,
+            timeStamp: err.time,);
       }
       return AnotherExampleServiceFindUserReturn.fromJson(
-        jsonDecode(
-          response.body,
-        ),
-      );
+          jsonDecode(response.body,),);           
+       
+
+          
+
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-    }
+    }    
   }
+   
+
 }
+ 
+
+
+ 
+
 
 // *********************************************************************
 // WEBRPC-DART HELPER CODE.
@@ -574,76 +592,31 @@ const Set<int> nonErrorcodes = {
   308,
 };
 
-String _logMsg(
-  Exception exc, [
-  Object error,
-  StackTrace stackTrace,
-]) =>
+String _logMsg(Exception exc, [Object error, StackTrace stackTrace,]) =>
     '{message: ${exc.toString()}, timeStamp: ${DateTime.now().toString()}, error: $error, stackTrace: $stackTrace}';
 
-void _logExc(
-  RpcLogger log,
-  Exception exc, [
-  Object error,
-  StackTrace stackTrace,
-]) =>
+void _logExc(RpcLogger log, Exception exc,
+        [Object error, StackTrace stackTrace,]) =>
     log.warning(_logMsg(exc, error, stackTrace));
 
 abstract class RpcLogger {
-  void _log(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
-      print(
-          '{message: $message}, error: $error, stackTrace: $stackTrace, time: ${DateTime.now()}');
-  void finest(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
+  void _log(String message, [Object error, StackTrace stackTrace,]) => print(
+      '{message: $message}, error: $error, stackTrace: $stackTrace, time: ${DateTime.now()}');
+  void finest(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void finer(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
+  void finer(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void fine(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
+  void fine(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void config(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
+  void config(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void info(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
+  void info(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void warning(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
+  void warning(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void severe(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
+  void severe(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
-  void shout(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
+  void shout(String message, [Object error, StackTrace stackTrace,]) =>
       _log(message, error, stackTrace);
 }
 

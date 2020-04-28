@@ -7,7 +7,17 @@
 // TODO implement {{.Name}}.
 abstract class {{.Name}} {
   {{- range .Methods}}
-  {{. | methodOutputs}} {{.Name | methodName}}({{. | serverMethodInputs}});
+  {{. | methodOutputs}} {{.Name | methodName}}({{if .Inputs}} {  
+  {{- range .Inputs}}
+  {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+  {{- end -}} {{/* end of range .Inputs */}}
+  {{- range .Inputs}}
+  {{if .Optional}}
+  {{.Type | fieldType}} {{.Name}},
+  {{- end -}}
+{{- end}}
+  } {{- end}});
   {{- end}}
 }
 {{end}}  {{/* end of range .Services for INTERFACES */}}
@@ -89,12 +99,12 @@ class WebRpcServer {
       // Attempt to call service method.
     {{ if .Inputs|len -}}
       final json = await r.readAsString();
-      final {{. | methodArgumentInputClassName}} args = {{. | methodArgumentInputClassName}}.fromJson(jsonDecode(json));
+      final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}.fromJson(jsonDecode(json));
       {{ if .Outputs | len -}}
-      final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}(params: args);  
+      final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}({{- range .Inputs}}{{.Name}}:args.{{.Name}},{{- end}});  
       return rpcResp.Ok(json: jsonEncode(result.toJson()));
       {{else}}
-      await {{$name | serviceImplName}}.{{.Name | methodName}}(params: args);
+      await {{$name | serviceImplName}}.{{.Name | methodName}}({{- range .Inputs}}{{.Name}}:args.{{.Name}},{{- end}});
       return rpcResp.Ok();
       {{- end -}} {{/* end if .Outputs */}}
     {{else}}

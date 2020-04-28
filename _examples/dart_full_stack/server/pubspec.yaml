@@ -18,3 +18,4 @@ dev_dependencies:
   freezed:
   pedantic: ^1.8.0
   extra_pedantic: ^1.2.0
+  json_serializable: ^3.2.0

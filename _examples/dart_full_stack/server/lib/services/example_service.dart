@@ -8,8 +8,8 @@ import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 
-part 'client.freezed.dart';
-part 'client.g.dart';
+part 'example_service.freezed.dart';
+part 'example_service.g.dart';
 
 // example v0.0.1 ebe26b74a56342a2fb2bf54ac0c0b43300a257b0
 // --
@@ -98,22 +98,22 @@ abstract class ComplexType with _$ComplexType {
 // ExampleService METHOD ARGUMENT TYPES.
 // *********************************************************************
 @freezed
-abstract class ExampleServiceGetUserArgs with _$ExampleServiceGetUserArgs {
-  factory ExampleServiceGetUserArgs({
+abstract class _ExampleServiceGetUserArgs with _$_ExampleServiceGetUserArgs {
+  factory _ExampleServiceGetUserArgs({
     @required Map<String, String> header,
     @required int userID,
-  }) = _ExampleServiceGetUserArgs;
-  factory ExampleServiceGetUserArgs.fromJson(Map<String, dynamic> json) =>
-      _$ExampleServiceGetUserArgsFromJson(json);
+  }) = _ExampleServiceGetUserArgs_Freezed;
+  factory _ExampleServiceGetUserArgs.fromJson(Map<String, dynamic> json) =>
+      _$_ExampleServiceGetUserArgsFromJson(json);
 }
 
 @freezed
-abstract class ExampleServiceFindUserArgs with _$ExampleServiceFindUserArgs {
-  factory ExampleServiceFindUserArgs({
+abstract class _ExampleServiceFindUserArgs with _$_ExampleServiceFindUserArgs {
+  factory _ExampleServiceFindUserArgs({
     @required SearchFilter s,
-  }) = _ExampleServiceFindUserArgs;
-  factory ExampleServiceFindUserArgs.fromJson(Map<String, dynamic> json) =>
-      _$ExampleServiceFindUserArgsFromJson(json);
+  }) = _ExampleServiceFindUserArgs_Freezed;
+  factory _ExampleServiceFindUserArgs.fromJson(Map<String, dynamic> json) =>
+      _$_ExampleServiceFindUserArgsFromJson(json);
 }
 
 // *********************************************************************
@@ -125,6 +125,9 @@ abstract class ExampleServiceStatusReturn with _$ExampleServiceStatusReturn {
   factory ExampleServiceStatusReturn({
     @required bool status,
   }) = _ExampleServiceStatusReturn;
+
+  factory ExampleServiceStatusReturn.fromJson(Map<String, dynamic> json) =>
+      _$ExampleServiceStatusReturnFromJson(json);
 }
 
 @freezed
@@ -132,6 +135,9 @@ abstract class ExampleServiceVersionReturn with _$ExampleServiceVersionReturn {
   factory ExampleServiceVersionReturn({
     @required Version version,
   }) = _ExampleServiceVersionReturn;
+
+  factory ExampleServiceVersionReturn.fromJson(Map<String, dynamic> json) =>
+      _$ExampleServiceVersionReturnFromJson(json);
 }
 
 @freezed
@@ -140,6 +146,9 @@ abstract class ExampleServiceGetUserReturn with _$ExampleServiceGetUserReturn {
     @required int code,
     @required User user,
   }) = _ExampleServiceGetUserReturn;
+
+  factory ExampleServiceGetUserReturn.fromJson(Map<String, dynamic> json) =>
+      _$ExampleServiceGetUserReturnFromJson(json);
 }
 
 @freezed
@@ -149,32 +158,35 @@ abstract class ExampleServiceFindUserReturn
     @required String name,
     @required User user,
   }) = _ExampleServiceFindUserReturn;
+
+  factory ExampleServiceFindUserReturn.fromJson(Map<String, dynamic> json) =>
+      _$ExampleServiceFindUserReturnFromJson(json);
 }
 
 // *********************************************************************
 // AnotherExampleService METHOD ARGUMENT TYPES.
 // *********************************************************************
 @freezed
-abstract class AnotherExampleServiceGetUserArgs
-    with _$AnotherExampleServiceGetUserArgs {
-  factory AnotherExampleServiceGetUserArgs({
+abstract class _AnotherExampleServiceGetUserArgs
+    with _$_AnotherExampleServiceGetUserArgs {
+  factory _AnotherExampleServiceGetUserArgs({
     @required Map<String, String> header,
     @required int userID,
-  }) = _AnotherExampleServiceGetUserArgs;
-  factory AnotherExampleServiceGetUserArgs.fromJson(
+  }) = _AnotherExampleServiceGetUserArgs_Freezed;
+  factory _AnotherExampleServiceGetUserArgs.fromJson(
           Map<String, dynamic> json) =>
-      _$AnotherExampleServiceGetUserArgsFromJson(json);
+      _$_AnotherExampleServiceGetUserArgsFromJson(json);
 }
 
 @freezed
-abstract class AnotherExampleServiceFindUserArgs
-    with _$AnotherExampleServiceFindUserArgs {
-  factory AnotherExampleServiceFindUserArgs({
+abstract class _AnotherExampleServiceFindUserArgs
+    with _$_AnotherExampleServiceFindUserArgs {
+  factory _AnotherExampleServiceFindUserArgs({
     @required SearchFilter s,
-  }) = _AnotherExampleServiceFindUserArgs;
-  factory AnotherExampleServiceFindUserArgs.fromJson(
+  }) = _AnotherExampleServiceFindUserArgs_Freezed;
+  factory _AnotherExampleServiceFindUserArgs.fromJson(
           Map<String, dynamic> json) =>
-      _$AnotherExampleServiceFindUserArgsFromJson(json);
+      _$_AnotherExampleServiceFindUserArgsFromJson(json);
 }
 
 // *********************************************************************
@@ -187,6 +199,10 @@ abstract class AnotherExampleServiceStatusReturn
   factory AnotherExampleServiceStatusReturn({
     @required bool status,
   }) = _AnotherExampleServiceStatusReturn;
+
+  factory AnotherExampleServiceStatusReturn.fromJson(
+          Map<String, dynamic> json) =>
+      _$AnotherExampleServiceStatusReturnFromJson(json);
 }
 
 @freezed
@@ -195,6 +211,10 @@ abstract class AnotherExampleServiceVersionReturn
   factory AnotherExampleServiceVersionReturn({
     @required Version version,
   }) = _AnotherExampleServiceVersionReturn;
+
+  factory AnotherExampleServiceVersionReturn.fromJson(
+          Map<String, dynamic> json) =>
+      _$AnotherExampleServiceVersionReturnFromJson(json);
 }
 
 @freezed
@@ -204,6 +224,10 @@ abstract class AnotherExampleServiceGetUserReturn
     @required int code,
     @required User user,
   }) = _AnotherExampleServiceGetUserReturn;
+
+  factory AnotherExampleServiceGetUserReturn.fromJson(
+          Map<String, dynamic> json) =>
+      _$AnotherExampleServiceGetUserReturnFromJson(json);
 }
 
 @freezed
@@ -213,6 +237,10 @@ abstract class AnotherExampleServiceFindUserReturn
     @required String name,
     @required User user,
   }) = _AnotherExampleServiceFindUserReturn;
+
+  factory AnotherExampleServiceFindUserReturn.fromJson(
+          Map<String, dynamic> json) =>
+      _$AnotherExampleServiceFindUserReturnFromJson(json);
 }
 
 // *********************************************************************
@@ -223,10 +251,13 @@ abstract class ExampleService {
   FutureOr<void> ping();
   FutureOr<ExampleServiceStatusReturn> status();
   FutureOr<ExampleServiceVersionReturn> version();
-  FutureOr<ExampleServiceGetUserReturn> getUser(
-      {@required ExampleServiceGetUserArgs params});
-  FutureOr<ExampleServiceFindUserReturn> findUser(
-      {@required ExampleServiceFindUserArgs params});
+  FutureOr<ExampleServiceGetUserReturn> getUser({
+    @required Map<String, String> header,
+    @required int userID,
+  });
+  FutureOr<ExampleServiceFindUserReturn> findUser({
+    @required SearchFilter s,
+  });
 }
 
 // TODO implement AnotherExampleService.
@@ -234,10 +265,13 @@ abstract class AnotherExampleService {
   FutureOr<void> ping();
   FutureOr<AnotherExampleServiceStatusReturn> status();
   FutureOr<AnotherExampleServiceVersionReturn> version();
-  FutureOr<AnotherExampleServiceGetUserReturn> getUser(
-      {@required AnotherExampleServiceGetUserArgs params});
-  FutureOr<AnotherExampleServiceFindUserReturn> findUser(
-      {@required AnotherExampleServiceFindUserArgs params});
+  FutureOr<AnotherExampleServiceGetUserReturn> getUser({
+    @required Map<String, String> header,
+    @required int userID,
+  });
+  FutureOr<AnotherExampleServiceFindUserReturn> findUser({
+    @required SearchFilter s,
+  });
 }
 
 // *********************************************************************
@@ -422,10 +456,12 @@ class WebRpcServer {
     try {
       // Attempt to call service method.
       final json = await r.readAsString();
-      final ExampleServiceGetUserArgs args =
-          ExampleServiceGetUserArgs.fromJson(jsonDecode(json));
-      final ExampleServiceGetUserReturn result =
-          await exampleService.getUser(params: args);
+      final _ExampleServiceGetUserArgs args =
+          _ExampleServiceGetUserArgs.fromJson(jsonDecode(json));
+      final ExampleServiceGetUserReturn result = await exampleService.getUser(
+        header: args.header,
+        userID: args.userID,
+      );
       return rpcResp.Ok(json: jsonEncode(result.toJson()));
     }
     // Catch WebRPCExceptions.
@@ -445,10 +481,11 @@ class WebRpcServer {
     try {
       // Attempt to call service method.
       final json = await r.readAsString();
-      final ExampleServiceFindUserArgs args =
-          ExampleServiceFindUserArgs.fromJson(jsonDecode(json));
-      final ExampleServiceFindUserReturn result =
-          await exampleService.findUser(params: args);
+      final _ExampleServiceFindUserArgs args =
+          _ExampleServiceFindUserArgs.fromJson(jsonDecode(json));
+      final ExampleServiceFindUserReturn result = await exampleService.findUser(
+        s: args.s,
+      );
       return rpcResp.Ok(json: jsonEncode(result.toJson()));
     }
     // Catch WebRPCExceptions.
@@ -530,10 +567,13 @@ class WebRpcServer {
     try {
       // Attempt to call service method.
       final json = await r.readAsString();
-      final AnotherExampleServiceGetUserArgs args =
-          AnotherExampleServiceGetUserArgs.fromJson(jsonDecode(json));
+      final _AnotherExampleServiceGetUserArgs args =
+          _AnotherExampleServiceGetUserArgs.fromJson(jsonDecode(json));
       final AnotherExampleServiceGetUserReturn result =
-          await anotherExampleService.getUser(params: args);
+          await anotherExampleService.getUser(
+        header: args.header,
+        userID: args.userID,
+      );
       return rpcResp.Ok(json: jsonEncode(result.toJson()));
     }
     // Catch WebRPCExceptions.
@@ -553,10 +593,12 @@ class WebRpcServer {
     try {
       // Attempt to call service method.
       final json = await r.readAsString();
-      final AnotherExampleServiceFindUserArgs args =
-          AnotherExampleServiceFindUserArgs.fromJson(jsonDecode(json));
+      final _AnotherExampleServiceFindUserArgs args =
+          _AnotherExampleServiceFindUserArgs.fromJson(jsonDecode(json));
       final AnotherExampleServiceFindUserReturn result =
-          await anotherExampleService.findUser(params: args);
+          await anotherExampleService.findUser(
+        s: args.s,
+      );
       return rpcResp.Ok(json: jsonEncode(result.toJson()));
     }
     // Catch WebRPCExceptions.
@@ -572,7 +614,7 @@ class WebRpcServer {
   }
 
   ArgResults _parseArgs(List<String> args) {
-    var parser = ArgParser()..addOption('port', abbr: 'p');
+    final parser = ArgParser()..addOption('port', abbr: 'p');
     try {
       return parser.parse(args);
     } on ArgParserException catch (e, stackTrace) {
@@ -939,56 +981,56 @@ void _logExc(
 
 abstract class RpcLogger {
   void _log(
-    message, [
+    String message, [
     Object error,
     StackTrace stackTrace,
   ]) =>
       print(
           '{message: $message}, error: $error, stackTrace: $stackTrace, time: ${DateTime.now()}');
   void finest(
-    message, [
+    String message, [
     Object error,
     StackTrace stackTrace,
   ]) =>
       _log(message, error, stackTrace);
   void finer(
-    message, [
+    String message, [
     Object error,
     StackTrace stackTrace,
   ]) =>
       _log(message, error, stackTrace);
   void fine(
-    message, [
+    String message, [
     Object error,
     StackTrace stackTrace,
   ]) =>
       _log(message, error, stackTrace);
   void config(
-    message, [
+    String message, [
     Object error,
     StackTrace stackTrace,
   ]) =>
       _log(message, error, stackTrace);
   void info(
-    message, [
+    String message, [
     Object error,
     StackTrace stackTrace,
   ]) =>
       _log(message, error, stackTrace);
   void warning(
-    message, [
+    String message, [
     Object error,
     StackTrace stackTrace,
   ]) =>
       _log(message, error, stackTrace);
   void severe(
-    message, [
+    String message, [
     Object error,
     StackTrace stackTrace,
   ]) =>
       _log(message, error, stackTrace);
   void shout(
-    message, [
+    String message, [
     Object error,
     StackTrace stackTrace,
   ]) =>
@@ -1001,7 +1043,7 @@ class _Logger extends RpcLogger {
 
 final _rpcLogger = _Logger();
 
-// An error in the http stack.
+// An http error.
 class HttpErr {
   final String status;
   final int code;
