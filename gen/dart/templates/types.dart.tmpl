@@ -40,6 +40,7 @@ abstract class {{.Name}} with _${{.Name}} {
 
 
 {{if .Services -}}
+{{$isClient := .TargetOpts.Client}}
 {{range .Services -}}
 // *********************************************************************
 // {{.Name}} METHOD ARGUMENT TYPES.
@@ -83,7 +84,16 @@ abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgument
   {{- end -}}
   {{- end -}}
   }) = _{{. | methodArgumentOutputClassName}};
+  {{if $isClient}}
+  factory {{. | methodArgumentOutputClassName}}.rpcErr({
+    @required String message,
+    @required String route,
+    @required int statusCode,
+    @required DateTime timeStamp,    
+  }) = _{{. | methodArgumentOutputClassName}}RpcErr;  
   factory {{. | methodArgumentOutputClassName}}.fromJson(Map<String, dynamic> json) => _${{. | methodArgumentOutputClassName}}FromJson(json);
+
+  {{end}}
 }
 {{end}} {{/* end of if .Outputs */}}
 {{- end -}} {{/* end of range .Methods */}}

@@ -21,9 +21,9 @@ class {{.Name}} {
       _srvcPath = '${_removeSlash(host)}/rpc/{{.Name}}/';
       _log = logger ?? _rpcLogger;
   } 
-   
+
   Future<http.Response> _makeRequest(String route,
-      {dynamic json, Map<String, String> headers}) {
+      {dynamic json = "{}", Map<String, String> headers,}) {
     final path = '$_srvcPath/$route';
     _log.info({'{"info": request to $path made at ${DateTime.now()}}'});
     return http.post(path,
@@ -34,10 +34,36 @@ class {{.Name}} {
         },
         body: json);
   }
+
+  RpcErr _getErr(http.Response r) {
+    try {
+      return RpcErr.fromJson(r.body); 
+    } on Exception catch( e, stackTrace ) {
+      _logExc(_log, e, null, stackTrace);
+    }
+  }
  
   {{range .Methods}}
   {{. | methodOutputs}} {{.Name | methodName}}({{. | clientMethodInputs}}) async {
+    try {
+    {{- if .Inputs | len}} {{/* if method has args */}}
+      {{- if .Outputs | len}} {{/* if has args && returns something */}}
 
+      {{else}} {{/* if method has args but returns nothing */}}
+
+      {{end}} {{/* end of if .Outputs */}}
+
+    {{else}} {{/* if method does not have args */}}
+      {{- if .Outputs | len}} {{/* if does not args && returns something */}}
+
+      {{else}} {{/* if method does not args && returns nothing */}}
+
+      {{end}} {{/* end of if .Outputs */}}        
+    {{end}}      
+
+    } on Exception catch (e, stackTrace) {
+      _logExc(_log, e, null, stackTrace);
+    }    
   }
   {{end}} {{/* end of range .Methods */}}
 

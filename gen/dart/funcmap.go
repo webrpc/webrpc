@@ -174,7 +174,7 @@ func clientMethodInputs(in *schema.Method) (string, error) {
 	inputs := []string{}
 	if len(in.Inputs) > 0 {
 		inputs = append(inputs, fmt.Sprintf("@required %s args", methodArgumentInputClassName(in)))
-		inputs = append(inputs, "Map<String, String> headers")
+		inputs = append(inputs, "Map<String, String> headers,")
 		return fmt.Sprintf("{%s}", strings.Join(inputs, ", ")), nil
 	}
 	return fmt.Sprintf("{%s}", "Map<String, String> headers"), nil
