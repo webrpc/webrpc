@@ -23,7 +23,7 @@ class WebRpcServer {
   // Provide a preconfigured shelf.Pipeline with desired middleware.
   Set<shelf.Middleware> _middleware;
   // Shelf Pipeline.
-  final shelf.Pipeline _pipeline = shelf.Pipeline();
+  final shelf.Pipeline _pipeline = const shelf.Pipeline();
   // A reference to the http server.
   HttpServer _server;
   // Expose internal server for user customization.
@@ -89,10 +89,10 @@ class WebRpcServer {
       // Attempt to call service method.
     {{ if .Inputs|len -}}
       final json = await r.readAsString();
-      final {{. | methodArgumentInputClassName}} args = {{. | methodArgumentInputClassName}}.fromJson(json);
-      {{- if .Outputs | len -}}
+      final {{. | methodArgumentInputClassName}} args = {{. | methodArgumentInputClassName}}.fromJson(jsonDecode(json));
+      {{ if .Outputs | len -}}
       final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}(params: args);  
-      return rpcResp.Ok(json: result.toJson());
+      return rpcResp.Ok(json: jsonEncode(result.toJson()));
       {{else}}
       await {{$name | serviceImplName}}.{{.Name | methodName}}(params: args);
       return rpcResp.Ok();
@@ -100,7 +100,7 @@ class WebRpcServer {
     {{else}}
       {{ if .Outputs | len -}}
       final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}();  
-      return rpcResp.Ok(json: result.toJson());
+      return rpcResp.Ok(json: jsonEncode(result.toJson()));
       {{else}}
       await {{$name | serviceImplName}}.{{.Name | methodName}}();
       return rpcResp.Ok();

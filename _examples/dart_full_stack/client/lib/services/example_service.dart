@@ -355,13 +355,13 @@ class ExampleService {
   }) async {
     try {
       final http.Response response =
-          await _makeRequest('', json: args.toJson(), headers: headers);
+          await _makeRequest('', json: jsonEncode(args.toJson()), headers: headers);
       if (!nonErrorcodes.contains(response.statusCode)) {
         final RpcErr err = _getErr(response);
         final msg = err.message;
         return AnotherExampleServiceGetUserReturn.rpcErr(message: err.message , route: err.path, statusCode: err.httpErr.code, timeStamp: err.time);
       }
-      return AnotherExampleServiceGetUserReturn.fromJson(response.body);
+      return AnotherExampleServiceGetUserReturn.fromJson(jsonDecode(response.body));
     } on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
     }
