@@ -5,10 +5,6 @@
 // WEBRPC-DART SERVICE CLIENTS.
 // ***********************************************************************
 
-String _removeSlash(String host) => host.endsWith('/')
-? host.replaceRange(host.length - 1, host.length, '')
-: host;
-
 {{range .Services}}
 class {{.Name}} {
   final String host;
@@ -40,7 +36,7 @@ class {{.Name}} {
   }
  
   {{range .Methods}}
-  {{. | methodOutputs}} {{.Name | methodName}}({
+  {{. | methodOutputsClient}} {{.Name | methodName}}({
   {{if .Inputs}}
   {{- range .Inputs}}
   {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
@@ -87,7 +83,23 @@ class {{.Name}} {
         );
         break;
       }
-    }  {{end}} {{/* end of if .Outputs */}}
+    }
+    {{else}} {{/* if method has no .Outputs */}}
+      try {
+        {{- if .Inputs | len}} {{/* if method has args */}}
+          final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}({{- range .Inputs}}{{.Name}}:{{.Name}},{{- end}});
+          {{end}} {{/* end of if .Inputs */}}
+          final http.Response response = await _makeRequest(
+            '{{.Name}}',
+            json: jsonEncode({{- if .Inputs | len}} {{/* if method has args */}}args.toJson(){{else}} "{}" {{end}} {{/* end of if .Inputs */}}),
+            headers: headers,
+          );
+          return response.statusCode;
+      } on Exception catch (_) {
+        return 400;
+      }   
+     
+     {{end}} {{/* end of if .Outputs */}}
   }
   {{end}} {{/* end of range .Methods */}}
 

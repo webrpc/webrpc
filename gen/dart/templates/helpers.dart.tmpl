@@ -3,6 +3,11 @@
 // WEBRPC-DART HELPER CODE.
 // *********************************************************************
 {{if .TargetOpts.Client}}
+
+String _removeSlash(String host) => host.endsWith('/')
+    ? host.replaceRange(host.length - 1, host.length, '')
+    : host;
+
 const Set<int> _nonErrorcodes = {
   200,
   201,

@@ -48,6 +48,7 @@ message ComplexType
 service ExampleService
   - Ping()
   - Status() => (status: bool)
+  - UpdateName(username: string)
   - Version() => (version: Version)
   - GetUser(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
   - FindUser(s: SearchFilter) => (name: string, user: User)

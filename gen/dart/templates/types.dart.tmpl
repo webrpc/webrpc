@@ -73,6 +73,7 @@ abstract class _{{. | methodArgumentInputClassName}} with _$_{{. | methodArgumen
 
 @freezed
 abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgumentOutputClassName}} {
+  @JsonSerializable(explicitToJson: true)
   factory {{. | methodArgumentOutputClassName}}.data({
     {{- range .Outputs}}
   {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},

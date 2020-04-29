@@ -111,6 +111,20 @@ Map<String, dynamic> _$_$_ComplexTypeToJson(_$_ComplexType instance) =>
       'listOfMaps': instance.listOfMaps,
     };
 
+_$_ExampleServiceUpdateNameArgs_Freezed
+    _$_$_ExampleServiceUpdateNameArgs_FreezedFromJson(
+        Map<String, dynamic> json) {
+  return _$_ExampleServiceUpdateNameArgs_Freezed(
+    username: json['username'] as String,
+  );
+}
+
+Map<String, dynamic> _$_$_ExampleServiceUpdateNameArgs_FreezedToJson(
+        _$_ExampleServiceUpdateNameArgs_Freezed instance) =>
+    <String, dynamic>{
+      'username': instance.username,
+    };
+
 _$_ExampleServiceGetUserArgs_Freezed
     _$_$_ExampleServiceGetUserArgs_FreezedFromJson(Map<String, dynamic> json) {
   return _$_ExampleServiceGetUserArgs_Freezed(
@@ -190,7 +204,7 @@ _$_VersionResult _$_$_VersionResultFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$_$_VersionResultToJson(_$_VersionResult instance) =>
     <String, dynamic>{
-      'version': instance.version,
+      'version': instance.version?.toJson(),
     };
 
 _$_VersionResultFailed _$_$_VersionResultFailedFromJson(
@@ -231,7 +245,7 @@ _$_GetUserResult _$_$_GetUserResultFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$_$_GetUserResultToJson(_$_GetUserResult instance) =>
     <String, dynamic>{
       'code': instance.code,
-      'user': instance.user,
+      'user': instance.user?.toJson(),
     };
 
 _$_GetUserResultFailed _$_$_GetUserResultFailedFromJson(
@@ -272,7 +286,7 @@ _$_FindUserResult _$_$_FindUserResultFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$_$_FindUserResultToJson(_$_FindUserResult instance) =>
     <String, dynamic>{
       'name': instance.name,
-      'user': instance.user,
+      'user': instance.user?.toJson(),
     };
 
 _$_FindUserResultFailed _$_$_FindUserResultFailedFromJson(
@@ -387,7 +401,7 @@ _$_GetVersionResult _$_$_GetVersionResultFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$_$_GetVersionResultToJson(
         _$_GetVersionResult instance) =>
     <String, dynamic>{
-      'version': instance.version,
+      'version': instance.version?.toJson(),
     };
 
 _$_GetVersionResultFailed _$_$_GetVersionResultFailedFromJson(
@@ -429,7 +443,7 @@ Map<String, dynamic> _$_$_GetAccountResultToJson(
         _$_GetAccountResult instance) =>
     <String, dynamic>{
       'code': instance.code,
-      'user': instance.user,
+      'user': instance.user?.toJson(),
     };
 
 _$_GetAccountResultFailed _$_$_GetAccountResultFailedFromJson(
@@ -470,7 +484,7 @@ _$_GetUsersResult _$_$_GetUsersResultFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$_$_GetUsersResultToJson(_$_GetUsersResult instance) =>
     <String, dynamic>{
       'name': instance.name,
-      'user': instance.user,
+      'user': instance.user?.toJson(),
     };
 
 _$_GetUsersResultFailed _$_$_GetUsersResultFailedFromJson(

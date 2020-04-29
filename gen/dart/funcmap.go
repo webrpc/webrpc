@@ -215,6 +215,13 @@ func methodOutputs(in *schema.Method) (string, error) {
 	if len(in.Outputs) == 0 {
 		return fmt.Sprintf("FutureOr<%s>", "void"), nil
 	}
+	return fmt.Sprintf("FutureOr<%s>", methodArgumentOutputClassName(in)), nil
+}
+
+func methodOutputsClient(in *schema.Method) (string, error) {
+	if len(in.Outputs) == 0 {
+		return fmt.Sprintf("FutureOr<%s>", "int"), nil
+	}
 	return fmt.Sprintf("Stream<%s>", methodArgumentOutputClassName(in)), nil
 }
 
@@ -249,5 +256,6 @@ func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 		"makeLowerCase":                 makeLowerCase,
 		"serviceImplName":               serviceImplName,
 		"useFlutter":                    useFlutter,
+		"methodOutputsClient":           methodOutputsClient,
 	}
 }

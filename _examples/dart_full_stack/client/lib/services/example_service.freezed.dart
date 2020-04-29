@@ -1192,6 +1192,158 @@ abstract class _ComplexType implements ComplexType {
   _$ComplexTypeCopyWith<_ComplexType> get copyWith;
 }
 
+_ExampleServiceUpdateNameArgs _$_ExampleServiceUpdateNameArgsFromJson(
+    Map<String, dynamic> json) {
+  return _ExampleServiceUpdateNameArgs_Freezed.fromJson(json);
+}
+
+class _$_ExampleServiceUpdateNameArgsTearOff {
+  const _$_ExampleServiceUpdateNameArgsTearOff();
+
+  _ExampleServiceUpdateNameArgs_Freezed call({@required String username}) {
+    return _ExampleServiceUpdateNameArgs_Freezed(
+      username: username,
+    );
+  }
+}
+
+// ignore: unused_element
+const _$ExampleServiceUpdateNameArgs = _$_ExampleServiceUpdateNameArgsTearOff();
+
+mixin _$_ExampleServiceUpdateNameArgs {
+  String get username;
+
+  Map<String, dynamic> toJson();
+  _$ExampleServiceUpdateNameArgsCopyWith<_ExampleServiceUpdateNameArgs>
+      get copyWith;
+}
+
+abstract class _$ExampleServiceUpdateNameArgsCopyWith<$Res> {
+  factory _$ExampleServiceUpdateNameArgsCopyWith(
+          _ExampleServiceUpdateNameArgs value,
+          $Res Function(_ExampleServiceUpdateNameArgs) then) =
+      __$ExampleServiceUpdateNameArgsCopyWithImpl<$Res>;
+  $Res call({String username});
+}
+
+class __$ExampleServiceUpdateNameArgsCopyWithImpl<$Res>
+    implements _$ExampleServiceUpdateNameArgsCopyWith<$Res> {
+  __$ExampleServiceUpdateNameArgsCopyWithImpl(this._value, this._then);
+
+  final _ExampleServiceUpdateNameArgs _value;
+  // ignore: unused_field
+  final $Res Function(_ExampleServiceUpdateNameArgs) _then;
+
+  @override
+  $Res call({
+    Object username = freezed,
+  }) {
+    return _then(_value.copyWith(
+      username: username == freezed ? _value.username : username as String,
+    ));
+  }
+}
+
+abstract class _$ExampleServiceUpdateNameArgs_FreezedCopyWith<$Res>
+    implements _$ExampleServiceUpdateNameArgsCopyWith<$Res> {
+  factory _$ExampleServiceUpdateNameArgs_FreezedCopyWith(
+          _ExampleServiceUpdateNameArgs_Freezed value,
+          $Res Function(_ExampleServiceUpdateNameArgs_Freezed) then) =
+      __$ExampleServiceUpdateNameArgs_FreezedCopyWithImpl<$Res>;
+  @override
+  $Res call({String username});
+}
+
+class __$ExampleServiceUpdateNameArgs_FreezedCopyWithImpl<$Res>
+    extends __$ExampleServiceUpdateNameArgsCopyWithImpl<$Res>
+    implements _$ExampleServiceUpdateNameArgs_FreezedCopyWith<$Res> {
+  __$ExampleServiceUpdateNameArgs_FreezedCopyWithImpl(
+      _ExampleServiceUpdateNameArgs_Freezed _value,
+      $Res Function(_ExampleServiceUpdateNameArgs_Freezed) _then)
+      : super(_value, (v) => _then(v as _ExampleServiceUpdateNameArgs_Freezed));
+
+  @override
+  _ExampleServiceUpdateNameArgs_Freezed get _value =>
+      super._value as _ExampleServiceUpdateNameArgs_Freezed;
+
+  @override
+  $Res call({
+    Object username = freezed,
+  }) {
+    return _then(_ExampleServiceUpdateNameArgs_Freezed(
+      username: username == freezed ? _value.username : username as String,
+    ));
+  }
+}
+
+@JsonSerializable()
+class _$_ExampleServiceUpdateNameArgs_Freezed
+    with DiagnosticableTreeMixin
+    implements _ExampleServiceUpdateNameArgs_Freezed {
+  _$_ExampleServiceUpdateNameArgs_Freezed({@required this.username})
+      : assert(username != null);
+
+  factory _$_ExampleServiceUpdateNameArgs_Freezed.fromJson(
+          Map<String, dynamic> json) =>
+      _$_$_ExampleServiceUpdateNameArgs_FreezedFromJson(json);
+
+  @override
+  final String username;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return '_ExampleServiceUpdateNameArgs(username: $username)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', '_ExampleServiceUpdateNameArgs'))
+      ..add(DiagnosticsProperty('username', username));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _ExampleServiceUpdateNameArgs_Freezed &&
+            (identical(other.username, username) ||
+                const DeepCollectionEquality()
+                    .equals(other.username, username)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(username);
+
+  @override
+  _$ExampleServiceUpdateNameArgs_FreezedCopyWith<
+          _ExampleServiceUpdateNameArgs_Freezed>
+      get copyWith => __$ExampleServiceUpdateNameArgs_FreezedCopyWithImpl<
+          _ExampleServiceUpdateNameArgs_Freezed>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$_$_ExampleServiceUpdateNameArgs_FreezedToJson(this);
+  }
+}
+
+abstract class _ExampleServiceUpdateNameArgs_Freezed
+    implements _ExampleServiceUpdateNameArgs {
+  factory _ExampleServiceUpdateNameArgs_Freezed({@required String username}) =
+      _$_ExampleServiceUpdateNameArgs_Freezed;
+
+  factory _ExampleServiceUpdateNameArgs_Freezed.fromJson(
+          Map<String, dynamic> json) =
+      _$_ExampleServiceUpdateNameArgs_Freezed.fromJson;
+
+  @override
+  String get username;
+  @override
+  _$ExampleServiceUpdateNameArgs_FreezedCopyWith<
+      _ExampleServiceUpdateNameArgs_Freezed> get copyWith;
+}
+
 _ExampleServiceGetUserArgs _$_ExampleServiceGetUserArgsFromJson(
     Map<String, dynamic> json) {
   return _ExampleServiceGetUserArgs_Freezed.fromJson(json);
@@ -1635,7 +1787,7 @@ class __$StatusResultCopyWithImpl<$Res> extends _$StatusResultCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_StatusResult with DiagnosticableTreeMixin implements _StatusResult {
   _$_StatusResult({@required this.status}) : assert(status != null);
 
@@ -2152,7 +2304,7 @@ class __$VersionResultCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_VersionResult with DiagnosticableTreeMixin implements _VersionResult {
   _$_VersionResult({@required this.version}) : assert(version != null);
 
@@ -2673,7 +2825,7 @@ class __$GetUserResultCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_GetUserResult with DiagnosticableTreeMixin implements _GetUserResult {
   _$_GetUserResult({@required this.code, @required this.user})
       : assert(code != null),
@@ -3205,7 +3357,7 @@ class __$FindUserResultCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_FindUserResult
     with DiagnosticableTreeMixin
     implements _FindUserResult {
@@ -4072,7 +4224,7 @@ class __$AnotherExampleServiceStatusResultCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_AnotherExampleServiceStatusResult
     with DiagnosticableTreeMixin
     implements _AnotherExampleServiceStatusResult {
@@ -4625,7 +4777,7 @@ class __$GetVersionResultCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_GetVersionResult
     with DiagnosticableTreeMixin
     implements _GetVersionResult {
@@ -5150,7 +5302,7 @@ class __$GetAccountResultCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_GetAccountResult
     with DiagnosticableTreeMixin
     implements _GetAccountResult {
@@ -5686,7 +5838,7 @@ class __$GetUsersResultCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_GetUsersResult
     with DiagnosticableTreeMixin
     implements _GetUsersResult {
