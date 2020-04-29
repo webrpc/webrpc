@@ -11,7 +11,7 @@
 @freezed
 abstract class RpcResponse<T> with _$RpcResponse<T> {
   factory RpcResponse.ok({@required T data,}) = _RpcResponseOk<T>;
-  factory RpcResponse.err({@required String reason, @required int statusCode, String stackTrace,}) = _RpcResonseErr<T>;
+  const factory RpcResponse.err({@required String reason, @required int statusCode, String stackTrace,}) = _RpcResonseErr<T>;
   const factory RpcResponse.pending() = _RpcResponsePending<T>;
 }
 // ***********************************************************************
@@ -37,7 +37,7 @@ class {{.Name}} {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: jsonEncode(json));
+        body: jsonEncode(json),);
   }
 
   _RpcErr _getErr(http.Response r) {
@@ -72,7 +72,7 @@ class {{.Name}} {
           {{end}} {{/* end of if .Inputs */}}
           final http.Response response = await _makeRequest(
             '{{.Name}}',
-            {{- if .Inputs | len}}json: jsonEncode(args.toJson()),{{end}}
+            {{- if .Inputs | len}}json: jsonEncode(args.toJson(),),{{end}}
             headers: headers,
           );
 
@@ -85,7 +85,7 @@ class {{.Name}} {
                 break;
           }
           yield RpcResponse.ok(data:{{if .Outputs | len}} {{. | methodArgumentOutputClassName}}.fromJson(
-              jsonDecode(response.body,),){{else}} response.statusCode,{{end}});
+              jsonDecode(response.body,),),{{else}} response.statusCode,{{end}});
           break;    
       } on Exception catch (e, stackTrace) {
         yield RpcResponse.err(

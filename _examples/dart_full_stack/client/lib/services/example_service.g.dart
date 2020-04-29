@@ -105,9 +105,10 @@ Map<String, dynamic> _$_$_ComplexTypeToJson(_$_ComplexType instance) =>
       'namesList': instance.namesList,
       'numsList': instance.numsList,
       'doubleArray': instance.doubleArray,
-      'listOfUsers': instance.listOfUsers,
-      'mapOfUsers': instance.mapOfUsers,
-      'user': instance.user,
+      'listOfUsers': instance.listOfUsers?.map((e) => e?.toJson())?.toList(),
+      'mapOfUsers':
+          instance.mapOfUsers?.map((k, e) => MapEntry(k, e?.toJson())),
+      'user': instance.user?.toJson(),
       'listOfMaps': instance.listOfMaps,
     };
 
@@ -154,7 +155,7 @@ _$_ExampleServiceFindUserArgs_Freezed
 Map<String, dynamic> _$_$_ExampleServiceFindUserArgs_FreezedToJson(
         _$_ExampleServiceFindUserArgs_Freezed instance) =>
     <String, dynamic>{
-      's': instance.s,
+      's': instance.s?.toJson(),
     };
 
 _$_StatusResult _$_$_StatusResultFromJson(Map<String, dynamic> json) {
@@ -242,7 +243,7 @@ _$_AnotherExampleServiceGetUsersArgs_Freezed
 Map<String, dynamic> _$_$_AnotherExampleServiceGetUsersArgs_FreezedToJson(
         _$_AnotherExampleServiceGetUsersArgs_Freezed instance) =>
     <String, dynamic>{
-      's': instance.s,
+      's': instance.s?.toJson(),
     };
 
 _$_AnotherExampleServiceStatusResult

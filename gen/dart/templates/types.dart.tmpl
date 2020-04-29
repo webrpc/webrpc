@@ -19,6 +19,7 @@ abstract class {{$enumName}} with _${{$enumName}} {
 {{- if .Type | isStruct  }}
 @freezed
 abstract class {{.Name}} with _${{.Name}} {
+  @JsonSerializable(explicitToJson: true)
   factory {{.Name}}({{if .Fields}}{
   {{- range .Fields}}
   {{- if not .Optional}}
@@ -49,6 +50,7 @@ abstract class {{.Name}} with _${{.Name}} {
 {{- if .Inputs }}
 @freezed
 abstract class _{{. | methodArgumentInputClassName}} with _$_{{. | methodArgumentInputClassName}} {
+  @JsonSerializable(explicitToJson: true)
   factory _{{. | methodArgumentInputClassName}} ({
   {{- range .Inputs}}
   {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},

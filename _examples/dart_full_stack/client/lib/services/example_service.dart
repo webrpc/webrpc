@@ -41,12 +41,14 @@ abstract class Kind with _$Kind {
 
 @freezed
 abstract class Empty with _$Empty {
+  @JsonSerializable(explicitToJson: true)
   factory Empty() = _Empty;
   factory Empty.fromJson(Map<String, dynamic> json) => _$EmptyFromJson(json);
 }
 
 @freezed
 abstract class User with _$User {
+  @JsonSerializable(explicitToJson: true)
   factory User({
     @required int id,
     @JsonKey(name: 'USERNAME') @required String username,
@@ -57,6 +59,7 @@ abstract class User with _$User {
 
 @freezed
 abstract class SearchFilter with _$SearchFilter {
+  @JsonSerializable(explicitToJson: true)
   factory SearchFilter({
     @required String q,
   }) = _SearchFilter;
@@ -66,6 +69,7 @@ abstract class SearchFilter with _$SearchFilter {
 
 @freezed
 abstract class Version with _$Version {
+  @JsonSerializable(explicitToJson: true)
   factory Version({
     @required String webrpcVersion,
     @required String schemaVersion,
@@ -77,6 +81,7 @@ abstract class Version with _$Version {
 
 @freezed
 abstract class ComplexType with _$ComplexType {
+  @JsonSerializable(explicitToJson: true)
   factory ComplexType({
     @required Map<String, dynamic> meta,
     @required Map<String, Map<String, int>> metaNestedExample,
@@ -98,6 +103,7 @@ abstract class ComplexType with _$ComplexType {
 @freezed
 abstract class _ExampleServiceUpdateNameArgs
     with _$_ExampleServiceUpdateNameArgs {
+  @JsonSerializable(explicitToJson: true)
   factory _ExampleServiceUpdateNameArgs({
     @required String username,
   }) = _ExampleServiceUpdateNameArgs_Freezed;
@@ -107,6 +113,7 @@ abstract class _ExampleServiceUpdateNameArgs
 
 @freezed
 abstract class _ExampleServiceGetUserArgs with _$_ExampleServiceGetUserArgs {
+  @JsonSerializable(explicitToJson: true)
   factory _ExampleServiceGetUserArgs({
     @required Map<String, String> header,
     @required int userID,
@@ -117,6 +124,7 @@ abstract class _ExampleServiceGetUserArgs with _$_ExampleServiceGetUserArgs {
 
 @freezed
 abstract class _ExampleServiceFindUserArgs with _$_ExampleServiceFindUserArgs {
+  @JsonSerializable(explicitToJson: true)
   factory _ExampleServiceFindUserArgs({
     @required SearchFilter s,
   }) = _ExampleServiceFindUserArgs_Freezed;
@@ -176,6 +184,7 @@ abstract class FindUserResult with _$FindUserResult {
 @freezed
 abstract class _AnotherExampleServiceGetAccountArgs
     with _$_AnotherExampleServiceGetAccountArgs {
+  @JsonSerializable(explicitToJson: true)
   factory _AnotherExampleServiceGetAccountArgs({
     @required Map<String, String> header,
     @required int userID,
@@ -188,6 +197,7 @@ abstract class _AnotherExampleServiceGetAccountArgs
 @freezed
 abstract class _AnotherExampleServiceGetUsersArgs
     with _$_AnotherExampleServiceGetUsersArgs {
+  @JsonSerializable(explicitToJson: true)
   factory _AnotherExampleServiceGetUsersArgs({
     @required SearchFilter s,
   }) = _AnotherExampleServiceGetUsersArgs_Freezed;
@@ -256,7 +266,7 @@ abstract class RpcResponse<T> with _$RpcResponse<T> {
   factory RpcResponse.ok({
     @required T data,
   }) = _RpcResponseOk<T>;
-  factory RpcResponse.err({
+  const factory RpcResponse.err({
     @required String reason,
     @required int statusCode,
     String stackTrace,
@@ -282,13 +292,15 @@ class ExampleService {
     Map<String, String> headers,
   }) {
     final path = '$_srvcPath/$route';
-    return http.post(path,
-        headers: {
-          ...?headers,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode(json));
+    return http.post(
+      path,
+      headers: {
+        ...?headers,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(json),
+    );
   }
 
   _RpcErr _getErr(http.Response r) {
@@ -355,11 +367,12 @@ class ExampleService {
           break;
         }
         yield RpcResponse.ok(
-            data: StatusResult.fromJson(
-          jsonDecode(
-            response.body,
+          data: StatusResult.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ));
+        );
         break;
       } on Exception catch (e, stackTrace) {
         yield RpcResponse.err(
@@ -387,7 +400,9 @@ class ExampleService {
 
         final http.Response response = await _makeRequest(
           'UpdateName',
-          json: jsonEncode(args.toJson()),
+          json: jsonEncode(
+            args.toJson(),
+          ),
           headers: headers,
         );
 
@@ -435,11 +450,12 @@ class ExampleService {
           break;
         }
         yield RpcResponse.ok(
-            data: VersionResult.fromJson(
-          jsonDecode(
-            response.body,
+          data: VersionResult.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ));
+        );
         break;
       } on Exception catch (e, stackTrace) {
         yield RpcResponse.err(
@@ -468,7 +484,9 @@ class ExampleService {
 
         final http.Response response = await _makeRequest(
           'GetUser',
-          json: jsonEncode(args.toJson()),
+          json: jsonEncode(
+            args.toJson(),
+          ),
           headers: headers,
         );
 
@@ -481,11 +499,12 @@ class ExampleService {
           break;
         }
         yield RpcResponse.ok(
-            data: GetUserResult.fromJson(
-          jsonDecode(
-            response.body,
+          data: GetUserResult.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ));
+        );
         break;
       } on Exception catch (e, stackTrace) {
         yield RpcResponse.err(
@@ -512,7 +531,9 @@ class ExampleService {
 
         final http.Response response = await _makeRequest(
           'FindUser',
-          json: jsonEncode(args.toJson()),
+          json: jsonEncode(
+            args.toJson(),
+          ),
           headers: headers,
         );
 
@@ -525,11 +546,12 @@ class ExampleService {
           break;
         }
         yield RpcResponse.ok(
-            data: FindUserResult.fromJson(
-          jsonDecode(
-            response.body,
+          data: FindUserResult.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ));
+        );
         break;
       } on Exception catch (e, stackTrace) {
         yield RpcResponse.err(
@@ -558,13 +580,15 @@ class AnotherExampleService {
     Map<String, String> headers,
   }) {
     final path = '$_srvcPath/$route';
-    return http.post(path,
-        headers: {
-          ...?headers,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode(json));
+    return http.post(
+      path,
+      headers: {
+        ...?headers,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(json),
+    );
   }
 
   _RpcErr _getErr(http.Response r) {
@@ -631,11 +655,12 @@ class AnotherExampleService {
           break;
         }
         yield RpcResponse.ok(
-            data: AnotherExampleServiceStatusResult.fromJson(
-          jsonDecode(
-            response.body,
+          data: AnotherExampleServiceStatusResult.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ));
+        );
         break;
       } on Exception catch (e, stackTrace) {
         yield RpcResponse.err(
@@ -669,11 +694,12 @@ class AnotherExampleService {
           break;
         }
         yield RpcResponse.ok(
-            data: GetVersionResult.fromJson(
-          jsonDecode(
-            response.body,
+          data: GetVersionResult.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ));
+        );
         break;
       } on Exception catch (e, stackTrace) {
         yield RpcResponse.err(
@@ -703,7 +729,9 @@ class AnotherExampleService {
 
         final http.Response response = await _makeRequest(
           'GetAccount',
-          json: jsonEncode(args.toJson()),
+          json: jsonEncode(
+            args.toJson(),
+          ),
           headers: headers,
         );
 
@@ -716,11 +744,12 @@ class AnotherExampleService {
           break;
         }
         yield RpcResponse.ok(
-            data: GetAccountResult.fromJson(
-          jsonDecode(
-            response.body,
+          data: GetAccountResult.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ));
+        );
         break;
       } on Exception catch (e, stackTrace) {
         yield RpcResponse.err(
@@ -748,7 +777,9 @@ class AnotherExampleService {
 
         final http.Response response = await _makeRequest(
           'GetUsers',
-          json: jsonEncode(args.toJson()),
+          json: jsonEncode(
+            args.toJson(),
+          ),
           headers: headers,
         );
 
@@ -761,11 +792,12 @@ class AnotherExampleService {
           break;
         }
         yield RpcResponse.ok(
-            data: GetUsersResult.fromJson(
-          jsonDecode(
-            response.body,
+          data: GetUsersResult.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ));
+        );
         break;
       } on Exception catch (e, stackTrace) {
         yield RpcResponse.err(

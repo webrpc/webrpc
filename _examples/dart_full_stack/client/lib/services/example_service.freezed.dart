@@ -323,7 +323,7 @@ class __$EmptyCopyWithImpl<$Res> extends _$EmptyCopyWithImpl<$Res>
   _Empty get _value => super._value as _Empty;
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_Empty with DiagnosticableTreeMixin implements _Empty {
   _$_Empty();
 
@@ -449,7 +449,7 @@ class __$UserCopyWithImpl<$Res> extends _$UserCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_User with DiagnosticableTreeMixin implements _User {
   _$_User(
       {@required this.id,
@@ -610,7 +610,7 @@ class __$SearchFilterCopyWithImpl<$Res> extends _$SearchFilterCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_SearchFilter with DiagnosticableTreeMixin implements _SearchFilter {
   _$_SearchFilter({@required this.q}) : assert(q != null);
 
@@ -764,7 +764,7 @@ class __$VersionCopyWithImpl<$Res> extends _$VersionCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_Version with DiagnosticableTreeMixin implements _Version {
   _$_Version(
       {@required this.webrpcVersion,
@@ -1037,7 +1037,7 @@ class __$ComplexTypeCopyWithImpl<$Res> extends _$ComplexTypeCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_ComplexType with DiagnosticableTreeMixin implements _ComplexType {
   _$_ComplexType(
       {@required this.meta,
@@ -1276,7 +1276,7 @@ class __$ExampleServiceUpdateNameArgs_FreezedCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_ExampleServiceUpdateNameArgs_Freezed
     with DiagnosticableTreeMixin
     implements _ExampleServiceUpdateNameArgs_Freezed {
@@ -1433,7 +1433,7 @@ class __$ExampleServiceGetUserArgs_FreezedCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_ExampleServiceGetUserArgs_Freezed
     with DiagnosticableTreeMixin
     implements _ExampleServiceGetUserArgs_Freezed {
@@ -1611,7 +1611,7 @@ class __$ExampleServiceFindUserArgs_FreezedCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_ExampleServiceFindUserArgs_Freezed
     with DiagnosticableTreeMixin
     implements _ExampleServiceFindUserArgs_Freezed {
@@ -2391,7 +2391,7 @@ class __$AnotherExampleServiceGetAccountArgs_FreezedCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_AnotherExampleServiceGetAccountArgs_Freezed
     with DiagnosticableTreeMixin
     implements _AnotherExampleServiceGetAccountArgs_Freezed {
@@ -2572,7 +2572,7 @@ class __$AnotherExampleServiceGetUsersArgs_FreezedCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_AnotherExampleServiceGetUsersArgs_Freezed
     with DiagnosticableTreeMixin
     implements _AnotherExampleServiceGetUsersArgs_Freezed {
@@ -3517,7 +3517,7 @@ class __$RpcResonseErrCopyWithImpl<T, $Res>
 class _$_RpcResonseErr<T>
     with DiagnosticableTreeMixin
     implements _RpcResonseErr<T> {
-  _$_RpcResonseErr(
+  const _$_RpcResonseErr(
       {@required this.reason, @required this.statusCode, this.stackTrace})
       : assert(reason != null),
         assert(statusCode != null);
@@ -3627,7 +3627,7 @@ class _$_RpcResonseErr<T>
 }
 
 abstract class _RpcResonseErr<T> implements RpcResponse<T> {
-  factory _RpcResonseErr(
+  const factory _RpcResonseErr(
       {@required String reason,
       @required int statusCode,
       String stackTrace}) = _$_RpcResonseErr<T>;
