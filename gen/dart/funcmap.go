@@ -162,11 +162,33 @@ func methodArgumentInputClassName(in *schema.Method) string {
 	}
 }
 
+func methodNameUsed(in *schema.Method) bool {
+	for _, srvc := range in.Service.Schema.Services {
+		if srvc.Name != in.Service.Name {
+			for _, meth := range srvc.Methods {
+				if meth.Name == in.Name {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func isFirstService(in *schema.Method) bool {
+	for i, srvc := range in.Service.Schema.Services {
+		if i == 0 && srvc.Name == in.Service.Name {
+			return true
+		}
+	}
+	return false
+}
+
 func methodArgumentOutputClassName(in *schema.Method) string {
-	if len(in.Service.Schema.Services) == 1 {
-		return fmt.Sprintf("%s%s", in.Name, "Return")
+	if !methodNameUsed(in) || isFirstService(in) {
+		return fmt.Sprintf("%s%s", in.Name, "Response")
 	} else {
-		return fmt.Sprintf("%s%s%s", in.Service.Name, in.Name, "Return")
+		return fmt.Sprintf("%s%s%s", in.Service.Name, in.Name, "Response")
 	}
 }
 

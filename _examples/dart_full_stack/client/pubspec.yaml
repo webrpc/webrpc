@@ -37,6 +37,7 @@ dev_dependencies:
   build_runner:
   freezed:
   extra_pedantic: ^1.2.0
+  json_serializable: ^3.2.0
   flutter_test:
     sdk: flutter
 
