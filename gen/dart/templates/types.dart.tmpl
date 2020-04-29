@@ -90,7 +90,7 @@ abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgument
     @required String reason,
     String stackTrace,
   }) = _{{. | methodArgumentOutputClassName}}Failed;
-  factory {{. | methodArgumentOutputClassName}}.pending() = _{{. | methodArgumentOutputClassName}}Pending;
+  const factory {{. | methodArgumentOutputClassName}}.pending() = _{{. | methodArgumentOutputClassName}}Pending;
   {{end}} 
   factory {{. | methodArgumentOutputClassName}}.fromJson(Map<String, dynamic> json) => _${{. | methodArgumentOutputClassName}}FromJson(json);
 }

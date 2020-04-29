@@ -41,7 +41,7 @@ class {{.Name}} {
  
   {{range .Methods}}
   {{. | methodOutputs}} {{.Name | methodName}}({
-  {{if .Inputs}}  
+  {{if .Inputs}}
   {{- range .Inputs}}
   {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
   {{- end -}} {{/* end of if not .Optional */}}
@@ -49,44 +49,45 @@ class {{.Name}} {
   {{- range .Inputs}}
   {{if .Optional}}
   {{.Type | fieldType}} {{.Name}},
-  {{- end -}}
-{{- end}}
-{{- end}}
+  {{- end -}} {{/* end of if not .Optional */}}
+{{- end}} {{/* end of range .Inputs */}}
+{{- end}} {{/* end of if .Inputs */}}
   Map<String, String> headers,
-  }) async {
-    try {
-    {{- if .Inputs | len}} {{/* if method has args */}}
-      final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}({{- range .Inputs}}{{.Name}}:{{.Name}},{{- end}});  
-      {{- if .Outputs | len}} {{/* if has args && returns something */}}
-      final http.Response response = await _makeRequest(
-        '',
-        json: jsonEncode(args.toJson()),
-        headers: headers,
-      );
-      if (!_nonErrorcodes.contains(response.statusCode)) {
-        final _RpcErr err = _getErr(response);
-        return {{. | methodArgumentOutputClassName}}.failed(
-            reason: err.message,
-            statusCode: err.httpErr.code,
-            );
+  }) async{{if .Outputs | len}}*{{end}} {
+    {{if .Outputs | len}}
+    const num = 0;
+    while (num == 0) {
+      yield const {{. | methodArgumentOutputClassName}}.pending();
+      try {
+        {{- if .Inputs | len}} {{/* if method has args */}}
+          final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}({{- range .Inputs}}{{.Name}}:{{.Name}},{{- end}});
+          {{end}} {{/* end of if .Inputs */}}
+          final http.Response response = await _makeRequest(
+            '{{.Name}}',
+            json: jsonEncode({{- if .Inputs | len}} {{/* if method has args */}}args.toJson(){{else}} "{}" {{end}} {{/* end of if .Inputs */}}),
+            headers: headers,
+          );
+
+          if (!_nonErrorcodes.contains(response.statusCode)) {
+            final _RpcErr err = _getErr(response);
+            yield {{. | methodArgumentOutputClassName}}.failed(
+                reason: err.message,
+                statusCode: err.httpErr.code,
+                );
+                break;
+          }
+          yield {{. | methodArgumentOutputClassName}}.fromJson(
+              jsonDecode(response.body,),);
+          break;    
+      } on Exception catch (e, stackTrace) {
+        yield {{. | methodArgumentOutputClassName}}.failed(
+          statusCode: 400,
+          reason: e.toString(),
+          stackTrace: stackTrace.toString(),
+        );
+        break;
       }
-      return {{. | methodArgumentOutputClassName}}.fromJson(
-          jsonDecode(response.body,),);           
-      {{else}} {{/* if method has args but returns nothing */}}
-
-      {{end}} {{/* end of if .Outputs */}}
-
-    {{else}} {{/* if method does not have args */}}
-      {{- if .Outputs | len}} {{/* if does not args && returns something */}}
-
-      {{else}} {{/* if method does not args && returns nothing */}}
-
-      {{end}} {{/* end of if .Outputs */}}        
-    {{end}}      
-
-    } on Exception catch (e, stackTrace) {
-
-    }    
+    }  {{end}} {{/* end of if .Outputs */}}
   }
   {{end}} {{/* end of range .Methods */}}
 

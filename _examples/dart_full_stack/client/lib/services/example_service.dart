@@ -129,7 +129,7 @@ abstract class StatusResult with _$StatusResult {
     @required String reason,
     String stackTrace,
   }) = _StatusResultFailed;
-  factory StatusResult.pending() = _StatusResultPending;
+  const factory StatusResult.pending() = _StatusResultPending;
 
   factory StatusResult.fromJson(Map<String, dynamic> json) =>
       _$StatusResultFromJson(json);
@@ -146,7 +146,7 @@ abstract class VersionResult with _$VersionResult {
     @required String reason,
     String stackTrace,
   }) = _VersionResultFailed;
-  factory VersionResult.pending() = _VersionResultPending;
+  const factory VersionResult.pending() = _VersionResultPending;
 
   factory VersionResult.fromJson(Map<String, dynamic> json) =>
       _$VersionResultFromJson(json);
@@ -164,7 +164,7 @@ abstract class GetUserResult with _$GetUserResult {
     @required String reason,
     String stackTrace,
   }) = _GetUserResultFailed;
-  factory GetUserResult.pending() = _GetUserResultPending;
+  const factory GetUserResult.pending() = _GetUserResultPending;
 
   factory GetUserResult.fromJson(Map<String, dynamic> json) =>
       _$GetUserResultFromJson(json);
@@ -182,7 +182,7 @@ abstract class FindUserResult with _$FindUserResult {
     @required String reason,
     String stackTrace,
   }) = _FindUserResultFailed;
-  factory FindUserResult.pending() = _FindUserResultPending;
+  const factory FindUserResult.pending() = _FindUserResultPending;
 
   factory FindUserResult.fromJson(Map<String, dynamic> json) =>
       _$FindUserResultFromJson(json);
@@ -230,7 +230,7 @@ abstract class AnotherExampleServiceStatusResult
     @required String reason,
     String stackTrace,
   }) = _AnotherExampleServiceStatusResultFailed;
-  factory AnotherExampleServiceStatusResult.pending() =
+  const factory AnotherExampleServiceStatusResult.pending() =
       _AnotherExampleServiceStatusResultPending;
 
   factory AnotherExampleServiceStatusResult.fromJson(
@@ -249,7 +249,7 @@ abstract class GetVersionResult with _$GetVersionResult {
     @required String reason,
     String stackTrace,
   }) = _GetVersionResultFailed;
-  factory GetVersionResult.pending() = _GetVersionResultPending;
+  const factory GetVersionResult.pending() = _GetVersionResultPending;
 
   factory GetVersionResult.fromJson(Map<String, dynamic> json) =>
       _$GetVersionResultFromJson(json);
@@ -267,7 +267,7 @@ abstract class GetAccountResult with _$GetAccountResult {
     @required String reason,
     String stackTrace,
   }) = _GetAccountResultFailed;
-  factory GetAccountResult.pending() = _GetAccountResultPending;
+  const factory GetAccountResult.pending() = _GetAccountResultPending;
 
   factory GetAccountResult.fromJson(Map<String, dynamic> json) =>
       _$GetAccountResultFromJson(json);
@@ -285,7 +285,7 @@ abstract class GetUsersResult with _$GetUsersResult {
     @required String reason,
     String stackTrace,
   }) = _GetUsersResultFailed;
-  factory GetUsersResult.pending() = _GetUsersResultPending;
+  const factory GetUsersResult.pending() = _GetUsersResultPending;
 
   factory GetUsersResult.fromJson(Map<String, dynamic> json) =>
       _$GetUsersResultFromJson(json);
@@ -333,78 +333,170 @@ class ExampleService {
 
   FutureOr<void> ping({
     Map<String, String> headers,
-  }) async {
-    try {} on Exception catch (e, stackTrace) {}
-  }
+  }) async {}
 
-  FutureOr<StatusResult> status({
+  Stream<StatusResult> status({
     Map<String, String> headers,
-  }) async {
-    try {} on Exception catch (e, stackTrace) {}
+  }) async* {
+    const num = 0;
+    while (num == 0) {
+      yield const StatusResult.pending();
+      try {
+        final http.Response response = await _makeRequest(
+          'Status',
+          json: jsonEncode("{}"),
+          headers: headers,
+        );
+
+        if (!_nonErrorcodes.contains(response.statusCode)) {
+          final _RpcErr err = _getErr(response);
+          yield StatusResult.failed(
+            reason: err.message,
+            statusCode: err.httpErr.code,
+          );
+          break;
+        }
+        yield StatusResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        );
+        break;
+      } on Exception catch (e, stackTrace) {
+        yield StatusResult.failed(
+          statusCode: 400,
+          reason: e.toString(),
+          stackTrace: stackTrace.toString(),
+        );
+        break;
+      }
+    }
   }
 
-  FutureOr<VersionResult> version({
+  Stream<VersionResult> version({
     Map<String, String> headers,
-  }) async {
-    try {} on Exception catch (e, stackTrace) {}
+  }) async* {
+    const num = 0;
+    while (num == 0) {
+      yield const VersionResult.pending();
+      try {
+        final http.Response response = await _makeRequest(
+          'Version',
+          json: jsonEncode("{}"),
+          headers: headers,
+        );
+
+        if (!_nonErrorcodes.contains(response.statusCode)) {
+          final _RpcErr err = _getErr(response);
+          yield VersionResult.failed(
+            reason: err.message,
+            statusCode: err.httpErr.code,
+          );
+          break;
+        }
+        yield VersionResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        );
+        break;
+      } on Exception catch (e, stackTrace) {
+        yield VersionResult.failed(
+          statusCode: 400,
+          reason: e.toString(),
+          stackTrace: stackTrace.toString(),
+        );
+        break;
+      }
+    }
   }
 
-  FutureOr<GetUserResult> getUser({
+  Stream<GetUserResult> getUser({
     @required Map<String, String> header,
     @required int userID,
     Map<String, String> headers,
-  }) async {
-    try {
-      final _ExampleServiceGetUserArgs args = _ExampleServiceGetUserArgs(
-        header: header,
-        userID: userID,
-      );
-      final http.Response response = await _makeRequest(
-        '',
-        json: jsonEncode(args.toJson()),
-        headers: headers,
-      );
-      if (!_nonErrorcodes.contains(response.statusCode)) {
-        final _RpcErr err = _getErr(response);
-        return GetUserResult.failed(
-          reason: err.message,
-          statusCode: err.httpErr.code,
+  }) async* {
+    const num = 0;
+    while (num == 0) {
+      yield GetUserResult.pending();
+      try {
+        final _ExampleServiceGetUserArgs args = _ExampleServiceGetUserArgs(
+          header: header,
+          userID: userID,
         );
+
+        final http.Response response = await _makeRequest(
+          'GetUser',
+          json: jsonEncode(args.toJson()),
+          headers: headers,
+        );
+
+        if (!_nonErrorcodes.contains(response.statusCode)) {
+          final _RpcErr err = _getErr(response);
+          yield GetUserResult.failed(
+            reason: err.message,
+            statusCode: err.httpErr.code,
+          );
+          break;
+        }
+        yield GetUserResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        );
+        break;
+      } on Exception catch (e, stackTrace) {
+        yield GetUserResult.failed(
+          statusCode: 400,
+          reason: e.toString(),
+          stackTrace: stackTrace.toString(),
+        );
+        break;
       }
-      return GetUserResult.fromJson(
-        jsonDecode(
-          response.body,
-        ),
-      );
-    } on Exception catch (e, stackTrace) {}
+    }
   }
 
-  FutureOr<FindUserResult> findUser({
+  Stream<FindUserResult> findUser({
     @required SearchFilter s,
     Map<String, String> headers,
-  }) async {
-    try {
-      final _ExampleServiceFindUserArgs args = _ExampleServiceFindUserArgs(
-        s: s,
-      );
-      final http.Response response = await _makeRequest(
-        '',
-        json: jsonEncode(args.toJson()),
-        headers: headers,
-      );
-      if (!_nonErrorcodes.contains(response.statusCode)) {
-        final _RpcErr err = _getErr(response);
-        return FindUserResult.failed(
-          reason: err.message,
-          statusCode: err.httpErr.code,
+  }) async* {
+    const num = 0;
+    while (num == 0) {
+      yield FindUserResult.pending();
+      try {
+        final _ExampleServiceFindUserArgs args = _ExampleServiceFindUserArgs(
+          s: s,
         );
+
+        final http.Response response = await _makeRequest(
+          'FindUser',
+          json: jsonEncode(args.toJson()),
+          headers: headers,
+        );
+
+        if (!_nonErrorcodes.contains(response.statusCode)) {
+          final _RpcErr err = _getErr(response);
+          yield FindUserResult.failed(
+            reason: err.message,
+            statusCode: err.httpErr.code,
+          );
+          break;
+        }
+        yield FindUserResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        );
+        break;
+      } on Exception catch (e, stackTrace) {
+        yield FindUserResult.failed(
+          statusCode: 400,
+          reason: e.toString(),
+          stackTrace: stackTrace.toString(),
+        );
+        break;
       }
-      return FindUserResult.fromJson(
-        jsonDecode(
-          response.body,
-        ),
-      );
-    } on Exception catch (e, stackTrace) {}
+    }
   }
 }
 
@@ -435,85 +527,179 @@ class AnotherExampleService {
   _RpcErr _getErr(http.Response r) {
     try {
       return _RpcErr.fromJson(jsonDecode(r.body));
-    } on Exception catch (e, stackTrace) {}
+    } on Exception catch (_) {
+      return _RpcErr.unknown;
+    }
   }
 
   FutureOr<void> pingServer({
     Map<String, String> headers,
-  }) async {
-    try {} on Exception catch (e, stackTrace) {}
-  }
+  }) async {}
 
-  FutureOr<AnotherExampleServiceStatusResult> status({
+  Stream<AnotherExampleServiceStatusResult> status({
     Map<String, String> headers,
-  }) async {
-    try {} on Exception catch (e, stackTrace) {}
+  }) async* {
+    const num = 0;
+    while (num == 0) {
+      yield AnotherExampleServiceStatusResult.pending();
+      try {
+        final http.Response response = await _makeRequest(
+          'Status',
+          json: jsonEncode("{}"),
+          headers: headers,
+        );
+
+        if (!_nonErrorcodes.contains(response.statusCode)) {
+          final _RpcErr err = _getErr(response);
+          yield AnotherExampleServiceStatusResult.failed(
+            reason: err.message,
+            statusCode: err.httpErr.code,
+          );
+          break;
+        }
+        yield AnotherExampleServiceStatusResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        );
+        break;
+      } on Exception catch (e, stackTrace) {
+        yield AnotherExampleServiceStatusResult.failed(
+          statusCode: 400,
+          reason: e.toString(),
+          stackTrace: stackTrace.toString(),
+        );
+        break;
+      }
+    }
   }
 
-  FutureOr<GetVersionResult> getVersion({
+  Stream<GetVersionResult> getVersion({
     Map<String, String> headers,
-  }) async {
-    try {} on Exception catch (e, stackTrace) {}
+  }) async* {
+    const num = 0;
+    while (num == 0) {
+      yield GetVersionResult.pending();
+      try {
+        final http.Response response = await _makeRequest(
+          'GetVersion',
+          json: jsonEncode("{}"),
+          headers: headers,
+        );
+
+        if (!_nonErrorcodes.contains(response.statusCode)) {
+          final _RpcErr err = _getErr(response);
+          yield GetVersionResult.failed(
+            reason: err.message,
+            statusCode: err.httpErr.code,
+          );
+          break;
+        }
+        yield GetVersionResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        );
+        break;
+      } on Exception catch (e, stackTrace) {
+        yield GetVersionResult.failed(
+          statusCode: 400,
+          reason: e.toString(),
+          stackTrace: stackTrace.toString(),
+        );
+        break;
+      }
+    }
   }
 
-  FutureOr<GetAccountResult> getAccount({
+  Stream<GetAccountResult> getAccount({
     @required Map<String, String> header,
     @required int userID,
     Map<String, String> headers,
-  }) async {
-    try {
-      final _AnotherExampleServiceGetAccountArgs args =
-          _AnotherExampleServiceGetAccountArgs(
-        header: header,
-        userID: userID,
-      );
-      final http.Response response = await _makeRequest(
-        '',
-        json: jsonEncode(args.toJson()),
-        headers: headers,
-      );
-      if (!_nonErrorcodes.contains(response.statusCode)) {
-        final _RpcErr err = _getErr(response);
-        return GetAccountResult.failed(
-          reason: err.message,
-          statusCode: err.httpErr.code,
+  }) async* {
+    const num = 0;
+    while (num == 0) {
+      yield GetAccountResult.pending();
+      try {
+        final _AnotherExampleServiceGetAccountArgs args =
+            _AnotherExampleServiceGetAccountArgs(
+          header: header,
+          userID: userID,
         );
+
+        final http.Response response = await _makeRequest(
+          'GetAccount',
+          json: jsonEncode(args.toJson()),
+          headers: headers,
+        );
+
+        if (!_nonErrorcodes.contains(response.statusCode)) {
+          final _RpcErr err = _getErr(response);
+          yield GetAccountResult.failed(
+            reason: err.message,
+            statusCode: err.httpErr.code,
+          );
+          break;
+        }
+        yield GetAccountResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        );
+        break;
+      } on Exception catch (e, stackTrace) {
+        yield GetAccountResult.failed(
+          statusCode: 400,
+          reason: e.toString(),
+          stackTrace: stackTrace.toString(),
+        );
+        break;
       }
-      return GetAccountResult.fromJson(
-        jsonDecode(
-          response.body,
-        ),
-      );
-    } on Exception catch (e, stackTrace) {}
+    }
   }
 
-  FutureOr<GetUsersResult> getUsers({
+  Stream<GetUsersResult> getUsers({
     @required SearchFilter s,
     Map<String, String> headers,
-  }) async {
-    try {
-      final _AnotherExampleServiceGetUsersArgs args =
-          _AnotherExampleServiceGetUsersArgs(
-        s: s,
-      );
-      final http.Response response = await _makeRequest(
-        '',
-        json: jsonEncode(args.toJson()),
-        headers: headers,
-      );
-      if (!_nonErrorcodes.contains(response.statusCode)) {
-        final _RpcErr err = _getErr(response);
-        return GetUsersResult.failed(
-          reason: err.message,
-          statusCode: err.httpErr.code,
+  }) async* {
+    const num = 0;
+    while (num == 0) {
+      yield GetUsersResult.pending();
+      try {
+        final _AnotherExampleServiceGetUsersArgs args =
+            _AnotherExampleServiceGetUsersArgs(
+          s: s,
         );
+
+        final http.Response response = await _makeRequest(
+          'GetUsers',
+          json: jsonEncode(args.toJson()),
+          headers: headers,
+        );
+
+        if (!_nonErrorcodes.contains(response.statusCode)) {
+          final _RpcErr err = _getErr(response);
+          yield GetUsersResult.failed(
+            reason: err.message,
+            statusCode: err.httpErr.code,
+          );
+          break;
+        }
+        yield GetUsersResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        );
+        break;
+      } on Exception catch (e, stackTrace) {
+        yield GetUsersResult.failed(
+          statusCode: 400,
+          reason: e.toString(),
+          stackTrace: stackTrace.toString(),
+        );
+        break;
       }
-      return GetUsersResult.fromJson(
-        jsonDecode(
-          response.body,
-        ),
-      );
-    } on Exception catch (e, stackTrace) {}
+    }
   }
 }
 

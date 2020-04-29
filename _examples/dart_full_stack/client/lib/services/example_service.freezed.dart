@@ -1558,7 +1558,7 @@ class _$StatusResultTearOff {
   }
 
   _StatusResultPending pending() {
-    return _StatusResultPending();
+    return const _StatusResultPending();
   }
 }
 
@@ -1935,7 +1935,7 @@ class __$StatusResultPendingCopyWithImpl<$Res>
 class _$_StatusResultPending
     with DiagnosticableTreeMixin
     implements _StatusResultPending {
-  _$_StatusResultPending();
+  const _$_StatusResultPending();
 
   factory _$_StatusResultPending.fromJson(Map<String, dynamic> json) =>
       _$_$_StatusResultPendingFromJson(json);
@@ -2022,7 +2022,7 @@ class _$_StatusResultPending
 }
 
 abstract class _StatusResultPending implements StatusResult {
-  factory _StatusResultPending() = _$_StatusResultPending;
+  const factory _StatusResultPending() = _$_StatusResultPending;
 
   factory _StatusResultPending.fromJson(Map<String, dynamic> json) =
       _$_StatusResultPending.fromJson;
@@ -2061,7 +2061,7 @@ class _$VersionResultTearOff {
   }
 
   _VersionResultPending pending() {
-    return _VersionResultPending();
+    return const _VersionResultPending();
   }
 }
 
@@ -2453,7 +2453,7 @@ class __$VersionResultPendingCopyWithImpl<$Res>
 class _$_VersionResultPending
     with DiagnosticableTreeMixin
     implements _VersionResultPending {
-  _$_VersionResultPending();
+  const _$_VersionResultPending();
 
   factory _$_VersionResultPending.fromJson(Map<String, dynamic> json) =>
       _$_$_VersionResultPendingFromJson(json);
@@ -2540,7 +2540,7 @@ class _$_VersionResultPending
 }
 
 abstract class _VersionResultPending implements VersionResult {
-  factory _VersionResultPending() = _$_VersionResultPending;
+  const factory _VersionResultPending() = _$_VersionResultPending;
 
   factory _VersionResultPending.fromJson(Map<String, dynamic> json) =
       _$_VersionResultPending.fromJson;
@@ -2580,7 +2580,7 @@ class _$GetUserResultTearOff {
   }
 
   _GetUserResultPending pending() {
-    return _GetUserResultPending();
+    return const _GetUserResultPending();
   }
 }
 
@@ -2985,7 +2985,7 @@ class __$GetUserResultPendingCopyWithImpl<$Res>
 class _$_GetUserResultPending
     with DiagnosticableTreeMixin
     implements _GetUserResultPending {
-  _$_GetUserResultPending();
+  const _$_GetUserResultPending();
 
   factory _$_GetUserResultPending.fromJson(Map<String, dynamic> json) =>
       _$_$_GetUserResultPendingFromJson(json);
@@ -3072,7 +3072,7 @@ class _$_GetUserResultPending
 }
 
 abstract class _GetUserResultPending implements GetUserResult {
-  factory _GetUserResultPending() = _$_GetUserResultPending;
+  const factory _GetUserResultPending() = _$_GetUserResultPending;
 
   factory _GetUserResultPending.fromJson(Map<String, dynamic> json) =
       _$_GetUserResultPending.fromJson;
@@ -3112,7 +3112,7 @@ class _$FindUserResultTearOff {
   }
 
   _FindUserResultPending pending() {
-    return _FindUserResultPending();
+    return const _FindUserResultPending();
   }
 }
 
@@ -3519,7 +3519,7 @@ class __$FindUserResultPendingCopyWithImpl<$Res>
 class _$_FindUserResultPending
     with DiagnosticableTreeMixin
     implements _FindUserResultPending {
-  _$_FindUserResultPending();
+  const _$_FindUserResultPending();
 
   factory _$_FindUserResultPending.fromJson(Map<String, dynamic> json) =>
       _$_$_FindUserResultPendingFromJson(json);
@@ -3606,7 +3606,7 @@ class _$_FindUserResultPending
 }
 
 abstract class _FindUserResultPending implements FindUserResult {
-  factory _FindUserResultPending() = _$_FindUserResultPending;
+  const factory _FindUserResultPending() = _$_FindUserResultPending;
 
   factory _FindUserResultPending.fromJson(Map<String, dynamic> json) =
       _$_FindUserResultPending.fromJson;
@@ -3988,7 +3988,7 @@ class _$AnotherExampleServiceStatusResultTearOff {
   }
 
   _AnotherExampleServiceStatusResultPending pending() {
-    return _AnotherExampleServiceStatusResultPending();
+    return const _AnotherExampleServiceStatusResultPending();
   }
 }
 
@@ -4400,7 +4400,7 @@ class __$AnotherExampleServiceStatusResultPendingCopyWithImpl<$Res>
 class _$_AnotherExampleServiceStatusResultPending
     with DiagnosticableTreeMixin
     implements _AnotherExampleServiceStatusResultPending {
-  _$_AnotherExampleServiceStatusResultPending();
+  const _$_AnotherExampleServiceStatusResultPending();
 
   factory _$_AnotherExampleServiceStatusResultPending.fromJson(
           Map<String, dynamic> json) =>
@@ -4493,7 +4493,7 @@ class _$_AnotherExampleServiceStatusResultPending
 
 abstract class _AnotherExampleServiceStatusResultPending
     implements AnotherExampleServiceStatusResult {
-  factory _AnotherExampleServiceStatusResultPending() =
+  const factory _AnotherExampleServiceStatusResultPending() =
       _$_AnotherExampleServiceStatusResultPending;
 
   factory _AnotherExampleServiceStatusResultPending.fromJson(
@@ -4534,7 +4534,7 @@ class _$GetVersionResultTearOff {
   }
 
   _GetVersionResultPending pending() {
-    return _GetVersionResultPending();
+    return const _GetVersionResultPending();
   }
 }
 
@@ -4929,7 +4929,7 @@ class __$GetVersionResultPendingCopyWithImpl<$Res>
 class _$_GetVersionResultPending
     with DiagnosticableTreeMixin
     implements _GetVersionResultPending {
-  _$_GetVersionResultPending();
+  const _$_GetVersionResultPending();
 
   factory _$_GetVersionResultPending.fromJson(Map<String, dynamic> json) =>
       _$_$_GetVersionResultPendingFromJson(json);
@@ -5017,7 +5017,7 @@ class _$_GetVersionResultPending
 }
 
 abstract class _GetVersionResultPending implements GetVersionResult {
-  factory _GetVersionResultPending() = _$_GetVersionResultPending;
+  const factory _GetVersionResultPending() = _$_GetVersionResultPending;
 
   factory _GetVersionResultPending.fromJson(Map<String, dynamic> json) =
       _$_GetVersionResultPending.fromJson;
@@ -5057,7 +5057,7 @@ class _$GetAccountResultTearOff {
   }
 
   _GetAccountResultPending pending() {
-    return _GetAccountResultPending();
+    return const _GetAccountResultPending();
   }
 }
 
@@ -5465,7 +5465,7 @@ class __$GetAccountResultPendingCopyWithImpl<$Res>
 class _$_GetAccountResultPending
     with DiagnosticableTreeMixin
     implements _GetAccountResultPending {
-  _$_GetAccountResultPending();
+  const _$_GetAccountResultPending();
 
   factory _$_GetAccountResultPending.fromJson(Map<String, dynamic> json) =>
       _$_$_GetAccountResultPendingFromJson(json);
@@ -5553,7 +5553,7 @@ class _$_GetAccountResultPending
 }
 
 abstract class _GetAccountResultPending implements GetAccountResult {
-  factory _GetAccountResultPending() = _$_GetAccountResultPending;
+  const factory _GetAccountResultPending() = _$_GetAccountResultPending;
 
   factory _GetAccountResultPending.fromJson(Map<String, dynamic> json) =
       _$_GetAccountResultPending.fromJson;
@@ -5593,7 +5593,7 @@ class _$GetUsersResultTearOff {
   }
 
   _GetUsersResultPending pending() {
-    return _GetUsersResultPending();
+    return const _GetUsersResultPending();
   }
 }
 
@@ -6000,7 +6000,7 @@ class __$GetUsersResultPendingCopyWithImpl<$Res>
 class _$_GetUsersResultPending
     with DiagnosticableTreeMixin
     implements _GetUsersResultPending {
-  _$_GetUsersResultPending();
+  const _$_GetUsersResultPending();
 
   factory _$_GetUsersResultPending.fromJson(Map<String, dynamic> json) =>
       _$_$_GetUsersResultPendingFromJson(json);
@@ -6087,7 +6087,7 @@ class _$_GetUsersResultPending
 }
 
 abstract class _GetUsersResultPending implements GetUsersResult {
-  factory _GetUsersResultPending() = _$_GetUsersResultPending;
+  const factory _GetUsersResultPending() = _$_GetUsersResultPending;
 
   factory _GetUsersResultPending.fromJson(Map<String, dynamic> json) =
       _$_GetUsersResultPending.fromJson;
