@@ -12,20 +12,16 @@ String _removeSlash(String host) => host.endsWith('/')
 {{range .Services}}
 class {{.Name}} {
   final String host;
-  RpcLogger _log; 
   String _srvcPath = '/rpc/{{.Name}}/';
   {{.Name}}({
     this.host = 'localhost',
-    RpcLogger logger,
   }) {
       _srvcPath = '${_removeSlash(host)}/rpc/{{.Name}}/';
-      _log = logger ?? _rpcLogger;
   } 
 
   Future<http.Response> _makeRequest(String route,
       {dynamic json = "{}", Map<String, String> headers,}) {
     final path = '$_srvcPath/$route';
-    _log.info('{"info": request to $path made at ${DateTime.now()}}');
     return http.post(path,
         headers: {
           ...?headers,
@@ -35,11 +31,11 @@ class {{.Name}} {
         body: json);
   }
 
-  RpcErr _getErr(http.Response r) {
+  _RpcErr _getErr(http.Response r) {
     try {
-      return RpcErr.fromJson(jsonDecode(r.body)); 
-    } on Exception catch( e, stackTrace ) {
-      _logExc(_log, e, null, stackTrace);
+      return _RpcErr.fromJson(jsonDecode(r.body)); 
+    } on Exception catch (_) {
+      return _RpcErr.unknown;
     }
   }
  
@@ -67,13 +63,12 @@ class {{.Name}} {
         json: jsonEncode(args.toJson()),
         headers: headers,
       );
-      if (!nonErrorcodes.contains(response.statusCode)) {
-        final RpcErr err = _getErr(response);
-        return {{. | methodArgumentOutputClassName}}.rpcErr(
-            message: err.message,
-            route: err.path,
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
+        return {{. | methodArgumentOutputClassName}}.failed(
+            reason: err.message,
             statusCode: err.httpErr.code,
-            timeStamp: err.time,);
+            );
       }
       return {{. | methodArgumentOutputClassName}}.fromJson(
           jsonDecode(response.body,),);           
@@ -90,7 +85,7 @@ class {{.Name}} {
     {{end}}      
 
     } on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+
     }    
   }
   {{end}} {{/* end of range .Methods */}}

@@ -73,7 +73,7 @@ abstract class _{{. | methodArgumentInputClassName}} with _$_{{. | methodArgumen
 
 @freezed
 abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgumentOutputClassName}} {
-  factory {{. | methodArgumentOutputClassName}}({
+  factory {{. | methodArgumentOutputClassName}}.data({
     {{- range .Outputs}}
   {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
   {{- end -}} {{/* end of if not .Optional */}}
@@ -85,15 +85,14 @@ abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgument
   {{- end -}}
   }) = _{{. | methodArgumentOutputClassName}};
   {{if $isClient}}
-  factory {{. | methodArgumentOutputClassName}}.rpcErr({
-    @required String message,
-    @required String route,
+  factory {{. | methodArgumentOutputClassName}}.failed({
     @required int statusCode,
-    @required DateTime timeStamp,    
-  }) = _{{. | methodArgumentOutputClassName}}RpcErr; 
+    @required String reason,
+    String stackTrace,
+  }) = _{{. | methodArgumentOutputClassName}}Failed;
+  factory {{. | methodArgumentOutputClassName}}.pending() = _{{. | methodArgumentOutputClassName}}Pending;
   {{end}} 
   factory {{. | methodArgumentOutputClassName}}.fromJson(Map<String, dynamic> json) => _${{. | methodArgumentOutputClassName}}FromJson(json);
-  
 }
 {{end}} {{/* end of if .Outputs */}}
 {{- end -}} {{/* end of range .Methods */}}

@@ -119,73 +119,73 @@ abstract class _ExampleServiceFindUserArgs with _$_ExampleServiceFindUserArgs {
 // *********************************************************************
 
 @freezed
-abstract class StatusResponse with _$StatusResponse {
-  factory StatusResponse({
+abstract class StatusResult with _$StatusResult {
+  factory StatusResult.data({
     @required bool status,
-  }) = _StatusResponse;
+  }) = _StatusResult;
 
-  factory StatusResponse.rpcErr({
-    @required String message,
-    @required String route,
+  factory StatusResult.failed({
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _StatusResponseRpcErr;
+    @required String reason,
+    String stackTrace,
+  }) = _StatusResultFailed;
+  factory StatusResult.pending() = _StatusResultPending;
 
-  factory StatusResponse.fromJson(Map<String, dynamic> json) =>
-      _$StatusResponseFromJson(json);
+  factory StatusResult.fromJson(Map<String, dynamic> json) =>
+      _$StatusResultFromJson(json);
 }
 
 @freezed
-abstract class VersionResponse with _$VersionResponse {
-  factory VersionResponse({
+abstract class VersionResult with _$VersionResult {
+  factory VersionResult.data({
     @required Version version,
-  }) = _VersionResponse;
+  }) = _VersionResult;
 
-  factory VersionResponse.rpcErr({
-    @required String message,
-    @required String route,
+  factory VersionResult.failed({
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _VersionResponseRpcErr;
+    @required String reason,
+    String stackTrace,
+  }) = _VersionResultFailed;
+  factory VersionResult.pending() = _VersionResultPending;
 
-  factory VersionResponse.fromJson(Map<String, dynamic> json) =>
-      _$VersionResponseFromJson(json);
+  factory VersionResult.fromJson(Map<String, dynamic> json) =>
+      _$VersionResultFromJson(json);
 }
 
 @freezed
-abstract class GetUserResponse with _$GetUserResponse {
-  factory GetUserResponse({
+abstract class GetUserResult with _$GetUserResult {
+  factory GetUserResult.data({
     @required int code,
     @required User user,
-  }) = _GetUserResponse;
+  }) = _GetUserResult;
 
-  factory GetUserResponse.rpcErr({
-    @required String message,
-    @required String route,
+  factory GetUserResult.failed({
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _GetUserResponseRpcErr;
+    @required String reason,
+    String stackTrace,
+  }) = _GetUserResultFailed;
+  factory GetUserResult.pending() = _GetUserResultPending;
 
-  factory GetUserResponse.fromJson(Map<String, dynamic> json) =>
-      _$GetUserResponseFromJson(json);
+  factory GetUserResult.fromJson(Map<String, dynamic> json) =>
+      _$GetUserResultFromJson(json);
 }
 
 @freezed
-abstract class FindUserResponse with _$FindUserResponse {
-  factory FindUserResponse({
+abstract class FindUserResult with _$FindUserResult {
+  factory FindUserResult.data({
     @required String name,
     @required User user,
-  }) = _FindUserResponse;
+  }) = _FindUserResult;
 
-  factory FindUserResponse.rpcErr({
-    @required String message,
-    @required String route,
+  factory FindUserResult.failed({
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _FindUserResponseRpcErr;
+    @required String reason,
+    String stackTrace,
+  }) = _FindUserResultFailed;
+  factory FindUserResult.pending() = _FindUserResultPending;
 
-  factory FindUserResponse.fromJson(Map<String, dynamic> json) =>
-      _$FindUserResponseFromJson(json);
+  factory FindUserResult.fromJson(Map<String, dynamic> json) =>
+      _$FindUserResultFromJson(json);
 }
 
 // *********************************************************************
@@ -219,75 +219,76 @@ abstract class _AnotherExampleServiceGetUsersArgs
 // *********************************************************************
 
 @freezed
-abstract class AnotherExampleServiceStatusResponse
-    with _$AnotherExampleServiceStatusResponse {
-  factory AnotherExampleServiceStatusResponse({
+abstract class AnotherExampleServiceStatusResult
+    with _$AnotherExampleServiceStatusResult {
+  factory AnotherExampleServiceStatusResult.data({
     @required bool status,
-  }) = _AnotherExampleServiceStatusResponse;
+  }) = _AnotherExampleServiceStatusResult;
 
-  factory AnotherExampleServiceStatusResponse.rpcErr({
-    @required String message,
-    @required String route,
+  factory AnotherExampleServiceStatusResult.failed({
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _AnotherExampleServiceStatusResponseRpcErr;
+    @required String reason,
+    String stackTrace,
+  }) = _AnotherExampleServiceStatusResultFailed;
+  factory AnotherExampleServiceStatusResult.pending() =
+      _AnotherExampleServiceStatusResultPending;
 
-  factory AnotherExampleServiceStatusResponse.fromJson(
+  factory AnotherExampleServiceStatusResult.fromJson(
           Map<String, dynamic> json) =>
-      _$AnotherExampleServiceStatusResponseFromJson(json);
+      _$AnotherExampleServiceStatusResultFromJson(json);
 }
 
 @freezed
-abstract class GetVersionResponse with _$GetVersionResponse {
-  factory GetVersionResponse({
+abstract class GetVersionResult with _$GetVersionResult {
+  factory GetVersionResult.data({
     @required Version version,
-  }) = _GetVersionResponse;
+  }) = _GetVersionResult;
 
-  factory GetVersionResponse.rpcErr({
-    @required String message,
-    @required String route,
+  factory GetVersionResult.failed({
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _GetVersionResponseRpcErr;
+    @required String reason,
+    String stackTrace,
+  }) = _GetVersionResultFailed;
+  factory GetVersionResult.pending() = _GetVersionResultPending;
 
-  factory GetVersionResponse.fromJson(Map<String, dynamic> json) =>
-      _$GetVersionResponseFromJson(json);
+  factory GetVersionResult.fromJson(Map<String, dynamic> json) =>
+      _$GetVersionResultFromJson(json);
 }
 
 @freezed
-abstract class GetAccountResponse with _$GetAccountResponse {
-  factory GetAccountResponse({
+abstract class GetAccountResult with _$GetAccountResult {
+  factory GetAccountResult.data({
     @required int code,
     @required User user,
-  }) = _GetAccountResponse;
+  }) = _GetAccountResult;
 
-  factory GetAccountResponse.rpcErr({
-    @required String message,
-    @required String route,
+  factory GetAccountResult.failed({
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _GetAccountResponseRpcErr;
+    @required String reason,
+    String stackTrace,
+  }) = _GetAccountResultFailed;
+  factory GetAccountResult.pending() = _GetAccountResultPending;
 
-  factory GetAccountResponse.fromJson(Map<String, dynamic> json) =>
-      _$GetAccountResponseFromJson(json);
+  factory GetAccountResult.fromJson(Map<String, dynamic> json) =>
+      _$GetAccountResultFromJson(json);
 }
 
 @freezed
-abstract class GetUsersResponse with _$GetUsersResponse {
-  factory GetUsersResponse({
+abstract class GetUsersResult with _$GetUsersResult {
+  factory GetUsersResult.data({
     @required String name,
     @required User user,
-  }) = _GetUsersResponse;
+  }) = _GetUsersResult;
 
-  factory GetUsersResponse.rpcErr({
-    @required String message,
-    @required String route,
+  factory GetUsersResult.failed({
     @required int statusCode,
-    @required DateTime timeStamp,
-  }) = _GetUsersResponseRpcErr;
+    @required String reason,
+    String stackTrace,
+  }) = _GetUsersResultFailed;
+  factory GetUsersResult.pending() = _GetUsersResultPending;
 
-  factory GetUsersResponse.fromJson(Map<String, dynamic> json) =>
-      _$GetUsersResponseFromJson(json);
+  factory GetUsersResult.fromJson(Map<String, dynamic> json) =>
+      _$GetUsersResultFromJson(json);
 }
 
 // ***********************************************************************
@@ -300,14 +301,11 @@ String _removeSlash(String host) => host.endsWith('/')
 
 class ExampleService {
   final String host;
-  RpcLogger _log;
   String _srvcPath = '/rpc/ExampleService/';
   ExampleService({
     this.host = 'localhost',
-    RpcLogger logger,
   }) {
     _srvcPath = '${_removeSlash(host)}/rpc/ExampleService/';
-    _log = logger ?? _rpcLogger;
   }
 
   Future<http.Response> _makeRequest(
@@ -316,7 +314,6 @@ class ExampleService {
     Map<String, String> headers,
   }) {
     final path = '$_srvcPath/$route';
-    _log.info('{"info": request to $path made at ${DateTime.now()}}');
     return http.post(path,
         headers: {
           ...?headers,
@@ -326,39 +323,33 @@ class ExampleService {
         body: json);
   }
 
-  RpcErr _getErr(http.Response r) {
+  _RpcErr _getErr(http.Response r) {
     try {
-      return RpcErr.fromJson(jsonDecode(r.body));
-    } on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+      return _RpcErr.fromJson(jsonDecode(r.body));
+    } on Exception catch (_) {
+      return _RpcErr.unknown;
     }
   }
 
   FutureOr<void> ping({
     Map<String, String> headers,
   }) async {
-    try {} on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
+    try {} on Exception catch (e, stackTrace) {}
   }
 
-  FutureOr<StatusResponse> status({
+  FutureOr<StatusResult> status({
     Map<String, String> headers,
   }) async {
-    try {} on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
+    try {} on Exception catch (e, stackTrace) {}
   }
 
-  FutureOr<VersionResponse> version({
+  FutureOr<VersionResult> version({
     Map<String, String> headers,
   }) async {
-    try {} on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
+    try {} on Exception catch (e, stackTrace) {}
   }
 
-  FutureOr<GetUserResponse> getUser({
+  FutureOr<GetUserResult> getUser({
     @required Map<String, String> header,
     @required int userID,
     Map<String, String> headers,
@@ -373,26 +364,22 @@ class ExampleService {
         json: jsonEncode(args.toJson()),
         headers: headers,
       );
-      if (!nonErrorcodes.contains(response.statusCode)) {
-        final RpcErr err = _getErr(response);
-        return GetUserResponse.rpcErr(
-          message: err.message,
-          route: err.path,
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
+        return GetUserResult.failed(
+          reason: err.message,
           statusCode: err.httpErr.code,
-          timeStamp: err.time,
         );
       }
-      return GetUserResponse.fromJson(
+      return GetUserResult.fromJson(
         jsonDecode(
           response.body,
         ),
       );
-    } on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
+    } on Exception catch (e, stackTrace) {}
   }
 
-  FutureOr<FindUserResponse> findUser({
+  FutureOr<FindUserResult> findUser({
     @required SearchFilter s,
     Map<String, String> headers,
   }) async {
@@ -405,36 +392,29 @@ class ExampleService {
         json: jsonEncode(args.toJson()),
         headers: headers,
       );
-      if (!nonErrorcodes.contains(response.statusCode)) {
-        final RpcErr err = _getErr(response);
-        return FindUserResponse.rpcErr(
-          message: err.message,
-          route: err.path,
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
+        return FindUserResult.failed(
+          reason: err.message,
           statusCode: err.httpErr.code,
-          timeStamp: err.time,
         );
       }
-      return FindUserResponse.fromJson(
+      return FindUserResult.fromJson(
         jsonDecode(
           response.body,
         ),
       );
-    } on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
+    } on Exception catch (e, stackTrace) {}
   }
 }
 
 class AnotherExampleService {
   final String host;
-  RpcLogger _log;
   String _srvcPath = '/rpc/AnotherExampleService/';
   AnotherExampleService({
     this.host = 'localhost',
-    RpcLogger logger,
   }) {
     _srvcPath = '${_removeSlash(host)}/rpc/AnotherExampleService/';
-    _log = logger ?? _rpcLogger;
   }
 
   Future<http.Response> _makeRequest(
@@ -443,7 +423,6 @@ class AnotherExampleService {
     Map<String, String> headers,
   }) {
     final path = '$_srvcPath/$route';
-    _log.info('{"info": request to $path made at ${DateTime.now()}}');
     return http.post(path,
         headers: {
           ...?headers,
@@ -453,39 +432,31 @@ class AnotherExampleService {
         body: json);
   }
 
-  RpcErr _getErr(http.Response r) {
+  _RpcErr _getErr(http.Response r) {
     try {
-      return RpcErr.fromJson(jsonDecode(r.body));
-    } on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
+      return _RpcErr.fromJson(jsonDecode(r.body));
+    } on Exception catch (e, stackTrace) {}
   }
 
   FutureOr<void> pingServer({
     Map<String, String> headers,
   }) async {
-    try {} on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
+    try {} on Exception catch (e, stackTrace) {}
   }
 
-  FutureOr<AnotherExampleServiceStatusResponse> status({
+  FutureOr<AnotherExampleServiceStatusResult> status({
     Map<String, String> headers,
   }) async {
-    try {} on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
+    try {} on Exception catch (e, stackTrace) {}
   }
 
-  FutureOr<GetVersionResponse> getVersion({
+  FutureOr<GetVersionResult> getVersion({
     Map<String, String> headers,
   }) async {
-    try {} on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
+    try {} on Exception catch (e, stackTrace) {}
   }
 
-  FutureOr<GetAccountResponse> getAccount({
+  FutureOr<GetAccountResult> getAccount({
     @required Map<String, String> header,
     @required int userID,
     Map<String, String> headers,
@@ -501,26 +472,22 @@ class AnotherExampleService {
         json: jsonEncode(args.toJson()),
         headers: headers,
       );
-      if (!nonErrorcodes.contains(response.statusCode)) {
-        final RpcErr err = _getErr(response);
-        return GetAccountResponse.rpcErr(
-          message: err.message,
-          route: err.path,
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
+        return GetAccountResult.failed(
+          reason: err.message,
           statusCode: err.httpErr.code,
-          timeStamp: err.time,
         );
       }
-      return GetAccountResponse.fromJson(
+      return GetAccountResult.fromJson(
         jsonDecode(
           response.body,
         ),
       );
-    } on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
+    } on Exception catch (e, stackTrace) {}
   }
 
-  FutureOr<GetUsersResponse> getUsers({
+  FutureOr<GetUsersResult> getUsers({
     @required SearchFilter s,
     Map<String, String> headers,
   }) async {
@@ -534,23 +501,19 @@ class AnotherExampleService {
         json: jsonEncode(args.toJson()),
         headers: headers,
       );
-      if (!nonErrorcodes.contains(response.statusCode)) {
-        final RpcErr err = _getErr(response);
-        return GetUsersResponse.rpcErr(
-          message: err.message,
-          route: err.path,
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
+        return GetUsersResult.failed(
+          reason: err.message,
           statusCode: err.httpErr.code,
-          timeStamp: err.time,
         );
       }
-      return GetUsersResponse.fromJson(
+      return GetUsersResult.fromJson(
         jsonDecode(
           response.body,
         ),
       );
-    } on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
-    }
+    } on Exception catch (e, stackTrace) {}
   }
 }
 
@@ -558,7 +521,7 @@ class AnotherExampleService {
 // WEBRPC-DART HELPER CODE.
 // *********************************************************************
 
-const Set<int> nonErrorcodes = {
+const Set<int> _nonErrorcodes = {
   200,
   201,
   202,
@@ -575,107 +538,32 @@ const Set<int> nonErrorcodes = {
   308,
 };
 
-String _logMsg(
-  Exception exc, [
-  Object error,
-  StackTrace stackTrace,
-]) =>
-    '{message: ${exc.toString()}, timeStamp: ${DateTime.now().toString()}, error: $error, stackTrace: $stackTrace}';
-
-void _logExc(
-  RpcLogger log,
-  Exception exc, [
-  Object error,
-  StackTrace stackTrace,
-]) =>
-    log.warning(_logMsg(exc, error, stackTrace));
-
-abstract class RpcLogger {
-  void _log(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
-      print(
-          '{message: $message}, error: $error, stackTrace: $stackTrace, time: ${DateTime.now()}');
-  void finest(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
-      _log(message, error, stackTrace);
-  void finer(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
-      _log(message, error, stackTrace);
-  void fine(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
-      _log(message, error, stackTrace);
-  void config(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
-      _log(message, error, stackTrace);
-  void info(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
-      _log(message, error, stackTrace);
-  void warning(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
-      _log(message, error, stackTrace);
-  void severe(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
-      _log(message, error, stackTrace);
-  void shout(
-    String message, [
-    Object error,
-    StackTrace stackTrace,
-  ]) =>
-      _log(message, error, stackTrace);
-}
-
-class _Logger extends RpcLogger {
-  _Logger();
-}
-
-final _rpcLogger = _Logger();
-
 // An http error.
-class HttpErr {
+class _HttpErr {
   final String status;
   final int code;
-  const HttpErr(this.status, this.code);
+  const _HttpErr(this.status, this.code);
 
   Map<String, dynamic> toMap() => {'status': status, 'code': code};
   String toJson() => jsonEncode(toMap());
-  static HttpErr fromMap(Map<String, dynamic> map) =>
-      HttpErr(map['status'] as String, map['code'] as int);
+  static _HttpErr fromMap(Map<String, dynamic> map) =>
+      _HttpErr(map['status'] as String, map['code'] as int);
 
-  static HttpErr fromJson(json) => fromMap(jsonDecode(json));
+  static _HttpErr fromJson(dynamic json) => fromMap(jsonDecode(json));
 }
 
 // An error created by the rpc server.
-class RpcErr {
+class _RpcErr {
   final String message;
   final String path;
   final DateTime time;
-  final HttpErr httpErr;
-  const RpcErr({this.message, this.path, this.httpErr, this.time});
-
+  final _HttpErr httpErr;
+  const _RpcErr({this.message, this.path, this.httpErr, this.time});
+  static const _RpcErr unknown = _RpcErr(
+      message: 'an unknown error has occured',
+      path: 'unknown',
+      httpErr: _HttpErr('unknown', 400),
+      time: null);
   Map<String, dynamic> toMap() => {
         'message': message,
         'path': path,
@@ -683,84 +571,10 @@ class RpcErr {
         'time-stamp': time.toString()
       };
   String toJson() => jsonEncode(toMap());
-  static RpcErr fromMap(Map<String, dynamic> map) => RpcErr(
+  static _RpcErr fromMap(Map<String, dynamic> map) => _RpcErr(
       message: map['message'] as String,
       path: map['path'] as String,
       time: DateTime.parse(map['time-stamp']),
-      httpErr: HttpErr.fromMap(map['httpErr']));
-  static RpcErr fromJson(json) => fromMap(jsonDecode(json));
-}
-
-// Contains static fields for creating and identifying http errors.
-class err {
-  // Unknown error. For example when handling errors raised by APIs that do not
-  // return enough error information.
-  static const HttpErr Unknown = HttpErr('unknown', 400);
-  // 422 (Unprocessable Entity) Fail error. General failure error type.
-  static const HttpErr Fail = HttpErr('fail', 422);
-  // RequestTimeout Canceled indicates the operation was cancelled (typically by the caller).
-  static const HttpErr Canceled = HttpErr('canceled', 408);
-  // InvalidArgument indicates client specified an invalid argument. It
-  // indicates arguments that are problematic regardless of the state of the
-  // system (i.e. a malformed file name, required argument, number out of range,
-  // etc.).
-  static const HttpErr InvalidArgument = HttpErr('invalid argument', 422);
-  // RequestTimeOut. DeadlineExceeded means operation expired before completion. For operations
-  // that change the state of the system, this error may be returned even if the
-  // operation has completed successfully (timeout).
-  static const HttpErr DeadlineExceeded = HttpErr('deadline exceeded', 408);
-  // NotFound means some requested entity was not found.
-  static const HttpErr NotFound = HttpErr('not found', 404);
-  // BadRoute means that the requested URL path wasn't routable to a webrpc
-  // service and method. This is returned by the generated server, and usually
-  // shouldn't be returned by applications. Instead, applications should use
-  // NotFound or Unimplemented.
-  static const HttpErr BadRoute = HttpErr('bad route', 404);
-  // AlreadyExists means an attempt to create an entity failed because one
-  // already exists. Conflict.
-  static const HttpErr AlreadyExists = HttpErr('already exists', 409);
-  // PermissionDenied indicates the caller does not have permission to execute
-  // the specified operation. It must not be used if the caller cannot be
-  // identified (Unauthenticated).
-  static const HttpErr PermissionDenied = HttpErr('permission denied', 403);
-  // Unauthenticated indicates the request does not have valid authentication
-  // credentials for the operation. Unauthorized.
-  static const HttpErr Unauthenticated = HttpErr('unauthenticated', 401);
-  // ResourceExhausted indicates some resource has been exhausted, perhaps a
-  // per-user quota, or perhaps the entire file system is out of space. Forbidden.
-  static const HttpErr ResourceExhausted = HttpErr('resource exhausted', 403);
-  // FailedPrecondition indicates operation was rejected because the system is
-  // not in a state required for the operation's execution. For example, doing
-  // an rmdir operation on a directory that is non-empty, or on a non-directory
-  // object, or when having conflicting read-modify-write on the same resource. Precondition failed.
-  static const HttpErr FailedPrecondition = HttpErr('failed precondition', 412);
-  // Aborted indicates the operation was aborted, typically due to a concurrency
-  // issue like sequencer check failures, transaction aborts, etc.
-  static const HttpErr Aborted = HttpErr('aborted', 409);
-  // OutOfRange means operation was attempted past the valid range. For example,
-  // seeking or reading past end of a paginated collection.
-  //
-  // Unlike InvalidArgument, this error indicates a problem that may be fixed if
-  // the system state changes (i.e. adding more items to the collection).
-  //
-  // There is a fair bit of overlap between FailedPrecondition and OutOfRange.
-  // We recommend using OutOfRange (the more specific error) when it applies so
-  // that callers who are iterating through a space can easily look for an
-  // OutOfRange error to detect when they are done.
-  static const HttpErr OutOfRange = HttpErr('out of range', 400);
-  // Unimplemented indicates operation is not implemented or not
-  // supported/enabled in this service.
-  static const HttpErr Unimplemented = HttpErr('unimplemented', 501);
-  // Internal errors. When some invariants expected by the underlying system
-  // have been broken. In other words, something bad happened in the library or
-  // backend service. Do not confuse with HTTP Internal Server Error; an
-  // Internal error could also happen on the client code, i.e. when parsing a
-  // server response.
-  static const HttpErr Internal = HttpErr('internal', 500);
-  // Unavailable indicates the service is currently unavailable. This is a most
-  // likely a transient condition and may be corrected by retrying with a
-  // backoff. Service Unavailable.
-  static const HttpErr Unavailable = HttpErr('unavailable', 503);
-  // DataLoss indicates unrecoverable data loss or corruption.
-  static const HttpErr DataLoss = HttpErr('data loss', 500);
+      httpErr: _HttpErr.fromMap(map['httpErr']));
+  static _RpcErr fromJson(dynamic json) => fromMap(jsonDecode(json));
 }

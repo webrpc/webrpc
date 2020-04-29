@@ -3,7 +3,7 @@
 // WEBRPC-DART HELPER CODE.
 // *********************************************************************
 {{if .TargetOpts.Client}}
-const Set<int> nonErrorcodes = {
+const Set<int> _nonErrorcodes = {
   200,
   201,
   202,
@@ -19,7 +19,46 @@ const Set<int> nonErrorcodes = {
   307,
   308,
 };
+
+// An http error.
+class _HttpErr {
+  final String status;
+  final int code;
+  const _HttpErr(this.status, this.code);
+
+  Map<String, dynamic> toMap() => {'status': status, 'code': code};
+  String toJson() => jsonEncode(toMap());
+  static _HttpErr fromMap(Map<String, dynamic> map) =>
+      _HttpErr(map['status'] as String, map['code'] as int);
+
+  static _HttpErr fromJson(dynamic json) => fromMap(jsonDecode(json));
+}
+
+// An error created by the rpc server.
+class _RpcErr {
+  final String message;
+  final String path;
+  final DateTime time;
+  final _HttpErr httpErr;
+  const _RpcErr({this.message, this.path, this.httpErr, this.time});
+  static const _RpcErr unknown = _RpcErr(message: 'an unknown error has occured', path: 'unknown', httpErr: _HttpErr('unknown', 400), time: null );
+  Map<String, dynamic> toMap() => {
+        'message': message,
+        'path': path,
+        'httpErr': httpErr.toMap(),
+        'time-stamp': time.toString()
+      };
+  String toJson() => jsonEncode(toMap());
+  static _RpcErr fromMap(Map<String, dynamic> map) => _RpcErr(
+      message: map['message'] as String,
+      path: map['path'] as String,
+      time: DateTime.parse(map['time-stamp']),
+      httpErr: _HttpErr.fromMap(map['httpErr']));
+  static _RpcErr fromJson(dynamic json) => fromMap(jsonDecode(json));
+}
 {{end}}
+
+{{if .TargetOpts.Server}}
 String _logMsg(Exception exc, [Object error, StackTrace stackTrace,]) =>
     '{message: ${exc.toString()}, timeStamp: ${DateTime.now().toString()}, error: $error, stackTrace: $stackTrace}';
 
@@ -54,45 +93,8 @@ class _Logger extends RpcLogger {
 
 final _rpcLogger = _Logger();
 
-// An http error.
-class HttpErr {
-  final String status;
-  final int code;
-  const HttpErr(this.status, this.code);
-
-  Map<String, dynamic> toMap() => {'status': status, 'code': code};
-  String toJson() => jsonEncode(toMap());
-  static HttpErr fromMap(Map<String, dynamic> map) =>
-      HttpErr(map['status'] as String, map['code'] as int);
-
-  static HttpErr fromJson(json) => fromMap(jsonDecode(json));
-}
-
-// An error created by the rpc server.
-class RpcErr {
-  final String message;
-  final String path;
-  final DateTime time;
-  final HttpErr httpErr;
-  const RpcErr({this.message, this.path, this.httpErr, this.time});
-
-  Map<String, dynamic> toMap() => {
-        'message': message,
-        'path': path,
-        'httpErr': httpErr.toMap(),
-        'time-stamp': time.toString()
-      };
-  String toJson() => jsonEncode(toMap());
-  static RpcErr fromMap(Map<String, dynamic> map) => RpcErr(
-      message: map['message'] as String,
-      path: map['path'] as String,
-      time: DateTime.parse(map['time-stamp']),
-      httpErr: HttpErr.fromMap(map['httpErr']));
-  static RpcErr fromJson(json) => fromMap(jsonDecode(json));
-}
-
 // Contains static fields for creating and identifying http errors.
-class err {
+class _err {
   // Unknown error. For example when handling errors raised by APIs that do not
   // return enough error information.
   static const HttpErr Unknown = HttpErr('unknown', 400);
@@ -164,4 +166,5 @@ class err {
   // DataLoss indicates unrecoverable data loss or corruption.
   static const HttpErr DataLoss = HttpErr('data loss', 500);
 }
+{{end}}
 {{end}}

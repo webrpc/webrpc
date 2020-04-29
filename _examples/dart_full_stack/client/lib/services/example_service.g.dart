@@ -143,74 +143,84 @@ Map<String, dynamic> _$_$_ExampleServiceFindUserArgs_FreezedToJson(
       's': instance.s,
     };
 
-_$_StatusResponse _$_$_StatusResponseFromJson(Map<String, dynamic> json) {
-  return _$_StatusResponse(
+_$_StatusResult _$_$_StatusResultFromJson(Map<String, dynamic> json) {
+  return _$_StatusResult(
     status: json['status'] as bool,
   );
 }
 
-Map<String, dynamic> _$_$_StatusResponseToJson(_$_StatusResponse instance) =>
+Map<String, dynamic> _$_$_StatusResultToJson(_$_StatusResult instance) =>
     <String, dynamic>{
       'status': instance.status,
     };
 
-_$_StatusResponseRpcErr _$_$_StatusResponseRpcErrFromJson(
+_$_StatusResultFailed _$_$_StatusResultFailedFromJson(
     Map<String, dynamic> json) {
-  return _$_StatusResponseRpcErr(
-    message: json['message'] as String,
-    route: json['route'] as String,
+  return _$_StatusResultFailed(
     statusCode: json['statusCode'] as int,
-    timeStamp: json['timeStamp'] == null
-        ? null
-        : DateTime.parse(json['timeStamp'] as String),
+    reason: json['reason'] as String,
+    stackTrace: json['stackTrace'] as String,
   );
 }
 
-Map<String, dynamic> _$_$_StatusResponseRpcErrToJson(
-        _$_StatusResponseRpcErr instance) =>
+Map<String, dynamic> _$_$_StatusResultFailedToJson(
+        _$_StatusResultFailed instance) =>
     <String, dynamic>{
-      'message': instance.message,
-      'route': instance.route,
       'statusCode': instance.statusCode,
-      'timeStamp': instance.timeStamp?.toIso8601String(),
+      'reason': instance.reason,
+      'stackTrace': instance.stackTrace,
     };
 
-_$_VersionResponse _$_$_VersionResponseFromJson(Map<String, dynamic> json) {
-  return _$_VersionResponse(
+_$_StatusResultPending _$_$_StatusResultPendingFromJson(
+    Map<String, dynamic> json) {
+  return _$_StatusResultPending();
+}
+
+Map<String, dynamic> _$_$_StatusResultPendingToJson(
+        _$_StatusResultPending instance) =>
+    <String, dynamic>{};
+
+_$_VersionResult _$_$_VersionResultFromJson(Map<String, dynamic> json) {
+  return _$_VersionResult(
     version: json['version'] == null
         ? null
         : Version.fromJson(json['version'] as Map<String, dynamic>),
   );
 }
 
-Map<String, dynamic> _$_$_VersionResponseToJson(_$_VersionResponse instance) =>
+Map<String, dynamic> _$_$_VersionResultToJson(_$_VersionResult instance) =>
     <String, dynamic>{
       'version': instance.version,
     };
 
-_$_VersionResponseRpcErr _$_$_VersionResponseRpcErrFromJson(
+_$_VersionResultFailed _$_$_VersionResultFailedFromJson(
     Map<String, dynamic> json) {
-  return _$_VersionResponseRpcErr(
-    message: json['message'] as String,
-    route: json['route'] as String,
+  return _$_VersionResultFailed(
     statusCode: json['statusCode'] as int,
-    timeStamp: json['timeStamp'] == null
-        ? null
-        : DateTime.parse(json['timeStamp'] as String),
+    reason: json['reason'] as String,
+    stackTrace: json['stackTrace'] as String,
   );
 }
 
-Map<String, dynamic> _$_$_VersionResponseRpcErrToJson(
-        _$_VersionResponseRpcErr instance) =>
+Map<String, dynamic> _$_$_VersionResultFailedToJson(
+        _$_VersionResultFailed instance) =>
     <String, dynamic>{
-      'message': instance.message,
-      'route': instance.route,
       'statusCode': instance.statusCode,
-      'timeStamp': instance.timeStamp?.toIso8601String(),
+      'reason': instance.reason,
+      'stackTrace': instance.stackTrace,
     };
 
-_$_GetUserResponse _$_$_GetUserResponseFromJson(Map<String, dynamic> json) {
-  return _$_GetUserResponse(
+_$_VersionResultPending _$_$_VersionResultPendingFromJson(
+    Map<String, dynamic> json) {
+  return _$_VersionResultPending();
+}
+
+Map<String, dynamic> _$_$_VersionResultPendingToJson(
+        _$_VersionResultPending instance) =>
+    <String, dynamic>{};
+
+_$_GetUserResult _$_$_GetUserResultFromJson(Map<String, dynamic> json) {
+  return _$_GetUserResult(
     code: json['code'] as int,
     user: json['user'] == null
         ? null
@@ -218,35 +228,40 @@ _$_GetUserResponse _$_$_GetUserResponseFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$_$_GetUserResponseToJson(_$_GetUserResponse instance) =>
+Map<String, dynamic> _$_$_GetUserResultToJson(_$_GetUserResult instance) =>
     <String, dynamic>{
       'code': instance.code,
       'user': instance.user,
     };
 
-_$_GetUserResponseRpcErr _$_$_GetUserResponseRpcErrFromJson(
+_$_GetUserResultFailed _$_$_GetUserResultFailedFromJson(
     Map<String, dynamic> json) {
-  return _$_GetUserResponseRpcErr(
-    message: json['message'] as String,
-    route: json['route'] as String,
+  return _$_GetUserResultFailed(
     statusCode: json['statusCode'] as int,
-    timeStamp: json['timeStamp'] == null
-        ? null
-        : DateTime.parse(json['timeStamp'] as String),
+    reason: json['reason'] as String,
+    stackTrace: json['stackTrace'] as String,
   );
 }
 
-Map<String, dynamic> _$_$_GetUserResponseRpcErrToJson(
-        _$_GetUserResponseRpcErr instance) =>
+Map<String, dynamic> _$_$_GetUserResultFailedToJson(
+        _$_GetUserResultFailed instance) =>
     <String, dynamic>{
-      'message': instance.message,
-      'route': instance.route,
       'statusCode': instance.statusCode,
-      'timeStamp': instance.timeStamp?.toIso8601String(),
+      'reason': instance.reason,
+      'stackTrace': instance.stackTrace,
     };
 
-_$_FindUserResponse _$_$_FindUserResponseFromJson(Map<String, dynamic> json) {
-  return _$_FindUserResponse(
+_$_GetUserResultPending _$_$_GetUserResultPendingFromJson(
+    Map<String, dynamic> json) {
+  return _$_GetUserResultPending();
+}
+
+Map<String, dynamic> _$_$_GetUserResultPendingToJson(
+        _$_GetUserResultPending instance) =>
+    <String, dynamic>{};
+
+_$_FindUserResult _$_$_FindUserResultFromJson(Map<String, dynamic> json) {
+  return _$_FindUserResult(
     name: json['name'] as String,
     user: json['user'] == null
         ? null
@@ -254,33 +269,37 @@ _$_FindUserResponse _$_$_FindUserResponseFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$_$_FindUserResponseToJson(
-        _$_FindUserResponse instance) =>
+Map<String, dynamic> _$_$_FindUserResultToJson(_$_FindUserResult instance) =>
     <String, dynamic>{
       'name': instance.name,
       'user': instance.user,
     };
 
-_$_FindUserResponseRpcErr _$_$_FindUserResponseRpcErrFromJson(
+_$_FindUserResultFailed _$_$_FindUserResultFailedFromJson(
     Map<String, dynamic> json) {
-  return _$_FindUserResponseRpcErr(
-    message: json['message'] as String,
-    route: json['route'] as String,
+  return _$_FindUserResultFailed(
     statusCode: json['statusCode'] as int,
-    timeStamp: json['timeStamp'] == null
-        ? null
-        : DateTime.parse(json['timeStamp'] as String),
+    reason: json['reason'] as String,
+    stackTrace: json['stackTrace'] as String,
   );
 }
 
-Map<String, dynamic> _$_$_FindUserResponseRpcErrToJson(
-        _$_FindUserResponseRpcErr instance) =>
+Map<String, dynamic> _$_$_FindUserResultFailedToJson(
+        _$_FindUserResultFailed instance) =>
     <String, dynamic>{
-      'message': instance.message,
-      'route': instance.route,
       'statusCode': instance.statusCode,
-      'timeStamp': instance.timeStamp?.toIso8601String(),
+      'reason': instance.reason,
+      'stackTrace': instance.stackTrace,
     };
+
+_$_FindUserResultPending _$_$_FindUserResultPendingFromJson(
+    Map<String, dynamic> json) {
+  return _$_FindUserResultPending();
+}
+
+Map<String, dynamic> _$_$_FindUserResultPendingToJson(
+        _$_FindUserResultPending instance) =>
+    <String, dynamic>{};
 
 _$_AnotherExampleServiceGetAccountArgs_Freezed
     _$_$_AnotherExampleServiceGetAccountArgs_FreezedFromJson(
@@ -316,81 +335,89 @@ Map<String, dynamic> _$_$_AnotherExampleServiceGetUsersArgs_FreezedToJson(
       's': instance.s,
     };
 
-_$_AnotherExampleServiceStatusResponse
-    _$_$_AnotherExampleServiceStatusResponseFromJson(
-        Map<String, dynamic> json) {
-  return _$_AnotherExampleServiceStatusResponse(
+_$_AnotherExampleServiceStatusResult
+    _$_$_AnotherExampleServiceStatusResultFromJson(Map<String, dynamic> json) {
+  return _$_AnotherExampleServiceStatusResult(
     status: json['status'] as bool,
   );
 }
 
-Map<String, dynamic> _$_$_AnotherExampleServiceStatusResponseToJson(
-        _$_AnotherExampleServiceStatusResponse instance) =>
+Map<String, dynamic> _$_$_AnotherExampleServiceStatusResultToJson(
+        _$_AnotherExampleServiceStatusResult instance) =>
     <String, dynamic>{
       'status': instance.status,
     };
 
-_$_AnotherExampleServiceStatusResponseRpcErr
-    _$_$_AnotherExampleServiceStatusResponseRpcErrFromJson(
+_$_AnotherExampleServiceStatusResultFailed
+    _$_$_AnotherExampleServiceStatusResultFailedFromJson(
         Map<String, dynamic> json) {
-  return _$_AnotherExampleServiceStatusResponseRpcErr(
-    message: json['message'] as String,
-    route: json['route'] as String,
+  return _$_AnotherExampleServiceStatusResultFailed(
     statusCode: json['statusCode'] as int,
-    timeStamp: json['timeStamp'] == null
-        ? null
-        : DateTime.parse(json['timeStamp'] as String),
+    reason: json['reason'] as String,
+    stackTrace: json['stackTrace'] as String,
   );
 }
 
-Map<String, dynamic> _$_$_AnotherExampleServiceStatusResponseRpcErrToJson(
-        _$_AnotherExampleServiceStatusResponseRpcErr instance) =>
+Map<String, dynamic> _$_$_AnotherExampleServiceStatusResultFailedToJson(
+        _$_AnotherExampleServiceStatusResultFailed instance) =>
     <String, dynamic>{
-      'message': instance.message,
-      'route': instance.route,
       'statusCode': instance.statusCode,
-      'timeStamp': instance.timeStamp?.toIso8601String(),
+      'reason': instance.reason,
+      'stackTrace': instance.stackTrace,
     };
 
-_$_GetVersionResponse _$_$_GetVersionResponseFromJson(
-    Map<String, dynamic> json) {
-  return _$_GetVersionResponse(
+_$_AnotherExampleServiceStatusResultPending
+    _$_$_AnotherExampleServiceStatusResultPendingFromJson(
+        Map<String, dynamic> json) {
+  return _$_AnotherExampleServiceStatusResultPending();
+}
+
+Map<String, dynamic> _$_$_AnotherExampleServiceStatusResultPendingToJson(
+        _$_AnotherExampleServiceStatusResultPending instance) =>
+    <String, dynamic>{};
+
+_$_GetVersionResult _$_$_GetVersionResultFromJson(Map<String, dynamic> json) {
+  return _$_GetVersionResult(
     version: json['version'] == null
         ? null
         : Version.fromJson(json['version'] as Map<String, dynamic>),
   );
 }
 
-Map<String, dynamic> _$_$_GetVersionResponseToJson(
-        _$_GetVersionResponse instance) =>
+Map<String, dynamic> _$_$_GetVersionResultToJson(
+        _$_GetVersionResult instance) =>
     <String, dynamic>{
       'version': instance.version,
     };
 
-_$_GetVersionResponseRpcErr _$_$_GetVersionResponseRpcErrFromJson(
+_$_GetVersionResultFailed _$_$_GetVersionResultFailedFromJson(
     Map<String, dynamic> json) {
-  return _$_GetVersionResponseRpcErr(
-    message: json['message'] as String,
-    route: json['route'] as String,
+  return _$_GetVersionResultFailed(
     statusCode: json['statusCode'] as int,
-    timeStamp: json['timeStamp'] == null
-        ? null
-        : DateTime.parse(json['timeStamp'] as String),
+    reason: json['reason'] as String,
+    stackTrace: json['stackTrace'] as String,
   );
 }
 
-Map<String, dynamic> _$_$_GetVersionResponseRpcErrToJson(
-        _$_GetVersionResponseRpcErr instance) =>
+Map<String, dynamic> _$_$_GetVersionResultFailedToJson(
+        _$_GetVersionResultFailed instance) =>
     <String, dynamic>{
-      'message': instance.message,
-      'route': instance.route,
       'statusCode': instance.statusCode,
-      'timeStamp': instance.timeStamp?.toIso8601String(),
+      'reason': instance.reason,
+      'stackTrace': instance.stackTrace,
     };
 
-_$_GetAccountResponse _$_$_GetAccountResponseFromJson(
+_$_GetVersionResultPending _$_$_GetVersionResultPendingFromJson(
     Map<String, dynamic> json) {
-  return _$_GetAccountResponse(
+  return _$_GetVersionResultPending();
+}
+
+Map<String, dynamic> _$_$_GetVersionResultPendingToJson(
+        _$_GetVersionResultPending instance) =>
+    <String, dynamic>{};
+
+_$_GetAccountResult _$_$_GetAccountResultFromJson(Map<String, dynamic> json) {
+  return _$_GetAccountResult(
     code: json['code'] as int,
     user: json['user'] == null
         ? null
@@ -398,36 +425,41 @@ _$_GetAccountResponse _$_$_GetAccountResponseFromJson(
   );
 }
 
-Map<String, dynamic> _$_$_GetAccountResponseToJson(
-        _$_GetAccountResponse instance) =>
+Map<String, dynamic> _$_$_GetAccountResultToJson(
+        _$_GetAccountResult instance) =>
     <String, dynamic>{
       'code': instance.code,
       'user': instance.user,
     };
 
-_$_GetAccountResponseRpcErr _$_$_GetAccountResponseRpcErrFromJson(
+_$_GetAccountResultFailed _$_$_GetAccountResultFailedFromJson(
     Map<String, dynamic> json) {
-  return _$_GetAccountResponseRpcErr(
-    message: json['message'] as String,
-    route: json['route'] as String,
+  return _$_GetAccountResultFailed(
     statusCode: json['statusCode'] as int,
-    timeStamp: json['timeStamp'] == null
-        ? null
-        : DateTime.parse(json['timeStamp'] as String),
+    reason: json['reason'] as String,
+    stackTrace: json['stackTrace'] as String,
   );
 }
 
-Map<String, dynamic> _$_$_GetAccountResponseRpcErrToJson(
-        _$_GetAccountResponseRpcErr instance) =>
+Map<String, dynamic> _$_$_GetAccountResultFailedToJson(
+        _$_GetAccountResultFailed instance) =>
     <String, dynamic>{
-      'message': instance.message,
-      'route': instance.route,
       'statusCode': instance.statusCode,
-      'timeStamp': instance.timeStamp?.toIso8601String(),
+      'reason': instance.reason,
+      'stackTrace': instance.stackTrace,
     };
 
-_$_GetUsersResponse _$_$_GetUsersResponseFromJson(Map<String, dynamic> json) {
-  return _$_GetUsersResponse(
+_$_GetAccountResultPending _$_$_GetAccountResultPendingFromJson(
+    Map<String, dynamic> json) {
+  return _$_GetAccountResultPending();
+}
+
+Map<String, dynamic> _$_$_GetAccountResultPendingToJson(
+        _$_GetAccountResultPending instance) =>
+    <String, dynamic>{};
+
+_$_GetUsersResult _$_$_GetUsersResultFromJson(Map<String, dynamic> json) {
+  return _$_GetUsersResult(
     name: json['name'] as String,
     user: json['user'] == null
         ? null
@@ -435,30 +467,34 @@ _$_GetUsersResponse _$_$_GetUsersResponseFromJson(Map<String, dynamic> json) {
   );
 }
 
-Map<String, dynamic> _$_$_GetUsersResponseToJson(
-        _$_GetUsersResponse instance) =>
+Map<String, dynamic> _$_$_GetUsersResultToJson(_$_GetUsersResult instance) =>
     <String, dynamic>{
       'name': instance.name,
       'user': instance.user,
     };
 
-_$_GetUsersResponseRpcErr _$_$_GetUsersResponseRpcErrFromJson(
+_$_GetUsersResultFailed _$_$_GetUsersResultFailedFromJson(
     Map<String, dynamic> json) {
-  return _$_GetUsersResponseRpcErr(
-    message: json['message'] as String,
-    route: json['route'] as String,
+  return _$_GetUsersResultFailed(
     statusCode: json['statusCode'] as int,
-    timeStamp: json['timeStamp'] == null
-        ? null
-        : DateTime.parse(json['timeStamp'] as String),
+    reason: json['reason'] as String,
+    stackTrace: json['stackTrace'] as String,
   );
 }
 
-Map<String, dynamic> _$_$_GetUsersResponseRpcErrToJson(
-        _$_GetUsersResponseRpcErr instance) =>
+Map<String, dynamic> _$_$_GetUsersResultFailedToJson(
+        _$_GetUsersResultFailed instance) =>
     <String, dynamic>{
-      'message': instance.message,
-      'route': instance.route,
       'statusCode': instance.statusCode,
-      'timeStamp': instance.timeStamp?.toIso8601String(),
+      'reason': instance.reason,
+      'stackTrace': instance.stackTrace,
     };
+
+_$_GetUsersResultPending _$_$_GetUsersResultPendingFromJson(
+    Map<String, dynamic> json) {
+  return _$_GetUsersResultPending();
+}
+
+Map<String, dynamic> _$_$_GetUsersResultPendingToJson(
+        _$_GetUsersResultPending instance) =>
+    <String, dynamic>{};

@@ -186,9 +186,9 @@ func isFirstService(in *schema.Method) bool {
 
 func methodArgumentOutputClassName(in *schema.Method) string {
 	if !methodNameUsed(in) || isFirstService(in) {
-		return fmt.Sprintf("%s%s", in.Name, "Response")
+		return fmt.Sprintf("%s%s", in.Name, "Result")
 	} else {
-		return fmt.Sprintf("%s%s%s", in.Service.Name, in.Name, "Response")
+		return fmt.Sprintf("%s%s%s", in.Service.Name, in.Name, "Result")
 	}
 }
 
