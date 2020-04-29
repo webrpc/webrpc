@@ -847,7 +847,9 @@ class _HttpErr {
   static _HttpErr fromMap(Map<String, dynamic> map) =>
       _HttpErr(map['status'] as String, map['code'] as int);
 
-  static _HttpErr fromJson(dynamic json) => fromMap(jsonDecode(json));
+  static _HttpErr fromJson(dynamic json) => fromMap(
+        jsonDecode(json),
+      );
 }
 
 // An error created by the rpc server.
@@ -870,9 +872,16 @@ class _RpcErr {
       };
   String toJson() => jsonEncode(toMap());
   static _RpcErr fromMap(Map<String, dynamic> map) => _RpcErr(
-      message: map['message'] as String,
-      path: map['path'] as String,
-      time: DateTime.parse(map['time-stamp']),
-      httpErr: _HttpErr.fromMap(map['httpErr']));
-  static _RpcErr fromJson(dynamic json) => fromMap(jsonDecode(json));
+        message: map['message'] as String,
+        path: map['path'] as String,
+        time: DateTime.parse(
+          map['time-stamp'],
+        ),
+        httpErr: _HttpErr.fromMap(
+          map['httpErr'],
+        ),
+      );
+  static _RpcErr fromJson(dynamic json) => fromMap(
+        jsonDecode(json),
+      );
 }

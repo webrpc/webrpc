@@ -62,14 +62,14 @@ class WebRpcServer {
       final info =
           'unsupported method: ${r.method}, (only POST is allowed. path: $route';
       _log.info(info);
-      return rpcResp.BadRoute(route, msg: info);
+      return _rpcResp.BadRoute(route, msg: info,);
     }
 
     if (!_jsonFriendly(r)) {
       final info =
           'unexpected Content-Type: ${r.headers['Content-Type']} or Accept: ${r.headers['Accept']}. path: $route';
       _log.info(info);
-      return rpcResp.BadRoute(route, msg: info);
+      return _rpcResp.BadRoute(route, msg: info,);
     }
 
     switch (r.url.path) {
@@ -86,7 +86,7 @@ class WebRpcServer {
         {
           final info = 'no handler for path: $route';
           _log.info(info);
-          return rpcResp.BadRoute(route, msg: info);
+          return _rpcResp.BadRoute(route, msg: info,);
         }
         break;
     }
@@ -97,35 +97,35 @@ class WebRpcServer {
   FutureOr<shelf.Response> _handle{{$name}}{{.Name}}(shelf.Request r) async {
     try {
       // Attempt to call service method.
-    {{ if .Inputs|len -}}
+    {{- if .Inputs|len }}
       final json = await r.readAsString();
-      final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}.fromJson(jsonDecode(json));
+      final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}.fromJson(jsonDecode(json),);
       {{ if .Outputs | len -}}
       final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}({{- range .Inputs}}{{.Name}}:args.{{.Name}},{{- end}});  
-      return rpcResp.Ok(json: jsonEncode(result.toJson()));
+      return _rpcResp.Ok(json: jsonEncode(result.toJson(),),);
       {{else}}
       await {{$name | serviceImplName}}.{{.Name | methodName}}({{- range .Inputs}}{{.Name}}:args.{{.Name}},{{- end}});
-      return rpcResp.Ok();
+      return _rpcResp.Ok();
       {{- end -}} {{/* end if .Outputs */}}
     {{else}}
       {{ if .Outputs | len -}}
       final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}();  
-      return rpcResp.Ok(json: jsonEncode(result.toJson()));
+      return _rpcResp.Ok(json: jsonEncode(result.toJson(),),);
       {{else}}
       await {{$name | serviceImplName}}.{{.Name | methodName}}();
-      return rpcResp.Ok();
+      return _rpcResp.Ok();
       {{- end -}}
     {{- end -}} {{/* end if .Inputs */}}
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/{{$name}}/{{.Name}}');
+      return _rpcResp.Fail('/rpc/{{$name}}/{{.Name}}');
     }
     // Catch all other exceptions. 
     on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace);
-      return rpcResp.Fail('/rpc/{{$name}}/{{.Name}}');
+      return _rpcResp.Fail('/rpc/{{$name}}/{{.Name}}');
     }
   }
   {{end}}{{/* end of range .Methods */}}
@@ -146,7 +146,7 @@ class WebRpcServer {
       int.tryParse(args['port'] ?? Platform.environment['PORT'] ?? '8080');
 
   void _configurePipeline() =>
-    _middleware.forEach((mddlwr) => _pipeline.addMiddleware(mddlwr));
+    _middleware.forEach((mddlwr) => _pipeline.addMiddleware(mddlwr),);
 
   Future<void> serve(List<String> args,
       {SecurityContext securityContext,

@@ -105,10 +105,25 @@ Map<String, dynamic> _$_$_ComplexTypeToJson(_$_ComplexType instance) =>
       'namesList': instance.namesList,
       'numsList': instance.numsList,
       'doubleArray': instance.doubleArray,
-      'listOfUsers': instance.listOfUsers,
-      'mapOfUsers': instance.mapOfUsers,
-      'user': instance.user,
+      'listOfUsers': instance.listOfUsers?.map((e) => e?.toJson())?.toList(),
+      'mapOfUsers':
+          instance.mapOfUsers?.map((k, e) => MapEntry(k, e?.toJson())),
+      'user': instance.user?.toJson(),
       'listOfMaps': instance.listOfMaps,
+    };
+
+_$_ExampleServiceUpdateNameArgs_Freezed
+    _$_$_ExampleServiceUpdateNameArgs_FreezedFromJson(
+        Map<String, dynamic> json) {
+  return _$_ExampleServiceUpdateNameArgs_Freezed(
+    username: json['username'] as String,
+  );
+}
+
+Map<String, dynamic> _$_$_ExampleServiceUpdateNameArgs_FreezedToJson(
+        _$_ExampleServiceUpdateNameArgs_Freezed instance) =>
+    <String, dynamic>{
+      'username': instance.username,
     };
 
 _$_ExampleServiceGetUserArgs_Freezed
@@ -140,40 +155,35 @@ _$_ExampleServiceFindUserArgs_Freezed
 Map<String, dynamic> _$_$_ExampleServiceFindUserArgs_FreezedToJson(
         _$_ExampleServiceFindUserArgs_Freezed instance) =>
     <String, dynamic>{
-      's': instance.s,
+      's': instance.s?.toJson(),
     };
 
-_$_ExampleServiceStatusReturn _$_$_ExampleServiceStatusReturnFromJson(
-    Map<String, dynamic> json) {
-  return _$_ExampleServiceStatusReturn(
+_$_StatusResult _$_$_StatusResultFromJson(Map<String, dynamic> json) {
+  return _$_StatusResult(
     status: json['status'] as bool,
   );
 }
 
-Map<String, dynamic> _$_$_ExampleServiceStatusReturnToJson(
-        _$_ExampleServiceStatusReturn instance) =>
+Map<String, dynamic> _$_$_StatusResultToJson(_$_StatusResult instance) =>
     <String, dynamic>{
       'status': instance.status,
     };
 
-_$_ExampleServiceVersionReturn _$_$_ExampleServiceVersionReturnFromJson(
-    Map<String, dynamic> json) {
-  return _$_ExampleServiceVersionReturn(
+_$_VersionResult _$_$_VersionResultFromJson(Map<String, dynamic> json) {
+  return _$_VersionResult(
     version: json['version'] == null
         ? null
         : Version.fromJson(json['version'] as Map<String, dynamic>),
   );
 }
 
-Map<String, dynamic> _$_$_ExampleServiceVersionReturnToJson(
-        _$_ExampleServiceVersionReturn instance) =>
+Map<String, dynamic> _$_$_VersionResultToJson(_$_VersionResult instance) =>
     <String, dynamic>{
-      'version': instance.version,
+      'version': instance.version?.toJson(),
     };
 
-_$_ExampleServiceGetUserReturn _$_$_ExampleServiceGetUserReturnFromJson(
-    Map<String, dynamic> json) {
-  return _$_ExampleServiceGetUserReturn(
+_$_GetUserResult _$_$_GetUserResultFromJson(Map<String, dynamic> json) {
+  return _$_GetUserResult(
     code: json['code'] as int,
     user: json['user'] == null
         ? null
@@ -181,16 +191,14 @@ _$_ExampleServiceGetUserReturn _$_$_ExampleServiceGetUserReturnFromJson(
   );
 }
 
-Map<String, dynamic> _$_$_ExampleServiceGetUserReturnToJson(
-        _$_ExampleServiceGetUserReturn instance) =>
+Map<String, dynamic> _$_$_GetUserResultToJson(_$_GetUserResult instance) =>
     <String, dynamic>{
       'code': instance.code,
-      'user': instance.user,
+      'user': instance.user?.toJson(),
     };
 
-_$_ExampleServiceFindUserReturn _$_$_ExampleServiceFindUserReturnFromJson(
-    Map<String, dynamic> json) {
-  return _$_ExampleServiceFindUserReturn(
+_$_FindUserResult _$_$_FindUserResultFromJson(Map<String, dynamic> json) {
+  return _$_FindUserResult(
     name: json['name'] as String,
     user: json['user'] == null
         ? null
@@ -198,17 +206,16 @@ _$_ExampleServiceFindUserReturn _$_$_ExampleServiceFindUserReturnFromJson(
   );
 }
 
-Map<String, dynamic> _$_$_ExampleServiceFindUserReturnToJson(
-        _$_ExampleServiceFindUserReturn instance) =>
+Map<String, dynamic> _$_$_FindUserResultToJson(_$_FindUserResult instance) =>
     <String, dynamic>{
       'name': instance.name,
-      'user': instance.user,
+      'user': instance.user?.toJson(),
     };
 
-_$_AnotherExampleServiceGetUserArgs_Freezed
-    _$_$_AnotherExampleServiceGetUserArgs_FreezedFromJson(
+_$_AnotherExampleServiceGetAccountArgs_Freezed
+    _$_$_AnotherExampleServiceGetAccountArgs_FreezedFromJson(
         Map<String, dynamic> json) {
-  return _$_AnotherExampleServiceGetUserArgs_Freezed(
+  return _$_AnotherExampleServiceGetAccountArgs_Freezed(
     header: (json['header'] as Map<String, dynamic>)?.map(
       (k, e) => MapEntry(k, e as String),
     ),
@@ -216,60 +223,58 @@ _$_AnotherExampleServiceGetUserArgs_Freezed
   );
 }
 
-Map<String, dynamic> _$_$_AnotherExampleServiceGetUserArgs_FreezedToJson(
-        _$_AnotherExampleServiceGetUserArgs_Freezed instance) =>
+Map<String, dynamic> _$_$_AnotherExampleServiceGetAccountArgs_FreezedToJson(
+        _$_AnotherExampleServiceGetAccountArgs_Freezed instance) =>
     <String, dynamic>{
       'header': instance.header,
       'userID': instance.userID,
     };
 
-_$_AnotherExampleServiceFindUserArgs_Freezed
-    _$_$_AnotherExampleServiceFindUserArgs_FreezedFromJson(
+_$_AnotherExampleServiceGetUsersArgs_Freezed
+    _$_$_AnotherExampleServiceGetUsersArgs_FreezedFromJson(
         Map<String, dynamic> json) {
-  return _$_AnotherExampleServiceFindUserArgs_Freezed(
+  return _$_AnotherExampleServiceGetUsersArgs_Freezed(
     s: json['s'] == null
         ? null
         : SearchFilter.fromJson(json['s'] as Map<String, dynamic>),
   );
 }
 
-Map<String, dynamic> _$_$_AnotherExampleServiceFindUserArgs_FreezedToJson(
-        _$_AnotherExampleServiceFindUserArgs_Freezed instance) =>
+Map<String, dynamic> _$_$_AnotherExampleServiceGetUsersArgs_FreezedToJson(
+        _$_AnotherExampleServiceGetUsersArgs_Freezed instance) =>
     <String, dynamic>{
-      's': instance.s,
+      's': instance.s?.toJson(),
     };
 
-_$_AnotherExampleServiceStatusReturn
-    _$_$_AnotherExampleServiceStatusReturnFromJson(Map<String, dynamic> json) {
-  return _$_AnotherExampleServiceStatusReturn(
+_$_AnotherExampleServiceStatusResult
+    _$_$_AnotherExampleServiceStatusResultFromJson(Map<String, dynamic> json) {
+  return _$_AnotherExampleServiceStatusResult(
     status: json['status'] as bool,
   );
 }
 
-Map<String, dynamic> _$_$_AnotherExampleServiceStatusReturnToJson(
-        _$_AnotherExampleServiceStatusReturn instance) =>
+Map<String, dynamic> _$_$_AnotherExampleServiceStatusResultToJson(
+        _$_AnotherExampleServiceStatusResult instance) =>
     <String, dynamic>{
       'status': instance.status,
     };
 
-_$_AnotherExampleServiceVersionReturn
-    _$_$_AnotherExampleServiceVersionReturnFromJson(Map<String, dynamic> json) {
-  return _$_AnotherExampleServiceVersionReturn(
+_$_GetVersionResult _$_$_GetVersionResultFromJson(Map<String, dynamic> json) {
+  return _$_GetVersionResult(
     version: json['version'] == null
         ? null
         : Version.fromJson(json['version'] as Map<String, dynamic>),
   );
 }
 
-Map<String, dynamic> _$_$_AnotherExampleServiceVersionReturnToJson(
-        _$_AnotherExampleServiceVersionReturn instance) =>
+Map<String, dynamic> _$_$_GetVersionResultToJson(
+        _$_GetVersionResult instance) =>
     <String, dynamic>{
-      'version': instance.version,
+      'version': instance.version?.toJson(),
     };
 
-_$_AnotherExampleServiceGetUserReturn
-    _$_$_AnotherExampleServiceGetUserReturnFromJson(Map<String, dynamic> json) {
-  return _$_AnotherExampleServiceGetUserReturn(
+_$_GetAccountResult _$_$_GetAccountResultFromJson(Map<String, dynamic> json) {
+  return _$_GetAccountResult(
     code: json['code'] as int,
     user: json['user'] == null
         ? null
@@ -277,17 +282,15 @@ _$_AnotherExampleServiceGetUserReturn
   );
 }
 
-Map<String, dynamic> _$_$_AnotherExampleServiceGetUserReturnToJson(
-        _$_AnotherExampleServiceGetUserReturn instance) =>
+Map<String, dynamic> _$_$_GetAccountResultToJson(
+        _$_GetAccountResult instance) =>
     <String, dynamic>{
       'code': instance.code,
-      'user': instance.user,
+      'user': instance.user?.toJson(),
     };
 
-_$_AnotherExampleServiceFindUserReturn
-    _$_$_AnotherExampleServiceFindUserReturnFromJson(
-        Map<String, dynamic> json) {
-  return _$_AnotherExampleServiceFindUserReturn(
+_$_GetUsersResult _$_$_GetUsersResultFromJson(Map<String, dynamic> json) {
+  return _$_GetUsersResult(
     name: json['name'] as String,
     user: json['user'] == null
         ? null
@@ -295,9 +298,8 @@ _$_AnotherExampleServiceFindUserReturn
   );
 }
 
-Map<String, dynamic> _$_$_AnotherExampleServiceFindUserReturnToJson(
-        _$_AnotherExampleServiceFindUserReturn instance) =>
+Map<String, dynamic> _$_$_GetUsersResultToJson(_$_GetUsersResult instance) =>
     <String, dynamic>{
       'name': instance.name,
-      'user': instance.user,
+      'user': instance.user?.toJson(),
     };

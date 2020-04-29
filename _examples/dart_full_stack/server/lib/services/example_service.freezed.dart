@@ -311,7 +311,7 @@ class __$EmptyCopyWithImpl<$Res> extends _$EmptyCopyWithImpl<$Res>
   _Empty get _value => super._value as _Empty;
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_Empty implements _Empty {
   _$_Empty();
 
@@ -431,7 +431,7 @@ class __$UserCopyWithImpl<$Res> extends _$UserCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_User implements _User {
   _$_User(
       {@required this.id,
@@ -582,7 +582,7 @@ class __$SearchFilterCopyWithImpl<$Res> extends _$SearchFilterCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_SearchFilter implements _SearchFilter {
   _$_SearchFilter({@required this.q}) : assert(q != null);
 
@@ -728,7 +728,7 @@ class __$VersionCopyWithImpl<$Res> extends _$VersionCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_Version implements _Version {
   _$_Version(
       {@required this.webrpcVersion,
@@ -991,7 +991,7 @@ class __$ComplexTypeCopyWithImpl<$Res> extends _$ComplexTypeCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_ComplexType implements _ComplexType {
   _$_ComplexType(
       {@required this.meta,
@@ -1130,6 +1130,149 @@ abstract class _ComplexType implements ComplexType {
   _$ComplexTypeCopyWith<_ComplexType> get copyWith;
 }
 
+_ExampleServiceUpdateNameArgs _$_ExampleServiceUpdateNameArgsFromJson(
+    Map<String, dynamic> json) {
+  return _ExampleServiceUpdateNameArgs_Freezed.fromJson(json);
+}
+
+class _$_ExampleServiceUpdateNameArgsTearOff {
+  const _$_ExampleServiceUpdateNameArgsTearOff();
+
+  _ExampleServiceUpdateNameArgs_Freezed call({@required String username}) {
+    return _ExampleServiceUpdateNameArgs_Freezed(
+      username: username,
+    );
+  }
+}
+
+// ignore: unused_element
+const _$ExampleServiceUpdateNameArgs = _$_ExampleServiceUpdateNameArgsTearOff();
+
+mixin _$_ExampleServiceUpdateNameArgs {
+  String get username;
+
+  Map<String, dynamic> toJson();
+  _$ExampleServiceUpdateNameArgsCopyWith<_ExampleServiceUpdateNameArgs>
+      get copyWith;
+}
+
+abstract class _$ExampleServiceUpdateNameArgsCopyWith<$Res> {
+  factory _$ExampleServiceUpdateNameArgsCopyWith(
+          _ExampleServiceUpdateNameArgs value,
+          $Res Function(_ExampleServiceUpdateNameArgs) then) =
+      __$ExampleServiceUpdateNameArgsCopyWithImpl<$Res>;
+  $Res call({String username});
+}
+
+class __$ExampleServiceUpdateNameArgsCopyWithImpl<$Res>
+    implements _$ExampleServiceUpdateNameArgsCopyWith<$Res> {
+  __$ExampleServiceUpdateNameArgsCopyWithImpl(this._value, this._then);
+
+  final _ExampleServiceUpdateNameArgs _value;
+  // ignore: unused_field
+  final $Res Function(_ExampleServiceUpdateNameArgs) _then;
+
+  @override
+  $Res call({
+    Object username = freezed,
+  }) {
+    return _then(_value.copyWith(
+      username: username == freezed ? _value.username : username as String,
+    ));
+  }
+}
+
+abstract class _$ExampleServiceUpdateNameArgs_FreezedCopyWith<$Res>
+    implements _$ExampleServiceUpdateNameArgsCopyWith<$Res> {
+  factory _$ExampleServiceUpdateNameArgs_FreezedCopyWith(
+          _ExampleServiceUpdateNameArgs_Freezed value,
+          $Res Function(_ExampleServiceUpdateNameArgs_Freezed) then) =
+      __$ExampleServiceUpdateNameArgs_FreezedCopyWithImpl<$Res>;
+  @override
+  $Res call({String username});
+}
+
+class __$ExampleServiceUpdateNameArgs_FreezedCopyWithImpl<$Res>
+    extends __$ExampleServiceUpdateNameArgsCopyWithImpl<$Res>
+    implements _$ExampleServiceUpdateNameArgs_FreezedCopyWith<$Res> {
+  __$ExampleServiceUpdateNameArgs_FreezedCopyWithImpl(
+      _ExampleServiceUpdateNameArgs_Freezed _value,
+      $Res Function(_ExampleServiceUpdateNameArgs_Freezed) _then)
+      : super(_value, (v) => _then(v as _ExampleServiceUpdateNameArgs_Freezed));
+
+  @override
+  _ExampleServiceUpdateNameArgs_Freezed get _value =>
+      super._value as _ExampleServiceUpdateNameArgs_Freezed;
+
+  @override
+  $Res call({
+    Object username = freezed,
+  }) {
+    return _then(_ExampleServiceUpdateNameArgs_Freezed(
+      username: username == freezed ? _value.username : username as String,
+    ));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class _$_ExampleServiceUpdateNameArgs_Freezed
+    implements _ExampleServiceUpdateNameArgs_Freezed {
+  _$_ExampleServiceUpdateNameArgs_Freezed({@required this.username})
+      : assert(username != null);
+
+  factory _$_ExampleServiceUpdateNameArgs_Freezed.fromJson(
+          Map<String, dynamic> json) =>
+      _$_$_ExampleServiceUpdateNameArgs_FreezedFromJson(json);
+
+  @override
+  final String username;
+
+  @override
+  String toString() {
+    return '_ExampleServiceUpdateNameArgs(username: $username)';
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _ExampleServiceUpdateNameArgs_Freezed &&
+            (identical(other.username, username) ||
+                const DeepCollectionEquality()
+                    .equals(other.username, username)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(username);
+
+  @override
+  _$ExampleServiceUpdateNameArgs_FreezedCopyWith<
+          _ExampleServiceUpdateNameArgs_Freezed>
+      get copyWith => __$ExampleServiceUpdateNameArgs_FreezedCopyWithImpl<
+          _ExampleServiceUpdateNameArgs_Freezed>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$_$_ExampleServiceUpdateNameArgs_FreezedToJson(this);
+  }
+}
+
+abstract class _ExampleServiceUpdateNameArgs_Freezed
+    implements _ExampleServiceUpdateNameArgs {
+  factory _ExampleServiceUpdateNameArgs_Freezed({@required String username}) =
+      _$_ExampleServiceUpdateNameArgs_Freezed;
+
+  factory _ExampleServiceUpdateNameArgs_Freezed.fromJson(
+          Map<String, dynamic> json) =
+      _$_ExampleServiceUpdateNameArgs_Freezed.fromJson;
+
+  @override
+  String get username;
+  @override
+  _$ExampleServiceUpdateNameArgs_FreezedCopyWith<
+      _ExampleServiceUpdateNameArgs_Freezed> get copyWith;
+}
+
 _ExampleServiceGetUserArgs _$_ExampleServiceGetUserArgsFromJson(
     Map<String, dynamic> json) {
   return _ExampleServiceGetUserArgs_Freezed.fromJson(json);
@@ -1219,7 +1362,7 @@ class __$ExampleServiceGetUserArgs_FreezedCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_ExampleServiceGetUserArgs_Freezed
     implements _ExampleServiceGetUserArgs_Freezed {
   _$_ExampleServiceGetUserArgs_Freezed(
@@ -1387,7 +1530,7 @@ class __$ExampleServiceFindUserArgs_FreezedCopyWithImpl<$Res>
   }
 }
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class _$_ExampleServiceFindUserArgs_Freezed
     implements _ExampleServiceFindUserArgs_Freezed {
   _$_ExampleServiceFindUserArgs_Freezed({@required this.s}) : assert(s != null);
@@ -1444,45 +1587,43 @@ abstract class _ExampleServiceFindUserArgs_Freezed
       _ExampleServiceFindUserArgs_Freezed> get copyWith;
 }
 
-ExampleServiceStatusReturn _$ExampleServiceStatusReturnFromJson(
-    Map<String, dynamic> json) {
-  return _ExampleServiceStatusReturn.fromJson(json);
+StatusResult _$StatusResultFromJson(Map<String, dynamic> json) {
+  return _StatusResult.fromJson(json);
 }
 
-class _$ExampleServiceStatusReturnTearOff {
-  const _$ExampleServiceStatusReturnTearOff();
+class _$StatusResultTearOff {
+  const _$StatusResultTearOff();
 
-  _ExampleServiceStatusReturn call({@required bool status}) {
-    return _ExampleServiceStatusReturn(
+  _StatusResult call({@required bool status}) {
+    return _StatusResult(
       status: status,
     );
   }
 }
 
 // ignore: unused_element
-const $ExampleServiceStatusReturn = _$ExampleServiceStatusReturnTearOff();
+const $StatusResult = _$StatusResultTearOff();
 
-mixin _$ExampleServiceStatusReturn {
+mixin _$StatusResult {
   bool get status;
 
   Map<String, dynamic> toJson();
-  $ExampleServiceStatusReturnCopyWith<ExampleServiceStatusReturn> get copyWith;
+  $StatusResultCopyWith<StatusResult> get copyWith;
 }
 
-abstract class $ExampleServiceStatusReturnCopyWith<$Res> {
-  factory $ExampleServiceStatusReturnCopyWith(ExampleServiceStatusReturn value,
-          $Res Function(ExampleServiceStatusReturn) then) =
-      _$ExampleServiceStatusReturnCopyWithImpl<$Res>;
+abstract class $StatusResultCopyWith<$Res> {
+  factory $StatusResultCopyWith(
+          StatusResult value, $Res Function(StatusResult) then) =
+      _$StatusResultCopyWithImpl<$Res>;
   $Res call({bool status});
 }
 
-class _$ExampleServiceStatusReturnCopyWithImpl<$Res>
-    implements $ExampleServiceStatusReturnCopyWith<$Res> {
-  _$ExampleServiceStatusReturnCopyWithImpl(this._value, this._then);
+class _$StatusResultCopyWithImpl<$Res> implements $StatusResultCopyWith<$Res> {
+  _$StatusResultCopyWithImpl(this._value, this._then);
 
-  final ExampleServiceStatusReturn _value;
+  final StatusResult _value;
   // ignore: unused_field
-  final $Res Function(ExampleServiceStatusReturn) _then;
+  final $Res Function(StatusResult) _then;
 
   @override
   $Res call({
@@ -1494,57 +1635,53 @@ class _$ExampleServiceStatusReturnCopyWithImpl<$Res>
   }
 }
 
-abstract class _$ExampleServiceStatusReturnCopyWith<$Res>
-    implements $ExampleServiceStatusReturnCopyWith<$Res> {
-  factory _$ExampleServiceStatusReturnCopyWith(
-          _ExampleServiceStatusReturn value,
-          $Res Function(_ExampleServiceStatusReturn) then) =
-      __$ExampleServiceStatusReturnCopyWithImpl<$Res>;
+abstract class _$StatusResultCopyWith<$Res>
+    implements $StatusResultCopyWith<$Res> {
+  factory _$StatusResultCopyWith(
+          _StatusResult value, $Res Function(_StatusResult) then) =
+      __$StatusResultCopyWithImpl<$Res>;
   @override
   $Res call({bool status});
 }
 
-class __$ExampleServiceStatusReturnCopyWithImpl<$Res>
-    extends _$ExampleServiceStatusReturnCopyWithImpl<$Res>
-    implements _$ExampleServiceStatusReturnCopyWith<$Res> {
-  __$ExampleServiceStatusReturnCopyWithImpl(_ExampleServiceStatusReturn _value,
-      $Res Function(_ExampleServiceStatusReturn) _then)
-      : super(_value, (v) => _then(v as _ExampleServiceStatusReturn));
+class __$StatusResultCopyWithImpl<$Res> extends _$StatusResultCopyWithImpl<$Res>
+    implements _$StatusResultCopyWith<$Res> {
+  __$StatusResultCopyWithImpl(
+      _StatusResult _value, $Res Function(_StatusResult) _then)
+      : super(_value, (v) => _then(v as _StatusResult));
 
   @override
-  _ExampleServiceStatusReturn get _value =>
-      super._value as _ExampleServiceStatusReturn;
+  _StatusResult get _value => super._value as _StatusResult;
 
   @override
   $Res call({
     Object status = freezed,
   }) {
-    return _then(_ExampleServiceStatusReturn(
+    return _then(_StatusResult(
       status: status == freezed ? _value.status : status as bool,
     ));
   }
 }
 
-@JsonSerializable()
-class _$_ExampleServiceStatusReturn implements _ExampleServiceStatusReturn {
-  _$_ExampleServiceStatusReturn({@required this.status})
-      : assert(status != null);
+@JsonSerializable(explicitToJson: true)
+class _$_StatusResult implements _StatusResult {
+  _$_StatusResult({@required this.status}) : assert(status != null);
 
-  factory _$_ExampleServiceStatusReturn.fromJson(Map<String, dynamic> json) =>
-      _$_$_ExampleServiceStatusReturnFromJson(json);
+  factory _$_StatusResult.fromJson(Map<String, dynamic> json) =>
+      _$_$_StatusResultFromJson(json);
 
   @override
   final bool status;
 
   @override
   String toString() {
-    return 'ExampleServiceStatusReturn(status: $status)';
+    return 'StatusResult(status: $status)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _ExampleServiceStatusReturn &&
+        (other is _StatusResult &&
             (identical(other.status, status) ||
                 const DeepCollectionEquality().equals(other.status, status)));
   }
@@ -1554,74 +1691,67 @@ class _$_ExampleServiceStatusReturn implements _ExampleServiceStatusReturn {
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(status);
 
   @override
-  _$ExampleServiceStatusReturnCopyWith<_ExampleServiceStatusReturn>
-      get copyWith => __$ExampleServiceStatusReturnCopyWithImpl<
-          _ExampleServiceStatusReturn>(this, _$identity);
+  _$StatusResultCopyWith<_StatusResult> get copyWith =>
+      __$StatusResultCopyWithImpl<_StatusResult>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_ExampleServiceStatusReturnToJson(this);
+    return _$_$_StatusResultToJson(this);
   }
 }
 
-abstract class _ExampleServiceStatusReturn
-    implements ExampleServiceStatusReturn {
-  factory _ExampleServiceStatusReturn({@required bool status}) =
-      _$_ExampleServiceStatusReturn;
+abstract class _StatusResult implements StatusResult {
+  factory _StatusResult({@required bool status}) = _$_StatusResult;
 
-  factory _ExampleServiceStatusReturn.fromJson(Map<String, dynamic> json) =
-      _$_ExampleServiceStatusReturn.fromJson;
+  factory _StatusResult.fromJson(Map<String, dynamic> json) =
+      _$_StatusResult.fromJson;
 
   @override
   bool get status;
   @override
-  _$ExampleServiceStatusReturnCopyWith<_ExampleServiceStatusReturn>
-      get copyWith;
+  _$StatusResultCopyWith<_StatusResult> get copyWith;
 }
 
-ExampleServiceVersionReturn _$ExampleServiceVersionReturnFromJson(
-    Map<String, dynamic> json) {
-  return _ExampleServiceVersionReturn.fromJson(json);
+VersionResult _$VersionResultFromJson(Map<String, dynamic> json) {
+  return _VersionResult.fromJson(json);
 }
 
-class _$ExampleServiceVersionReturnTearOff {
-  const _$ExampleServiceVersionReturnTearOff();
+class _$VersionResultTearOff {
+  const _$VersionResultTearOff();
 
-  _ExampleServiceVersionReturn call({@required Version version}) {
-    return _ExampleServiceVersionReturn(
+  _VersionResult call({@required Version version}) {
+    return _VersionResult(
       version: version,
     );
   }
 }
 
 // ignore: unused_element
-const $ExampleServiceVersionReturn = _$ExampleServiceVersionReturnTearOff();
+const $VersionResult = _$VersionResultTearOff();
 
-mixin _$ExampleServiceVersionReturn {
+mixin _$VersionResult {
   Version get version;
 
   Map<String, dynamic> toJson();
-  $ExampleServiceVersionReturnCopyWith<ExampleServiceVersionReturn>
-      get copyWith;
+  $VersionResultCopyWith<VersionResult> get copyWith;
 }
 
-abstract class $ExampleServiceVersionReturnCopyWith<$Res> {
-  factory $ExampleServiceVersionReturnCopyWith(
-          ExampleServiceVersionReturn value,
-          $Res Function(ExampleServiceVersionReturn) then) =
-      _$ExampleServiceVersionReturnCopyWithImpl<$Res>;
+abstract class $VersionResultCopyWith<$Res> {
+  factory $VersionResultCopyWith(
+          VersionResult value, $Res Function(VersionResult) then) =
+      _$VersionResultCopyWithImpl<$Res>;
   $Res call({Version version});
 
   $VersionCopyWith<$Res> get version;
 }
 
-class _$ExampleServiceVersionReturnCopyWithImpl<$Res>
-    implements $ExampleServiceVersionReturnCopyWith<$Res> {
-  _$ExampleServiceVersionReturnCopyWithImpl(this._value, this._then);
+class _$VersionResultCopyWithImpl<$Res>
+    implements $VersionResultCopyWith<$Res> {
+  _$VersionResultCopyWithImpl(this._value, this._then);
 
-  final ExampleServiceVersionReturn _value;
+  final VersionResult _value;
   // ignore: unused_field
-  final $Res Function(ExampleServiceVersionReturn) _then;
+  final $Res Function(VersionResult) _then;
 
   @override
   $Res call({
@@ -1643,12 +1773,11 @@ class _$ExampleServiceVersionReturnCopyWithImpl<$Res>
   }
 }
 
-abstract class _$ExampleServiceVersionReturnCopyWith<$Res>
-    implements $ExampleServiceVersionReturnCopyWith<$Res> {
-  factory _$ExampleServiceVersionReturnCopyWith(
-          _ExampleServiceVersionReturn value,
-          $Res Function(_ExampleServiceVersionReturn) then) =
-      __$ExampleServiceVersionReturnCopyWithImpl<$Res>;
+abstract class _$VersionResultCopyWith<$Res>
+    implements $VersionResultCopyWith<$Res> {
+  factory _$VersionResultCopyWith(
+          _VersionResult value, $Res Function(_VersionResult) then) =
+      __$VersionResultCopyWithImpl<$Res>;
   @override
   $Res call({Version version});
 
@@ -1656,48 +1785,45 @@ abstract class _$ExampleServiceVersionReturnCopyWith<$Res>
   $VersionCopyWith<$Res> get version;
 }
 
-class __$ExampleServiceVersionReturnCopyWithImpl<$Res>
-    extends _$ExampleServiceVersionReturnCopyWithImpl<$Res>
-    implements _$ExampleServiceVersionReturnCopyWith<$Res> {
-  __$ExampleServiceVersionReturnCopyWithImpl(
-      _ExampleServiceVersionReturn _value,
-      $Res Function(_ExampleServiceVersionReturn) _then)
-      : super(_value, (v) => _then(v as _ExampleServiceVersionReturn));
+class __$VersionResultCopyWithImpl<$Res>
+    extends _$VersionResultCopyWithImpl<$Res>
+    implements _$VersionResultCopyWith<$Res> {
+  __$VersionResultCopyWithImpl(
+      _VersionResult _value, $Res Function(_VersionResult) _then)
+      : super(_value, (v) => _then(v as _VersionResult));
 
   @override
-  _ExampleServiceVersionReturn get _value =>
-      super._value as _ExampleServiceVersionReturn;
+  _VersionResult get _value => super._value as _VersionResult;
 
   @override
   $Res call({
     Object version = freezed,
   }) {
-    return _then(_ExampleServiceVersionReturn(
+    return _then(_VersionResult(
       version: version == freezed ? _value.version : version as Version,
     ));
   }
 }
 
-@JsonSerializable()
-class _$_ExampleServiceVersionReturn implements _ExampleServiceVersionReturn {
-  _$_ExampleServiceVersionReturn({@required this.version})
-      : assert(version != null);
+@JsonSerializable(explicitToJson: true)
+class _$_VersionResult implements _VersionResult {
+  _$_VersionResult({@required this.version}) : assert(version != null);
 
-  factory _$_ExampleServiceVersionReturn.fromJson(Map<String, dynamic> json) =>
-      _$_$_ExampleServiceVersionReturnFromJson(json);
+  factory _$_VersionResult.fromJson(Map<String, dynamic> json) =>
+      _$_$_VersionResultFromJson(json);
 
   @override
   final Version version;
 
   @override
   String toString() {
-    return 'ExampleServiceVersionReturn(version: $version)';
+    return 'VersionResult(version: $version)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _ExampleServiceVersionReturn &&
+        (other is _VersionResult &&
             (identical(other.version, version) ||
                 const DeepCollectionEquality().equals(other.version, version)));
   }
@@ -1707,41 +1833,36 @@ class _$_ExampleServiceVersionReturn implements _ExampleServiceVersionReturn {
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(version);
 
   @override
-  _$ExampleServiceVersionReturnCopyWith<_ExampleServiceVersionReturn>
-      get copyWith => __$ExampleServiceVersionReturnCopyWithImpl<
-          _ExampleServiceVersionReturn>(this, _$identity);
+  _$VersionResultCopyWith<_VersionResult> get copyWith =>
+      __$VersionResultCopyWithImpl<_VersionResult>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_ExampleServiceVersionReturnToJson(this);
+    return _$_$_VersionResultToJson(this);
   }
 }
 
-abstract class _ExampleServiceVersionReturn
-    implements ExampleServiceVersionReturn {
-  factory _ExampleServiceVersionReturn({@required Version version}) =
-      _$_ExampleServiceVersionReturn;
+abstract class _VersionResult implements VersionResult {
+  factory _VersionResult({@required Version version}) = _$_VersionResult;
 
-  factory _ExampleServiceVersionReturn.fromJson(Map<String, dynamic> json) =
-      _$_ExampleServiceVersionReturn.fromJson;
+  factory _VersionResult.fromJson(Map<String, dynamic> json) =
+      _$_VersionResult.fromJson;
 
   @override
   Version get version;
   @override
-  _$ExampleServiceVersionReturnCopyWith<_ExampleServiceVersionReturn>
-      get copyWith;
+  _$VersionResultCopyWith<_VersionResult> get copyWith;
 }
 
-ExampleServiceGetUserReturn _$ExampleServiceGetUserReturnFromJson(
-    Map<String, dynamic> json) {
-  return _ExampleServiceGetUserReturn.fromJson(json);
+GetUserResult _$GetUserResultFromJson(Map<String, dynamic> json) {
+  return _GetUserResult.fromJson(json);
 }
 
-class _$ExampleServiceGetUserReturnTearOff {
-  const _$ExampleServiceGetUserReturnTearOff();
+class _$GetUserResultTearOff {
+  const _$GetUserResultTearOff();
 
-  _ExampleServiceGetUserReturn call({@required int code, @required User user}) {
-    return _ExampleServiceGetUserReturn(
+  _GetUserResult call({@required int code, @required User user}) {
+    return _GetUserResult(
       code: code,
       user: user,
     );
@@ -1749,34 +1870,32 @@ class _$ExampleServiceGetUserReturnTearOff {
 }
 
 // ignore: unused_element
-const $ExampleServiceGetUserReturn = _$ExampleServiceGetUserReturnTearOff();
+const $GetUserResult = _$GetUserResultTearOff();
 
-mixin _$ExampleServiceGetUserReturn {
+mixin _$GetUserResult {
   int get code;
   User get user;
 
   Map<String, dynamic> toJson();
-  $ExampleServiceGetUserReturnCopyWith<ExampleServiceGetUserReturn>
-      get copyWith;
+  $GetUserResultCopyWith<GetUserResult> get copyWith;
 }
 
-abstract class $ExampleServiceGetUserReturnCopyWith<$Res> {
-  factory $ExampleServiceGetUserReturnCopyWith(
-          ExampleServiceGetUserReturn value,
-          $Res Function(ExampleServiceGetUserReturn) then) =
-      _$ExampleServiceGetUserReturnCopyWithImpl<$Res>;
+abstract class $GetUserResultCopyWith<$Res> {
+  factory $GetUserResultCopyWith(
+          GetUserResult value, $Res Function(GetUserResult) then) =
+      _$GetUserResultCopyWithImpl<$Res>;
   $Res call({int code, User user});
 
   $UserCopyWith<$Res> get user;
 }
 
-class _$ExampleServiceGetUserReturnCopyWithImpl<$Res>
-    implements $ExampleServiceGetUserReturnCopyWith<$Res> {
-  _$ExampleServiceGetUserReturnCopyWithImpl(this._value, this._then);
+class _$GetUserResultCopyWithImpl<$Res>
+    implements $GetUserResultCopyWith<$Res> {
+  _$GetUserResultCopyWithImpl(this._value, this._then);
 
-  final ExampleServiceGetUserReturn _value;
+  final GetUserResult _value;
   // ignore: unused_field
-  final $Res Function(ExampleServiceGetUserReturn) _then;
+  final $Res Function(GetUserResult) _then;
 
   @override
   $Res call({
@@ -1800,12 +1919,11 @@ class _$ExampleServiceGetUserReturnCopyWithImpl<$Res>
   }
 }
 
-abstract class _$ExampleServiceGetUserReturnCopyWith<$Res>
-    implements $ExampleServiceGetUserReturnCopyWith<$Res> {
-  factory _$ExampleServiceGetUserReturnCopyWith(
-          _ExampleServiceGetUserReturn value,
-          $Res Function(_ExampleServiceGetUserReturn) then) =
-      __$ExampleServiceGetUserReturnCopyWithImpl<$Res>;
+abstract class _$GetUserResultCopyWith<$Res>
+    implements $GetUserResultCopyWith<$Res> {
+  factory _$GetUserResultCopyWith(
+          _GetUserResult value, $Res Function(_GetUserResult) then) =
+      __$GetUserResultCopyWithImpl<$Res>;
   @override
   $Res call({int code, User user});
 
@@ -1813,38 +1931,36 @@ abstract class _$ExampleServiceGetUserReturnCopyWith<$Res>
   $UserCopyWith<$Res> get user;
 }
 
-class __$ExampleServiceGetUserReturnCopyWithImpl<$Res>
-    extends _$ExampleServiceGetUserReturnCopyWithImpl<$Res>
-    implements _$ExampleServiceGetUserReturnCopyWith<$Res> {
-  __$ExampleServiceGetUserReturnCopyWithImpl(
-      _ExampleServiceGetUserReturn _value,
-      $Res Function(_ExampleServiceGetUserReturn) _then)
-      : super(_value, (v) => _then(v as _ExampleServiceGetUserReturn));
+class __$GetUserResultCopyWithImpl<$Res>
+    extends _$GetUserResultCopyWithImpl<$Res>
+    implements _$GetUserResultCopyWith<$Res> {
+  __$GetUserResultCopyWithImpl(
+      _GetUserResult _value, $Res Function(_GetUserResult) _then)
+      : super(_value, (v) => _then(v as _GetUserResult));
 
   @override
-  _ExampleServiceGetUserReturn get _value =>
-      super._value as _ExampleServiceGetUserReturn;
+  _GetUserResult get _value => super._value as _GetUserResult;
 
   @override
   $Res call({
     Object code = freezed,
     Object user = freezed,
   }) {
-    return _then(_ExampleServiceGetUserReturn(
+    return _then(_GetUserResult(
       code: code == freezed ? _value.code : code as int,
       user: user == freezed ? _value.user : user as User,
     ));
   }
 }
 
-@JsonSerializable()
-class _$_ExampleServiceGetUserReturn implements _ExampleServiceGetUserReturn {
-  _$_ExampleServiceGetUserReturn({@required this.code, @required this.user})
+@JsonSerializable(explicitToJson: true)
+class _$_GetUserResult implements _GetUserResult {
+  _$_GetUserResult({@required this.code, @required this.user})
       : assert(code != null),
         assert(user != null);
 
-  factory _$_ExampleServiceGetUserReturn.fromJson(Map<String, dynamic> json) =>
-      _$_$_ExampleServiceGetUserReturnFromJson(json);
+  factory _$_GetUserResult.fromJson(Map<String, dynamic> json) =>
+      _$_$_GetUserResultFromJson(json);
 
   @override
   final int code;
@@ -1853,13 +1969,13 @@ class _$_ExampleServiceGetUserReturn implements _ExampleServiceGetUserReturn {
 
   @override
   String toString() {
-    return 'ExampleServiceGetUserReturn(code: $code, user: $user)';
+    return 'GetUserResult(code: $code, user: $user)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _ExampleServiceGetUserReturn &&
+        (other is _GetUserResult &&
             (identical(other.code, code) ||
                 const DeepCollectionEquality().equals(other.code, code)) &&
             (identical(other.user, user) ||
@@ -1873,45 +1989,39 @@ class _$_ExampleServiceGetUserReturn implements _ExampleServiceGetUserReturn {
       const DeepCollectionEquality().hash(user);
 
   @override
-  _$ExampleServiceGetUserReturnCopyWith<_ExampleServiceGetUserReturn>
-      get copyWith => __$ExampleServiceGetUserReturnCopyWithImpl<
-          _ExampleServiceGetUserReturn>(this, _$identity);
+  _$GetUserResultCopyWith<_GetUserResult> get copyWith =>
+      __$GetUserResultCopyWithImpl<_GetUserResult>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_ExampleServiceGetUserReturnToJson(this);
+    return _$_$_GetUserResultToJson(this);
   }
 }
 
-abstract class _ExampleServiceGetUserReturn
-    implements ExampleServiceGetUserReturn {
-  factory _ExampleServiceGetUserReturn(
-      {@required int code,
-      @required User user}) = _$_ExampleServiceGetUserReturn;
+abstract class _GetUserResult implements GetUserResult {
+  factory _GetUserResult({@required int code, @required User user}) =
+      _$_GetUserResult;
 
-  factory _ExampleServiceGetUserReturn.fromJson(Map<String, dynamic> json) =
-      _$_ExampleServiceGetUserReturn.fromJson;
+  factory _GetUserResult.fromJson(Map<String, dynamic> json) =
+      _$_GetUserResult.fromJson;
 
   @override
   int get code;
   @override
   User get user;
   @override
-  _$ExampleServiceGetUserReturnCopyWith<_ExampleServiceGetUserReturn>
-      get copyWith;
+  _$GetUserResultCopyWith<_GetUserResult> get copyWith;
 }
 
-ExampleServiceFindUserReturn _$ExampleServiceFindUserReturnFromJson(
-    Map<String, dynamic> json) {
-  return _ExampleServiceFindUserReturn.fromJson(json);
+FindUserResult _$FindUserResultFromJson(Map<String, dynamic> json) {
+  return _FindUserResult.fromJson(json);
 }
 
-class _$ExampleServiceFindUserReturnTearOff {
-  const _$ExampleServiceFindUserReturnTearOff();
+class _$FindUserResultTearOff {
+  const _$FindUserResultTearOff();
 
-  _ExampleServiceFindUserReturn call(
-      {@required String name, @required User user}) {
-    return _ExampleServiceFindUserReturn(
+  _FindUserResult call({@required String name, @required User user}) {
+    return _FindUserResult(
       name: name,
       user: user,
     );
@@ -1919,34 +2029,32 @@ class _$ExampleServiceFindUserReturnTearOff {
 }
 
 // ignore: unused_element
-const $ExampleServiceFindUserReturn = _$ExampleServiceFindUserReturnTearOff();
+const $FindUserResult = _$FindUserResultTearOff();
 
-mixin _$ExampleServiceFindUserReturn {
+mixin _$FindUserResult {
   String get name;
   User get user;
 
   Map<String, dynamic> toJson();
-  $ExampleServiceFindUserReturnCopyWith<ExampleServiceFindUserReturn>
-      get copyWith;
+  $FindUserResultCopyWith<FindUserResult> get copyWith;
 }
 
-abstract class $ExampleServiceFindUserReturnCopyWith<$Res> {
-  factory $ExampleServiceFindUserReturnCopyWith(
-          ExampleServiceFindUserReturn value,
-          $Res Function(ExampleServiceFindUserReturn) then) =
-      _$ExampleServiceFindUserReturnCopyWithImpl<$Res>;
+abstract class $FindUserResultCopyWith<$Res> {
+  factory $FindUserResultCopyWith(
+          FindUserResult value, $Res Function(FindUserResult) then) =
+      _$FindUserResultCopyWithImpl<$Res>;
   $Res call({String name, User user});
 
   $UserCopyWith<$Res> get user;
 }
 
-class _$ExampleServiceFindUserReturnCopyWithImpl<$Res>
-    implements $ExampleServiceFindUserReturnCopyWith<$Res> {
-  _$ExampleServiceFindUserReturnCopyWithImpl(this._value, this._then);
+class _$FindUserResultCopyWithImpl<$Res>
+    implements $FindUserResultCopyWith<$Res> {
+  _$FindUserResultCopyWithImpl(this._value, this._then);
 
-  final ExampleServiceFindUserReturn _value;
+  final FindUserResult _value;
   // ignore: unused_field
-  final $Res Function(ExampleServiceFindUserReturn) _then;
+  final $Res Function(FindUserResult) _then;
 
   @override
   $Res call({
@@ -1970,12 +2078,11 @@ class _$ExampleServiceFindUserReturnCopyWithImpl<$Res>
   }
 }
 
-abstract class _$ExampleServiceFindUserReturnCopyWith<$Res>
-    implements $ExampleServiceFindUserReturnCopyWith<$Res> {
-  factory _$ExampleServiceFindUserReturnCopyWith(
-          _ExampleServiceFindUserReturn value,
-          $Res Function(_ExampleServiceFindUserReturn) then) =
-      __$ExampleServiceFindUserReturnCopyWithImpl<$Res>;
+abstract class _$FindUserResultCopyWith<$Res>
+    implements $FindUserResultCopyWith<$Res> {
+  factory _$FindUserResultCopyWith(
+          _FindUserResult value, $Res Function(_FindUserResult) then) =
+      __$FindUserResultCopyWithImpl<$Res>;
   @override
   $Res call({String name, User user});
 
@@ -1983,38 +2090,36 @@ abstract class _$ExampleServiceFindUserReturnCopyWith<$Res>
   $UserCopyWith<$Res> get user;
 }
 
-class __$ExampleServiceFindUserReturnCopyWithImpl<$Res>
-    extends _$ExampleServiceFindUserReturnCopyWithImpl<$Res>
-    implements _$ExampleServiceFindUserReturnCopyWith<$Res> {
-  __$ExampleServiceFindUserReturnCopyWithImpl(
-      _ExampleServiceFindUserReturn _value,
-      $Res Function(_ExampleServiceFindUserReturn) _then)
-      : super(_value, (v) => _then(v as _ExampleServiceFindUserReturn));
+class __$FindUserResultCopyWithImpl<$Res>
+    extends _$FindUserResultCopyWithImpl<$Res>
+    implements _$FindUserResultCopyWith<$Res> {
+  __$FindUserResultCopyWithImpl(
+      _FindUserResult _value, $Res Function(_FindUserResult) _then)
+      : super(_value, (v) => _then(v as _FindUserResult));
 
   @override
-  _ExampleServiceFindUserReturn get _value =>
-      super._value as _ExampleServiceFindUserReturn;
+  _FindUserResult get _value => super._value as _FindUserResult;
 
   @override
   $Res call({
     Object name = freezed,
     Object user = freezed,
   }) {
-    return _then(_ExampleServiceFindUserReturn(
+    return _then(_FindUserResult(
       name: name == freezed ? _value.name : name as String,
       user: user == freezed ? _value.user : user as User,
     ));
   }
 }
 
-@JsonSerializable()
-class _$_ExampleServiceFindUserReturn implements _ExampleServiceFindUserReturn {
-  _$_ExampleServiceFindUserReturn({@required this.name, @required this.user})
+@JsonSerializable(explicitToJson: true)
+class _$_FindUserResult implements _FindUserResult {
+  _$_FindUserResult({@required this.name, @required this.user})
       : assert(name != null),
         assert(user != null);
 
-  factory _$_ExampleServiceFindUserReturn.fromJson(Map<String, dynamic> json) =>
-      _$_$_ExampleServiceFindUserReturnFromJson(json);
+  factory _$_FindUserResult.fromJson(Map<String, dynamic> json) =>
+      _$_$_FindUserResultFromJson(json);
 
   @override
   final String name;
@@ -2023,13 +2128,13 @@ class _$_ExampleServiceFindUserReturn implements _ExampleServiceFindUserReturn {
 
   @override
   String toString() {
-    return 'ExampleServiceFindUserReturn(name: $name, user: $user)';
+    return 'FindUserResult(name: $name, user: $user)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _ExampleServiceFindUserReturn &&
+        (other is _FindUserResult &&
             (identical(other.name, name) ||
                 const DeepCollectionEquality().equals(other.name, name)) &&
             (identical(other.user, user) ||
@@ -2043,45 +2148,41 @@ class _$_ExampleServiceFindUserReturn implements _ExampleServiceFindUserReturn {
       const DeepCollectionEquality().hash(user);
 
   @override
-  _$ExampleServiceFindUserReturnCopyWith<_ExampleServiceFindUserReturn>
-      get copyWith => __$ExampleServiceFindUserReturnCopyWithImpl<
-          _ExampleServiceFindUserReturn>(this, _$identity);
+  _$FindUserResultCopyWith<_FindUserResult> get copyWith =>
+      __$FindUserResultCopyWithImpl<_FindUserResult>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_ExampleServiceFindUserReturnToJson(this);
+    return _$_$_FindUserResultToJson(this);
   }
 }
 
-abstract class _ExampleServiceFindUserReturn
-    implements ExampleServiceFindUserReturn {
-  factory _ExampleServiceFindUserReturn(
-      {@required String name,
-      @required User user}) = _$_ExampleServiceFindUserReturn;
+abstract class _FindUserResult implements FindUserResult {
+  factory _FindUserResult({@required String name, @required User user}) =
+      _$_FindUserResult;
 
-  factory _ExampleServiceFindUserReturn.fromJson(Map<String, dynamic> json) =
-      _$_ExampleServiceFindUserReturn.fromJson;
+  factory _FindUserResult.fromJson(Map<String, dynamic> json) =
+      _$_FindUserResult.fromJson;
 
   @override
   String get name;
   @override
   User get user;
   @override
-  _$ExampleServiceFindUserReturnCopyWith<_ExampleServiceFindUserReturn>
-      get copyWith;
+  _$FindUserResultCopyWith<_FindUserResult> get copyWith;
 }
 
-_AnotherExampleServiceGetUserArgs _$_AnotherExampleServiceGetUserArgsFromJson(
-    Map<String, dynamic> json) {
-  return _AnotherExampleServiceGetUserArgs_Freezed.fromJson(json);
+_AnotherExampleServiceGetAccountArgs
+    _$_AnotherExampleServiceGetAccountArgsFromJson(Map<String, dynamic> json) {
+  return _AnotherExampleServiceGetAccountArgs_Freezed.fromJson(json);
 }
 
-class _$_AnotherExampleServiceGetUserArgsTearOff {
-  const _$_AnotherExampleServiceGetUserArgsTearOff();
+class _$_AnotherExampleServiceGetAccountArgsTearOff {
+  const _$_AnotherExampleServiceGetAccountArgsTearOff();
 
-  _AnotherExampleServiceGetUserArgs_Freezed call(
+  _AnotherExampleServiceGetAccountArgs_Freezed call(
       {@required Map<String, String> header, @required int userID}) {
-    return _AnotherExampleServiceGetUserArgs_Freezed(
+    return _AnotherExampleServiceGetAccountArgs_Freezed(
       header: header,
       userID: userID,
     );
@@ -2089,33 +2190,33 @@ class _$_AnotherExampleServiceGetUserArgsTearOff {
 }
 
 // ignore: unused_element
-const _$AnotherExampleServiceGetUserArgs =
-    _$_AnotherExampleServiceGetUserArgsTearOff();
+const _$AnotherExampleServiceGetAccountArgs =
+    _$_AnotherExampleServiceGetAccountArgsTearOff();
 
-mixin _$_AnotherExampleServiceGetUserArgs {
+mixin _$_AnotherExampleServiceGetAccountArgs {
   Map<String, String> get header;
   int get userID;
 
   Map<String, dynamic> toJson();
-  _$AnotherExampleServiceGetUserArgsCopyWith<_AnotherExampleServiceGetUserArgs>
-      get copyWith;
+  _$AnotherExampleServiceGetAccountArgsCopyWith<
+      _AnotherExampleServiceGetAccountArgs> get copyWith;
 }
 
-abstract class _$AnotherExampleServiceGetUserArgsCopyWith<$Res> {
-  factory _$AnotherExampleServiceGetUserArgsCopyWith(
-          _AnotherExampleServiceGetUserArgs value,
-          $Res Function(_AnotherExampleServiceGetUserArgs) then) =
-      __$AnotherExampleServiceGetUserArgsCopyWithImpl<$Res>;
+abstract class _$AnotherExampleServiceGetAccountArgsCopyWith<$Res> {
+  factory _$AnotherExampleServiceGetAccountArgsCopyWith(
+          _AnotherExampleServiceGetAccountArgs value,
+          $Res Function(_AnotherExampleServiceGetAccountArgs) then) =
+      __$AnotherExampleServiceGetAccountArgsCopyWithImpl<$Res>;
   $Res call({Map<String, String> header, int userID});
 }
 
-class __$AnotherExampleServiceGetUserArgsCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceGetUserArgsCopyWith<$Res> {
-  __$AnotherExampleServiceGetUserArgsCopyWithImpl(this._value, this._then);
+class __$AnotherExampleServiceGetAccountArgsCopyWithImpl<$Res>
+    implements _$AnotherExampleServiceGetAccountArgsCopyWith<$Res> {
+  __$AnotherExampleServiceGetAccountArgsCopyWithImpl(this._value, this._then);
 
-  final _AnotherExampleServiceGetUserArgs _value;
+  final _AnotherExampleServiceGetAccountArgs _value;
   // ignore: unused_field
-  final $Res Function(_AnotherExampleServiceGetUserArgs) _then;
+  final $Res Function(_AnotherExampleServiceGetAccountArgs) _then;
 
   @override
   $Res call({
@@ -2129,52 +2230,52 @@ class __$AnotherExampleServiceGetUserArgsCopyWithImpl<$Res>
   }
 }
 
-abstract class _$AnotherExampleServiceGetUserArgs_FreezedCopyWith<$Res>
-    implements _$AnotherExampleServiceGetUserArgsCopyWith<$Res> {
-  factory _$AnotherExampleServiceGetUserArgs_FreezedCopyWith(
-          _AnotherExampleServiceGetUserArgs_Freezed value,
-          $Res Function(_AnotherExampleServiceGetUserArgs_Freezed) then) =
-      __$AnotherExampleServiceGetUserArgs_FreezedCopyWithImpl<$Res>;
+abstract class _$AnotherExampleServiceGetAccountArgs_FreezedCopyWith<$Res>
+    implements _$AnotherExampleServiceGetAccountArgsCopyWith<$Res> {
+  factory _$AnotherExampleServiceGetAccountArgs_FreezedCopyWith(
+          _AnotherExampleServiceGetAccountArgs_Freezed value,
+          $Res Function(_AnotherExampleServiceGetAccountArgs_Freezed) then) =
+      __$AnotherExampleServiceGetAccountArgs_FreezedCopyWithImpl<$Res>;
   @override
   $Res call({Map<String, String> header, int userID});
 }
 
-class __$AnotherExampleServiceGetUserArgs_FreezedCopyWithImpl<$Res>
-    extends __$AnotherExampleServiceGetUserArgsCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceGetUserArgs_FreezedCopyWith<$Res> {
-  __$AnotherExampleServiceGetUserArgs_FreezedCopyWithImpl(
-      _AnotherExampleServiceGetUserArgs_Freezed _value,
-      $Res Function(_AnotherExampleServiceGetUserArgs_Freezed) _then)
+class __$AnotherExampleServiceGetAccountArgs_FreezedCopyWithImpl<$Res>
+    extends __$AnotherExampleServiceGetAccountArgsCopyWithImpl<$Res>
+    implements _$AnotherExampleServiceGetAccountArgs_FreezedCopyWith<$Res> {
+  __$AnotherExampleServiceGetAccountArgs_FreezedCopyWithImpl(
+      _AnotherExampleServiceGetAccountArgs_Freezed _value,
+      $Res Function(_AnotherExampleServiceGetAccountArgs_Freezed) _then)
       : super(_value,
-            (v) => _then(v as _AnotherExampleServiceGetUserArgs_Freezed));
+            (v) => _then(v as _AnotherExampleServiceGetAccountArgs_Freezed));
 
   @override
-  _AnotherExampleServiceGetUserArgs_Freezed get _value =>
-      super._value as _AnotherExampleServiceGetUserArgs_Freezed;
+  _AnotherExampleServiceGetAccountArgs_Freezed get _value =>
+      super._value as _AnotherExampleServiceGetAccountArgs_Freezed;
 
   @override
   $Res call({
     Object header = freezed,
     Object userID = freezed,
   }) {
-    return _then(_AnotherExampleServiceGetUserArgs_Freezed(
+    return _then(_AnotherExampleServiceGetAccountArgs_Freezed(
       header: header == freezed ? _value.header : header as Map<String, String>,
       userID: userID == freezed ? _value.userID : userID as int,
     ));
   }
 }
 
-@JsonSerializable()
-class _$_AnotherExampleServiceGetUserArgs_Freezed
-    implements _AnotherExampleServiceGetUserArgs_Freezed {
-  _$_AnotherExampleServiceGetUserArgs_Freezed(
+@JsonSerializable(explicitToJson: true)
+class _$_AnotherExampleServiceGetAccountArgs_Freezed
+    implements _AnotherExampleServiceGetAccountArgs_Freezed {
+  _$_AnotherExampleServiceGetAccountArgs_Freezed(
       {@required this.header, @required this.userID})
       : assert(header != null),
         assert(userID != null);
 
-  factory _$_AnotherExampleServiceGetUserArgs_Freezed.fromJson(
+  factory _$_AnotherExampleServiceGetAccountArgs_Freezed.fromJson(
           Map<String, dynamic> json) =>
-      _$_$_AnotherExampleServiceGetUserArgs_FreezedFromJson(json);
+      _$_$_AnotherExampleServiceGetAccountArgs_FreezedFromJson(json);
 
   @override
   final Map<String, String> header;
@@ -2183,13 +2284,13 @@ class _$_AnotherExampleServiceGetUserArgs_Freezed
 
   @override
   String toString() {
-    return '_AnotherExampleServiceGetUserArgs(header: $header, userID: $userID)';
+    return '_AnotherExampleServiceGetAccountArgs(header: $header, userID: $userID)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _AnotherExampleServiceGetUserArgs_Freezed &&
+        (other is _AnotherExampleServiceGetAccountArgs_Freezed &&
             (identical(other.header, header) ||
                 const DeepCollectionEquality().equals(other.header, header)) &&
             (identical(other.userID, userID) ||
@@ -2203,80 +2304,81 @@ class _$_AnotherExampleServiceGetUserArgs_Freezed
       const DeepCollectionEquality().hash(userID);
 
   @override
-  _$AnotherExampleServiceGetUserArgs_FreezedCopyWith<
-          _AnotherExampleServiceGetUserArgs_Freezed>
-      get copyWith => __$AnotherExampleServiceGetUserArgs_FreezedCopyWithImpl<
-          _AnotherExampleServiceGetUserArgs_Freezed>(this, _$identity);
+  _$AnotherExampleServiceGetAccountArgs_FreezedCopyWith<
+          _AnotherExampleServiceGetAccountArgs_Freezed>
+      get copyWith =>
+          __$AnotherExampleServiceGetAccountArgs_FreezedCopyWithImpl<
+              _AnotherExampleServiceGetAccountArgs_Freezed>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_AnotherExampleServiceGetUserArgs_FreezedToJson(this);
+    return _$_$_AnotherExampleServiceGetAccountArgs_FreezedToJson(this);
   }
 }
 
-abstract class _AnotherExampleServiceGetUserArgs_Freezed
-    implements _AnotherExampleServiceGetUserArgs {
-  factory _AnotherExampleServiceGetUserArgs_Freezed(
+abstract class _AnotherExampleServiceGetAccountArgs_Freezed
+    implements _AnotherExampleServiceGetAccountArgs {
+  factory _AnotherExampleServiceGetAccountArgs_Freezed(
       {@required Map<String, String> header,
-      @required int userID}) = _$_AnotherExampleServiceGetUserArgs_Freezed;
+      @required int userID}) = _$_AnotherExampleServiceGetAccountArgs_Freezed;
 
-  factory _AnotherExampleServiceGetUserArgs_Freezed.fromJson(
+  factory _AnotherExampleServiceGetAccountArgs_Freezed.fromJson(
           Map<String, dynamic> json) =
-      _$_AnotherExampleServiceGetUserArgs_Freezed.fromJson;
+      _$_AnotherExampleServiceGetAccountArgs_Freezed.fromJson;
 
   @override
   Map<String, String> get header;
   @override
   int get userID;
   @override
-  _$AnotherExampleServiceGetUserArgs_FreezedCopyWith<
-      _AnotherExampleServiceGetUserArgs_Freezed> get copyWith;
+  _$AnotherExampleServiceGetAccountArgs_FreezedCopyWith<
+      _AnotherExampleServiceGetAccountArgs_Freezed> get copyWith;
 }
 
-_AnotherExampleServiceFindUserArgs _$_AnotherExampleServiceFindUserArgsFromJson(
+_AnotherExampleServiceGetUsersArgs _$_AnotherExampleServiceGetUsersArgsFromJson(
     Map<String, dynamic> json) {
-  return _AnotherExampleServiceFindUserArgs_Freezed.fromJson(json);
+  return _AnotherExampleServiceGetUsersArgs_Freezed.fromJson(json);
 }
 
-class _$_AnotherExampleServiceFindUserArgsTearOff {
-  const _$_AnotherExampleServiceFindUserArgsTearOff();
+class _$_AnotherExampleServiceGetUsersArgsTearOff {
+  const _$_AnotherExampleServiceGetUsersArgsTearOff();
 
-  _AnotherExampleServiceFindUserArgs_Freezed call({@required SearchFilter s}) {
-    return _AnotherExampleServiceFindUserArgs_Freezed(
+  _AnotherExampleServiceGetUsersArgs_Freezed call({@required SearchFilter s}) {
+    return _AnotherExampleServiceGetUsersArgs_Freezed(
       s: s,
     );
   }
 }
 
 // ignore: unused_element
-const _$AnotherExampleServiceFindUserArgs =
-    _$_AnotherExampleServiceFindUserArgsTearOff();
+const _$AnotherExampleServiceGetUsersArgs =
+    _$_AnotherExampleServiceGetUsersArgsTearOff();
 
-mixin _$_AnotherExampleServiceFindUserArgs {
+mixin _$_AnotherExampleServiceGetUsersArgs {
   SearchFilter get s;
 
   Map<String, dynamic> toJson();
-  _$AnotherExampleServiceFindUserArgsCopyWith<
-      _AnotherExampleServiceFindUserArgs> get copyWith;
+  _$AnotherExampleServiceGetUsersArgsCopyWith<
+      _AnotherExampleServiceGetUsersArgs> get copyWith;
 }
 
-abstract class _$AnotherExampleServiceFindUserArgsCopyWith<$Res> {
-  factory _$AnotherExampleServiceFindUserArgsCopyWith(
-          _AnotherExampleServiceFindUserArgs value,
-          $Res Function(_AnotherExampleServiceFindUserArgs) then) =
-      __$AnotherExampleServiceFindUserArgsCopyWithImpl<$Res>;
+abstract class _$AnotherExampleServiceGetUsersArgsCopyWith<$Res> {
+  factory _$AnotherExampleServiceGetUsersArgsCopyWith(
+          _AnotherExampleServiceGetUsersArgs value,
+          $Res Function(_AnotherExampleServiceGetUsersArgs) then) =
+      __$AnotherExampleServiceGetUsersArgsCopyWithImpl<$Res>;
   $Res call({SearchFilter s});
 
   $SearchFilterCopyWith<$Res> get s;
 }
 
-class __$AnotherExampleServiceFindUserArgsCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceFindUserArgsCopyWith<$Res> {
-  __$AnotherExampleServiceFindUserArgsCopyWithImpl(this._value, this._then);
+class __$AnotherExampleServiceGetUsersArgsCopyWithImpl<$Res>
+    implements _$AnotherExampleServiceGetUsersArgsCopyWith<$Res> {
+  __$AnotherExampleServiceGetUsersArgsCopyWithImpl(this._value, this._then);
 
-  final _AnotherExampleServiceFindUserArgs _value;
+  final _AnotherExampleServiceGetUsersArgs _value;
   // ignore: unused_field
-  final $Res Function(_AnotherExampleServiceFindUserArgs) _then;
+  final $Res Function(_AnotherExampleServiceGetUsersArgs) _then;
 
   @override
   $Res call({
@@ -2298,12 +2400,12 @@ class __$AnotherExampleServiceFindUserArgsCopyWithImpl<$Res>
   }
 }
 
-abstract class _$AnotherExampleServiceFindUserArgs_FreezedCopyWith<$Res>
-    implements _$AnotherExampleServiceFindUserArgsCopyWith<$Res> {
-  factory _$AnotherExampleServiceFindUserArgs_FreezedCopyWith(
-          _AnotherExampleServiceFindUserArgs_Freezed value,
-          $Res Function(_AnotherExampleServiceFindUserArgs_Freezed) then) =
-      __$AnotherExampleServiceFindUserArgs_FreezedCopyWithImpl<$Res>;
+abstract class _$AnotherExampleServiceGetUsersArgs_FreezedCopyWith<$Res>
+    implements _$AnotherExampleServiceGetUsersArgsCopyWith<$Res> {
+  factory _$AnotherExampleServiceGetUsersArgs_FreezedCopyWith(
+          _AnotherExampleServiceGetUsersArgs_Freezed value,
+          $Res Function(_AnotherExampleServiceGetUsersArgs_Freezed) then) =
+      __$AnotherExampleServiceGetUsersArgs_FreezedCopyWithImpl<$Res>;
   @override
   $Res call({SearchFilter s});
 
@@ -2311,51 +2413,51 @@ abstract class _$AnotherExampleServiceFindUserArgs_FreezedCopyWith<$Res>
   $SearchFilterCopyWith<$Res> get s;
 }
 
-class __$AnotherExampleServiceFindUserArgs_FreezedCopyWithImpl<$Res>
-    extends __$AnotherExampleServiceFindUserArgsCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceFindUserArgs_FreezedCopyWith<$Res> {
-  __$AnotherExampleServiceFindUserArgs_FreezedCopyWithImpl(
-      _AnotherExampleServiceFindUserArgs_Freezed _value,
-      $Res Function(_AnotherExampleServiceFindUserArgs_Freezed) _then)
+class __$AnotherExampleServiceGetUsersArgs_FreezedCopyWithImpl<$Res>
+    extends __$AnotherExampleServiceGetUsersArgsCopyWithImpl<$Res>
+    implements _$AnotherExampleServiceGetUsersArgs_FreezedCopyWith<$Res> {
+  __$AnotherExampleServiceGetUsersArgs_FreezedCopyWithImpl(
+      _AnotherExampleServiceGetUsersArgs_Freezed _value,
+      $Res Function(_AnotherExampleServiceGetUsersArgs_Freezed) _then)
       : super(_value,
-            (v) => _then(v as _AnotherExampleServiceFindUserArgs_Freezed));
+            (v) => _then(v as _AnotherExampleServiceGetUsersArgs_Freezed));
 
   @override
-  _AnotherExampleServiceFindUserArgs_Freezed get _value =>
-      super._value as _AnotherExampleServiceFindUserArgs_Freezed;
+  _AnotherExampleServiceGetUsersArgs_Freezed get _value =>
+      super._value as _AnotherExampleServiceGetUsersArgs_Freezed;
 
   @override
   $Res call({
     Object s = freezed,
   }) {
-    return _then(_AnotherExampleServiceFindUserArgs_Freezed(
+    return _then(_AnotherExampleServiceGetUsersArgs_Freezed(
       s: s == freezed ? _value.s : s as SearchFilter,
     ));
   }
 }
 
-@JsonSerializable()
-class _$_AnotherExampleServiceFindUserArgs_Freezed
-    implements _AnotherExampleServiceFindUserArgs_Freezed {
-  _$_AnotherExampleServiceFindUserArgs_Freezed({@required this.s})
+@JsonSerializable(explicitToJson: true)
+class _$_AnotherExampleServiceGetUsersArgs_Freezed
+    implements _AnotherExampleServiceGetUsersArgs_Freezed {
+  _$_AnotherExampleServiceGetUsersArgs_Freezed({@required this.s})
       : assert(s != null);
 
-  factory _$_AnotherExampleServiceFindUserArgs_Freezed.fromJson(
+  factory _$_AnotherExampleServiceGetUsersArgs_Freezed.fromJson(
           Map<String, dynamic> json) =>
-      _$_$_AnotherExampleServiceFindUserArgs_FreezedFromJson(json);
+      _$_$_AnotherExampleServiceGetUsersArgs_FreezedFromJson(json);
 
   @override
   final SearchFilter s;
 
   @override
   String toString() {
-    return '_AnotherExampleServiceFindUserArgs(s: $s)';
+    return '_AnotherExampleServiceGetUsersArgs(s: $s)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _AnotherExampleServiceFindUserArgs_Freezed &&
+        (other is _AnotherExampleServiceGetUsersArgs_Freezed &&
             (identical(other.s, s) ||
                 const DeepCollectionEquality().equals(other.s, s)));
   }
@@ -2365,76 +2467,76 @@ class _$_AnotherExampleServiceFindUserArgs_Freezed
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(s);
 
   @override
-  _$AnotherExampleServiceFindUserArgs_FreezedCopyWith<
-          _AnotherExampleServiceFindUserArgs_Freezed>
-      get copyWith => __$AnotherExampleServiceFindUserArgs_FreezedCopyWithImpl<
-          _AnotherExampleServiceFindUserArgs_Freezed>(this, _$identity);
+  _$AnotherExampleServiceGetUsersArgs_FreezedCopyWith<
+          _AnotherExampleServiceGetUsersArgs_Freezed>
+      get copyWith => __$AnotherExampleServiceGetUsersArgs_FreezedCopyWithImpl<
+          _AnotherExampleServiceGetUsersArgs_Freezed>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_AnotherExampleServiceFindUserArgs_FreezedToJson(this);
+    return _$_$_AnotherExampleServiceGetUsersArgs_FreezedToJson(this);
   }
 }
 
-abstract class _AnotherExampleServiceFindUserArgs_Freezed
-    implements _AnotherExampleServiceFindUserArgs {
-  factory _AnotherExampleServiceFindUserArgs_Freezed(
+abstract class _AnotherExampleServiceGetUsersArgs_Freezed
+    implements _AnotherExampleServiceGetUsersArgs {
+  factory _AnotherExampleServiceGetUsersArgs_Freezed(
           {@required SearchFilter s}) =
-      _$_AnotherExampleServiceFindUserArgs_Freezed;
+      _$_AnotherExampleServiceGetUsersArgs_Freezed;
 
-  factory _AnotherExampleServiceFindUserArgs_Freezed.fromJson(
+  factory _AnotherExampleServiceGetUsersArgs_Freezed.fromJson(
           Map<String, dynamic> json) =
-      _$_AnotherExampleServiceFindUserArgs_Freezed.fromJson;
+      _$_AnotherExampleServiceGetUsersArgs_Freezed.fromJson;
 
   @override
   SearchFilter get s;
   @override
-  _$AnotherExampleServiceFindUserArgs_FreezedCopyWith<
-      _AnotherExampleServiceFindUserArgs_Freezed> get copyWith;
+  _$AnotherExampleServiceGetUsersArgs_FreezedCopyWith<
+      _AnotherExampleServiceGetUsersArgs_Freezed> get copyWith;
 }
 
-AnotherExampleServiceStatusReturn _$AnotherExampleServiceStatusReturnFromJson(
+AnotherExampleServiceStatusResult _$AnotherExampleServiceStatusResultFromJson(
     Map<String, dynamic> json) {
-  return _AnotherExampleServiceStatusReturn.fromJson(json);
+  return _AnotherExampleServiceStatusResult.fromJson(json);
 }
 
-class _$AnotherExampleServiceStatusReturnTearOff {
-  const _$AnotherExampleServiceStatusReturnTearOff();
+class _$AnotherExampleServiceStatusResultTearOff {
+  const _$AnotherExampleServiceStatusResultTearOff();
 
-  _AnotherExampleServiceStatusReturn call({@required bool status}) {
-    return _AnotherExampleServiceStatusReturn(
+  _AnotherExampleServiceStatusResult call({@required bool status}) {
+    return _AnotherExampleServiceStatusResult(
       status: status,
     );
   }
 }
 
 // ignore: unused_element
-const $AnotherExampleServiceStatusReturn =
-    _$AnotherExampleServiceStatusReturnTearOff();
+const $AnotherExampleServiceStatusResult =
+    _$AnotherExampleServiceStatusResultTearOff();
 
-mixin _$AnotherExampleServiceStatusReturn {
+mixin _$AnotherExampleServiceStatusResult {
   bool get status;
 
   Map<String, dynamic> toJson();
-  $AnotherExampleServiceStatusReturnCopyWith<AnotherExampleServiceStatusReturn>
+  $AnotherExampleServiceStatusResultCopyWith<AnotherExampleServiceStatusResult>
       get copyWith;
 }
 
-abstract class $AnotherExampleServiceStatusReturnCopyWith<$Res> {
-  factory $AnotherExampleServiceStatusReturnCopyWith(
-          AnotherExampleServiceStatusReturn value,
-          $Res Function(AnotherExampleServiceStatusReturn) then) =
-      _$AnotherExampleServiceStatusReturnCopyWithImpl<$Res>;
+abstract class $AnotherExampleServiceStatusResultCopyWith<$Res> {
+  factory $AnotherExampleServiceStatusResultCopyWith(
+          AnotherExampleServiceStatusResult value,
+          $Res Function(AnotherExampleServiceStatusResult) then) =
+      _$AnotherExampleServiceStatusResultCopyWithImpl<$Res>;
   $Res call({bool status});
 }
 
-class _$AnotherExampleServiceStatusReturnCopyWithImpl<$Res>
-    implements $AnotherExampleServiceStatusReturnCopyWith<$Res> {
-  _$AnotherExampleServiceStatusReturnCopyWithImpl(this._value, this._then);
+class _$AnotherExampleServiceStatusResultCopyWithImpl<$Res>
+    implements $AnotherExampleServiceStatusResultCopyWith<$Res> {
+  _$AnotherExampleServiceStatusResultCopyWithImpl(this._value, this._then);
 
-  final AnotherExampleServiceStatusReturn _value;
+  final AnotherExampleServiceStatusResult _value;
   // ignore: unused_field
-  final $Res Function(AnotherExampleServiceStatusReturn) _then;
+  final $Res Function(AnotherExampleServiceStatusResult) _then;
 
   @override
   $Res call({
@@ -2446,60 +2548,60 @@ class _$AnotherExampleServiceStatusReturnCopyWithImpl<$Res>
   }
 }
 
-abstract class _$AnotherExampleServiceStatusReturnCopyWith<$Res>
-    implements $AnotherExampleServiceStatusReturnCopyWith<$Res> {
-  factory _$AnotherExampleServiceStatusReturnCopyWith(
-          _AnotherExampleServiceStatusReturn value,
-          $Res Function(_AnotherExampleServiceStatusReturn) then) =
-      __$AnotherExampleServiceStatusReturnCopyWithImpl<$Res>;
+abstract class _$AnotherExampleServiceStatusResultCopyWith<$Res>
+    implements $AnotherExampleServiceStatusResultCopyWith<$Res> {
+  factory _$AnotherExampleServiceStatusResultCopyWith(
+          _AnotherExampleServiceStatusResult value,
+          $Res Function(_AnotherExampleServiceStatusResult) then) =
+      __$AnotherExampleServiceStatusResultCopyWithImpl<$Res>;
   @override
   $Res call({bool status});
 }
 
-class __$AnotherExampleServiceStatusReturnCopyWithImpl<$Res>
-    extends _$AnotherExampleServiceStatusReturnCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceStatusReturnCopyWith<$Res> {
-  __$AnotherExampleServiceStatusReturnCopyWithImpl(
-      _AnotherExampleServiceStatusReturn _value,
-      $Res Function(_AnotherExampleServiceStatusReturn) _then)
-      : super(_value, (v) => _then(v as _AnotherExampleServiceStatusReturn));
+class __$AnotherExampleServiceStatusResultCopyWithImpl<$Res>
+    extends _$AnotherExampleServiceStatusResultCopyWithImpl<$Res>
+    implements _$AnotherExampleServiceStatusResultCopyWith<$Res> {
+  __$AnotherExampleServiceStatusResultCopyWithImpl(
+      _AnotherExampleServiceStatusResult _value,
+      $Res Function(_AnotherExampleServiceStatusResult) _then)
+      : super(_value, (v) => _then(v as _AnotherExampleServiceStatusResult));
 
   @override
-  _AnotherExampleServiceStatusReturn get _value =>
-      super._value as _AnotherExampleServiceStatusReturn;
+  _AnotherExampleServiceStatusResult get _value =>
+      super._value as _AnotherExampleServiceStatusResult;
 
   @override
   $Res call({
     Object status = freezed,
   }) {
-    return _then(_AnotherExampleServiceStatusReturn(
+    return _then(_AnotherExampleServiceStatusResult(
       status: status == freezed ? _value.status : status as bool,
     ));
   }
 }
 
-@JsonSerializable()
-class _$_AnotherExampleServiceStatusReturn
-    implements _AnotherExampleServiceStatusReturn {
-  _$_AnotherExampleServiceStatusReturn({@required this.status})
+@JsonSerializable(explicitToJson: true)
+class _$_AnotherExampleServiceStatusResult
+    implements _AnotherExampleServiceStatusResult {
+  _$_AnotherExampleServiceStatusResult({@required this.status})
       : assert(status != null);
 
-  factory _$_AnotherExampleServiceStatusReturn.fromJson(
+  factory _$_AnotherExampleServiceStatusResult.fromJson(
           Map<String, dynamic> json) =>
-      _$_$_AnotherExampleServiceStatusReturnFromJson(json);
+      _$_$_AnotherExampleServiceStatusResultFromJson(json);
 
   @override
   final bool status;
 
   @override
   String toString() {
-    return 'AnotherExampleServiceStatusReturn(status: $status)';
+    return 'AnotherExampleServiceStatusResult(status: $status)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _AnotherExampleServiceStatusReturn &&
+        (other is _AnotherExampleServiceStatusResult &&
             (identical(other.status, status) ||
                 const DeepCollectionEquality().equals(other.status, status)));
   }
@@ -2509,77 +2611,73 @@ class _$_AnotherExampleServiceStatusReturn
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(status);
 
   @override
-  _$AnotherExampleServiceStatusReturnCopyWith<
-          _AnotherExampleServiceStatusReturn>
-      get copyWith => __$AnotherExampleServiceStatusReturnCopyWithImpl<
-          _AnotherExampleServiceStatusReturn>(this, _$identity);
+  _$AnotherExampleServiceStatusResultCopyWith<
+          _AnotherExampleServiceStatusResult>
+      get copyWith => __$AnotherExampleServiceStatusResultCopyWithImpl<
+          _AnotherExampleServiceStatusResult>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_AnotherExampleServiceStatusReturnToJson(this);
+    return _$_$_AnotherExampleServiceStatusResultToJson(this);
   }
 }
 
-abstract class _AnotherExampleServiceStatusReturn
-    implements AnotherExampleServiceStatusReturn {
-  factory _AnotherExampleServiceStatusReturn({@required bool status}) =
-      _$_AnotherExampleServiceStatusReturn;
+abstract class _AnotherExampleServiceStatusResult
+    implements AnotherExampleServiceStatusResult {
+  factory _AnotherExampleServiceStatusResult({@required bool status}) =
+      _$_AnotherExampleServiceStatusResult;
 
-  factory _AnotherExampleServiceStatusReturn.fromJson(
+  factory _AnotherExampleServiceStatusResult.fromJson(
           Map<String, dynamic> json) =
-      _$_AnotherExampleServiceStatusReturn.fromJson;
+      _$_AnotherExampleServiceStatusResult.fromJson;
 
   @override
   bool get status;
   @override
-  _$AnotherExampleServiceStatusReturnCopyWith<
-      _AnotherExampleServiceStatusReturn> get copyWith;
+  _$AnotherExampleServiceStatusResultCopyWith<
+      _AnotherExampleServiceStatusResult> get copyWith;
 }
 
-AnotherExampleServiceVersionReturn _$AnotherExampleServiceVersionReturnFromJson(
-    Map<String, dynamic> json) {
-  return _AnotherExampleServiceVersionReturn.fromJson(json);
+GetVersionResult _$GetVersionResultFromJson(Map<String, dynamic> json) {
+  return _GetVersionResult.fromJson(json);
 }
 
-class _$AnotherExampleServiceVersionReturnTearOff {
-  const _$AnotherExampleServiceVersionReturnTearOff();
+class _$GetVersionResultTearOff {
+  const _$GetVersionResultTearOff();
 
-  _AnotherExampleServiceVersionReturn call({@required Version version}) {
-    return _AnotherExampleServiceVersionReturn(
+  _GetVersionResult call({@required Version version}) {
+    return _GetVersionResult(
       version: version,
     );
   }
 }
 
 // ignore: unused_element
-const $AnotherExampleServiceVersionReturn =
-    _$AnotherExampleServiceVersionReturnTearOff();
+const $GetVersionResult = _$GetVersionResultTearOff();
 
-mixin _$AnotherExampleServiceVersionReturn {
+mixin _$GetVersionResult {
   Version get version;
 
   Map<String, dynamic> toJson();
-  $AnotherExampleServiceVersionReturnCopyWith<
-      AnotherExampleServiceVersionReturn> get copyWith;
+  $GetVersionResultCopyWith<GetVersionResult> get copyWith;
 }
 
-abstract class $AnotherExampleServiceVersionReturnCopyWith<$Res> {
-  factory $AnotherExampleServiceVersionReturnCopyWith(
-          AnotherExampleServiceVersionReturn value,
-          $Res Function(AnotherExampleServiceVersionReturn) then) =
-      _$AnotherExampleServiceVersionReturnCopyWithImpl<$Res>;
+abstract class $GetVersionResultCopyWith<$Res> {
+  factory $GetVersionResultCopyWith(
+          GetVersionResult value, $Res Function(GetVersionResult) then) =
+      _$GetVersionResultCopyWithImpl<$Res>;
   $Res call({Version version});
 
   $VersionCopyWith<$Res> get version;
 }
 
-class _$AnotherExampleServiceVersionReturnCopyWithImpl<$Res>
-    implements $AnotherExampleServiceVersionReturnCopyWith<$Res> {
-  _$AnotherExampleServiceVersionReturnCopyWithImpl(this._value, this._then);
+class _$GetVersionResultCopyWithImpl<$Res>
+    implements $GetVersionResultCopyWith<$Res> {
+  _$GetVersionResultCopyWithImpl(this._value, this._then);
 
-  final AnotherExampleServiceVersionReturn _value;
+  final GetVersionResult _value;
   // ignore: unused_field
-  final $Res Function(AnotherExampleServiceVersionReturn) _then;
+  final $Res Function(GetVersionResult) _then;
 
   @override
   $Res call({
@@ -2601,12 +2699,11 @@ class _$AnotherExampleServiceVersionReturnCopyWithImpl<$Res>
   }
 }
 
-abstract class _$AnotherExampleServiceVersionReturnCopyWith<$Res>
-    implements $AnotherExampleServiceVersionReturnCopyWith<$Res> {
-  factory _$AnotherExampleServiceVersionReturnCopyWith(
-          _AnotherExampleServiceVersionReturn value,
-          $Res Function(_AnotherExampleServiceVersionReturn) then) =
-      __$AnotherExampleServiceVersionReturnCopyWithImpl<$Res>;
+abstract class _$GetVersionResultCopyWith<$Res>
+    implements $GetVersionResultCopyWith<$Res> {
+  factory _$GetVersionResultCopyWith(
+          _GetVersionResult value, $Res Function(_GetVersionResult) then) =
+      __$GetVersionResultCopyWithImpl<$Res>;
   @override
   $Res call({Version version});
 
@@ -2614,50 +2711,45 @@ abstract class _$AnotherExampleServiceVersionReturnCopyWith<$Res>
   $VersionCopyWith<$Res> get version;
 }
 
-class __$AnotherExampleServiceVersionReturnCopyWithImpl<$Res>
-    extends _$AnotherExampleServiceVersionReturnCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceVersionReturnCopyWith<$Res> {
-  __$AnotherExampleServiceVersionReturnCopyWithImpl(
-      _AnotherExampleServiceVersionReturn _value,
-      $Res Function(_AnotherExampleServiceVersionReturn) _then)
-      : super(_value, (v) => _then(v as _AnotherExampleServiceVersionReturn));
+class __$GetVersionResultCopyWithImpl<$Res>
+    extends _$GetVersionResultCopyWithImpl<$Res>
+    implements _$GetVersionResultCopyWith<$Res> {
+  __$GetVersionResultCopyWithImpl(
+      _GetVersionResult _value, $Res Function(_GetVersionResult) _then)
+      : super(_value, (v) => _then(v as _GetVersionResult));
 
   @override
-  _AnotherExampleServiceVersionReturn get _value =>
-      super._value as _AnotherExampleServiceVersionReturn;
+  _GetVersionResult get _value => super._value as _GetVersionResult;
 
   @override
   $Res call({
     Object version = freezed,
   }) {
-    return _then(_AnotherExampleServiceVersionReturn(
+    return _then(_GetVersionResult(
       version: version == freezed ? _value.version : version as Version,
     ));
   }
 }
 
-@JsonSerializable()
-class _$_AnotherExampleServiceVersionReturn
-    implements _AnotherExampleServiceVersionReturn {
-  _$_AnotherExampleServiceVersionReturn({@required this.version})
-      : assert(version != null);
+@JsonSerializable(explicitToJson: true)
+class _$_GetVersionResult implements _GetVersionResult {
+  _$_GetVersionResult({@required this.version}) : assert(version != null);
 
-  factory _$_AnotherExampleServiceVersionReturn.fromJson(
-          Map<String, dynamic> json) =>
-      _$_$_AnotherExampleServiceVersionReturnFromJson(json);
+  factory _$_GetVersionResult.fromJson(Map<String, dynamic> json) =>
+      _$_$_GetVersionResultFromJson(json);
 
   @override
   final Version version;
 
   @override
   String toString() {
-    return 'AnotherExampleServiceVersionReturn(version: $version)';
+    return 'GetVersionResult(version: $version)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _AnotherExampleServiceVersionReturn &&
+        (other is _GetVersionResult &&
             (identical(other.version, version) ||
                 const DeepCollectionEquality().equals(other.version, version)));
   }
@@ -2667,44 +2759,36 @@ class _$_AnotherExampleServiceVersionReturn
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(version);
 
   @override
-  _$AnotherExampleServiceVersionReturnCopyWith<
-          _AnotherExampleServiceVersionReturn>
-      get copyWith => __$AnotherExampleServiceVersionReturnCopyWithImpl<
-          _AnotherExampleServiceVersionReturn>(this, _$identity);
+  _$GetVersionResultCopyWith<_GetVersionResult> get copyWith =>
+      __$GetVersionResultCopyWithImpl<_GetVersionResult>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_AnotherExampleServiceVersionReturnToJson(this);
+    return _$_$_GetVersionResultToJson(this);
   }
 }
 
-abstract class _AnotherExampleServiceVersionReturn
-    implements AnotherExampleServiceVersionReturn {
-  factory _AnotherExampleServiceVersionReturn({@required Version version}) =
-      _$_AnotherExampleServiceVersionReturn;
+abstract class _GetVersionResult implements GetVersionResult {
+  factory _GetVersionResult({@required Version version}) = _$_GetVersionResult;
 
-  factory _AnotherExampleServiceVersionReturn.fromJson(
-          Map<String, dynamic> json) =
-      _$_AnotherExampleServiceVersionReturn.fromJson;
+  factory _GetVersionResult.fromJson(Map<String, dynamic> json) =
+      _$_GetVersionResult.fromJson;
 
   @override
   Version get version;
   @override
-  _$AnotherExampleServiceVersionReturnCopyWith<
-      _AnotherExampleServiceVersionReturn> get copyWith;
+  _$GetVersionResultCopyWith<_GetVersionResult> get copyWith;
 }
 
-AnotherExampleServiceGetUserReturn _$AnotherExampleServiceGetUserReturnFromJson(
-    Map<String, dynamic> json) {
-  return _AnotherExampleServiceGetUserReturn.fromJson(json);
+GetAccountResult _$GetAccountResultFromJson(Map<String, dynamic> json) {
+  return _GetAccountResult.fromJson(json);
 }
 
-class _$AnotherExampleServiceGetUserReturnTearOff {
-  const _$AnotherExampleServiceGetUserReturnTearOff();
+class _$GetAccountResultTearOff {
+  const _$GetAccountResultTearOff();
 
-  _AnotherExampleServiceGetUserReturn call(
-      {@required int code, @required User user}) {
-    return _AnotherExampleServiceGetUserReturn(
+  _GetAccountResult call({@required int code, @required User user}) {
+    return _GetAccountResult(
       code: code,
       user: user,
     );
@@ -2712,35 +2796,32 @@ class _$AnotherExampleServiceGetUserReturnTearOff {
 }
 
 // ignore: unused_element
-const $AnotherExampleServiceGetUserReturn =
-    _$AnotherExampleServiceGetUserReturnTearOff();
+const $GetAccountResult = _$GetAccountResultTearOff();
 
-mixin _$AnotherExampleServiceGetUserReturn {
+mixin _$GetAccountResult {
   int get code;
   User get user;
 
   Map<String, dynamic> toJson();
-  $AnotherExampleServiceGetUserReturnCopyWith<
-      AnotherExampleServiceGetUserReturn> get copyWith;
+  $GetAccountResultCopyWith<GetAccountResult> get copyWith;
 }
 
-abstract class $AnotherExampleServiceGetUserReturnCopyWith<$Res> {
-  factory $AnotherExampleServiceGetUserReturnCopyWith(
-          AnotherExampleServiceGetUserReturn value,
-          $Res Function(AnotherExampleServiceGetUserReturn) then) =
-      _$AnotherExampleServiceGetUserReturnCopyWithImpl<$Res>;
+abstract class $GetAccountResultCopyWith<$Res> {
+  factory $GetAccountResultCopyWith(
+          GetAccountResult value, $Res Function(GetAccountResult) then) =
+      _$GetAccountResultCopyWithImpl<$Res>;
   $Res call({int code, User user});
 
   $UserCopyWith<$Res> get user;
 }
 
-class _$AnotherExampleServiceGetUserReturnCopyWithImpl<$Res>
-    implements $AnotherExampleServiceGetUserReturnCopyWith<$Res> {
-  _$AnotherExampleServiceGetUserReturnCopyWithImpl(this._value, this._then);
+class _$GetAccountResultCopyWithImpl<$Res>
+    implements $GetAccountResultCopyWith<$Res> {
+  _$GetAccountResultCopyWithImpl(this._value, this._then);
 
-  final AnotherExampleServiceGetUserReturn _value;
+  final GetAccountResult _value;
   // ignore: unused_field
-  final $Res Function(AnotherExampleServiceGetUserReturn) _then;
+  final $Res Function(GetAccountResult) _then;
 
   @override
   $Res call({
@@ -2764,12 +2845,11 @@ class _$AnotherExampleServiceGetUserReturnCopyWithImpl<$Res>
   }
 }
 
-abstract class _$AnotherExampleServiceGetUserReturnCopyWith<$Res>
-    implements $AnotherExampleServiceGetUserReturnCopyWith<$Res> {
-  factory _$AnotherExampleServiceGetUserReturnCopyWith(
-          _AnotherExampleServiceGetUserReturn value,
-          $Res Function(_AnotherExampleServiceGetUserReturn) then) =
-      __$AnotherExampleServiceGetUserReturnCopyWithImpl<$Res>;
+abstract class _$GetAccountResultCopyWith<$Res>
+    implements $GetAccountResultCopyWith<$Res> {
+  factory _$GetAccountResultCopyWith(
+          _GetAccountResult value, $Res Function(_GetAccountResult) then) =
+      __$GetAccountResultCopyWithImpl<$Res>;
   @override
   $Res call({int code, User user});
 
@@ -2777,41 +2857,36 @@ abstract class _$AnotherExampleServiceGetUserReturnCopyWith<$Res>
   $UserCopyWith<$Res> get user;
 }
 
-class __$AnotherExampleServiceGetUserReturnCopyWithImpl<$Res>
-    extends _$AnotherExampleServiceGetUserReturnCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceGetUserReturnCopyWith<$Res> {
-  __$AnotherExampleServiceGetUserReturnCopyWithImpl(
-      _AnotherExampleServiceGetUserReturn _value,
-      $Res Function(_AnotherExampleServiceGetUserReturn) _then)
-      : super(_value, (v) => _then(v as _AnotherExampleServiceGetUserReturn));
+class __$GetAccountResultCopyWithImpl<$Res>
+    extends _$GetAccountResultCopyWithImpl<$Res>
+    implements _$GetAccountResultCopyWith<$Res> {
+  __$GetAccountResultCopyWithImpl(
+      _GetAccountResult _value, $Res Function(_GetAccountResult) _then)
+      : super(_value, (v) => _then(v as _GetAccountResult));
 
   @override
-  _AnotherExampleServiceGetUserReturn get _value =>
-      super._value as _AnotherExampleServiceGetUserReturn;
+  _GetAccountResult get _value => super._value as _GetAccountResult;
 
   @override
   $Res call({
     Object code = freezed,
     Object user = freezed,
   }) {
-    return _then(_AnotherExampleServiceGetUserReturn(
+    return _then(_GetAccountResult(
       code: code == freezed ? _value.code : code as int,
       user: user == freezed ? _value.user : user as User,
     ));
   }
 }
 
-@JsonSerializable()
-class _$_AnotherExampleServiceGetUserReturn
-    implements _AnotherExampleServiceGetUserReturn {
-  _$_AnotherExampleServiceGetUserReturn(
-      {@required this.code, @required this.user})
+@JsonSerializable(explicitToJson: true)
+class _$_GetAccountResult implements _GetAccountResult {
+  _$_GetAccountResult({@required this.code, @required this.user})
       : assert(code != null),
         assert(user != null);
 
-  factory _$_AnotherExampleServiceGetUserReturn.fromJson(
-          Map<String, dynamic> json) =>
-      _$_$_AnotherExampleServiceGetUserReturnFromJson(json);
+  factory _$_GetAccountResult.fromJson(Map<String, dynamic> json) =>
+      _$_$_GetAccountResultFromJson(json);
 
   @override
   final int code;
@@ -2820,13 +2895,13 @@ class _$_AnotherExampleServiceGetUserReturn
 
   @override
   String toString() {
-    return 'AnotherExampleServiceGetUserReturn(code: $code, user: $user)';
+    return 'GetAccountResult(code: $code, user: $user)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _AnotherExampleServiceGetUserReturn &&
+        (other is _GetAccountResult &&
             (identical(other.code, code) ||
                 const DeepCollectionEquality().equals(other.code, code)) &&
             (identical(other.user, user) ||
@@ -2840,47 +2915,39 @@ class _$_AnotherExampleServiceGetUserReturn
       const DeepCollectionEquality().hash(user);
 
   @override
-  _$AnotherExampleServiceGetUserReturnCopyWith<
-          _AnotherExampleServiceGetUserReturn>
-      get copyWith => __$AnotherExampleServiceGetUserReturnCopyWithImpl<
-          _AnotherExampleServiceGetUserReturn>(this, _$identity);
+  _$GetAccountResultCopyWith<_GetAccountResult> get copyWith =>
+      __$GetAccountResultCopyWithImpl<_GetAccountResult>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_AnotherExampleServiceGetUserReturnToJson(this);
+    return _$_$_GetAccountResultToJson(this);
   }
 }
 
-abstract class _AnotherExampleServiceGetUserReturn
-    implements AnotherExampleServiceGetUserReturn {
-  factory _AnotherExampleServiceGetUserReturn(
-      {@required int code,
-      @required User user}) = _$_AnotherExampleServiceGetUserReturn;
+abstract class _GetAccountResult implements GetAccountResult {
+  factory _GetAccountResult({@required int code, @required User user}) =
+      _$_GetAccountResult;
 
-  factory _AnotherExampleServiceGetUserReturn.fromJson(
-          Map<String, dynamic> json) =
-      _$_AnotherExampleServiceGetUserReturn.fromJson;
+  factory _GetAccountResult.fromJson(Map<String, dynamic> json) =
+      _$_GetAccountResult.fromJson;
 
   @override
   int get code;
   @override
   User get user;
   @override
-  _$AnotherExampleServiceGetUserReturnCopyWith<
-      _AnotherExampleServiceGetUserReturn> get copyWith;
+  _$GetAccountResultCopyWith<_GetAccountResult> get copyWith;
 }
 
-AnotherExampleServiceFindUserReturn
-    _$AnotherExampleServiceFindUserReturnFromJson(Map<String, dynamic> json) {
-  return _AnotherExampleServiceFindUserReturn.fromJson(json);
+GetUsersResult _$GetUsersResultFromJson(Map<String, dynamic> json) {
+  return _GetUsersResult.fromJson(json);
 }
 
-class _$AnotherExampleServiceFindUserReturnTearOff {
-  const _$AnotherExampleServiceFindUserReturnTearOff();
+class _$GetUsersResultTearOff {
+  const _$GetUsersResultTearOff();
 
-  _AnotherExampleServiceFindUserReturn call(
-      {@required String name, @required User user}) {
-    return _AnotherExampleServiceFindUserReturn(
+  _GetUsersResult call({@required String name, @required User user}) {
+    return _GetUsersResult(
       name: name,
       user: user,
     );
@@ -2888,35 +2955,32 @@ class _$AnotherExampleServiceFindUserReturnTearOff {
 }
 
 // ignore: unused_element
-const $AnotherExampleServiceFindUserReturn =
-    _$AnotherExampleServiceFindUserReturnTearOff();
+const $GetUsersResult = _$GetUsersResultTearOff();
 
-mixin _$AnotherExampleServiceFindUserReturn {
+mixin _$GetUsersResult {
   String get name;
   User get user;
 
   Map<String, dynamic> toJson();
-  $AnotherExampleServiceFindUserReturnCopyWith<
-      AnotherExampleServiceFindUserReturn> get copyWith;
+  $GetUsersResultCopyWith<GetUsersResult> get copyWith;
 }
 
-abstract class $AnotherExampleServiceFindUserReturnCopyWith<$Res> {
-  factory $AnotherExampleServiceFindUserReturnCopyWith(
-          AnotherExampleServiceFindUserReturn value,
-          $Res Function(AnotherExampleServiceFindUserReturn) then) =
-      _$AnotherExampleServiceFindUserReturnCopyWithImpl<$Res>;
+abstract class $GetUsersResultCopyWith<$Res> {
+  factory $GetUsersResultCopyWith(
+          GetUsersResult value, $Res Function(GetUsersResult) then) =
+      _$GetUsersResultCopyWithImpl<$Res>;
   $Res call({String name, User user});
 
   $UserCopyWith<$Res> get user;
 }
 
-class _$AnotherExampleServiceFindUserReturnCopyWithImpl<$Res>
-    implements $AnotherExampleServiceFindUserReturnCopyWith<$Res> {
-  _$AnotherExampleServiceFindUserReturnCopyWithImpl(this._value, this._then);
+class _$GetUsersResultCopyWithImpl<$Res>
+    implements $GetUsersResultCopyWith<$Res> {
+  _$GetUsersResultCopyWithImpl(this._value, this._then);
 
-  final AnotherExampleServiceFindUserReturn _value;
+  final GetUsersResult _value;
   // ignore: unused_field
-  final $Res Function(AnotherExampleServiceFindUserReturn) _then;
+  final $Res Function(GetUsersResult) _then;
 
   @override
   $Res call({
@@ -2940,12 +3004,11 @@ class _$AnotherExampleServiceFindUserReturnCopyWithImpl<$Res>
   }
 }
 
-abstract class _$AnotherExampleServiceFindUserReturnCopyWith<$Res>
-    implements $AnotherExampleServiceFindUserReturnCopyWith<$Res> {
-  factory _$AnotherExampleServiceFindUserReturnCopyWith(
-          _AnotherExampleServiceFindUserReturn value,
-          $Res Function(_AnotherExampleServiceFindUserReturn) then) =
-      __$AnotherExampleServiceFindUserReturnCopyWithImpl<$Res>;
+abstract class _$GetUsersResultCopyWith<$Res>
+    implements $GetUsersResultCopyWith<$Res> {
+  factory _$GetUsersResultCopyWith(
+          _GetUsersResult value, $Res Function(_GetUsersResult) then) =
+      __$GetUsersResultCopyWithImpl<$Res>;
   @override
   $Res call({String name, User user});
 
@@ -2953,41 +3016,36 @@ abstract class _$AnotherExampleServiceFindUserReturnCopyWith<$Res>
   $UserCopyWith<$Res> get user;
 }
 
-class __$AnotherExampleServiceFindUserReturnCopyWithImpl<$Res>
-    extends _$AnotherExampleServiceFindUserReturnCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceFindUserReturnCopyWith<$Res> {
-  __$AnotherExampleServiceFindUserReturnCopyWithImpl(
-      _AnotherExampleServiceFindUserReturn _value,
-      $Res Function(_AnotherExampleServiceFindUserReturn) _then)
-      : super(_value, (v) => _then(v as _AnotherExampleServiceFindUserReturn));
+class __$GetUsersResultCopyWithImpl<$Res>
+    extends _$GetUsersResultCopyWithImpl<$Res>
+    implements _$GetUsersResultCopyWith<$Res> {
+  __$GetUsersResultCopyWithImpl(
+      _GetUsersResult _value, $Res Function(_GetUsersResult) _then)
+      : super(_value, (v) => _then(v as _GetUsersResult));
 
   @override
-  _AnotherExampleServiceFindUserReturn get _value =>
-      super._value as _AnotherExampleServiceFindUserReturn;
+  _GetUsersResult get _value => super._value as _GetUsersResult;
 
   @override
   $Res call({
     Object name = freezed,
     Object user = freezed,
   }) {
-    return _then(_AnotherExampleServiceFindUserReturn(
+    return _then(_GetUsersResult(
       name: name == freezed ? _value.name : name as String,
       user: user == freezed ? _value.user : user as User,
     ));
   }
 }
 
-@JsonSerializable()
-class _$_AnotherExampleServiceFindUserReturn
-    implements _AnotherExampleServiceFindUserReturn {
-  _$_AnotherExampleServiceFindUserReturn(
-      {@required this.name, @required this.user})
+@JsonSerializable(explicitToJson: true)
+class _$_GetUsersResult implements _GetUsersResult {
+  _$_GetUsersResult({@required this.name, @required this.user})
       : assert(name != null),
         assert(user != null);
 
-  factory _$_AnotherExampleServiceFindUserReturn.fromJson(
-          Map<String, dynamic> json) =>
-      _$_$_AnotherExampleServiceFindUserReturnFromJson(json);
+  factory _$_GetUsersResult.fromJson(Map<String, dynamic> json) =>
+      _$_$_GetUsersResultFromJson(json);
 
   @override
   final String name;
@@ -2996,13 +3054,13 @@ class _$_AnotherExampleServiceFindUserReturn
 
   @override
   String toString() {
-    return 'AnotherExampleServiceFindUserReturn(name: $name, user: $user)';
+    return 'GetUsersResult(name: $name, user: $user)';
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _AnotherExampleServiceFindUserReturn &&
+        (other is _GetUsersResult &&
             (identical(other.name, name) ||
                 const DeepCollectionEquality().equals(other.name, name)) &&
             (identical(other.user, user) ||
@@ -3016,32 +3074,26 @@ class _$_AnotherExampleServiceFindUserReturn
       const DeepCollectionEquality().hash(user);
 
   @override
-  _$AnotherExampleServiceFindUserReturnCopyWith<
-          _AnotherExampleServiceFindUserReturn>
-      get copyWith => __$AnotherExampleServiceFindUserReturnCopyWithImpl<
-          _AnotherExampleServiceFindUserReturn>(this, _$identity);
+  _$GetUsersResultCopyWith<_GetUsersResult> get copyWith =>
+      __$GetUsersResultCopyWithImpl<_GetUsersResult>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_AnotherExampleServiceFindUserReturnToJson(this);
+    return _$_$_GetUsersResultToJson(this);
   }
 }
 
-abstract class _AnotherExampleServiceFindUserReturn
-    implements AnotherExampleServiceFindUserReturn {
-  factory _AnotherExampleServiceFindUserReturn(
-      {@required String name,
-      @required User user}) = _$_AnotherExampleServiceFindUserReturn;
+abstract class _GetUsersResult implements GetUsersResult {
+  factory _GetUsersResult({@required String name, @required User user}) =
+      _$_GetUsersResult;
 
-  factory _AnotherExampleServiceFindUserReturn.fromJson(
-          Map<String, dynamic> json) =
-      _$_AnotherExampleServiceFindUserReturn.fromJson;
+  factory _GetUsersResult.fromJson(Map<String, dynamic> json) =
+      _$_GetUsersResult.fromJson;
 
   @override
   String get name;
   @override
   User get user;
   @override
-  _$AnotherExampleServiceFindUserReturnCopyWith<
-      _AnotherExampleServiceFindUserReturn> get copyWith;
+  _$GetUsersResultCopyWith<_GetUsersResult> get copyWith;
 }
