@@ -168,25 +168,25 @@ abstract class ExampleServiceFindUserReturn
 // *********************************************************************
 @freezed
 abstract class _AnotherExampleServiceGetUserArgs
-    with _$_AnotherExampleServiceGetUserArgs {
+    with _$AnotherExampleServiceGetUserArgs {
   factory _AnotherExampleServiceGetUserArgs({
     @required Map<String, String> header,
     @required int userID,
   }) = _AnotherExampleServiceGetUserArgs_Freezed;
   factory _AnotherExampleServiceGetUserArgs.fromJson(
           Map<String, dynamic> json) =>
-      _$_AnotherExampleServiceGetUserArgsFromJson(json);
+      _$AnotherExampleServiceGetUserArgsFromJson(json);
 }
 
 @freezed
 abstract class _AnotherExampleServiceFindUserArgs
-    with _$_AnotherExampleServiceFindUserArgs {
+    with _$AnotherExampleServiceFindUserArgs {
   factory _AnotherExampleServiceFindUserArgs({
     @required SearchFilter s,
   }) = _AnotherExampleServiceFindUserArgs_Freezed;
   factory _AnotherExampleServiceFindUserArgs.fromJson(
           Map<String, dynamic> json) =>
-      _$_AnotherExampleServiceFindUserArgsFromJson(json);
+      _$AnotherExampleServiceFindUserArgsFromJson(json);
 }
 
 // *********************************************************************

@@ -220,9 +220,9 @@ func methodOutputs(in *schema.Method) (string, error) {
 
 func methodOutputsClient(in *schema.Method) (string, error) {
 	if len(in.Outputs) == 0 {
-		return fmt.Sprintf("FutureOr<%s>", "int"), nil
+		return fmt.Sprintf("Stream<RpcResponse<%s>>", "int"), nil
 	}
-	return fmt.Sprintf("Stream<%s>", methodArgumentOutputClassName(in)), nil
+	return fmt.Sprintf("Stream<RpcResponse<%s>>", methodArgumentOutputClassName(in)), nil
 }
 
 func serviceImplName(in schema.VarName) (string, error) {

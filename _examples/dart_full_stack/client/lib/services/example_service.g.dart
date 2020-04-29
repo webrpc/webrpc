@@ -168,32 +168,6 @@ Map<String, dynamic> _$_$_StatusResultToJson(_$_StatusResult instance) =>
       'status': instance.status,
     };
 
-_$_StatusResultFailed _$_$_StatusResultFailedFromJson(
-    Map<String, dynamic> json) {
-  return _$_StatusResultFailed(
-    statusCode: json['statusCode'] as int,
-    reason: json['reason'] as String,
-    stackTrace: json['stackTrace'] as String,
-  );
-}
-
-Map<String, dynamic> _$_$_StatusResultFailedToJson(
-        _$_StatusResultFailed instance) =>
-    <String, dynamic>{
-      'statusCode': instance.statusCode,
-      'reason': instance.reason,
-      'stackTrace': instance.stackTrace,
-    };
-
-_$_StatusResultPending _$_$_StatusResultPendingFromJson(
-    Map<String, dynamic> json) {
-  return _$_StatusResultPending();
-}
-
-Map<String, dynamic> _$_$_StatusResultPendingToJson(
-        _$_StatusResultPending instance) =>
-    <String, dynamic>{};
-
 _$_VersionResult _$_$_VersionResultFromJson(Map<String, dynamic> json) {
   return _$_VersionResult(
     version: json['version'] == null
@@ -206,32 +180,6 @@ Map<String, dynamic> _$_$_VersionResultToJson(_$_VersionResult instance) =>
     <String, dynamic>{
       'version': instance.version?.toJson(),
     };
-
-_$_VersionResultFailed _$_$_VersionResultFailedFromJson(
-    Map<String, dynamic> json) {
-  return _$_VersionResultFailed(
-    statusCode: json['statusCode'] as int,
-    reason: json['reason'] as String,
-    stackTrace: json['stackTrace'] as String,
-  );
-}
-
-Map<String, dynamic> _$_$_VersionResultFailedToJson(
-        _$_VersionResultFailed instance) =>
-    <String, dynamic>{
-      'statusCode': instance.statusCode,
-      'reason': instance.reason,
-      'stackTrace': instance.stackTrace,
-    };
-
-_$_VersionResultPending _$_$_VersionResultPendingFromJson(
-    Map<String, dynamic> json) {
-  return _$_VersionResultPending();
-}
-
-Map<String, dynamic> _$_$_VersionResultPendingToJson(
-        _$_VersionResultPending instance) =>
-    <String, dynamic>{};
 
 _$_GetUserResult _$_$_GetUserResultFromJson(Map<String, dynamic> json) {
   return _$_GetUserResult(
@@ -248,32 +196,6 @@ Map<String, dynamic> _$_$_GetUserResultToJson(_$_GetUserResult instance) =>
       'user': instance.user?.toJson(),
     };
 
-_$_GetUserResultFailed _$_$_GetUserResultFailedFromJson(
-    Map<String, dynamic> json) {
-  return _$_GetUserResultFailed(
-    statusCode: json['statusCode'] as int,
-    reason: json['reason'] as String,
-    stackTrace: json['stackTrace'] as String,
-  );
-}
-
-Map<String, dynamic> _$_$_GetUserResultFailedToJson(
-        _$_GetUserResultFailed instance) =>
-    <String, dynamic>{
-      'statusCode': instance.statusCode,
-      'reason': instance.reason,
-      'stackTrace': instance.stackTrace,
-    };
-
-_$_GetUserResultPending _$_$_GetUserResultPendingFromJson(
-    Map<String, dynamic> json) {
-  return _$_GetUserResultPending();
-}
-
-Map<String, dynamic> _$_$_GetUserResultPendingToJson(
-        _$_GetUserResultPending instance) =>
-    <String, dynamic>{};
-
 _$_FindUserResult _$_$_FindUserResultFromJson(Map<String, dynamic> json) {
   return _$_FindUserResult(
     name: json['name'] as String,
@@ -288,32 +210,6 @@ Map<String, dynamic> _$_$_FindUserResultToJson(_$_FindUserResult instance) =>
       'name': instance.name,
       'user': instance.user?.toJson(),
     };
-
-_$_FindUserResultFailed _$_$_FindUserResultFailedFromJson(
-    Map<String, dynamic> json) {
-  return _$_FindUserResultFailed(
-    statusCode: json['statusCode'] as int,
-    reason: json['reason'] as String,
-    stackTrace: json['stackTrace'] as String,
-  );
-}
-
-Map<String, dynamic> _$_$_FindUserResultFailedToJson(
-        _$_FindUserResultFailed instance) =>
-    <String, dynamic>{
-      'statusCode': instance.statusCode,
-      'reason': instance.reason,
-      'stackTrace': instance.stackTrace,
-    };
-
-_$_FindUserResultPending _$_$_FindUserResultPendingFromJson(
-    Map<String, dynamic> json) {
-  return _$_FindUserResultPending();
-}
-
-Map<String, dynamic> _$_$_FindUserResultPendingToJson(
-        _$_FindUserResultPending instance) =>
-    <String, dynamic>{};
 
 _$_AnotherExampleServiceGetAccountArgs_Freezed
     _$_$_AnotherExampleServiceGetAccountArgs_FreezedFromJson(
@@ -362,34 +258,6 @@ Map<String, dynamic> _$_$_AnotherExampleServiceStatusResultToJson(
       'status': instance.status,
     };
 
-_$_AnotherExampleServiceStatusResultFailed
-    _$_$_AnotherExampleServiceStatusResultFailedFromJson(
-        Map<String, dynamic> json) {
-  return _$_AnotherExampleServiceStatusResultFailed(
-    statusCode: json['statusCode'] as int,
-    reason: json['reason'] as String,
-    stackTrace: json['stackTrace'] as String,
-  );
-}
-
-Map<String, dynamic> _$_$_AnotherExampleServiceStatusResultFailedToJson(
-        _$_AnotherExampleServiceStatusResultFailed instance) =>
-    <String, dynamic>{
-      'statusCode': instance.statusCode,
-      'reason': instance.reason,
-      'stackTrace': instance.stackTrace,
-    };
-
-_$_AnotherExampleServiceStatusResultPending
-    _$_$_AnotherExampleServiceStatusResultPendingFromJson(
-        Map<String, dynamic> json) {
-  return _$_AnotherExampleServiceStatusResultPending();
-}
-
-Map<String, dynamic> _$_$_AnotherExampleServiceStatusResultPendingToJson(
-        _$_AnotherExampleServiceStatusResultPending instance) =>
-    <String, dynamic>{};
-
 _$_GetVersionResult _$_$_GetVersionResultFromJson(Map<String, dynamic> json) {
   return _$_GetVersionResult(
     version: json['version'] == null
@@ -403,32 +271,6 @@ Map<String, dynamic> _$_$_GetVersionResultToJson(
     <String, dynamic>{
       'version': instance.version?.toJson(),
     };
-
-_$_GetVersionResultFailed _$_$_GetVersionResultFailedFromJson(
-    Map<String, dynamic> json) {
-  return _$_GetVersionResultFailed(
-    statusCode: json['statusCode'] as int,
-    reason: json['reason'] as String,
-    stackTrace: json['stackTrace'] as String,
-  );
-}
-
-Map<String, dynamic> _$_$_GetVersionResultFailedToJson(
-        _$_GetVersionResultFailed instance) =>
-    <String, dynamic>{
-      'statusCode': instance.statusCode,
-      'reason': instance.reason,
-      'stackTrace': instance.stackTrace,
-    };
-
-_$_GetVersionResultPending _$_$_GetVersionResultPendingFromJson(
-    Map<String, dynamic> json) {
-  return _$_GetVersionResultPending();
-}
-
-Map<String, dynamic> _$_$_GetVersionResultPendingToJson(
-        _$_GetVersionResultPending instance) =>
-    <String, dynamic>{};
 
 _$_GetAccountResult _$_$_GetAccountResultFromJson(Map<String, dynamic> json) {
   return _$_GetAccountResult(
@@ -446,32 +288,6 @@ Map<String, dynamic> _$_$_GetAccountResultToJson(
       'user': instance.user?.toJson(),
     };
 
-_$_GetAccountResultFailed _$_$_GetAccountResultFailedFromJson(
-    Map<String, dynamic> json) {
-  return _$_GetAccountResultFailed(
-    statusCode: json['statusCode'] as int,
-    reason: json['reason'] as String,
-    stackTrace: json['stackTrace'] as String,
-  );
-}
-
-Map<String, dynamic> _$_$_GetAccountResultFailedToJson(
-        _$_GetAccountResultFailed instance) =>
-    <String, dynamic>{
-      'statusCode': instance.statusCode,
-      'reason': instance.reason,
-      'stackTrace': instance.stackTrace,
-    };
-
-_$_GetAccountResultPending _$_$_GetAccountResultPendingFromJson(
-    Map<String, dynamic> json) {
-  return _$_GetAccountResultPending();
-}
-
-Map<String, dynamic> _$_$_GetAccountResultPendingToJson(
-        _$_GetAccountResultPending instance) =>
-    <String, dynamic>{};
-
 _$_GetUsersResult _$_$_GetUsersResultFromJson(Map<String, dynamic> json) {
   return _$_GetUsersResult(
     name: json['name'] as String,
@@ -486,29 +302,3 @@ Map<String, dynamic> _$_$_GetUsersResultToJson(_$_GetUsersResult instance) =>
       'name': instance.name,
       'user': instance.user?.toJson(),
     };
-
-_$_GetUsersResultFailed _$_$_GetUsersResultFailedFromJson(
-    Map<String, dynamic> json) {
-  return _$_GetUsersResultFailed(
-    statusCode: json['statusCode'] as int,
-    reason: json['reason'] as String,
-    stackTrace: json['stackTrace'] as String,
-  );
-}
-
-Map<String, dynamic> _$_$_GetUsersResultFailedToJson(
-        _$_GetUsersResultFailed instance) =>
-    <String, dynamic>{
-      'statusCode': instance.statusCode,
-      'reason': instance.reason,
-      'stackTrace': instance.stackTrace,
-    };
-
-_$_GetUsersResultPending _$_$_GetUsersResultPendingFromJson(
-    Map<String, dynamic> json) {
-  return _$_GetUsersResultPending();
-}
-
-Map<String, dynamic> _$_$_GetUsersResultPendingToJson(
-        _$_GetUsersResultPending instance) =>
-    <String, dynamic>{};

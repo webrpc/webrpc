@@ -1,6 +1,19 @@
 {{define "client"}}
 
 {{if .Services}}
+// *********************************************************************
+// RpcResponse TYPE.
+// *********************************************************************
+
+// This class provides type safe access to the state of an RpcRequest 
+// and it's Response data. For more info See https://www.azavea.com/blog/2019/12/12/modeling-state-with-typescript/
+// See https://pub.dev/packages/freezed to learn how to use this type.
+@freezed
+abstract class RpcResponse<T> with _$RpcResponse<T> {
+  factory RpcResponse.ok({@required T data,}) = _RpcResponseOk<T>;
+  factory RpcResponse.err({@required String reason, @required int statusCode, String stackTrace,}) = _RpcResonseErr<T>;
+  const factory RpcResponse.pending() = _RpcResponsePending<T>;
+}
 // ***********************************************************************
 // WEBRPC-DART SERVICE CLIENTS.
 // ***********************************************************************
@@ -24,7 +37,7 @@ class {{.Name}} {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: json);
+        body: jsonEncode(json));
   }
 
   _RpcErr _getErr(http.Response r) {
@@ -49,57 +62,41 @@ class {{.Name}} {
 {{- end}} {{/* end of range .Inputs */}}
 {{- end}} {{/* end of if .Inputs */}}
   Map<String, String> headers,
-  }) async{{if .Outputs | len}}*{{end}} {
-    {{if .Outputs | len}}
+  }) async* {
     const num = 0;
     while (num == 0) {
-      yield const {{. | methodArgumentOutputClassName}}.pending();
+      yield const RpcResponse.pending();
       try {
         {{- if .Inputs | len}} {{/* if method has args */}}
           final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}({{- range .Inputs}}{{.Name}}:{{.Name}},{{- end}});
           {{end}} {{/* end of if .Inputs */}}
           final http.Response response = await _makeRequest(
             '{{.Name}}',
-            json: jsonEncode({{- if .Inputs | len}} {{/* if method has args */}}args.toJson(){{else}} "{}" {{end}} {{/* end of if .Inputs */}}),
+            {{- if .Inputs | len}}json: jsonEncode(args.toJson()),{{end}}
             headers: headers,
           );
 
           if (!_nonErrorcodes.contains(response.statusCode)) {
             final _RpcErr err = _getErr(response);
-            yield {{. | methodArgumentOutputClassName}}.failed(
+            yield RpcResponse.err(
                 reason: err.message,
                 statusCode: err.httpErr.code,
                 );
                 break;
           }
-          yield {{. | methodArgumentOutputClassName}}.fromJson(
-              jsonDecode(response.body,),);
+          yield RpcResponse.ok(data:{{if .Outputs | len}} {{. | methodArgumentOutputClassName}}.fromJson(
+              jsonDecode(response.body,),){{else}} response.statusCode,{{end}});
           break;    
       } on Exception catch (e, stackTrace) {
-        yield {{. | methodArgumentOutputClassName}}.failed(
+        yield RpcResponse.err(
           statusCode: 400,
           reason: e.toString(),
           stackTrace: stackTrace.toString(),
         );
         break;
       }
-    }
-    {{else}} {{/* if method has no .Outputs */}}
-      try {
-        {{- if .Inputs | len}} {{/* if method has args */}}
-          final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}({{- range .Inputs}}{{.Name}}:{{.Name}},{{- end}});
-          {{end}} {{/* end of if .Inputs */}}
-          final http.Response response = await _makeRequest(
-            '{{.Name}}',
-            json: jsonEncode({{- if .Inputs | len}} {{/* if method has args */}}args.toJson(){{else}} "{}" {{end}} {{/* end of if .Inputs */}}),
-            headers: headers,
-          );
-          return response.statusCode;
-      } on Exception catch (_) {
-        return 400;
-      }   
-     
-     {{end}} {{/* end of if .Outputs */}}
+    } 
+ 
   }
   {{end}} {{/* end of range .Methods */}}
 

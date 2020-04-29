@@ -74,7 +74,7 @@ abstract class _{{. | methodArgumentInputClassName}} with _$_{{. | methodArgumen
 @freezed
 abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgumentOutputClassName}} {
   @JsonSerializable(explicitToJson: true)
-  factory {{. | methodArgumentOutputClassName}}.data({
+  factory {{. | methodArgumentOutputClassName}}({
     {{- range .Outputs}}
   {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
   {{- end -}} {{/* end of if not .Optional */}}
@@ -85,14 +85,6 @@ abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgument
   {{- end -}}
   {{- end -}}
   }) = _{{. | methodArgumentOutputClassName}};
-  {{if $isClient}}
-  factory {{. | methodArgumentOutputClassName}}.failed({
-    @required int statusCode,
-    @required String reason,
-    String stackTrace,
-  }) = _{{. | methodArgumentOutputClassName}}Failed;
-  const factory {{. | methodArgumentOutputClassName}}.pending() = _{{. | methodArgumentOutputClassName}}Pending;
-  {{end}} 
   factory {{. | methodArgumentOutputClassName}}.fromJson(Map<String, dynamic> json) => _${{. | methodArgumentOutputClassName}}FromJson(json);
 }
 {{end}} {{/* end of if .Outputs */}}

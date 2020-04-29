@@ -1678,39 +1678,16 @@ abstract class _ExampleServiceFindUserArgs_Freezed
 }
 
 StatusResult _$StatusResultFromJson(Map<String, dynamic> json) {
-  switch (json['runtimeType'] as String) {
-    case 'data':
-      return _StatusResult.fromJson(json);
-    case 'failed':
-      return _StatusResultFailed.fromJson(json);
-    case 'pending':
-      return _StatusResultPending.fromJson(json);
-
-    default:
-      throw FallThroughError();
-  }
+  return _StatusResult.fromJson(json);
 }
 
 class _$StatusResultTearOff {
   const _$StatusResultTearOff();
 
-  _StatusResult data({@required bool status}) {
+  _StatusResult call({@required bool status}) {
     return _StatusResult(
       status: status,
     );
-  }
-
-  _StatusResultFailed failed(
-      {@required int statusCode, @required String reason, String stackTrace}) {
-    return _StatusResultFailed(
-      statusCode: statusCode,
-      reason: reason,
-      stackTrace: stackTrace,
-    );
-  }
-
-  _StatusResultPending pending() {
-    return const _StatusResultPending();
   }
 }
 
@@ -1718,39 +1695,17 @@ class _$StatusResultTearOff {
 const $StatusResult = _$StatusResultTearOff();
 
 mixin _$StatusResult {
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(bool status),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  });
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(bool status),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  });
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_StatusResult value),
-    @required Result failed(_StatusResultFailed value),
-    @required Result pending(_StatusResultPending value),
-  });
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_StatusResult value),
-    Result failed(_StatusResultFailed value),
-    Result pending(_StatusResultPending value),
-    @required Result orElse(),
-  });
+  bool get status;
+
   Map<String, dynamic> toJson();
+  $StatusResultCopyWith<StatusResult> get copyWith;
 }
 
 abstract class $StatusResultCopyWith<$Res> {
   factory $StatusResultCopyWith(
           StatusResult value, $Res Function(StatusResult) then) =
       _$StatusResultCopyWithImpl<$Res>;
+  $Res call({bool status});
 }
 
 class _$StatusResultCopyWithImpl<$Res> implements $StatusResultCopyWith<$Res> {
@@ -1759,12 +1714,23 @@ class _$StatusResultCopyWithImpl<$Res> implements $StatusResultCopyWith<$Res> {
   final StatusResult _value;
   // ignore: unused_field
   final $Res Function(StatusResult) _then;
+
+  @override
+  $Res call({
+    Object status = freezed,
+  }) {
+    return _then(_value.copyWith(
+      status: status == freezed ? _value.status : status as bool,
+    ));
+  }
 }
 
-abstract class _$StatusResultCopyWith<$Res> {
+abstract class _$StatusResultCopyWith<$Res>
+    implements $StatusResultCopyWith<$Res> {
   factory _$StatusResultCopyWith(
           _StatusResult value, $Res Function(_StatusResult) then) =
       __$StatusResultCopyWithImpl<$Res>;
+  @override
   $Res call({bool status});
 }
 
@@ -1799,14 +1765,14 @@ class _$_StatusResult with DiagnosticableTreeMixin implements _StatusResult {
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'StatusResult.data(status: $status)';
+    return 'StatusResult(status: $status)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'StatusResult.data'))
+      ..add(DiagnosticsProperty('type', 'StatusResult'))
       ..add(DiagnosticsProperty('status', status));
   }
 
@@ -1827,64 +1793,8 @@ class _$_StatusResult with DiagnosticableTreeMixin implements _StatusResult {
       __$StatusResultCopyWithImpl<_StatusResult>(this, _$identity);
 
   @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(bool status),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(status);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(bool status),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(status);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_StatusResult value),
-    @required Result failed(_StatusResultFailed value),
-    @required Result pending(_StatusResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_StatusResult value),
-    Result failed(_StatusResultFailed value),
-    Result pending(_StatusResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(this);
-    }
-    return orElse();
-  }
-
-  @override
   Map<String, dynamic> toJson() {
-    return _$_$_StatusResultToJson(this)..['runtimeType'] = 'data';
+    return _$_$_StatusResultToJson(this);
   }
 }
 
@@ -1894,326 +1804,23 @@ abstract class _StatusResult implements StatusResult {
   factory _StatusResult.fromJson(Map<String, dynamic> json) =
       _$_StatusResult.fromJson;
 
+  @override
   bool get status;
+  @override
   _$StatusResultCopyWith<_StatusResult> get copyWith;
 }
 
-abstract class _$StatusResultFailedCopyWith<$Res> {
-  factory _$StatusResultFailedCopyWith(
-          _StatusResultFailed value, $Res Function(_StatusResultFailed) then) =
-      __$StatusResultFailedCopyWithImpl<$Res>;
-  $Res call({int statusCode, String reason, String stackTrace});
-}
-
-class __$StatusResultFailedCopyWithImpl<$Res>
-    extends _$StatusResultCopyWithImpl<$Res>
-    implements _$StatusResultFailedCopyWith<$Res> {
-  __$StatusResultFailedCopyWithImpl(
-      _StatusResultFailed _value, $Res Function(_StatusResultFailed) _then)
-      : super(_value, (v) => _then(v as _StatusResultFailed));
-
-  @override
-  _StatusResultFailed get _value => super._value as _StatusResultFailed;
-
-  @override
-  $Res call({
-    Object statusCode = freezed,
-    Object reason = freezed,
-    Object stackTrace = freezed,
-  }) {
-    return _then(_StatusResultFailed(
-      statusCode: statusCode == freezed ? _value.statusCode : statusCode as int,
-      reason: reason == freezed ? _value.reason : reason as String,
-      stackTrace:
-          stackTrace == freezed ? _value.stackTrace : stackTrace as String,
-    ));
-  }
-}
-
-@JsonSerializable()
-class _$_StatusResultFailed
-    with DiagnosticableTreeMixin
-    implements _StatusResultFailed {
-  _$_StatusResultFailed(
-      {@required this.statusCode, @required this.reason, this.stackTrace})
-      : assert(statusCode != null),
-        assert(reason != null);
-
-  factory _$_StatusResultFailed.fromJson(Map<String, dynamic> json) =>
-      _$_$_StatusResultFailedFromJson(json);
-
-  @override
-  final int statusCode;
-  @override
-  final String reason;
-  @override
-  final String stackTrace;
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'StatusResult.failed(statusCode: $statusCode, reason: $reason, stackTrace: $stackTrace)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'StatusResult.failed'))
-      ..add(DiagnosticsProperty('statusCode', statusCode))
-      ..add(DiagnosticsProperty('reason', reason))
-      ..add(DiagnosticsProperty('stackTrace', stackTrace));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is _StatusResultFailed &&
-            (identical(other.statusCode, statusCode) ||
-                const DeepCollectionEquality()
-                    .equals(other.statusCode, statusCode)) &&
-            (identical(other.reason, reason) ||
-                const DeepCollectionEquality().equals(other.reason, reason)) &&
-            (identical(other.stackTrace, stackTrace) ||
-                const DeepCollectionEquality()
-                    .equals(other.stackTrace, stackTrace)));
-  }
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(statusCode) ^
-      const DeepCollectionEquality().hash(reason) ^
-      const DeepCollectionEquality().hash(stackTrace);
-
-  @override
-  _$StatusResultFailedCopyWith<_StatusResultFailed> get copyWith =>
-      __$StatusResultFailedCopyWithImpl<_StatusResultFailed>(this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(bool status),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(statusCode, reason, stackTrace);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(bool status),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(statusCode, reason, stackTrace);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_StatusResult value),
-    @required Result failed(_StatusResultFailed value),
-    @required Result pending(_StatusResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_StatusResult value),
-    Result failed(_StatusResultFailed value),
-    Result pending(_StatusResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_StatusResultFailedToJson(this)..['runtimeType'] = 'failed';
-  }
-}
-
-abstract class _StatusResultFailed implements StatusResult {
-  factory _StatusResultFailed(
-      {@required int statusCode,
-      @required String reason,
-      String stackTrace}) = _$_StatusResultFailed;
-
-  factory _StatusResultFailed.fromJson(Map<String, dynamic> json) =
-      _$_StatusResultFailed.fromJson;
-
-  int get statusCode;
-  String get reason;
-  String get stackTrace;
-  _$StatusResultFailedCopyWith<_StatusResultFailed> get copyWith;
-}
-
-abstract class _$StatusResultPendingCopyWith<$Res> {
-  factory _$StatusResultPendingCopyWith(_StatusResultPending value,
-          $Res Function(_StatusResultPending) then) =
-      __$StatusResultPendingCopyWithImpl<$Res>;
-}
-
-class __$StatusResultPendingCopyWithImpl<$Res>
-    extends _$StatusResultCopyWithImpl<$Res>
-    implements _$StatusResultPendingCopyWith<$Res> {
-  __$StatusResultPendingCopyWithImpl(
-      _StatusResultPending _value, $Res Function(_StatusResultPending) _then)
-      : super(_value, (v) => _then(v as _StatusResultPending));
-
-  @override
-  _StatusResultPending get _value => super._value as _StatusResultPending;
-}
-
-@JsonSerializable()
-class _$_StatusResultPending
-    with DiagnosticableTreeMixin
-    implements _StatusResultPending {
-  const _$_StatusResultPending();
-
-  factory _$_StatusResultPending.fromJson(Map<String, dynamic> json) =>
-      _$_$_StatusResultPendingFromJson(json);
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'StatusResult.pending()';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties..add(DiagnosticsProperty('type', 'StatusResult.pending'));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) || (other is _StatusResultPending);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(bool status),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(bool status),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_StatusResult value),
-    @required Result failed(_StatusResultFailed value),
-    @required Result pending(_StatusResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_StatusResult value),
-    Result failed(_StatusResultFailed value),
-    Result pending(_StatusResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_StatusResultPendingToJson(this)..['runtimeType'] = 'pending';
-  }
-}
-
-abstract class _StatusResultPending implements StatusResult {
-  const factory _StatusResultPending() = _$_StatusResultPending;
-
-  factory _StatusResultPending.fromJson(Map<String, dynamic> json) =
-      _$_StatusResultPending.fromJson;
-}
-
 VersionResult _$VersionResultFromJson(Map<String, dynamic> json) {
-  switch (json['runtimeType'] as String) {
-    case 'data':
-      return _VersionResult.fromJson(json);
-    case 'failed':
-      return _VersionResultFailed.fromJson(json);
-    case 'pending':
-      return _VersionResultPending.fromJson(json);
-
-    default:
-      throw FallThroughError();
-  }
+  return _VersionResult.fromJson(json);
 }
 
 class _$VersionResultTearOff {
   const _$VersionResultTearOff();
 
-  _VersionResult data({@required Version version}) {
+  _VersionResult call({@required Version version}) {
     return _VersionResult(
       version: version,
     );
-  }
-
-  _VersionResultFailed failed(
-      {@required int statusCode, @required String reason, String stackTrace}) {
-    return _VersionResultFailed(
-      statusCode: statusCode,
-      reason: reason,
-      stackTrace: stackTrace,
-    );
-  }
-
-  _VersionResultPending pending() {
-    return const _VersionResultPending();
   }
 }
 
@@ -2221,39 +1828,19 @@ class _$VersionResultTearOff {
 const $VersionResult = _$VersionResultTearOff();
 
 mixin _$VersionResult {
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(Version version),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  });
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(Version version),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  });
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_VersionResult value),
-    @required Result failed(_VersionResultFailed value),
-    @required Result pending(_VersionResultPending value),
-  });
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_VersionResult value),
-    Result failed(_VersionResultFailed value),
-    Result pending(_VersionResultPending value),
-    @required Result orElse(),
-  });
+  Version get version;
+
   Map<String, dynamic> toJson();
+  $VersionResultCopyWith<VersionResult> get copyWith;
 }
 
 abstract class $VersionResultCopyWith<$Res> {
   factory $VersionResultCopyWith(
           VersionResult value, $Res Function(VersionResult) then) =
       _$VersionResultCopyWithImpl<$Res>;
+  $Res call({Version version});
+
+  $VersionCopyWith<$Res> get version;
 }
 
 class _$VersionResultCopyWithImpl<$Res>
@@ -2263,14 +1850,36 @@ class _$VersionResultCopyWithImpl<$Res>
   final VersionResult _value;
   // ignore: unused_field
   final $Res Function(VersionResult) _then;
+
+  @override
+  $Res call({
+    Object version = freezed,
+  }) {
+    return _then(_value.copyWith(
+      version: version == freezed ? _value.version : version as Version,
+    ));
+  }
+
+  @override
+  $VersionCopyWith<$Res> get version {
+    if (_value.version == null) {
+      return null;
+    }
+    return $VersionCopyWith<$Res>(_value.version, (value) {
+      return _then(_value.copyWith(version: value));
+    });
+  }
 }
 
-abstract class _$VersionResultCopyWith<$Res> {
+abstract class _$VersionResultCopyWith<$Res>
+    implements $VersionResultCopyWith<$Res> {
   factory _$VersionResultCopyWith(
           _VersionResult value, $Res Function(_VersionResult) then) =
       __$VersionResultCopyWithImpl<$Res>;
+  @override
   $Res call({Version version});
 
+  @override
   $VersionCopyWith<$Res> get version;
 }
 
@@ -2292,16 +1901,6 @@ class __$VersionResultCopyWithImpl<$Res>
       version: version == freezed ? _value.version : version as Version,
     ));
   }
-
-  @override
-  $VersionCopyWith<$Res> get version {
-    if (_value.version == null) {
-      return null;
-    }
-    return $VersionCopyWith<$Res>(_value.version, (value) {
-      return _then(_value.copyWith(version: value));
-    });
-  }
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -2316,14 +1915,14 @@ class _$_VersionResult with DiagnosticableTreeMixin implements _VersionResult {
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'VersionResult.data(version: $version)';
+    return 'VersionResult(version: $version)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'VersionResult.data'))
+      ..add(DiagnosticsProperty('type', 'VersionResult'))
       ..add(DiagnosticsProperty('version', version));
   }
 
@@ -2344,64 +1943,8 @@ class _$_VersionResult with DiagnosticableTreeMixin implements _VersionResult {
       __$VersionResultCopyWithImpl<_VersionResult>(this, _$identity);
 
   @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(Version version),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(version);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(Version version),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(version);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_VersionResult value),
-    @required Result failed(_VersionResultFailed value),
-    @required Result pending(_VersionResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_VersionResult value),
-    Result failed(_VersionResultFailed value),
-    Result pending(_VersionResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(this);
-    }
-    return orElse();
-  }
-
-  @override
   Map<String, dynamic> toJson() {
-    return _$_$_VersionResultToJson(this)..['runtimeType'] = 'data';
+    return _$_$_VersionResultToJson(this);
   }
 }
 
@@ -2411,328 +1954,24 @@ abstract class _VersionResult implements VersionResult {
   factory _VersionResult.fromJson(Map<String, dynamic> json) =
       _$_VersionResult.fromJson;
 
+  @override
   Version get version;
+  @override
   _$VersionResultCopyWith<_VersionResult> get copyWith;
 }
 
-abstract class _$VersionResultFailedCopyWith<$Res> {
-  factory _$VersionResultFailedCopyWith(_VersionResultFailed value,
-          $Res Function(_VersionResultFailed) then) =
-      __$VersionResultFailedCopyWithImpl<$Res>;
-  $Res call({int statusCode, String reason, String stackTrace});
-}
-
-class __$VersionResultFailedCopyWithImpl<$Res>
-    extends _$VersionResultCopyWithImpl<$Res>
-    implements _$VersionResultFailedCopyWith<$Res> {
-  __$VersionResultFailedCopyWithImpl(
-      _VersionResultFailed _value, $Res Function(_VersionResultFailed) _then)
-      : super(_value, (v) => _then(v as _VersionResultFailed));
-
-  @override
-  _VersionResultFailed get _value => super._value as _VersionResultFailed;
-
-  @override
-  $Res call({
-    Object statusCode = freezed,
-    Object reason = freezed,
-    Object stackTrace = freezed,
-  }) {
-    return _then(_VersionResultFailed(
-      statusCode: statusCode == freezed ? _value.statusCode : statusCode as int,
-      reason: reason == freezed ? _value.reason : reason as String,
-      stackTrace:
-          stackTrace == freezed ? _value.stackTrace : stackTrace as String,
-    ));
-  }
-}
-
-@JsonSerializable()
-class _$_VersionResultFailed
-    with DiagnosticableTreeMixin
-    implements _VersionResultFailed {
-  _$_VersionResultFailed(
-      {@required this.statusCode, @required this.reason, this.stackTrace})
-      : assert(statusCode != null),
-        assert(reason != null);
-
-  factory _$_VersionResultFailed.fromJson(Map<String, dynamic> json) =>
-      _$_$_VersionResultFailedFromJson(json);
-
-  @override
-  final int statusCode;
-  @override
-  final String reason;
-  @override
-  final String stackTrace;
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'VersionResult.failed(statusCode: $statusCode, reason: $reason, stackTrace: $stackTrace)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'VersionResult.failed'))
-      ..add(DiagnosticsProperty('statusCode', statusCode))
-      ..add(DiagnosticsProperty('reason', reason))
-      ..add(DiagnosticsProperty('stackTrace', stackTrace));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is _VersionResultFailed &&
-            (identical(other.statusCode, statusCode) ||
-                const DeepCollectionEquality()
-                    .equals(other.statusCode, statusCode)) &&
-            (identical(other.reason, reason) ||
-                const DeepCollectionEquality().equals(other.reason, reason)) &&
-            (identical(other.stackTrace, stackTrace) ||
-                const DeepCollectionEquality()
-                    .equals(other.stackTrace, stackTrace)));
-  }
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(statusCode) ^
-      const DeepCollectionEquality().hash(reason) ^
-      const DeepCollectionEquality().hash(stackTrace);
-
-  @override
-  _$VersionResultFailedCopyWith<_VersionResultFailed> get copyWith =>
-      __$VersionResultFailedCopyWithImpl<_VersionResultFailed>(
-          this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(Version version),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(statusCode, reason, stackTrace);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(Version version),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(statusCode, reason, stackTrace);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_VersionResult value),
-    @required Result failed(_VersionResultFailed value),
-    @required Result pending(_VersionResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_VersionResult value),
-    Result failed(_VersionResultFailed value),
-    Result pending(_VersionResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_VersionResultFailedToJson(this)..['runtimeType'] = 'failed';
-  }
-}
-
-abstract class _VersionResultFailed implements VersionResult {
-  factory _VersionResultFailed(
-      {@required int statusCode,
-      @required String reason,
-      String stackTrace}) = _$_VersionResultFailed;
-
-  factory _VersionResultFailed.fromJson(Map<String, dynamic> json) =
-      _$_VersionResultFailed.fromJson;
-
-  int get statusCode;
-  String get reason;
-  String get stackTrace;
-  _$VersionResultFailedCopyWith<_VersionResultFailed> get copyWith;
-}
-
-abstract class _$VersionResultPendingCopyWith<$Res> {
-  factory _$VersionResultPendingCopyWith(_VersionResultPending value,
-          $Res Function(_VersionResultPending) then) =
-      __$VersionResultPendingCopyWithImpl<$Res>;
-}
-
-class __$VersionResultPendingCopyWithImpl<$Res>
-    extends _$VersionResultCopyWithImpl<$Res>
-    implements _$VersionResultPendingCopyWith<$Res> {
-  __$VersionResultPendingCopyWithImpl(
-      _VersionResultPending _value, $Res Function(_VersionResultPending) _then)
-      : super(_value, (v) => _then(v as _VersionResultPending));
-
-  @override
-  _VersionResultPending get _value => super._value as _VersionResultPending;
-}
-
-@JsonSerializable()
-class _$_VersionResultPending
-    with DiagnosticableTreeMixin
-    implements _VersionResultPending {
-  const _$_VersionResultPending();
-
-  factory _$_VersionResultPending.fromJson(Map<String, dynamic> json) =>
-      _$_$_VersionResultPendingFromJson(json);
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'VersionResult.pending()';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties..add(DiagnosticsProperty('type', 'VersionResult.pending'));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) || (other is _VersionResultPending);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(Version version),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(Version version),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_VersionResult value),
-    @required Result failed(_VersionResultFailed value),
-    @required Result pending(_VersionResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_VersionResult value),
-    Result failed(_VersionResultFailed value),
-    Result pending(_VersionResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_VersionResultPendingToJson(this)..['runtimeType'] = 'pending';
-  }
-}
-
-abstract class _VersionResultPending implements VersionResult {
-  const factory _VersionResultPending() = _$_VersionResultPending;
-
-  factory _VersionResultPending.fromJson(Map<String, dynamic> json) =
-      _$_VersionResultPending.fromJson;
-}
-
 GetUserResult _$GetUserResultFromJson(Map<String, dynamic> json) {
-  switch (json['runtimeType'] as String) {
-    case 'data':
-      return _GetUserResult.fromJson(json);
-    case 'failed':
-      return _GetUserResultFailed.fromJson(json);
-    case 'pending':
-      return _GetUserResultPending.fromJson(json);
-
-    default:
-      throw FallThroughError();
-  }
+  return _GetUserResult.fromJson(json);
 }
 
 class _$GetUserResultTearOff {
   const _$GetUserResultTearOff();
 
-  _GetUserResult data({@required int code, @required User user}) {
+  _GetUserResult call({@required int code, @required User user}) {
     return _GetUserResult(
       code: code,
       user: user,
     );
-  }
-
-  _GetUserResultFailed failed(
-      {@required int statusCode, @required String reason, String stackTrace}) {
-    return _GetUserResultFailed(
-      statusCode: statusCode,
-      reason: reason,
-      stackTrace: stackTrace,
-    );
-  }
-
-  _GetUserResultPending pending() {
-    return const _GetUserResultPending();
   }
 }
 
@@ -2740,39 +1979,20 @@ class _$GetUserResultTearOff {
 const $GetUserResult = _$GetUserResultTearOff();
 
 mixin _$GetUserResult {
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(int code, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  });
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(int code, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  });
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetUserResult value),
-    @required Result failed(_GetUserResultFailed value),
-    @required Result pending(_GetUserResultPending value),
-  });
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetUserResult value),
-    Result failed(_GetUserResultFailed value),
-    Result pending(_GetUserResultPending value),
-    @required Result orElse(),
-  });
+  int get code;
+  User get user;
+
   Map<String, dynamic> toJson();
+  $GetUserResultCopyWith<GetUserResult> get copyWith;
 }
 
 abstract class $GetUserResultCopyWith<$Res> {
   factory $GetUserResultCopyWith(
           GetUserResult value, $Res Function(GetUserResult) then) =
       _$GetUserResultCopyWithImpl<$Res>;
+  $Res call({int code, User user});
+
+  $UserCopyWith<$Res> get user;
 }
 
 class _$GetUserResultCopyWithImpl<$Res>
@@ -2782,14 +2002,38 @@ class _$GetUserResultCopyWithImpl<$Res>
   final GetUserResult _value;
   // ignore: unused_field
   final $Res Function(GetUserResult) _then;
+
+  @override
+  $Res call({
+    Object code = freezed,
+    Object user = freezed,
+  }) {
+    return _then(_value.copyWith(
+      code: code == freezed ? _value.code : code as int,
+      user: user == freezed ? _value.user : user as User,
+    ));
+  }
+
+  @override
+  $UserCopyWith<$Res> get user {
+    if (_value.user == null) {
+      return null;
+    }
+    return $UserCopyWith<$Res>(_value.user, (value) {
+      return _then(_value.copyWith(user: value));
+    });
+  }
 }
 
-abstract class _$GetUserResultCopyWith<$Res> {
+abstract class _$GetUserResultCopyWith<$Res>
+    implements $GetUserResultCopyWith<$Res> {
   factory _$GetUserResultCopyWith(
           _GetUserResult value, $Res Function(_GetUserResult) then) =
       __$GetUserResultCopyWithImpl<$Res>;
+  @override
   $Res call({int code, User user});
 
+  @override
   $UserCopyWith<$Res> get user;
 }
 
@@ -2813,16 +2057,6 @@ class __$GetUserResultCopyWithImpl<$Res>
       user: user == freezed ? _value.user : user as User,
     ));
   }
-
-  @override
-  $UserCopyWith<$Res> get user {
-    if (_value.user == null) {
-      return null;
-    }
-    return $UserCopyWith<$Res>(_value.user, (value) {
-      return _then(_value.copyWith(user: value));
-    });
-  }
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -2841,14 +2075,14 @@ class _$_GetUserResult with DiagnosticableTreeMixin implements _GetUserResult {
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetUserResult.data(code: $code, user: $user)';
+    return 'GetUserResult(code: $code, user: $user)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'GetUserResult.data'))
+      ..add(DiagnosticsProperty('type', 'GetUserResult'))
       ..add(DiagnosticsProperty('code', code))
       ..add(DiagnosticsProperty('user', user));
   }
@@ -2874,64 +2108,8 @@ class _$_GetUserResult with DiagnosticableTreeMixin implements _GetUserResult {
       __$GetUserResultCopyWithImpl<_GetUserResult>(this, _$identity);
 
   @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(int code, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(code, user);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(int code, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(code, user);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetUserResult value),
-    @required Result failed(_GetUserResultFailed value),
-    @required Result pending(_GetUserResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetUserResult value),
-    Result failed(_GetUserResultFailed value),
-    Result pending(_GetUserResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(this);
-    }
-    return orElse();
-  }
-
-  @override
   Map<String, dynamic> toJson() {
-    return _$_$_GetUserResultToJson(this)..['runtimeType'] = 'data';
+    return _$_$_GetUserResultToJson(this);
   }
 }
 
@@ -2942,329 +2120,26 @@ abstract class _GetUserResult implements GetUserResult {
   factory _GetUserResult.fromJson(Map<String, dynamic> json) =
       _$_GetUserResult.fromJson;
 
+  @override
   int get code;
+  @override
   User get user;
+  @override
   _$GetUserResultCopyWith<_GetUserResult> get copyWith;
 }
 
-abstract class _$GetUserResultFailedCopyWith<$Res> {
-  factory _$GetUserResultFailedCopyWith(_GetUserResultFailed value,
-          $Res Function(_GetUserResultFailed) then) =
-      __$GetUserResultFailedCopyWithImpl<$Res>;
-  $Res call({int statusCode, String reason, String stackTrace});
-}
-
-class __$GetUserResultFailedCopyWithImpl<$Res>
-    extends _$GetUserResultCopyWithImpl<$Res>
-    implements _$GetUserResultFailedCopyWith<$Res> {
-  __$GetUserResultFailedCopyWithImpl(
-      _GetUserResultFailed _value, $Res Function(_GetUserResultFailed) _then)
-      : super(_value, (v) => _then(v as _GetUserResultFailed));
-
-  @override
-  _GetUserResultFailed get _value => super._value as _GetUserResultFailed;
-
-  @override
-  $Res call({
-    Object statusCode = freezed,
-    Object reason = freezed,
-    Object stackTrace = freezed,
-  }) {
-    return _then(_GetUserResultFailed(
-      statusCode: statusCode == freezed ? _value.statusCode : statusCode as int,
-      reason: reason == freezed ? _value.reason : reason as String,
-      stackTrace:
-          stackTrace == freezed ? _value.stackTrace : stackTrace as String,
-    ));
-  }
-}
-
-@JsonSerializable()
-class _$_GetUserResultFailed
-    with DiagnosticableTreeMixin
-    implements _GetUserResultFailed {
-  _$_GetUserResultFailed(
-      {@required this.statusCode, @required this.reason, this.stackTrace})
-      : assert(statusCode != null),
-        assert(reason != null);
-
-  factory _$_GetUserResultFailed.fromJson(Map<String, dynamic> json) =>
-      _$_$_GetUserResultFailedFromJson(json);
-
-  @override
-  final int statusCode;
-  @override
-  final String reason;
-  @override
-  final String stackTrace;
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetUserResult.failed(statusCode: $statusCode, reason: $reason, stackTrace: $stackTrace)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'GetUserResult.failed'))
-      ..add(DiagnosticsProperty('statusCode', statusCode))
-      ..add(DiagnosticsProperty('reason', reason))
-      ..add(DiagnosticsProperty('stackTrace', stackTrace));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is _GetUserResultFailed &&
-            (identical(other.statusCode, statusCode) ||
-                const DeepCollectionEquality()
-                    .equals(other.statusCode, statusCode)) &&
-            (identical(other.reason, reason) ||
-                const DeepCollectionEquality().equals(other.reason, reason)) &&
-            (identical(other.stackTrace, stackTrace) ||
-                const DeepCollectionEquality()
-                    .equals(other.stackTrace, stackTrace)));
-  }
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(statusCode) ^
-      const DeepCollectionEquality().hash(reason) ^
-      const DeepCollectionEquality().hash(stackTrace);
-
-  @override
-  _$GetUserResultFailedCopyWith<_GetUserResultFailed> get copyWith =>
-      __$GetUserResultFailedCopyWithImpl<_GetUserResultFailed>(
-          this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(int code, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(statusCode, reason, stackTrace);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(int code, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(statusCode, reason, stackTrace);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetUserResult value),
-    @required Result failed(_GetUserResultFailed value),
-    @required Result pending(_GetUserResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetUserResult value),
-    Result failed(_GetUserResultFailed value),
-    Result pending(_GetUserResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_GetUserResultFailedToJson(this)..['runtimeType'] = 'failed';
-  }
-}
-
-abstract class _GetUserResultFailed implements GetUserResult {
-  factory _GetUserResultFailed(
-      {@required int statusCode,
-      @required String reason,
-      String stackTrace}) = _$_GetUserResultFailed;
-
-  factory _GetUserResultFailed.fromJson(Map<String, dynamic> json) =
-      _$_GetUserResultFailed.fromJson;
-
-  int get statusCode;
-  String get reason;
-  String get stackTrace;
-  _$GetUserResultFailedCopyWith<_GetUserResultFailed> get copyWith;
-}
-
-abstract class _$GetUserResultPendingCopyWith<$Res> {
-  factory _$GetUserResultPendingCopyWith(_GetUserResultPending value,
-          $Res Function(_GetUserResultPending) then) =
-      __$GetUserResultPendingCopyWithImpl<$Res>;
-}
-
-class __$GetUserResultPendingCopyWithImpl<$Res>
-    extends _$GetUserResultCopyWithImpl<$Res>
-    implements _$GetUserResultPendingCopyWith<$Res> {
-  __$GetUserResultPendingCopyWithImpl(
-      _GetUserResultPending _value, $Res Function(_GetUserResultPending) _then)
-      : super(_value, (v) => _then(v as _GetUserResultPending));
-
-  @override
-  _GetUserResultPending get _value => super._value as _GetUserResultPending;
-}
-
-@JsonSerializable()
-class _$_GetUserResultPending
-    with DiagnosticableTreeMixin
-    implements _GetUserResultPending {
-  const _$_GetUserResultPending();
-
-  factory _$_GetUserResultPending.fromJson(Map<String, dynamic> json) =>
-      _$_$_GetUserResultPendingFromJson(json);
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetUserResult.pending()';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties..add(DiagnosticsProperty('type', 'GetUserResult.pending'));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) || (other is _GetUserResultPending);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(int code, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(int code, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetUserResult value),
-    @required Result failed(_GetUserResultFailed value),
-    @required Result pending(_GetUserResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetUserResult value),
-    Result failed(_GetUserResultFailed value),
-    Result pending(_GetUserResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_GetUserResultPendingToJson(this)..['runtimeType'] = 'pending';
-  }
-}
-
-abstract class _GetUserResultPending implements GetUserResult {
-  const factory _GetUserResultPending() = _$_GetUserResultPending;
-
-  factory _GetUserResultPending.fromJson(Map<String, dynamic> json) =
-      _$_GetUserResultPending.fromJson;
-}
-
 FindUserResult _$FindUserResultFromJson(Map<String, dynamic> json) {
-  switch (json['runtimeType'] as String) {
-    case 'data':
-      return _FindUserResult.fromJson(json);
-    case 'failed':
-      return _FindUserResultFailed.fromJson(json);
-    case 'pending':
-      return _FindUserResultPending.fromJson(json);
-
-    default:
-      throw FallThroughError();
-  }
+  return _FindUserResult.fromJson(json);
 }
 
 class _$FindUserResultTearOff {
   const _$FindUserResultTearOff();
 
-  _FindUserResult data({@required String name, @required User user}) {
+  _FindUserResult call({@required String name, @required User user}) {
     return _FindUserResult(
       name: name,
       user: user,
     );
-  }
-
-  _FindUserResultFailed failed(
-      {@required int statusCode, @required String reason, String stackTrace}) {
-    return _FindUserResultFailed(
-      statusCode: statusCode,
-      reason: reason,
-      stackTrace: stackTrace,
-    );
-  }
-
-  _FindUserResultPending pending() {
-    return const _FindUserResultPending();
   }
 }
 
@@ -3272,39 +2147,20 @@ class _$FindUserResultTearOff {
 const $FindUserResult = _$FindUserResultTearOff();
 
 mixin _$FindUserResult {
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(String name, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  });
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(String name, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  });
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_FindUserResult value),
-    @required Result failed(_FindUserResultFailed value),
-    @required Result pending(_FindUserResultPending value),
-  });
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_FindUserResult value),
-    Result failed(_FindUserResultFailed value),
-    Result pending(_FindUserResultPending value),
-    @required Result orElse(),
-  });
+  String get name;
+  User get user;
+
   Map<String, dynamic> toJson();
+  $FindUserResultCopyWith<FindUserResult> get copyWith;
 }
 
 abstract class $FindUserResultCopyWith<$Res> {
   factory $FindUserResultCopyWith(
           FindUserResult value, $Res Function(FindUserResult) then) =
       _$FindUserResultCopyWithImpl<$Res>;
+  $Res call({String name, User user});
+
+  $UserCopyWith<$Res> get user;
 }
 
 class _$FindUserResultCopyWithImpl<$Res>
@@ -3314,14 +2170,38 @@ class _$FindUserResultCopyWithImpl<$Res>
   final FindUserResult _value;
   // ignore: unused_field
   final $Res Function(FindUserResult) _then;
+
+  @override
+  $Res call({
+    Object name = freezed,
+    Object user = freezed,
+  }) {
+    return _then(_value.copyWith(
+      name: name == freezed ? _value.name : name as String,
+      user: user == freezed ? _value.user : user as User,
+    ));
+  }
+
+  @override
+  $UserCopyWith<$Res> get user {
+    if (_value.user == null) {
+      return null;
+    }
+    return $UserCopyWith<$Res>(_value.user, (value) {
+      return _then(_value.copyWith(user: value));
+    });
+  }
 }
 
-abstract class _$FindUserResultCopyWith<$Res> {
+abstract class _$FindUserResultCopyWith<$Res>
+    implements $FindUserResultCopyWith<$Res> {
   factory _$FindUserResultCopyWith(
           _FindUserResult value, $Res Function(_FindUserResult) then) =
       __$FindUserResultCopyWithImpl<$Res>;
+  @override
   $Res call({String name, User user});
 
+  @override
   $UserCopyWith<$Res> get user;
 }
 
@@ -3345,16 +2225,6 @@ class __$FindUserResultCopyWithImpl<$Res>
       user: user == freezed ? _value.user : user as User,
     ));
   }
-
-  @override
-  $UserCopyWith<$Res> get user {
-    if (_value.user == null) {
-      return null;
-    }
-    return $UserCopyWith<$Res>(_value.user, (value) {
-      return _then(_value.copyWith(user: value));
-    });
-  }
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -3375,14 +2245,14 @@ class _$_FindUserResult
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'FindUserResult.data(name: $name, user: $user)';
+    return 'FindUserResult(name: $name, user: $user)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'FindUserResult.data'))
+      ..add(DiagnosticsProperty('type', 'FindUserResult'))
       ..add(DiagnosticsProperty('name', name))
       ..add(DiagnosticsProperty('user', user));
   }
@@ -3408,64 +2278,8 @@ class _$_FindUserResult
       __$FindUserResultCopyWithImpl<_FindUserResult>(this, _$identity);
 
   @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(String name, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(name, user);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(String name, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(name, user);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_FindUserResult value),
-    @required Result failed(_FindUserResultFailed value),
-    @required Result pending(_FindUserResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_FindUserResult value),
-    Result failed(_FindUserResultFailed value),
-    Result pending(_FindUserResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(this);
-    }
-    return orElse();
-  }
-
-  @override
   Map<String, dynamic> toJson() {
-    return _$_$_FindUserResultToJson(this)..['runtimeType'] = 'data';
+    return _$_$_FindUserResultToJson(this);
   }
 }
 
@@ -3476,292 +2290,12 @@ abstract class _FindUserResult implements FindUserResult {
   factory _FindUserResult.fromJson(Map<String, dynamic> json) =
       _$_FindUserResult.fromJson;
 
+  @override
   String get name;
+  @override
   User get user;
+  @override
   _$FindUserResultCopyWith<_FindUserResult> get copyWith;
-}
-
-abstract class _$FindUserResultFailedCopyWith<$Res> {
-  factory _$FindUserResultFailedCopyWith(_FindUserResultFailed value,
-          $Res Function(_FindUserResultFailed) then) =
-      __$FindUserResultFailedCopyWithImpl<$Res>;
-  $Res call({int statusCode, String reason, String stackTrace});
-}
-
-class __$FindUserResultFailedCopyWithImpl<$Res>
-    extends _$FindUserResultCopyWithImpl<$Res>
-    implements _$FindUserResultFailedCopyWith<$Res> {
-  __$FindUserResultFailedCopyWithImpl(
-      _FindUserResultFailed _value, $Res Function(_FindUserResultFailed) _then)
-      : super(_value, (v) => _then(v as _FindUserResultFailed));
-
-  @override
-  _FindUserResultFailed get _value => super._value as _FindUserResultFailed;
-
-  @override
-  $Res call({
-    Object statusCode = freezed,
-    Object reason = freezed,
-    Object stackTrace = freezed,
-  }) {
-    return _then(_FindUserResultFailed(
-      statusCode: statusCode == freezed ? _value.statusCode : statusCode as int,
-      reason: reason == freezed ? _value.reason : reason as String,
-      stackTrace:
-          stackTrace == freezed ? _value.stackTrace : stackTrace as String,
-    ));
-  }
-}
-
-@JsonSerializable()
-class _$_FindUserResultFailed
-    with DiagnosticableTreeMixin
-    implements _FindUserResultFailed {
-  _$_FindUserResultFailed(
-      {@required this.statusCode, @required this.reason, this.stackTrace})
-      : assert(statusCode != null),
-        assert(reason != null);
-
-  factory _$_FindUserResultFailed.fromJson(Map<String, dynamic> json) =>
-      _$_$_FindUserResultFailedFromJson(json);
-
-  @override
-  final int statusCode;
-  @override
-  final String reason;
-  @override
-  final String stackTrace;
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'FindUserResult.failed(statusCode: $statusCode, reason: $reason, stackTrace: $stackTrace)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'FindUserResult.failed'))
-      ..add(DiagnosticsProperty('statusCode', statusCode))
-      ..add(DiagnosticsProperty('reason', reason))
-      ..add(DiagnosticsProperty('stackTrace', stackTrace));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is _FindUserResultFailed &&
-            (identical(other.statusCode, statusCode) ||
-                const DeepCollectionEquality()
-                    .equals(other.statusCode, statusCode)) &&
-            (identical(other.reason, reason) ||
-                const DeepCollectionEquality().equals(other.reason, reason)) &&
-            (identical(other.stackTrace, stackTrace) ||
-                const DeepCollectionEquality()
-                    .equals(other.stackTrace, stackTrace)));
-  }
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(statusCode) ^
-      const DeepCollectionEquality().hash(reason) ^
-      const DeepCollectionEquality().hash(stackTrace);
-
-  @override
-  _$FindUserResultFailedCopyWith<_FindUserResultFailed> get copyWith =>
-      __$FindUserResultFailedCopyWithImpl<_FindUserResultFailed>(
-          this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(String name, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(statusCode, reason, stackTrace);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(String name, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(statusCode, reason, stackTrace);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_FindUserResult value),
-    @required Result failed(_FindUserResultFailed value),
-    @required Result pending(_FindUserResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_FindUserResult value),
-    Result failed(_FindUserResultFailed value),
-    Result pending(_FindUserResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_FindUserResultFailedToJson(this)..['runtimeType'] = 'failed';
-  }
-}
-
-abstract class _FindUserResultFailed implements FindUserResult {
-  factory _FindUserResultFailed(
-      {@required int statusCode,
-      @required String reason,
-      String stackTrace}) = _$_FindUserResultFailed;
-
-  factory _FindUserResultFailed.fromJson(Map<String, dynamic> json) =
-      _$_FindUserResultFailed.fromJson;
-
-  int get statusCode;
-  String get reason;
-  String get stackTrace;
-  _$FindUserResultFailedCopyWith<_FindUserResultFailed> get copyWith;
-}
-
-abstract class _$FindUserResultPendingCopyWith<$Res> {
-  factory _$FindUserResultPendingCopyWith(_FindUserResultPending value,
-          $Res Function(_FindUserResultPending) then) =
-      __$FindUserResultPendingCopyWithImpl<$Res>;
-}
-
-class __$FindUserResultPendingCopyWithImpl<$Res>
-    extends _$FindUserResultCopyWithImpl<$Res>
-    implements _$FindUserResultPendingCopyWith<$Res> {
-  __$FindUserResultPendingCopyWithImpl(_FindUserResultPending _value,
-      $Res Function(_FindUserResultPending) _then)
-      : super(_value, (v) => _then(v as _FindUserResultPending));
-
-  @override
-  _FindUserResultPending get _value => super._value as _FindUserResultPending;
-}
-
-@JsonSerializable()
-class _$_FindUserResultPending
-    with DiagnosticableTreeMixin
-    implements _FindUserResultPending {
-  const _$_FindUserResultPending();
-
-  factory _$_FindUserResultPending.fromJson(Map<String, dynamic> json) =>
-      _$_$_FindUserResultPendingFromJson(json);
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'FindUserResult.pending()';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties..add(DiagnosticsProperty('type', 'FindUserResult.pending'));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) || (other is _FindUserResultPending);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(String name, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(String name, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_FindUserResult value),
-    @required Result failed(_FindUserResultFailed value),
-    @required Result pending(_FindUserResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_FindUserResult value),
-    Result failed(_FindUserResultFailed value),
-    Result pending(_FindUserResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_FindUserResultPendingToJson(this)..['runtimeType'] = 'pending';
-  }
-}
-
-abstract class _FindUserResultPending implements FindUserResult {
-  const factory _FindUserResultPending() = _$_FindUserResultPending;
-
-  factory _FindUserResultPending.fromJson(Map<String, dynamic> json) =
-      _$_FindUserResultPending.fromJson;
 }
 
 _AnotherExampleServiceGetAccountArgs
@@ -4108,39 +2642,16 @@ abstract class _AnotherExampleServiceGetUsersArgs_Freezed
 
 AnotherExampleServiceStatusResult _$AnotherExampleServiceStatusResultFromJson(
     Map<String, dynamic> json) {
-  switch (json['runtimeType'] as String) {
-    case 'data':
-      return _AnotherExampleServiceStatusResult.fromJson(json);
-    case 'failed':
-      return _AnotherExampleServiceStatusResultFailed.fromJson(json);
-    case 'pending':
-      return _AnotherExampleServiceStatusResultPending.fromJson(json);
-
-    default:
-      throw FallThroughError();
-  }
+  return _AnotherExampleServiceStatusResult.fromJson(json);
 }
 
 class _$AnotherExampleServiceStatusResultTearOff {
   const _$AnotherExampleServiceStatusResultTearOff();
 
-  _AnotherExampleServiceStatusResult data({@required bool status}) {
+  _AnotherExampleServiceStatusResult call({@required bool status}) {
     return _AnotherExampleServiceStatusResult(
       status: status,
     );
-  }
-
-  _AnotherExampleServiceStatusResultFailed failed(
-      {@required int statusCode, @required String reason, String stackTrace}) {
-    return _AnotherExampleServiceStatusResultFailed(
-      statusCode: statusCode,
-      reason: reason,
-      stackTrace: stackTrace,
-    );
-  }
-
-  _AnotherExampleServiceStatusResultPending pending() {
-    return const _AnotherExampleServiceStatusResultPending();
   }
 }
 
@@ -4149,33 +2660,11 @@ const $AnotherExampleServiceStatusResult =
     _$AnotherExampleServiceStatusResultTearOff();
 
 mixin _$AnotherExampleServiceStatusResult {
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(bool status),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  });
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(bool status),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  });
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_AnotherExampleServiceStatusResult value),
-    @required Result failed(_AnotherExampleServiceStatusResultFailed value),
-    @required Result pending(_AnotherExampleServiceStatusResultPending value),
-  });
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_AnotherExampleServiceStatusResult value),
-    Result failed(_AnotherExampleServiceStatusResultFailed value),
-    Result pending(_AnotherExampleServiceStatusResultPending value),
-    @required Result orElse(),
-  });
+  bool get status;
+
   Map<String, dynamic> toJson();
+  $AnotherExampleServiceStatusResultCopyWith<AnotherExampleServiceStatusResult>
+      get copyWith;
 }
 
 abstract class $AnotherExampleServiceStatusResultCopyWith<$Res> {
@@ -4183,6 +2672,7 @@ abstract class $AnotherExampleServiceStatusResultCopyWith<$Res> {
           AnotherExampleServiceStatusResult value,
           $Res Function(AnotherExampleServiceStatusResult) then) =
       _$AnotherExampleServiceStatusResultCopyWithImpl<$Res>;
+  $Res call({bool status});
 }
 
 class _$AnotherExampleServiceStatusResultCopyWithImpl<$Res>
@@ -4192,13 +2682,24 @@ class _$AnotherExampleServiceStatusResultCopyWithImpl<$Res>
   final AnotherExampleServiceStatusResult _value;
   // ignore: unused_field
   final $Res Function(AnotherExampleServiceStatusResult) _then;
+
+  @override
+  $Res call({
+    Object status = freezed,
+  }) {
+    return _then(_value.copyWith(
+      status: status == freezed ? _value.status : status as bool,
+    ));
+  }
 }
 
-abstract class _$AnotherExampleServiceStatusResultCopyWith<$Res> {
+abstract class _$AnotherExampleServiceStatusResultCopyWith<$Res>
+    implements $AnotherExampleServiceStatusResultCopyWith<$Res> {
   factory _$AnotherExampleServiceStatusResultCopyWith(
           _AnotherExampleServiceStatusResult value,
           $Res Function(_AnotherExampleServiceStatusResult) then) =
       __$AnotherExampleServiceStatusResultCopyWithImpl<$Res>;
+  @override
   $Res call({bool status});
 }
 
@@ -4240,15 +2741,14 @@ class _$_AnotherExampleServiceStatusResult
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'AnotherExampleServiceStatusResult.data(status: $status)';
+    return 'AnotherExampleServiceStatusResult(status: $status)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(
-          DiagnosticsProperty('type', 'AnotherExampleServiceStatusResult.data'))
+      ..add(DiagnosticsProperty('type', 'AnotherExampleServiceStatusResult'))
       ..add(DiagnosticsProperty('status', status));
   }
 
@@ -4271,65 +2771,8 @@ class _$_AnotherExampleServiceStatusResult
           _AnotherExampleServiceStatusResult>(this, _$identity);
 
   @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(bool status),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(status);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(bool status),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(status);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_AnotherExampleServiceStatusResult value),
-    @required Result failed(_AnotherExampleServiceStatusResultFailed value),
-    @required Result pending(_AnotherExampleServiceStatusResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_AnotherExampleServiceStatusResult value),
-    Result failed(_AnotherExampleServiceStatusResultFailed value),
-    Result pending(_AnotherExampleServiceStatusResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(this);
-    }
-    return orElse();
-  }
-
-  @override
   Map<String, dynamic> toJson() {
-    return _$_$_AnotherExampleServiceStatusResultToJson(this)
-      ..['runtimeType'] = 'data';
+    return _$_$_AnotherExampleServiceStatusResultToJson(this);
   }
 }
 
@@ -4342,351 +2785,24 @@ abstract class _AnotherExampleServiceStatusResult
           Map<String, dynamic> json) =
       _$_AnotherExampleServiceStatusResult.fromJson;
 
+  @override
   bool get status;
+  @override
   _$AnotherExampleServiceStatusResultCopyWith<
       _AnotherExampleServiceStatusResult> get copyWith;
 }
 
-abstract class _$AnotherExampleServiceStatusResultFailedCopyWith<$Res> {
-  factory _$AnotherExampleServiceStatusResultFailedCopyWith(
-          _AnotherExampleServiceStatusResultFailed value,
-          $Res Function(_AnotherExampleServiceStatusResultFailed) then) =
-      __$AnotherExampleServiceStatusResultFailedCopyWithImpl<$Res>;
-  $Res call({int statusCode, String reason, String stackTrace});
-}
-
-class __$AnotherExampleServiceStatusResultFailedCopyWithImpl<$Res>
-    extends _$AnotherExampleServiceStatusResultCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceStatusResultFailedCopyWith<$Res> {
-  __$AnotherExampleServiceStatusResultFailedCopyWithImpl(
-      _AnotherExampleServiceStatusResultFailed _value,
-      $Res Function(_AnotherExampleServiceStatusResultFailed) _then)
-      : super(_value,
-            (v) => _then(v as _AnotherExampleServiceStatusResultFailed));
-
-  @override
-  _AnotherExampleServiceStatusResultFailed get _value =>
-      super._value as _AnotherExampleServiceStatusResultFailed;
-
-  @override
-  $Res call({
-    Object statusCode = freezed,
-    Object reason = freezed,
-    Object stackTrace = freezed,
-  }) {
-    return _then(_AnotherExampleServiceStatusResultFailed(
-      statusCode: statusCode == freezed ? _value.statusCode : statusCode as int,
-      reason: reason == freezed ? _value.reason : reason as String,
-      stackTrace:
-          stackTrace == freezed ? _value.stackTrace : stackTrace as String,
-    ));
-  }
-}
-
-@JsonSerializable()
-class _$_AnotherExampleServiceStatusResultFailed
-    with DiagnosticableTreeMixin
-    implements _AnotherExampleServiceStatusResultFailed {
-  _$_AnotherExampleServiceStatusResultFailed(
-      {@required this.statusCode, @required this.reason, this.stackTrace})
-      : assert(statusCode != null),
-        assert(reason != null);
-
-  factory _$_AnotherExampleServiceStatusResultFailed.fromJson(
-          Map<String, dynamic> json) =>
-      _$_$_AnotherExampleServiceStatusResultFailedFromJson(json);
-
-  @override
-  final int statusCode;
-  @override
-  final String reason;
-  @override
-  final String stackTrace;
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'AnotherExampleServiceStatusResult.failed(statusCode: $statusCode, reason: $reason, stackTrace: $stackTrace)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty(
-          'type', 'AnotherExampleServiceStatusResult.failed'))
-      ..add(DiagnosticsProperty('statusCode', statusCode))
-      ..add(DiagnosticsProperty('reason', reason))
-      ..add(DiagnosticsProperty('stackTrace', stackTrace));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is _AnotherExampleServiceStatusResultFailed &&
-            (identical(other.statusCode, statusCode) ||
-                const DeepCollectionEquality()
-                    .equals(other.statusCode, statusCode)) &&
-            (identical(other.reason, reason) ||
-                const DeepCollectionEquality().equals(other.reason, reason)) &&
-            (identical(other.stackTrace, stackTrace) ||
-                const DeepCollectionEquality()
-                    .equals(other.stackTrace, stackTrace)));
-  }
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(statusCode) ^
-      const DeepCollectionEquality().hash(reason) ^
-      const DeepCollectionEquality().hash(stackTrace);
-
-  @override
-  _$AnotherExampleServiceStatusResultFailedCopyWith<
-          _AnotherExampleServiceStatusResultFailed>
-      get copyWith => __$AnotherExampleServiceStatusResultFailedCopyWithImpl<
-          _AnotherExampleServiceStatusResultFailed>(this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(bool status),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(statusCode, reason, stackTrace);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(bool status),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(statusCode, reason, stackTrace);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_AnotherExampleServiceStatusResult value),
-    @required Result failed(_AnotherExampleServiceStatusResultFailed value),
-    @required Result pending(_AnotherExampleServiceStatusResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_AnotherExampleServiceStatusResult value),
-    Result failed(_AnotherExampleServiceStatusResultFailed value),
-    Result pending(_AnotherExampleServiceStatusResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_AnotherExampleServiceStatusResultFailedToJson(this)
-      ..['runtimeType'] = 'failed';
-  }
-}
-
-abstract class _AnotherExampleServiceStatusResultFailed
-    implements AnotherExampleServiceStatusResult {
-  factory _AnotherExampleServiceStatusResultFailed(
-      {@required int statusCode,
-      @required String reason,
-      String stackTrace}) = _$_AnotherExampleServiceStatusResultFailed;
-
-  factory _AnotherExampleServiceStatusResultFailed.fromJson(
-          Map<String, dynamic> json) =
-      _$_AnotherExampleServiceStatusResultFailed.fromJson;
-
-  int get statusCode;
-  String get reason;
-  String get stackTrace;
-  _$AnotherExampleServiceStatusResultFailedCopyWith<
-      _AnotherExampleServiceStatusResultFailed> get copyWith;
-}
-
-abstract class _$AnotherExampleServiceStatusResultPendingCopyWith<$Res> {
-  factory _$AnotherExampleServiceStatusResultPendingCopyWith(
-          _AnotherExampleServiceStatusResultPending value,
-          $Res Function(_AnotherExampleServiceStatusResultPending) then) =
-      __$AnotherExampleServiceStatusResultPendingCopyWithImpl<$Res>;
-}
-
-class __$AnotherExampleServiceStatusResultPendingCopyWithImpl<$Res>
-    extends _$AnotherExampleServiceStatusResultCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceStatusResultPendingCopyWith<$Res> {
-  __$AnotherExampleServiceStatusResultPendingCopyWithImpl(
-      _AnotherExampleServiceStatusResultPending _value,
-      $Res Function(_AnotherExampleServiceStatusResultPending) _then)
-      : super(_value,
-            (v) => _then(v as _AnotherExampleServiceStatusResultPending));
-
-  @override
-  _AnotherExampleServiceStatusResultPending get _value =>
-      super._value as _AnotherExampleServiceStatusResultPending;
-}
-
-@JsonSerializable()
-class _$_AnotherExampleServiceStatusResultPending
-    with DiagnosticableTreeMixin
-    implements _AnotherExampleServiceStatusResultPending {
-  const _$_AnotherExampleServiceStatusResultPending();
-
-  factory _$_AnotherExampleServiceStatusResultPending.fromJson(
-          Map<String, dynamic> json) =>
-      _$_$_AnotherExampleServiceStatusResultPendingFromJson(json);
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'AnotherExampleServiceStatusResult.pending()';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty(
-          'type', 'AnotherExampleServiceStatusResult.pending'));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is _AnotherExampleServiceStatusResultPending);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(bool status),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(bool status),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_AnotherExampleServiceStatusResult value),
-    @required Result failed(_AnotherExampleServiceStatusResultFailed value),
-    @required Result pending(_AnotherExampleServiceStatusResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_AnotherExampleServiceStatusResult value),
-    Result failed(_AnotherExampleServiceStatusResultFailed value),
-    Result pending(_AnotherExampleServiceStatusResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_AnotherExampleServiceStatusResultPendingToJson(this)
-      ..['runtimeType'] = 'pending';
-  }
-}
-
-abstract class _AnotherExampleServiceStatusResultPending
-    implements AnotherExampleServiceStatusResult {
-  const factory _AnotherExampleServiceStatusResultPending() =
-      _$_AnotherExampleServiceStatusResultPending;
-
-  factory _AnotherExampleServiceStatusResultPending.fromJson(
-          Map<String, dynamic> json) =
-      _$_AnotherExampleServiceStatusResultPending.fromJson;
-}
-
 GetVersionResult _$GetVersionResultFromJson(Map<String, dynamic> json) {
-  switch (json['runtimeType'] as String) {
-    case 'data':
-      return _GetVersionResult.fromJson(json);
-    case 'failed':
-      return _GetVersionResultFailed.fromJson(json);
-    case 'pending':
-      return _GetVersionResultPending.fromJson(json);
-
-    default:
-      throw FallThroughError();
-  }
+  return _GetVersionResult.fromJson(json);
 }
 
 class _$GetVersionResultTearOff {
   const _$GetVersionResultTearOff();
 
-  _GetVersionResult data({@required Version version}) {
+  _GetVersionResult call({@required Version version}) {
     return _GetVersionResult(
       version: version,
     );
-  }
-
-  _GetVersionResultFailed failed(
-      {@required int statusCode, @required String reason, String stackTrace}) {
-    return _GetVersionResultFailed(
-      statusCode: statusCode,
-      reason: reason,
-      stackTrace: stackTrace,
-    );
-  }
-
-  _GetVersionResultPending pending() {
-    return const _GetVersionResultPending();
   }
 }
 
@@ -4694,39 +2810,19 @@ class _$GetVersionResultTearOff {
 const $GetVersionResult = _$GetVersionResultTearOff();
 
 mixin _$GetVersionResult {
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(Version version),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  });
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(Version version),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  });
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetVersionResult value),
-    @required Result failed(_GetVersionResultFailed value),
-    @required Result pending(_GetVersionResultPending value),
-  });
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetVersionResult value),
-    Result failed(_GetVersionResultFailed value),
-    Result pending(_GetVersionResultPending value),
-    @required Result orElse(),
-  });
+  Version get version;
+
   Map<String, dynamic> toJson();
+  $GetVersionResultCopyWith<GetVersionResult> get copyWith;
 }
 
 abstract class $GetVersionResultCopyWith<$Res> {
   factory $GetVersionResultCopyWith(
           GetVersionResult value, $Res Function(GetVersionResult) then) =
       _$GetVersionResultCopyWithImpl<$Res>;
+  $Res call({Version version});
+
+  $VersionCopyWith<$Res> get version;
 }
 
 class _$GetVersionResultCopyWithImpl<$Res>
@@ -4736,14 +2832,36 @@ class _$GetVersionResultCopyWithImpl<$Res>
   final GetVersionResult _value;
   // ignore: unused_field
   final $Res Function(GetVersionResult) _then;
+
+  @override
+  $Res call({
+    Object version = freezed,
+  }) {
+    return _then(_value.copyWith(
+      version: version == freezed ? _value.version : version as Version,
+    ));
+  }
+
+  @override
+  $VersionCopyWith<$Res> get version {
+    if (_value.version == null) {
+      return null;
+    }
+    return $VersionCopyWith<$Res>(_value.version, (value) {
+      return _then(_value.copyWith(version: value));
+    });
+  }
 }
 
-abstract class _$GetVersionResultCopyWith<$Res> {
+abstract class _$GetVersionResultCopyWith<$Res>
+    implements $GetVersionResultCopyWith<$Res> {
   factory _$GetVersionResultCopyWith(
           _GetVersionResult value, $Res Function(_GetVersionResult) then) =
       __$GetVersionResultCopyWithImpl<$Res>;
+  @override
   $Res call({Version version});
 
+  @override
   $VersionCopyWith<$Res> get version;
 }
 
@@ -4765,16 +2883,6 @@ class __$GetVersionResultCopyWithImpl<$Res>
       version: version == freezed ? _value.version : version as Version,
     ));
   }
-
-  @override
-  $VersionCopyWith<$Res> get version {
-    if (_value.version == null) {
-      return null;
-    }
-    return $VersionCopyWith<$Res>(_value.version, (value) {
-      return _then(_value.copyWith(version: value));
-    });
-  }
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -4791,14 +2899,14 @@ class _$_GetVersionResult
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetVersionResult.data(version: $version)';
+    return 'GetVersionResult(version: $version)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'GetVersionResult.data'))
+      ..add(DiagnosticsProperty('type', 'GetVersionResult'))
       ..add(DiagnosticsProperty('version', version));
   }
 
@@ -4819,64 +2927,8 @@ class _$_GetVersionResult
       __$GetVersionResultCopyWithImpl<_GetVersionResult>(this, _$identity);
 
   @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(Version version),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(version);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(Version version),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(version);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetVersionResult value),
-    @required Result failed(_GetVersionResultFailed value),
-    @required Result pending(_GetVersionResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetVersionResult value),
-    Result failed(_GetVersionResultFailed value),
-    Result pending(_GetVersionResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(this);
-    }
-    return orElse();
-  }
-
-  @override
   Map<String, dynamic> toJson() {
-    return _$_$_GetVersionResultToJson(this)..['runtimeType'] = 'data';
+    return _$_$_GetVersionResultToJson(this);
   }
 }
 
@@ -4886,330 +2938,24 @@ abstract class _GetVersionResult implements GetVersionResult {
   factory _GetVersionResult.fromJson(Map<String, dynamic> json) =
       _$_GetVersionResult.fromJson;
 
+  @override
   Version get version;
+  @override
   _$GetVersionResultCopyWith<_GetVersionResult> get copyWith;
 }
 
-abstract class _$GetVersionResultFailedCopyWith<$Res> {
-  factory _$GetVersionResultFailedCopyWith(_GetVersionResultFailed value,
-          $Res Function(_GetVersionResultFailed) then) =
-      __$GetVersionResultFailedCopyWithImpl<$Res>;
-  $Res call({int statusCode, String reason, String stackTrace});
-}
-
-class __$GetVersionResultFailedCopyWithImpl<$Res>
-    extends _$GetVersionResultCopyWithImpl<$Res>
-    implements _$GetVersionResultFailedCopyWith<$Res> {
-  __$GetVersionResultFailedCopyWithImpl(_GetVersionResultFailed _value,
-      $Res Function(_GetVersionResultFailed) _then)
-      : super(_value, (v) => _then(v as _GetVersionResultFailed));
-
-  @override
-  _GetVersionResultFailed get _value => super._value as _GetVersionResultFailed;
-
-  @override
-  $Res call({
-    Object statusCode = freezed,
-    Object reason = freezed,
-    Object stackTrace = freezed,
-  }) {
-    return _then(_GetVersionResultFailed(
-      statusCode: statusCode == freezed ? _value.statusCode : statusCode as int,
-      reason: reason == freezed ? _value.reason : reason as String,
-      stackTrace:
-          stackTrace == freezed ? _value.stackTrace : stackTrace as String,
-    ));
-  }
-}
-
-@JsonSerializable()
-class _$_GetVersionResultFailed
-    with DiagnosticableTreeMixin
-    implements _GetVersionResultFailed {
-  _$_GetVersionResultFailed(
-      {@required this.statusCode, @required this.reason, this.stackTrace})
-      : assert(statusCode != null),
-        assert(reason != null);
-
-  factory _$_GetVersionResultFailed.fromJson(Map<String, dynamic> json) =>
-      _$_$_GetVersionResultFailedFromJson(json);
-
-  @override
-  final int statusCode;
-  @override
-  final String reason;
-  @override
-  final String stackTrace;
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetVersionResult.failed(statusCode: $statusCode, reason: $reason, stackTrace: $stackTrace)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'GetVersionResult.failed'))
-      ..add(DiagnosticsProperty('statusCode', statusCode))
-      ..add(DiagnosticsProperty('reason', reason))
-      ..add(DiagnosticsProperty('stackTrace', stackTrace));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is _GetVersionResultFailed &&
-            (identical(other.statusCode, statusCode) ||
-                const DeepCollectionEquality()
-                    .equals(other.statusCode, statusCode)) &&
-            (identical(other.reason, reason) ||
-                const DeepCollectionEquality().equals(other.reason, reason)) &&
-            (identical(other.stackTrace, stackTrace) ||
-                const DeepCollectionEquality()
-                    .equals(other.stackTrace, stackTrace)));
-  }
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(statusCode) ^
-      const DeepCollectionEquality().hash(reason) ^
-      const DeepCollectionEquality().hash(stackTrace);
-
-  @override
-  _$GetVersionResultFailedCopyWith<_GetVersionResultFailed> get copyWith =>
-      __$GetVersionResultFailedCopyWithImpl<_GetVersionResultFailed>(
-          this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(Version version),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(statusCode, reason, stackTrace);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(Version version),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(statusCode, reason, stackTrace);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetVersionResult value),
-    @required Result failed(_GetVersionResultFailed value),
-    @required Result pending(_GetVersionResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetVersionResult value),
-    Result failed(_GetVersionResultFailed value),
-    Result pending(_GetVersionResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_GetVersionResultFailedToJson(this)..['runtimeType'] = 'failed';
-  }
-}
-
-abstract class _GetVersionResultFailed implements GetVersionResult {
-  factory _GetVersionResultFailed(
-      {@required int statusCode,
-      @required String reason,
-      String stackTrace}) = _$_GetVersionResultFailed;
-
-  factory _GetVersionResultFailed.fromJson(Map<String, dynamic> json) =
-      _$_GetVersionResultFailed.fromJson;
-
-  int get statusCode;
-  String get reason;
-  String get stackTrace;
-  _$GetVersionResultFailedCopyWith<_GetVersionResultFailed> get copyWith;
-}
-
-abstract class _$GetVersionResultPendingCopyWith<$Res> {
-  factory _$GetVersionResultPendingCopyWith(_GetVersionResultPending value,
-          $Res Function(_GetVersionResultPending) then) =
-      __$GetVersionResultPendingCopyWithImpl<$Res>;
-}
-
-class __$GetVersionResultPendingCopyWithImpl<$Res>
-    extends _$GetVersionResultCopyWithImpl<$Res>
-    implements _$GetVersionResultPendingCopyWith<$Res> {
-  __$GetVersionResultPendingCopyWithImpl(_GetVersionResultPending _value,
-      $Res Function(_GetVersionResultPending) _then)
-      : super(_value, (v) => _then(v as _GetVersionResultPending));
-
-  @override
-  _GetVersionResultPending get _value =>
-      super._value as _GetVersionResultPending;
-}
-
-@JsonSerializable()
-class _$_GetVersionResultPending
-    with DiagnosticableTreeMixin
-    implements _GetVersionResultPending {
-  const _$_GetVersionResultPending();
-
-  factory _$_GetVersionResultPending.fromJson(Map<String, dynamic> json) =>
-      _$_$_GetVersionResultPendingFromJson(json);
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetVersionResult.pending()';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties..add(DiagnosticsProperty('type', 'GetVersionResult.pending'));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) || (other is _GetVersionResultPending);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(Version version),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(Version version),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetVersionResult value),
-    @required Result failed(_GetVersionResultFailed value),
-    @required Result pending(_GetVersionResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetVersionResult value),
-    Result failed(_GetVersionResultFailed value),
-    Result pending(_GetVersionResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_GetVersionResultPendingToJson(this)
-      ..['runtimeType'] = 'pending';
-  }
-}
-
-abstract class _GetVersionResultPending implements GetVersionResult {
-  const factory _GetVersionResultPending() = _$_GetVersionResultPending;
-
-  factory _GetVersionResultPending.fromJson(Map<String, dynamic> json) =
-      _$_GetVersionResultPending.fromJson;
-}
-
 GetAccountResult _$GetAccountResultFromJson(Map<String, dynamic> json) {
-  switch (json['runtimeType'] as String) {
-    case 'data':
-      return _GetAccountResult.fromJson(json);
-    case 'failed':
-      return _GetAccountResultFailed.fromJson(json);
-    case 'pending':
-      return _GetAccountResultPending.fromJson(json);
-
-    default:
-      throw FallThroughError();
-  }
+  return _GetAccountResult.fromJson(json);
 }
 
 class _$GetAccountResultTearOff {
   const _$GetAccountResultTearOff();
 
-  _GetAccountResult data({@required int code, @required User user}) {
+  _GetAccountResult call({@required int code, @required User user}) {
     return _GetAccountResult(
       code: code,
       user: user,
     );
-  }
-
-  _GetAccountResultFailed failed(
-      {@required int statusCode, @required String reason, String stackTrace}) {
-    return _GetAccountResultFailed(
-      statusCode: statusCode,
-      reason: reason,
-      stackTrace: stackTrace,
-    );
-  }
-
-  _GetAccountResultPending pending() {
-    return const _GetAccountResultPending();
   }
 }
 
@@ -5217,39 +2963,20 @@ class _$GetAccountResultTearOff {
 const $GetAccountResult = _$GetAccountResultTearOff();
 
 mixin _$GetAccountResult {
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(int code, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  });
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(int code, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  });
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetAccountResult value),
-    @required Result failed(_GetAccountResultFailed value),
-    @required Result pending(_GetAccountResultPending value),
-  });
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetAccountResult value),
-    Result failed(_GetAccountResultFailed value),
-    Result pending(_GetAccountResultPending value),
-    @required Result orElse(),
-  });
+  int get code;
+  User get user;
+
   Map<String, dynamic> toJson();
+  $GetAccountResultCopyWith<GetAccountResult> get copyWith;
 }
 
 abstract class $GetAccountResultCopyWith<$Res> {
   factory $GetAccountResultCopyWith(
           GetAccountResult value, $Res Function(GetAccountResult) then) =
       _$GetAccountResultCopyWithImpl<$Res>;
+  $Res call({int code, User user});
+
+  $UserCopyWith<$Res> get user;
 }
 
 class _$GetAccountResultCopyWithImpl<$Res>
@@ -5259,14 +2986,38 @@ class _$GetAccountResultCopyWithImpl<$Res>
   final GetAccountResult _value;
   // ignore: unused_field
   final $Res Function(GetAccountResult) _then;
+
+  @override
+  $Res call({
+    Object code = freezed,
+    Object user = freezed,
+  }) {
+    return _then(_value.copyWith(
+      code: code == freezed ? _value.code : code as int,
+      user: user == freezed ? _value.user : user as User,
+    ));
+  }
+
+  @override
+  $UserCopyWith<$Res> get user {
+    if (_value.user == null) {
+      return null;
+    }
+    return $UserCopyWith<$Res>(_value.user, (value) {
+      return _then(_value.copyWith(user: value));
+    });
+  }
 }
 
-abstract class _$GetAccountResultCopyWith<$Res> {
+abstract class _$GetAccountResultCopyWith<$Res>
+    implements $GetAccountResultCopyWith<$Res> {
   factory _$GetAccountResultCopyWith(
           _GetAccountResult value, $Res Function(_GetAccountResult) then) =
       __$GetAccountResultCopyWithImpl<$Res>;
+  @override
   $Res call({int code, User user});
 
+  @override
   $UserCopyWith<$Res> get user;
 }
 
@@ -5290,16 +3041,6 @@ class __$GetAccountResultCopyWithImpl<$Res>
       user: user == freezed ? _value.user : user as User,
     ));
   }
-
-  @override
-  $UserCopyWith<$Res> get user {
-    if (_value.user == null) {
-      return null;
-    }
-    return $UserCopyWith<$Res>(_value.user, (value) {
-      return _then(_value.copyWith(user: value));
-    });
-  }
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -5320,14 +3061,14 @@ class _$_GetAccountResult
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetAccountResult.data(code: $code, user: $user)';
+    return 'GetAccountResult(code: $code, user: $user)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'GetAccountResult.data'))
+      ..add(DiagnosticsProperty('type', 'GetAccountResult'))
       ..add(DiagnosticsProperty('code', code))
       ..add(DiagnosticsProperty('user', user));
   }
@@ -5353,64 +3094,8 @@ class _$_GetAccountResult
       __$GetAccountResultCopyWithImpl<_GetAccountResult>(this, _$identity);
 
   @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(int code, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(code, user);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(int code, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(code, user);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetAccountResult value),
-    @required Result failed(_GetAccountResultFailed value),
-    @required Result pending(_GetAccountResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetAccountResult value),
-    Result failed(_GetAccountResultFailed value),
-    Result pending(_GetAccountResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(this);
-    }
-    return orElse();
-  }
-
-  @override
   Map<String, dynamic> toJson() {
-    return _$_$_GetAccountResultToJson(this)..['runtimeType'] = 'data';
+    return _$_$_GetAccountResultToJson(this);
   }
 }
 
@@ -5421,331 +3106,26 @@ abstract class _GetAccountResult implements GetAccountResult {
   factory _GetAccountResult.fromJson(Map<String, dynamic> json) =
       _$_GetAccountResult.fromJson;
 
+  @override
   int get code;
+  @override
   User get user;
+  @override
   _$GetAccountResultCopyWith<_GetAccountResult> get copyWith;
 }
 
-abstract class _$GetAccountResultFailedCopyWith<$Res> {
-  factory _$GetAccountResultFailedCopyWith(_GetAccountResultFailed value,
-          $Res Function(_GetAccountResultFailed) then) =
-      __$GetAccountResultFailedCopyWithImpl<$Res>;
-  $Res call({int statusCode, String reason, String stackTrace});
-}
-
-class __$GetAccountResultFailedCopyWithImpl<$Res>
-    extends _$GetAccountResultCopyWithImpl<$Res>
-    implements _$GetAccountResultFailedCopyWith<$Res> {
-  __$GetAccountResultFailedCopyWithImpl(_GetAccountResultFailed _value,
-      $Res Function(_GetAccountResultFailed) _then)
-      : super(_value, (v) => _then(v as _GetAccountResultFailed));
-
-  @override
-  _GetAccountResultFailed get _value => super._value as _GetAccountResultFailed;
-
-  @override
-  $Res call({
-    Object statusCode = freezed,
-    Object reason = freezed,
-    Object stackTrace = freezed,
-  }) {
-    return _then(_GetAccountResultFailed(
-      statusCode: statusCode == freezed ? _value.statusCode : statusCode as int,
-      reason: reason == freezed ? _value.reason : reason as String,
-      stackTrace:
-          stackTrace == freezed ? _value.stackTrace : stackTrace as String,
-    ));
-  }
-}
-
-@JsonSerializable()
-class _$_GetAccountResultFailed
-    with DiagnosticableTreeMixin
-    implements _GetAccountResultFailed {
-  _$_GetAccountResultFailed(
-      {@required this.statusCode, @required this.reason, this.stackTrace})
-      : assert(statusCode != null),
-        assert(reason != null);
-
-  factory _$_GetAccountResultFailed.fromJson(Map<String, dynamic> json) =>
-      _$_$_GetAccountResultFailedFromJson(json);
-
-  @override
-  final int statusCode;
-  @override
-  final String reason;
-  @override
-  final String stackTrace;
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetAccountResult.failed(statusCode: $statusCode, reason: $reason, stackTrace: $stackTrace)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'GetAccountResult.failed'))
-      ..add(DiagnosticsProperty('statusCode', statusCode))
-      ..add(DiagnosticsProperty('reason', reason))
-      ..add(DiagnosticsProperty('stackTrace', stackTrace));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is _GetAccountResultFailed &&
-            (identical(other.statusCode, statusCode) ||
-                const DeepCollectionEquality()
-                    .equals(other.statusCode, statusCode)) &&
-            (identical(other.reason, reason) ||
-                const DeepCollectionEquality().equals(other.reason, reason)) &&
-            (identical(other.stackTrace, stackTrace) ||
-                const DeepCollectionEquality()
-                    .equals(other.stackTrace, stackTrace)));
-  }
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(statusCode) ^
-      const DeepCollectionEquality().hash(reason) ^
-      const DeepCollectionEquality().hash(stackTrace);
-
-  @override
-  _$GetAccountResultFailedCopyWith<_GetAccountResultFailed> get copyWith =>
-      __$GetAccountResultFailedCopyWithImpl<_GetAccountResultFailed>(
-          this, _$identity);
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(int code, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(statusCode, reason, stackTrace);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(int code, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(statusCode, reason, stackTrace);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetAccountResult value),
-    @required Result failed(_GetAccountResultFailed value),
-    @required Result pending(_GetAccountResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return failed(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetAccountResult value),
-    Result failed(_GetAccountResultFailed value),
-    Result pending(_GetAccountResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (failed != null) {
-      return failed(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_GetAccountResultFailedToJson(this)..['runtimeType'] = 'failed';
-  }
-}
-
-abstract class _GetAccountResultFailed implements GetAccountResult {
-  factory _GetAccountResultFailed(
-      {@required int statusCode,
-      @required String reason,
-      String stackTrace}) = _$_GetAccountResultFailed;
-
-  factory _GetAccountResultFailed.fromJson(Map<String, dynamic> json) =
-      _$_GetAccountResultFailed.fromJson;
-
-  int get statusCode;
-  String get reason;
-  String get stackTrace;
-  _$GetAccountResultFailedCopyWith<_GetAccountResultFailed> get copyWith;
-}
-
-abstract class _$GetAccountResultPendingCopyWith<$Res> {
-  factory _$GetAccountResultPendingCopyWith(_GetAccountResultPending value,
-          $Res Function(_GetAccountResultPending) then) =
-      __$GetAccountResultPendingCopyWithImpl<$Res>;
-}
-
-class __$GetAccountResultPendingCopyWithImpl<$Res>
-    extends _$GetAccountResultCopyWithImpl<$Res>
-    implements _$GetAccountResultPendingCopyWith<$Res> {
-  __$GetAccountResultPendingCopyWithImpl(_GetAccountResultPending _value,
-      $Res Function(_GetAccountResultPending) _then)
-      : super(_value, (v) => _then(v as _GetAccountResultPending));
-
-  @override
-  _GetAccountResultPending get _value =>
-      super._value as _GetAccountResultPending;
-}
-
-@JsonSerializable()
-class _$_GetAccountResultPending
-    with DiagnosticableTreeMixin
-    implements _GetAccountResultPending {
-  const _$_GetAccountResultPending();
-
-  factory _$_GetAccountResultPending.fromJson(Map<String, dynamic> json) =>
-      _$_$_GetAccountResultPendingFromJson(json);
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetAccountResult.pending()';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties..add(DiagnosticsProperty('type', 'GetAccountResult.pending'));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) || (other is _GetAccountResultPending);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(int code, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(int code, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetAccountResult value),
-    @required Result failed(_GetAccountResultFailed value),
-    @required Result pending(_GetAccountResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return pending(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetAccountResult value),
-    Result failed(_GetAccountResultFailed value),
-    Result pending(_GetAccountResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (pending != null) {
-      return pending(this);
-    }
-    return orElse();
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_GetAccountResultPendingToJson(this)
-      ..['runtimeType'] = 'pending';
-  }
-}
-
-abstract class _GetAccountResultPending implements GetAccountResult {
-  const factory _GetAccountResultPending() = _$_GetAccountResultPending;
-
-  factory _GetAccountResultPending.fromJson(Map<String, dynamic> json) =
-      _$_GetAccountResultPending.fromJson;
-}
-
 GetUsersResult _$GetUsersResultFromJson(Map<String, dynamic> json) {
-  switch (json['runtimeType'] as String) {
-    case 'data':
-      return _GetUsersResult.fromJson(json);
-    case 'failed':
-      return _GetUsersResultFailed.fromJson(json);
-    case 'pending':
-      return _GetUsersResultPending.fromJson(json);
-
-    default:
-      throw FallThroughError();
-  }
+  return _GetUsersResult.fromJson(json);
 }
 
 class _$GetUsersResultTearOff {
   const _$GetUsersResultTearOff();
 
-  _GetUsersResult data({@required String name, @required User user}) {
+  _GetUsersResult call({@required String name, @required User user}) {
     return _GetUsersResult(
       name: name,
       user: user,
     );
-  }
-
-  _GetUsersResultFailed failed(
-      {@required int statusCode, @required String reason, String stackTrace}) {
-    return _GetUsersResultFailed(
-      statusCode: statusCode,
-      reason: reason,
-      stackTrace: stackTrace,
-    );
-  }
-
-  _GetUsersResultPending pending() {
-    return const _GetUsersResultPending();
   }
 }
 
@@ -5753,39 +3133,20 @@ class _$GetUsersResultTearOff {
 const $GetUsersResult = _$GetUsersResultTearOff();
 
 mixin _$GetUsersResult {
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(String name, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  });
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(String name, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  });
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetUsersResult value),
-    @required Result failed(_GetUsersResultFailed value),
-    @required Result pending(_GetUsersResultPending value),
-  });
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetUsersResult value),
-    Result failed(_GetUsersResultFailed value),
-    Result pending(_GetUsersResultPending value),
-    @required Result orElse(),
-  });
+  String get name;
+  User get user;
+
   Map<String, dynamic> toJson();
+  $GetUsersResultCopyWith<GetUsersResult> get copyWith;
 }
 
 abstract class $GetUsersResultCopyWith<$Res> {
   factory $GetUsersResultCopyWith(
           GetUsersResult value, $Res Function(GetUsersResult) then) =
       _$GetUsersResultCopyWithImpl<$Res>;
+  $Res call({String name, User user});
+
+  $UserCopyWith<$Res> get user;
 }
 
 class _$GetUsersResultCopyWithImpl<$Res>
@@ -5795,14 +3156,38 @@ class _$GetUsersResultCopyWithImpl<$Res>
   final GetUsersResult _value;
   // ignore: unused_field
   final $Res Function(GetUsersResult) _then;
+
+  @override
+  $Res call({
+    Object name = freezed,
+    Object user = freezed,
+  }) {
+    return _then(_value.copyWith(
+      name: name == freezed ? _value.name : name as String,
+      user: user == freezed ? _value.user : user as User,
+    ));
+  }
+
+  @override
+  $UserCopyWith<$Res> get user {
+    if (_value.user == null) {
+      return null;
+    }
+    return $UserCopyWith<$Res>(_value.user, (value) {
+      return _then(_value.copyWith(user: value));
+    });
+  }
 }
 
-abstract class _$GetUsersResultCopyWith<$Res> {
+abstract class _$GetUsersResultCopyWith<$Res>
+    implements $GetUsersResultCopyWith<$Res> {
   factory _$GetUsersResultCopyWith(
           _GetUsersResult value, $Res Function(_GetUsersResult) then) =
       __$GetUsersResultCopyWithImpl<$Res>;
+  @override
   $Res call({String name, User user});
 
+  @override
   $UserCopyWith<$Res> get user;
 }
 
@@ -5826,16 +3211,6 @@ class __$GetUsersResultCopyWithImpl<$Res>
       user: user == freezed ? _value.user : user as User,
     ));
   }
-
-  @override
-  $UserCopyWith<$Res> get user {
-    if (_value.user == null) {
-      return null;
-    }
-    return $UserCopyWith<$Res>(_value.user, (value) {
-      return _then(_value.copyWith(user: value));
-    });
-  }
 }
 
 @JsonSerializable(explicitToJson: true)
@@ -5856,14 +3231,14 @@ class _$_GetUsersResult
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetUsersResult.data(name: $name, user: $user)';
+    return 'GetUsersResult(name: $name, user: $user)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'GetUsersResult.data'))
+      ..add(DiagnosticsProperty('type', 'GetUsersResult'))
       ..add(DiagnosticsProperty('name', name))
       ..add(DiagnosticsProperty('user', user));
   }
@@ -5889,64 +3264,8 @@ class _$_GetUsersResult
       __$GetUsersResultCopyWithImpl<_GetUsersResult>(this, _$identity);
 
   @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result data(String name, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
-    @required Result pending(),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(name, user);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result data(String name, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
-    Result pending(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(name, user);
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result data(_GetUsersResult value),
-    @required Result failed(_GetUsersResultFailed value),
-    @required Result pending(_GetUsersResultPending value),
-  }) {
-    assert(data != null);
-    assert(failed != null);
-    assert(pending != null);
-    return data(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result data(_GetUsersResult value),
-    Result failed(_GetUsersResultFailed value),
-    Result pending(_GetUsersResultPending value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (data != null) {
-      return data(this);
-    }
-    return orElse();
-  }
-
-  @override
   Map<String, dynamic> toJson() {
-    return _$_$_GetUsersResultToJson(this)..['runtimeType'] = 'data';
+    return _$_$_GetUsersResultToJson(this);
   }
 }
 
@@ -5957,86 +3276,283 @@ abstract class _GetUsersResult implements GetUsersResult {
   factory _GetUsersResult.fromJson(Map<String, dynamic> json) =
       _$_GetUsersResult.fromJson;
 
+  @override
   String get name;
+  @override
   User get user;
+  @override
   _$GetUsersResultCopyWith<_GetUsersResult> get copyWith;
 }
 
-abstract class _$GetUsersResultFailedCopyWith<$Res> {
-  factory _$GetUsersResultFailedCopyWith(_GetUsersResultFailed value,
-          $Res Function(_GetUsersResultFailed) then) =
-      __$GetUsersResultFailedCopyWithImpl<$Res>;
-  $Res call({int statusCode, String reason, String stackTrace});
+class _$RpcResponseTearOff {
+  const _$RpcResponseTearOff();
+
+  _RpcResponseOk<T> ok<T>({@required T data}) {
+    return _RpcResponseOk<T>(
+      data: data,
+    );
+  }
+
+  _RpcResonseErr<T> err<T>(
+      {@required String reason, @required int statusCode, String stackTrace}) {
+    return _RpcResonseErr<T>(
+      reason: reason,
+      statusCode: statusCode,
+      stackTrace: stackTrace,
+    );
+  }
+
+  _RpcResponsePending<T> pending<T>() {
+    return _RpcResponsePending<T>();
+  }
 }
 
-class __$GetUsersResultFailedCopyWithImpl<$Res>
-    extends _$GetUsersResultCopyWithImpl<$Res>
-    implements _$GetUsersResultFailedCopyWith<$Res> {
-  __$GetUsersResultFailedCopyWithImpl(
-      _GetUsersResultFailed _value, $Res Function(_GetUsersResultFailed) _then)
-      : super(_value, (v) => _then(v as _GetUsersResultFailed));
+// ignore: unused_element
+const $RpcResponse = _$RpcResponseTearOff();
+
+mixin _$RpcResponse<T> {
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result ok(T data),
+    @required Result err(String reason, int statusCode, String stackTrace),
+    @required Result pending(),
+  });
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result ok(T data),
+    Result err(String reason, int statusCode, String stackTrace),
+    Result pending(),
+    @required Result orElse(),
+  });
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result ok(_RpcResponseOk<T> value),
+    @required Result err(_RpcResonseErr<T> value),
+    @required Result pending(_RpcResponsePending<T> value),
+  });
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result ok(_RpcResponseOk<T> value),
+    Result err(_RpcResonseErr<T> value),
+    Result pending(_RpcResponsePending<T> value),
+    @required Result orElse(),
+  });
+}
+
+abstract class $RpcResponseCopyWith<T, $Res> {
+  factory $RpcResponseCopyWith(
+          RpcResponse<T> value, $Res Function(RpcResponse<T>) then) =
+      _$RpcResponseCopyWithImpl<T, $Res>;
+}
+
+class _$RpcResponseCopyWithImpl<T, $Res>
+    implements $RpcResponseCopyWith<T, $Res> {
+  _$RpcResponseCopyWithImpl(this._value, this._then);
+
+  final RpcResponse<T> _value;
+  // ignore: unused_field
+  final $Res Function(RpcResponse<T>) _then;
+}
+
+abstract class _$RpcResponseOkCopyWith<T, $Res> {
+  factory _$RpcResponseOkCopyWith(
+          _RpcResponseOk<T> value, $Res Function(_RpcResponseOk<T>) then) =
+      __$RpcResponseOkCopyWithImpl<T, $Res>;
+  $Res call({T data});
+}
+
+class __$RpcResponseOkCopyWithImpl<T, $Res>
+    extends _$RpcResponseCopyWithImpl<T, $Res>
+    implements _$RpcResponseOkCopyWith<T, $Res> {
+  __$RpcResponseOkCopyWithImpl(
+      _RpcResponseOk<T> _value, $Res Function(_RpcResponseOk<T>) _then)
+      : super(_value, (v) => _then(v as _RpcResponseOk<T>));
 
   @override
-  _GetUsersResultFailed get _value => super._value as _GetUsersResultFailed;
+  _RpcResponseOk<T> get _value => super._value as _RpcResponseOk<T>;
 
   @override
   $Res call({
-    Object statusCode = freezed,
-    Object reason = freezed,
-    Object stackTrace = freezed,
+    Object data = freezed,
   }) {
-    return _then(_GetUsersResultFailed(
-      statusCode: statusCode == freezed ? _value.statusCode : statusCode as int,
-      reason: reason == freezed ? _value.reason : reason as String,
-      stackTrace:
-          stackTrace == freezed ? _value.stackTrace : stackTrace as String,
+    return _then(_RpcResponseOk<T>(
+      data: data == freezed ? _value.data : data as T,
     ));
   }
 }
 
-@JsonSerializable()
-class _$_GetUsersResultFailed
+class _$_RpcResponseOk<T>
     with DiagnosticableTreeMixin
-    implements _GetUsersResultFailed {
-  _$_GetUsersResultFailed(
-      {@required this.statusCode, @required this.reason, this.stackTrace})
-      : assert(statusCode != null),
-        assert(reason != null);
-
-  factory _$_GetUsersResultFailed.fromJson(Map<String, dynamic> json) =>
-      _$_$_GetUsersResultFailedFromJson(json);
+    implements _RpcResponseOk<T> {
+  _$_RpcResponseOk({@required this.data}) : assert(data != null);
 
   @override
-  final int statusCode;
-  @override
-  final String reason;
-  @override
-  final String stackTrace;
+  final T data;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetUsersResult.failed(statusCode: $statusCode, reason: $reason, stackTrace: $stackTrace)';
+    return 'RpcResponse<$T>.ok(data: $data)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'GetUsersResult.failed'))
-      ..add(DiagnosticsProperty('statusCode', statusCode))
+      ..add(DiagnosticsProperty('type', 'RpcResponse<$T>.ok'))
+      ..add(DiagnosticsProperty('data', data));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _RpcResponseOk<T> &&
+            (identical(other.data, data) ||
+                const DeepCollectionEquality().equals(other.data, data)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(data);
+
+  @override
+  _$RpcResponseOkCopyWith<T, _RpcResponseOk<T>> get copyWith =>
+      __$RpcResponseOkCopyWithImpl<T, _RpcResponseOk<T>>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result ok(T data),
+    @required Result err(String reason, int statusCode, String stackTrace),
+    @required Result pending(),
+  }) {
+    assert(ok != null);
+    assert(err != null);
+    assert(pending != null);
+    return ok(data);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result ok(T data),
+    Result err(String reason, int statusCode, String stackTrace),
+    Result pending(),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (ok != null) {
+      return ok(data);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result ok(_RpcResponseOk<T> value),
+    @required Result err(_RpcResonseErr<T> value),
+    @required Result pending(_RpcResponsePending<T> value),
+  }) {
+    assert(ok != null);
+    assert(err != null);
+    assert(pending != null);
+    return ok(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result ok(_RpcResponseOk<T> value),
+    Result err(_RpcResonseErr<T> value),
+    Result pending(_RpcResponsePending<T> value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (ok != null) {
+      return ok(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _RpcResponseOk<T> implements RpcResponse<T> {
+  factory _RpcResponseOk({@required T data}) = _$_RpcResponseOk<T>;
+
+  T get data;
+  _$RpcResponseOkCopyWith<T, _RpcResponseOk<T>> get copyWith;
+}
+
+abstract class _$RpcResonseErrCopyWith<T, $Res> {
+  factory _$RpcResonseErrCopyWith(
+          _RpcResonseErr<T> value, $Res Function(_RpcResonseErr<T>) then) =
+      __$RpcResonseErrCopyWithImpl<T, $Res>;
+  $Res call({String reason, int statusCode, String stackTrace});
+}
+
+class __$RpcResonseErrCopyWithImpl<T, $Res>
+    extends _$RpcResponseCopyWithImpl<T, $Res>
+    implements _$RpcResonseErrCopyWith<T, $Res> {
+  __$RpcResonseErrCopyWithImpl(
+      _RpcResonseErr<T> _value, $Res Function(_RpcResonseErr<T>) _then)
+      : super(_value, (v) => _then(v as _RpcResonseErr<T>));
+
+  @override
+  _RpcResonseErr<T> get _value => super._value as _RpcResonseErr<T>;
+
+  @override
+  $Res call({
+    Object reason = freezed,
+    Object statusCode = freezed,
+    Object stackTrace = freezed,
+  }) {
+    return _then(_RpcResonseErr<T>(
+      reason: reason == freezed ? _value.reason : reason as String,
+      statusCode: statusCode == freezed ? _value.statusCode : statusCode as int,
+      stackTrace:
+          stackTrace == freezed ? _value.stackTrace : stackTrace as String,
+    ));
+  }
+}
+
+class _$_RpcResonseErr<T>
+    with DiagnosticableTreeMixin
+    implements _RpcResonseErr<T> {
+  _$_RpcResonseErr(
+      {@required this.reason, @required this.statusCode, this.stackTrace})
+      : assert(reason != null),
+        assert(statusCode != null);
+
+  @override
+  final String reason;
+  @override
+  final int statusCode;
+  @override
+  final String stackTrace;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'RpcResponse<$T>.err(reason: $reason, statusCode: $statusCode, stackTrace: $stackTrace)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'RpcResponse<$T>.err'))
       ..add(DiagnosticsProperty('reason', reason))
+      ..add(DiagnosticsProperty('statusCode', statusCode))
       ..add(DiagnosticsProperty('stackTrace', stackTrace));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _GetUsersResultFailed &&
+        (other is _RpcResonseErr<T> &&
+            (identical(other.reason, reason) ||
+                const DeepCollectionEquality().equals(other.reason, reason)) &&
             (identical(other.statusCode, statusCode) ||
                 const DeepCollectionEquality()
                     .equals(other.statusCode, statusCode)) &&
-            (identical(other.reason, reason) ||
-                const DeepCollectionEquality().equals(other.reason, reason)) &&
             (identical(other.stackTrace, stackTrace) ||
                 const DeepCollectionEquality()
                     .equals(other.stackTrace, stackTrace)));
@@ -6045,39 +3561,38 @@ class _$_GetUsersResultFailed
   @override
   int get hashCode =>
       runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(statusCode) ^
       const DeepCollectionEquality().hash(reason) ^
+      const DeepCollectionEquality().hash(statusCode) ^
       const DeepCollectionEquality().hash(stackTrace);
 
   @override
-  _$GetUsersResultFailedCopyWith<_GetUsersResultFailed> get copyWith =>
-      __$GetUsersResultFailedCopyWithImpl<_GetUsersResultFailed>(
-          this, _$identity);
+  _$RpcResonseErrCopyWith<T, _RpcResonseErr<T>> get copyWith =>
+      __$RpcResonseErrCopyWithImpl<T, _RpcResonseErr<T>>(this, _$identity);
 
   @override
   @optionalTypeArgs
   Result when<Result extends Object>({
-    @required Result data(String name, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
+    @required Result ok(T data),
+    @required Result err(String reason, int statusCode, String stackTrace),
     @required Result pending(),
   }) {
-    assert(data != null);
-    assert(failed != null);
+    assert(ok != null);
+    assert(err != null);
     assert(pending != null);
-    return failed(statusCode, reason, stackTrace);
+    return err(reason, statusCode, stackTrace);
   }
 
   @override
   @optionalTypeArgs
   Result maybeWhen<Result extends Object>({
-    Result data(String name, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
+    Result ok(T data),
+    Result err(String reason, int statusCode, String stackTrace),
     Result pending(),
     @required Result orElse(),
   }) {
     assert(orElse != null);
-    if (failed != null) {
-      return failed(statusCode, reason, stackTrace);
+    if (err != null) {
+      return err(reason, statusCode, stackTrace);
     }
     return orElse();
   }
@@ -6085,92 +3600,80 @@ class _$_GetUsersResultFailed
   @override
   @optionalTypeArgs
   Result map<Result extends Object>({
-    @required Result data(_GetUsersResult value),
-    @required Result failed(_GetUsersResultFailed value),
-    @required Result pending(_GetUsersResultPending value),
+    @required Result ok(_RpcResponseOk<T> value),
+    @required Result err(_RpcResonseErr<T> value),
+    @required Result pending(_RpcResponsePending<T> value),
   }) {
-    assert(data != null);
-    assert(failed != null);
+    assert(ok != null);
+    assert(err != null);
     assert(pending != null);
-    return failed(this);
+    return err(this);
   }
 
   @override
   @optionalTypeArgs
   Result maybeMap<Result extends Object>({
-    Result data(_GetUsersResult value),
-    Result failed(_GetUsersResultFailed value),
-    Result pending(_GetUsersResultPending value),
+    Result ok(_RpcResponseOk<T> value),
+    Result err(_RpcResonseErr<T> value),
+    Result pending(_RpcResponsePending<T> value),
     @required Result orElse(),
   }) {
     assert(orElse != null);
-    if (failed != null) {
-      return failed(this);
+    if (err != null) {
+      return err(this);
     }
     return orElse();
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_GetUsersResultFailedToJson(this)..['runtimeType'] = 'failed';
-  }
 }
 
-abstract class _GetUsersResultFailed implements GetUsersResult {
-  factory _GetUsersResultFailed(
-      {@required int statusCode,
-      @required String reason,
-      String stackTrace}) = _$_GetUsersResultFailed;
+abstract class _RpcResonseErr<T> implements RpcResponse<T> {
+  factory _RpcResonseErr(
+      {@required String reason,
+      @required int statusCode,
+      String stackTrace}) = _$_RpcResonseErr<T>;
 
-  factory _GetUsersResultFailed.fromJson(Map<String, dynamic> json) =
-      _$_GetUsersResultFailed.fromJson;
-
-  int get statusCode;
   String get reason;
+  int get statusCode;
   String get stackTrace;
-  _$GetUsersResultFailedCopyWith<_GetUsersResultFailed> get copyWith;
+  _$RpcResonseErrCopyWith<T, _RpcResonseErr<T>> get copyWith;
 }
 
-abstract class _$GetUsersResultPendingCopyWith<$Res> {
-  factory _$GetUsersResultPendingCopyWith(_GetUsersResultPending value,
-          $Res Function(_GetUsersResultPending) then) =
-      __$GetUsersResultPendingCopyWithImpl<$Res>;
+abstract class _$RpcResponsePendingCopyWith<T, $Res> {
+  factory _$RpcResponsePendingCopyWith(_RpcResponsePending<T> value,
+          $Res Function(_RpcResponsePending<T>) then) =
+      __$RpcResponsePendingCopyWithImpl<T, $Res>;
 }
 
-class __$GetUsersResultPendingCopyWithImpl<$Res>
-    extends _$GetUsersResultCopyWithImpl<$Res>
-    implements _$GetUsersResultPendingCopyWith<$Res> {
-  __$GetUsersResultPendingCopyWithImpl(_GetUsersResultPending _value,
-      $Res Function(_GetUsersResultPending) _then)
-      : super(_value, (v) => _then(v as _GetUsersResultPending));
+class __$RpcResponsePendingCopyWithImpl<T, $Res>
+    extends _$RpcResponseCopyWithImpl<T, $Res>
+    implements _$RpcResponsePendingCopyWith<T, $Res> {
+  __$RpcResponsePendingCopyWithImpl(_RpcResponsePending<T> _value,
+      $Res Function(_RpcResponsePending<T>) _then)
+      : super(_value, (v) => _then(v as _RpcResponsePending<T>));
 
   @override
-  _GetUsersResultPending get _value => super._value as _GetUsersResultPending;
+  _RpcResponsePending<T> get _value => super._value as _RpcResponsePending<T>;
 }
 
-@JsonSerializable()
-class _$_GetUsersResultPending
+class _$_RpcResponsePending<T>
     with DiagnosticableTreeMixin
-    implements _GetUsersResultPending {
-  const _$_GetUsersResultPending();
-
-  factory _$_GetUsersResultPending.fromJson(Map<String, dynamic> json) =>
-      _$_$_GetUsersResultPendingFromJson(json);
+    implements _RpcResponsePending<T> {
+  const _$_RpcResponsePending();
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetUsersResult.pending()';
+    return 'RpcResponse<$T>.pending()';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties..add(DiagnosticsProperty('type', 'GetUsersResult.pending'));
+    properties..add(DiagnosticsProperty('type', 'RpcResponse<$T>.pending'));
   }
 
   @override
   bool operator ==(dynamic other) {
-    return identical(this, other) || (other is _GetUsersResultPending);
+    return identical(this, other) || (other is _RpcResponsePending<T>);
   }
 
   @override
@@ -6179,12 +3682,12 @@ class _$_GetUsersResultPending
   @override
   @optionalTypeArgs
   Result when<Result extends Object>({
-    @required Result data(String name, User user),
-    @required Result failed(int statusCode, String reason, String stackTrace),
+    @required Result ok(T data),
+    @required Result err(String reason, int statusCode, String stackTrace),
     @required Result pending(),
   }) {
-    assert(data != null);
-    assert(failed != null);
+    assert(ok != null);
+    assert(err != null);
     assert(pending != null);
     return pending();
   }
@@ -6192,8 +3695,8 @@ class _$_GetUsersResultPending
   @override
   @optionalTypeArgs
   Result maybeWhen<Result extends Object>({
-    Result data(String name, User user),
-    Result failed(int statusCode, String reason, String stackTrace),
+    Result ok(T data),
+    Result err(String reason, int statusCode, String stackTrace),
     Result pending(),
     @required Result orElse(),
   }) {
@@ -6207,12 +3710,12 @@ class _$_GetUsersResultPending
   @override
   @optionalTypeArgs
   Result map<Result extends Object>({
-    @required Result data(_GetUsersResult value),
-    @required Result failed(_GetUsersResultFailed value),
-    @required Result pending(_GetUsersResultPending value),
+    @required Result ok(_RpcResponseOk<T> value),
+    @required Result err(_RpcResonseErr<T> value),
+    @required Result pending(_RpcResponsePending<T> value),
   }) {
-    assert(data != null);
-    assert(failed != null);
+    assert(ok != null);
+    assert(err != null);
     assert(pending != null);
     return pending(this);
   }
@@ -6220,9 +3723,9 @@ class _$_GetUsersResultPending
   @override
   @optionalTypeArgs
   Result maybeMap<Result extends Object>({
-    Result data(_GetUsersResult value),
-    Result failed(_GetUsersResultFailed value),
-    Result pending(_GetUsersResultPending value),
+    Result ok(_RpcResponseOk<T> value),
+    Result err(_RpcResonseErr<T> value),
+    Result pending(_RpcResponsePending<T> value),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -6231,16 +3734,8 @@ class _$_GetUsersResultPending
     }
     return orElse();
   }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_GetUsersResultPendingToJson(this)..['runtimeType'] = 'pending';
-  }
 }
 
-abstract class _GetUsersResultPending implements GetUsersResult {
-  const factory _GetUsersResultPending() = _$_GetUsersResultPending;
-
-  factory _GetUsersResultPending.fromJson(Map<String, dynamic> json) =
-      _$_GetUsersResultPending.fromJson;
+abstract class _RpcResponsePending<T> implements RpcResponse<T> {
+  const factory _RpcResponsePending() = _$_RpcResponsePending<T>;
 }
