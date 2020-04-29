@@ -6,13 +6,13 @@
 // *********************************************************************
 
 // This class provides type safe access to the state of an RpcRequest 
-// and it's Response data. For more info See https://www.azavea.com/blog/2019/12/12/modeling-state-with-typescript/
+// and it's Response data. Can be used easily with Bloc. For more info See https://www.azavea.com/blog/2019/12/12/modeling-state-with-typescript/
 // See https://pub.dev/packages/freezed to learn how to use this type.
 @freezed
 abstract class RpcResponse<T> with _$RpcResponse<T> {
   factory RpcResponse.ok({@required T data,}) = _RpcResponseOk<T>;
   const factory RpcResponse.err({@required String reason, @required int statusCode, String stackTrace,}) = _RpcResonseErr<T>;
-  const factory RpcResponse.pending() = _RpcResponsePending<T>;
+  const factory RpcResponse.loading() = _RpcResponsePending<T>;
 }
 // ***********************************************************************
 // WEBRPC-DART SERVICE CLIENTS.
@@ -63,9 +63,7 @@ class {{.Name}} {
 {{- end}} {{/* end of if .Inputs */}}
   Map<String, String> headers,
   }) async* {
-    const num = 0;
-    while (num == 0) {
-      yield const RpcResponse.pending();
+      yield const RpcResponse.loading();
       try {
         {{- if .Inputs | len}} {{/* if method has args */}}
           final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}({{- range .Inputs}}{{.Name}}:{{.Name}},{{- end}});
@@ -82,19 +80,15 @@ class {{.Name}} {
                 reason: err.message,
                 statusCode: err.httpErr.code,
                 );
-                break;
           }
           yield RpcResponse.ok(data:{{if .Outputs | len}} {{. | methodArgumentOutputClassName}}.fromJson(
               jsonDecode(response.body,),),{{else}} response.statusCode,{{end}});
-          break;    
       } on Exception catch (e, stackTrace) {
         yield RpcResponse.err(
           statusCode: 400,
           reason: e.toString(),
           stackTrace: stackTrace.toString(),
         );
-        break;
-      }
     } 
  
   }

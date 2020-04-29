@@ -259,7 +259,7 @@ abstract class GetUsersResult with _$GetUsersResult {
 // *********************************************************************
 
 // This class provides type safe access to the state of an RpcRequest
-// and it's Response data. For more info See https://www.azavea.com/blog/2019/12/12/modeling-state-with-typescript/
+// and it's Response data. Can be used easily with Bloc. For more info See https://www.azavea.com/blog/2019/12/12/modeling-state-with-typescript/
 // See https://pub.dev/packages/freezed to learn how to use this type.
 @freezed
 abstract class RpcResponse<T> with _$RpcResponse<T> {
@@ -271,7 +271,7 @@ abstract class RpcResponse<T> with _$RpcResponse<T> {
     @required int statusCode,
     String stackTrace,
   }) = _RpcResonseErr<T>;
-  const factory RpcResponse.pending() = _RpcResponsePending<T>;
+  const factory RpcResponse.loading() = _RpcResponsePending<T>;
 }
 // ***********************************************************************
 // WEBRPC-DART SERVICE CLIENTS.
@@ -314,74 +314,62 @@ class ExampleService {
   Stream<RpcResponse<int>> ping({
     Map<String, String> headers,
   }) async* {
-    const num = 0;
-    while (num == 0) {
-      yield const RpcResponse.pending();
-      try {
-        final http.Response response = await _makeRequest(
-          'Ping',
-          headers: headers,
-        );
+    yield const RpcResponse.loading();
+    try {
+      final http.Response response = await _makeRequest(
+        'Ping',
+        headers: headers,
+      );
 
-        if (!_nonErrorcodes.contains(response.statusCode)) {
-          final _RpcErr err = _getErr(response);
-          yield RpcResponse.err(
-            reason: err.message,
-            statusCode: err.httpErr.code,
-          );
-          break;
-        }
-        yield RpcResponse.ok(
-          data: response.statusCode,
-        );
-        break;
-      } on Exception catch (e, stackTrace) {
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
         yield RpcResponse.err(
-          statusCode: 400,
-          reason: e.toString(),
-          stackTrace: stackTrace.toString(),
+          reason: err.message,
+          statusCode: err.httpErr.code,
         );
-        break;
       }
+      yield RpcResponse.ok(
+        data: response.statusCode,
+      );
+    } on Exception catch (e, stackTrace) {
+      yield RpcResponse.err(
+        statusCode: 400,
+        reason: e.toString(),
+        stackTrace: stackTrace.toString(),
+      );
     }
   }
 
   Stream<RpcResponse<StatusResult>> status({
     Map<String, String> headers,
   }) async* {
-    const num = 0;
-    while (num == 0) {
-      yield const RpcResponse.pending();
-      try {
-        final http.Response response = await _makeRequest(
-          'Status',
-          headers: headers,
-        );
+    yield const RpcResponse.loading();
+    try {
+      final http.Response response = await _makeRequest(
+        'Status',
+        headers: headers,
+      );
 
-        if (!_nonErrorcodes.contains(response.statusCode)) {
-          final _RpcErr err = _getErr(response);
-          yield RpcResponse.err(
-            reason: err.message,
-            statusCode: err.httpErr.code,
-          );
-          break;
-        }
-        yield RpcResponse.ok(
-          data: StatusResult.fromJson(
-            jsonDecode(
-              response.body,
-            ),
-          ),
-        );
-        break;
-      } on Exception catch (e, stackTrace) {
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
         yield RpcResponse.err(
-          statusCode: 400,
-          reason: e.toString(),
-          stackTrace: stackTrace.toString(),
+          reason: err.message,
+          statusCode: err.httpErr.code,
         );
-        break;
       }
+      yield RpcResponse.ok(
+        data: StatusResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        ),
+      );
+    } on Exception catch (e, stackTrace) {
+      yield RpcResponse.err(
+        statusCode: 400,
+        reason: e.toString(),
+        stackTrace: stackTrace.toString(),
+      );
     }
   }
 
@@ -389,82 +377,69 @@ class ExampleService {
     @required String username,
     Map<String, String> headers,
   }) async* {
-    const num = 0;
-    while (num == 0) {
-      yield const RpcResponse.pending();
-      try {
-        final _ExampleServiceUpdateNameArgs args =
-            _ExampleServiceUpdateNameArgs(
-          username: username,
-        );
+    yield const RpcResponse.loading();
+    try {
+      final _ExampleServiceUpdateNameArgs args = _ExampleServiceUpdateNameArgs(
+        username: username,
+      );
 
-        final http.Response response = await _makeRequest(
-          'UpdateName',
-          json: jsonEncode(
-            args.toJson(),
-          ),
-          headers: headers,
-        );
+      final http.Response response = await _makeRequest(
+        'UpdateName',
+        json: jsonEncode(
+          args.toJson(),
+        ),
+        headers: headers,
+      );
 
-        if (!_nonErrorcodes.contains(response.statusCode)) {
-          final _RpcErr err = _getErr(response);
-          yield RpcResponse.err(
-            reason: err.message,
-            statusCode: err.httpErr.code,
-          );
-          break;
-        }
-        yield RpcResponse.ok(
-          data: response.statusCode,
-        );
-        break;
-      } on Exception catch (e, stackTrace) {
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
         yield RpcResponse.err(
-          statusCode: 400,
-          reason: e.toString(),
-          stackTrace: stackTrace.toString(),
+          reason: err.message,
+          statusCode: err.httpErr.code,
         );
-        break;
       }
+      yield RpcResponse.ok(
+        data: response.statusCode,
+      );
+    } on Exception catch (e, stackTrace) {
+      yield RpcResponse.err(
+        statusCode: 400,
+        reason: e.toString(),
+        stackTrace: stackTrace.toString(),
+      );
     }
   }
 
   Stream<RpcResponse<VersionResult>> version({
     Map<String, String> headers,
   }) async* {
-    const num = 0;
-    while (num == 0) {
-      yield const RpcResponse.pending();
-      try {
-        final http.Response response = await _makeRequest(
-          'Version',
-          headers: headers,
-        );
+    yield const RpcResponse.loading();
+    try {
+      final http.Response response = await _makeRequest(
+        'Version',
+        headers: headers,
+      );
 
-        if (!_nonErrorcodes.contains(response.statusCode)) {
-          final _RpcErr err = _getErr(response);
-          yield RpcResponse.err(
-            reason: err.message,
-            statusCode: err.httpErr.code,
-          );
-          break;
-        }
-        yield RpcResponse.ok(
-          data: VersionResult.fromJson(
-            jsonDecode(
-              response.body,
-            ),
-          ),
-        );
-        break;
-      } on Exception catch (e, stackTrace) {
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
         yield RpcResponse.err(
-          statusCode: 400,
-          reason: e.toString(),
-          stackTrace: stackTrace.toString(),
+          reason: err.message,
+          statusCode: err.httpErr.code,
         );
-        break;
       }
+      yield RpcResponse.ok(
+        data: VersionResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        ),
+      );
+    } on Exception catch (e, stackTrace) {
+      yield RpcResponse.err(
+        statusCode: 400,
+        reason: e.toString(),
+        stackTrace: stackTrace.toString(),
+      );
     }
   }
 
@@ -473,47 +448,41 @@ class ExampleService {
     @required int userID,
     Map<String, String> headers,
   }) async* {
-    const num = 0;
-    while (num == 0) {
-      yield const RpcResponse.pending();
-      try {
-        final _ExampleServiceGetUserArgs args = _ExampleServiceGetUserArgs(
-          header: header,
-          userID: userID,
-        );
+    yield const RpcResponse.loading();
+    try {
+      final _ExampleServiceGetUserArgs args = _ExampleServiceGetUserArgs(
+        header: header,
+        userID: userID,
+      );
 
-        final http.Response response = await _makeRequest(
-          'GetUser',
-          json: jsonEncode(
-            args.toJson(),
-          ),
-          headers: headers,
-        );
+      final http.Response response = await _makeRequest(
+        'GetUser',
+        json: jsonEncode(
+          args.toJson(),
+        ),
+        headers: headers,
+      );
 
-        if (!_nonErrorcodes.contains(response.statusCode)) {
-          final _RpcErr err = _getErr(response);
-          yield RpcResponse.err(
-            reason: err.message,
-            statusCode: err.httpErr.code,
-          );
-          break;
-        }
-        yield RpcResponse.ok(
-          data: GetUserResult.fromJson(
-            jsonDecode(
-              response.body,
-            ),
-          ),
-        );
-        break;
-      } on Exception catch (e, stackTrace) {
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
         yield RpcResponse.err(
-          statusCode: 400,
-          reason: e.toString(),
-          stackTrace: stackTrace.toString(),
+          reason: err.message,
+          statusCode: err.httpErr.code,
         );
-        break;
       }
+      yield RpcResponse.ok(
+        data: GetUserResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        ),
+      );
+    } on Exception catch (e, stackTrace) {
+      yield RpcResponse.err(
+        statusCode: 400,
+        reason: e.toString(),
+        stackTrace: stackTrace.toString(),
+      );
     }
   }
 
@@ -521,46 +490,40 @@ class ExampleService {
     @required SearchFilter s,
     Map<String, String> headers,
   }) async* {
-    const num = 0;
-    while (num == 0) {
-      yield const RpcResponse.pending();
-      try {
-        final _ExampleServiceFindUserArgs args = _ExampleServiceFindUserArgs(
-          s: s,
-        );
+    yield const RpcResponse.loading();
+    try {
+      final _ExampleServiceFindUserArgs args = _ExampleServiceFindUserArgs(
+        s: s,
+      );
 
-        final http.Response response = await _makeRequest(
-          'FindUser',
-          json: jsonEncode(
-            args.toJson(),
-          ),
-          headers: headers,
-        );
+      final http.Response response = await _makeRequest(
+        'FindUser',
+        json: jsonEncode(
+          args.toJson(),
+        ),
+        headers: headers,
+      );
 
-        if (!_nonErrorcodes.contains(response.statusCode)) {
-          final _RpcErr err = _getErr(response);
-          yield RpcResponse.err(
-            reason: err.message,
-            statusCode: err.httpErr.code,
-          );
-          break;
-        }
-        yield RpcResponse.ok(
-          data: FindUserResult.fromJson(
-            jsonDecode(
-              response.body,
-            ),
-          ),
-        );
-        break;
-      } on Exception catch (e, stackTrace) {
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
         yield RpcResponse.err(
-          statusCode: 400,
-          reason: e.toString(),
-          stackTrace: stackTrace.toString(),
+          reason: err.message,
+          statusCode: err.httpErr.code,
         );
-        break;
       }
+      yield RpcResponse.ok(
+        data: FindUserResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        ),
+      );
+    } on Exception catch (e, stackTrace) {
+      yield RpcResponse.err(
+        statusCode: 400,
+        reason: e.toString(),
+        stackTrace: stackTrace.toString(),
+      );
     }
   }
 }
@@ -602,113 +565,95 @@ class AnotherExampleService {
   Stream<RpcResponse<int>> pingServer({
     Map<String, String> headers,
   }) async* {
-    const num = 0;
-    while (num == 0) {
-      yield const RpcResponse.pending();
-      try {
-        final http.Response response = await _makeRequest(
-          'PingServer',
-          headers: headers,
-        );
+    yield const RpcResponse.loading();
+    try {
+      final http.Response response = await _makeRequest(
+        'PingServer',
+        headers: headers,
+      );
 
-        if (!_nonErrorcodes.contains(response.statusCode)) {
-          final _RpcErr err = _getErr(response);
-          yield RpcResponse.err(
-            reason: err.message,
-            statusCode: err.httpErr.code,
-          );
-          break;
-        }
-        yield RpcResponse.ok(
-          data: response.statusCode,
-        );
-        break;
-      } on Exception catch (e, stackTrace) {
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
         yield RpcResponse.err(
-          statusCode: 400,
-          reason: e.toString(),
-          stackTrace: stackTrace.toString(),
+          reason: err.message,
+          statusCode: err.httpErr.code,
         );
-        break;
       }
+      yield RpcResponse.ok(
+        data: response.statusCode,
+      );
+    } on Exception catch (e, stackTrace) {
+      yield RpcResponse.err(
+        statusCode: 400,
+        reason: e.toString(),
+        stackTrace: stackTrace.toString(),
+      );
     }
   }
 
   Stream<RpcResponse<AnotherExampleServiceStatusResult>> status({
     Map<String, String> headers,
   }) async* {
-    const num = 0;
-    while (num == 0) {
-      yield const RpcResponse.pending();
-      try {
-        final http.Response response = await _makeRequest(
-          'Status',
-          headers: headers,
-        );
+    yield const RpcResponse.loading();
+    try {
+      final http.Response response = await _makeRequest(
+        'Status',
+        headers: headers,
+      );
 
-        if (!_nonErrorcodes.contains(response.statusCode)) {
-          final _RpcErr err = _getErr(response);
-          yield RpcResponse.err(
-            reason: err.message,
-            statusCode: err.httpErr.code,
-          );
-          break;
-        }
-        yield RpcResponse.ok(
-          data: AnotherExampleServiceStatusResult.fromJson(
-            jsonDecode(
-              response.body,
-            ),
-          ),
-        );
-        break;
-      } on Exception catch (e, stackTrace) {
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
         yield RpcResponse.err(
-          statusCode: 400,
-          reason: e.toString(),
-          stackTrace: stackTrace.toString(),
+          reason: err.message,
+          statusCode: err.httpErr.code,
         );
-        break;
       }
+      yield RpcResponse.ok(
+        data: AnotherExampleServiceStatusResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        ),
+      );
+    } on Exception catch (e, stackTrace) {
+      yield RpcResponse.err(
+        statusCode: 400,
+        reason: e.toString(),
+        stackTrace: stackTrace.toString(),
+      );
     }
   }
 
   Stream<RpcResponse<GetVersionResult>> getVersion({
     Map<String, String> headers,
   }) async* {
-    const num = 0;
-    while (num == 0) {
-      yield const RpcResponse.pending();
-      try {
-        final http.Response response = await _makeRequest(
-          'GetVersion',
-          headers: headers,
-        );
+    yield const RpcResponse.loading();
+    try {
+      final http.Response response = await _makeRequest(
+        'GetVersion',
+        headers: headers,
+      );
 
-        if (!_nonErrorcodes.contains(response.statusCode)) {
-          final _RpcErr err = _getErr(response);
-          yield RpcResponse.err(
-            reason: err.message,
-            statusCode: err.httpErr.code,
-          );
-          break;
-        }
-        yield RpcResponse.ok(
-          data: GetVersionResult.fromJson(
-            jsonDecode(
-              response.body,
-            ),
-          ),
-        );
-        break;
-      } on Exception catch (e, stackTrace) {
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
         yield RpcResponse.err(
-          statusCode: 400,
-          reason: e.toString(),
-          stackTrace: stackTrace.toString(),
+          reason: err.message,
+          statusCode: err.httpErr.code,
         );
-        break;
       }
+      yield RpcResponse.ok(
+        data: GetVersionResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        ),
+      );
+    } on Exception catch (e, stackTrace) {
+      yield RpcResponse.err(
+        statusCode: 400,
+        reason: e.toString(),
+        stackTrace: stackTrace.toString(),
+      );
     }
   }
 
@@ -717,48 +662,42 @@ class AnotherExampleService {
     @required int userID,
     Map<String, String> headers,
   }) async* {
-    const num = 0;
-    while (num == 0) {
-      yield const RpcResponse.pending();
-      try {
-        final _AnotherExampleServiceGetAccountArgs args =
-            _AnotherExampleServiceGetAccountArgs(
-          header: header,
-          userID: userID,
-        );
+    yield const RpcResponse.loading();
+    try {
+      final _AnotherExampleServiceGetAccountArgs args =
+          _AnotherExampleServiceGetAccountArgs(
+        header: header,
+        userID: userID,
+      );
 
-        final http.Response response = await _makeRequest(
-          'GetAccount',
-          json: jsonEncode(
-            args.toJson(),
-          ),
-          headers: headers,
-        );
+      final http.Response response = await _makeRequest(
+        'GetAccount',
+        json: jsonEncode(
+          args.toJson(),
+        ),
+        headers: headers,
+      );
 
-        if (!_nonErrorcodes.contains(response.statusCode)) {
-          final _RpcErr err = _getErr(response);
-          yield RpcResponse.err(
-            reason: err.message,
-            statusCode: err.httpErr.code,
-          );
-          break;
-        }
-        yield RpcResponse.ok(
-          data: GetAccountResult.fromJson(
-            jsonDecode(
-              response.body,
-            ),
-          ),
-        );
-        break;
-      } on Exception catch (e, stackTrace) {
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
         yield RpcResponse.err(
-          statusCode: 400,
-          reason: e.toString(),
-          stackTrace: stackTrace.toString(),
+          reason: err.message,
+          statusCode: err.httpErr.code,
         );
-        break;
       }
+      yield RpcResponse.ok(
+        data: GetAccountResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        ),
+      );
+    } on Exception catch (e, stackTrace) {
+      yield RpcResponse.err(
+        statusCode: 400,
+        reason: e.toString(),
+        stackTrace: stackTrace.toString(),
+      );
     }
   }
 
@@ -766,47 +705,41 @@ class AnotherExampleService {
     @required SearchFilter s,
     Map<String, String> headers,
   }) async* {
-    const num = 0;
-    while (num == 0) {
-      yield const RpcResponse.pending();
-      try {
-        final _AnotherExampleServiceGetUsersArgs args =
-            _AnotherExampleServiceGetUsersArgs(
-          s: s,
-        );
+    yield const RpcResponse.loading();
+    try {
+      final _AnotherExampleServiceGetUsersArgs args =
+          _AnotherExampleServiceGetUsersArgs(
+        s: s,
+      );
 
-        final http.Response response = await _makeRequest(
-          'GetUsers',
-          json: jsonEncode(
-            args.toJson(),
-          ),
-          headers: headers,
-        );
+      final http.Response response = await _makeRequest(
+        'GetUsers',
+        json: jsonEncode(
+          args.toJson(),
+        ),
+        headers: headers,
+      );
 
-        if (!_nonErrorcodes.contains(response.statusCode)) {
-          final _RpcErr err = _getErr(response);
-          yield RpcResponse.err(
-            reason: err.message,
-            statusCode: err.httpErr.code,
-          );
-          break;
-        }
-        yield RpcResponse.ok(
-          data: GetUsersResult.fromJson(
-            jsonDecode(
-              response.body,
-            ),
-          ),
-        );
-        break;
-      } on Exception catch (e, stackTrace) {
+      if (!_nonErrorcodes.contains(response.statusCode)) {
+        final _RpcErr err = _getErr(response);
         yield RpcResponse.err(
-          statusCode: 400,
-          reason: e.toString(),
-          stackTrace: stackTrace.toString(),
+          reason: err.message,
+          statusCode: err.httpErr.code,
         );
-        break;
       }
+      yield RpcResponse.ok(
+        data: GetUsersResult.fromJson(
+          jsonDecode(
+            response.body,
+          ),
+        ),
+      );
+    } on Exception catch (e, stackTrace) {
+      yield RpcResponse.err(
+        statusCode: 400,
+        reason: e.toString(),
+        stackTrace: stackTrace.toString(),
+      );
     }
   }
 }
