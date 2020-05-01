@@ -12,6 +12,7 @@ dependencies:
   shelf: ^0.7.5
   meta: ^1.1.8
   json_annotation: ^3.0.1
+  hive: ^1.4.1+1
 
 dev_dependencies:
   build_runner:
@@ -19,3 +20,4 @@ dev_dependencies:
   pedantic: ^1.8.0
   extra_pedantic: ^1.2.0
   json_serializable: ^3.2.0
+  hive_generator: 0.7.0+2

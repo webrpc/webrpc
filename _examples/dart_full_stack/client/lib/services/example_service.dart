@@ -255,6 +255,65 @@ abstract class GetUsersResult with _$GetUsersResult {
 }
 
 // *********************************************************************
+// Service Interfaces. Useful for testing purposes.
+// *********************************************************************
+
+abstract class ExampleServiceRpc {
+  Stream<RpcResponse<int>> ping({
+    Map<String, String> headers,
+  });
+
+  Stream<RpcResponse<StatusResult>> status({
+    Map<String, String> headers,
+  });
+
+  Stream<RpcResponse<int>> updateName({
+    @required String username,
+    Map<String, String> headers,
+  });
+
+  Stream<RpcResponse<VersionResult>> version({
+    Map<String, String> headers,
+  });
+
+  Stream<RpcResponse<GetUserResult>> getUser({
+    @required Map<String, String> header,
+    @required int userID,
+    Map<String, String> headers,
+  });
+
+  Stream<RpcResponse<FindUserResult>> findUser({
+    @required SearchFilter s,
+    Map<String, String> headers,
+  });
+}
+
+abstract class AnotherExampleServiceRpc {
+  Stream<RpcResponse<int>> pingServer({
+    Map<String, String> headers,
+  });
+
+  Stream<RpcResponse<AnotherExampleServiceStatusResult>> status({
+    Map<String, String> headers,
+  });
+
+  Stream<RpcResponse<GetVersionResult>> getVersion({
+    Map<String, String> headers,
+  });
+
+  Stream<RpcResponse<GetAccountResult>> getAccount({
+    @required Map<String, String> header,
+    @required int userID,
+    Map<String, String> headers,
+  });
+
+  Stream<RpcResponse<GetUsersResult>> getUsers({
+    @required SearchFilter s,
+    Map<String, String> headers,
+  });
+}
+
+// *********************************************************************
 // RpcResponse TYPE.
 // *********************************************************************
 
@@ -277,7 +336,7 @@ abstract class RpcResponse<T> with _$RpcResponse<T> {
 // WEBRPC-DART SERVICE CLIENTS.
 // ***********************************************************************
 
-class ExampleService {
+class ExampleService implements ExampleServiceRpc {
   final String host;
   String _srvcPath = '/rpc/ExampleService/';
   ExampleService({
@@ -311,6 +370,7 @@ class ExampleService {
     }
   }
 
+  @override
   Stream<RpcResponse<int>> ping({
     Map<String, String> headers,
   }) async* {
@@ -340,6 +400,7 @@ class ExampleService {
     }
   }
 
+  @override
   Stream<RpcResponse<StatusResult>> status({
     Map<String, String> headers,
   }) async* {
@@ -373,6 +434,7 @@ class ExampleService {
     }
   }
 
+  @override
   Stream<RpcResponse<int>> updateName({
     @required String username,
     Map<String, String> headers,
@@ -410,6 +472,7 @@ class ExampleService {
     }
   }
 
+  @override
   Stream<RpcResponse<VersionResult>> version({
     Map<String, String> headers,
   }) async* {
@@ -443,6 +506,7 @@ class ExampleService {
     }
   }
 
+  @override
   Stream<RpcResponse<GetUserResult>> getUser({
     @required Map<String, String> header,
     @required int userID,
@@ -486,6 +550,7 @@ class ExampleService {
     }
   }
 
+  @override
   Stream<RpcResponse<FindUserResult>> findUser({
     @required SearchFilter s,
     Map<String, String> headers,
@@ -528,7 +593,7 @@ class ExampleService {
   }
 }
 
-class AnotherExampleService {
+class AnotherExampleService implements AnotherExampleServiceRpc {
   final String host;
   String _srvcPath = '/rpc/AnotherExampleService/';
   AnotherExampleService({
@@ -562,6 +627,7 @@ class AnotherExampleService {
     }
   }
 
+  @override
   Stream<RpcResponse<int>> pingServer({
     Map<String, String> headers,
   }) async* {
@@ -591,6 +657,7 @@ class AnotherExampleService {
     }
   }
 
+  @override
   Stream<RpcResponse<AnotherExampleServiceStatusResult>> status({
     Map<String, String> headers,
   }) async* {
@@ -624,6 +691,7 @@ class AnotherExampleService {
     }
   }
 
+  @override
   Stream<RpcResponse<GetVersionResult>> getVersion({
     Map<String, String> headers,
   }) async* {
@@ -657,6 +725,7 @@ class AnotherExampleService {
     }
   }
 
+  @override
   Stream<RpcResponse<GetAccountResult>> getAccount({
     @required Map<String, String> header,
     @required int userID,
@@ -701,6 +770,7 @@ class AnotherExampleService {
     }
   }
 
+  @override
   Stream<RpcResponse<GetUsersResult>> getUsers({
     @required SearchFilter s,
     Map<String, String> headers,

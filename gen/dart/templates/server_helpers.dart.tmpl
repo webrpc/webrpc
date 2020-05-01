@@ -15,6 +15,57 @@ enum RpcLogLevel {
   Shout,
 }
 
+shelf.Response _badRouteHandler(shelf.Request r, {RpcLogger logger}) {
+  logger ??= _rpcLogger;
+  final route = r.requestedUri.toString();
+  final info = 'no handler for path: $route';
+  logger.info(info);
+  return _rpcResp.BadRoute(
+    route,
+    msg: info,
+  );
+}
+
+shelf.Middleware _nonJsonMddlwr =
+    shelf.createMiddleware(requestHandler: _handleNotJsonFriendly);
+
+shelf.Middleware _notPostMddlwr =
+    shelf.createMiddleware(requestHandler: _handleNotPost);
+
+bool _jsonFriendly(shelf.Request r) =>
+    r.headers['Content-Type'].contains('application/json') &&
+    r.headers['Accept'].contains('application/json');
+
+shelf.Response _handleNotJsonFriendly(shelf.Request r, {RpcLogger logger}) {
+  logger ??= _rpcLogger;
+  final route = r.requestedUri.toString();
+  if (!_jsonFriendly(r)) {
+    final info =
+        'unexpected Content-Type: ${r.headers['Content-Type']} or Accept: ${r.headers['Accept']}. path: $route';
+    logger.info(info);
+    return _rpcResp.BadRoute(
+      route,
+      msg: info,
+    );
+  }
+  return null;
+}
+
+shelf.Response _handleNotPost(shelf.Request r, {RpcLogger logger}) {
+  logger ??= _rpcLogger;
+  final route = r.requestedUri.toString();
+  if (r.method != 'POST') {
+    final info =
+        'unsupported method: ${r.method}, (only POST is allowed. path: $route';
+    logger.info(info);
+    return _rpcResp.BadRoute(
+      route,
+      msg: info,
+    );
+  }
+  return null;
+}
+
 // This exception should be thrown from all WEBRPC-DART service method implementations.
 // Throwing this exception and providing an [RpcLogLevel] allows the rpc logging mechanism to log all caught excetpions at the correct level.
 class WebRPCException extends HttpException {

@@ -1,6 +1,30 @@
 {{define "client"}}
 
 {{if .Services}}
+
+// *********************************************************************
+// Service Interfaces. Useful for testing purposes.
+// *********************************************************************
+{{range .Services}}
+abstract class {{.Name}}Rpc {
+  {{range .Methods}}
+  {{. | methodOutputsClient}} {{.Name | methodName}}({
+  {{if .Inputs}}
+  {{- range .Inputs}}
+  {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+  {{- end -}} {{/* end of range .Inputs */}}
+  {{- range .Inputs}}
+  {{if .Optional}}
+  {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+{{- end}} {{/* end of range .Inputs */}}
+{{- end}} {{/* end of if .Inputs */}}
+  Map<String, String> headers,
+  });
+  {{end}} {{/* end of range .Methods */}}
+}
+{{end}} {{/* end of range .Services */}}
 // *********************************************************************
 // RpcResponse TYPE.
 // *********************************************************************
@@ -12,14 +36,14 @@
 abstract class RpcResponse<T> with _$RpcResponse<T> {
   factory RpcResponse.ok({@required T data,}) = _RpcResponseOk<T>;
   const factory RpcResponse.err({@required String reason, @required int statusCode, String stackTrace,}) = _RpcResonseErr<T>;
-  const factory RpcResponse.loading() = _RpcResponsePending<T>;
+  const factory RpcResponse.loading() = _RpcResponseLoading<T>;
 }
 // ***********************************************************************
 // WEBRPC-DART SERVICE CLIENTS.
 // ***********************************************************************
 
 {{range .Services}}
-class {{.Name}} {
+class {{.Name}} implements {{.Name}}Rpc {
   final String host;
   String _srvcPath = '/rpc/{{.Name}}/';
   {{.Name}}({
@@ -49,6 +73,7 @@ class {{.Name}} {
   }
  
   {{range .Methods}}
+  @override
   {{. | methodOutputsClient}} {{.Name | methodName}}({
   {{if .Inputs}}
   {{- range .Inputs}}

@@ -293,7 +293,69 @@ abstract class AnotherExampleService {
 // *********************************************************************
 // SERVER IMPLEMENTATION.
 // *********************************************************************
+
+typedef HandlerMapFn = Map<String, shelf.Handler> Function();
+
+// If for some reason you do not want to use the provider WebRpc server /// below, you can simple create and instance of it, and instead of
+// calling the .serve method, pass the results of the .handlerMapFn
+// getter as a list to this function. This can be useful if you are
+// adding a webRpc server to an existing shelf server, or if you have
+// other servers that were created by webRpc in the same project.
+/// Returns the lesser of two numbers.
+///
+/// ```dart
+/// final WebRpcServer server1 = WebRpcServer(// service implementations);
+/// final shelf.Handler handler = handlerFromServers([service1, service2, ...]);
+/// ```
+///
+shelf.Handler handlerFromServers(List<HandlerMapFn> handlerFns,
+    {RpcLogger logger}) {
+  logger ??= _rpcLogger;
+  final fnSet = handlerFns?.toSet();
+  final Map<String, shelf.Handler> handlers = {
+    for (final fn in fnSet) ...?fn()
+  };
+  return const shelf.Pipeline()
+      .addMiddleware(_nonJsonMddlwr)
+      .addMiddleware(_notPostMddlwr)
+      .addMiddleware(
+        shelf.logRequests(
+          logger: (msg, isErr) => isErr ? logger.shout(msg) : logger.info(msg),
+        ),
+      )
+      .addHandler((shelf.Request r) {
+    final handler = handlers[r.requestedUri.toString()] ?? _badRouteHandler;
+    return handler(r);
+  });
+}
+
 class WebRpcServer {
+  // Pass the results of this getter to the handlerFromServers function
+  // in to get a shelf.Handler if you would like to configure your
+  // server manully outside of this class.
+  HandlerMapFn get handlerMapFn {
+    final Map<String, shelf.Handler> _handlersMap = {};
+    _handlersMap.addAll({
+      '/rpc/ExampleService/Ping': this._handleExampleServicePing,
+      '/rpc/ExampleService/Status': this._handleExampleServiceStatus,
+      '/rpc/ExampleService/UpdateName': this._handleExampleServiceUpdateName,
+      '/rpc/ExampleService/Version': this._handleExampleServiceVersion,
+      '/rpc/ExampleService/GetUser': this._handleExampleServiceGetUser,
+      '/rpc/ExampleService/FindUser': this._handleExampleServiceFindUser,
+      '/rpc/AnotherExampleService/PingServer':
+          this._handleAnotherExampleServicePingServer,
+      '/rpc/AnotherExampleService/Status':
+          this._handleAnotherExampleServiceStatus,
+      '/rpc/AnotherExampleService/GetVersion':
+          this._handleAnotherExampleServiceGetVersion,
+      '/rpc/AnotherExampleService/GetAccount':
+          this._handleAnotherExampleServiceGetAccount,
+      '/rpc/AnotherExampleService/GetUsers':
+          this._handleAnotherExampleServiceGetUsers,
+    });
+    return () => _handlersMap;
+  }
+
   // For Google Cloud Run, set _hostname to '0.0.0.0'.
   String _hostname;
   // Provide a {Logger} implementation to log exceptions.
@@ -317,36 +379,19 @@ class WebRpcServer {
   }) {
     _hostname = hostName;
     _log = logger ?? _rpcLogger;
-    _middleware = middleware?.toSet() ?? [shelf.logRequests()];
+    _middleware = {
+      ...?middleware?.toSet(),
+      shelf.logRequests(
+        logger: (msg, isErr) => isErr ? _log.shout(msg) : _log.info(msg),
+      ),
+      _nonJsonMddlwr,
+      _notPostMddlwr,
+    };
   }
 
-  bool _jsonFriendly(shelf.Request r) =>
-      r.headers['Content-Type'].contains('application/json') &&
-      r.headers['Accept'].contains('application/json');
-
   FutureOr<shelf.Response> _requestHandler(shelf.Request r) async {
-    final route = r.url.path;
-    if (r.method != 'POST') {
-      final info =
-          'unsupported method: ${r.method}, (only POST is allowed. path: $route';
-      _log.info(info);
-      return _rpcResp.BadRoute(
-        route,
-        msg: info,
-      );
-    }
-
-    if (!_jsonFriendly(r)) {
-      final info =
-          'unexpected Content-Type: ${r.headers['Content-Type']} or Accept: ${r.headers['Accept']}. path: $route';
-      _log.info(info);
-      return _rpcResp.BadRoute(
-        route,
-        msg: info,
-      );
-    }
-
-    switch (r.url.path) {
+    final route = r.requestedUri.toString();
+    switch (route) {
       case '/rpc/ExampleService/Ping':
         {
           return _handleExampleServicePing(r);
@@ -415,18 +460,18 @@ class WebRpcServer {
 
       default:
         {
-          final info = 'no handler for path: $route';
-          _log.info(info);
-          return _rpcResp.BadRoute(
-            route,
-            msg: info,
+          return _badRouteHandler(
+            r,
+            logger: _log,
           );
         }
         break;
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServicePing(shelf.Request r) async {
+  FutureOr<shelf.Response> _handleExampleServicePing(
+    shelf.Request r,
+  ) async {
     try {
       // Attempt to call service method.
 
@@ -435,17 +480,29 @@ class WebRpcServer {
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
-      _logWebRpcExc(_log, e, null, stackTrace);
+      _logWebRpcExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/ExampleService/Ping');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/ExampleService/Ping');
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServiceStatus(shelf.Request r) async {
+  FutureOr<shelf.Response> _handleExampleServiceStatus(
+    shelf.Request r,
+  ) async {
     try {
       // Attempt to call service method.
       final StatusResult result = await exampleService.status();
@@ -457,18 +514,29 @@ class WebRpcServer {
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
-      _logWebRpcExc(_log, e, null, stackTrace);
+      _logWebRpcExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/ExampleService/Status');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/ExampleService/Status');
     }
   }
 
   FutureOr<shelf.Response> _handleExampleServiceUpdateName(
-      shelf.Request r) async {
+    shelf.Request r,
+  ) async {
     try {
       // Attempt to call service method.
       final json = await r.readAsString();
@@ -484,17 +552,29 @@ class WebRpcServer {
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
-      _logWebRpcExc(_log, e, null, stackTrace);
+      _logWebRpcExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/ExampleService/UpdateName');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/ExampleService/UpdateName');
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServiceVersion(shelf.Request r) async {
+  FutureOr<shelf.Response> _handleExampleServiceVersion(
+    shelf.Request r,
+  ) async {
     try {
       // Attempt to call service method.
       final VersionResult result = await exampleService.version();
@@ -506,17 +586,29 @@ class WebRpcServer {
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
-      _logWebRpcExc(_log, e, null, stackTrace);
+      _logWebRpcExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/ExampleService/Version');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/ExampleService/Version');
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServiceGetUser(shelf.Request r) async {
+  FutureOr<shelf.Response> _handleExampleServiceGetUser(
+    shelf.Request r,
+  ) async {
     try {
       // Attempt to call service method.
       final json = await r.readAsString();
@@ -536,18 +628,29 @@ class WebRpcServer {
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
-      _logWebRpcExc(_log, e, null, stackTrace);
+      _logWebRpcExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/ExampleService/GetUser');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/ExampleService/GetUser');
     }
   }
 
   FutureOr<shelf.Response> _handleExampleServiceFindUser(
-      shelf.Request r) async {
+    shelf.Request r,
+  ) async {
     try {
       // Attempt to call service method.
       final json = await r.readAsString();
@@ -566,18 +669,29 @@ class WebRpcServer {
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
-      _logWebRpcExc(_log, e, null, stackTrace);
+      _logWebRpcExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/ExampleService/FindUser');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/ExampleService/FindUser');
     }
   }
 
   FutureOr<shelf.Response> _handleAnotherExampleServicePingServer(
-      shelf.Request r) async {
+    shelf.Request r,
+  ) async {
     try {
       // Attempt to call service method.
 
@@ -586,18 +700,29 @@ class WebRpcServer {
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
-      _logWebRpcExc(_log, e, null, stackTrace);
+      _logWebRpcExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/AnotherExampleService/PingServer');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/AnotherExampleService/PingServer');
     }
   }
 
   FutureOr<shelf.Response> _handleAnotherExampleServiceStatus(
-      shelf.Request r) async {
+    shelf.Request r,
+  ) async {
     try {
       // Attempt to call service method.
       final AnotherExampleServiceStatusResult result =
@@ -610,18 +735,29 @@ class WebRpcServer {
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
-      _logWebRpcExc(_log, e, null, stackTrace);
+      _logWebRpcExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/AnotherExampleService/Status');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/AnotherExampleService/Status');
     }
   }
 
   FutureOr<shelf.Response> _handleAnotherExampleServiceGetVersion(
-      shelf.Request r) async {
+    shelf.Request r,
+  ) async {
     try {
       // Attempt to call service method.
       final GetVersionResult result = await anotherExampleService.getVersion();
@@ -633,18 +769,29 @@ class WebRpcServer {
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
-      _logWebRpcExc(_log, e, null, stackTrace);
+      _logWebRpcExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/AnotherExampleService/GetVersion');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/AnotherExampleService/GetVersion');
     }
   }
 
   FutureOr<shelf.Response> _handleAnotherExampleServiceGetAccount(
-      shelf.Request r) async {
+    shelf.Request r,
+  ) async {
     try {
       // Attempt to call service method.
       final json = await r.readAsString();
@@ -664,18 +811,29 @@ class WebRpcServer {
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
-      _logWebRpcExc(_log, e, null, stackTrace);
+      _logWebRpcExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/AnotherExampleService/GetAccount');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/AnotherExampleService/GetAccount');
     }
   }
 
   FutureOr<shelf.Response> _handleAnotherExampleServiceGetUsers(
-      shelf.Request r) async {
+    shelf.Request r,
+  ) async {
     try {
       // Attempt to call service method.
       final json = await r.readAsString();
@@ -694,12 +852,22 @@ class WebRpcServer {
     }
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
-      _logWebRpcExc(_log, e, null, stackTrace);
+      _logWebRpcExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/AnotherExampleService/GetUsers');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       return _rpcResp.Fail('/rpc/AnotherExampleService/GetUsers');
     }
   }
@@ -709,15 +877,21 @@ class WebRpcServer {
     try {
       return parser.parse(args);
     } on ArgParserException catch (e, stackTrace) {
-      _logExc(_log, e, null, stackTrace);
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
       print('arg parsing error occured: $e');
       rethrow;
     }
   }
 
   // For Google Cloud Run, we respect the PORT environment variable
-  int _getPort(ArgResults args) =>
-      int.tryParse(args['port'] ?? Platform.environment['PORT'] ?? '8080');
+  int _getPort(ArgResults args) => int.tryParse(
+        args['port'] ?? Platform.environment['PORT'] ?? '8080',
+      );
 
   void _configurePipeline() => _middleware.forEach(
         (mddlwr) => _pipeline.addMiddleware(mddlwr),
@@ -760,6 +934,57 @@ enum RpcLogLevel {
   Warning,
   Severe,
   Shout,
+}
+
+shelf.Response _badRouteHandler(shelf.Request r, {RpcLogger logger}) {
+  logger ??= _rpcLogger;
+  final route = r.requestedUri.toString();
+  final info = 'no handler for path: $route';
+  logger.info(info);
+  return _rpcResp.BadRoute(
+    route,
+    msg: info,
+  );
+}
+
+shelf.Middleware _nonJsonMddlwr =
+    shelf.createMiddleware(requestHandler: _handleNotJsonFriendly);
+
+shelf.Middleware _notPostMddlwr =
+    shelf.createMiddleware(requestHandler: _handleNotPost);
+
+bool _jsonFriendly(shelf.Request r) =>
+    r.headers['Content-Type'].contains('application/json') &&
+    r.headers['Accept'].contains('application/json');
+
+shelf.Response _handleNotJsonFriendly(shelf.Request r, {RpcLogger logger}) {
+  logger ??= _rpcLogger;
+  final route = r.requestedUri.toString();
+  if (!_jsonFriendly(r)) {
+    final info =
+        'unexpected Content-Type: ${r.headers['Content-Type']} or Accept: ${r.headers['Accept']}. path: $route';
+    logger.info(info);
+    return _rpcResp.BadRoute(
+      route,
+      msg: info,
+    );
+  }
+  return null;
+}
+
+shelf.Response _handleNotPost(shelf.Request r, {RpcLogger logger}) {
+  logger ??= _rpcLogger;
+  final route = r.requestedUri.toString();
+  if (r.method != 'POST') {
+    final info =
+        'unsupported method: ${r.method}, (only POST is allowed. path: $route';
+    logger.info(info);
+    return _rpcResp.BadRoute(
+      route,
+      msg: info,
+    );
+  }
+  return null;
 }
 
 // This exception should be thrown from all WEBRPC-DART service method implementations.
