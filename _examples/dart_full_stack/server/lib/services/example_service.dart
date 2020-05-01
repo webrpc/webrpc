@@ -294,26 +294,35 @@ abstract class AnotherExampleService {
 // SERVER IMPLEMENTATION.
 // *********************************************************************
 
-typedef HandlerMapFn = Map<String, shelf.Handler> Function();
-
-// If for some reason you do not want to use the provider WebRpc server /// below, you can simple create and instance of it, and instead of
-// calling the .serve method, pass the results of the .handlerMapFn
+// If for some reason you do not want to use the provided WebRpcServer
+// below, you can create and instance of it, and instead of
+// calling the .serve method, pass the results of the .handlers
 // getter as a list to this function. This can be useful if you are
-// adding a webRpc server to an existing shelf server, or if you have
-// other servers that were created by webRpc in the same project.
-/// Returns the lesser of two numbers.
+// adding a webRpc server to an existing shelf server or if you
+// have unique requirements on how your server is run.
+// If you want to combine handlers from multiple WebRpcServe instances
+// and still use an instance's .serve method, you should use
+// WebRpcServer.mergeHandlers instead.
 ///
 /// ```dart
-/// final WebRpcServer server1 = WebRpcServer(// service implementations);
-/// final shelf.Handler handler = handlerFromServers([service1, service2, ...]);
+/// # server1.dart
+/// final service1Handlers = WebRpcServer(// service implementations)..
+/// handlers;
+/// # server2.dart
+/// final service2Handlers = WebRpcServer(// service implementations)..
+/// handlers;
+/// # main.dart
+/// import 'service1.dart' show service1Handlers;
+/// import 'service2.dart' show service2Handlers, combineHandlers;
+/// final shelf.Handler handler = handlerFromServers([service1Handlers,
+/// service2Handlers, ...]);
+/// await io.serve(handler, _hostname, port);
 /// ```
-///
-shelf.Handler handlerFromServers(List<HandlerMapFn> handlerFns,
+shelf.Handler combineHandlers(List<Map<String, shelf.Handler>> handlerMaps,
     {RpcLogger logger}) {
   logger ??= _rpcLogger;
-  final fnSet = handlerFns?.toSet();
   final Map<String, shelf.Handler> handlers = {
-    for (final fn in fnSet) ...?fn()
+    for (final map in handlerMaps) ...?map,
   };
   return const shelf.Pipeline()
       .addMiddleware(_nonJsonMddlwr)
@@ -330,31 +339,29 @@ shelf.Handler handlerFromServers(List<HandlerMapFn> handlerFns,
 }
 
 class WebRpcServer {
-  // Pass the results of this getter to the handlerFromServers function
-  // in to get a shelf.Handler if you would like to configure your
+  // Pass the results of this getter to the combineHandlers function
+  // to get a shelf.Handler if you would like to configure your
   // server manully outside of this class.
-  HandlerMapFn get handlerMapFn {
-    final Map<String, shelf.Handler> _handlersMap = {};
-    _handlersMap.addAll({
-      '/rpc/ExampleService/Ping': this._handleExampleServicePing,
-      '/rpc/ExampleService/Status': this._handleExampleServiceStatus,
-      '/rpc/ExampleService/UpdateName': this._handleExampleServiceUpdateName,
-      '/rpc/ExampleService/Version': this._handleExampleServiceVersion,
-      '/rpc/ExampleService/GetUser': this._handleExampleServiceGetUser,
-      '/rpc/ExampleService/FindUser': this._handleExampleServiceFindUser,
-      '/rpc/AnotherExampleService/PingServer':
-          this._handleAnotherExampleServicePingServer,
-      '/rpc/AnotherExampleService/Status':
-          this._handleAnotherExampleServiceStatus,
-      '/rpc/AnotherExampleService/GetVersion':
-          this._handleAnotherExampleServiceGetVersion,
-      '/rpc/AnotherExampleService/GetAccount':
-          this._handleAnotherExampleServiceGetAccount,
-      '/rpc/AnotherExampleService/GetUsers':
-          this._handleAnotherExampleServiceGetUsers,
-    });
-    return () => _handlersMap;
-  }
+  Map<String, shelf.Handler> get handlers => {
+        '/rpc/ExampleService/Ping': this._handleExampleServicePing,
+        '/rpc/ExampleService/Status': this._handleExampleServiceStatus,
+        '/rpc/ExampleService/UpdateName': this._handleExampleServiceUpdateName,
+        '/rpc/ExampleService/Version': this._handleExampleServiceVersion,
+        '/rpc/ExampleService/GetUser': this._handleExampleServiceGetUser,
+        '/rpc/ExampleService/FindUser': this._handleExampleServiceFindUser,
+        '/rpc/AnotherExampleService/PingServer':
+            this._handleAnotherExampleServicePingServer,
+        '/rpc/AnotherExampleService/Status':
+            this._handleAnotherExampleServiceStatus,
+        '/rpc/AnotherExampleService/GetVersion':
+            this._handleAnotherExampleServiceGetVersion,
+        '/rpc/AnotherExampleService/GetAccount':
+            this._handleAnotherExampleServiceGetAccount,
+        '/rpc/AnotherExampleService/GetUsers':
+            this._handleAnotherExampleServiceGetUsers,
+      };
+
+  shelf.Handler _mergedHandler;
 
   // For Google Cloud Run, set _hostname to '0.0.0.0'.
   String _hostname;
@@ -387,6 +394,23 @@ class WebRpcServer {
       _nonJsonMddlwr,
       _notPostMddlwr,
     };
+  }
+
+  // If you would like to merge all of the shelf.Handlers from multiple
+  // WebRPCServer instances into one shelf.Handler and still use this
+  // class's .serve method as an entrypoint to your app, call this method
+  // first.
+  /// ```dart
+  /// WebRpcServer(// constructor args)..mergeHandlers(
+  ///      [server1.handlers, /// server2.handlers],
+  ///      );
+  /// ```
+  void mergeHandlers(
+    List<Map<String, shelf.Handler>> handlerMaps,
+  ) {
+    _mergedHandler = combineHandlers(
+      [...?handlerMaps, handlers],
+    );
   }
 
   FutureOr<shelf.Response> _requestHandler(shelf.Request r) async {
@@ -913,7 +937,9 @@ class WebRpcServer {
     }
 
     _configurePipeline();
-    final handler = _pipeline.addHandler(_requestHandler);
+    final handler = _pipeline.addHandler(
+      _mergedHandler ?? _requestHandler,
+    );
     _server = await io.serve(handler, _hostname, port,
         securityContext: securityContext, backlog: backlog, shared: shared);
     print('Serving at http://${_server.address.host}:${_server.port}');
