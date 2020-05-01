@@ -75,7 +75,7 @@ class WebRpcServer {
   // to get a shelf.Handler if you would like to configure your
   // server manully outside of this class.
   Map<String, shelf.Handler> get handlers =>
-      {
+    {
       {{ range .Services }}
       {{$name := .Name}}
       {{- range .Methods}}
