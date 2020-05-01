@@ -26,7 +26,7 @@ message User
     + go.tag.db = -
 
 message SearchFilter
-  - q: string
+  - id: uint64
 
 message Version
   - webrpcVersion: string
@@ -48,14 +48,10 @@ message ComplexType
 service ExampleService
   - Ping()
   - Status() => (status: bool)
-  - UpdateName(username: string)
   - Version() => (version: Version)
-  - GetUser(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
-  - FindUser(s: SearchFilter) => (name: string, user: User)
-
-service AnotherExampleService
-  - PingServer()
-  - Status() => (status: bool)
-  - GetVersion() => (version: Version)
-  - GetAccount(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
-  - GetUsers(s: SearchFilter) => (name: string, user: User)
+  - GetUser(userID: uint64) => (user: User)
+  - UpdateName(id: uint64, username: string) => (wasUpdated: bool)
+  - FindUserById(s: SearchFilter) => (name: string, user: User)
+  - AddUser(user: User) => (wasAdded: bool)
+  - ListUsers() => (users: []User)
+  - DeleteUser(id: uint64) => (wasDeleted: bool)

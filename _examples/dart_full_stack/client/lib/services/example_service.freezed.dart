@@ -541,9 +541,9 @@ SearchFilter _$SearchFilterFromJson(Map<String, dynamic> json) {
 class _$SearchFilterTearOff {
   const _$SearchFilterTearOff();
 
-  _SearchFilter call({@required String q}) {
+  _SearchFilter call({@required int id}) {
     return _SearchFilter(
-      q: q,
+      id: id,
     );
   }
 }
@@ -552,7 +552,7 @@ class _$SearchFilterTearOff {
 const $SearchFilter = _$SearchFilterTearOff();
 
 mixin _$SearchFilter {
-  String get q;
+  int get id;
 
   Map<String, dynamic> toJson();
   $SearchFilterCopyWith<SearchFilter> get copyWith;
@@ -562,7 +562,7 @@ abstract class $SearchFilterCopyWith<$Res> {
   factory $SearchFilterCopyWith(
           SearchFilter value, $Res Function(SearchFilter) then) =
       _$SearchFilterCopyWithImpl<$Res>;
-  $Res call({String q});
+  $Res call({int id});
 }
 
 class _$SearchFilterCopyWithImpl<$Res> implements $SearchFilterCopyWith<$Res> {
@@ -574,10 +574,10 @@ class _$SearchFilterCopyWithImpl<$Res> implements $SearchFilterCopyWith<$Res> {
 
   @override
   $Res call({
-    Object q = freezed,
+    Object id = freezed,
   }) {
     return _then(_value.copyWith(
-      q: q == freezed ? _value.q : q as String,
+      id: id == freezed ? _value.id : id as int,
     ));
   }
 }
@@ -588,7 +588,7 @@ abstract class _$SearchFilterCopyWith<$Res>
           _SearchFilter value, $Res Function(_SearchFilter) then) =
       __$SearchFilterCopyWithImpl<$Res>;
   @override
-  $Res call({String q});
+  $Res call({int id});
 }
 
 class __$SearchFilterCopyWithImpl<$Res> extends _$SearchFilterCopyWithImpl<$Res>
@@ -602,27 +602,27 @@ class __$SearchFilterCopyWithImpl<$Res> extends _$SearchFilterCopyWithImpl<$Res>
 
   @override
   $Res call({
-    Object q = freezed,
+    Object id = freezed,
   }) {
     return _then(_SearchFilter(
-      q: q == freezed ? _value.q : q as String,
+      id: id == freezed ? _value.id : id as int,
     ));
   }
 }
 
 @JsonSerializable(explicitToJson: true)
 class _$_SearchFilter with DiagnosticableTreeMixin implements _SearchFilter {
-  _$_SearchFilter({@required this.q}) : assert(q != null);
+  _$_SearchFilter({@required this.id}) : assert(id != null);
 
   factory _$_SearchFilter.fromJson(Map<String, dynamic> json) =>
       _$_$_SearchFilterFromJson(json);
 
   @override
-  final String q;
+  final int id;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'SearchFilter(q: $q)';
+    return 'SearchFilter(id: $id)';
   }
 
   @override
@@ -630,20 +630,20 @@ class _$_SearchFilter with DiagnosticableTreeMixin implements _SearchFilter {
     super.debugFillProperties(properties);
     properties
       ..add(DiagnosticsProperty('type', 'SearchFilter'))
-      ..add(DiagnosticsProperty('q', q));
+      ..add(DiagnosticsProperty('id', id));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other is _SearchFilter &&
-            (identical(other.q, q) ||
-                const DeepCollectionEquality().equals(other.q, q)));
+            (identical(other.id, id) ||
+                const DeepCollectionEquality().equals(other.id, id)));
   }
 
   @override
   int get hashCode =>
-      runtimeType.hashCode ^ const DeepCollectionEquality().hash(q);
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(id);
 
   @override
   _$SearchFilterCopyWith<_SearchFilter> get copyWith =>
@@ -656,13 +656,13 @@ class _$_SearchFilter with DiagnosticableTreeMixin implements _SearchFilter {
 }
 
 abstract class _SearchFilter implements SearchFilter {
-  factory _SearchFilter({@required String q}) = _$_SearchFilter;
+  factory _SearchFilter({@required int id}) = _$_SearchFilter;
 
   factory _SearchFilter.fromJson(Map<String, dynamic> json) =
       _$_SearchFilter.fromJson;
 
   @override
-  String get q;
+  int get id;
   @override
   _$SearchFilterCopyWith<_SearchFilter> get copyWith;
 }
@@ -1192,121 +1192,263 @@ abstract class _ComplexType implements ComplexType {
   _$ComplexTypeCopyWith<_ComplexType> get copyWith;
 }
 
-_ExampleServiceUpdateNameArgs _$_ExampleServiceUpdateNameArgsFromJson(
-    Map<String, dynamic> json) {
-  return _ExampleServiceUpdateNameArgs_Freezed.fromJson(json);
+_GetUserArgs _$_GetUserArgsFromJson(Map<String, dynamic> json) {
+  return _GetUserArgs_Freezed.fromJson(json);
 }
 
-class _$_ExampleServiceUpdateNameArgsTearOff {
-  const _$_ExampleServiceUpdateNameArgsTearOff();
+class _$_GetUserArgsTearOff {
+  const _$_GetUserArgsTearOff();
 
-  _ExampleServiceUpdateNameArgs_Freezed call({@required String username}) {
-    return _ExampleServiceUpdateNameArgs_Freezed(
-      username: username,
+  _GetUserArgs_Freezed call({@required int userID}) {
+    return _GetUserArgs_Freezed(
+      userID: userID,
     );
   }
 }
 
 // ignore: unused_element
-const _$ExampleServiceUpdateNameArgs = _$_ExampleServiceUpdateNameArgsTearOff();
+const _$GetUserArgs = _$_GetUserArgsTearOff();
 
-mixin _$_ExampleServiceUpdateNameArgs {
-  String get username;
+mixin _$_GetUserArgs {
+  int get userID;
 
   Map<String, dynamic> toJson();
-  _$ExampleServiceUpdateNameArgsCopyWith<_ExampleServiceUpdateNameArgs>
-      get copyWith;
+  _$GetUserArgsCopyWith<_GetUserArgs> get copyWith;
 }
 
-abstract class _$ExampleServiceUpdateNameArgsCopyWith<$Res> {
-  factory _$ExampleServiceUpdateNameArgsCopyWith(
-          _ExampleServiceUpdateNameArgs value,
-          $Res Function(_ExampleServiceUpdateNameArgs) then) =
-      __$ExampleServiceUpdateNameArgsCopyWithImpl<$Res>;
-  $Res call({String username});
+abstract class _$GetUserArgsCopyWith<$Res> {
+  factory _$GetUserArgsCopyWith(
+          _GetUserArgs value, $Res Function(_GetUserArgs) then) =
+      __$GetUserArgsCopyWithImpl<$Res>;
+  $Res call({int userID});
 }
 
-class __$ExampleServiceUpdateNameArgsCopyWithImpl<$Res>
-    implements _$ExampleServiceUpdateNameArgsCopyWith<$Res> {
-  __$ExampleServiceUpdateNameArgsCopyWithImpl(this._value, this._then);
+class __$GetUserArgsCopyWithImpl<$Res> implements _$GetUserArgsCopyWith<$Res> {
+  __$GetUserArgsCopyWithImpl(this._value, this._then);
 
-  final _ExampleServiceUpdateNameArgs _value;
+  final _GetUserArgs _value;
   // ignore: unused_field
-  final $Res Function(_ExampleServiceUpdateNameArgs) _then;
+  final $Res Function(_GetUserArgs) _then;
 
   @override
   $Res call({
-    Object username = freezed,
+    Object userID = freezed,
   }) {
     return _then(_value.copyWith(
-      username: username == freezed ? _value.username : username as String,
+      userID: userID == freezed ? _value.userID : userID as int,
     ));
   }
 }
 
-abstract class _$ExampleServiceUpdateNameArgs_FreezedCopyWith<$Res>
-    implements _$ExampleServiceUpdateNameArgsCopyWith<$Res> {
-  factory _$ExampleServiceUpdateNameArgs_FreezedCopyWith(
-          _ExampleServiceUpdateNameArgs_Freezed value,
-          $Res Function(_ExampleServiceUpdateNameArgs_Freezed) then) =
-      __$ExampleServiceUpdateNameArgs_FreezedCopyWithImpl<$Res>;
+abstract class _$GetUserArgs_FreezedCopyWith<$Res>
+    implements _$GetUserArgsCopyWith<$Res> {
+  factory _$GetUserArgs_FreezedCopyWith(_GetUserArgs_Freezed value,
+          $Res Function(_GetUserArgs_Freezed) then) =
+      __$GetUserArgs_FreezedCopyWithImpl<$Res>;
   @override
-  $Res call({String username});
+  $Res call({int userID});
 }
 
-class __$ExampleServiceUpdateNameArgs_FreezedCopyWithImpl<$Res>
-    extends __$ExampleServiceUpdateNameArgsCopyWithImpl<$Res>
-    implements _$ExampleServiceUpdateNameArgs_FreezedCopyWith<$Res> {
-  __$ExampleServiceUpdateNameArgs_FreezedCopyWithImpl(
-      _ExampleServiceUpdateNameArgs_Freezed _value,
-      $Res Function(_ExampleServiceUpdateNameArgs_Freezed) _then)
-      : super(_value, (v) => _then(v as _ExampleServiceUpdateNameArgs_Freezed));
+class __$GetUserArgs_FreezedCopyWithImpl<$Res>
+    extends __$GetUserArgsCopyWithImpl<$Res>
+    implements _$GetUserArgs_FreezedCopyWith<$Res> {
+  __$GetUserArgs_FreezedCopyWithImpl(
+      _GetUserArgs_Freezed _value, $Res Function(_GetUserArgs_Freezed) _then)
+      : super(_value, (v) => _then(v as _GetUserArgs_Freezed));
 
   @override
-  _ExampleServiceUpdateNameArgs_Freezed get _value =>
-      super._value as _ExampleServiceUpdateNameArgs_Freezed;
+  _GetUserArgs_Freezed get _value => super._value as _GetUserArgs_Freezed;
 
   @override
   $Res call({
-    Object username = freezed,
+    Object userID = freezed,
   }) {
-    return _then(_ExampleServiceUpdateNameArgs_Freezed(
-      username: username == freezed ? _value.username : username as String,
+    return _then(_GetUserArgs_Freezed(
+      userID: userID == freezed ? _value.userID : userID as int,
     ));
   }
 }
 
 @JsonSerializable(explicitToJson: true)
-class _$_ExampleServiceUpdateNameArgs_Freezed
+class _$_GetUserArgs_Freezed
     with DiagnosticableTreeMixin
-    implements _ExampleServiceUpdateNameArgs_Freezed {
-  _$_ExampleServiceUpdateNameArgs_Freezed({@required this.username})
-      : assert(username != null);
+    implements _GetUserArgs_Freezed {
+  _$_GetUserArgs_Freezed({@required this.userID}) : assert(userID != null);
 
-  factory _$_ExampleServiceUpdateNameArgs_Freezed.fromJson(
-          Map<String, dynamic> json) =>
-      _$_$_ExampleServiceUpdateNameArgs_FreezedFromJson(json);
+  factory _$_GetUserArgs_Freezed.fromJson(Map<String, dynamic> json) =>
+      _$_$_GetUserArgs_FreezedFromJson(json);
 
   @override
-  final String username;
+  final int userID;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return '_ExampleServiceUpdateNameArgs(username: $username)';
+    return '_GetUserArgs(userID: $userID)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', '_ExampleServiceUpdateNameArgs'))
+      ..add(DiagnosticsProperty('type', '_GetUserArgs'))
+      ..add(DiagnosticsProperty('userID', userID));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _GetUserArgs_Freezed &&
+            (identical(other.userID, userID) ||
+                const DeepCollectionEquality().equals(other.userID, userID)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(userID);
+
+  @override
+  _$GetUserArgs_FreezedCopyWith<_GetUserArgs_Freezed> get copyWith =>
+      __$GetUserArgs_FreezedCopyWithImpl<_GetUserArgs_Freezed>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$_$_GetUserArgs_FreezedToJson(this);
+  }
+}
+
+abstract class _GetUserArgs_Freezed implements _GetUserArgs {
+  factory _GetUserArgs_Freezed({@required int userID}) = _$_GetUserArgs_Freezed;
+
+  factory _GetUserArgs_Freezed.fromJson(Map<String, dynamic> json) =
+      _$_GetUserArgs_Freezed.fromJson;
+
+  @override
+  int get userID;
+  @override
+  _$GetUserArgs_FreezedCopyWith<_GetUserArgs_Freezed> get copyWith;
+}
+
+_UpdateNameArgs _$_UpdateNameArgsFromJson(Map<String, dynamic> json) {
+  return _UpdateNameArgs_Freezed.fromJson(json);
+}
+
+class _$_UpdateNameArgsTearOff {
+  const _$_UpdateNameArgsTearOff();
+
+  _UpdateNameArgs_Freezed call({@required int id, @required String username}) {
+    return _UpdateNameArgs_Freezed(
+      id: id,
+      username: username,
+    );
+  }
+}
+
+// ignore: unused_element
+const _$UpdateNameArgs = _$_UpdateNameArgsTearOff();
+
+mixin _$_UpdateNameArgs {
+  int get id;
+  String get username;
+
+  Map<String, dynamic> toJson();
+  _$UpdateNameArgsCopyWith<_UpdateNameArgs> get copyWith;
+}
+
+abstract class _$UpdateNameArgsCopyWith<$Res> {
+  factory _$UpdateNameArgsCopyWith(
+          _UpdateNameArgs value, $Res Function(_UpdateNameArgs) then) =
+      __$UpdateNameArgsCopyWithImpl<$Res>;
+  $Res call({int id, String username});
+}
+
+class __$UpdateNameArgsCopyWithImpl<$Res>
+    implements _$UpdateNameArgsCopyWith<$Res> {
+  __$UpdateNameArgsCopyWithImpl(this._value, this._then);
+
+  final _UpdateNameArgs _value;
+  // ignore: unused_field
+  final $Res Function(_UpdateNameArgs) _then;
+
+  @override
+  $Res call({
+    Object id = freezed,
+    Object username = freezed,
+  }) {
+    return _then(_value.copyWith(
+      id: id == freezed ? _value.id : id as int,
+      username: username == freezed ? _value.username : username as String,
+    ));
+  }
+}
+
+abstract class _$UpdateNameArgs_FreezedCopyWith<$Res>
+    implements _$UpdateNameArgsCopyWith<$Res> {
+  factory _$UpdateNameArgs_FreezedCopyWith(_UpdateNameArgs_Freezed value,
+          $Res Function(_UpdateNameArgs_Freezed) then) =
+      __$UpdateNameArgs_FreezedCopyWithImpl<$Res>;
+  @override
+  $Res call({int id, String username});
+}
+
+class __$UpdateNameArgs_FreezedCopyWithImpl<$Res>
+    extends __$UpdateNameArgsCopyWithImpl<$Res>
+    implements _$UpdateNameArgs_FreezedCopyWith<$Res> {
+  __$UpdateNameArgs_FreezedCopyWithImpl(_UpdateNameArgs_Freezed _value,
+      $Res Function(_UpdateNameArgs_Freezed) _then)
+      : super(_value, (v) => _then(v as _UpdateNameArgs_Freezed));
+
+  @override
+  _UpdateNameArgs_Freezed get _value => super._value as _UpdateNameArgs_Freezed;
+
+  @override
+  $Res call({
+    Object id = freezed,
+    Object username = freezed,
+  }) {
+    return _then(_UpdateNameArgs_Freezed(
+      id: id == freezed ? _value.id : id as int,
+      username: username == freezed ? _value.username : username as String,
+    ));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class _$_UpdateNameArgs_Freezed
+    with DiagnosticableTreeMixin
+    implements _UpdateNameArgs_Freezed {
+  _$_UpdateNameArgs_Freezed({@required this.id, @required this.username})
+      : assert(id != null),
+        assert(username != null);
+
+  factory _$_UpdateNameArgs_Freezed.fromJson(Map<String, dynamic> json) =>
+      _$_$_UpdateNameArgs_FreezedFromJson(json);
+
+  @override
+  final int id;
+  @override
+  final String username;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return '_UpdateNameArgs(id: $id, username: $username)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', '_UpdateNameArgs'))
+      ..add(DiagnosticsProperty('id', id))
       ..add(DiagnosticsProperty('username', username));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _ExampleServiceUpdateNameArgs_Freezed &&
+        (other is _UpdateNameArgs_Freezed &&
+            (identical(other.id, id) ||
+                const DeepCollectionEquality().equals(other.id, id)) &&
             (identical(other.username, username) ||
                 const DeepCollectionEquality()
                     .equals(other.username, username)));
@@ -1314,247 +1456,77 @@ class _$_ExampleServiceUpdateNameArgs_Freezed
 
   @override
   int get hashCode =>
-      runtimeType.hashCode ^ const DeepCollectionEquality().hash(username);
+      runtimeType.hashCode ^
+      const DeepCollectionEquality().hash(id) ^
+      const DeepCollectionEquality().hash(username);
 
   @override
-  _$ExampleServiceUpdateNameArgs_FreezedCopyWith<
-          _ExampleServiceUpdateNameArgs_Freezed>
-      get copyWith => __$ExampleServiceUpdateNameArgs_FreezedCopyWithImpl<
-          _ExampleServiceUpdateNameArgs_Freezed>(this, _$identity);
+  _$UpdateNameArgs_FreezedCopyWith<_UpdateNameArgs_Freezed> get copyWith =>
+      __$UpdateNameArgs_FreezedCopyWithImpl<_UpdateNameArgs_Freezed>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_ExampleServiceUpdateNameArgs_FreezedToJson(this);
+    return _$_$_UpdateNameArgs_FreezedToJson(this);
   }
 }
 
-abstract class _ExampleServiceUpdateNameArgs_Freezed
-    implements _ExampleServiceUpdateNameArgs {
-  factory _ExampleServiceUpdateNameArgs_Freezed({@required String username}) =
-      _$_ExampleServiceUpdateNameArgs_Freezed;
+abstract class _UpdateNameArgs_Freezed implements _UpdateNameArgs {
+  factory _UpdateNameArgs_Freezed(
+      {@required int id,
+      @required String username}) = _$_UpdateNameArgs_Freezed;
 
-  factory _ExampleServiceUpdateNameArgs_Freezed.fromJson(
-          Map<String, dynamic> json) =
-      _$_ExampleServiceUpdateNameArgs_Freezed.fromJson;
+  factory _UpdateNameArgs_Freezed.fromJson(Map<String, dynamic> json) =
+      _$_UpdateNameArgs_Freezed.fromJson;
 
+  @override
+  int get id;
   @override
   String get username;
   @override
-  _$ExampleServiceUpdateNameArgs_FreezedCopyWith<
-      _ExampleServiceUpdateNameArgs_Freezed> get copyWith;
+  _$UpdateNameArgs_FreezedCopyWith<_UpdateNameArgs_Freezed> get copyWith;
 }
 
-_ExampleServiceGetUserArgs _$_ExampleServiceGetUserArgsFromJson(
-    Map<String, dynamic> json) {
-  return _ExampleServiceGetUserArgs_Freezed.fromJson(json);
+_FindUserByIdArgs _$_FindUserByIdArgsFromJson(Map<String, dynamic> json) {
+  return _FindUserByIdArgs_Freezed.fromJson(json);
 }
 
-class _$_ExampleServiceGetUserArgsTearOff {
-  const _$_ExampleServiceGetUserArgsTearOff();
+class _$_FindUserByIdArgsTearOff {
+  const _$_FindUserByIdArgsTearOff();
 
-  _ExampleServiceGetUserArgs_Freezed call(
-      {@required Map<String, String> header, @required int userID}) {
-    return _ExampleServiceGetUserArgs_Freezed(
-      header: header,
-      userID: userID,
-    );
-  }
-}
-
-// ignore: unused_element
-const _$ExampleServiceGetUserArgs = _$_ExampleServiceGetUserArgsTearOff();
-
-mixin _$_ExampleServiceGetUserArgs {
-  Map<String, String> get header;
-  int get userID;
-
-  Map<String, dynamic> toJson();
-  _$ExampleServiceGetUserArgsCopyWith<_ExampleServiceGetUserArgs> get copyWith;
-}
-
-abstract class _$ExampleServiceGetUserArgsCopyWith<$Res> {
-  factory _$ExampleServiceGetUserArgsCopyWith(_ExampleServiceGetUserArgs value,
-          $Res Function(_ExampleServiceGetUserArgs) then) =
-      __$ExampleServiceGetUserArgsCopyWithImpl<$Res>;
-  $Res call({Map<String, String> header, int userID});
-}
-
-class __$ExampleServiceGetUserArgsCopyWithImpl<$Res>
-    implements _$ExampleServiceGetUserArgsCopyWith<$Res> {
-  __$ExampleServiceGetUserArgsCopyWithImpl(this._value, this._then);
-
-  final _ExampleServiceGetUserArgs _value;
-  // ignore: unused_field
-  final $Res Function(_ExampleServiceGetUserArgs) _then;
-
-  @override
-  $Res call({
-    Object header = freezed,
-    Object userID = freezed,
-  }) {
-    return _then(_value.copyWith(
-      header: header == freezed ? _value.header : header as Map<String, String>,
-      userID: userID == freezed ? _value.userID : userID as int,
-    ));
-  }
-}
-
-abstract class _$ExampleServiceGetUserArgs_FreezedCopyWith<$Res>
-    implements _$ExampleServiceGetUserArgsCopyWith<$Res> {
-  factory _$ExampleServiceGetUserArgs_FreezedCopyWith(
-          _ExampleServiceGetUserArgs_Freezed value,
-          $Res Function(_ExampleServiceGetUserArgs_Freezed) then) =
-      __$ExampleServiceGetUserArgs_FreezedCopyWithImpl<$Res>;
-  @override
-  $Res call({Map<String, String> header, int userID});
-}
-
-class __$ExampleServiceGetUserArgs_FreezedCopyWithImpl<$Res>
-    extends __$ExampleServiceGetUserArgsCopyWithImpl<$Res>
-    implements _$ExampleServiceGetUserArgs_FreezedCopyWith<$Res> {
-  __$ExampleServiceGetUserArgs_FreezedCopyWithImpl(
-      _ExampleServiceGetUserArgs_Freezed _value,
-      $Res Function(_ExampleServiceGetUserArgs_Freezed) _then)
-      : super(_value, (v) => _then(v as _ExampleServiceGetUserArgs_Freezed));
-
-  @override
-  _ExampleServiceGetUserArgs_Freezed get _value =>
-      super._value as _ExampleServiceGetUserArgs_Freezed;
-
-  @override
-  $Res call({
-    Object header = freezed,
-    Object userID = freezed,
-  }) {
-    return _then(_ExampleServiceGetUserArgs_Freezed(
-      header: header == freezed ? _value.header : header as Map<String, String>,
-      userID: userID == freezed ? _value.userID : userID as int,
-    ));
-  }
-}
-
-@JsonSerializable(explicitToJson: true)
-class _$_ExampleServiceGetUserArgs_Freezed
-    with DiagnosticableTreeMixin
-    implements _ExampleServiceGetUserArgs_Freezed {
-  _$_ExampleServiceGetUserArgs_Freezed(
-      {@required this.header, @required this.userID})
-      : assert(header != null),
-        assert(userID != null);
-
-  factory _$_ExampleServiceGetUserArgs_Freezed.fromJson(
-          Map<String, dynamic> json) =>
-      _$_$_ExampleServiceGetUserArgs_FreezedFromJson(json);
-
-  @override
-  final Map<String, String> header;
-  @override
-  final int userID;
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return '_ExampleServiceGetUserArgs(header: $header, userID: $userID)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', '_ExampleServiceGetUserArgs'))
-      ..add(DiagnosticsProperty('header', header))
-      ..add(DiagnosticsProperty('userID', userID));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is _ExampleServiceGetUserArgs_Freezed &&
-            (identical(other.header, header) ||
-                const DeepCollectionEquality().equals(other.header, header)) &&
-            (identical(other.userID, userID) ||
-                const DeepCollectionEquality().equals(other.userID, userID)));
-  }
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(header) ^
-      const DeepCollectionEquality().hash(userID);
-
-  @override
-  _$ExampleServiceGetUserArgs_FreezedCopyWith<
-          _ExampleServiceGetUserArgs_Freezed>
-      get copyWith => __$ExampleServiceGetUserArgs_FreezedCopyWithImpl<
-          _ExampleServiceGetUserArgs_Freezed>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_ExampleServiceGetUserArgs_FreezedToJson(this);
-  }
-}
-
-abstract class _ExampleServiceGetUserArgs_Freezed
-    implements _ExampleServiceGetUserArgs {
-  factory _ExampleServiceGetUserArgs_Freezed(
-      {@required Map<String, String> header,
-      @required int userID}) = _$_ExampleServiceGetUserArgs_Freezed;
-
-  factory _ExampleServiceGetUserArgs_Freezed.fromJson(
-          Map<String, dynamic> json) =
-      _$_ExampleServiceGetUserArgs_Freezed.fromJson;
-
-  @override
-  Map<String, String> get header;
-  @override
-  int get userID;
-  @override
-  _$ExampleServiceGetUserArgs_FreezedCopyWith<
-      _ExampleServiceGetUserArgs_Freezed> get copyWith;
-}
-
-_ExampleServiceFindUserArgs _$_ExampleServiceFindUserArgsFromJson(
-    Map<String, dynamic> json) {
-  return _ExampleServiceFindUserArgs_Freezed.fromJson(json);
-}
-
-class _$_ExampleServiceFindUserArgsTearOff {
-  const _$_ExampleServiceFindUserArgsTearOff();
-
-  _ExampleServiceFindUserArgs_Freezed call({@required SearchFilter s}) {
-    return _ExampleServiceFindUserArgs_Freezed(
+  _FindUserByIdArgs_Freezed call({@required SearchFilter s}) {
+    return _FindUserByIdArgs_Freezed(
       s: s,
     );
   }
 }
 
 // ignore: unused_element
-const _$ExampleServiceFindUserArgs = _$_ExampleServiceFindUserArgsTearOff();
+const _$FindUserByIdArgs = _$_FindUserByIdArgsTearOff();
 
-mixin _$_ExampleServiceFindUserArgs {
+mixin _$_FindUserByIdArgs {
   SearchFilter get s;
 
   Map<String, dynamic> toJson();
-  _$ExampleServiceFindUserArgsCopyWith<_ExampleServiceFindUserArgs>
-      get copyWith;
+  _$FindUserByIdArgsCopyWith<_FindUserByIdArgs> get copyWith;
 }
 
-abstract class _$ExampleServiceFindUserArgsCopyWith<$Res> {
-  factory _$ExampleServiceFindUserArgsCopyWith(
-          _ExampleServiceFindUserArgs value,
-          $Res Function(_ExampleServiceFindUserArgs) then) =
-      __$ExampleServiceFindUserArgsCopyWithImpl<$Res>;
+abstract class _$FindUserByIdArgsCopyWith<$Res> {
+  factory _$FindUserByIdArgsCopyWith(
+          _FindUserByIdArgs value, $Res Function(_FindUserByIdArgs) then) =
+      __$FindUserByIdArgsCopyWithImpl<$Res>;
   $Res call({SearchFilter s});
 
   $SearchFilterCopyWith<$Res> get s;
 }
 
-class __$ExampleServiceFindUserArgsCopyWithImpl<$Res>
-    implements _$ExampleServiceFindUserArgsCopyWith<$Res> {
-  __$ExampleServiceFindUserArgsCopyWithImpl(this._value, this._then);
+class __$FindUserByIdArgsCopyWithImpl<$Res>
+    implements _$FindUserByIdArgsCopyWith<$Res> {
+  __$FindUserByIdArgsCopyWithImpl(this._value, this._then);
 
-  final _ExampleServiceFindUserArgs _value;
+  final _FindUserByIdArgs _value;
   // ignore: unused_field
-  final $Res Function(_ExampleServiceFindUserArgs) _then;
+  final $Res Function(_FindUserByIdArgs) _then;
 
   @override
   $Res call({
@@ -1576,12 +1548,11 @@ class __$ExampleServiceFindUserArgsCopyWithImpl<$Res>
   }
 }
 
-abstract class _$ExampleServiceFindUserArgs_FreezedCopyWith<$Res>
-    implements _$ExampleServiceFindUserArgsCopyWith<$Res> {
-  factory _$ExampleServiceFindUserArgs_FreezedCopyWith(
-          _ExampleServiceFindUserArgs_Freezed value,
-          $Res Function(_ExampleServiceFindUserArgs_Freezed) then) =
-      __$ExampleServiceFindUserArgs_FreezedCopyWithImpl<$Res>;
+abstract class _$FindUserByIdArgs_FreezedCopyWith<$Res>
+    implements _$FindUserByIdArgsCopyWith<$Res> {
+  factory _$FindUserByIdArgs_FreezedCopyWith(_FindUserByIdArgs_Freezed value,
+          $Res Function(_FindUserByIdArgs_Freezed) then) =
+      __$FindUserByIdArgs_FreezedCopyWithImpl<$Res>;
   @override
   $Res call({SearchFilter s});
 
@@ -1589,58 +1560,56 @@ abstract class _$ExampleServiceFindUserArgs_FreezedCopyWith<$Res>
   $SearchFilterCopyWith<$Res> get s;
 }
 
-class __$ExampleServiceFindUserArgs_FreezedCopyWithImpl<$Res>
-    extends __$ExampleServiceFindUserArgsCopyWithImpl<$Res>
-    implements _$ExampleServiceFindUserArgs_FreezedCopyWith<$Res> {
-  __$ExampleServiceFindUserArgs_FreezedCopyWithImpl(
-      _ExampleServiceFindUserArgs_Freezed _value,
-      $Res Function(_ExampleServiceFindUserArgs_Freezed) _then)
-      : super(_value, (v) => _then(v as _ExampleServiceFindUserArgs_Freezed));
+class __$FindUserByIdArgs_FreezedCopyWithImpl<$Res>
+    extends __$FindUserByIdArgsCopyWithImpl<$Res>
+    implements _$FindUserByIdArgs_FreezedCopyWith<$Res> {
+  __$FindUserByIdArgs_FreezedCopyWithImpl(_FindUserByIdArgs_Freezed _value,
+      $Res Function(_FindUserByIdArgs_Freezed) _then)
+      : super(_value, (v) => _then(v as _FindUserByIdArgs_Freezed));
 
   @override
-  _ExampleServiceFindUserArgs_Freezed get _value =>
-      super._value as _ExampleServiceFindUserArgs_Freezed;
+  _FindUserByIdArgs_Freezed get _value =>
+      super._value as _FindUserByIdArgs_Freezed;
 
   @override
   $Res call({
     Object s = freezed,
   }) {
-    return _then(_ExampleServiceFindUserArgs_Freezed(
+    return _then(_FindUserByIdArgs_Freezed(
       s: s == freezed ? _value.s : s as SearchFilter,
     ));
   }
 }
 
 @JsonSerializable(explicitToJson: true)
-class _$_ExampleServiceFindUserArgs_Freezed
+class _$_FindUserByIdArgs_Freezed
     with DiagnosticableTreeMixin
-    implements _ExampleServiceFindUserArgs_Freezed {
-  _$_ExampleServiceFindUserArgs_Freezed({@required this.s}) : assert(s != null);
+    implements _FindUserByIdArgs_Freezed {
+  _$_FindUserByIdArgs_Freezed({@required this.s}) : assert(s != null);
 
-  factory _$_ExampleServiceFindUserArgs_Freezed.fromJson(
-          Map<String, dynamic> json) =>
-      _$_$_ExampleServiceFindUserArgs_FreezedFromJson(json);
+  factory _$_FindUserByIdArgs_Freezed.fromJson(Map<String, dynamic> json) =>
+      _$_$_FindUserByIdArgs_FreezedFromJson(json);
 
   @override
   final SearchFilter s;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return '_ExampleServiceFindUserArgs(s: $s)';
+    return '_FindUserByIdArgs(s: $s)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', '_ExampleServiceFindUserArgs'))
+      ..add(DiagnosticsProperty('type', '_FindUserByIdArgs'))
       ..add(DiagnosticsProperty('s', s));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _ExampleServiceFindUserArgs_Freezed &&
+        (other is _FindUserByIdArgs_Freezed &&
             (identical(other.s, s) ||
                 const DeepCollectionEquality().equals(other.s, s)));
   }
@@ -1650,31 +1619,318 @@ class _$_ExampleServiceFindUserArgs_Freezed
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(s);
 
   @override
-  _$ExampleServiceFindUserArgs_FreezedCopyWith<
-          _ExampleServiceFindUserArgs_Freezed>
-      get copyWith => __$ExampleServiceFindUserArgs_FreezedCopyWithImpl<
-          _ExampleServiceFindUserArgs_Freezed>(this, _$identity);
+  _$FindUserByIdArgs_FreezedCopyWith<_FindUserByIdArgs_Freezed> get copyWith =>
+      __$FindUserByIdArgs_FreezedCopyWithImpl<_FindUserByIdArgs_Freezed>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_ExampleServiceFindUserArgs_FreezedToJson(this);
+    return _$_$_FindUserByIdArgs_FreezedToJson(this);
   }
 }
 
-abstract class _ExampleServiceFindUserArgs_Freezed
-    implements _ExampleServiceFindUserArgs {
-  factory _ExampleServiceFindUserArgs_Freezed({@required SearchFilter s}) =
-      _$_ExampleServiceFindUserArgs_Freezed;
+abstract class _FindUserByIdArgs_Freezed implements _FindUserByIdArgs {
+  factory _FindUserByIdArgs_Freezed({@required SearchFilter s}) =
+      _$_FindUserByIdArgs_Freezed;
 
-  factory _ExampleServiceFindUserArgs_Freezed.fromJson(
-          Map<String, dynamic> json) =
-      _$_ExampleServiceFindUserArgs_Freezed.fromJson;
+  factory _FindUserByIdArgs_Freezed.fromJson(Map<String, dynamic> json) =
+      _$_FindUserByIdArgs_Freezed.fromJson;
 
   @override
   SearchFilter get s;
   @override
-  _$ExampleServiceFindUserArgs_FreezedCopyWith<
-      _ExampleServiceFindUserArgs_Freezed> get copyWith;
+  _$FindUserByIdArgs_FreezedCopyWith<_FindUserByIdArgs_Freezed> get copyWith;
+}
+
+_AddUserArgs _$_AddUserArgsFromJson(Map<String, dynamic> json) {
+  return _AddUserArgs_Freezed.fromJson(json);
+}
+
+class _$_AddUserArgsTearOff {
+  const _$_AddUserArgsTearOff();
+
+  _AddUserArgs_Freezed call({@required User user}) {
+    return _AddUserArgs_Freezed(
+      user: user,
+    );
+  }
+}
+
+// ignore: unused_element
+const _$AddUserArgs = _$_AddUserArgsTearOff();
+
+mixin _$_AddUserArgs {
+  User get user;
+
+  Map<String, dynamic> toJson();
+  _$AddUserArgsCopyWith<_AddUserArgs> get copyWith;
+}
+
+abstract class _$AddUserArgsCopyWith<$Res> {
+  factory _$AddUserArgsCopyWith(
+          _AddUserArgs value, $Res Function(_AddUserArgs) then) =
+      __$AddUserArgsCopyWithImpl<$Res>;
+  $Res call({User user});
+
+  $UserCopyWith<$Res> get user;
+}
+
+class __$AddUserArgsCopyWithImpl<$Res> implements _$AddUserArgsCopyWith<$Res> {
+  __$AddUserArgsCopyWithImpl(this._value, this._then);
+
+  final _AddUserArgs _value;
+  // ignore: unused_field
+  final $Res Function(_AddUserArgs) _then;
+
+  @override
+  $Res call({
+    Object user = freezed,
+  }) {
+    return _then(_value.copyWith(
+      user: user == freezed ? _value.user : user as User,
+    ));
+  }
+
+  @override
+  $UserCopyWith<$Res> get user {
+    if (_value.user == null) {
+      return null;
+    }
+    return $UserCopyWith<$Res>(_value.user, (value) {
+      return _then(_value.copyWith(user: value));
+    });
+  }
+}
+
+abstract class _$AddUserArgs_FreezedCopyWith<$Res>
+    implements _$AddUserArgsCopyWith<$Res> {
+  factory _$AddUserArgs_FreezedCopyWith(_AddUserArgs_Freezed value,
+          $Res Function(_AddUserArgs_Freezed) then) =
+      __$AddUserArgs_FreezedCopyWithImpl<$Res>;
+  @override
+  $Res call({User user});
+
+  @override
+  $UserCopyWith<$Res> get user;
+}
+
+class __$AddUserArgs_FreezedCopyWithImpl<$Res>
+    extends __$AddUserArgsCopyWithImpl<$Res>
+    implements _$AddUserArgs_FreezedCopyWith<$Res> {
+  __$AddUserArgs_FreezedCopyWithImpl(
+      _AddUserArgs_Freezed _value, $Res Function(_AddUserArgs_Freezed) _then)
+      : super(_value, (v) => _then(v as _AddUserArgs_Freezed));
+
+  @override
+  _AddUserArgs_Freezed get _value => super._value as _AddUserArgs_Freezed;
+
+  @override
+  $Res call({
+    Object user = freezed,
+  }) {
+    return _then(_AddUserArgs_Freezed(
+      user: user == freezed ? _value.user : user as User,
+    ));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class _$_AddUserArgs_Freezed
+    with DiagnosticableTreeMixin
+    implements _AddUserArgs_Freezed {
+  _$_AddUserArgs_Freezed({@required this.user}) : assert(user != null);
+
+  factory _$_AddUserArgs_Freezed.fromJson(Map<String, dynamic> json) =>
+      _$_$_AddUserArgs_FreezedFromJson(json);
+
+  @override
+  final User user;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return '_AddUserArgs(user: $user)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', '_AddUserArgs'))
+      ..add(DiagnosticsProperty('user', user));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _AddUserArgs_Freezed &&
+            (identical(other.user, user) ||
+                const DeepCollectionEquality().equals(other.user, user)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(user);
+
+  @override
+  _$AddUserArgs_FreezedCopyWith<_AddUserArgs_Freezed> get copyWith =>
+      __$AddUserArgs_FreezedCopyWithImpl<_AddUserArgs_Freezed>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$_$_AddUserArgs_FreezedToJson(this);
+  }
+}
+
+abstract class _AddUserArgs_Freezed implements _AddUserArgs {
+  factory _AddUserArgs_Freezed({@required User user}) = _$_AddUserArgs_Freezed;
+
+  factory _AddUserArgs_Freezed.fromJson(Map<String, dynamic> json) =
+      _$_AddUserArgs_Freezed.fromJson;
+
+  @override
+  User get user;
+  @override
+  _$AddUserArgs_FreezedCopyWith<_AddUserArgs_Freezed> get copyWith;
+}
+
+_DeleteUserArgs _$_DeleteUserArgsFromJson(Map<String, dynamic> json) {
+  return _DeleteUserArgs_Freezed.fromJson(json);
+}
+
+class _$_DeleteUserArgsTearOff {
+  const _$_DeleteUserArgsTearOff();
+
+  _DeleteUserArgs_Freezed call({@required int id}) {
+    return _DeleteUserArgs_Freezed(
+      id: id,
+    );
+  }
+}
+
+// ignore: unused_element
+const _$DeleteUserArgs = _$_DeleteUserArgsTearOff();
+
+mixin _$_DeleteUserArgs {
+  int get id;
+
+  Map<String, dynamic> toJson();
+  _$DeleteUserArgsCopyWith<_DeleteUserArgs> get copyWith;
+}
+
+abstract class _$DeleteUserArgsCopyWith<$Res> {
+  factory _$DeleteUserArgsCopyWith(
+          _DeleteUserArgs value, $Res Function(_DeleteUserArgs) then) =
+      __$DeleteUserArgsCopyWithImpl<$Res>;
+  $Res call({int id});
+}
+
+class __$DeleteUserArgsCopyWithImpl<$Res>
+    implements _$DeleteUserArgsCopyWith<$Res> {
+  __$DeleteUserArgsCopyWithImpl(this._value, this._then);
+
+  final _DeleteUserArgs _value;
+  // ignore: unused_field
+  final $Res Function(_DeleteUserArgs) _then;
+
+  @override
+  $Res call({
+    Object id = freezed,
+  }) {
+    return _then(_value.copyWith(
+      id: id == freezed ? _value.id : id as int,
+    ));
+  }
+}
+
+abstract class _$DeleteUserArgs_FreezedCopyWith<$Res>
+    implements _$DeleteUserArgsCopyWith<$Res> {
+  factory _$DeleteUserArgs_FreezedCopyWith(_DeleteUserArgs_Freezed value,
+          $Res Function(_DeleteUserArgs_Freezed) then) =
+      __$DeleteUserArgs_FreezedCopyWithImpl<$Res>;
+  @override
+  $Res call({int id});
+}
+
+class __$DeleteUserArgs_FreezedCopyWithImpl<$Res>
+    extends __$DeleteUserArgsCopyWithImpl<$Res>
+    implements _$DeleteUserArgs_FreezedCopyWith<$Res> {
+  __$DeleteUserArgs_FreezedCopyWithImpl(_DeleteUserArgs_Freezed _value,
+      $Res Function(_DeleteUserArgs_Freezed) _then)
+      : super(_value, (v) => _then(v as _DeleteUserArgs_Freezed));
+
+  @override
+  _DeleteUserArgs_Freezed get _value => super._value as _DeleteUserArgs_Freezed;
+
+  @override
+  $Res call({
+    Object id = freezed,
+  }) {
+    return _then(_DeleteUserArgs_Freezed(
+      id: id == freezed ? _value.id : id as int,
+    ));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class _$_DeleteUserArgs_Freezed
+    with DiagnosticableTreeMixin
+    implements _DeleteUserArgs_Freezed {
+  _$_DeleteUserArgs_Freezed({@required this.id}) : assert(id != null);
+
+  factory _$_DeleteUserArgs_Freezed.fromJson(Map<String, dynamic> json) =>
+      _$_$_DeleteUserArgs_FreezedFromJson(json);
+
+  @override
+  final int id;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return '_DeleteUserArgs(id: $id)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', '_DeleteUserArgs'))
+      ..add(DiagnosticsProperty('id', id));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _DeleteUserArgs_Freezed &&
+            (identical(other.id, id) ||
+                const DeepCollectionEquality().equals(other.id, id)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(id);
+
+  @override
+  _$DeleteUserArgs_FreezedCopyWith<_DeleteUserArgs_Freezed> get copyWith =>
+      __$DeleteUserArgs_FreezedCopyWithImpl<_DeleteUserArgs_Freezed>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$_$_DeleteUserArgs_FreezedToJson(this);
+  }
+}
+
+abstract class _DeleteUserArgs_Freezed implements _DeleteUserArgs {
+  factory _DeleteUserArgs_Freezed({@required int id}) =
+      _$_DeleteUserArgs_Freezed;
+
+  factory _DeleteUserArgs_Freezed.fromJson(Map<String, dynamic> json) =
+      _$_DeleteUserArgs_Freezed.fromJson;
+
+  @override
+  int get id;
+  @override
+  _$DeleteUserArgs_FreezedCopyWith<_DeleteUserArgs_Freezed> get copyWith;
 }
 
 StatusResult _$StatusResultFromJson(Map<String, dynamic> json) {
@@ -1967,9 +2223,8 @@ GetUserResult _$GetUserResultFromJson(Map<String, dynamic> json) {
 class _$GetUserResultTearOff {
   const _$GetUserResultTearOff();
 
-  _GetUserResult call({@required int code, @required User user}) {
+  _GetUserResult call({@required User user}) {
     return _GetUserResult(
-      code: code,
       user: user,
     );
   }
@@ -1979,7 +2234,6 @@ class _$GetUserResultTearOff {
 const $GetUserResult = _$GetUserResultTearOff();
 
 mixin _$GetUserResult {
-  int get code;
   User get user;
 
   Map<String, dynamic> toJson();
@@ -1990,7 +2244,7 @@ abstract class $GetUserResultCopyWith<$Res> {
   factory $GetUserResultCopyWith(
           GetUserResult value, $Res Function(GetUserResult) then) =
       _$GetUserResultCopyWithImpl<$Res>;
-  $Res call({int code, User user});
+  $Res call({User user});
 
   $UserCopyWith<$Res> get user;
 }
@@ -2005,11 +2259,9 @@ class _$GetUserResultCopyWithImpl<$Res>
 
   @override
   $Res call({
-    Object code = freezed,
     Object user = freezed,
   }) {
     return _then(_value.copyWith(
-      code: code == freezed ? _value.code : code as int,
       user: user == freezed ? _value.user : user as User,
     ));
   }
@@ -2031,7 +2283,7 @@ abstract class _$GetUserResultCopyWith<$Res>
           _GetUserResult value, $Res Function(_GetUserResult) then) =
       __$GetUserResultCopyWithImpl<$Res>;
   @override
-  $Res call({int code, User user});
+  $Res call({User user});
 
   @override
   $UserCopyWith<$Res> get user;
@@ -2049,11 +2301,9 @@ class __$GetUserResultCopyWithImpl<$Res>
 
   @override
   $Res call({
-    Object code = freezed,
     Object user = freezed,
   }) {
     return _then(_GetUserResult(
-      code: code == freezed ? _value.code : code as int,
       user: user == freezed ? _value.user : user as User,
     ));
   }
@@ -2061,21 +2311,17 @@ class __$GetUserResultCopyWithImpl<$Res>
 
 @JsonSerializable(explicitToJson: true)
 class _$_GetUserResult with DiagnosticableTreeMixin implements _GetUserResult {
-  _$_GetUserResult({@required this.code, @required this.user})
-      : assert(code != null),
-        assert(user != null);
+  _$_GetUserResult({@required this.user}) : assert(user != null);
 
   factory _$_GetUserResult.fromJson(Map<String, dynamic> json) =>
       _$_$_GetUserResultFromJson(json);
 
   @override
-  final int code;
-  @override
   final User user;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetUserResult(code: $code, user: $user)';
+    return 'GetUserResult(user: $user)';
   }
 
   @override
@@ -2083,7 +2329,6 @@ class _$_GetUserResult with DiagnosticableTreeMixin implements _GetUserResult {
     super.debugFillProperties(properties);
     properties
       ..add(DiagnosticsProperty('type', 'GetUserResult'))
-      ..add(DiagnosticsProperty('code', code))
       ..add(DiagnosticsProperty('user', user));
   }
 
@@ -2091,17 +2336,13 @@ class _$_GetUserResult with DiagnosticableTreeMixin implements _GetUserResult {
   bool operator ==(dynamic other) {
     return identical(this, other) ||
         (other is _GetUserResult &&
-            (identical(other.code, code) ||
-                const DeepCollectionEquality().equals(other.code, code)) &&
             (identical(other.user, user) ||
                 const DeepCollectionEquality().equals(other.user, user)));
   }
 
   @override
   int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(code) ^
-      const DeepCollectionEquality().hash(user);
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(user);
 
   @override
   _$GetUserResultCopyWith<_GetUserResult> get copyWith =>
@@ -2114,29 +2355,166 @@ class _$_GetUserResult with DiagnosticableTreeMixin implements _GetUserResult {
 }
 
 abstract class _GetUserResult implements GetUserResult {
-  factory _GetUserResult({@required int code, @required User user}) =
-      _$_GetUserResult;
+  factory _GetUserResult({@required User user}) = _$_GetUserResult;
 
   factory _GetUserResult.fromJson(Map<String, dynamic> json) =
       _$_GetUserResult.fromJson;
 
-  @override
-  int get code;
   @override
   User get user;
   @override
   _$GetUserResultCopyWith<_GetUserResult> get copyWith;
 }
 
-FindUserResult _$FindUserResultFromJson(Map<String, dynamic> json) {
-  return _FindUserResult.fromJson(json);
+UpdateNameResult _$UpdateNameResultFromJson(Map<String, dynamic> json) {
+  return _UpdateNameResult.fromJson(json);
 }
 
-class _$FindUserResultTearOff {
-  const _$FindUserResultTearOff();
+class _$UpdateNameResultTearOff {
+  const _$UpdateNameResultTearOff();
 
-  _FindUserResult call({@required String name, @required User user}) {
-    return _FindUserResult(
+  _UpdateNameResult call({@required bool wasUpdated}) {
+    return _UpdateNameResult(
+      wasUpdated: wasUpdated,
+    );
+  }
+}
+
+// ignore: unused_element
+const $UpdateNameResult = _$UpdateNameResultTearOff();
+
+mixin _$UpdateNameResult {
+  bool get wasUpdated;
+
+  Map<String, dynamic> toJson();
+  $UpdateNameResultCopyWith<UpdateNameResult> get copyWith;
+}
+
+abstract class $UpdateNameResultCopyWith<$Res> {
+  factory $UpdateNameResultCopyWith(
+          UpdateNameResult value, $Res Function(UpdateNameResult) then) =
+      _$UpdateNameResultCopyWithImpl<$Res>;
+  $Res call({bool wasUpdated});
+}
+
+class _$UpdateNameResultCopyWithImpl<$Res>
+    implements $UpdateNameResultCopyWith<$Res> {
+  _$UpdateNameResultCopyWithImpl(this._value, this._then);
+
+  final UpdateNameResult _value;
+  // ignore: unused_field
+  final $Res Function(UpdateNameResult) _then;
+
+  @override
+  $Res call({
+    Object wasUpdated = freezed,
+  }) {
+    return _then(_value.copyWith(
+      wasUpdated:
+          wasUpdated == freezed ? _value.wasUpdated : wasUpdated as bool,
+    ));
+  }
+}
+
+abstract class _$UpdateNameResultCopyWith<$Res>
+    implements $UpdateNameResultCopyWith<$Res> {
+  factory _$UpdateNameResultCopyWith(
+          _UpdateNameResult value, $Res Function(_UpdateNameResult) then) =
+      __$UpdateNameResultCopyWithImpl<$Res>;
+  @override
+  $Res call({bool wasUpdated});
+}
+
+class __$UpdateNameResultCopyWithImpl<$Res>
+    extends _$UpdateNameResultCopyWithImpl<$Res>
+    implements _$UpdateNameResultCopyWith<$Res> {
+  __$UpdateNameResultCopyWithImpl(
+      _UpdateNameResult _value, $Res Function(_UpdateNameResult) _then)
+      : super(_value, (v) => _then(v as _UpdateNameResult));
+
+  @override
+  _UpdateNameResult get _value => super._value as _UpdateNameResult;
+
+  @override
+  $Res call({
+    Object wasUpdated = freezed,
+  }) {
+    return _then(_UpdateNameResult(
+      wasUpdated:
+          wasUpdated == freezed ? _value.wasUpdated : wasUpdated as bool,
+    ));
+  }
+}
+
+@JsonSerializable(explicitToJson: true)
+class _$_UpdateNameResult
+    with DiagnosticableTreeMixin
+    implements _UpdateNameResult {
+  _$_UpdateNameResult({@required this.wasUpdated}) : assert(wasUpdated != null);
+
+  factory _$_UpdateNameResult.fromJson(Map<String, dynamic> json) =>
+      _$_$_UpdateNameResultFromJson(json);
+
+  @override
+  final bool wasUpdated;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'UpdateNameResult(wasUpdated: $wasUpdated)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'UpdateNameResult'))
+      ..add(DiagnosticsProperty('wasUpdated', wasUpdated));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _UpdateNameResult &&
+            (identical(other.wasUpdated, wasUpdated) ||
+                const DeepCollectionEquality()
+                    .equals(other.wasUpdated, wasUpdated)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(wasUpdated);
+
+  @override
+  _$UpdateNameResultCopyWith<_UpdateNameResult> get copyWith =>
+      __$UpdateNameResultCopyWithImpl<_UpdateNameResult>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$_$_UpdateNameResultToJson(this);
+  }
+}
+
+abstract class _UpdateNameResult implements UpdateNameResult {
+  factory _UpdateNameResult({@required bool wasUpdated}) = _$_UpdateNameResult;
+
+  factory _UpdateNameResult.fromJson(Map<String, dynamic> json) =
+      _$_UpdateNameResult.fromJson;
+
+  @override
+  bool get wasUpdated;
+  @override
+  _$UpdateNameResultCopyWith<_UpdateNameResult> get copyWith;
+}
+
+FindUserByIdResult _$FindUserByIdResultFromJson(Map<String, dynamic> json) {
+  return _FindUserByIdResult.fromJson(json);
+}
+
+class _$FindUserByIdResultTearOff {
+  const _$FindUserByIdResultTearOff();
+
+  _FindUserByIdResult call({@required String name, @required User user}) {
+    return _FindUserByIdResult(
       name: name,
       user: user,
     );
@@ -2144,32 +2522,32 @@ class _$FindUserResultTearOff {
 }
 
 // ignore: unused_element
-const $FindUserResult = _$FindUserResultTearOff();
+const $FindUserByIdResult = _$FindUserByIdResultTearOff();
 
-mixin _$FindUserResult {
+mixin _$FindUserByIdResult {
   String get name;
   User get user;
 
   Map<String, dynamic> toJson();
-  $FindUserResultCopyWith<FindUserResult> get copyWith;
+  $FindUserByIdResultCopyWith<FindUserByIdResult> get copyWith;
 }
 
-abstract class $FindUserResultCopyWith<$Res> {
-  factory $FindUserResultCopyWith(
-          FindUserResult value, $Res Function(FindUserResult) then) =
-      _$FindUserResultCopyWithImpl<$Res>;
+abstract class $FindUserByIdResultCopyWith<$Res> {
+  factory $FindUserByIdResultCopyWith(
+          FindUserByIdResult value, $Res Function(FindUserByIdResult) then) =
+      _$FindUserByIdResultCopyWithImpl<$Res>;
   $Res call({String name, User user});
 
   $UserCopyWith<$Res> get user;
 }
 
-class _$FindUserResultCopyWithImpl<$Res>
-    implements $FindUserResultCopyWith<$Res> {
-  _$FindUserResultCopyWithImpl(this._value, this._then);
+class _$FindUserByIdResultCopyWithImpl<$Res>
+    implements $FindUserByIdResultCopyWith<$Res> {
+  _$FindUserByIdResultCopyWithImpl(this._value, this._then);
 
-  final FindUserResult _value;
+  final FindUserByIdResult _value;
   // ignore: unused_field
-  final $Res Function(FindUserResult) _then;
+  final $Res Function(FindUserByIdResult) _then;
 
   @override
   $Res call({
@@ -2193,11 +2571,11 @@ class _$FindUserResultCopyWithImpl<$Res>
   }
 }
 
-abstract class _$FindUserResultCopyWith<$Res>
-    implements $FindUserResultCopyWith<$Res> {
-  factory _$FindUserResultCopyWith(
-          _FindUserResult value, $Res Function(_FindUserResult) then) =
-      __$FindUserResultCopyWithImpl<$Res>;
+abstract class _$FindUserByIdResultCopyWith<$Res>
+    implements $FindUserByIdResultCopyWith<$Res> {
+  factory _$FindUserByIdResultCopyWith(
+          _FindUserByIdResult value, $Res Function(_FindUserByIdResult) then) =
+      __$FindUserByIdResultCopyWithImpl<$Res>;
   @override
   $Res call({String name, User user});
 
@@ -2205,22 +2583,22 @@ abstract class _$FindUserResultCopyWith<$Res>
   $UserCopyWith<$Res> get user;
 }
 
-class __$FindUserResultCopyWithImpl<$Res>
-    extends _$FindUserResultCopyWithImpl<$Res>
-    implements _$FindUserResultCopyWith<$Res> {
-  __$FindUserResultCopyWithImpl(
-      _FindUserResult _value, $Res Function(_FindUserResult) _then)
-      : super(_value, (v) => _then(v as _FindUserResult));
+class __$FindUserByIdResultCopyWithImpl<$Res>
+    extends _$FindUserByIdResultCopyWithImpl<$Res>
+    implements _$FindUserByIdResultCopyWith<$Res> {
+  __$FindUserByIdResultCopyWithImpl(
+      _FindUserByIdResult _value, $Res Function(_FindUserByIdResult) _then)
+      : super(_value, (v) => _then(v as _FindUserByIdResult));
 
   @override
-  _FindUserResult get _value => super._value as _FindUserResult;
+  _FindUserByIdResult get _value => super._value as _FindUserByIdResult;
 
   @override
   $Res call({
     Object name = freezed,
     Object user = freezed,
   }) {
-    return _then(_FindUserResult(
+    return _then(_FindUserByIdResult(
       name: name == freezed ? _value.name : name as String,
       user: user == freezed ? _value.user : user as User,
     ));
@@ -2228,15 +2606,15 @@ class __$FindUserResultCopyWithImpl<$Res>
 }
 
 @JsonSerializable(explicitToJson: true)
-class _$_FindUserResult
+class _$_FindUserByIdResult
     with DiagnosticableTreeMixin
-    implements _FindUserResult {
-  _$_FindUserResult({@required this.name, @required this.user})
+    implements _FindUserByIdResult {
+  _$_FindUserByIdResult({@required this.name, @required this.user})
       : assert(name != null),
         assert(user != null);
 
-  factory _$_FindUserResult.fromJson(Map<String, dynamic> json) =>
-      _$_$_FindUserResultFromJson(json);
+  factory _$_FindUserByIdResult.fromJson(Map<String, dynamic> json) =>
+      _$_$_FindUserByIdResultFromJson(json);
 
   @override
   final String name;
@@ -2245,14 +2623,14 @@ class _$_FindUserResult
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'FindUserResult(name: $name, user: $user)';
+    return 'FindUserByIdResult(name: $name, user: $user)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'FindUserResult'))
+      ..add(DiagnosticsProperty('type', 'FindUserByIdResult'))
       ..add(DiagnosticsProperty('name', name))
       ..add(DiagnosticsProperty('user', user));
   }
@@ -2260,7 +2638,7 @@ class _$_FindUserResult
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _FindUserResult &&
+        (other is _FindUserByIdResult &&
             (identical(other.name, name) ||
                 const DeepCollectionEquality().equals(other.name, name)) &&
             (identical(other.user, user) ||
@@ -2274,1014 +2652,441 @@ class _$_FindUserResult
       const DeepCollectionEquality().hash(user);
 
   @override
-  _$FindUserResultCopyWith<_FindUserResult> get copyWith =>
-      __$FindUserResultCopyWithImpl<_FindUserResult>(this, _$identity);
+  _$FindUserByIdResultCopyWith<_FindUserByIdResult> get copyWith =>
+      __$FindUserByIdResultCopyWithImpl<_FindUserByIdResult>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_FindUserResultToJson(this);
+    return _$_$_FindUserByIdResultToJson(this);
   }
 }
 
-abstract class _FindUserResult implements FindUserResult {
-  factory _FindUserResult({@required String name, @required User user}) =
-      _$_FindUserResult;
+abstract class _FindUserByIdResult implements FindUserByIdResult {
+  factory _FindUserByIdResult({@required String name, @required User user}) =
+      _$_FindUserByIdResult;
 
-  factory _FindUserResult.fromJson(Map<String, dynamic> json) =
-      _$_FindUserResult.fromJson;
+  factory _FindUserByIdResult.fromJson(Map<String, dynamic> json) =
+      _$_FindUserByIdResult.fromJson;
 
   @override
   String get name;
   @override
   User get user;
   @override
-  _$FindUserResultCopyWith<_FindUserResult> get copyWith;
+  _$FindUserByIdResultCopyWith<_FindUserByIdResult> get copyWith;
 }
 
-_AnotherExampleServiceGetAccountArgs
-    _$_AnotherExampleServiceGetAccountArgsFromJson(Map<String, dynamic> json) {
-  return _AnotherExampleServiceGetAccountArgs_Freezed.fromJson(json);
+AddUserResult _$AddUserResultFromJson(Map<String, dynamic> json) {
+  return _AddUserResult.fromJson(json);
 }
 
-class _$_AnotherExampleServiceGetAccountArgsTearOff {
-  const _$_AnotherExampleServiceGetAccountArgsTearOff();
+class _$AddUserResultTearOff {
+  const _$AddUserResultTearOff();
 
-  _AnotherExampleServiceGetAccountArgs_Freezed call(
-      {@required Map<String, String> header, @required int userID}) {
-    return _AnotherExampleServiceGetAccountArgs_Freezed(
-      header: header,
-      userID: userID,
+  _AddUserResult call({@required bool wasAdded}) {
+    return _AddUserResult(
+      wasAdded: wasAdded,
     );
   }
 }
 
 // ignore: unused_element
-const _$AnotherExampleServiceGetAccountArgs =
-    _$_AnotherExampleServiceGetAccountArgsTearOff();
+const $AddUserResult = _$AddUserResultTearOff();
 
-mixin _$_AnotherExampleServiceGetAccountArgs {
-  Map<String, String> get header;
-  int get userID;
+mixin _$AddUserResult {
+  bool get wasAdded;
 
   Map<String, dynamic> toJson();
-  _$AnotherExampleServiceGetAccountArgsCopyWith<
-      _AnotherExampleServiceGetAccountArgs> get copyWith;
+  $AddUserResultCopyWith<AddUserResult> get copyWith;
 }
 
-abstract class _$AnotherExampleServiceGetAccountArgsCopyWith<$Res> {
-  factory _$AnotherExampleServiceGetAccountArgsCopyWith(
-          _AnotherExampleServiceGetAccountArgs value,
-          $Res Function(_AnotherExampleServiceGetAccountArgs) then) =
-      __$AnotherExampleServiceGetAccountArgsCopyWithImpl<$Res>;
-  $Res call({Map<String, String> header, int userID});
+abstract class $AddUserResultCopyWith<$Res> {
+  factory $AddUserResultCopyWith(
+          AddUserResult value, $Res Function(AddUserResult) then) =
+      _$AddUserResultCopyWithImpl<$Res>;
+  $Res call({bool wasAdded});
 }
 
-class __$AnotherExampleServiceGetAccountArgsCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceGetAccountArgsCopyWith<$Res> {
-  __$AnotherExampleServiceGetAccountArgsCopyWithImpl(this._value, this._then);
+class _$AddUserResultCopyWithImpl<$Res>
+    implements $AddUserResultCopyWith<$Res> {
+  _$AddUserResultCopyWithImpl(this._value, this._then);
 
-  final _AnotherExampleServiceGetAccountArgs _value;
+  final AddUserResult _value;
   // ignore: unused_field
-  final $Res Function(_AnotherExampleServiceGetAccountArgs) _then;
+  final $Res Function(AddUserResult) _then;
 
   @override
   $Res call({
-    Object header = freezed,
-    Object userID = freezed,
+    Object wasAdded = freezed,
   }) {
     return _then(_value.copyWith(
-      header: header == freezed ? _value.header : header as Map<String, String>,
-      userID: userID == freezed ? _value.userID : userID as int,
+      wasAdded: wasAdded == freezed ? _value.wasAdded : wasAdded as bool,
     ));
   }
 }
 
-abstract class _$AnotherExampleServiceGetAccountArgs_FreezedCopyWith<$Res>
-    implements _$AnotherExampleServiceGetAccountArgsCopyWith<$Res> {
-  factory _$AnotherExampleServiceGetAccountArgs_FreezedCopyWith(
-          _AnotherExampleServiceGetAccountArgs_Freezed value,
-          $Res Function(_AnotherExampleServiceGetAccountArgs_Freezed) then) =
-      __$AnotherExampleServiceGetAccountArgs_FreezedCopyWithImpl<$Res>;
+abstract class _$AddUserResultCopyWith<$Res>
+    implements $AddUserResultCopyWith<$Res> {
+  factory _$AddUserResultCopyWith(
+          _AddUserResult value, $Res Function(_AddUserResult) then) =
+      __$AddUserResultCopyWithImpl<$Res>;
   @override
-  $Res call({Map<String, String> header, int userID});
+  $Res call({bool wasAdded});
 }
 
-class __$AnotherExampleServiceGetAccountArgs_FreezedCopyWithImpl<$Res>
-    extends __$AnotherExampleServiceGetAccountArgsCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceGetAccountArgs_FreezedCopyWith<$Res> {
-  __$AnotherExampleServiceGetAccountArgs_FreezedCopyWithImpl(
-      _AnotherExampleServiceGetAccountArgs_Freezed _value,
-      $Res Function(_AnotherExampleServiceGetAccountArgs_Freezed) _then)
-      : super(_value,
-            (v) => _then(v as _AnotherExampleServiceGetAccountArgs_Freezed));
+class __$AddUserResultCopyWithImpl<$Res>
+    extends _$AddUserResultCopyWithImpl<$Res>
+    implements _$AddUserResultCopyWith<$Res> {
+  __$AddUserResultCopyWithImpl(
+      _AddUserResult _value, $Res Function(_AddUserResult) _then)
+      : super(_value, (v) => _then(v as _AddUserResult));
 
   @override
-  _AnotherExampleServiceGetAccountArgs_Freezed get _value =>
-      super._value as _AnotherExampleServiceGetAccountArgs_Freezed;
+  _AddUserResult get _value => super._value as _AddUserResult;
 
   @override
   $Res call({
-    Object header = freezed,
-    Object userID = freezed,
+    Object wasAdded = freezed,
   }) {
-    return _then(_AnotherExampleServiceGetAccountArgs_Freezed(
-      header: header == freezed ? _value.header : header as Map<String, String>,
-      userID: userID == freezed ? _value.userID : userID as int,
+    return _then(_AddUserResult(
+      wasAdded: wasAdded == freezed ? _value.wasAdded : wasAdded as bool,
     ));
   }
 }
 
 @JsonSerializable(explicitToJson: true)
-class _$_AnotherExampleServiceGetAccountArgs_Freezed
-    with DiagnosticableTreeMixin
-    implements _AnotherExampleServiceGetAccountArgs_Freezed {
-  _$_AnotherExampleServiceGetAccountArgs_Freezed(
-      {@required this.header, @required this.userID})
-      : assert(header != null),
-        assert(userID != null);
+class _$_AddUserResult with DiagnosticableTreeMixin implements _AddUserResult {
+  _$_AddUserResult({@required this.wasAdded}) : assert(wasAdded != null);
 
-  factory _$_AnotherExampleServiceGetAccountArgs_Freezed.fromJson(
-          Map<String, dynamic> json) =>
-      _$_$_AnotherExampleServiceGetAccountArgs_FreezedFromJson(json);
+  factory _$_AddUserResult.fromJson(Map<String, dynamic> json) =>
+      _$_$_AddUserResultFromJson(json);
 
   @override
-  final Map<String, String> header;
-  @override
-  final int userID;
+  final bool wasAdded;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return '_AnotherExampleServiceGetAccountArgs(header: $header, userID: $userID)';
+    return 'AddUserResult(wasAdded: $wasAdded)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', '_AnotherExampleServiceGetAccountArgs'))
-      ..add(DiagnosticsProperty('header', header))
-      ..add(DiagnosticsProperty('userID', userID));
+      ..add(DiagnosticsProperty('type', 'AddUserResult'))
+      ..add(DiagnosticsProperty('wasAdded', wasAdded));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _AnotherExampleServiceGetAccountArgs_Freezed &&
-            (identical(other.header, header) ||
-                const DeepCollectionEquality().equals(other.header, header)) &&
-            (identical(other.userID, userID) ||
-                const DeepCollectionEquality().equals(other.userID, userID)));
+        (other is _AddUserResult &&
+            (identical(other.wasAdded, wasAdded) ||
+                const DeepCollectionEquality()
+                    .equals(other.wasAdded, wasAdded)));
   }
 
   @override
   int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(header) ^
-      const DeepCollectionEquality().hash(userID);
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(wasAdded);
 
   @override
-  _$AnotherExampleServiceGetAccountArgs_FreezedCopyWith<
-          _AnotherExampleServiceGetAccountArgs_Freezed>
-      get copyWith =>
-          __$AnotherExampleServiceGetAccountArgs_FreezedCopyWithImpl<
-              _AnotherExampleServiceGetAccountArgs_Freezed>(this, _$identity);
+  _$AddUserResultCopyWith<_AddUserResult> get copyWith =>
+      __$AddUserResultCopyWithImpl<_AddUserResult>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_AnotherExampleServiceGetAccountArgs_FreezedToJson(this);
+    return _$_$_AddUserResultToJson(this);
   }
 }
 
-abstract class _AnotherExampleServiceGetAccountArgs_Freezed
-    implements _AnotherExampleServiceGetAccountArgs {
-  factory _AnotherExampleServiceGetAccountArgs_Freezed(
-      {@required Map<String, String> header,
-      @required int userID}) = _$_AnotherExampleServiceGetAccountArgs_Freezed;
+abstract class _AddUserResult implements AddUserResult {
+  factory _AddUserResult({@required bool wasAdded}) = _$_AddUserResult;
 
-  factory _AnotherExampleServiceGetAccountArgs_Freezed.fromJson(
-          Map<String, dynamic> json) =
-      _$_AnotherExampleServiceGetAccountArgs_Freezed.fromJson;
+  factory _AddUserResult.fromJson(Map<String, dynamic> json) =
+      _$_AddUserResult.fromJson;
 
   @override
-  Map<String, String> get header;
+  bool get wasAdded;
   @override
-  int get userID;
-  @override
-  _$AnotherExampleServiceGetAccountArgs_FreezedCopyWith<
-      _AnotherExampleServiceGetAccountArgs_Freezed> get copyWith;
+  _$AddUserResultCopyWith<_AddUserResult> get copyWith;
 }
 
-_AnotherExampleServiceGetUsersArgs _$_AnotherExampleServiceGetUsersArgsFromJson(
-    Map<String, dynamic> json) {
-  return _AnotherExampleServiceGetUsersArgs_Freezed.fromJson(json);
+ListUsersResult _$ListUsersResultFromJson(Map<String, dynamic> json) {
+  return _ListUsersResult.fromJson(json);
 }
 
-class _$_AnotherExampleServiceGetUsersArgsTearOff {
-  const _$_AnotherExampleServiceGetUsersArgsTearOff();
+class _$ListUsersResultTearOff {
+  const _$ListUsersResultTearOff();
 
-  _AnotherExampleServiceGetUsersArgs_Freezed call({@required SearchFilter s}) {
-    return _AnotherExampleServiceGetUsersArgs_Freezed(
-      s: s,
+  _ListUsersResult call({@required List<User> users}) {
+    return _ListUsersResult(
+      users: users,
     );
   }
 }
 
 // ignore: unused_element
-const _$AnotherExampleServiceGetUsersArgs =
-    _$_AnotherExampleServiceGetUsersArgsTearOff();
+const $ListUsersResult = _$ListUsersResultTearOff();
 
-mixin _$_AnotherExampleServiceGetUsersArgs {
-  SearchFilter get s;
+mixin _$ListUsersResult {
+  List<User> get users;
 
   Map<String, dynamic> toJson();
-  _$AnotherExampleServiceGetUsersArgsCopyWith<
-      _AnotherExampleServiceGetUsersArgs> get copyWith;
+  $ListUsersResultCopyWith<ListUsersResult> get copyWith;
 }
 
-abstract class _$AnotherExampleServiceGetUsersArgsCopyWith<$Res> {
-  factory _$AnotherExampleServiceGetUsersArgsCopyWith(
-          _AnotherExampleServiceGetUsersArgs value,
-          $Res Function(_AnotherExampleServiceGetUsersArgs) then) =
-      __$AnotherExampleServiceGetUsersArgsCopyWithImpl<$Res>;
-  $Res call({SearchFilter s});
-
-  $SearchFilterCopyWith<$Res> get s;
+abstract class $ListUsersResultCopyWith<$Res> {
+  factory $ListUsersResultCopyWith(
+          ListUsersResult value, $Res Function(ListUsersResult) then) =
+      _$ListUsersResultCopyWithImpl<$Res>;
+  $Res call({List<User> users});
 }
 
-class __$AnotherExampleServiceGetUsersArgsCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceGetUsersArgsCopyWith<$Res> {
-  __$AnotherExampleServiceGetUsersArgsCopyWithImpl(this._value, this._then);
+class _$ListUsersResultCopyWithImpl<$Res>
+    implements $ListUsersResultCopyWith<$Res> {
+  _$ListUsersResultCopyWithImpl(this._value, this._then);
 
-  final _AnotherExampleServiceGetUsersArgs _value;
+  final ListUsersResult _value;
   // ignore: unused_field
-  final $Res Function(_AnotherExampleServiceGetUsersArgs) _then;
+  final $Res Function(ListUsersResult) _then;
 
   @override
   $Res call({
-    Object s = freezed,
+    Object users = freezed,
   }) {
     return _then(_value.copyWith(
-      s: s == freezed ? _value.s : s as SearchFilter,
+      users: users == freezed ? _value.users : users as List<User>,
     ));
   }
-
-  @override
-  $SearchFilterCopyWith<$Res> get s {
-    if (_value.s == null) {
-      return null;
-    }
-    return $SearchFilterCopyWith<$Res>(_value.s, (value) {
-      return _then(_value.copyWith(s: value));
-    });
-  }
 }
 
-abstract class _$AnotherExampleServiceGetUsersArgs_FreezedCopyWith<$Res>
-    implements _$AnotherExampleServiceGetUsersArgsCopyWith<$Res> {
-  factory _$AnotherExampleServiceGetUsersArgs_FreezedCopyWith(
-          _AnotherExampleServiceGetUsersArgs_Freezed value,
-          $Res Function(_AnotherExampleServiceGetUsersArgs_Freezed) then) =
-      __$AnotherExampleServiceGetUsersArgs_FreezedCopyWithImpl<$Res>;
+abstract class _$ListUsersResultCopyWith<$Res>
+    implements $ListUsersResultCopyWith<$Res> {
+  factory _$ListUsersResultCopyWith(
+          _ListUsersResult value, $Res Function(_ListUsersResult) then) =
+      __$ListUsersResultCopyWithImpl<$Res>;
   @override
-  $Res call({SearchFilter s});
-
-  @override
-  $SearchFilterCopyWith<$Res> get s;
+  $Res call({List<User> users});
 }
 
-class __$AnotherExampleServiceGetUsersArgs_FreezedCopyWithImpl<$Res>
-    extends __$AnotherExampleServiceGetUsersArgsCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceGetUsersArgs_FreezedCopyWith<$Res> {
-  __$AnotherExampleServiceGetUsersArgs_FreezedCopyWithImpl(
-      _AnotherExampleServiceGetUsersArgs_Freezed _value,
-      $Res Function(_AnotherExampleServiceGetUsersArgs_Freezed) _then)
-      : super(_value,
-            (v) => _then(v as _AnotherExampleServiceGetUsersArgs_Freezed));
+class __$ListUsersResultCopyWithImpl<$Res>
+    extends _$ListUsersResultCopyWithImpl<$Res>
+    implements _$ListUsersResultCopyWith<$Res> {
+  __$ListUsersResultCopyWithImpl(
+      _ListUsersResult _value, $Res Function(_ListUsersResult) _then)
+      : super(_value, (v) => _then(v as _ListUsersResult));
 
   @override
-  _AnotherExampleServiceGetUsersArgs_Freezed get _value =>
-      super._value as _AnotherExampleServiceGetUsersArgs_Freezed;
+  _ListUsersResult get _value => super._value as _ListUsersResult;
 
   @override
   $Res call({
-    Object s = freezed,
+    Object users = freezed,
   }) {
-    return _then(_AnotherExampleServiceGetUsersArgs_Freezed(
-      s: s == freezed ? _value.s : s as SearchFilter,
+    return _then(_ListUsersResult(
+      users: users == freezed ? _value.users : users as List<User>,
     ));
   }
 }
 
 @JsonSerializable(explicitToJson: true)
-class _$_AnotherExampleServiceGetUsersArgs_Freezed
+class _$_ListUsersResult
     with DiagnosticableTreeMixin
-    implements _AnotherExampleServiceGetUsersArgs_Freezed {
-  _$_AnotherExampleServiceGetUsersArgs_Freezed({@required this.s})
-      : assert(s != null);
+    implements _ListUsersResult {
+  _$_ListUsersResult({@required this.users}) : assert(users != null);
 
-  factory _$_AnotherExampleServiceGetUsersArgs_Freezed.fromJson(
-          Map<String, dynamic> json) =>
-      _$_$_AnotherExampleServiceGetUsersArgs_FreezedFromJson(json);
+  factory _$_ListUsersResult.fromJson(Map<String, dynamic> json) =>
+      _$_$_ListUsersResultFromJson(json);
 
   @override
-  final SearchFilter s;
+  final List<User> users;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return '_AnotherExampleServiceGetUsersArgs(s: $s)';
+    return 'ListUsersResult(users: $users)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', '_AnotherExampleServiceGetUsersArgs'))
-      ..add(DiagnosticsProperty('s', s));
+      ..add(DiagnosticsProperty('type', 'ListUsersResult'))
+      ..add(DiagnosticsProperty('users', users));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _AnotherExampleServiceGetUsersArgs_Freezed &&
-            (identical(other.s, s) ||
-                const DeepCollectionEquality().equals(other.s, s)));
+        (other is _ListUsersResult &&
+            (identical(other.users, users) ||
+                const DeepCollectionEquality().equals(other.users, users)));
   }
 
   @override
   int get hashCode =>
-      runtimeType.hashCode ^ const DeepCollectionEquality().hash(s);
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(users);
 
   @override
-  _$AnotherExampleServiceGetUsersArgs_FreezedCopyWith<
-          _AnotherExampleServiceGetUsersArgs_Freezed>
-      get copyWith => __$AnotherExampleServiceGetUsersArgs_FreezedCopyWithImpl<
-          _AnotherExampleServiceGetUsersArgs_Freezed>(this, _$identity);
+  _$ListUsersResultCopyWith<_ListUsersResult> get copyWith =>
+      __$ListUsersResultCopyWithImpl<_ListUsersResult>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_AnotherExampleServiceGetUsersArgs_FreezedToJson(this);
+    return _$_$_ListUsersResultToJson(this);
   }
 }
 
-abstract class _AnotherExampleServiceGetUsersArgs_Freezed
-    implements _AnotherExampleServiceGetUsersArgs {
-  factory _AnotherExampleServiceGetUsersArgs_Freezed(
-          {@required SearchFilter s}) =
-      _$_AnotherExampleServiceGetUsersArgs_Freezed;
+abstract class _ListUsersResult implements ListUsersResult {
+  factory _ListUsersResult({@required List<User> users}) = _$_ListUsersResult;
 
-  factory _AnotherExampleServiceGetUsersArgs_Freezed.fromJson(
-          Map<String, dynamic> json) =
-      _$_AnotherExampleServiceGetUsersArgs_Freezed.fromJson;
+  factory _ListUsersResult.fromJson(Map<String, dynamic> json) =
+      _$_ListUsersResult.fromJson;
 
   @override
-  SearchFilter get s;
+  List<User> get users;
   @override
-  _$AnotherExampleServiceGetUsersArgs_FreezedCopyWith<
-      _AnotherExampleServiceGetUsersArgs_Freezed> get copyWith;
+  _$ListUsersResultCopyWith<_ListUsersResult> get copyWith;
 }
 
-AnotherExampleServiceStatusResult _$AnotherExampleServiceStatusResultFromJson(
-    Map<String, dynamic> json) {
-  return _AnotherExampleServiceStatusResult.fromJson(json);
+DeleteUserResult _$DeleteUserResultFromJson(Map<String, dynamic> json) {
+  return _DeleteUserResult.fromJson(json);
 }
 
-class _$AnotherExampleServiceStatusResultTearOff {
-  const _$AnotherExampleServiceStatusResultTearOff();
+class _$DeleteUserResultTearOff {
+  const _$DeleteUserResultTearOff();
 
-  _AnotherExampleServiceStatusResult call({@required bool status}) {
-    return _AnotherExampleServiceStatusResult(
-      status: status,
+  _DeleteUserResult call({@required bool wasDeleted}) {
+    return _DeleteUserResult(
+      wasDeleted: wasDeleted,
     );
   }
 }
 
 // ignore: unused_element
-const $AnotherExampleServiceStatusResult =
-    _$AnotherExampleServiceStatusResultTearOff();
+const $DeleteUserResult = _$DeleteUserResultTearOff();
 
-mixin _$AnotherExampleServiceStatusResult {
-  bool get status;
+mixin _$DeleteUserResult {
+  bool get wasDeleted;
 
   Map<String, dynamic> toJson();
-  $AnotherExampleServiceStatusResultCopyWith<AnotherExampleServiceStatusResult>
-      get copyWith;
+  $DeleteUserResultCopyWith<DeleteUserResult> get copyWith;
 }
 
-abstract class $AnotherExampleServiceStatusResultCopyWith<$Res> {
-  factory $AnotherExampleServiceStatusResultCopyWith(
-          AnotherExampleServiceStatusResult value,
-          $Res Function(AnotherExampleServiceStatusResult) then) =
-      _$AnotherExampleServiceStatusResultCopyWithImpl<$Res>;
-  $Res call({bool status});
+abstract class $DeleteUserResultCopyWith<$Res> {
+  factory $DeleteUserResultCopyWith(
+          DeleteUserResult value, $Res Function(DeleteUserResult) then) =
+      _$DeleteUserResultCopyWithImpl<$Res>;
+  $Res call({bool wasDeleted});
 }
 
-class _$AnotherExampleServiceStatusResultCopyWithImpl<$Res>
-    implements $AnotherExampleServiceStatusResultCopyWith<$Res> {
-  _$AnotherExampleServiceStatusResultCopyWithImpl(this._value, this._then);
+class _$DeleteUserResultCopyWithImpl<$Res>
+    implements $DeleteUserResultCopyWith<$Res> {
+  _$DeleteUserResultCopyWithImpl(this._value, this._then);
 
-  final AnotherExampleServiceStatusResult _value;
+  final DeleteUserResult _value;
   // ignore: unused_field
-  final $Res Function(AnotherExampleServiceStatusResult) _then;
+  final $Res Function(DeleteUserResult) _then;
 
   @override
   $Res call({
-    Object status = freezed,
+    Object wasDeleted = freezed,
   }) {
     return _then(_value.copyWith(
-      status: status == freezed ? _value.status : status as bool,
+      wasDeleted:
+          wasDeleted == freezed ? _value.wasDeleted : wasDeleted as bool,
     ));
   }
 }
 
-abstract class _$AnotherExampleServiceStatusResultCopyWith<$Res>
-    implements $AnotherExampleServiceStatusResultCopyWith<$Res> {
-  factory _$AnotherExampleServiceStatusResultCopyWith(
-          _AnotherExampleServiceStatusResult value,
-          $Res Function(_AnotherExampleServiceStatusResult) then) =
-      __$AnotherExampleServiceStatusResultCopyWithImpl<$Res>;
+abstract class _$DeleteUserResultCopyWith<$Res>
+    implements $DeleteUserResultCopyWith<$Res> {
+  factory _$DeleteUserResultCopyWith(
+          _DeleteUserResult value, $Res Function(_DeleteUserResult) then) =
+      __$DeleteUserResultCopyWithImpl<$Res>;
   @override
-  $Res call({bool status});
+  $Res call({bool wasDeleted});
 }
 
-class __$AnotherExampleServiceStatusResultCopyWithImpl<$Res>
-    extends _$AnotherExampleServiceStatusResultCopyWithImpl<$Res>
-    implements _$AnotherExampleServiceStatusResultCopyWith<$Res> {
-  __$AnotherExampleServiceStatusResultCopyWithImpl(
-      _AnotherExampleServiceStatusResult _value,
-      $Res Function(_AnotherExampleServiceStatusResult) _then)
-      : super(_value, (v) => _then(v as _AnotherExampleServiceStatusResult));
+class __$DeleteUserResultCopyWithImpl<$Res>
+    extends _$DeleteUserResultCopyWithImpl<$Res>
+    implements _$DeleteUserResultCopyWith<$Res> {
+  __$DeleteUserResultCopyWithImpl(
+      _DeleteUserResult _value, $Res Function(_DeleteUserResult) _then)
+      : super(_value, (v) => _then(v as _DeleteUserResult));
 
   @override
-  _AnotherExampleServiceStatusResult get _value =>
-      super._value as _AnotherExampleServiceStatusResult;
+  _DeleteUserResult get _value => super._value as _DeleteUserResult;
 
   @override
   $Res call({
-    Object status = freezed,
+    Object wasDeleted = freezed,
   }) {
-    return _then(_AnotherExampleServiceStatusResult(
-      status: status == freezed ? _value.status : status as bool,
+    return _then(_DeleteUserResult(
+      wasDeleted:
+          wasDeleted == freezed ? _value.wasDeleted : wasDeleted as bool,
     ));
   }
 }
 
 @JsonSerializable(explicitToJson: true)
-class _$_AnotherExampleServiceStatusResult
+class _$_DeleteUserResult
     with DiagnosticableTreeMixin
-    implements _AnotherExampleServiceStatusResult {
-  _$_AnotherExampleServiceStatusResult({@required this.status})
-      : assert(status != null);
+    implements _DeleteUserResult {
+  _$_DeleteUserResult({@required this.wasDeleted}) : assert(wasDeleted != null);
 
-  factory _$_AnotherExampleServiceStatusResult.fromJson(
-          Map<String, dynamic> json) =>
-      _$_$_AnotherExampleServiceStatusResultFromJson(json);
+  factory _$_DeleteUserResult.fromJson(Map<String, dynamic> json) =>
+      _$_$_DeleteUserResultFromJson(json);
 
   @override
-  final bool status;
+  final bool wasDeleted;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'AnotherExampleServiceStatusResult(status: $status)';
+    return 'DeleteUserResult(wasDeleted: $wasDeleted)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'AnotherExampleServiceStatusResult'))
-      ..add(DiagnosticsProperty('status', status));
+      ..add(DiagnosticsProperty('type', 'DeleteUserResult'))
+      ..add(DiagnosticsProperty('wasDeleted', wasDeleted));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _AnotherExampleServiceStatusResult &&
-            (identical(other.status, status) ||
-                const DeepCollectionEquality().equals(other.status, status)));
+        (other is _DeleteUserResult &&
+            (identical(other.wasDeleted, wasDeleted) ||
+                const DeepCollectionEquality()
+                    .equals(other.wasDeleted, wasDeleted)));
   }
 
   @override
   int get hashCode =>
-      runtimeType.hashCode ^ const DeepCollectionEquality().hash(status);
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(wasDeleted);
 
   @override
-  _$AnotherExampleServiceStatusResultCopyWith<
-          _AnotherExampleServiceStatusResult>
-      get copyWith => __$AnotherExampleServiceStatusResultCopyWithImpl<
-          _AnotherExampleServiceStatusResult>(this, _$identity);
+  _$DeleteUserResultCopyWith<_DeleteUserResult> get copyWith =>
+      __$DeleteUserResultCopyWithImpl<_DeleteUserResult>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_AnotherExampleServiceStatusResultToJson(this);
+    return _$_$_DeleteUserResultToJson(this);
   }
 }
 
-abstract class _AnotherExampleServiceStatusResult
-    implements AnotherExampleServiceStatusResult {
-  factory _AnotherExampleServiceStatusResult({@required bool status}) =
-      _$_AnotherExampleServiceStatusResult;
+abstract class _DeleteUserResult implements DeleteUserResult {
+  factory _DeleteUserResult({@required bool wasDeleted}) = _$_DeleteUserResult;
 
-  factory _AnotherExampleServiceStatusResult.fromJson(
-          Map<String, dynamic> json) =
-      _$_AnotherExampleServiceStatusResult.fromJson;
+  factory _DeleteUserResult.fromJson(Map<String, dynamic> json) =
+      _$_DeleteUserResult.fromJson;
 
   @override
-  bool get status;
+  bool get wasDeleted;
   @override
-  _$AnotherExampleServiceStatusResultCopyWith<
-      _AnotherExampleServiceStatusResult> get copyWith;
-}
-
-GetVersionResult _$GetVersionResultFromJson(Map<String, dynamic> json) {
-  return _GetVersionResult.fromJson(json);
-}
-
-class _$GetVersionResultTearOff {
-  const _$GetVersionResultTearOff();
-
-  _GetVersionResult call({@required Version version}) {
-    return _GetVersionResult(
-      version: version,
-    );
-  }
-}
-
-// ignore: unused_element
-const $GetVersionResult = _$GetVersionResultTearOff();
-
-mixin _$GetVersionResult {
-  Version get version;
-
-  Map<String, dynamic> toJson();
-  $GetVersionResultCopyWith<GetVersionResult> get copyWith;
-}
-
-abstract class $GetVersionResultCopyWith<$Res> {
-  factory $GetVersionResultCopyWith(
-          GetVersionResult value, $Res Function(GetVersionResult) then) =
-      _$GetVersionResultCopyWithImpl<$Res>;
-  $Res call({Version version});
-
-  $VersionCopyWith<$Res> get version;
-}
-
-class _$GetVersionResultCopyWithImpl<$Res>
-    implements $GetVersionResultCopyWith<$Res> {
-  _$GetVersionResultCopyWithImpl(this._value, this._then);
-
-  final GetVersionResult _value;
-  // ignore: unused_field
-  final $Res Function(GetVersionResult) _then;
-
-  @override
-  $Res call({
-    Object version = freezed,
-  }) {
-    return _then(_value.copyWith(
-      version: version == freezed ? _value.version : version as Version,
-    ));
-  }
-
-  @override
-  $VersionCopyWith<$Res> get version {
-    if (_value.version == null) {
-      return null;
-    }
-    return $VersionCopyWith<$Res>(_value.version, (value) {
-      return _then(_value.copyWith(version: value));
-    });
-  }
-}
-
-abstract class _$GetVersionResultCopyWith<$Res>
-    implements $GetVersionResultCopyWith<$Res> {
-  factory _$GetVersionResultCopyWith(
-          _GetVersionResult value, $Res Function(_GetVersionResult) then) =
-      __$GetVersionResultCopyWithImpl<$Res>;
-  @override
-  $Res call({Version version});
-
-  @override
-  $VersionCopyWith<$Res> get version;
-}
-
-class __$GetVersionResultCopyWithImpl<$Res>
-    extends _$GetVersionResultCopyWithImpl<$Res>
-    implements _$GetVersionResultCopyWith<$Res> {
-  __$GetVersionResultCopyWithImpl(
-      _GetVersionResult _value, $Res Function(_GetVersionResult) _then)
-      : super(_value, (v) => _then(v as _GetVersionResult));
-
-  @override
-  _GetVersionResult get _value => super._value as _GetVersionResult;
-
-  @override
-  $Res call({
-    Object version = freezed,
-  }) {
-    return _then(_GetVersionResult(
-      version: version == freezed ? _value.version : version as Version,
-    ));
-  }
-}
-
-@JsonSerializable(explicitToJson: true)
-class _$_GetVersionResult
-    with DiagnosticableTreeMixin
-    implements _GetVersionResult {
-  _$_GetVersionResult({@required this.version}) : assert(version != null);
-
-  factory _$_GetVersionResult.fromJson(Map<String, dynamic> json) =>
-      _$_$_GetVersionResultFromJson(json);
-
-  @override
-  final Version version;
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetVersionResult(version: $version)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'GetVersionResult'))
-      ..add(DiagnosticsProperty('version', version));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is _GetVersionResult &&
-            (identical(other.version, version) ||
-                const DeepCollectionEquality().equals(other.version, version)));
-  }
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^ const DeepCollectionEquality().hash(version);
-
-  @override
-  _$GetVersionResultCopyWith<_GetVersionResult> get copyWith =>
-      __$GetVersionResultCopyWithImpl<_GetVersionResult>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_GetVersionResultToJson(this);
-  }
-}
-
-abstract class _GetVersionResult implements GetVersionResult {
-  factory _GetVersionResult({@required Version version}) = _$_GetVersionResult;
-
-  factory _GetVersionResult.fromJson(Map<String, dynamic> json) =
-      _$_GetVersionResult.fromJson;
-
-  @override
-  Version get version;
-  @override
-  _$GetVersionResultCopyWith<_GetVersionResult> get copyWith;
-}
-
-GetAccountResult _$GetAccountResultFromJson(Map<String, dynamic> json) {
-  return _GetAccountResult.fromJson(json);
-}
-
-class _$GetAccountResultTearOff {
-  const _$GetAccountResultTearOff();
-
-  _GetAccountResult call({@required int code, @required User user}) {
-    return _GetAccountResult(
-      code: code,
-      user: user,
-    );
-  }
-}
-
-// ignore: unused_element
-const $GetAccountResult = _$GetAccountResultTearOff();
-
-mixin _$GetAccountResult {
-  int get code;
-  User get user;
-
-  Map<String, dynamic> toJson();
-  $GetAccountResultCopyWith<GetAccountResult> get copyWith;
-}
-
-abstract class $GetAccountResultCopyWith<$Res> {
-  factory $GetAccountResultCopyWith(
-          GetAccountResult value, $Res Function(GetAccountResult) then) =
-      _$GetAccountResultCopyWithImpl<$Res>;
-  $Res call({int code, User user});
-
-  $UserCopyWith<$Res> get user;
-}
-
-class _$GetAccountResultCopyWithImpl<$Res>
-    implements $GetAccountResultCopyWith<$Res> {
-  _$GetAccountResultCopyWithImpl(this._value, this._then);
-
-  final GetAccountResult _value;
-  // ignore: unused_field
-  final $Res Function(GetAccountResult) _then;
-
-  @override
-  $Res call({
-    Object code = freezed,
-    Object user = freezed,
-  }) {
-    return _then(_value.copyWith(
-      code: code == freezed ? _value.code : code as int,
-      user: user == freezed ? _value.user : user as User,
-    ));
-  }
-
-  @override
-  $UserCopyWith<$Res> get user {
-    if (_value.user == null) {
-      return null;
-    }
-    return $UserCopyWith<$Res>(_value.user, (value) {
-      return _then(_value.copyWith(user: value));
-    });
-  }
-}
-
-abstract class _$GetAccountResultCopyWith<$Res>
-    implements $GetAccountResultCopyWith<$Res> {
-  factory _$GetAccountResultCopyWith(
-          _GetAccountResult value, $Res Function(_GetAccountResult) then) =
-      __$GetAccountResultCopyWithImpl<$Res>;
-  @override
-  $Res call({int code, User user});
-
-  @override
-  $UserCopyWith<$Res> get user;
-}
-
-class __$GetAccountResultCopyWithImpl<$Res>
-    extends _$GetAccountResultCopyWithImpl<$Res>
-    implements _$GetAccountResultCopyWith<$Res> {
-  __$GetAccountResultCopyWithImpl(
-      _GetAccountResult _value, $Res Function(_GetAccountResult) _then)
-      : super(_value, (v) => _then(v as _GetAccountResult));
-
-  @override
-  _GetAccountResult get _value => super._value as _GetAccountResult;
-
-  @override
-  $Res call({
-    Object code = freezed,
-    Object user = freezed,
-  }) {
-    return _then(_GetAccountResult(
-      code: code == freezed ? _value.code : code as int,
-      user: user == freezed ? _value.user : user as User,
-    ));
-  }
-}
-
-@JsonSerializable(explicitToJson: true)
-class _$_GetAccountResult
-    with DiagnosticableTreeMixin
-    implements _GetAccountResult {
-  _$_GetAccountResult({@required this.code, @required this.user})
-      : assert(code != null),
-        assert(user != null);
-
-  factory _$_GetAccountResult.fromJson(Map<String, dynamic> json) =>
-      _$_$_GetAccountResultFromJson(json);
-
-  @override
-  final int code;
-  @override
-  final User user;
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetAccountResult(code: $code, user: $user)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'GetAccountResult'))
-      ..add(DiagnosticsProperty('code', code))
-      ..add(DiagnosticsProperty('user', user));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is _GetAccountResult &&
-            (identical(other.code, code) ||
-                const DeepCollectionEquality().equals(other.code, code)) &&
-            (identical(other.user, user) ||
-                const DeepCollectionEquality().equals(other.user, user)));
-  }
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(code) ^
-      const DeepCollectionEquality().hash(user);
-
-  @override
-  _$GetAccountResultCopyWith<_GetAccountResult> get copyWith =>
-      __$GetAccountResultCopyWithImpl<_GetAccountResult>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_GetAccountResultToJson(this);
-  }
-}
-
-abstract class _GetAccountResult implements GetAccountResult {
-  factory _GetAccountResult({@required int code, @required User user}) =
-      _$_GetAccountResult;
-
-  factory _GetAccountResult.fromJson(Map<String, dynamic> json) =
-      _$_GetAccountResult.fromJson;
-
-  @override
-  int get code;
-  @override
-  User get user;
-  @override
-  _$GetAccountResultCopyWith<_GetAccountResult> get copyWith;
-}
-
-GetUsersResult _$GetUsersResultFromJson(Map<String, dynamic> json) {
-  return _GetUsersResult.fromJson(json);
-}
-
-class _$GetUsersResultTearOff {
-  const _$GetUsersResultTearOff();
-
-  _GetUsersResult call({@required String name, @required User user}) {
-    return _GetUsersResult(
-      name: name,
-      user: user,
-    );
-  }
-}
-
-// ignore: unused_element
-const $GetUsersResult = _$GetUsersResultTearOff();
-
-mixin _$GetUsersResult {
-  String get name;
-  User get user;
-
-  Map<String, dynamic> toJson();
-  $GetUsersResultCopyWith<GetUsersResult> get copyWith;
-}
-
-abstract class $GetUsersResultCopyWith<$Res> {
-  factory $GetUsersResultCopyWith(
-          GetUsersResult value, $Res Function(GetUsersResult) then) =
-      _$GetUsersResultCopyWithImpl<$Res>;
-  $Res call({String name, User user});
-
-  $UserCopyWith<$Res> get user;
-}
-
-class _$GetUsersResultCopyWithImpl<$Res>
-    implements $GetUsersResultCopyWith<$Res> {
-  _$GetUsersResultCopyWithImpl(this._value, this._then);
-
-  final GetUsersResult _value;
-  // ignore: unused_field
-  final $Res Function(GetUsersResult) _then;
-
-  @override
-  $Res call({
-    Object name = freezed,
-    Object user = freezed,
-  }) {
-    return _then(_value.copyWith(
-      name: name == freezed ? _value.name : name as String,
-      user: user == freezed ? _value.user : user as User,
-    ));
-  }
-
-  @override
-  $UserCopyWith<$Res> get user {
-    if (_value.user == null) {
-      return null;
-    }
-    return $UserCopyWith<$Res>(_value.user, (value) {
-      return _then(_value.copyWith(user: value));
-    });
-  }
-}
-
-abstract class _$GetUsersResultCopyWith<$Res>
-    implements $GetUsersResultCopyWith<$Res> {
-  factory _$GetUsersResultCopyWith(
-          _GetUsersResult value, $Res Function(_GetUsersResult) then) =
-      __$GetUsersResultCopyWithImpl<$Res>;
-  @override
-  $Res call({String name, User user});
-
-  @override
-  $UserCopyWith<$Res> get user;
-}
-
-class __$GetUsersResultCopyWithImpl<$Res>
-    extends _$GetUsersResultCopyWithImpl<$Res>
-    implements _$GetUsersResultCopyWith<$Res> {
-  __$GetUsersResultCopyWithImpl(
-      _GetUsersResult _value, $Res Function(_GetUsersResult) _then)
-      : super(_value, (v) => _then(v as _GetUsersResult));
-
-  @override
-  _GetUsersResult get _value => super._value as _GetUsersResult;
-
-  @override
-  $Res call({
-    Object name = freezed,
-    Object user = freezed,
-  }) {
-    return _then(_GetUsersResult(
-      name: name == freezed ? _value.name : name as String,
-      user: user == freezed ? _value.user : user as User,
-    ));
-  }
-}
-
-@JsonSerializable(explicitToJson: true)
-class _$_GetUsersResult
-    with DiagnosticableTreeMixin
-    implements _GetUsersResult {
-  _$_GetUsersResult({@required this.name, @required this.user})
-      : assert(name != null),
-        assert(user != null);
-
-  factory _$_GetUsersResult.fromJson(Map<String, dynamic> json) =>
-      _$_$_GetUsersResultFromJson(json);
-
-  @override
-  final String name;
-  @override
-  final User user;
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetUsersResult(name: $name, user: $user)';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties
-      ..add(DiagnosticsProperty('type', 'GetUsersResult'))
-      ..add(DiagnosticsProperty('name', name))
-      ..add(DiagnosticsProperty('user', user));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) ||
-        (other is _GetUsersResult &&
-            (identical(other.name, name) ||
-                const DeepCollectionEquality().equals(other.name, name)) &&
-            (identical(other.user, user) ||
-                const DeepCollectionEquality().equals(other.user, user)));
-  }
-
-  @override
-  int get hashCode =>
-      runtimeType.hashCode ^
-      const DeepCollectionEquality().hash(name) ^
-      const DeepCollectionEquality().hash(user);
-
-  @override
-  _$GetUsersResultCopyWith<_GetUsersResult> get copyWith =>
-      __$GetUsersResultCopyWithImpl<_GetUsersResult>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$_$_GetUsersResultToJson(this);
-  }
-}
-
-abstract class _GetUsersResult implements GetUsersResult {
-  factory _GetUsersResult({@required String name, @required User user}) =
-      _$_GetUsersResult;
-
-  factory _GetUsersResult.fromJson(Map<String, dynamic> json) =
-      _$_GetUsersResult.fromJson;
-
-  @override
-  String get name;
-  @override
-  User get user;
-  @override
-  _$GetUsersResultCopyWith<_GetUsersResult> get copyWith;
+  _$DeleteUserResultCopyWith<_DeleteUserResult> get copyWith;
 }
 
 class _$RpcResponseTearOff {
