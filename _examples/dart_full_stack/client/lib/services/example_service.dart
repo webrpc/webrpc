@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import 'package:http/http.dart' as http;
+
+import 'package:flutter/foundation.dart';
 
 part 'example_service.freezed.dart';
 part 'example_service.g.dart';
@@ -330,7 +332,7 @@ abstract class RpcResponse<T> with _$RpcResponse<T> {
     @required int statusCode,
     String stackTrace,
   }) = _RpcResonseErr<T>;
-  const factory RpcResponse.loading() = _RpcResponsePending<T>;
+  const factory RpcResponse.loading() = _RpcResponseLoading<T>;
 }
 // ***********************************************************************
 // WEBRPC-DART SERVICE CLIENTS.

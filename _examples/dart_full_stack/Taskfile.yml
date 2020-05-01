@@ -1,3 +1,67 @@
 version: "2"
 
 tasks:
+  install_client:
+    dir: client
+    cmds:
+      - flutter pub get
+
+  install_server:
+    dir: server
+    cmds:
+      - pub get
+
+  build_client:
+    dir: client
+    cmds:
+      - ../../../bin/webrpc-gen -schema=../example.ridl -target=dart -client -out=./lib/services/example_service.dart -pkg=example_service -extra="flutter"
+
+      - flutter pub pub run build_runner build
+      - dartfmt -w lib test
+    sources:
+      - lib/services/example_service.dart
+    generates:
+      - lib/services/example_service.*.dart
+    method: checksum
+
+  build_server:
+    dir: server
+    cmds:
+      - ../../../bin/webrpc-gen -schema=../example.ridl -target=dart -server -out=./lib/services/example_service.dart -pkg=example_service
+
+      - pub run build_runner build
+
+      - dartfmt -w bin lib test
+    sources:
+      - lib/services/example_service.dart
+    generates:
+      - lib/services/example_service.*.dart
+    method: checksum
+
+  run_server:
+    dir: server/bin
+    cmds:
+      - dart server.dart
+
+  run_client:
+    dir: client
+    cmds:
+      - flutter run -d chrome
+
+  install:
+    deps: [install_client, install_server]
+    cmds:
+      - echo installing client and server dependencies.
+
+  build:
+    deps: [build_client, build_server]
+    cmds:
+      - echo building client and server
+
+  main:
+    cmds:
+      - task: install
+      - task: build
+      - task: run_server
+      - task: run_client
+      - echo app is running.

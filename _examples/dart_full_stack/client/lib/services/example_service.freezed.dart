@@ -3302,8 +3302,8 @@ class _$RpcResponseTearOff {
     );
   }
 
-  _RpcResponsePending<T> pending<T>() {
-    return _RpcResponsePending<T>();
+  _RpcResponseLoading<T> loading<T>() {
+    return _RpcResponseLoading<T>();
   }
 }
 
@@ -3315,26 +3315,26 @@ mixin _$RpcResponse<T> {
   Result when<Result extends Object>({
     @required Result ok(T data),
     @required Result err(String reason, int statusCode, String stackTrace),
-    @required Result pending(),
+    @required Result loading(),
   });
   @optionalTypeArgs
   Result maybeWhen<Result extends Object>({
     Result ok(T data),
     Result err(String reason, int statusCode, String stackTrace),
-    Result pending(),
+    Result loading(),
     @required Result orElse(),
   });
   @optionalTypeArgs
   Result map<Result extends Object>({
     @required Result ok(_RpcResponseOk<T> value),
     @required Result err(_RpcResonseErr<T> value),
-    @required Result pending(_RpcResponsePending<T> value),
+    @required Result loading(_RpcResponseLoading<T> value),
   });
   @optionalTypeArgs
   Result maybeMap<Result extends Object>({
     Result ok(_RpcResponseOk<T> value),
     Result err(_RpcResonseErr<T> value),
-    Result pending(_RpcResponsePending<T> value),
+    Result loading(_RpcResponseLoading<T> value),
     @required Result orElse(),
   });
 }
@@ -3423,11 +3423,11 @@ class _$_RpcResponseOk<T>
   Result when<Result extends Object>({
     @required Result ok(T data),
     @required Result err(String reason, int statusCode, String stackTrace),
-    @required Result pending(),
+    @required Result loading(),
   }) {
     assert(ok != null);
     assert(err != null);
-    assert(pending != null);
+    assert(loading != null);
     return ok(data);
   }
 
@@ -3436,7 +3436,7 @@ class _$_RpcResponseOk<T>
   Result maybeWhen<Result extends Object>({
     Result ok(T data),
     Result err(String reason, int statusCode, String stackTrace),
-    Result pending(),
+    Result loading(),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -3451,11 +3451,11 @@ class _$_RpcResponseOk<T>
   Result map<Result extends Object>({
     @required Result ok(_RpcResponseOk<T> value),
     @required Result err(_RpcResonseErr<T> value),
-    @required Result pending(_RpcResponsePending<T> value),
+    @required Result loading(_RpcResponseLoading<T> value),
   }) {
     assert(ok != null);
     assert(err != null);
-    assert(pending != null);
+    assert(loading != null);
     return ok(this);
   }
 
@@ -3464,7 +3464,7 @@ class _$_RpcResponseOk<T>
   Result maybeMap<Result extends Object>({
     Result ok(_RpcResponseOk<T> value),
     Result err(_RpcResonseErr<T> value),
-    Result pending(_RpcResponsePending<T> value),
+    Result loading(_RpcResponseLoading<T> value),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -3574,11 +3574,11 @@ class _$_RpcResonseErr<T>
   Result when<Result extends Object>({
     @required Result ok(T data),
     @required Result err(String reason, int statusCode, String stackTrace),
-    @required Result pending(),
+    @required Result loading(),
   }) {
     assert(ok != null);
     assert(err != null);
-    assert(pending != null);
+    assert(loading != null);
     return err(reason, statusCode, stackTrace);
   }
 
@@ -3587,7 +3587,7 @@ class _$_RpcResonseErr<T>
   Result maybeWhen<Result extends Object>({
     Result ok(T data),
     Result err(String reason, int statusCode, String stackTrace),
-    Result pending(),
+    Result loading(),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -3602,11 +3602,11 @@ class _$_RpcResonseErr<T>
   Result map<Result extends Object>({
     @required Result ok(_RpcResponseOk<T> value),
     @required Result err(_RpcResonseErr<T> value),
-    @required Result pending(_RpcResponsePending<T> value),
+    @required Result loading(_RpcResponseLoading<T> value),
   }) {
     assert(ok != null);
     assert(err != null);
-    assert(pending != null);
+    assert(loading != null);
     return err(this);
   }
 
@@ -3615,7 +3615,7 @@ class _$_RpcResonseErr<T>
   Result maybeMap<Result extends Object>({
     Result ok(_RpcResponseOk<T> value),
     Result err(_RpcResonseErr<T> value),
-    Result pending(_RpcResponsePending<T> value),
+    Result loading(_RpcResponseLoading<T> value),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -3638,42 +3638,42 @@ abstract class _RpcResonseErr<T> implements RpcResponse<T> {
   _$RpcResonseErrCopyWith<T, _RpcResonseErr<T>> get copyWith;
 }
 
-abstract class _$RpcResponsePendingCopyWith<T, $Res> {
-  factory _$RpcResponsePendingCopyWith(_RpcResponsePending<T> value,
-          $Res Function(_RpcResponsePending<T>) then) =
-      __$RpcResponsePendingCopyWithImpl<T, $Res>;
+abstract class _$RpcResponseLoadingCopyWith<T, $Res> {
+  factory _$RpcResponseLoadingCopyWith(_RpcResponseLoading<T> value,
+          $Res Function(_RpcResponseLoading<T>) then) =
+      __$RpcResponseLoadingCopyWithImpl<T, $Res>;
 }
 
-class __$RpcResponsePendingCopyWithImpl<T, $Res>
+class __$RpcResponseLoadingCopyWithImpl<T, $Res>
     extends _$RpcResponseCopyWithImpl<T, $Res>
-    implements _$RpcResponsePendingCopyWith<T, $Res> {
-  __$RpcResponsePendingCopyWithImpl(_RpcResponsePending<T> _value,
-      $Res Function(_RpcResponsePending<T>) _then)
-      : super(_value, (v) => _then(v as _RpcResponsePending<T>));
+    implements _$RpcResponseLoadingCopyWith<T, $Res> {
+  __$RpcResponseLoadingCopyWithImpl(_RpcResponseLoading<T> _value,
+      $Res Function(_RpcResponseLoading<T>) _then)
+      : super(_value, (v) => _then(v as _RpcResponseLoading<T>));
 
   @override
-  _RpcResponsePending<T> get _value => super._value as _RpcResponsePending<T>;
+  _RpcResponseLoading<T> get _value => super._value as _RpcResponseLoading<T>;
 }
 
-class _$_RpcResponsePending<T>
+class _$_RpcResponseLoading<T>
     with DiagnosticableTreeMixin
-    implements _RpcResponsePending<T> {
-  const _$_RpcResponsePending();
+    implements _RpcResponseLoading<T> {
+  const _$_RpcResponseLoading();
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'RpcResponse<$T>.pending()';
+    return 'RpcResponse<$T>.loading()';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties..add(DiagnosticsProperty('type', 'RpcResponse<$T>.pending'));
+    properties..add(DiagnosticsProperty('type', 'RpcResponse<$T>.loading'));
   }
 
   @override
   bool operator ==(dynamic other) {
-    return identical(this, other) || (other is _RpcResponsePending<T>);
+    return identical(this, other) || (other is _RpcResponseLoading<T>);
   }
 
   @override
@@ -3684,12 +3684,12 @@ class _$_RpcResponsePending<T>
   Result when<Result extends Object>({
     @required Result ok(T data),
     @required Result err(String reason, int statusCode, String stackTrace),
-    @required Result pending(),
+    @required Result loading(),
   }) {
     assert(ok != null);
     assert(err != null);
-    assert(pending != null);
-    return pending();
+    assert(loading != null);
+    return loading();
   }
 
   @override
@@ -3697,12 +3697,12 @@ class _$_RpcResponsePending<T>
   Result maybeWhen<Result extends Object>({
     Result ok(T data),
     Result err(String reason, int statusCode, String stackTrace),
-    Result pending(),
+    Result loading(),
     @required Result orElse(),
   }) {
     assert(orElse != null);
-    if (pending != null) {
-      return pending();
+    if (loading != null) {
+      return loading();
     }
     return orElse();
   }
@@ -3712,12 +3712,12 @@ class _$_RpcResponsePending<T>
   Result map<Result extends Object>({
     @required Result ok(_RpcResponseOk<T> value),
     @required Result err(_RpcResonseErr<T> value),
-    @required Result pending(_RpcResponsePending<T> value),
+    @required Result loading(_RpcResponseLoading<T> value),
   }) {
     assert(ok != null);
     assert(err != null);
-    assert(pending != null);
-    return pending(this);
+    assert(loading != null);
+    return loading(this);
   }
 
   @override
@@ -3725,17 +3725,17 @@ class _$_RpcResponsePending<T>
   Result maybeMap<Result extends Object>({
     Result ok(_RpcResponseOk<T> value),
     Result err(_RpcResonseErr<T> value),
-    Result pending(_RpcResponsePending<T> value),
+    Result loading(_RpcResponseLoading<T> value),
     @required Result orElse(),
   }) {
     assert(orElse != null);
-    if (pending != null) {
-      return pending(this);
+    if (loading != null) {
+      return loading(this);
     }
     return orElse();
   }
 }
 
-abstract class _RpcResponsePending<T> implements RpcResponse<T> {
-  const factory _RpcResponsePending() = _$_RpcResponsePending<T>;
+abstract class _RpcResponseLoading<T> implements RpcResponse<T> {
+  const factory _RpcResponseLoading() = _$_RpcResponseLoading<T>;
 }
