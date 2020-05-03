@@ -11,6 +11,13 @@ import 'package:http/http.dart' as http;
 {{if .TargetOpts.Extra | useFlutter}}
 import 'package:flutter/foundation.dart';
 {{end}}
+{{if .TargetOpts.Extra | useFlutterBloc}}
+import 'package:flutter/foundation.dart';
+import 'package:bloc/bloc.dart';
+{{end}}
+{{if .TargetOpts.Extra | useAngularBloc}}
+import 'package:bloc/bloc.dart';
+{{end}}
 {{end}}
 {{if .TargetOpts.Server}}
 import 'package:args/args.dart';
@@ -51,6 +58,9 @@ String WebRPCSchemaHash() {
 {{end -}}
 
 {{if .TargetOpts.Client}}
+  {{if .TargetOpts.Extra | useBloc}}
+  {{template "bloc_helpers" .}}
+  {{end}}
   {{template "client" .}}
 {{end -}}
 

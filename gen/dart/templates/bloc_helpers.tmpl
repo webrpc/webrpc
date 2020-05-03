@@ -1,0 +1,72 @@
+{{define "bloc_helpers"}}
+{{- if .Services -}}
+{{range .Services}}
+// **********************************************************************
+// {{.Name}} Bloc Events.
+// **********************************************************************
+{{$serviceName := .Name}}
+@freezed
+abstract class {{$serviceName}}Event with _${{$serviceName}}Event {
+{{range .Methods}}
+factory {{$serviceName}}Event.{{.Name | methodName}}({
+  {{if .Inputs}}
+  {{- range .Inputs}}
+  {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+  {{- end -}} {{/* end of range .Inputs */}}
+  {{- range .Inputs}}
+  {{if .Optional}}
+  {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+{{- end}} {{/* end of range .Inputs */}}
+{{- end}} {{/* end of if .Inputs */}}
+  Map<String, String> headers,
+  }) = _{{.Name}}Event;
+{{- end -}} {{/* end of range .Methods */}}
+}
+// ***********************************************************************
+// {{.Name}} Bloc State.
+// ***********************************************************************
+@freezed
+abstract class {{$serviceName}}State {
+    {{range .Methods -}}
+  factory {{$serviceName}}State.{{. | blocStateFactory}}({{if .Outputs}} {
+    {{- range .Outputs}}
+  {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+  {{- end -}} {{/* end of range .Outputs */}}
+  {{- range .Outputs }}
+  {{- if .Optional}}
+  {{.Type | fieldType}} {{.Name}},
+  {{- end -}}
+  {{- end -}}
+  } {{end}}) = {{. | methodArgumentOutputClassName}};
+    {{end}} {{/* end of range .Methods */}}
+  factory {{$serviceName}}State.fromJson(Map<String, dynamic> json) => _${{$serviceName}}StateFromJson(json);
+}
+// ***********************************************************************
+// {{.Name}} Bloc.
+// ***********************************************************************
+class {{.Name}}Bloc extends Bloc<{{.Name}}Event, RpcState<{{.Name}}State>> {
+    final {{.Name}} {{.Name | downcaseName}};
+    {{range .Methods}}
+    {{. | methodOutputsClientBloc}} get {{.Name | methodName}}Result$ => this.where((state) => state is {{. | methodOutputsClientBloc}},); 
+    {{end}} {{/* end of range .Methods */}}
+    {{.Name}}Bloc({@required this.{{.Name | downcaseName}},
+    });
+    @override
+    RpcState<{{.Name}}State> get initialState => const RpcState.idle();
+    @override
+    Stream<RpcState<{{.Name}}State>> mapEventToState({{.Name}}Event event,) async* {
+        await for (final RpcState<{{.Name}}State> state in event.when(
+            {{range .Methods}}
+            {{.Name | methodName}}: ({{if .Inputs}}{{- range .Inputs}}{{.Name}},{{end}}{{end}}headers) => {{$serviceName | downcaseName}}.{{.Name | methodName}}({{if .Inputs}}{{- range .Inputs}}{{.Name}}: {{.Name}},{{end}}{{end}}headers:headers,),
+            {{end}} {{/* end of range .Methods */}}
+        )) {
+            yield state;
+        }
+    }
+}
+{{- end -}} {{/* end of range .Services */}}
+{{- end -}} {{/* end of if .Services */}}
+{{end}} {{/* end of top level define */}}

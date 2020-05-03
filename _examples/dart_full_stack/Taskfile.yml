@@ -14,7 +14,7 @@ tasks:
   build_client:
     dir: client
     cmds:
-      - ../../../bin/webrpc-gen -schema=../example.ridl -target=dart -client -out=./lib/features/users/data/datasources/example/example_service.dart -pkg=example_service -extra="flutter"
+      - ../../../bin/webrpc-gen -schema=../example.ridl -target=dart -client -out=./lib/features/users/data/datasources/example/example_service.dart -pkg=example_service -extra="flutter_bloc"
 
       - flutter pub pub run build_runner build
       - dartfmt -w lib test

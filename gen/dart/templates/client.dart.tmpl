@@ -1,14 +1,14 @@
 {{define "client"}}
-
+{{$use_bloc := .TargetOpts.Extra}}
 {{if .Services}}
 
 // *********************************************************************
 // Service Interfaces. Useful for testing purposes.
 // *********************************************************************
 {{range .Services}}
-abstract class {{.Name}}Rpc {
+abstract class {{.Name}} {
   {{range .Methods}}
-  {{. | methodOutputsClient}} {{.Name | methodName}}({
+  {{if $use_bloc | useBloc}}{{. | methodOutputsClientBloc}}{{else}}{{. | methodOutputsClient}}{{end}} {{.Name | methodName}}({
   {{if .Inputs}}
   {{- range .Inputs}}
   {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
@@ -29,24 +29,34 @@ abstract class {{.Name}}Rpc {
 // RpcResponse TYPE.
 // *********************************************************************
 
-// This class provides type safe access to the state of an RpcRequest 
+// This class provides type safe access to the state of an Rpc Request 
 // and it's Response data. Can be used easily with Bloc. For more info See https://www.azavea.com/blog/2019/12/12/modeling-state-with-typescript/
 // See https://pub.dev/packages/freezed to learn how to use this type.
 @freezed
-abstract class RpcResponse<T> with _$RpcResponse<T> {
-  factory RpcResponse.ok({@required T data,}) = _RpcResponseOk<T>;
-  const factory RpcResponse.err({@required String reason, @required int statusCode, String stackTrace,}) = _RpcResonseErr<T>;
-  const factory RpcResponse.loading() = _RpcResponseLoading<T>;
+abstract class RpcState<T> with _$RpcState<T> {
+  // initial state prior to any request being made.
+  const factory RpcState.idle() = _RpcStateIdle<T>;
+  // request has been made and awaiting a response.
+  const factory RpcState.loading() = _RpcStateLoading<T>;
+  // request made and returned successfully with data.
+  const factory RpcState.ok({@required T data,}) = _RpcStateOk<T>;
+  // request made and returned successfully without data.
+  const factory RpcState.unit() = _RpcStateUnit<T>;
+  // request returned an error with a message and status code.
+  // The optional stackTrace is useful for debugging exceptions
+  // thrown in Rpc client methods.
+  const factory RpcState.err({@required String reason, @required int statusCode, String stackTrace,}) = _RpcStateErr<T>;
 }
 // ***********************************************************************
 // WEBRPC-DART SERVICE CLIENTS.
 // ***********************************************************************
 
 {{range .Services}}
-class {{.Name}} implements {{.Name}}Rpc {
+{{$serviceName := .Name}}
+class {{.Name}}Rpc implements {{.Name}} {
   final String host;
   String _srvcPath = '/rpc/{{.Name}}/';
-  {{.Name}}({
+  {{.Name}}Rpc({
     this.host = 'localhost',
   }) {
       _srvcPath = '${_removeSlash(host)}/rpc/{{.Name}}/';
@@ -74,7 +84,7 @@ class {{.Name}} implements {{.Name}}Rpc {
  
   {{range .Methods}}
   @override
-  {{. | methodOutputsClient}} {{.Name | methodName}}({
+  {{if $use_bloc | useBloc}}{{. | methodOutputsClientBloc}}{{else}}{{. | methodOutputsClient}}{{end}} {{.Name | methodName}}({
   {{if .Inputs}}
   {{- range .Inputs}}
   {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
@@ -88,7 +98,7 @@ class {{.Name}} implements {{.Name}}Rpc {
 {{- end}} {{/* end of if .Inputs */}}
   Map<String, String> headers,
   }) async* {
-      yield const RpcResponse.loading();
+      yield const RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.loading();
       try {
         {{- if .Inputs | len}} {{/* if method has args */}}
           final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}({{- range .Inputs}}{{.Name}}:{{.Name}},{{- end}});
@@ -101,15 +111,19 @@ class {{.Name}} implements {{.Name}}Rpc {
 
           if (!_nonErrorcodes.contains(response.statusCode)) {
             final _RpcErr err = _getErr(response);
-            yield RpcResponse.err(
+            yield RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.err(
                 reason: err.message,
                 statusCode: err.httpErr.code,
                 );
           }
-          yield RpcResponse.ok(data:{{if .Outputs | len}} {{. | methodArgumentOutputClassName}}.fromJson(
-              jsonDecode(response.body,),),{{else}} response.statusCode,{{end}});
+          {{if .Outputs | len}}
+          yield RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.ok(data: {{if $use_bloc | useBloc}}{{$serviceName}}State{{else}}{{. | methodArgumentOutputClassName}}{{end}}.fromJson(
+              jsonDecode(response.body,),),);
+          {{else}}
+          yield const RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.unit();
+              {{end}}
       } on Exception catch (e, stackTrace) {
-        yield RpcResponse.err(
+        yield RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.err(
           statusCode: 400,
           reason: e.toString(),
           stackTrace: stackTrace.toString(),

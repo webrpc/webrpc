@@ -1,4 +1,5 @@
 {{define "types"}}
+{{$use_bloc := .TargetOpts.Extra}}
 // **********************************************************************
 // MESSAGE TYPES.
 // **********************************************************************
@@ -67,12 +68,20 @@ abstract class _{{. | methodArgumentInputClassName}} with _$_{{. | methodArgumen
 {{- end -}} {{/* end of if .Inputs */}}
 {{- end -}} {{/* end of range .Methods */}}
 
+{{if $use_bloc | useBloc}}
+{{if $isClient}}
+{{end}} {{/* end of if $isClient */}}
+{{else}}
 // *********************************************************************
 // {{.Name}} METHOD RETURN TYPES.
 // *********************************************************************
+{{end}}
 {{range .Methods -}}
 {{if .Outputs}}
-
+{{if $use_bloc | useBloc}}
+{{if $isClient}}
+{{end}} {{/* end of if $isClient */}}
+{{else}}
 @freezed
 abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgumentOutputClassName}} {
   @JsonSerializable(explicitToJson: true)
@@ -89,6 +98,7 @@ abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgument
   }) = _{{. | methodArgumentOutputClassName}};
   factory {{. | methodArgumentOutputClassName}}.fromJson(Map<String, dynamic> json) => _${{. | methodArgumentOutputClassName}}FromJson(json);
 }
+{{end}} {{/* end of if $use_bloc */}}
 {{end}} {{/* end of if .Outputs */}}
 {{- end -}} {{/* end of range .Methods */}}
 {{- end -}}  {{/* end of range .Services For Inputs and Outputs */}}

@@ -1933,28 +1933,2077 @@ abstract class _DeleteUserArgs_Freezed implements _DeleteUserArgs {
   _$DeleteUserArgs_FreezedCopyWith<_DeleteUserArgs_Freezed> get copyWith;
 }
 
-StatusResult _$StatusResultFromJson(Map<String, dynamic> json) {
-  return _StatusResult.fromJson(json);
-}
+class _$ExampleServiceEventTearOff {
+  const _$ExampleServiceEventTearOff();
 
-class _$StatusResultTearOff {
-  const _$StatusResultTearOff();
+  _PingEvent ping({Map<String, String> headers}) {
+    return _PingEvent(
+      headers: headers,
+    );
+  }
 
-  _StatusResult call({@required bool status}) {
-    return _StatusResult(
-      status: status,
+  _StatusEvent status({Map<String, String> headers}) {
+    return _StatusEvent(
+      headers: headers,
+    );
+  }
+
+  _VersionEvent version({Map<String, String> headers}) {
+    return _VersionEvent(
+      headers: headers,
+    );
+  }
+
+  _GetUserEvent getUser({@required int userID, Map<String, String> headers}) {
+    return _GetUserEvent(
+      userID: userID,
+      headers: headers,
+    );
+  }
+
+  _UpdateNameEvent updateName(
+      {@required int id,
+      @required String username,
+      Map<String, String> headers}) {
+    return _UpdateNameEvent(
+      id: id,
+      username: username,
+      headers: headers,
+    );
+  }
+
+  _FindUserByIdEvent findUserById(
+      {@required SearchFilter s, Map<String, String> headers}) {
+    return _FindUserByIdEvent(
+      s: s,
+      headers: headers,
+    );
+  }
+
+  _AddUserEvent addUser({@required User user, Map<String, String> headers}) {
+    return _AddUserEvent(
+      user: user,
+      headers: headers,
+    );
+  }
+
+  _ListUsersEvent listUsers({Map<String, String> headers}) {
+    return _ListUsersEvent(
+      headers: headers,
+    );
+  }
+
+  _DeleteUserEvent deleteUser({@required int id, Map<String, String> headers}) {
+    return _DeleteUserEvent(
+      id: id,
+      headers: headers,
     );
   }
 }
 
 // ignore: unused_element
-const $StatusResult = _$StatusResultTearOff();
+const $ExampleServiceEvent = _$ExampleServiceEventTearOff();
 
-mixin _$StatusResult {
-  bool get status;
+mixin _$ExampleServiceEvent {
+  Map<String, String> get headers;
 
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result ping(Map<String, String> headers),
+    @required Result status(Map<String, String> headers),
+    @required Result version(Map<String, String> headers),
+    @required Result getUser(int userID, Map<String, String> headers),
+    @required
+        Result updateName(int id, String username, Map<String, String> headers),
+    @required Result findUserById(SearchFilter s, Map<String, String> headers),
+    @required Result addUser(User user, Map<String, String> headers),
+    @required Result listUsers(Map<String, String> headers),
+    @required Result deleteUser(int id, Map<String, String> headers),
+  });
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result ping(Map<String, String> headers),
+    Result status(Map<String, String> headers),
+    Result version(Map<String, String> headers),
+    Result getUser(int userID, Map<String, String> headers),
+    Result updateName(int id, String username, Map<String, String> headers),
+    Result findUserById(SearchFilter s, Map<String, String> headers),
+    Result addUser(User user, Map<String, String> headers),
+    Result listUsers(Map<String, String> headers),
+    Result deleteUser(int id, Map<String, String> headers),
+    @required Result orElse(),
+  });
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result ping(_PingEvent value),
+    @required Result status(_StatusEvent value),
+    @required Result version(_VersionEvent value),
+    @required Result getUser(_GetUserEvent value),
+    @required Result updateName(_UpdateNameEvent value),
+    @required Result findUserById(_FindUserByIdEvent value),
+    @required Result addUser(_AddUserEvent value),
+    @required Result listUsers(_ListUsersEvent value),
+    @required Result deleteUser(_DeleteUserEvent value),
+  });
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result ping(_PingEvent value),
+    Result status(_StatusEvent value),
+    Result version(_VersionEvent value),
+    Result getUser(_GetUserEvent value),
+    Result updateName(_UpdateNameEvent value),
+    Result findUserById(_FindUserByIdEvent value),
+    Result addUser(_AddUserEvent value),
+    Result listUsers(_ListUsersEvent value),
+    Result deleteUser(_DeleteUserEvent value),
+    @required Result orElse(),
+  });
+
+  $ExampleServiceEventCopyWith<ExampleServiceEvent> get copyWith;
+}
+
+abstract class $ExampleServiceEventCopyWith<$Res> {
+  factory $ExampleServiceEventCopyWith(
+          ExampleServiceEvent value, $Res Function(ExampleServiceEvent) then) =
+      _$ExampleServiceEventCopyWithImpl<$Res>;
+  $Res call({Map<String, String> headers});
+}
+
+class _$ExampleServiceEventCopyWithImpl<$Res>
+    implements $ExampleServiceEventCopyWith<$Res> {
+  _$ExampleServiceEventCopyWithImpl(this._value, this._then);
+
+  final ExampleServiceEvent _value;
+  // ignore: unused_field
+  final $Res Function(ExampleServiceEvent) _then;
+
+  @override
+  $Res call({
+    Object headers = freezed,
+  }) {
+    return _then(_value.copyWith(
+      headers:
+          headers == freezed ? _value.headers : headers as Map<String, String>,
+    ));
+  }
+}
+
+abstract class _$PingEventCopyWith<$Res>
+    implements $ExampleServiceEventCopyWith<$Res> {
+  factory _$PingEventCopyWith(
+          _PingEvent value, $Res Function(_PingEvent) then) =
+      __$PingEventCopyWithImpl<$Res>;
+  @override
+  $Res call({Map<String, String> headers});
+}
+
+class __$PingEventCopyWithImpl<$Res>
+    extends _$ExampleServiceEventCopyWithImpl<$Res>
+    implements _$PingEventCopyWith<$Res> {
+  __$PingEventCopyWithImpl(_PingEvent _value, $Res Function(_PingEvent) _then)
+      : super(_value, (v) => _then(v as _PingEvent));
+
+  @override
+  _PingEvent get _value => super._value as _PingEvent;
+
+  @override
+  $Res call({
+    Object headers = freezed,
+  }) {
+    return _then(_PingEvent(
+      headers:
+          headers == freezed ? _value.headers : headers as Map<String, String>,
+    ));
+  }
+}
+
+class _$_PingEvent with DiagnosticableTreeMixin implements _PingEvent {
+  _$_PingEvent({this.headers});
+
+  @override
+  final Map<String, String> headers;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'ExampleServiceEvent.ping(headers: $headers)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ExampleServiceEvent.ping'))
+      ..add(DiagnosticsProperty('headers', headers));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _PingEvent &&
+            (identical(other.headers, headers) ||
+                const DeepCollectionEquality().equals(other.headers, headers)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(headers);
+
+  @override
+  _$PingEventCopyWith<_PingEvent> get copyWith =>
+      __$PingEventCopyWithImpl<_PingEvent>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result ping(Map<String, String> headers),
+    @required Result status(Map<String, String> headers),
+    @required Result version(Map<String, String> headers),
+    @required Result getUser(int userID, Map<String, String> headers),
+    @required
+        Result updateName(int id, String username, Map<String, String> headers),
+    @required Result findUserById(SearchFilter s, Map<String, String> headers),
+    @required Result addUser(User user, Map<String, String> headers),
+    @required Result listUsers(Map<String, String> headers),
+    @required Result deleteUser(int id, Map<String, String> headers),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return ping(headers);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result ping(Map<String, String> headers),
+    Result status(Map<String, String> headers),
+    Result version(Map<String, String> headers),
+    Result getUser(int userID, Map<String, String> headers),
+    Result updateName(int id, String username, Map<String, String> headers),
+    Result findUserById(SearchFilter s, Map<String, String> headers),
+    Result addUser(User user, Map<String, String> headers),
+    Result listUsers(Map<String, String> headers),
+    Result deleteUser(int id, Map<String, String> headers),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (ping != null) {
+      return ping(headers);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result ping(_PingEvent value),
+    @required Result status(_StatusEvent value),
+    @required Result version(_VersionEvent value),
+    @required Result getUser(_GetUserEvent value),
+    @required Result updateName(_UpdateNameEvent value),
+    @required Result findUserById(_FindUserByIdEvent value),
+    @required Result addUser(_AddUserEvent value),
+    @required Result listUsers(_ListUsersEvent value),
+    @required Result deleteUser(_DeleteUserEvent value),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return ping(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result ping(_PingEvent value),
+    Result status(_StatusEvent value),
+    Result version(_VersionEvent value),
+    Result getUser(_GetUserEvent value),
+    Result updateName(_UpdateNameEvent value),
+    Result findUserById(_FindUserByIdEvent value),
+    Result addUser(_AddUserEvent value),
+    Result listUsers(_ListUsersEvent value),
+    Result deleteUser(_DeleteUserEvent value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (ping != null) {
+      return ping(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _PingEvent implements ExampleServiceEvent {
+  factory _PingEvent({Map<String, String> headers}) = _$_PingEvent;
+
+  @override
+  Map<String, String> get headers;
+  @override
+  _$PingEventCopyWith<_PingEvent> get copyWith;
+}
+
+abstract class _$StatusEventCopyWith<$Res>
+    implements $ExampleServiceEventCopyWith<$Res> {
+  factory _$StatusEventCopyWith(
+          _StatusEvent value, $Res Function(_StatusEvent) then) =
+      __$StatusEventCopyWithImpl<$Res>;
+  @override
+  $Res call({Map<String, String> headers});
+}
+
+class __$StatusEventCopyWithImpl<$Res>
+    extends _$ExampleServiceEventCopyWithImpl<$Res>
+    implements _$StatusEventCopyWith<$Res> {
+  __$StatusEventCopyWithImpl(
+      _StatusEvent _value, $Res Function(_StatusEvent) _then)
+      : super(_value, (v) => _then(v as _StatusEvent));
+
+  @override
+  _StatusEvent get _value => super._value as _StatusEvent;
+
+  @override
+  $Res call({
+    Object headers = freezed,
+  }) {
+    return _then(_StatusEvent(
+      headers:
+          headers == freezed ? _value.headers : headers as Map<String, String>,
+    ));
+  }
+}
+
+class _$_StatusEvent with DiagnosticableTreeMixin implements _StatusEvent {
+  _$_StatusEvent({this.headers});
+
+  @override
+  final Map<String, String> headers;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'ExampleServiceEvent.status(headers: $headers)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ExampleServiceEvent.status'))
+      ..add(DiagnosticsProperty('headers', headers));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _StatusEvent &&
+            (identical(other.headers, headers) ||
+                const DeepCollectionEquality().equals(other.headers, headers)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(headers);
+
+  @override
+  _$StatusEventCopyWith<_StatusEvent> get copyWith =>
+      __$StatusEventCopyWithImpl<_StatusEvent>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result ping(Map<String, String> headers),
+    @required Result status(Map<String, String> headers),
+    @required Result version(Map<String, String> headers),
+    @required Result getUser(int userID, Map<String, String> headers),
+    @required
+        Result updateName(int id, String username, Map<String, String> headers),
+    @required Result findUserById(SearchFilter s, Map<String, String> headers),
+    @required Result addUser(User user, Map<String, String> headers),
+    @required Result listUsers(Map<String, String> headers),
+    @required Result deleteUser(int id, Map<String, String> headers),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return status(headers);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result ping(Map<String, String> headers),
+    Result status(Map<String, String> headers),
+    Result version(Map<String, String> headers),
+    Result getUser(int userID, Map<String, String> headers),
+    Result updateName(int id, String username, Map<String, String> headers),
+    Result findUserById(SearchFilter s, Map<String, String> headers),
+    Result addUser(User user, Map<String, String> headers),
+    Result listUsers(Map<String, String> headers),
+    Result deleteUser(int id, Map<String, String> headers),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (status != null) {
+      return status(headers);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result ping(_PingEvent value),
+    @required Result status(_StatusEvent value),
+    @required Result version(_VersionEvent value),
+    @required Result getUser(_GetUserEvent value),
+    @required Result updateName(_UpdateNameEvent value),
+    @required Result findUserById(_FindUserByIdEvent value),
+    @required Result addUser(_AddUserEvent value),
+    @required Result listUsers(_ListUsersEvent value),
+    @required Result deleteUser(_DeleteUserEvent value),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return status(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result ping(_PingEvent value),
+    Result status(_StatusEvent value),
+    Result version(_VersionEvent value),
+    Result getUser(_GetUserEvent value),
+    Result updateName(_UpdateNameEvent value),
+    Result findUserById(_FindUserByIdEvent value),
+    Result addUser(_AddUserEvent value),
+    Result listUsers(_ListUsersEvent value),
+    Result deleteUser(_DeleteUserEvent value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (status != null) {
+      return status(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _StatusEvent implements ExampleServiceEvent {
+  factory _StatusEvent({Map<String, String> headers}) = _$_StatusEvent;
+
+  @override
+  Map<String, String> get headers;
+  @override
+  _$StatusEventCopyWith<_StatusEvent> get copyWith;
+}
+
+abstract class _$VersionEventCopyWith<$Res>
+    implements $ExampleServiceEventCopyWith<$Res> {
+  factory _$VersionEventCopyWith(
+          _VersionEvent value, $Res Function(_VersionEvent) then) =
+      __$VersionEventCopyWithImpl<$Res>;
+  @override
+  $Res call({Map<String, String> headers});
+}
+
+class __$VersionEventCopyWithImpl<$Res>
+    extends _$ExampleServiceEventCopyWithImpl<$Res>
+    implements _$VersionEventCopyWith<$Res> {
+  __$VersionEventCopyWithImpl(
+      _VersionEvent _value, $Res Function(_VersionEvent) _then)
+      : super(_value, (v) => _then(v as _VersionEvent));
+
+  @override
+  _VersionEvent get _value => super._value as _VersionEvent;
+
+  @override
+  $Res call({
+    Object headers = freezed,
+  }) {
+    return _then(_VersionEvent(
+      headers:
+          headers == freezed ? _value.headers : headers as Map<String, String>,
+    ));
+  }
+}
+
+class _$_VersionEvent with DiagnosticableTreeMixin implements _VersionEvent {
+  _$_VersionEvent({this.headers});
+
+  @override
+  final Map<String, String> headers;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'ExampleServiceEvent.version(headers: $headers)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ExampleServiceEvent.version'))
+      ..add(DiagnosticsProperty('headers', headers));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _VersionEvent &&
+            (identical(other.headers, headers) ||
+                const DeepCollectionEquality().equals(other.headers, headers)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(headers);
+
+  @override
+  _$VersionEventCopyWith<_VersionEvent> get copyWith =>
+      __$VersionEventCopyWithImpl<_VersionEvent>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result ping(Map<String, String> headers),
+    @required Result status(Map<String, String> headers),
+    @required Result version(Map<String, String> headers),
+    @required Result getUser(int userID, Map<String, String> headers),
+    @required
+        Result updateName(int id, String username, Map<String, String> headers),
+    @required Result findUserById(SearchFilter s, Map<String, String> headers),
+    @required Result addUser(User user, Map<String, String> headers),
+    @required Result listUsers(Map<String, String> headers),
+    @required Result deleteUser(int id, Map<String, String> headers),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return version(headers);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result ping(Map<String, String> headers),
+    Result status(Map<String, String> headers),
+    Result version(Map<String, String> headers),
+    Result getUser(int userID, Map<String, String> headers),
+    Result updateName(int id, String username, Map<String, String> headers),
+    Result findUserById(SearchFilter s, Map<String, String> headers),
+    Result addUser(User user, Map<String, String> headers),
+    Result listUsers(Map<String, String> headers),
+    Result deleteUser(int id, Map<String, String> headers),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (version != null) {
+      return version(headers);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result ping(_PingEvent value),
+    @required Result status(_StatusEvent value),
+    @required Result version(_VersionEvent value),
+    @required Result getUser(_GetUserEvent value),
+    @required Result updateName(_UpdateNameEvent value),
+    @required Result findUserById(_FindUserByIdEvent value),
+    @required Result addUser(_AddUserEvent value),
+    @required Result listUsers(_ListUsersEvent value),
+    @required Result deleteUser(_DeleteUserEvent value),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return version(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result ping(_PingEvent value),
+    Result status(_StatusEvent value),
+    Result version(_VersionEvent value),
+    Result getUser(_GetUserEvent value),
+    Result updateName(_UpdateNameEvent value),
+    Result findUserById(_FindUserByIdEvent value),
+    Result addUser(_AddUserEvent value),
+    Result listUsers(_ListUsersEvent value),
+    Result deleteUser(_DeleteUserEvent value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (version != null) {
+      return version(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _VersionEvent implements ExampleServiceEvent {
+  factory _VersionEvent({Map<String, String> headers}) = _$_VersionEvent;
+
+  @override
+  Map<String, String> get headers;
+  @override
+  _$VersionEventCopyWith<_VersionEvent> get copyWith;
+}
+
+abstract class _$GetUserEventCopyWith<$Res>
+    implements $ExampleServiceEventCopyWith<$Res> {
+  factory _$GetUserEventCopyWith(
+          _GetUserEvent value, $Res Function(_GetUserEvent) then) =
+      __$GetUserEventCopyWithImpl<$Res>;
+  @override
+  $Res call({int userID, Map<String, String> headers});
+}
+
+class __$GetUserEventCopyWithImpl<$Res>
+    extends _$ExampleServiceEventCopyWithImpl<$Res>
+    implements _$GetUserEventCopyWith<$Res> {
+  __$GetUserEventCopyWithImpl(
+      _GetUserEvent _value, $Res Function(_GetUserEvent) _then)
+      : super(_value, (v) => _then(v as _GetUserEvent));
+
+  @override
+  _GetUserEvent get _value => super._value as _GetUserEvent;
+
+  @override
+  $Res call({
+    Object userID = freezed,
+    Object headers = freezed,
+  }) {
+    return _then(_GetUserEvent(
+      userID: userID == freezed ? _value.userID : userID as int,
+      headers:
+          headers == freezed ? _value.headers : headers as Map<String, String>,
+    ));
+  }
+}
+
+class _$_GetUserEvent with DiagnosticableTreeMixin implements _GetUserEvent {
+  _$_GetUserEvent({@required this.userID, this.headers})
+      : assert(userID != null);
+
+  @override
+  final int userID;
+  @override
+  final Map<String, String> headers;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'ExampleServiceEvent.getUser(userID: $userID, headers: $headers)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ExampleServiceEvent.getUser'))
+      ..add(DiagnosticsProperty('userID', userID))
+      ..add(DiagnosticsProperty('headers', headers));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _GetUserEvent &&
+            (identical(other.userID, userID) ||
+                const DeepCollectionEquality().equals(other.userID, userID)) &&
+            (identical(other.headers, headers) ||
+                const DeepCollectionEquality().equals(other.headers, headers)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^
+      const DeepCollectionEquality().hash(userID) ^
+      const DeepCollectionEquality().hash(headers);
+
+  @override
+  _$GetUserEventCopyWith<_GetUserEvent> get copyWith =>
+      __$GetUserEventCopyWithImpl<_GetUserEvent>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result ping(Map<String, String> headers),
+    @required Result status(Map<String, String> headers),
+    @required Result version(Map<String, String> headers),
+    @required Result getUser(int userID, Map<String, String> headers),
+    @required
+        Result updateName(int id, String username, Map<String, String> headers),
+    @required Result findUserById(SearchFilter s, Map<String, String> headers),
+    @required Result addUser(User user, Map<String, String> headers),
+    @required Result listUsers(Map<String, String> headers),
+    @required Result deleteUser(int id, Map<String, String> headers),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return getUser(userID, headers);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result ping(Map<String, String> headers),
+    Result status(Map<String, String> headers),
+    Result version(Map<String, String> headers),
+    Result getUser(int userID, Map<String, String> headers),
+    Result updateName(int id, String username, Map<String, String> headers),
+    Result findUserById(SearchFilter s, Map<String, String> headers),
+    Result addUser(User user, Map<String, String> headers),
+    Result listUsers(Map<String, String> headers),
+    Result deleteUser(int id, Map<String, String> headers),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (getUser != null) {
+      return getUser(userID, headers);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result ping(_PingEvent value),
+    @required Result status(_StatusEvent value),
+    @required Result version(_VersionEvent value),
+    @required Result getUser(_GetUserEvent value),
+    @required Result updateName(_UpdateNameEvent value),
+    @required Result findUserById(_FindUserByIdEvent value),
+    @required Result addUser(_AddUserEvent value),
+    @required Result listUsers(_ListUsersEvent value),
+    @required Result deleteUser(_DeleteUserEvent value),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return getUser(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result ping(_PingEvent value),
+    Result status(_StatusEvent value),
+    Result version(_VersionEvent value),
+    Result getUser(_GetUserEvent value),
+    Result updateName(_UpdateNameEvent value),
+    Result findUserById(_FindUserByIdEvent value),
+    Result addUser(_AddUserEvent value),
+    Result listUsers(_ListUsersEvent value),
+    Result deleteUser(_DeleteUserEvent value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (getUser != null) {
+      return getUser(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _GetUserEvent implements ExampleServiceEvent {
+  factory _GetUserEvent({@required int userID, Map<String, String> headers}) =
+      _$_GetUserEvent;
+
+  int get userID;
+  @override
+  Map<String, String> get headers;
+  @override
+  _$GetUserEventCopyWith<_GetUserEvent> get copyWith;
+}
+
+abstract class _$UpdateNameEventCopyWith<$Res>
+    implements $ExampleServiceEventCopyWith<$Res> {
+  factory _$UpdateNameEventCopyWith(
+          _UpdateNameEvent value, $Res Function(_UpdateNameEvent) then) =
+      __$UpdateNameEventCopyWithImpl<$Res>;
+  @override
+  $Res call({int id, String username, Map<String, String> headers});
+}
+
+class __$UpdateNameEventCopyWithImpl<$Res>
+    extends _$ExampleServiceEventCopyWithImpl<$Res>
+    implements _$UpdateNameEventCopyWith<$Res> {
+  __$UpdateNameEventCopyWithImpl(
+      _UpdateNameEvent _value, $Res Function(_UpdateNameEvent) _then)
+      : super(_value, (v) => _then(v as _UpdateNameEvent));
+
+  @override
+  _UpdateNameEvent get _value => super._value as _UpdateNameEvent;
+
+  @override
+  $Res call({
+    Object id = freezed,
+    Object username = freezed,
+    Object headers = freezed,
+  }) {
+    return _then(_UpdateNameEvent(
+      id: id == freezed ? _value.id : id as int,
+      username: username == freezed ? _value.username : username as String,
+      headers:
+          headers == freezed ? _value.headers : headers as Map<String, String>,
+    ));
+  }
+}
+
+class _$_UpdateNameEvent
+    with DiagnosticableTreeMixin
+    implements _UpdateNameEvent {
+  _$_UpdateNameEvent({@required this.id, @required this.username, this.headers})
+      : assert(id != null),
+        assert(username != null);
+
+  @override
+  final int id;
+  @override
+  final String username;
+  @override
+  final Map<String, String> headers;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'ExampleServiceEvent.updateName(id: $id, username: $username, headers: $headers)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ExampleServiceEvent.updateName'))
+      ..add(DiagnosticsProperty('id', id))
+      ..add(DiagnosticsProperty('username', username))
+      ..add(DiagnosticsProperty('headers', headers));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _UpdateNameEvent &&
+            (identical(other.id, id) ||
+                const DeepCollectionEquality().equals(other.id, id)) &&
+            (identical(other.username, username) ||
+                const DeepCollectionEquality()
+                    .equals(other.username, username)) &&
+            (identical(other.headers, headers) ||
+                const DeepCollectionEquality().equals(other.headers, headers)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^
+      const DeepCollectionEquality().hash(id) ^
+      const DeepCollectionEquality().hash(username) ^
+      const DeepCollectionEquality().hash(headers);
+
+  @override
+  _$UpdateNameEventCopyWith<_UpdateNameEvent> get copyWith =>
+      __$UpdateNameEventCopyWithImpl<_UpdateNameEvent>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result ping(Map<String, String> headers),
+    @required Result status(Map<String, String> headers),
+    @required Result version(Map<String, String> headers),
+    @required Result getUser(int userID, Map<String, String> headers),
+    @required
+        Result updateName(int id, String username, Map<String, String> headers),
+    @required Result findUserById(SearchFilter s, Map<String, String> headers),
+    @required Result addUser(User user, Map<String, String> headers),
+    @required Result listUsers(Map<String, String> headers),
+    @required Result deleteUser(int id, Map<String, String> headers),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return updateName(id, username, headers);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result ping(Map<String, String> headers),
+    Result status(Map<String, String> headers),
+    Result version(Map<String, String> headers),
+    Result getUser(int userID, Map<String, String> headers),
+    Result updateName(int id, String username, Map<String, String> headers),
+    Result findUserById(SearchFilter s, Map<String, String> headers),
+    Result addUser(User user, Map<String, String> headers),
+    Result listUsers(Map<String, String> headers),
+    Result deleteUser(int id, Map<String, String> headers),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (updateName != null) {
+      return updateName(id, username, headers);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result ping(_PingEvent value),
+    @required Result status(_StatusEvent value),
+    @required Result version(_VersionEvent value),
+    @required Result getUser(_GetUserEvent value),
+    @required Result updateName(_UpdateNameEvent value),
+    @required Result findUserById(_FindUserByIdEvent value),
+    @required Result addUser(_AddUserEvent value),
+    @required Result listUsers(_ListUsersEvent value),
+    @required Result deleteUser(_DeleteUserEvent value),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return updateName(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result ping(_PingEvent value),
+    Result status(_StatusEvent value),
+    Result version(_VersionEvent value),
+    Result getUser(_GetUserEvent value),
+    Result updateName(_UpdateNameEvent value),
+    Result findUserById(_FindUserByIdEvent value),
+    Result addUser(_AddUserEvent value),
+    Result listUsers(_ListUsersEvent value),
+    Result deleteUser(_DeleteUserEvent value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (updateName != null) {
+      return updateName(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _UpdateNameEvent implements ExampleServiceEvent {
+  factory _UpdateNameEvent(
+      {@required int id,
+      @required String username,
+      Map<String, String> headers}) = _$_UpdateNameEvent;
+
+  int get id;
+  String get username;
+  @override
+  Map<String, String> get headers;
+  @override
+  _$UpdateNameEventCopyWith<_UpdateNameEvent> get copyWith;
+}
+
+abstract class _$FindUserByIdEventCopyWith<$Res>
+    implements $ExampleServiceEventCopyWith<$Res> {
+  factory _$FindUserByIdEventCopyWith(
+          _FindUserByIdEvent value, $Res Function(_FindUserByIdEvent) then) =
+      __$FindUserByIdEventCopyWithImpl<$Res>;
+  @override
+  $Res call({SearchFilter s, Map<String, String> headers});
+
+  $SearchFilterCopyWith<$Res> get s;
+}
+
+class __$FindUserByIdEventCopyWithImpl<$Res>
+    extends _$ExampleServiceEventCopyWithImpl<$Res>
+    implements _$FindUserByIdEventCopyWith<$Res> {
+  __$FindUserByIdEventCopyWithImpl(
+      _FindUserByIdEvent _value, $Res Function(_FindUserByIdEvent) _then)
+      : super(_value, (v) => _then(v as _FindUserByIdEvent));
+
+  @override
+  _FindUserByIdEvent get _value => super._value as _FindUserByIdEvent;
+
+  @override
+  $Res call({
+    Object s = freezed,
+    Object headers = freezed,
+  }) {
+    return _then(_FindUserByIdEvent(
+      s: s == freezed ? _value.s : s as SearchFilter,
+      headers:
+          headers == freezed ? _value.headers : headers as Map<String, String>,
+    ));
+  }
+
+  @override
+  $SearchFilterCopyWith<$Res> get s {
+    if (_value.s == null) {
+      return null;
+    }
+    return $SearchFilterCopyWith<$Res>(_value.s, (value) {
+      return _then(_value.copyWith(s: value));
+    });
+  }
+}
+
+class _$_FindUserByIdEvent
+    with DiagnosticableTreeMixin
+    implements _FindUserByIdEvent {
+  _$_FindUserByIdEvent({@required this.s, this.headers}) : assert(s != null);
+
+  @override
+  final SearchFilter s;
+  @override
+  final Map<String, String> headers;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'ExampleServiceEvent.findUserById(s: $s, headers: $headers)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ExampleServiceEvent.findUserById'))
+      ..add(DiagnosticsProperty('s', s))
+      ..add(DiagnosticsProperty('headers', headers));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _FindUserByIdEvent &&
+            (identical(other.s, s) ||
+                const DeepCollectionEquality().equals(other.s, s)) &&
+            (identical(other.headers, headers) ||
+                const DeepCollectionEquality().equals(other.headers, headers)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^
+      const DeepCollectionEquality().hash(s) ^
+      const DeepCollectionEquality().hash(headers);
+
+  @override
+  _$FindUserByIdEventCopyWith<_FindUserByIdEvent> get copyWith =>
+      __$FindUserByIdEventCopyWithImpl<_FindUserByIdEvent>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result ping(Map<String, String> headers),
+    @required Result status(Map<String, String> headers),
+    @required Result version(Map<String, String> headers),
+    @required Result getUser(int userID, Map<String, String> headers),
+    @required
+        Result updateName(int id, String username, Map<String, String> headers),
+    @required Result findUserById(SearchFilter s, Map<String, String> headers),
+    @required Result addUser(User user, Map<String, String> headers),
+    @required Result listUsers(Map<String, String> headers),
+    @required Result deleteUser(int id, Map<String, String> headers),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return findUserById(s, headers);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result ping(Map<String, String> headers),
+    Result status(Map<String, String> headers),
+    Result version(Map<String, String> headers),
+    Result getUser(int userID, Map<String, String> headers),
+    Result updateName(int id, String username, Map<String, String> headers),
+    Result findUserById(SearchFilter s, Map<String, String> headers),
+    Result addUser(User user, Map<String, String> headers),
+    Result listUsers(Map<String, String> headers),
+    Result deleteUser(int id, Map<String, String> headers),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (findUserById != null) {
+      return findUserById(s, headers);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result ping(_PingEvent value),
+    @required Result status(_StatusEvent value),
+    @required Result version(_VersionEvent value),
+    @required Result getUser(_GetUserEvent value),
+    @required Result updateName(_UpdateNameEvent value),
+    @required Result findUserById(_FindUserByIdEvent value),
+    @required Result addUser(_AddUserEvent value),
+    @required Result listUsers(_ListUsersEvent value),
+    @required Result deleteUser(_DeleteUserEvent value),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return findUserById(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result ping(_PingEvent value),
+    Result status(_StatusEvent value),
+    Result version(_VersionEvent value),
+    Result getUser(_GetUserEvent value),
+    Result updateName(_UpdateNameEvent value),
+    Result findUserById(_FindUserByIdEvent value),
+    Result addUser(_AddUserEvent value),
+    Result listUsers(_ListUsersEvent value),
+    Result deleteUser(_DeleteUserEvent value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (findUserById != null) {
+      return findUserById(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _FindUserByIdEvent implements ExampleServiceEvent {
+  factory _FindUserByIdEvent(
+      {@required SearchFilter s,
+      Map<String, String> headers}) = _$_FindUserByIdEvent;
+
+  SearchFilter get s;
+  @override
+  Map<String, String> get headers;
+  @override
+  _$FindUserByIdEventCopyWith<_FindUserByIdEvent> get copyWith;
+}
+
+abstract class _$AddUserEventCopyWith<$Res>
+    implements $ExampleServiceEventCopyWith<$Res> {
+  factory _$AddUserEventCopyWith(
+          _AddUserEvent value, $Res Function(_AddUserEvent) then) =
+      __$AddUserEventCopyWithImpl<$Res>;
+  @override
+  $Res call({User user, Map<String, String> headers});
+
+  $UserCopyWith<$Res> get user;
+}
+
+class __$AddUserEventCopyWithImpl<$Res>
+    extends _$ExampleServiceEventCopyWithImpl<$Res>
+    implements _$AddUserEventCopyWith<$Res> {
+  __$AddUserEventCopyWithImpl(
+      _AddUserEvent _value, $Res Function(_AddUserEvent) _then)
+      : super(_value, (v) => _then(v as _AddUserEvent));
+
+  @override
+  _AddUserEvent get _value => super._value as _AddUserEvent;
+
+  @override
+  $Res call({
+    Object user = freezed,
+    Object headers = freezed,
+  }) {
+    return _then(_AddUserEvent(
+      user: user == freezed ? _value.user : user as User,
+      headers:
+          headers == freezed ? _value.headers : headers as Map<String, String>,
+    ));
+  }
+
+  @override
+  $UserCopyWith<$Res> get user {
+    if (_value.user == null) {
+      return null;
+    }
+    return $UserCopyWith<$Res>(_value.user, (value) {
+      return _then(_value.copyWith(user: value));
+    });
+  }
+}
+
+class _$_AddUserEvent with DiagnosticableTreeMixin implements _AddUserEvent {
+  _$_AddUserEvent({@required this.user, this.headers}) : assert(user != null);
+
+  @override
+  final User user;
+  @override
+  final Map<String, String> headers;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'ExampleServiceEvent.addUser(user: $user, headers: $headers)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ExampleServiceEvent.addUser'))
+      ..add(DiagnosticsProperty('user', user))
+      ..add(DiagnosticsProperty('headers', headers));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _AddUserEvent &&
+            (identical(other.user, user) ||
+                const DeepCollectionEquality().equals(other.user, user)) &&
+            (identical(other.headers, headers) ||
+                const DeepCollectionEquality().equals(other.headers, headers)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^
+      const DeepCollectionEquality().hash(user) ^
+      const DeepCollectionEquality().hash(headers);
+
+  @override
+  _$AddUserEventCopyWith<_AddUserEvent> get copyWith =>
+      __$AddUserEventCopyWithImpl<_AddUserEvent>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result ping(Map<String, String> headers),
+    @required Result status(Map<String, String> headers),
+    @required Result version(Map<String, String> headers),
+    @required Result getUser(int userID, Map<String, String> headers),
+    @required
+        Result updateName(int id, String username, Map<String, String> headers),
+    @required Result findUserById(SearchFilter s, Map<String, String> headers),
+    @required Result addUser(User user, Map<String, String> headers),
+    @required Result listUsers(Map<String, String> headers),
+    @required Result deleteUser(int id, Map<String, String> headers),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return addUser(user, headers);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result ping(Map<String, String> headers),
+    Result status(Map<String, String> headers),
+    Result version(Map<String, String> headers),
+    Result getUser(int userID, Map<String, String> headers),
+    Result updateName(int id, String username, Map<String, String> headers),
+    Result findUserById(SearchFilter s, Map<String, String> headers),
+    Result addUser(User user, Map<String, String> headers),
+    Result listUsers(Map<String, String> headers),
+    Result deleteUser(int id, Map<String, String> headers),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (addUser != null) {
+      return addUser(user, headers);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result ping(_PingEvent value),
+    @required Result status(_StatusEvent value),
+    @required Result version(_VersionEvent value),
+    @required Result getUser(_GetUserEvent value),
+    @required Result updateName(_UpdateNameEvent value),
+    @required Result findUserById(_FindUserByIdEvent value),
+    @required Result addUser(_AddUserEvent value),
+    @required Result listUsers(_ListUsersEvent value),
+    @required Result deleteUser(_DeleteUserEvent value),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return addUser(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result ping(_PingEvent value),
+    Result status(_StatusEvent value),
+    Result version(_VersionEvent value),
+    Result getUser(_GetUserEvent value),
+    Result updateName(_UpdateNameEvent value),
+    Result findUserById(_FindUserByIdEvent value),
+    Result addUser(_AddUserEvent value),
+    Result listUsers(_ListUsersEvent value),
+    Result deleteUser(_DeleteUserEvent value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (addUser != null) {
+      return addUser(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _AddUserEvent implements ExampleServiceEvent {
+  factory _AddUserEvent({@required User user, Map<String, String> headers}) =
+      _$_AddUserEvent;
+
+  User get user;
+  @override
+  Map<String, String> get headers;
+  @override
+  _$AddUserEventCopyWith<_AddUserEvent> get copyWith;
+}
+
+abstract class _$ListUsersEventCopyWith<$Res>
+    implements $ExampleServiceEventCopyWith<$Res> {
+  factory _$ListUsersEventCopyWith(
+          _ListUsersEvent value, $Res Function(_ListUsersEvent) then) =
+      __$ListUsersEventCopyWithImpl<$Res>;
+  @override
+  $Res call({Map<String, String> headers});
+}
+
+class __$ListUsersEventCopyWithImpl<$Res>
+    extends _$ExampleServiceEventCopyWithImpl<$Res>
+    implements _$ListUsersEventCopyWith<$Res> {
+  __$ListUsersEventCopyWithImpl(
+      _ListUsersEvent _value, $Res Function(_ListUsersEvent) _then)
+      : super(_value, (v) => _then(v as _ListUsersEvent));
+
+  @override
+  _ListUsersEvent get _value => super._value as _ListUsersEvent;
+
+  @override
+  $Res call({
+    Object headers = freezed,
+  }) {
+    return _then(_ListUsersEvent(
+      headers:
+          headers == freezed ? _value.headers : headers as Map<String, String>,
+    ));
+  }
+}
+
+class _$_ListUsersEvent
+    with DiagnosticableTreeMixin
+    implements _ListUsersEvent {
+  _$_ListUsersEvent({this.headers});
+
+  @override
+  final Map<String, String> headers;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'ExampleServiceEvent.listUsers(headers: $headers)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ExampleServiceEvent.listUsers'))
+      ..add(DiagnosticsProperty('headers', headers));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _ListUsersEvent &&
+            (identical(other.headers, headers) ||
+                const DeepCollectionEquality().equals(other.headers, headers)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(headers);
+
+  @override
+  _$ListUsersEventCopyWith<_ListUsersEvent> get copyWith =>
+      __$ListUsersEventCopyWithImpl<_ListUsersEvent>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result ping(Map<String, String> headers),
+    @required Result status(Map<String, String> headers),
+    @required Result version(Map<String, String> headers),
+    @required Result getUser(int userID, Map<String, String> headers),
+    @required
+        Result updateName(int id, String username, Map<String, String> headers),
+    @required Result findUserById(SearchFilter s, Map<String, String> headers),
+    @required Result addUser(User user, Map<String, String> headers),
+    @required Result listUsers(Map<String, String> headers),
+    @required Result deleteUser(int id, Map<String, String> headers),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return listUsers(headers);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result ping(Map<String, String> headers),
+    Result status(Map<String, String> headers),
+    Result version(Map<String, String> headers),
+    Result getUser(int userID, Map<String, String> headers),
+    Result updateName(int id, String username, Map<String, String> headers),
+    Result findUserById(SearchFilter s, Map<String, String> headers),
+    Result addUser(User user, Map<String, String> headers),
+    Result listUsers(Map<String, String> headers),
+    Result deleteUser(int id, Map<String, String> headers),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (listUsers != null) {
+      return listUsers(headers);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result ping(_PingEvent value),
+    @required Result status(_StatusEvent value),
+    @required Result version(_VersionEvent value),
+    @required Result getUser(_GetUserEvent value),
+    @required Result updateName(_UpdateNameEvent value),
+    @required Result findUserById(_FindUserByIdEvent value),
+    @required Result addUser(_AddUserEvent value),
+    @required Result listUsers(_ListUsersEvent value),
+    @required Result deleteUser(_DeleteUserEvent value),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return listUsers(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result ping(_PingEvent value),
+    Result status(_StatusEvent value),
+    Result version(_VersionEvent value),
+    Result getUser(_GetUserEvent value),
+    Result updateName(_UpdateNameEvent value),
+    Result findUserById(_FindUserByIdEvent value),
+    Result addUser(_AddUserEvent value),
+    Result listUsers(_ListUsersEvent value),
+    Result deleteUser(_DeleteUserEvent value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (listUsers != null) {
+      return listUsers(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _ListUsersEvent implements ExampleServiceEvent {
+  factory _ListUsersEvent({Map<String, String> headers}) = _$_ListUsersEvent;
+
+  @override
+  Map<String, String> get headers;
+  @override
+  _$ListUsersEventCopyWith<_ListUsersEvent> get copyWith;
+}
+
+abstract class _$DeleteUserEventCopyWith<$Res>
+    implements $ExampleServiceEventCopyWith<$Res> {
+  factory _$DeleteUserEventCopyWith(
+          _DeleteUserEvent value, $Res Function(_DeleteUserEvent) then) =
+      __$DeleteUserEventCopyWithImpl<$Res>;
+  @override
+  $Res call({int id, Map<String, String> headers});
+}
+
+class __$DeleteUserEventCopyWithImpl<$Res>
+    extends _$ExampleServiceEventCopyWithImpl<$Res>
+    implements _$DeleteUserEventCopyWith<$Res> {
+  __$DeleteUserEventCopyWithImpl(
+      _DeleteUserEvent _value, $Res Function(_DeleteUserEvent) _then)
+      : super(_value, (v) => _then(v as _DeleteUserEvent));
+
+  @override
+  _DeleteUserEvent get _value => super._value as _DeleteUserEvent;
+
+  @override
+  $Res call({
+    Object id = freezed,
+    Object headers = freezed,
+  }) {
+    return _then(_DeleteUserEvent(
+      id: id == freezed ? _value.id : id as int,
+      headers:
+          headers == freezed ? _value.headers : headers as Map<String, String>,
+    ));
+  }
+}
+
+class _$_DeleteUserEvent
+    with DiagnosticableTreeMixin
+    implements _DeleteUserEvent {
+  _$_DeleteUserEvent({@required this.id, this.headers}) : assert(id != null);
+
+  @override
+  final int id;
+  @override
+  final Map<String, String> headers;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'ExampleServiceEvent.deleteUser(id: $id, headers: $headers)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ExampleServiceEvent.deleteUser'))
+      ..add(DiagnosticsProperty('id', id))
+      ..add(DiagnosticsProperty('headers', headers));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _DeleteUserEvent &&
+            (identical(other.id, id) ||
+                const DeepCollectionEquality().equals(other.id, id)) &&
+            (identical(other.headers, headers) ||
+                const DeepCollectionEquality().equals(other.headers, headers)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^
+      const DeepCollectionEquality().hash(id) ^
+      const DeepCollectionEquality().hash(headers);
+
+  @override
+  _$DeleteUserEventCopyWith<_DeleteUserEvent> get copyWith =>
+      __$DeleteUserEventCopyWithImpl<_DeleteUserEvent>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result ping(Map<String, String> headers),
+    @required Result status(Map<String, String> headers),
+    @required Result version(Map<String, String> headers),
+    @required Result getUser(int userID, Map<String, String> headers),
+    @required
+        Result updateName(int id, String username, Map<String, String> headers),
+    @required Result findUserById(SearchFilter s, Map<String, String> headers),
+    @required Result addUser(User user, Map<String, String> headers),
+    @required Result listUsers(Map<String, String> headers),
+    @required Result deleteUser(int id, Map<String, String> headers),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return deleteUser(id, headers);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result ping(Map<String, String> headers),
+    Result status(Map<String, String> headers),
+    Result version(Map<String, String> headers),
+    Result getUser(int userID, Map<String, String> headers),
+    Result updateName(int id, String username, Map<String, String> headers),
+    Result findUserById(SearchFilter s, Map<String, String> headers),
+    Result addUser(User user, Map<String, String> headers),
+    Result listUsers(Map<String, String> headers),
+    Result deleteUser(int id, Map<String, String> headers),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (deleteUser != null) {
+      return deleteUser(id, headers);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result ping(_PingEvent value),
+    @required Result status(_StatusEvent value),
+    @required Result version(_VersionEvent value),
+    @required Result getUser(_GetUserEvent value),
+    @required Result updateName(_UpdateNameEvent value),
+    @required Result findUserById(_FindUserByIdEvent value),
+    @required Result addUser(_AddUserEvent value),
+    @required Result listUsers(_ListUsersEvent value),
+    @required Result deleteUser(_DeleteUserEvent value),
+  }) {
+    assert(ping != null);
+    assert(status != null);
+    assert(version != null);
+    assert(getUser != null);
+    assert(updateName != null);
+    assert(findUserById != null);
+    assert(addUser != null);
+    assert(listUsers != null);
+    assert(deleteUser != null);
+    return deleteUser(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result ping(_PingEvent value),
+    Result status(_StatusEvent value),
+    Result version(_VersionEvent value),
+    Result getUser(_GetUserEvent value),
+    Result updateName(_UpdateNameEvent value),
+    Result findUserById(_FindUserByIdEvent value),
+    Result addUser(_AddUserEvent value),
+    Result listUsers(_ListUsersEvent value),
+    Result deleteUser(_DeleteUserEvent value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (deleteUser != null) {
+      return deleteUser(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _DeleteUserEvent implements ExampleServiceEvent {
+  factory _DeleteUserEvent({@required int id, Map<String, String> headers}) =
+      _$_DeleteUserEvent;
+
+  int get id;
+  @override
+  Map<String, String> get headers;
+  @override
+  _$DeleteUserEventCopyWith<_DeleteUserEvent> get copyWith;
+}
+
+ExampleServiceState _$ExampleServiceStateFromJson(Map<String, dynamic> json) {
+  switch (json['runtimeType'] as String) {
+    case 'pingResult':
+      return PingResult.fromJson(json);
+    case 'statusResult':
+      return StatusResult.fromJson(json);
+    case 'versionResult':
+      return VersionResult.fromJson(json);
+    case 'getUserResult':
+      return GetUserResult.fromJson(json);
+    case 'updateNameResult':
+      return UpdateNameResult.fromJson(json);
+    case 'findUserByIdResult':
+      return FindUserByIdResult.fromJson(json);
+    case 'addUserResult':
+      return AddUserResult.fromJson(json);
+    case 'listUsersResult':
+      return ListUsersResult.fromJson(json);
+    case 'deleteUserResult':
+      return DeleteUserResult.fromJson(json);
+
+    default:
+      throw FallThroughError();
+  }
+}
+
+class _$ExampleServiceStateTearOff {
+  const _$ExampleServiceStateTearOff();
+
+  PingResult pingResult() {
+    return PingResult();
+  }
+
+  StatusResult statusResult({@required bool status}) {
+    return StatusResult(
+      status: status,
+    );
+  }
+
+  VersionResult versionResult({@required Version version}) {
+    return VersionResult(
+      version: version,
+    );
+  }
+
+  GetUserResult getUserResult({@required User user}) {
+    return GetUserResult(
+      user: user,
+    );
+  }
+
+  UpdateNameResult updateNameResult({@required bool wasUpdated}) {
+    return UpdateNameResult(
+      wasUpdated: wasUpdated,
+    );
+  }
+
+  FindUserByIdResult findUserByIdResult(
+      {@required String name, @required User user}) {
+    return FindUserByIdResult(
+      name: name,
+      user: user,
+    );
+  }
+
+  AddUserResult addUserResult({@required bool wasAdded}) {
+    return AddUserResult(
+      wasAdded: wasAdded,
+    );
+  }
+
+  ListUsersResult listUsersResult({@required List<User> users}) {
+    return ListUsersResult(
+      users: users,
+    );
+  }
+
+  DeleteUserResult deleteUserResult({@required bool wasDeleted}) {
+    return DeleteUserResult(
+      wasDeleted: wasDeleted,
+    );
+  }
+}
+
+// ignore: unused_element
+const $ExampleServiceState = _$ExampleServiceStateTearOff();
+
+mixin _$ExampleServiceState {
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result pingResult(),
+    @required Result statusResult(bool status),
+    @required Result versionResult(Version version),
+    @required Result getUserResult(User user),
+    @required Result updateNameResult(bool wasUpdated),
+    @required Result findUserByIdResult(String name, User user),
+    @required Result addUserResult(bool wasAdded),
+    @required Result listUsersResult(List<User> users),
+    @required Result deleteUserResult(bool wasDeleted),
+  });
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result pingResult(),
+    Result statusResult(bool status),
+    Result versionResult(Version version),
+    Result getUserResult(User user),
+    Result updateNameResult(bool wasUpdated),
+    Result findUserByIdResult(String name, User user),
+    Result addUserResult(bool wasAdded),
+    Result listUsersResult(List<User> users),
+    Result deleteUserResult(bool wasDeleted),
+    @required Result orElse(),
+  });
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result pingResult(PingResult value),
+    @required Result statusResult(StatusResult value),
+    @required Result versionResult(VersionResult value),
+    @required Result getUserResult(GetUserResult value),
+    @required Result updateNameResult(UpdateNameResult value),
+    @required Result findUserByIdResult(FindUserByIdResult value),
+    @required Result addUserResult(AddUserResult value),
+    @required Result listUsersResult(ListUsersResult value),
+    @required Result deleteUserResult(DeleteUserResult value),
+  });
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result pingResult(PingResult value),
+    Result statusResult(StatusResult value),
+    Result versionResult(VersionResult value),
+    Result getUserResult(GetUserResult value),
+    Result updateNameResult(UpdateNameResult value),
+    Result findUserByIdResult(FindUserByIdResult value),
+    Result addUserResult(AddUserResult value),
+    Result listUsersResult(ListUsersResult value),
+    Result deleteUserResult(DeleteUserResult value),
+    @required Result orElse(),
+  });
   Map<String, dynamic> toJson();
-  $StatusResultCopyWith<StatusResult> get copyWith;
+}
+
+abstract class $ExampleServiceStateCopyWith<$Res> {
+  factory $ExampleServiceStateCopyWith(
+          ExampleServiceState value, $Res Function(ExampleServiceState) then) =
+      _$ExampleServiceStateCopyWithImpl<$Res>;
+}
+
+class _$ExampleServiceStateCopyWithImpl<$Res>
+    implements $ExampleServiceStateCopyWith<$Res> {
+  _$ExampleServiceStateCopyWithImpl(this._value, this._then);
+
+  final ExampleServiceState _value;
+  // ignore: unused_field
+  final $Res Function(ExampleServiceState) _then;
+}
+
+abstract class $PingResultCopyWith<$Res> {
+  factory $PingResultCopyWith(
+          PingResult value, $Res Function(PingResult) then) =
+      _$PingResultCopyWithImpl<$Res>;
+}
+
+class _$PingResultCopyWithImpl<$Res>
+    extends _$ExampleServiceStateCopyWithImpl<$Res>
+    implements $PingResultCopyWith<$Res> {
+  _$PingResultCopyWithImpl(PingResult _value, $Res Function(PingResult) _then)
+      : super(_value, (v) => _then(v as PingResult));
+
+  @override
+  PingResult get _value => super._value as PingResult;
+}
+
+@JsonSerializable()
+class _$PingResult with DiagnosticableTreeMixin implements PingResult {
+  _$PingResult();
+
+  factory _$PingResult.fromJson(Map<String, dynamic> json) =>
+      _$_$PingResultFromJson(json);
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'ExampleServiceState.pingResult()';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ExampleServiceState.pingResult'));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) || (other is PingResult);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result pingResult(),
+    @required Result statusResult(bool status),
+    @required Result versionResult(Version version),
+    @required Result getUserResult(User user),
+    @required Result updateNameResult(bool wasUpdated),
+    @required Result findUserByIdResult(String name, User user),
+    @required Result addUserResult(bool wasAdded),
+    @required Result listUsersResult(List<User> users),
+    @required Result deleteUserResult(bool wasDeleted),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return pingResult();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result pingResult(),
+    Result statusResult(bool status),
+    Result versionResult(Version version),
+    Result getUserResult(User user),
+    Result updateNameResult(bool wasUpdated),
+    Result findUserByIdResult(String name, User user),
+    Result addUserResult(bool wasAdded),
+    Result listUsersResult(List<User> users),
+    Result deleteUserResult(bool wasDeleted),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (pingResult != null) {
+      return pingResult();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result pingResult(PingResult value),
+    @required Result statusResult(StatusResult value),
+    @required Result versionResult(VersionResult value),
+    @required Result getUserResult(GetUserResult value),
+    @required Result updateNameResult(UpdateNameResult value),
+    @required Result findUserByIdResult(FindUserByIdResult value),
+    @required Result addUserResult(AddUserResult value),
+    @required Result listUsersResult(ListUsersResult value),
+    @required Result deleteUserResult(DeleteUserResult value),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return pingResult(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result pingResult(PingResult value),
+    Result statusResult(StatusResult value),
+    Result versionResult(VersionResult value),
+    Result getUserResult(GetUserResult value),
+    Result updateNameResult(UpdateNameResult value),
+    Result findUserByIdResult(FindUserByIdResult value),
+    Result addUserResult(AddUserResult value),
+    Result listUsersResult(ListUsersResult value),
+    Result deleteUserResult(DeleteUserResult value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (pingResult != null) {
+      return pingResult(this);
+    }
+    return orElse();
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$_$PingResultToJson(this)..['runtimeType'] = 'pingResult';
+  }
+}
+
+abstract class PingResult implements ExampleServiceState {
+  factory PingResult() = _$PingResult;
+
+  factory PingResult.fromJson(Map<String, dynamic> json) =
+      _$PingResult.fromJson;
 }
 
 abstract class $StatusResultCopyWith<$Res> {
@@ -1964,78 +4013,53 @@ abstract class $StatusResultCopyWith<$Res> {
   $Res call({bool status});
 }
 
-class _$StatusResultCopyWithImpl<$Res> implements $StatusResultCopyWith<$Res> {
-  _$StatusResultCopyWithImpl(this._value, this._then);
-
-  final StatusResult _value;
-  // ignore: unused_field
-  final $Res Function(StatusResult) _then;
-
-  @override
-  $Res call({
-    Object status = freezed,
-  }) {
-    return _then(_value.copyWith(
-      status: status == freezed ? _value.status : status as bool,
-    ));
-  }
-}
-
-abstract class _$StatusResultCopyWith<$Res>
+class _$StatusResultCopyWithImpl<$Res>
+    extends _$ExampleServiceStateCopyWithImpl<$Res>
     implements $StatusResultCopyWith<$Res> {
-  factory _$StatusResultCopyWith(
-          _StatusResult value, $Res Function(_StatusResult) then) =
-      __$StatusResultCopyWithImpl<$Res>;
-  @override
-  $Res call({bool status});
-}
-
-class __$StatusResultCopyWithImpl<$Res> extends _$StatusResultCopyWithImpl<$Res>
-    implements _$StatusResultCopyWith<$Res> {
-  __$StatusResultCopyWithImpl(
-      _StatusResult _value, $Res Function(_StatusResult) _then)
-      : super(_value, (v) => _then(v as _StatusResult));
+  _$StatusResultCopyWithImpl(
+      StatusResult _value, $Res Function(StatusResult) _then)
+      : super(_value, (v) => _then(v as StatusResult));
 
   @override
-  _StatusResult get _value => super._value as _StatusResult;
+  StatusResult get _value => super._value as StatusResult;
 
   @override
   $Res call({
     Object status = freezed,
   }) {
-    return _then(_StatusResult(
+    return _then(StatusResult(
       status: status == freezed ? _value.status : status as bool,
     ));
   }
 }
 
-@JsonSerializable(explicitToJson: true)
-class _$_StatusResult with DiagnosticableTreeMixin implements _StatusResult {
-  _$_StatusResult({@required this.status}) : assert(status != null);
+@JsonSerializable()
+class _$StatusResult with DiagnosticableTreeMixin implements StatusResult {
+  _$StatusResult({@required this.status}) : assert(status != null);
 
-  factory _$_StatusResult.fromJson(Map<String, dynamic> json) =>
-      _$_$_StatusResultFromJson(json);
+  factory _$StatusResult.fromJson(Map<String, dynamic> json) =>
+      _$_$StatusResultFromJson(json);
 
   @override
   final bool status;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'StatusResult(status: $status)';
+    return 'ExampleServiceState.statusResult(status: $status)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'StatusResult'))
+      ..add(DiagnosticsProperty('type', 'ExampleServiceState.statusResult'))
       ..add(DiagnosticsProperty('status', status));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _StatusResult &&
+        (other is StatusResult &&
             (identical(other.status, status) ||
                 const DeepCollectionEquality().equals(other.status, status)));
   }
@@ -2045,49 +4069,115 @@ class _$_StatusResult with DiagnosticableTreeMixin implements _StatusResult {
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(status);
 
   @override
-  _$StatusResultCopyWith<_StatusResult> get copyWith =>
-      __$StatusResultCopyWithImpl<_StatusResult>(this, _$identity);
+  $StatusResultCopyWith<StatusResult> get copyWith =>
+      _$StatusResultCopyWithImpl<StatusResult>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result pingResult(),
+    @required Result statusResult(bool status),
+    @required Result versionResult(Version version),
+    @required Result getUserResult(User user),
+    @required Result updateNameResult(bool wasUpdated),
+    @required Result findUserByIdResult(String name, User user),
+    @required Result addUserResult(bool wasAdded),
+    @required Result listUsersResult(List<User> users),
+    @required Result deleteUserResult(bool wasDeleted),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return statusResult(status);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result pingResult(),
+    Result statusResult(bool status),
+    Result versionResult(Version version),
+    Result getUserResult(User user),
+    Result updateNameResult(bool wasUpdated),
+    Result findUserByIdResult(String name, User user),
+    Result addUserResult(bool wasAdded),
+    Result listUsersResult(List<User> users),
+    Result deleteUserResult(bool wasDeleted),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (statusResult != null) {
+      return statusResult(status);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result pingResult(PingResult value),
+    @required Result statusResult(StatusResult value),
+    @required Result versionResult(VersionResult value),
+    @required Result getUserResult(GetUserResult value),
+    @required Result updateNameResult(UpdateNameResult value),
+    @required Result findUserByIdResult(FindUserByIdResult value),
+    @required Result addUserResult(AddUserResult value),
+    @required Result listUsersResult(ListUsersResult value),
+    @required Result deleteUserResult(DeleteUserResult value),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return statusResult(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result pingResult(PingResult value),
+    Result statusResult(StatusResult value),
+    Result versionResult(VersionResult value),
+    Result getUserResult(GetUserResult value),
+    Result updateNameResult(UpdateNameResult value),
+    Result findUserByIdResult(FindUserByIdResult value),
+    Result addUserResult(AddUserResult value),
+    Result listUsersResult(ListUsersResult value),
+    Result deleteUserResult(DeleteUserResult value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (statusResult != null) {
+      return statusResult(this);
+    }
+    return orElse();
+  }
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_StatusResultToJson(this);
+    return _$_$StatusResultToJson(this)..['runtimeType'] = 'statusResult';
   }
 }
 
-abstract class _StatusResult implements StatusResult {
-  factory _StatusResult({@required bool status}) = _$_StatusResult;
+abstract class StatusResult implements ExampleServiceState {
+  factory StatusResult({@required bool status}) = _$StatusResult;
 
-  factory _StatusResult.fromJson(Map<String, dynamic> json) =
-      _$_StatusResult.fromJson;
+  factory StatusResult.fromJson(Map<String, dynamic> json) =
+      _$StatusResult.fromJson;
 
-  @override
   bool get status;
-  @override
-  _$StatusResultCopyWith<_StatusResult> get copyWith;
-}
-
-VersionResult _$VersionResultFromJson(Map<String, dynamic> json) {
-  return _VersionResult.fromJson(json);
-}
-
-class _$VersionResultTearOff {
-  const _$VersionResultTearOff();
-
-  _VersionResult call({@required Version version}) {
-    return _VersionResult(
-      version: version,
-    );
-  }
-}
-
-// ignore: unused_element
-const $VersionResult = _$VersionResultTearOff();
-
-mixin _$VersionResult {
-  Version get version;
-
-  Map<String, dynamic> toJson();
-  $VersionResultCopyWith<VersionResult> get copyWith;
+  $StatusResultCopyWith<StatusResult> get copyWith;
 }
 
 abstract class $VersionResultCopyWith<$Res> {
@@ -2100,18 +4190,20 @@ abstract class $VersionResultCopyWith<$Res> {
 }
 
 class _$VersionResultCopyWithImpl<$Res>
+    extends _$ExampleServiceStateCopyWithImpl<$Res>
     implements $VersionResultCopyWith<$Res> {
-  _$VersionResultCopyWithImpl(this._value, this._then);
+  _$VersionResultCopyWithImpl(
+      VersionResult _value, $Res Function(VersionResult) _then)
+      : super(_value, (v) => _then(v as VersionResult));
 
-  final VersionResult _value;
-  // ignore: unused_field
-  final $Res Function(VersionResult) _then;
+  @override
+  VersionResult get _value => super._value as VersionResult;
 
   @override
   $Res call({
     Object version = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(VersionResult(
       version: version == freezed ? _value.version : version as Version,
     ));
   }
@@ -2127,65 +4219,33 @@ class _$VersionResultCopyWithImpl<$Res>
   }
 }
 
-abstract class _$VersionResultCopyWith<$Res>
-    implements $VersionResultCopyWith<$Res> {
-  factory _$VersionResultCopyWith(
-          _VersionResult value, $Res Function(_VersionResult) then) =
-      __$VersionResultCopyWithImpl<$Res>;
-  @override
-  $Res call({Version version});
+@JsonSerializable()
+class _$VersionResult with DiagnosticableTreeMixin implements VersionResult {
+  _$VersionResult({@required this.version}) : assert(version != null);
 
-  @override
-  $VersionCopyWith<$Res> get version;
-}
-
-class __$VersionResultCopyWithImpl<$Res>
-    extends _$VersionResultCopyWithImpl<$Res>
-    implements _$VersionResultCopyWith<$Res> {
-  __$VersionResultCopyWithImpl(
-      _VersionResult _value, $Res Function(_VersionResult) _then)
-      : super(_value, (v) => _then(v as _VersionResult));
-
-  @override
-  _VersionResult get _value => super._value as _VersionResult;
-
-  @override
-  $Res call({
-    Object version = freezed,
-  }) {
-    return _then(_VersionResult(
-      version: version == freezed ? _value.version : version as Version,
-    ));
-  }
-}
-
-@JsonSerializable(explicitToJson: true)
-class _$_VersionResult with DiagnosticableTreeMixin implements _VersionResult {
-  _$_VersionResult({@required this.version}) : assert(version != null);
-
-  factory _$_VersionResult.fromJson(Map<String, dynamic> json) =>
-      _$_$_VersionResultFromJson(json);
+  factory _$VersionResult.fromJson(Map<String, dynamic> json) =>
+      _$_$VersionResultFromJson(json);
 
   @override
   final Version version;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'VersionResult(version: $version)';
+    return 'ExampleServiceState.versionResult(version: $version)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'VersionResult'))
+      ..add(DiagnosticsProperty('type', 'ExampleServiceState.versionResult'))
       ..add(DiagnosticsProperty('version', version));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _VersionResult &&
+        (other is VersionResult &&
             (identical(other.version, version) ||
                 const DeepCollectionEquality().equals(other.version, version)));
   }
@@ -2195,49 +4255,115 @@ class _$_VersionResult with DiagnosticableTreeMixin implements _VersionResult {
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(version);
 
   @override
-  _$VersionResultCopyWith<_VersionResult> get copyWith =>
-      __$VersionResultCopyWithImpl<_VersionResult>(this, _$identity);
+  $VersionResultCopyWith<VersionResult> get copyWith =>
+      _$VersionResultCopyWithImpl<VersionResult>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result pingResult(),
+    @required Result statusResult(bool status),
+    @required Result versionResult(Version version),
+    @required Result getUserResult(User user),
+    @required Result updateNameResult(bool wasUpdated),
+    @required Result findUserByIdResult(String name, User user),
+    @required Result addUserResult(bool wasAdded),
+    @required Result listUsersResult(List<User> users),
+    @required Result deleteUserResult(bool wasDeleted),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return versionResult(version);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result pingResult(),
+    Result statusResult(bool status),
+    Result versionResult(Version version),
+    Result getUserResult(User user),
+    Result updateNameResult(bool wasUpdated),
+    Result findUserByIdResult(String name, User user),
+    Result addUserResult(bool wasAdded),
+    Result listUsersResult(List<User> users),
+    Result deleteUserResult(bool wasDeleted),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (versionResult != null) {
+      return versionResult(version);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result pingResult(PingResult value),
+    @required Result statusResult(StatusResult value),
+    @required Result versionResult(VersionResult value),
+    @required Result getUserResult(GetUserResult value),
+    @required Result updateNameResult(UpdateNameResult value),
+    @required Result findUserByIdResult(FindUserByIdResult value),
+    @required Result addUserResult(AddUserResult value),
+    @required Result listUsersResult(ListUsersResult value),
+    @required Result deleteUserResult(DeleteUserResult value),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return versionResult(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result pingResult(PingResult value),
+    Result statusResult(StatusResult value),
+    Result versionResult(VersionResult value),
+    Result getUserResult(GetUserResult value),
+    Result updateNameResult(UpdateNameResult value),
+    Result findUserByIdResult(FindUserByIdResult value),
+    Result addUserResult(AddUserResult value),
+    Result listUsersResult(ListUsersResult value),
+    Result deleteUserResult(DeleteUserResult value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (versionResult != null) {
+      return versionResult(this);
+    }
+    return orElse();
+  }
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_VersionResultToJson(this);
+    return _$_$VersionResultToJson(this)..['runtimeType'] = 'versionResult';
   }
 }
 
-abstract class _VersionResult implements VersionResult {
-  factory _VersionResult({@required Version version}) = _$_VersionResult;
+abstract class VersionResult implements ExampleServiceState {
+  factory VersionResult({@required Version version}) = _$VersionResult;
 
-  factory _VersionResult.fromJson(Map<String, dynamic> json) =
-      _$_VersionResult.fromJson;
+  factory VersionResult.fromJson(Map<String, dynamic> json) =
+      _$VersionResult.fromJson;
 
-  @override
   Version get version;
-  @override
-  _$VersionResultCopyWith<_VersionResult> get copyWith;
-}
-
-GetUserResult _$GetUserResultFromJson(Map<String, dynamic> json) {
-  return _GetUserResult.fromJson(json);
-}
-
-class _$GetUserResultTearOff {
-  const _$GetUserResultTearOff();
-
-  _GetUserResult call({@required User user}) {
-    return _GetUserResult(
-      user: user,
-    );
-  }
-}
-
-// ignore: unused_element
-const $GetUserResult = _$GetUserResultTearOff();
-
-mixin _$GetUserResult {
-  User get user;
-
-  Map<String, dynamic> toJson();
-  $GetUserResultCopyWith<GetUserResult> get copyWith;
+  $VersionResultCopyWith<VersionResult> get copyWith;
 }
 
 abstract class $GetUserResultCopyWith<$Res> {
@@ -2250,18 +4376,20 @@ abstract class $GetUserResultCopyWith<$Res> {
 }
 
 class _$GetUserResultCopyWithImpl<$Res>
+    extends _$ExampleServiceStateCopyWithImpl<$Res>
     implements $GetUserResultCopyWith<$Res> {
-  _$GetUserResultCopyWithImpl(this._value, this._then);
+  _$GetUserResultCopyWithImpl(
+      GetUserResult _value, $Res Function(GetUserResult) _then)
+      : super(_value, (v) => _then(v as GetUserResult));
 
-  final GetUserResult _value;
-  // ignore: unused_field
-  final $Res Function(GetUserResult) _then;
+  @override
+  GetUserResult get _value => super._value as GetUserResult;
 
   @override
   $Res call({
     Object user = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(GetUserResult(
       user: user == freezed ? _value.user : user as User,
     ));
   }
@@ -2277,65 +4405,33 @@ class _$GetUserResultCopyWithImpl<$Res>
   }
 }
 
-abstract class _$GetUserResultCopyWith<$Res>
-    implements $GetUserResultCopyWith<$Res> {
-  factory _$GetUserResultCopyWith(
-          _GetUserResult value, $Res Function(_GetUserResult) then) =
-      __$GetUserResultCopyWithImpl<$Res>;
-  @override
-  $Res call({User user});
+@JsonSerializable()
+class _$GetUserResult with DiagnosticableTreeMixin implements GetUserResult {
+  _$GetUserResult({@required this.user}) : assert(user != null);
 
-  @override
-  $UserCopyWith<$Res> get user;
-}
-
-class __$GetUserResultCopyWithImpl<$Res>
-    extends _$GetUserResultCopyWithImpl<$Res>
-    implements _$GetUserResultCopyWith<$Res> {
-  __$GetUserResultCopyWithImpl(
-      _GetUserResult _value, $Res Function(_GetUserResult) _then)
-      : super(_value, (v) => _then(v as _GetUserResult));
-
-  @override
-  _GetUserResult get _value => super._value as _GetUserResult;
-
-  @override
-  $Res call({
-    Object user = freezed,
-  }) {
-    return _then(_GetUserResult(
-      user: user == freezed ? _value.user : user as User,
-    ));
-  }
-}
-
-@JsonSerializable(explicitToJson: true)
-class _$_GetUserResult with DiagnosticableTreeMixin implements _GetUserResult {
-  _$_GetUserResult({@required this.user}) : assert(user != null);
-
-  factory _$_GetUserResult.fromJson(Map<String, dynamic> json) =>
-      _$_$_GetUserResultFromJson(json);
+  factory _$GetUserResult.fromJson(Map<String, dynamic> json) =>
+      _$_$GetUserResultFromJson(json);
 
   @override
   final User user;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'GetUserResult(user: $user)';
+    return 'ExampleServiceState.getUserResult(user: $user)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'GetUserResult'))
+      ..add(DiagnosticsProperty('type', 'ExampleServiceState.getUserResult'))
       ..add(DiagnosticsProperty('user', user));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _GetUserResult &&
+        (other is GetUserResult &&
             (identical(other.user, user) ||
                 const DeepCollectionEquality().equals(other.user, user)));
   }
@@ -2345,49 +4441,115 @@ class _$_GetUserResult with DiagnosticableTreeMixin implements _GetUserResult {
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(user);
 
   @override
-  _$GetUserResultCopyWith<_GetUserResult> get copyWith =>
-      __$GetUserResultCopyWithImpl<_GetUserResult>(this, _$identity);
+  $GetUserResultCopyWith<GetUserResult> get copyWith =>
+      _$GetUserResultCopyWithImpl<GetUserResult>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result pingResult(),
+    @required Result statusResult(bool status),
+    @required Result versionResult(Version version),
+    @required Result getUserResult(User user),
+    @required Result updateNameResult(bool wasUpdated),
+    @required Result findUserByIdResult(String name, User user),
+    @required Result addUserResult(bool wasAdded),
+    @required Result listUsersResult(List<User> users),
+    @required Result deleteUserResult(bool wasDeleted),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return getUserResult(user);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result pingResult(),
+    Result statusResult(bool status),
+    Result versionResult(Version version),
+    Result getUserResult(User user),
+    Result updateNameResult(bool wasUpdated),
+    Result findUserByIdResult(String name, User user),
+    Result addUserResult(bool wasAdded),
+    Result listUsersResult(List<User> users),
+    Result deleteUserResult(bool wasDeleted),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (getUserResult != null) {
+      return getUserResult(user);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result pingResult(PingResult value),
+    @required Result statusResult(StatusResult value),
+    @required Result versionResult(VersionResult value),
+    @required Result getUserResult(GetUserResult value),
+    @required Result updateNameResult(UpdateNameResult value),
+    @required Result findUserByIdResult(FindUserByIdResult value),
+    @required Result addUserResult(AddUserResult value),
+    @required Result listUsersResult(ListUsersResult value),
+    @required Result deleteUserResult(DeleteUserResult value),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return getUserResult(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result pingResult(PingResult value),
+    Result statusResult(StatusResult value),
+    Result versionResult(VersionResult value),
+    Result getUserResult(GetUserResult value),
+    Result updateNameResult(UpdateNameResult value),
+    Result findUserByIdResult(FindUserByIdResult value),
+    Result addUserResult(AddUserResult value),
+    Result listUsersResult(ListUsersResult value),
+    Result deleteUserResult(DeleteUserResult value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (getUserResult != null) {
+      return getUserResult(this);
+    }
+    return orElse();
+  }
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_GetUserResultToJson(this);
+    return _$_$GetUserResultToJson(this)..['runtimeType'] = 'getUserResult';
   }
 }
 
-abstract class _GetUserResult implements GetUserResult {
-  factory _GetUserResult({@required User user}) = _$_GetUserResult;
+abstract class GetUserResult implements ExampleServiceState {
+  factory GetUserResult({@required User user}) = _$GetUserResult;
 
-  factory _GetUserResult.fromJson(Map<String, dynamic> json) =
-      _$_GetUserResult.fromJson;
+  factory GetUserResult.fromJson(Map<String, dynamic> json) =
+      _$GetUserResult.fromJson;
 
-  @override
   User get user;
-  @override
-  _$GetUserResultCopyWith<_GetUserResult> get copyWith;
-}
-
-UpdateNameResult _$UpdateNameResultFromJson(Map<String, dynamic> json) {
-  return _UpdateNameResult.fromJson(json);
-}
-
-class _$UpdateNameResultTearOff {
-  const _$UpdateNameResultTearOff();
-
-  _UpdateNameResult call({@required bool wasUpdated}) {
-    return _UpdateNameResult(
-      wasUpdated: wasUpdated,
-    );
-  }
-}
-
-// ignore: unused_element
-const $UpdateNameResult = _$UpdateNameResultTearOff();
-
-mixin _$UpdateNameResult {
-  bool get wasUpdated;
-
-  Map<String, dynamic> toJson();
-  $UpdateNameResultCopyWith<UpdateNameResult> get copyWith;
+  $GetUserResultCopyWith<GetUserResult> get copyWith;
 }
 
 abstract class $UpdateNameResultCopyWith<$Res> {
@@ -2398,83 +4560,55 @@ abstract class $UpdateNameResultCopyWith<$Res> {
 }
 
 class _$UpdateNameResultCopyWithImpl<$Res>
+    extends _$ExampleServiceStateCopyWithImpl<$Res>
     implements $UpdateNameResultCopyWith<$Res> {
-  _$UpdateNameResultCopyWithImpl(this._value, this._then);
+  _$UpdateNameResultCopyWithImpl(
+      UpdateNameResult _value, $Res Function(UpdateNameResult) _then)
+      : super(_value, (v) => _then(v as UpdateNameResult));
 
-  final UpdateNameResult _value;
-  // ignore: unused_field
-  final $Res Function(UpdateNameResult) _then;
+  @override
+  UpdateNameResult get _value => super._value as UpdateNameResult;
 
   @override
   $Res call({
     Object wasUpdated = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(UpdateNameResult(
       wasUpdated:
           wasUpdated == freezed ? _value.wasUpdated : wasUpdated as bool,
     ));
   }
 }
 
-abstract class _$UpdateNameResultCopyWith<$Res>
-    implements $UpdateNameResultCopyWith<$Res> {
-  factory _$UpdateNameResultCopyWith(
-          _UpdateNameResult value, $Res Function(_UpdateNameResult) then) =
-      __$UpdateNameResultCopyWithImpl<$Res>;
-  @override
-  $Res call({bool wasUpdated});
-}
-
-class __$UpdateNameResultCopyWithImpl<$Res>
-    extends _$UpdateNameResultCopyWithImpl<$Res>
-    implements _$UpdateNameResultCopyWith<$Res> {
-  __$UpdateNameResultCopyWithImpl(
-      _UpdateNameResult _value, $Res Function(_UpdateNameResult) _then)
-      : super(_value, (v) => _then(v as _UpdateNameResult));
-
-  @override
-  _UpdateNameResult get _value => super._value as _UpdateNameResult;
-
-  @override
-  $Res call({
-    Object wasUpdated = freezed,
-  }) {
-    return _then(_UpdateNameResult(
-      wasUpdated:
-          wasUpdated == freezed ? _value.wasUpdated : wasUpdated as bool,
-    ));
-  }
-}
-
-@JsonSerializable(explicitToJson: true)
-class _$_UpdateNameResult
+@JsonSerializable()
+class _$UpdateNameResult
     with DiagnosticableTreeMixin
-    implements _UpdateNameResult {
-  _$_UpdateNameResult({@required this.wasUpdated}) : assert(wasUpdated != null);
+    implements UpdateNameResult {
+  _$UpdateNameResult({@required this.wasUpdated}) : assert(wasUpdated != null);
 
-  factory _$_UpdateNameResult.fromJson(Map<String, dynamic> json) =>
-      _$_$_UpdateNameResultFromJson(json);
+  factory _$UpdateNameResult.fromJson(Map<String, dynamic> json) =>
+      _$_$UpdateNameResultFromJson(json);
 
   @override
   final bool wasUpdated;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'UpdateNameResult(wasUpdated: $wasUpdated)';
+    return 'ExampleServiceState.updateNameResult(wasUpdated: $wasUpdated)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'UpdateNameResult'))
+      ..add(DiagnosticsProperty('type', 'ExampleServiceState.updateNameResult'))
       ..add(DiagnosticsProperty('wasUpdated', wasUpdated));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _UpdateNameResult &&
+        (other is UpdateNameResult &&
             (identical(other.wasUpdated, wasUpdated) ||
                 const DeepCollectionEquality()
                     .equals(other.wasUpdated, wasUpdated)));
@@ -2485,51 +4619,116 @@ class _$_UpdateNameResult
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(wasUpdated);
 
   @override
-  _$UpdateNameResultCopyWith<_UpdateNameResult> get copyWith =>
-      __$UpdateNameResultCopyWithImpl<_UpdateNameResult>(this, _$identity);
+  $UpdateNameResultCopyWith<UpdateNameResult> get copyWith =>
+      _$UpdateNameResultCopyWithImpl<UpdateNameResult>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result pingResult(),
+    @required Result statusResult(bool status),
+    @required Result versionResult(Version version),
+    @required Result getUserResult(User user),
+    @required Result updateNameResult(bool wasUpdated),
+    @required Result findUserByIdResult(String name, User user),
+    @required Result addUserResult(bool wasAdded),
+    @required Result listUsersResult(List<User> users),
+    @required Result deleteUserResult(bool wasDeleted),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return updateNameResult(wasUpdated);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result pingResult(),
+    Result statusResult(bool status),
+    Result versionResult(Version version),
+    Result getUserResult(User user),
+    Result updateNameResult(bool wasUpdated),
+    Result findUserByIdResult(String name, User user),
+    Result addUserResult(bool wasAdded),
+    Result listUsersResult(List<User> users),
+    Result deleteUserResult(bool wasDeleted),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (updateNameResult != null) {
+      return updateNameResult(wasUpdated);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result pingResult(PingResult value),
+    @required Result statusResult(StatusResult value),
+    @required Result versionResult(VersionResult value),
+    @required Result getUserResult(GetUserResult value),
+    @required Result updateNameResult(UpdateNameResult value),
+    @required Result findUserByIdResult(FindUserByIdResult value),
+    @required Result addUserResult(AddUserResult value),
+    @required Result listUsersResult(ListUsersResult value),
+    @required Result deleteUserResult(DeleteUserResult value),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return updateNameResult(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result pingResult(PingResult value),
+    Result statusResult(StatusResult value),
+    Result versionResult(VersionResult value),
+    Result getUserResult(GetUserResult value),
+    Result updateNameResult(UpdateNameResult value),
+    Result findUserByIdResult(FindUserByIdResult value),
+    Result addUserResult(AddUserResult value),
+    Result listUsersResult(ListUsersResult value),
+    Result deleteUserResult(DeleteUserResult value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (updateNameResult != null) {
+      return updateNameResult(this);
+    }
+    return orElse();
+  }
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_UpdateNameResultToJson(this);
+    return _$_$UpdateNameResultToJson(this)
+      ..['runtimeType'] = 'updateNameResult';
   }
 }
 
-abstract class _UpdateNameResult implements UpdateNameResult {
-  factory _UpdateNameResult({@required bool wasUpdated}) = _$_UpdateNameResult;
+abstract class UpdateNameResult implements ExampleServiceState {
+  factory UpdateNameResult({@required bool wasUpdated}) = _$UpdateNameResult;
 
-  factory _UpdateNameResult.fromJson(Map<String, dynamic> json) =
-      _$_UpdateNameResult.fromJson;
+  factory UpdateNameResult.fromJson(Map<String, dynamic> json) =
+      _$UpdateNameResult.fromJson;
 
-  @override
   bool get wasUpdated;
-  @override
-  _$UpdateNameResultCopyWith<_UpdateNameResult> get copyWith;
-}
-
-FindUserByIdResult _$FindUserByIdResultFromJson(Map<String, dynamic> json) {
-  return _FindUserByIdResult.fromJson(json);
-}
-
-class _$FindUserByIdResultTearOff {
-  const _$FindUserByIdResultTearOff();
-
-  _FindUserByIdResult call({@required String name, @required User user}) {
-    return _FindUserByIdResult(
-      name: name,
-      user: user,
-    );
-  }
-}
-
-// ignore: unused_element
-const $FindUserByIdResult = _$FindUserByIdResultTearOff();
-
-mixin _$FindUserByIdResult {
-  String get name;
-  User get user;
-
-  Map<String, dynamic> toJson();
-  $FindUserByIdResultCopyWith<FindUserByIdResult> get copyWith;
+  $UpdateNameResultCopyWith<UpdateNameResult> get copyWith;
 }
 
 abstract class $FindUserByIdResultCopyWith<$Res> {
@@ -2542,19 +4741,21 @@ abstract class $FindUserByIdResultCopyWith<$Res> {
 }
 
 class _$FindUserByIdResultCopyWithImpl<$Res>
+    extends _$ExampleServiceStateCopyWithImpl<$Res>
     implements $FindUserByIdResultCopyWith<$Res> {
-  _$FindUserByIdResultCopyWithImpl(this._value, this._then);
+  _$FindUserByIdResultCopyWithImpl(
+      FindUserByIdResult _value, $Res Function(FindUserByIdResult) _then)
+      : super(_value, (v) => _then(v as FindUserByIdResult));
 
-  final FindUserByIdResult _value;
-  // ignore: unused_field
-  final $Res Function(FindUserByIdResult) _then;
+  @override
+  FindUserByIdResult get _value => super._value as FindUserByIdResult;
 
   @override
   $Res call({
     Object name = freezed,
     Object user = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(FindUserByIdResult(
       name: name == freezed ? _value.name : name as String,
       user: user == freezed ? _value.user : user as User,
     ));
@@ -2571,50 +4772,16 @@ class _$FindUserByIdResultCopyWithImpl<$Res>
   }
 }
 
-abstract class _$FindUserByIdResultCopyWith<$Res>
-    implements $FindUserByIdResultCopyWith<$Res> {
-  factory _$FindUserByIdResultCopyWith(
-          _FindUserByIdResult value, $Res Function(_FindUserByIdResult) then) =
-      __$FindUserByIdResultCopyWithImpl<$Res>;
-  @override
-  $Res call({String name, User user});
-
-  @override
-  $UserCopyWith<$Res> get user;
-}
-
-class __$FindUserByIdResultCopyWithImpl<$Res>
-    extends _$FindUserByIdResultCopyWithImpl<$Res>
-    implements _$FindUserByIdResultCopyWith<$Res> {
-  __$FindUserByIdResultCopyWithImpl(
-      _FindUserByIdResult _value, $Res Function(_FindUserByIdResult) _then)
-      : super(_value, (v) => _then(v as _FindUserByIdResult));
-
-  @override
-  _FindUserByIdResult get _value => super._value as _FindUserByIdResult;
-
-  @override
-  $Res call({
-    Object name = freezed,
-    Object user = freezed,
-  }) {
-    return _then(_FindUserByIdResult(
-      name: name == freezed ? _value.name : name as String,
-      user: user == freezed ? _value.user : user as User,
-    ));
-  }
-}
-
-@JsonSerializable(explicitToJson: true)
-class _$_FindUserByIdResult
+@JsonSerializable()
+class _$FindUserByIdResult
     with DiagnosticableTreeMixin
-    implements _FindUserByIdResult {
-  _$_FindUserByIdResult({@required this.name, @required this.user})
+    implements FindUserByIdResult {
+  _$FindUserByIdResult({@required this.name, @required this.user})
       : assert(name != null),
         assert(user != null);
 
-  factory _$_FindUserByIdResult.fromJson(Map<String, dynamic> json) =>
-      _$_$_FindUserByIdResultFromJson(json);
+  factory _$FindUserByIdResult.fromJson(Map<String, dynamic> json) =>
+      _$_$FindUserByIdResultFromJson(json);
 
   @override
   final String name;
@@ -2623,14 +4790,15 @@ class _$_FindUserByIdResult
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'FindUserByIdResult(name: $name, user: $user)';
+    return 'ExampleServiceState.findUserByIdResult(name: $name, user: $user)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'FindUserByIdResult'))
+      ..add(
+          DiagnosticsProperty('type', 'ExampleServiceState.findUserByIdResult'))
       ..add(DiagnosticsProperty('name', name))
       ..add(DiagnosticsProperty('user', user));
   }
@@ -2638,7 +4806,7 @@ class _$_FindUserByIdResult
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _FindUserByIdResult &&
+        (other is FindUserByIdResult &&
             (identical(other.name, name) ||
                 const DeepCollectionEquality().equals(other.name, name)) &&
             (identical(other.user, user) ||
@@ -2652,52 +4820,118 @@ class _$_FindUserByIdResult
       const DeepCollectionEquality().hash(user);
 
   @override
-  _$FindUserByIdResultCopyWith<_FindUserByIdResult> get copyWith =>
-      __$FindUserByIdResultCopyWithImpl<_FindUserByIdResult>(this, _$identity);
+  $FindUserByIdResultCopyWith<FindUserByIdResult> get copyWith =>
+      _$FindUserByIdResultCopyWithImpl<FindUserByIdResult>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result pingResult(),
+    @required Result statusResult(bool status),
+    @required Result versionResult(Version version),
+    @required Result getUserResult(User user),
+    @required Result updateNameResult(bool wasUpdated),
+    @required Result findUserByIdResult(String name, User user),
+    @required Result addUserResult(bool wasAdded),
+    @required Result listUsersResult(List<User> users),
+    @required Result deleteUserResult(bool wasDeleted),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return findUserByIdResult(name, user);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result pingResult(),
+    Result statusResult(bool status),
+    Result versionResult(Version version),
+    Result getUserResult(User user),
+    Result updateNameResult(bool wasUpdated),
+    Result findUserByIdResult(String name, User user),
+    Result addUserResult(bool wasAdded),
+    Result listUsersResult(List<User> users),
+    Result deleteUserResult(bool wasDeleted),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (findUserByIdResult != null) {
+      return findUserByIdResult(name, user);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result pingResult(PingResult value),
+    @required Result statusResult(StatusResult value),
+    @required Result versionResult(VersionResult value),
+    @required Result getUserResult(GetUserResult value),
+    @required Result updateNameResult(UpdateNameResult value),
+    @required Result findUserByIdResult(FindUserByIdResult value),
+    @required Result addUserResult(AddUserResult value),
+    @required Result listUsersResult(ListUsersResult value),
+    @required Result deleteUserResult(DeleteUserResult value),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return findUserByIdResult(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result pingResult(PingResult value),
+    Result statusResult(StatusResult value),
+    Result versionResult(VersionResult value),
+    Result getUserResult(GetUserResult value),
+    Result updateNameResult(UpdateNameResult value),
+    Result findUserByIdResult(FindUserByIdResult value),
+    Result addUserResult(AddUserResult value),
+    Result listUsersResult(ListUsersResult value),
+    Result deleteUserResult(DeleteUserResult value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (findUserByIdResult != null) {
+      return findUserByIdResult(this);
+    }
+    return orElse();
+  }
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_FindUserByIdResultToJson(this);
+    return _$_$FindUserByIdResultToJson(this)
+      ..['runtimeType'] = 'findUserByIdResult';
   }
 }
 
-abstract class _FindUserByIdResult implements FindUserByIdResult {
-  factory _FindUserByIdResult({@required String name, @required User user}) =
-      _$_FindUserByIdResult;
+abstract class FindUserByIdResult implements ExampleServiceState {
+  factory FindUserByIdResult({@required String name, @required User user}) =
+      _$FindUserByIdResult;
 
-  factory _FindUserByIdResult.fromJson(Map<String, dynamic> json) =
-      _$_FindUserByIdResult.fromJson;
+  factory FindUserByIdResult.fromJson(Map<String, dynamic> json) =
+      _$FindUserByIdResult.fromJson;
 
-  @override
   String get name;
-  @override
   User get user;
-  @override
-  _$FindUserByIdResultCopyWith<_FindUserByIdResult> get copyWith;
-}
-
-AddUserResult _$AddUserResultFromJson(Map<String, dynamic> json) {
-  return _AddUserResult.fromJson(json);
-}
-
-class _$AddUserResultTearOff {
-  const _$AddUserResultTearOff();
-
-  _AddUserResult call({@required bool wasAdded}) {
-    return _AddUserResult(
-      wasAdded: wasAdded,
-    );
-  }
-}
-
-// ignore: unused_element
-const $AddUserResult = _$AddUserResultTearOff();
-
-mixin _$AddUserResult {
-  bool get wasAdded;
-
-  Map<String, dynamic> toJson();
-  $AddUserResultCopyWith<AddUserResult> get copyWith;
+  $FindUserByIdResultCopyWith<FindUserByIdResult> get copyWith;
 }
 
 abstract class $AddUserResultCopyWith<$Res> {
@@ -2708,79 +4942,52 @@ abstract class $AddUserResultCopyWith<$Res> {
 }
 
 class _$AddUserResultCopyWithImpl<$Res>
+    extends _$ExampleServiceStateCopyWithImpl<$Res>
     implements $AddUserResultCopyWith<$Res> {
-  _$AddUserResultCopyWithImpl(this._value, this._then);
+  _$AddUserResultCopyWithImpl(
+      AddUserResult _value, $Res Function(AddUserResult) _then)
+      : super(_value, (v) => _then(v as AddUserResult));
 
-  final AddUserResult _value;
-  // ignore: unused_field
-  final $Res Function(AddUserResult) _then;
+  @override
+  AddUserResult get _value => super._value as AddUserResult;
 
   @override
   $Res call({
     Object wasAdded = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(AddUserResult(
       wasAdded: wasAdded == freezed ? _value.wasAdded : wasAdded as bool,
     ));
   }
 }
 
-abstract class _$AddUserResultCopyWith<$Res>
-    implements $AddUserResultCopyWith<$Res> {
-  factory _$AddUserResultCopyWith(
-          _AddUserResult value, $Res Function(_AddUserResult) then) =
-      __$AddUserResultCopyWithImpl<$Res>;
-  @override
-  $Res call({bool wasAdded});
-}
+@JsonSerializable()
+class _$AddUserResult with DiagnosticableTreeMixin implements AddUserResult {
+  _$AddUserResult({@required this.wasAdded}) : assert(wasAdded != null);
 
-class __$AddUserResultCopyWithImpl<$Res>
-    extends _$AddUserResultCopyWithImpl<$Res>
-    implements _$AddUserResultCopyWith<$Res> {
-  __$AddUserResultCopyWithImpl(
-      _AddUserResult _value, $Res Function(_AddUserResult) _then)
-      : super(_value, (v) => _then(v as _AddUserResult));
-
-  @override
-  _AddUserResult get _value => super._value as _AddUserResult;
-
-  @override
-  $Res call({
-    Object wasAdded = freezed,
-  }) {
-    return _then(_AddUserResult(
-      wasAdded: wasAdded == freezed ? _value.wasAdded : wasAdded as bool,
-    ));
-  }
-}
-
-@JsonSerializable(explicitToJson: true)
-class _$_AddUserResult with DiagnosticableTreeMixin implements _AddUserResult {
-  _$_AddUserResult({@required this.wasAdded}) : assert(wasAdded != null);
-
-  factory _$_AddUserResult.fromJson(Map<String, dynamic> json) =>
-      _$_$_AddUserResultFromJson(json);
+  factory _$AddUserResult.fromJson(Map<String, dynamic> json) =>
+      _$_$AddUserResultFromJson(json);
 
   @override
   final bool wasAdded;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'AddUserResult(wasAdded: $wasAdded)';
+    return 'ExampleServiceState.addUserResult(wasAdded: $wasAdded)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'AddUserResult'))
+      ..add(DiagnosticsProperty('type', 'ExampleServiceState.addUserResult'))
       ..add(DiagnosticsProperty('wasAdded', wasAdded));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _AddUserResult &&
+        (other is AddUserResult &&
             (identical(other.wasAdded, wasAdded) ||
                 const DeepCollectionEquality()
                     .equals(other.wasAdded, wasAdded)));
@@ -2791,49 +4998,115 @@ class _$_AddUserResult with DiagnosticableTreeMixin implements _AddUserResult {
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(wasAdded);
 
   @override
-  _$AddUserResultCopyWith<_AddUserResult> get copyWith =>
-      __$AddUserResultCopyWithImpl<_AddUserResult>(this, _$identity);
+  $AddUserResultCopyWith<AddUserResult> get copyWith =>
+      _$AddUserResultCopyWithImpl<AddUserResult>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result pingResult(),
+    @required Result statusResult(bool status),
+    @required Result versionResult(Version version),
+    @required Result getUserResult(User user),
+    @required Result updateNameResult(bool wasUpdated),
+    @required Result findUserByIdResult(String name, User user),
+    @required Result addUserResult(bool wasAdded),
+    @required Result listUsersResult(List<User> users),
+    @required Result deleteUserResult(bool wasDeleted),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return addUserResult(wasAdded);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result pingResult(),
+    Result statusResult(bool status),
+    Result versionResult(Version version),
+    Result getUserResult(User user),
+    Result updateNameResult(bool wasUpdated),
+    Result findUserByIdResult(String name, User user),
+    Result addUserResult(bool wasAdded),
+    Result listUsersResult(List<User> users),
+    Result deleteUserResult(bool wasDeleted),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (addUserResult != null) {
+      return addUserResult(wasAdded);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result pingResult(PingResult value),
+    @required Result statusResult(StatusResult value),
+    @required Result versionResult(VersionResult value),
+    @required Result getUserResult(GetUserResult value),
+    @required Result updateNameResult(UpdateNameResult value),
+    @required Result findUserByIdResult(FindUserByIdResult value),
+    @required Result addUserResult(AddUserResult value),
+    @required Result listUsersResult(ListUsersResult value),
+    @required Result deleteUserResult(DeleteUserResult value),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return addUserResult(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result pingResult(PingResult value),
+    Result statusResult(StatusResult value),
+    Result versionResult(VersionResult value),
+    Result getUserResult(GetUserResult value),
+    Result updateNameResult(UpdateNameResult value),
+    Result findUserByIdResult(FindUserByIdResult value),
+    Result addUserResult(AddUserResult value),
+    Result listUsersResult(ListUsersResult value),
+    Result deleteUserResult(DeleteUserResult value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (addUserResult != null) {
+      return addUserResult(this);
+    }
+    return orElse();
+  }
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_AddUserResultToJson(this);
+    return _$_$AddUserResultToJson(this)..['runtimeType'] = 'addUserResult';
   }
 }
 
-abstract class _AddUserResult implements AddUserResult {
-  factory _AddUserResult({@required bool wasAdded}) = _$_AddUserResult;
+abstract class AddUserResult implements ExampleServiceState {
+  factory AddUserResult({@required bool wasAdded}) = _$AddUserResult;
 
-  factory _AddUserResult.fromJson(Map<String, dynamic> json) =
-      _$_AddUserResult.fromJson;
+  factory AddUserResult.fromJson(Map<String, dynamic> json) =
+      _$AddUserResult.fromJson;
 
-  @override
   bool get wasAdded;
-  @override
-  _$AddUserResultCopyWith<_AddUserResult> get copyWith;
-}
-
-ListUsersResult _$ListUsersResultFromJson(Map<String, dynamic> json) {
-  return _ListUsersResult.fromJson(json);
-}
-
-class _$ListUsersResultTearOff {
-  const _$ListUsersResultTearOff();
-
-  _ListUsersResult call({@required List<User> users}) {
-    return _ListUsersResult(
-      users: users,
-    );
-  }
-}
-
-// ignore: unused_element
-const $ListUsersResult = _$ListUsersResultTearOff();
-
-mixin _$ListUsersResult {
-  List<User> get users;
-
-  Map<String, dynamic> toJson();
-  $ListUsersResultCopyWith<ListUsersResult> get copyWith;
+  $AddUserResultCopyWith<AddUserResult> get copyWith;
 }
 
 abstract class $ListUsersResultCopyWith<$Res> {
@@ -2844,81 +5117,54 @@ abstract class $ListUsersResultCopyWith<$Res> {
 }
 
 class _$ListUsersResultCopyWithImpl<$Res>
+    extends _$ExampleServiceStateCopyWithImpl<$Res>
     implements $ListUsersResultCopyWith<$Res> {
-  _$ListUsersResultCopyWithImpl(this._value, this._then);
+  _$ListUsersResultCopyWithImpl(
+      ListUsersResult _value, $Res Function(ListUsersResult) _then)
+      : super(_value, (v) => _then(v as ListUsersResult));
 
-  final ListUsersResult _value;
-  // ignore: unused_field
-  final $Res Function(ListUsersResult) _then;
+  @override
+  ListUsersResult get _value => super._value as ListUsersResult;
 
   @override
   $Res call({
     Object users = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(ListUsersResult(
       users: users == freezed ? _value.users : users as List<User>,
     ));
   }
 }
 
-abstract class _$ListUsersResultCopyWith<$Res>
-    implements $ListUsersResultCopyWith<$Res> {
-  factory _$ListUsersResultCopyWith(
-          _ListUsersResult value, $Res Function(_ListUsersResult) then) =
-      __$ListUsersResultCopyWithImpl<$Res>;
-  @override
-  $Res call({List<User> users});
-}
-
-class __$ListUsersResultCopyWithImpl<$Res>
-    extends _$ListUsersResultCopyWithImpl<$Res>
-    implements _$ListUsersResultCopyWith<$Res> {
-  __$ListUsersResultCopyWithImpl(
-      _ListUsersResult _value, $Res Function(_ListUsersResult) _then)
-      : super(_value, (v) => _then(v as _ListUsersResult));
-
-  @override
-  _ListUsersResult get _value => super._value as _ListUsersResult;
-
-  @override
-  $Res call({
-    Object users = freezed,
-  }) {
-    return _then(_ListUsersResult(
-      users: users == freezed ? _value.users : users as List<User>,
-    ));
-  }
-}
-
-@JsonSerializable(explicitToJson: true)
-class _$_ListUsersResult
+@JsonSerializable()
+class _$ListUsersResult
     with DiagnosticableTreeMixin
-    implements _ListUsersResult {
-  _$_ListUsersResult({@required this.users}) : assert(users != null);
+    implements ListUsersResult {
+  _$ListUsersResult({@required this.users}) : assert(users != null);
 
-  factory _$_ListUsersResult.fromJson(Map<String, dynamic> json) =>
-      _$_$_ListUsersResultFromJson(json);
+  factory _$ListUsersResult.fromJson(Map<String, dynamic> json) =>
+      _$_$ListUsersResultFromJson(json);
 
   @override
   final List<User> users;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'ListUsersResult(users: $users)';
+    return 'ExampleServiceState.listUsersResult(users: $users)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'ListUsersResult'))
+      ..add(DiagnosticsProperty('type', 'ExampleServiceState.listUsersResult'))
       ..add(DiagnosticsProperty('users', users));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _ListUsersResult &&
+        (other is ListUsersResult &&
             (identical(other.users, users) ||
                 const DeepCollectionEquality().equals(other.users, users)));
   }
@@ -2928,49 +5174,115 @@ class _$_ListUsersResult
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(users);
 
   @override
-  _$ListUsersResultCopyWith<_ListUsersResult> get copyWith =>
-      __$ListUsersResultCopyWithImpl<_ListUsersResult>(this, _$identity);
+  $ListUsersResultCopyWith<ListUsersResult> get copyWith =>
+      _$ListUsersResultCopyWithImpl<ListUsersResult>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result pingResult(),
+    @required Result statusResult(bool status),
+    @required Result versionResult(Version version),
+    @required Result getUserResult(User user),
+    @required Result updateNameResult(bool wasUpdated),
+    @required Result findUserByIdResult(String name, User user),
+    @required Result addUserResult(bool wasAdded),
+    @required Result listUsersResult(List<User> users),
+    @required Result deleteUserResult(bool wasDeleted),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return listUsersResult(users);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result pingResult(),
+    Result statusResult(bool status),
+    Result versionResult(Version version),
+    Result getUserResult(User user),
+    Result updateNameResult(bool wasUpdated),
+    Result findUserByIdResult(String name, User user),
+    Result addUserResult(bool wasAdded),
+    Result listUsersResult(List<User> users),
+    Result deleteUserResult(bool wasDeleted),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (listUsersResult != null) {
+      return listUsersResult(users);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result pingResult(PingResult value),
+    @required Result statusResult(StatusResult value),
+    @required Result versionResult(VersionResult value),
+    @required Result getUserResult(GetUserResult value),
+    @required Result updateNameResult(UpdateNameResult value),
+    @required Result findUserByIdResult(FindUserByIdResult value),
+    @required Result addUserResult(AddUserResult value),
+    @required Result listUsersResult(ListUsersResult value),
+    @required Result deleteUserResult(DeleteUserResult value),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return listUsersResult(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result pingResult(PingResult value),
+    Result statusResult(StatusResult value),
+    Result versionResult(VersionResult value),
+    Result getUserResult(GetUserResult value),
+    Result updateNameResult(UpdateNameResult value),
+    Result findUserByIdResult(FindUserByIdResult value),
+    Result addUserResult(AddUserResult value),
+    Result listUsersResult(ListUsersResult value),
+    Result deleteUserResult(DeleteUserResult value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (listUsersResult != null) {
+      return listUsersResult(this);
+    }
+    return orElse();
+  }
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_ListUsersResultToJson(this);
+    return _$_$ListUsersResultToJson(this)..['runtimeType'] = 'listUsersResult';
   }
 }
 
-abstract class _ListUsersResult implements ListUsersResult {
-  factory _ListUsersResult({@required List<User> users}) = _$_ListUsersResult;
+abstract class ListUsersResult implements ExampleServiceState {
+  factory ListUsersResult({@required List<User> users}) = _$ListUsersResult;
 
-  factory _ListUsersResult.fromJson(Map<String, dynamic> json) =
-      _$_ListUsersResult.fromJson;
+  factory ListUsersResult.fromJson(Map<String, dynamic> json) =
+      _$ListUsersResult.fromJson;
 
-  @override
   List<User> get users;
-  @override
-  _$ListUsersResultCopyWith<_ListUsersResult> get copyWith;
-}
-
-DeleteUserResult _$DeleteUserResultFromJson(Map<String, dynamic> json) {
-  return _DeleteUserResult.fromJson(json);
-}
-
-class _$DeleteUserResultTearOff {
-  const _$DeleteUserResultTearOff();
-
-  _DeleteUserResult call({@required bool wasDeleted}) {
-    return _DeleteUserResult(
-      wasDeleted: wasDeleted,
-    );
-  }
-}
-
-// ignore: unused_element
-const $DeleteUserResult = _$DeleteUserResultTearOff();
-
-mixin _$DeleteUserResult {
-  bool get wasDeleted;
-
-  Map<String, dynamic> toJson();
-  $DeleteUserResultCopyWith<DeleteUserResult> get copyWith;
+  $ListUsersResultCopyWith<ListUsersResult> get copyWith;
 }
 
 abstract class $DeleteUserResultCopyWith<$Res> {
@@ -2981,83 +5293,55 @@ abstract class $DeleteUserResultCopyWith<$Res> {
 }
 
 class _$DeleteUserResultCopyWithImpl<$Res>
+    extends _$ExampleServiceStateCopyWithImpl<$Res>
     implements $DeleteUserResultCopyWith<$Res> {
-  _$DeleteUserResultCopyWithImpl(this._value, this._then);
+  _$DeleteUserResultCopyWithImpl(
+      DeleteUserResult _value, $Res Function(DeleteUserResult) _then)
+      : super(_value, (v) => _then(v as DeleteUserResult));
 
-  final DeleteUserResult _value;
-  // ignore: unused_field
-  final $Res Function(DeleteUserResult) _then;
+  @override
+  DeleteUserResult get _value => super._value as DeleteUserResult;
 
   @override
   $Res call({
     Object wasDeleted = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(DeleteUserResult(
       wasDeleted:
           wasDeleted == freezed ? _value.wasDeleted : wasDeleted as bool,
     ));
   }
 }
 
-abstract class _$DeleteUserResultCopyWith<$Res>
-    implements $DeleteUserResultCopyWith<$Res> {
-  factory _$DeleteUserResultCopyWith(
-          _DeleteUserResult value, $Res Function(_DeleteUserResult) then) =
-      __$DeleteUserResultCopyWithImpl<$Res>;
-  @override
-  $Res call({bool wasDeleted});
-}
-
-class __$DeleteUserResultCopyWithImpl<$Res>
-    extends _$DeleteUserResultCopyWithImpl<$Res>
-    implements _$DeleteUserResultCopyWith<$Res> {
-  __$DeleteUserResultCopyWithImpl(
-      _DeleteUserResult _value, $Res Function(_DeleteUserResult) _then)
-      : super(_value, (v) => _then(v as _DeleteUserResult));
-
-  @override
-  _DeleteUserResult get _value => super._value as _DeleteUserResult;
-
-  @override
-  $Res call({
-    Object wasDeleted = freezed,
-  }) {
-    return _then(_DeleteUserResult(
-      wasDeleted:
-          wasDeleted == freezed ? _value.wasDeleted : wasDeleted as bool,
-    ));
-  }
-}
-
-@JsonSerializable(explicitToJson: true)
-class _$_DeleteUserResult
+@JsonSerializable()
+class _$DeleteUserResult
     with DiagnosticableTreeMixin
-    implements _DeleteUserResult {
-  _$_DeleteUserResult({@required this.wasDeleted}) : assert(wasDeleted != null);
+    implements DeleteUserResult {
+  _$DeleteUserResult({@required this.wasDeleted}) : assert(wasDeleted != null);
 
-  factory _$_DeleteUserResult.fromJson(Map<String, dynamic> json) =>
-      _$_$_DeleteUserResultFromJson(json);
+  factory _$DeleteUserResult.fromJson(Map<String, dynamic> json) =>
+      _$_$DeleteUserResultFromJson(json);
 
   @override
   final bool wasDeleted;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'DeleteUserResult(wasDeleted: $wasDeleted)';
+    return 'ExampleServiceState.deleteUserResult(wasDeleted: $wasDeleted)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'DeleteUserResult'))
+      ..add(DiagnosticsProperty('type', 'ExampleServiceState.deleteUserResult'))
       ..add(DiagnosticsProperty('wasDeleted', wasDeleted));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _DeleteUserResult &&
+        (other is DeleteUserResult &&
             (identical(other.wasDeleted, wasDeleted) ||
                 const DeepCollectionEquality()
                     .equals(other.wasDeleted, wasDeleted)));
@@ -3068,149 +5352,480 @@ class _$_DeleteUserResult
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(wasDeleted);
 
   @override
-  _$DeleteUserResultCopyWith<_DeleteUserResult> get copyWith =>
-      __$DeleteUserResultCopyWithImpl<_DeleteUserResult>(this, _$identity);
+  $DeleteUserResultCopyWith<DeleteUserResult> get copyWith =>
+      _$DeleteUserResultCopyWithImpl<DeleteUserResult>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result pingResult(),
+    @required Result statusResult(bool status),
+    @required Result versionResult(Version version),
+    @required Result getUserResult(User user),
+    @required Result updateNameResult(bool wasUpdated),
+    @required Result findUserByIdResult(String name, User user),
+    @required Result addUserResult(bool wasAdded),
+    @required Result listUsersResult(List<User> users),
+    @required Result deleteUserResult(bool wasDeleted),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return deleteUserResult(wasDeleted);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result pingResult(),
+    Result statusResult(bool status),
+    Result versionResult(Version version),
+    Result getUserResult(User user),
+    Result updateNameResult(bool wasUpdated),
+    Result findUserByIdResult(String name, User user),
+    Result addUserResult(bool wasAdded),
+    Result listUsersResult(List<User> users),
+    Result deleteUserResult(bool wasDeleted),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (deleteUserResult != null) {
+      return deleteUserResult(wasDeleted);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result pingResult(PingResult value),
+    @required Result statusResult(StatusResult value),
+    @required Result versionResult(VersionResult value),
+    @required Result getUserResult(GetUserResult value),
+    @required Result updateNameResult(UpdateNameResult value),
+    @required Result findUserByIdResult(FindUserByIdResult value),
+    @required Result addUserResult(AddUserResult value),
+    @required Result listUsersResult(ListUsersResult value),
+    @required Result deleteUserResult(DeleteUserResult value),
+  }) {
+    assert(pingResult != null);
+    assert(statusResult != null);
+    assert(versionResult != null);
+    assert(getUserResult != null);
+    assert(updateNameResult != null);
+    assert(findUserByIdResult != null);
+    assert(addUserResult != null);
+    assert(listUsersResult != null);
+    assert(deleteUserResult != null);
+    return deleteUserResult(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result pingResult(PingResult value),
+    Result statusResult(StatusResult value),
+    Result versionResult(VersionResult value),
+    Result getUserResult(GetUserResult value),
+    Result updateNameResult(UpdateNameResult value),
+    Result findUserByIdResult(FindUserByIdResult value),
+    Result addUserResult(AddUserResult value),
+    Result listUsersResult(ListUsersResult value),
+    Result deleteUserResult(DeleteUserResult value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (deleteUserResult != null) {
+      return deleteUserResult(this);
+    }
+    return orElse();
+  }
 
   @override
   Map<String, dynamic> toJson() {
-    return _$_$_DeleteUserResultToJson(this);
+    return _$_$DeleteUserResultToJson(this)
+      ..['runtimeType'] = 'deleteUserResult';
   }
 }
 
-abstract class _DeleteUserResult implements DeleteUserResult {
-  factory _DeleteUserResult({@required bool wasDeleted}) = _$_DeleteUserResult;
+abstract class DeleteUserResult implements ExampleServiceState {
+  factory DeleteUserResult({@required bool wasDeleted}) = _$DeleteUserResult;
 
-  factory _DeleteUserResult.fromJson(Map<String, dynamic> json) =
-      _$_DeleteUserResult.fromJson;
+  factory DeleteUserResult.fromJson(Map<String, dynamic> json) =
+      _$DeleteUserResult.fromJson;
 
-  @override
   bool get wasDeleted;
-  @override
-  _$DeleteUserResultCopyWith<_DeleteUserResult> get copyWith;
+  $DeleteUserResultCopyWith<DeleteUserResult> get copyWith;
 }
 
-class _$RpcResponseTearOff {
-  const _$RpcResponseTearOff();
+class _$RpcStateTearOff {
+  const _$RpcStateTearOff();
 
-  _RpcResponseOk<T> ok<T>({@required T data}) {
-    return _RpcResponseOk<T>(
+  _RpcStateIdle<T> idle<T>() {
+    return _RpcStateIdle<T>();
+  }
+
+  _RpcStateLoading<T> loading<T>() {
+    return _RpcStateLoading<T>();
+  }
+
+  _RpcStateOk<T> ok<T>({@required T data}) {
+    return _RpcStateOk<T>(
       data: data,
     );
   }
 
-  _RpcResonseErr<T> err<T>(
+  _RpcStateUnit<T> unit<T>() {
+    return _RpcStateUnit<T>();
+  }
+
+  _RpcStateErr<T> err<T>(
       {@required String reason, @required int statusCode, String stackTrace}) {
-    return _RpcResonseErr<T>(
+    return _RpcStateErr<T>(
       reason: reason,
       statusCode: statusCode,
       stackTrace: stackTrace,
     );
   }
-
-  _RpcResponseLoading<T> loading<T>() {
-    return _RpcResponseLoading<T>();
-  }
 }
 
 // ignore: unused_element
-const $RpcResponse = _$RpcResponseTearOff();
+const $RpcState = _$RpcStateTearOff();
 
-mixin _$RpcResponse<T> {
+mixin _$RpcState<T> {
   @optionalTypeArgs
   Result when<Result extends Object>({
-    @required Result ok(T data),
-    @required Result err(String reason, int statusCode, String stackTrace),
+    @required Result idle(),
     @required Result loading(),
+    @required Result ok(T data),
+    @required Result unit(),
+    @required Result err(String reason, int statusCode, String stackTrace),
   });
   @optionalTypeArgs
   Result maybeWhen<Result extends Object>({
-    Result ok(T data),
-    Result err(String reason, int statusCode, String stackTrace),
+    Result idle(),
     Result loading(),
+    Result ok(T data),
+    Result unit(),
+    Result err(String reason, int statusCode, String stackTrace),
     @required Result orElse(),
   });
   @optionalTypeArgs
   Result map<Result extends Object>({
-    @required Result ok(_RpcResponseOk<T> value),
-    @required Result err(_RpcResonseErr<T> value),
-    @required Result loading(_RpcResponseLoading<T> value),
+    @required Result idle(_RpcStateIdle<T> value),
+    @required Result loading(_RpcStateLoading<T> value),
+    @required Result ok(_RpcStateOk<T> value),
+    @required Result unit(_RpcStateUnit<T> value),
+    @required Result err(_RpcStateErr<T> value),
   });
   @optionalTypeArgs
   Result maybeMap<Result extends Object>({
-    Result ok(_RpcResponseOk<T> value),
-    Result err(_RpcResonseErr<T> value),
-    Result loading(_RpcResponseLoading<T> value),
+    Result idle(_RpcStateIdle<T> value),
+    Result loading(_RpcStateLoading<T> value),
+    Result ok(_RpcStateOk<T> value),
+    Result unit(_RpcStateUnit<T> value),
+    Result err(_RpcStateErr<T> value),
     @required Result orElse(),
   });
 }
 
-abstract class $RpcResponseCopyWith<T, $Res> {
-  factory $RpcResponseCopyWith(
-          RpcResponse<T> value, $Res Function(RpcResponse<T>) then) =
-      _$RpcResponseCopyWithImpl<T, $Res>;
+abstract class $RpcStateCopyWith<T, $Res> {
+  factory $RpcStateCopyWith(
+          RpcState<T> value, $Res Function(RpcState<T>) then) =
+      _$RpcStateCopyWithImpl<T, $Res>;
 }
 
-class _$RpcResponseCopyWithImpl<T, $Res>
-    implements $RpcResponseCopyWith<T, $Res> {
-  _$RpcResponseCopyWithImpl(this._value, this._then);
+class _$RpcStateCopyWithImpl<T, $Res> implements $RpcStateCopyWith<T, $Res> {
+  _$RpcStateCopyWithImpl(this._value, this._then);
 
-  final RpcResponse<T> _value;
+  final RpcState<T> _value;
   // ignore: unused_field
-  final $Res Function(RpcResponse<T>) _then;
+  final $Res Function(RpcState<T>) _then;
 }
 
-abstract class _$RpcResponseOkCopyWith<T, $Res> {
-  factory _$RpcResponseOkCopyWith(
-          _RpcResponseOk<T> value, $Res Function(_RpcResponseOk<T>) then) =
-      __$RpcResponseOkCopyWithImpl<T, $Res>;
+abstract class _$RpcStateIdleCopyWith<T, $Res> {
+  factory _$RpcStateIdleCopyWith(
+          _RpcStateIdle<T> value, $Res Function(_RpcStateIdle<T>) then) =
+      __$RpcStateIdleCopyWithImpl<T, $Res>;
+}
+
+class __$RpcStateIdleCopyWithImpl<T, $Res>
+    extends _$RpcStateCopyWithImpl<T, $Res>
+    implements _$RpcStateIdleCopyWith<T, $Res> {
+  __$RpcStateIdleCopyWithImpl(
+      _RpcStateIdle<T> _value, $Res Function(_RpcStateIdle<T>) _then)
+      : super(_value, (v) => _then(v as _RpcStateIdle<T>));
+
+  @override
+  _RpcStateIdle<T> get _value => super._value as _RpcStateIdle<T>;
+}
+
+class _$_RpcStateIdle<T>
+    with DiagnosticableTreeMixin
+    implements _RpcStateIdle<T> {
+  const _$_RpcStateIdle();
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'RpcState<$T>.idle()';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties..add(DiagnosticsProperty('type', 'RpcState<$T>.idle'));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) || (other is _RpcStateIdle<T>);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result idle(),
+    @required Result loading(),
+    @required Result ok(T data),
+    @required Result unit(),
+    @required Result err(String reason, int statusCode, String stackTrace),
+  }) {
+    assert(idle != null);
+    assert(loading != null);
+    assert(ok != null);
+    assert(unit != null);
+    assert(err != null);
+    return idle();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result idle(),
+    Result loading(),
+    Result ok(T data),
+    Result unit(),
+    Result err(String reason, int statusCode, String stackTrace),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (idle != null) {
+      return idle();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result idle(_RpcStateIdle<T> value),
+    @required Result loading(_RpcStateLoading<T> value),
+    @required Result ok(_RpcStateOk<T> value),
+    @required Result unit(_RpcStateUnit<T> value),
+    @required Result err(_RpcStateErr<T> value),
+  }) {
+    assert(idle != null);
+    assert(loading != null);
+    assert(ok != null);
+    assert(unit != null);
+    assert(err != null);
+    return idle(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result idle(_RpcStateIdle<T> value),
+    Result loading(_RpcStateLoading<T> value),
+    Result ok(_RpcStateOk<T> value),
+    Result unit(_RpcStateUnit<T> value),
+    Result err(_RpcStateErr<T> value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (idle != null) {
+      return idle(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _RpcStateIdle<T> implements RpcState<T> {
+  const factory _RpcStateIdle() = _$_RpcStateIdle<T>;
+}
+
+abstract class _$RpcStateLoadingCopyWith<T, $Res> {
+  factory _$RpcStateLoadingCopyWith(
+          _RpcStateLoading<T> value, $Res Function(_RpcStateLoading<T>) then) =
+      __$RpcStateLoadingCopyWithImpl<T, $Res>;
+}
+
+class __$RpcStateLoadingCopyWithImpl<T, $Res>
+    extends _$RpcStateCopyWithImpl<T, $Res>
+    implements _$RpcStateLoadingCopyWith<T, $Res> {
+  __$RpcStateLoadingCopyWithImpl(
+      _RpcStateLoading<T> _value, $Res Function(_RpcStateLoading<T>) _then)
+      : super(_value, (v) => _then(v as _RpcStateLoading<T>));
+
+  @override
+  _RpcStateLoading<T> get _value => super._value as _RpcStateLoading<T>;
+}
+
+class _$_RpcStateLoading<T>
+    with DiagnosticableTreeMixin
+    implements _RpcStateLoading<T> {
+  const _$_RpcStateLoading();
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'RpcState<$T>.loading()';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties..add(DiagnosticsProperty('type', 'RpcState<$T>.loading'));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) || (other is _RpcStateLoading<T>);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result idle(),
+    @required Result loading(),
+    @required Result ok(T data),
+    @required Result unit(),
+    @required Result err(String reason, int statusCode, String stackTrace),
+  }) {
+    assert(idle != null);
+    assert(loading != null);
+    assert(ok != null);
+    assert(unit != null);
+    assert(err != null);
+    return loading();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result idle(),
+    Result loading(),
+    Result ok(T data),
+    Result unit(),
+    Result err(String reason, int statusCode, String stackTrace),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (loading != null) {
+      return loading();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result idle(_RpcStateIdle<T> value),
+    @required Result loading(_RpcStateLoading<T> value),
+    @required Result ok(_RpcStateOk<T> value),
+    @required Result unit(_RpcStateUnit<T> value),
+    @required Result err(_RpcStateErr<T> value),
+  }) {
+    assert(idle != null);
+    assert(loading != null);
+    assert(ok != null);
+    assert(unit != null);
+    assert(err != null);
+    return loading(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result idle(_RpcStateIdle<T> value),
+    Result loading(_RpcStateLoading<T> value),
+    Result ok(_RpcStateOk<T> value),
+    Result unit(_RpcStateUnit<T> value),
+    Result err(_RpcStateErr<T> value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (loading != null) {
+      return loading(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _RpcStateLoading<T> implements RpcState<T> {
+  const factory _RpcStateLoading() = _$_RpcStateLoading<T>;
+}
+
+abstract class _$RpcStateOkCopyWith<T, $Res> {
+  factory _$RpcStateOkCopyWith(
+          _RpcStateOk<T> value, $Res Function(_RpcStateOk<T>) then) =
+      __$RpcStateOkCopyWithImpl<T, $Res>;
   $Res call({T data});
 }
 
-class __$RpcResponseOkCopyWithImpl<T, $Res>
-    extends _$RpcResponseCopyWithImpl<T, $Res>
-    implements _$RpcResponseOkCopyWith<T, $Res> {
-  __$RpcResponseOkCopyWithImpl(
-      _RpcResponseOk<T> _value, $Res Function(_RpcResponseOk<T>) _then)
-      : super(_value, (v) => _then(v as _RpcResponseOk<T>));
+class __$RpcStateOkCopyWithImpl<T, $Res> extends _$RpcStateCopyWithImpl<T, $Res>
+    implements _$RpcStateOkCopyWith<T, $Res> {
+  __$RpcStateOkCopyWithImpl(
+      _RpcStateOk<T> _value, $Res Function(_RpcStateOk<T>) _then)
+      : super(_value, (v) => _then(v as _RpcStateOk<T>));
 
   @override
-  _RpcResponseOk<T> get _value => super._value as _RpcResponseOk<T>;
+  _RpcStateOk<T> get _value => super._value as _RpcStateOk<T>;
 
   @override
   $Res call({
     Object data = freezed,
   }) {
-    return _then(_RpcResponseOk<T>(
+    return _then(_RpcStateOk<T>(
       data: data == freezed ? _value.data : data as T,
     ));
   }
 }
 
-class _$_RpcResponseOk<T>
-    with DiagnosticableTreeMixin
-    implements _RpcResponseOk<T> {
-  _$_RpcResponseOk({@required this.data}) : assert(data != null);
+class _$_RpcStateOk<T> with DiagnosticableTreeMixin implements _RpcStateOk<T> {
+  const _$_RpcStateOk({@required this.data}) : assert(data != null);
 
   @override
   final T data;
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'RpcResponse<$T>.ok(data: $data)';
+    return 'RpcState<$T>.ok(data: $data)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'RpcResponse<$T>.ok'))
+      ..add(DiagnosticsProperty('type', 'RpcState<$T>.ok'))
       ..add(DiagnosticsProperty('data', data));
   }
 
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _RpcResponseOk<T> &&
+        (other is _RpcStateOk<T> &&
             (identical(other.data, data) ||
                 const DeepCollectionEquality().equals(other.data, data)));
   }
@@ -3220,28 +5835,34 @@ class _$_RpcResponseOk<T>
       runtimeType.hashCode ^ const DeepCollectionEquality().hash(data);
 
   @override
-  _$RpcResponseOkCopyWith<T, _RpcResponseOk<T>> get copyWith =>
-      __$RpcResponseOkCopyWithImpl<T, _RpcResponseOk<T>>(this, _$identity);
+  _$RpcStateOkCopyWith<T, _RpcStateOk<T>> get copyWith =>
+      __$RpcStateOkCopyWithImpl<T, _RpcStateOk<T>>(this, _$identity);
 
   @override
   @optionalTypeArgs
   Result when<Result extends Object>({
-    @required Result ok(T data),
-    @required Result err(String reason, int statusCode, String stackTrace),
+    @required Result idle(),
     @required Result loading(),
+    @required Result ok(T data),
+    @required Result unit(),
+    @required Result err(String reason, int statusCode, String stackTrace),
   }) {
-    assert(ok != null);
-    assert(err != null);
+    assert(idle != null);
     assert(loading != null);
+    assert(ok != null);
+    assert(unit != null);
+    assert(err != null);
     return ok(data);
   }
 
   @override
   @optionalTypeArgs
   Result maybeWhen<Result extends Object>({
-    Result ok(T data),
-    Result err(String reason, int statusCode, String stackTrace),
+    Result idle(),
     Result loading(),
+    Result ok(T data),
+    Result unit(),
+    Result err(String reason, int statusCode, String stackTrace),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -3254,22 +5875,28 @@ class _$_RpcResponseOk<T>
   @override
   @optionalTypeArgs
   Result map<Result extends Object>({
-    @required Result ok(_RpcResponseOk<T> value),
-    @required Result err(_RpcResonseErr<T> value),
-    @required Result loading(_RpcResponseLoading<T> value),
+    @required Result idle(_RpcStateIdle<T> value),
+    @required Result loading(_RpcStateLoading<T> value),
+    @required Result ok(_RpcStateOk<T> value),
+    @required Result unit(_RpcStateUnit<T> value),
+    @required Result err(_RpcStateErr<T> value),
   }) {
-    assert(ok != null);
-    assert(err != null);
+    assert(idle != null);
     assert(loading != null);
+    assert(ok != null);
+    assert(unit != null);
+    assert(err != null);
     return ok(this);
   }
 
   @override
   @optionalTypeArgs
   Result maybeMap<Result extends Object>({
-    Result ok(_RpcResponseOk<T> value),
-    Result err(_RpcResonseErr<T> value),
-    Result loading(_RpcResponseLoading<T> value),
+    Result idle(_RpcStateIdle<T> value),
+    Result loading(_RpcStateLoading<T> value),
+    Result ok(_RpcStateOk<T> value),
+    Result unit(_RpcStateUnit<T> value),
+    Result err(_RpcStateErr<T> value),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -3280,29 +5907,143 @@ class _$_RpcResponseOk<T>
   }
 }
 
-abstract class _RpcResponseOk<T> implements RpcResponse<T> {
-  factory _RpcResponseOk({@required T data}) = _$_RpcResponseOk<T>;
+abstract class _RpcStateOk<T> implements RpcState<T> {
+  const factory _RpcStateOk({@required T data}) = _$_RpcStateOk<T>;
 
   T get data;
-  _$RpcResponseOkCopyWith<T, _RpcResponseOk<T>> get copyWith;
+  _$RpcStateOkCopyWith<T, _RpcStateOk<T>> get copyWith;
 }
 
-abstract class _$RpcResonseErrCopyWith<T, $Res> {
-  factory _$RpcResonseErrCopyWith(
-          _RpcResonseErr<T> value, $Res Function(_RpcResonseErr<T>) then) =
-      __$RpcResonseErrCopyWithImpl<T, $Res>;
+abstract class _$RpcStateUnitCopyWith<T, $Res> {
+  factory _$RpcStateUnitCopyWith(
+          _RpcStateUnit<T> value, $Res Function(_RpcStateUnit<T>) then) =
+      __$RpcStateUnitCopyWithImpl<T, $Res>;
+}
+
+class __$RpcStateUnitCopyWithImpl<T, $Res>
+    extends _$RpcStateCopyWithImpl<T, $Res>
+    implements _$RpcStateUnitCopyWith<T, $Res> {
+  __$RpcStateUnitCopyWithImpl(
+      _RpcStateUnit<T> _value, $Res Function(_RpcStateUnit<T>) _then)
+      : super(_value, (v) => _then(v as _RpcStateUnit<T>));
+
+  @override
+  _RpcStateUnit<T> get _value => super._value as _RpcStateUnit<T>;
+}
+
+class _$_RpcStateUnit<T>
+    with DiagnosticableTreeMixin
+    implements _RpcStateUnit<T> {
+  const _$_RpcStateUnit();
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'RpcState<$T>.unit()';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties..add(DiagnosticsProperty('type', 'RpcState<$T>.unit'));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) || (other is _RpcStateUnit<T>);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result idle(),
+    @required Result loading(),
+    @required Result ok(T data),
+    @required Result unit(),
+    @required Result err(String reason, int statusCode, String stackTrace),
+  }) {
+    assert(idle != null);
+    assert(loading != null);
+    assert(ok != null);
+    assert(unit != null);
+    assert(err != null);
+    return unit();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result idle(),
+    Result loading(),
+    Result ok(T data),
+    Result unit(),
+    Result err(String reason, int statusCode, String stackTrace),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (unit != null) {
+      return unit();
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result idle(_RpcStateIdle<T> value),
+    @required Result loading(_RpcStateLoading<T> value),
+    @required Result ok(_RpcStateOk<T> value),
+    @required Result unit(_RpcStateUnit<T> value),
+    @required Result err(_RpcStateErr<T> value),
+  }) {
+    assert(idle != null);
+    assert(loading != null);
+    assert(ok != null);
+    assert(unit != null);
+    assert(err != null);
+    return unit(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result idle(_RpcStateIdle<T> value),
+    Result loading(_RpcStateLoading<T> value),
+    Result ok(_RpcStateOk<T> value),
+    Result unit(_RpcStateUnit<T> value),
+    Result err(_RpcStateErr<T> value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (unit != null) {
+      return unit(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _RpcStateUnit<T> implements RpcState<T> {
+  const factory _RpcStateUnit() = _$_RpcStateUnit<T>;
+}
+
+abstract class _$RpcStateErrCopyWith<T, $Res> {
+  factory _$RpcStateErrCopyWith(
+          _RpcStateErr<T> value, $Res Function(_RpcStateErr<T>) then) =
+      __$RpcStateErrCopyWithImpl<T, $Res>;
   $Res call({String reason, int statusCode, String stackTrace});
 }
 
-class __$RpcResonseErrCopyWithImpl<T, $Res>
-    extends _$RpcResponseCopyWithImpl<T, $Res>
-    implements _$RpcResonseErrCopyWith<T, $Res> {
-  __$RpcResonseErrCopyWithImpl(
-      _RpcResonseErr<T> _value, $Res Function(_RpcResonseErr<T>) _then)
-      : super(_value, (v) => _then(v as _RpcResonseErr<T>));
+class __$RpcStateErrCopyWithImpl<T, $Res>
+    extends _$RpcStateCopyWithImpl<T, $Res>
+    implements _$RpcStateErrCopyWith<T, $Res> {
+  __$RpcStateErrCopyWithImpl(
+      _RpcStateErr<T> _value, $Res Function(_RpcStateErr<T>) _then)
+      : super(_value, (v) => _then(v as _RpcStateErr<T>));
 
   @override
-  _RpcResonseErr<T> get _value => super._value as _RpcResonseErr<T>;
+  _RpcStateErr<T> get _value => super._value as _RpcStateErr<T>;
 
   @override
   $Res call({
@@ -3310,7 +6051,7 @@ class __$RpcResonseErrCopyWithImpl<T, $Res>
     Object statusCode = freezed,
     Object stackTrace = freezed,
   }) {
-    return _then(_RpcResonseErr<T>(
+    return _then(_RpcStateErr<T>(
       reason: reason == freezed ? _value.reason : reason as String,
       statusCode: statusCode == freezed ? _value.statusCode : statusCode as int,
       stackTrace:
@@ -3319,10 +6060,10 @@ class __$RpcResonseErrCopyWithImpl<T, $Res>
   }
 }
 
-class _$_RpcResonseErr<T>
+class _$_RpcStateErr<T>
     with DiagnosticableTreeMixin
-    implements _RpcResonseErr<T> {
-  const _$_RpcResonseErr(
+    implements _RpcStateErr<T> {
+  const _$_RpcStateErr(
       {@required this.reason, @required this.statusCode, this.stackTrace})
       : assert(reason != null),
         assert(statusCode != null);
@@ -3336,14 +6077,14 @@ class _$_RpcResonseErr<T>
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'RpcResponse<$T>.err(reason: $reason, statusCode: $statusCode, stackTrace: $stackTrace)';
+    return 'RpcState<$T>.err(reason: $reason, statusCode: $statusCode, stackTrace: $stackTrace)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'RpcResponse<$T>.err'))
+      ..add(DiagnosticsProperty('type', 'RpcState<$T>.err'))
       ..add(DiagnosticsProperty('reason', reason))
       ..add(DiagnosticsProperty('statusCode', statusCode))
       ..add(DiagnosticsProperty('stackTrace', stackTrace));
@@ -3352,7 +6093,7 @@ class _$_RpcResonseErr<T>
   @override
   bool operator ==(dynamic other) {
     return identical(this, other) ||
-        (other is _RpcResonseErr<T> &&
+        (other is _RpcStateErr<T> &&
             (identical(other.reason, reason) ||
                 const DeepCollectionEquality().equals(other.reason, reason)) &&
             (identical(other.statusCode, statusCode) ||
@@ -3371,28 +6112,34 @@ class _$_RpcResonseErr<T>
       const DeepCollectionEquality().hash(stackTrace);
 
   @override
-  _$RpcResonseErrCopyWith<T, _RpcResonseErr<T>> get copyWith =>
-      __$RpcResonseErrCopyWithImpl<T, _RpcResonseErr<T>>(this, _$identity);
+  _$RpcStateErrCopyWith<T, _RpcStateErr<T>> get copyWith =>
+      __$RpcStateErrCopyWithImpl<T, _RpcStateErr<T>>(this, _$identity);
 
   @override
   @optionalTypeArgs
   Result when<Result extends Object>({
-    @required Result ok(T data),
-    @required Result err(String reason, int statusCode, String stackTrace),
+    @required Result idle(),
     @required Result loading(),
+    @required Result ok(T data),
+    @required Result unit(),
+    @required Result err(String reason, int statusCode, String stackTrace),
   }) {
-    assert(ok != null);
-    assert(err != null);
+    assert(idle != null);
     assert(loading != null);
+    assert(ok != null);
+    assert(unit != null);
+    assert(err != null);
     return err(reason, statusCode, stackTrace);
   }
 
   @override
   @optionalTypeArgs
   Result maybeWhen<Result extends Object>({
-    Result ok(T data),
-    Result err(String reason, int statusCode, String stackTrace),
+    Result idle(),
     Result loading(),
+    Result ok(T data),
+    Result unit(),
+    Result err(String reason, int statusCode, String stackTrace),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -3405,22 +6152,28 @@ class _$_RpcResonseErr<T>
   @override
   @optionalTypeArgs
   Result map<Result extends Object>({
-    @required Result ok(_RpcResponseOk<T> value),
-    @required Result err(_RpcResonseErr<T> value),
-    @required Result loading(_RpcResponseLoading<T> value),
+    @required Result idle(_RpcStateIdle<T> value),
+    @required Result loading(_RpcStateLoading<T> value),
+    @required Result ok(_RpcStateOk<T> value),
+    @required Result unit(_RpcStateUnit<T> value),
+    @required Result err(_RpcStateErr<T> value),
   }) {
-    assert(ok != null);
-    assert(err != null);
+    assert(idle != null);
     assert(loading != null);
+    assert(ok != null);
+    assert(unit != null);
+    assert(err != null);
     return err(this);
   }
 
   @override
   @optionalTypeArgs
   Result maybeMap<Result extends Object>({
-    Result ok(_RpcResponseOk<T> value),
-    Result err(_RpcResonseErr<T> value),
-    Result loading(_RpcResponseLoading<T> value),
+    Result idle(_RpcStateIdle<T> value),
+    Result loading(_RpcStateLoading<T> value),
+    Result ok(_RpcStateOk<T> value),
+    Result unit(_RpcStateUnit<T> value),
+    Result err(_RpcStateErr<T> value),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -3431,116 +6184,14 @@ class _$_RpcResonseErr<T>
   }
 }
 
-abstract class _RpcResonseErr<T> implements RpcResponse<T> {
-  const factory _RpcResonseErr(
+abstract class _RpcStateErr<T> implements RpcState<T> {
+  const factory _RpcStateErr(
       {@required String reason,
       @required int statusCode,
-      String stackTrace}) = _$_RpcResonseErr<T>;
+      String stackTrace}) = _$_RpcStateErr<T>;
 
   String get reason;
   int get statusCode;
   String get stackTrace;
-  _$RpcResonseErrCopyWith<T, _RpcResonseErr<T>> get copyWith;
-}
-
-abstract class _$RpcResponseLoadingCopyWith<T, $Res> {
-  factory _$RpcResponseLoadingCopyWith(_RpcResponseLoading<T> value,
-          $Res Function(_RpcResponseLoading<T>) then) =
-      __$RpcResponseLoadingCopyWithImpl<T, $Res>;
-}
-
-class __$RpcResponseLoadingCopyWithImpl<T, $Res>
-    extends _$RpcResponseCopyWithImpl<T, $Res>
-    implements _$RpcResponseLoadingCopyWith<T, $Res> {
-  __$RpcResponseLoadingCopyWithImpl(_RpcResponseLoading<T> _value,
-      $Res Function(_RpcResponseLoading<T>) _then)
-      : super(_value, (v) => _then(v as _RpcResponseLoading<T>));
-
-  @override
-  _RpcResponseLoading<T> get _value => super._value as _RpcResponseLoading<T>;
-}
-
-class _$_RpcResponseLoading<T>
-    with DiagnosticableTreeMixin
-    implements _RpcResponseLoading<T> {
-  const _$_RpcResponseLoading();
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'RpcResponse<$T>.loading()';
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties..add(DiagnosticsProperty('type', 'RpcResponse<$T>.loading'));
-  }
-
-  @override
-  bool operator ==(dynamic other) {
-    return identical(this, other) || (other is _RpcResponseLoading<T>);
-  }
-
-  @override
-  int get hashCode => runtimeType.hashCode;
-
-  @override
-  @optionalTypeArgs
-  Result when<Result extends Object>({
-    @required Result ok(T data),
-    @required Result err(String reason, int statusCode, String stackTrace),
-    @required Result loading(),
-  }) {
-    assert(ok != null);
-    assert(err != null);
-    assert(loading != null);
-    return loading();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeWhen<Result extends Object>({
-    Result ok(T data),
-    Result err(String reason, int statusCode, String stackTrace),
-    Result loading(),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (loading != null) {
-      return loading();
-    }
-    return orElse();
-  }
-
-  @override
-  @optionalTypeArgs
-  Result map<Result extends Object>({
-    @required Result ok(_RpcResponseOk<T> value),
-    @required Result err(_RpcResonseErr<T> value),
-    @required Result loading(_RpcResponseLoading<T> value),
-  }) {
-    assert(ok != null);
-    assert(err != null);
-    assert(loading != null);
-    return loading(this);
-  }
-
-  @override
-  @optionalTypeArgs
-  Result maybeMap<Result extends Object>({
-    Result ok(_RpcResponseOk<T> value),
-    Result err(_RpcResonseErr<T> value),
-    Result loading(_RpcResponseLoading<T> value),
-    @required Result orElse(),
-  }) {
-    assert(orElse != null);
-    if (loading != null) {
-      return loading(this);
-    }
-    return orElse();
-  }
-}
-
-abstract class _RpcResponseLoading<T> implements RpcResponse<T> {
-  const factory _RpcResponseLoading() = _$_RpcResponseLoading<T>;
+  _$RpcStateErrCopyWith<T, _RpcStateErr<T>> get copyWith;
 }

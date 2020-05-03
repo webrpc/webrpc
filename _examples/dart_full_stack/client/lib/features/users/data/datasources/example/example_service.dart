@@ -7,6 +7,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:flutter/foundation.dart';
+import 'package:bloc/bloc.dart';
 
 part 'example_service.freezed.dart';
 part 'example_service.g.dart';
@@ -153,134 +154,218 @@ abstract class _DeleteUserArgs with _$_DeleteUserArgs {
       _$_DeleteUserArgsFromJson(json);
 }
 
-// *********************************************************************
-// ExampleService METHOD RETURN TYPES.
-// *********************************************************************
+// **********************************************************************
+// ExampleService Bloc Events.
+// **********************************************************************
 
 @freezed
-abstract class StatusResult with _$StatusResult {
-  @JsonSerializable(explicitToJson: true)
-  factory StatusResult({
-    @required bool status,
-  }) = _StatusResult;
-  factory StatusResult.fromJson(Map<String, dynamic> json) =>
-      _$StatusResultFromJson(json);
-}
-
-@freezed
-abstract class VersionResult with _$VersionResult {
-  @JsonSerializable(explicitToJson: true)
-  factory VersionResult({
-    @required Version version,
-  }) = _VersionResult;
-  factory VersionResult.fromJson(Map<String, dynamic> json) =>
-      _$VersionResultFromJson(json);
-}
-
-@freezed
-abstract class GetUserResult with _$GetUserResult {
-  @JsonSerializable(explicitToJson: true)
-  factory GetUserResult({
+abstract class ExampleServiceEvent with _$ExampleServiceEvent {
+  factory ExampleServiceEvent.ping({
+    Map<String, String> headers,
+  }) = _PingEvent;
+  factory ExampleServiceEvent.status({
+    Map<String, String> headers,
+  }) = _StatusEvent;
+  factory ExampleServiceEvent.version({
+    Map<String, String> headers,
+  }) = _VersionEvent;
+  factory ExampleServiceEvent.getUser({
+    @required int userID,
+    Map<String, String> headers,
+  }) = _GetUserEvent;
+  factory ExampleServiceEvent.updateName({
+    @required int id,
+    @required String username,
+    Map<String, String> headers,
+  }) = _UpdateNameEvent;
+  factory ExampleServiceEvent.findUserById({
+    @required SearchFilter s,
+    Map<String, String> headers,
+  }) = _FindUserByIdEvent;
+  factory ExampleServiceEvent.addUser({
     @required User user,
-  }) = _GetUserResult;
-  factory GetUserResult.fromJson(Map<String, dynamic> json) =>
-      _$GetUserResultFromJson(json);
+    Map<String, String> headers,
+  }) = _AddUserEvent;
+  factory ExampleServiceEvent.listUsers({
+    Map<String, String> headers,
+  }) = _ListUsersEvent;
+  factory ExampleServiceEvent.deleteUser({
+    @required int id,
+    Map<String, String> headers,
+  }) = _DeleteUserEvent;
 }
 
+// ***********************************************************************
+// ExampleService Bloc State.
+// ***********************************************************************
 @freezed
-abstract class UpdateNameResult with _$UpdateNameResult {
-  @JsonSerializable(explicitToJson: true)
-  factory UpdateNameResult({
+abstract class ExampleServiceState {
+  factory ExampleServiceState.pingResult() = PingResult;
+  factory ExampleServiceState.statusResult({
+    @required bool status,
+  }) = StatusResult;
+  factory ExampleServiceState.versionResult({
+    @required Version version,
+  }) = VersionResult;
+  factory ExampleServiceState.getUserResult({
+    @required User user,
+  }) = GetUserResult;
+  factory ExampleServiceState.updateNameResult({
     @required bool wasUpdated,
-  }) = _UpdateNameResult;
-  factory UpdateNameResult.fromJson(Map<String, dynamic> json) =>
-      _$UpdateNameResultFromJson(json);
-}
-
-@freezed
-abstract class FindUserByIdResult with _$FindUserByIdResult {
-  @JsonSerializable(explicitToJson: true)
-  factory FindUserByIdResult({
+  }) = UpdateNameResult;
+  factory ExampleServiceState.findUserByIdResult({
     @required String name,
     @required User user,
-  }) = _FindUserByIdResult;
-  factory FindUserByIdResult.fromJson(Map<String, dynamic> json) =>
-      _$FindUserByIdResultFromJson(json);
-}
-
-@freezed
-abstract class AddUserResult with _$AddUserResult {
-  @JsonSerializable(explicitToJson: true)
-  factory AddUserResult({
+  }) = FindUserByIdResult;
+  factory ExampleServiceState.addUserResult({
     @required bool wasAdded,
-  }) = _AddUserResult;
-  factory AddUserResult.fromJson(Map<String, dynamic> json) =>
-      _$AddUserResultFromJson(json);
-}
-
-@freezed
-abstract class ListUsersResult with _$ListUsersResult {
-  @JsonSerializable(explicitToJson: true)
-  factory ListUsersResult({
+  }) = AddUserResult;
+  factory ExampleServiceState.listUsersResult({
     @required List<User> users,
-  }) = _ListUsersResult;
-  factory ListUsersResult.fromJson(Map<String, dynamic> json) =>
-      _$ListUsersResultFromJson(json);
+  }) = ListUsersResult;
+  factory ExampleServiceState.deleteUserResult({
+    @required bool wasDeleted,
+  }) = DeleteUserResult;
+
+  factory ExampleServiceState.fromJson(Map<String, dynamic> json) =>
+      _$ExampleServiceStateFromJson(json);
 }
 
-@freezed
-abstract class DeleteUserResult with _$DeleteUserResult {
-  @JsonSerializable(explicitToJson: true)
-  factory DeleteUserResult({
-    @required bool wasDeleted,
-  }) = _DeleteUserResult;
-  factory DeleteUserResult.fromJson(Map<String, dynamic> json) =>
-      _$DeleteUserResultFromJson(json);
+// ***********************************************************************
+// ExampleService Bloc.
+// ***********************************************************************
+class ExampleServiceBloc
+    extends Bloc<ExampleServiceEvent, RpcState<ExampleServiceState>> {
+  final ExampleService exampleService;
+
+  Stream<RpcState<PingResult>> get pingResult$ => this.where(
+        (state) => state is Stream<RpcState<PingResult>>,
+      );
+
+  Stream<RpcState<StatusResult>> get statusResult$ => this.where(
+        (state) => state is Stream<RpcState<StatusResult>>,
+      );
+
+  Stream<RpcState<VersionResult>> get versionResult$ => this.where(
+        (state) => state is Stream<RpcState<VersionResult>>,
+      );
+
+  Stream<RpcState<GetUserResult>> get getUserResult$ => this.where(
+        (state) => state is Stream<RpcState<GetUserResult>>,
+      );
+
+  Stream<RpcState<UpdateNameResult>> get updateNameResult$ => this.where(
+        (state) => state is Stream<RpcState<UpdateNameResult>>,
+      );
+
+  Stream<RpcState<FindUserByIdResult>> get findUserByIdResult$ => this.where(
+        (state) => state is Stream<RpcState<FindUserByIdResult>>,
+      );
+
+  Stream<RpcState<AddUserResult>> get addUserResult$ => this.where(
+        (state) => state is Stream<RpcState<AddUserResult>>,
+      );
+
+  Stream<RpcState<ListUsersResult>> get listUsersResult$ => this.where(
+        (state) => state is Stream<RpcState<ListUsersResult>>,
+      );
+
+  Stream<RpcState<DeleteUserResult>> get deleteUserResult$ => this.where(
+        (state) => state is Stream<RpcState<DeleteUserResult>>,
+      );
+
+  ExampleServiceBloc({
+    @required this.exampleService,
+  });
+  @override
+  RpcState<ExampleServiceState> get initialState => const RpcState.idle();
+  @override
+  Stream<RpcState<ExampleServiceState>> mapEventToState(
+    ExampleServiceEvent event,
+  ) async* {
+    await for (final RpcState<ExampleServiceState> state in event.when(
+      ping: (headers) => exampleService.ping(
+        headers: headers,
+      ),
+      status: (headers) => exampleService.status(
+        headers: headers,
+      ),
+      version: (headers) => exampleService.version(
+        headers: headers,
+      ),
+      getUser: (userID, headers) => exampleService.getUser(
+        userID: userID,
+        headers: headers,
+      ),
+      updateName: (id, username, headers) => exampleService.updateName(
+        id: id,
+        username: username,
+        headers: headers,
+      ),
+      findUserById: (s, headers) => exampleService.findUserById(
+        s: s,
+        headers: headers,
+      ),
+      addUser: (user, headers) => exampleService.addUser(
+        user: user,
+        headers: headers,
+      ),
+      listUsers: (headers) => exampleService.listUsers(
+        headers: headers,
+      ),
+      deleteUser: (id, headers) => exampleService.deleteUser(
+        id: id,
+        headers: headers,
+      ),
+    )) {
+      yield state;
+    }
+  }
 }
 
 // *********************************************************************
 // Service Interfaces. Useful for testing purposes.
 // *********************************************************************
 
-abstract class ExampleServiceRpc {
-  Stream<RpcResponse<int>> ping({
+abstract class ExampleService {
+  Stream<RpcState<PingResult>> ping({
     Map<String, String> headers,
   });
 
-  Stream<RpcResponse<StatusResult>> status({
+  Stream<RpcState<StatusResult>> status({
     Map<String, String> headers,
   });
 
-  Stream<RpcResponse<VersionResult>> version({
+  Stream<RpcState<VersionResult>> version({
     Map<String, String> headers,
   });
 
-  Stream<RpcResponse<GetUserResult>> getUser({
+  Stream<RpcState<GetUserResult>> getUser({
     @required int userID,
     Map<String, String> headers,
   });
 
-  Stream<RpcResponse<UpdateNameResult>> updateName({
+  Stream<RpcState<UpdateNameResult>> updateName({
     @required int id,
     @required String username,
     Map<String, String> headers,
   });
 
-  Stream<RpcResponse<FindUserByIdResult>> findUserById({
+  Stream<RpcState<FindUserByIdResult>> findUserById({
     @required SearchFilter s,
     Map<String, String> headers,
   });
 
-  Stream<RpcResponse<AddUserResult>> addUser({
+  Stream<RpcState<AddUserResult>> addUser({
     @required User user,
     Map<String, String> headers,
   });
 
-  Stream<RpcResponse<ListUsersResult>> listUsers({
+  Stream<RpcState<ListUsersResult>> listUsers({
     Map<String, String> headers,
   });
 
-  Stream<RpcResponse<DeleteUserResult>> deleteUser({
+  Stream<RpcState<DeleteUserResult>> deleteUser({
     @required int id,
     Map<String, String> headers,
   });
@@ -290,29 +375,38 @@ abstract class ExampleServiceRpc {
 // RpcResponse TYPE.
 // *********************************************************************
 
-// This class provides type safe access to the state of an RpcRequest
+// This class provides type safe access to the state of an Rpc Request
 // and it's Response data. Can be used easily with Bloc. For more info See https://www.azavea.com/blog/2019/12/12/modeling-state-with-typescript/
 // See https://pub.dev/packages/freezed to learn how to use this type.
 @freezed
-abstract class RpcResponse<T> with _$RpcResponse<T> {
-  factory RpcResponse.ok({
+abstract class RpcState<T> with _$RpcState<T> {
+  // initial state prior to any request being made.
+  const factory RpcState.idle() = _RpcStateIdle<T>;
+  // request has been made and awaiting a response.
+  const factory RpcState.loading() = _RpcStateLoading<T>;
+  // request made and returned successfully with data.
+  const factory RpcState.ok({
     @required T data,
-  }) = _RpcResponseOk<T>;
-  const factory RpcResponse.err({
+  }) = _RpcStateOk<T>;
+  // request made and returned successfully without data.
+  const factory RpcState.unit() = _RpcStateUnit<T>;
+  // request returned an error with a message and status code.
+  // The optional stackTrace is useful for debugging exceptions
+  // thrown in Rpc client methods.
+  const factory RpcState.err({
     @required String reason,
     @required int statusCode,
     String stackTrace,
-  }) = _RpcResonseErr<T>;
-  const factory RpcResponse.loading() = _RpcResponseLoading<T>;
+  }) = _RpcStateErr<T>;
 }
 // ***********************************************************************
 // WEBRPC-DART SERVICE CLIENTS.
 // ***********************************************************************
 
-class ExampleService implements ExampleServiceRpc {
+class ExampleServiceRpc implements ExampleService {
   final String host;
   String _srvcPath = '/rpc/ExampleService/';
-  ExampleService({
+  ExampleServiceRpc({
     this.host = 'localhost',
   }) {
     _srvcPath = '${_removeSlash(host)}/rpc/ExampleService/';
@@ -344,10 +438,10 @@ class ExampleService implements ExampleServiceRpc {
   }
 
   @override
-  Stream<RpcResponse<int>> ping({
+  Stream<RpcState<PingResult>> ping({
     Map<String, String> headers,
   }) async* {
-    yield const RpcResponse.loading();
+    yield const RpcState<PingResult>.loading();
     try {
       final http.Response response = await _makeRequest(
         'Ping',
@@ -356,16 +450,15 @@ class ExampleService implements ExampleServiceRpc {
 
       if (!_nonErrorcodes.contains(response.statusCode)) {
         final _RpcErr err = _getErr(response);
-        yield RpcResponse.err(
+        yield RpcState<PingResult>.err(
           reason: err.message,
           statusCode: err.httpErr.code,
         );
       }
-      yield RpcResponse.ok(
-        data: response.statusCode,
-      );
+
+      yield const RpcState<PingResult>.unit();
     } on Exception catch (e, stackTrace) {
-      yield RpcResponse.err(
+      yield RpcState<PingResult>.err(
         statusCode: 400,
         reason: e.toString(),
         stackTrace: stackTrace.toString(),
@@ -374,10 +467,10 @@ class ExampleService implements ExampleServiceRpc {
   }
 
   @override
-  Stream<RpcResponse<StatusResult>> status({
+  Stream<RpcState<StatusResult>> status({
     Map<String, String> headers,
   }) async* {
-    yield const RpcResponse.loading();
+    yield const RpcState<StatusResult>.loading();
     try {
       final http.Response response = await _makeRequest(
         'Status',
@@ -386,20 +479,21 @@ class ExampleService implements ExampleServiceRpc {
 
       if (!_nonErrorcodes.contains(response.statusCode)) {
         final _RpcErr err = _getErr(response);
-        yield RpcResponse.err(
+        yield RpcState<StatusResult>.err(
           reason: err.message,
           statusCode: err.httpErr.code,
         );
       }
-      yield RpcResponse.ok(
-        data: StatusResult.fromJson(
+
+      yield RpcState<StatusResult>.ok(
+        data: ExampleServiceState.fromJson(
           jsonDecode(
             response.body,
           ),
         ),
       );
     } on Exception catch (e, stackTrace) {
-      yield RpcResponse.err(
+      yield RpcState<StatusResult>.err(
         statusCode: 400,
         reason: e.toString(),
         stackTrace: stackTrace.toString(),
@@ -408,10 +502,10 @@ class ExampleService implements ExampleServiceRpc {
   }
 
   @override
-  Stream<RpcResponse<VersionResult>> version({
+  Stream<RpcState<VersionResult>> version({
     Map<String, String> headers,
   }) async* {
-    yield const RpcResponse.loading();
+    yield const RpcState<VersionResult>.loading();
     try {
       final http.Response response = await _makeRequest(
         'Version',
@@ -420,20 +514,21 @@ class ExampleService implements ExampleServiceRpc {
 
       if (!_nonErrorcodes.contains(response.statusCode)) {
         final _RpcErr err = _getErr(response);
-        yield RpcResponse.err(
+        yield RpcState<VersionResult>.err(
           reason: err.message,
           statusCode: err.httpErr.code,
         );
       }
-      yield RpcResponse.ok(
-        data: VersionResult.fromJson(
+
+      yield RpcState<VersionResult>.ok(
+        data: ExampleServiceState.fromJson(
           jsonDecode(
             response.body,
           ),
         ),
       );
     } on Exception catch (e, stackTrace) {
-      yield RpcResponse.err(
+      yield RpcState<VersionResult>.err(
         statusCode: 400,
         reason: e.toString(),
         stackTrace: stackTrace.toString(),
@@ -442,11 +537,11 @@ class ExampleService implements ExampleServiceRpc {
   }
 
   @override
-  Stream<RpcResponse<GetUserResult>> getUser({
+  Stream<RpcState<GetUserResult>> getUser({
     @required int userID,
     Map<String, String> headers,
   }) async* {
-    yield const RpcResponse.loading();
+    yield const RpcState<GetUserResult>.loading();
     try {
       final _GetUserArgs args = _GetUserArgs(
         userID: userID,
@@ -462,20 +557,21 @@ class ExampleService implements ExampleServiceRpc {
 
       if (!_nonErrorcodes.contains(response.statusCode)) {
         final _RpcErr err = _getErr(response);
-        yield RpcResponse.err(
+        yield RpcState<GetUserResult>.err(
           reason: err.message,
           statusCode: err.httpErr.code,
         );
       }
-      yield RpcResponse.ok(
-        data: GetUserResult.fromJson(
+
+      yield RpcState<GetUserResult>.ok(
+        data: ExampleServiceState.fromJson(
           jsonDecode(
             response.body,
           ),
         ),
       );
     } on Exception catch (e, stackTrace) {
-      yield RpcResponse.err(
+      yield RpcState<GetUserResult>.err(
         statusCode: 400,
         reason: e.toString(),
         stackTrace: stackTrace.toString(),
@@ -484,12 +580,12 @@ class ExampleService implements ExampleServiceRpc {
   }
 
   @override
-  Stream<RpcResponse<UpdateNameResult>> updateName({
+  Stream<RpcState<UpdateNameResult>> updateName({
     @required int id,
     @required String username,
     Map<String, String> headers,
   }) async* {
-    yield const RpcResponse.loading();
+    yield const RpcState<UpdateNameResult>.loading();
     try {
       final _UpdateNameArgs args = _UpdateNameArgs(
         id: id,
@@ -506,20 +602,21 @@ class ExampleService implements ExampleServiceRpc {
 
       if (!_nonErrorcodes.contains(response.statusCode)) {
         final _RpcErr err = _getErr(response);
-        yield RpcResponse.err(
+        yield RpcState<UpdateNameResult>.err(
           reason: err.message,
           statusCode: err.httpErr.code,
         );
       }
-      yield RpcResponse.ok(
-        data: UpdateNameResult.fromJson(
+
+      yield RpcState<UpdateNameResult>.ok(
+        data: ExampleServiceState.fromJson(
           jsonDecode(
             response.body,
           ),
         ),
       );
     } on Exception catch (e, stackTrace) {
-      yield RpcResponse.err(
+      yield RpcState<UpdateNameResult>.err(
         statusCode: 400,
         reason: e.toString(),
         stackTrace: stackTrace.toString(),
@@ -528,11 +625,11 @@ class ExampleService implements ExampleServiceRpc {
   }
 
   @override
-  Stream<RpcResponse<FindUserByIdResult>> findUserById({
+  Stream<RpcState<FindUserByIdResult>> findUserById({
     @required SearchFilter s,
     Map<String, String> headers,
   }) async* {
-    yield const RpcResponse.loading();
+    yield const RpcState<FindUserByIdResult>.loading();
     try {
       final _FindUserByIdArgs args = _FindUserByIdArgs(
         s: s,
@@ -548,20 +645,21 @@ class ExampleService implements ExampleServiceRpc {
 
       if (!_nonErrorcodes.contains(response.statusCode)) {
         final _RpcErr err = _getErr(response);
-        yield RpcResponse.err(
+        yield RpcState<FindUserByIdResult>.err(
           reason: err.message,
           statusCode: err.httpErr.code,
         );
       }
-      yield RpcResponse.ok(
-        data: FindUserByIdResult.fromJson(
+
+      yield RpcState<FindUserByIdResult>.ok(
+        data: ExampleServiceState.fromJson(
           jsonDecode(
             response.body,
           ),
         ),
       );
     } on Exception catch (e, stackTrace) {
-      yield RpcResponse.err(
+      yield RpcState<FindUserByIdResult>.err(
         statusCode: 400,
         reason: e.toString(),
         stackTrace: stackTrace.toString(),
@@ -570,11 +668,11 @@ class ExampleService implements ExampleServiceRpc {
   }
 
   @override
-  Stream<RpcResponse<AddUserResult>> addUser({
+  Stream<RpcState<AddUserResult>> addUser({
     @required User user,
     Map<String, String> headers,
   }) async* {
-    yield const RpcResponse.loading();
+    yield const RpcState<AddUserResult>.loading();
     try {
       final _AddUserArgs args = _AddUserArgs(
         user: user,
@@ -590,20 +688,21 @@ class ExampleService implements ExampleServiceRpc {
 
       if (!_nonErrorcodes.contains(response.statusCode)) {
         final _RpcErr err = _getErr(response);
-        yield RpcResponse.err(
+        yield RpcState<AddUserResult>.err(
           reason: err.message,
           statusCode: err.httpErr.code,
         );
       }
-      yield RpcResponse.ok(
-        data: AddUserResult.fromJson(
+
+      yield RpcState<AddUserResult>.ok(
+        data: ExampleServiceState.fromJson(
           jsonDecode(
             response.body,
           ),
         ),
       );
     } on Exception catch (e, stackTrace) {
-      yield RpcResponse.err(
+      yield RpcState<AddUserResult>.err(
         statusCode: 400,
         reason: e.toString(),
         stackTrace: stackTrace.toString(),
@@ -612,10 +711,10 @@ class ExampleService implements ExampleServiceRpc {
   }
 
   @override
-  Stream<RpcResponse<ListUsersResult>> listUsers({
+  Stream<RpcState<ListUsersResult>> listUsers({
     Map<String, String> headers,
   }) async* {
-    yield const RpcResponse.loading();
+    yield const RpcState<ListUsersResult>.loading();
     try {
       final http.Response response = await _makeRequest(
         'ListUsers',
@@ -624,20 +723,21 @@ class ExampleService implements ExampleServiceRpc {
 
       if (!_nonErrorcodes.contains(response.statusCode)) {
         final _RpcErr err = _getErr(response);
-        yield RpcResponse.err(
+        yield RpcState<ListUsersResult>.err(
           reason: err.message,
           statusCode: err.httpErr.code,
         );
       }
-      yield RpcResponse.ok(
-        data: ListUsersResult.fromJson(
+
+      yield RpcState<ListUsersResult>.ok(
+        data: ExampleServiceState.fromJson(
           jsonDecode(
             response.body,
           ),
         ),
       );
     } on Exception catch (e, stackTrace) {
-      yield RpcResponse.err(
+      yield RpcState<ListUsersResult>.err(
         statusCode: 400,
         reason: e.toString(),
         stackTrace: stackTrace.toString(),
@@ -646,11 +746,11 @@ class ExampleService implements ExampleServiceRpc {
   }
 
   @override
-  Stream<RpcResponse<DeleteUserResult>> deleteUser({
+  Stream<RpcState<DeleteUserResult>> deleteUser({
     @required int id,
     Map<String, String> headers,
   }) async* {
-    yield const RpcResponse.loading();
+    yield const RpcState<DeleteUserResult>.loading();
     try {
       final _DeleteUserArgs args = _DeleteUserArgs(
         id: id,
@@ -666,20 +766,21 @@ class ExampleService implements ExampleServiceRpc {
 
       if (!_nonErrorcodes.contains(response.statusCode)) {
         final _RpcErr err = _getErr(response);
-        yield RpcResponse.err(
+        yield RpcState<DeleteUserResult>.err(
           reason: err.message,
           statusCode: err.httpErr.code,
         );
       }
-      yield RpcResponse.ok(
-        data: DeleteUserResult.fromJson(
+
+      yield RpcState<DeleteUserResult>.ok(
+        data: ExampleServiceState.fromJson(
           jsonDecode(
             response.body,
           ),
         ),
       );
     } on Exception catch (e, stackTrace) {
-      yield RpcResponse.err(
+      yield RpcState<DeleteUserResult>.err(
         statusCode: 400,
         reason: e.toString(),
         stackTrace: stackTrace.toString(),

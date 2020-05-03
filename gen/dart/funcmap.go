@@ -220,9 +220,16 @@ func methodOutputs(in *schema.Method) (string, error) {
 
 func methodOutputsClient(in *schema.Method) (string, error) {
 	if len(in.Outputs) == 0 {
-		return fmt.Sprintf("Stream<RpcResponse<%s>>", "int"), nil
+		return fmt.Sprintf("Stream<RpcState<%s>>", "void"), nil
 	}
-	return fmt.Sprintf("Stream<RpcResponse<%s>>", methodArgumentOutputClassName(in)), nil
+	return fmt.Sprintf("Stream<RpcState<%s>>", methodArgumentOutputClassName(in)), nil
+}
+
+func methodOutputsClientBloc(in *schema.Method) (string, error) {
+	return fmt.Sprintf("Stream<RpcState<%s>>", methodArgumentOutputClassName(in)), nil
+}
+func blocStateFactory(in *schema.Method) (string, error) {
+	return downcaseName(methodArgumentOutputClassName(in))
 }
 
 func serviceImplName(in schema.VarName) (string, error) {
@@ -231,6 +238,18 @@ func serviceImplName(in schema.VarName) (string, error) {
 
 func useFlutter(in string) bool {
 	return in == "flutter"
+}
+
+func useFlutterBloc(in string) bool {
+	return in == "flutter_bloc"
+}
+
+func useAngularBloc(in string) bool {
+	return in == "angular_bloc"
+}
+
+func useBloc(in string) bool {
+	return in == "angular_bloc" || in == "flutter_bloc"
 }
 
 func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
@@ -257,5 +276,10 @@ func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 		"serviceImplName":               serviceImplName,
 		"useFlutter":                    useFlutter,
 		"methodOutputsClient":           methodOutputsClient,
+		"useFlutterBloc":                useFlutterBloc,
+		"useAngularBloc":                useAngularBloc,
+		"useBloc":                       useBloc,
+		"methodOutputsClientBloc":       methodOutputsClientBloc,
+		"blocStateFactory":              blocStateFactory,
 	}
 }
