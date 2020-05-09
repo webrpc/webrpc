@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:meta/meta.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http show post, Request, Response;
 
 import 'package:flutter/foundation.dart';
 import 'package:bloc/bloc.dart';
@@ -454,9 +454,9 @@ class ExampleServiceRpc implements ExampleService {
           reason: err.message,
           statusCode: err.httpErr.code,
         );
+      } else {
+        yield const RpcState<PingResult>.unit();
       }
-
-      yield const RpcState<PingResult>.unit();
     } on Exception catch (e, stackTrace) {
       yield RpcState<PingResult>.err(
         statusCode: 400,
@@ -483,15 +483,15 @@ class ExampleServiceRpc implements ExampleService {
           reason: err.message,
           statusCode: err.httpErr.code,
         );
-      }
-
-      yield RpcState<StatusResult>.ok(
-        data: ExampleServiceState.fromJson(
-          jsonDecode(
-            response.body,
+      } else {
+        yield RpcState<StatusResult>.ok(
+          data: ExampleServiceState.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } on Exception catch (e, stackTrace) {
       yield RpcState<StatusResult>.err(
         statusCode: 400,
@@ -518,15 +518,15 @@ class ExampleServiceRpc implements ExampleService {
           reason: err.message,
           statusCode: err.httpErr.code,
         );
-      }
-
-      yield RpcState<VersionResult>.ok(
-        data: ExampleServiceState.fromJson(
-          jsonDecode(
-            response.body,
+      } else {
+        yield RpcState<VersionResult>.ok(
+          data: ExampleServiceState.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } on Exception catch (e, stackTrace) {
       yield RpcState<VersionResult>.err(
         statusCode: 400,
@@ -561,15 +561,15 @@ class ExampleServiceRpc implements ExampleService {
           reason: err.message,
           statusCode: err.httpErr.code,
         );
-      }
-
-      yield RpcState<GetUserResult>.ok(
-        data: ExampleServiceState.fromJson(
-          jsonDecode(
-            response.body,
+      } else {
+        yield RpcState<GetUserResult>.ok(
+          data: ExampleServiceState.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } on Exception catch (e, stackTrace) {
       yield RpcState<GetUserResult>.err(
         statusCode: 400,
@@ -606,15 +606,15 @@ class ExampleServiceRpc implements ExampleService {
           reason: err.message,
           statusCode: err.httpErr.code,
         );
-      }
-
-      yield RpcState<UpdateNameResult>.ok(
-        data: ExampleServiceState.fromJson(
-          jsonDecode(
-            response.body,
+      } else {
+        yield RpcState<UpdateNameResult>.ok(
+          data: ExampleServiceState.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } on Exception catch (e, stackTrace) {
       yield RpcState<UpdateNameResult>.err(
         statusCode: 400,
@@ -649,15 +649,15 @@ class ExampleServiceRpc implements ExampleService {
           reason: err.message,
           statusCode: err.httpErr.code,
         );
-      }
-
-      yield RpcState<FindUserByIdResult>.ok(
-        data: ExampleServiceState.fromJson(
-          jsonDecode(
-            response.body,
+      } else {
+        yield RpcState<FindUserByIdResult>.ok(
+          data: ExampleServiceState.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } on Exception catch (e, stackTrace) {
       yield RpcState<FindUserByIdResult>.err(
         statusCode: 400,
@@ -692,15 +692,15 @@ class ExampleServiceRpc implements ExampleService {
           reason: err.message,
           statusCode: err.httpErr.code,
         );
-      }
-
-      yield RpcState<AddUserResult>.ok(
-        data: ExampleServiceState.fromJson(
-          jsonDecode(
-            response.body,
+      } else {
+        yield RpcState<AddUserResult>.ok(
+          data: ExampleServiceState.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } on Exception catch (e, stackTrace) {
       yield RpcState<AddUserResult>.err(
         statusCode: 400,
@@ -727,15 +727,15 @@ class ExampleServiceRpc implements ExampleService {
           reason: err.message,
           statusCode: err.httpErr.code,
         );
-      }
-
-      yield RpcState<ListUsersResult>.ok(
-        data: ExampleServiceState.fromJson(
-          jsonDecode(
-            response.body,
+      } else {
+        yield RpcState<ListUsersResult>.ok(
+          data: ExampleServiceState.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } on Exception catch (e, stackTrace) {
       yield RpcState<ListUsersResult>.err(
         statusCode: 400,
@@ -770,15 +770,15 @@ class ExampleServiceRpc implements ExampleService {
           reason: err.message,
           statusCode: err.httpErr.code,
         );
-      }
-
-      yield RpcState<DeleteUserResult>.ok(
-        data: ExampleServiceState.fromJson(
-          jsonDecode(
-            response.body,
+      } else {
+        yield RpcState<DeleteUserResult>.ok(
+          data: ExampleServiceState.fromJson(
+            jsonDecode(
+              response.body,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } on Exception catch (e, stackTrace) {
       yield RpcState<DeleteUserResult>.err(
         statusCode: 400,

@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 {{if .TargetOpts.Client}}
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http show post, Request, Response;
 {{if .TargetOpts.Extra | useFlutter}}
 import 'package:flutter/foundation.dart';
 {{end}}

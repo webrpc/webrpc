@@ -115,13 +115,14 @@ class {{.Name}}Rpc implements {{.Name}} {
                 reason: err.message,
                 statusCode: err.httpErr.code,
                 );
-          }
+          } else {
           {{if .Outputs | len}}
           yield RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.ok(data: {{if $use_bloc | useBloc}}{{$serviceName}}State{{else}}{{. | methodArgumentOutputClassName}}{{end}}.fromJson(
               jsonDecode(response.body,),),);
           {{else}}
           yield const RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.unit();
               {{end}}
+          }
       } on Exception catch (e, stackTrace) {
         yield RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.err(
           statusCode: 400,

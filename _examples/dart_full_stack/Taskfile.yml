@@ -14,9 +14,9 @@ tasks:
   build_client:
     dir: client
     cmds:
-      - ../../../bin/webrpc-gen -schema=../example.ridl -target=dart -client -out=./lib/features/users/data/datasources/example/example_service.dart -pkg=example_service -extra="flutter_bloc"
+      - ../../../bin/webrpc-gen -schema=../example.ridl -target=dart -client -out=./lib/services/example/example_service.dart -pkg=example_service -extra="flutter_bloc"
 
-      - flutter pub pub run build_runner build
+      - flutter pub pub run build_runner build --delete-conflicting-outputs
       - dartfmt -w lib test
     sources:
       - lib/services/example_service.dart
@@ -29,7 +29,7 @@ tasks:
     cmds:
       - ../../../bin/webrpc-gen -schema=../example.ridl -target=dart -server -out=./lib/services/example_service.dart -pkg=example_service
 
-      - pub run build_runner build
+      - pub run build_runner build --delete-conflicting-outputs
 
       - dartfmt -w bin lib test
     sources:
