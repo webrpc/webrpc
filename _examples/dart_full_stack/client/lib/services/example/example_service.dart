@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:meta/meta.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'package:http/http.dart' as http show post, Request, Response;
+import 'package:http/http.dart' as http show Response, Client;
 
 import 'package:flutter/foundation.dart';
 import 'package:bloc/bloc.dart';
@@ -237,43 +237,6 @@ abstract class ExampleServiceState {
 class ExampleServiceBloc
     extends Bloc<ExampleServiceEvent, RpcState<ExampleServiceState>> {
   final ExampleService exampleService;
-
-  Stream<RpcState<PingResult>> get pingResult$ => this.where(
-        (state) => state is Stream<RpcState<PingResult>>,
-      );
-
-  Stream<RpcState<StatusResult>> get statusResult$ => this.where(
-        (state) => state is Stream<RpcState<StatusResult>>,
-      );
-
-  Stream<RpcState<VersionResult>> get versionResult$ => this.where(
-        (state) => state is Stream<RpcState<VersionResult>>,
-      );
-
-  Stream<RpcState<GetUserResult>> get getUserResult$ => this.where(
-        (state) => state is Stream<RpcState<GetUserResult>>,
-      );
-
-  Stream<RpcState<UpdateNameResult>> get updateNameResult$ => this.where(
-        (state) => state is Stream<RpcState<UpdateNameResult>>,
-      );
-
-  Stream<RpcState<FindUserByIdResult>> get findUserByIdResult$ => this.where(
-        (state) => state is Stream<RpcState<FindUserByIdResult>>,
-      );
-
-  Stream<RpcState<AddUserResult>> get addUserResult$ => this.where(
-        (state) => state is Stream<RpcState<AddUserResult>>,
-      );
-
-  Stream<RpcState<ListUsersResult>> get listUsersResult$ => this.where(
-        (state) => state is Stream<RpcState<ListUsersResult>>,
-      );
-
-  Stream<RpcState<DeleteUserResult>> get deleteUserResult$ => this.where(
-        (state) => state is Stream<RpcState<DeleteUserResult>>,
-      );
-
   ExampleServiceBloc({
     @required this.exampleService,
   });
@@ -405,9 +368,11 @@ abstract class RpcState<T> with _$RpcState<T> {
 
 class ExampleServiceRpc implements ExampleService {
   final String host;
+  final http.Client client;
   String _srvcPath = '/rpc/ExampleService/';
   ExampleServiceRpc({
-    this.host = 'localhost',
+    @required this.host,
+    @required this.client,
   }) {
     _srvcPath = '${_removeSlash(host)}/rpc/ExampleService/';
   }
@@ -418,15 +383,19 @@ class ExampleServiceRpc implements ExampleService {
     Map<String, String> headers,
   }) {
     final path = '$_srvcPath/$route';
-    return http.post(
-      path,
-      headers: {
-        ...?headers,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: jsonEncode(json),
-    );
+    try {
+      return client.post(
+        path,
+        headers: {
+          ...?headers,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(json),
+      );
+    } finally {
+      client.close();
+    }
   }
 
   _RpcErr _getErr(http.Response r) {

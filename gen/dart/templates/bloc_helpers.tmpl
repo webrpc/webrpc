@@ -49,9 +49,6 @@ abstract class {{$serviceName}}State {
 // ***********************************************************************
 class {{.Name}}Bloc extends Bloc<{{.Name}}Event, RpcState<{{.Name}}State>> {
     final {{.Name}} {{.Name | downcaseName}};
-    {{range .Methods}}
-    {{. | methodOutputsClientBloc}} get {{.Name | methodName}}Result$ => this.where((state) => state is {{. | methodOutputsClientBloc}},); 
-    {{end}} {{/* end of range .Methods */}}
     {{.Name}}Bloc({@required this.{{.Name | downcaseName}},
     });
     @override

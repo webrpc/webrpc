@@ -25,24 +25,35 @@ class DashBoard extends StatelessWidget {
           state,
         ) {
           return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               RaisedButton(
                 onPressed: () => bloc.add(
                   ExampleServiceEvent.ping(),
                 ),
-                child: Icon(
-                  Icons.network_check,
+                child: Row(
+                  children: <Widget>[
+                    Icon(
+                      Icons.network_check,
+                    ),
+                    const Text(
+                      ' Ping Server',
+                    ),
+                  ],
                 ),
                 color: Colors.blue,
               ),
-              Text(
-                state.when(
-                  err: (reason, status, _) =>
-                      'An error occured: $reason status: $status',
-                  idle: () => 'waiting to ping',
-                  loading: () => 'Loading Results',
-                  ok: (ExampleServiceState data) => 'Ok Ping Success!',
-                  unit: () => 'Unit Ping Sucess!',
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  state.when(
+                    err: (reason, status, _) =>
+                        'An error occured: $reason status: $status',
+                    idle: () => 'waiting to ping',
+                    loading: () => 'Loading Results',
+                    ok: (ExampleServiceState data) => 'Ok Ping Success!',
+                    unit: () => 'Unit Ping Sucess!',
+                  ),
                 ),
               ),
             ],
