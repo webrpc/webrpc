@@ -18,93 +18,106 @@ class DashBoard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
-        pingMethodRow(),
-        versionMethodRow(),
+        _pingMethodRow(),
+        _versionMethodRow(),
+        _statusMethodRow(),
       ],
     );
   }
 
-  Widget pingMethodRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[
-        RaisedButton(
-          onPressed: bloc.ping,
-          child: Row(
-            children: <Widget>[
-              Icon(
-                Icons.network_check,
-              ),
-              const Text(
-                'Ping Server',
-              ),
-            ],
-          ),
-          color: Colors.blue,
-        ),
-        BlocBuilder<ExampleServiceBloc, RpcState<ExampleServiceState>>(
-            bloc: bloc,
-            condition: (previous, current) => current is RpcState<PingResult>,
-            builder: (context, state) {
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  state.when(
-                    err: (reason, status, _) =>
-                        'An error occured: $reason status: $status',
-                    idle: () => 'click button to ping',
-                    loading: () => 'Loading Results',
-                    ok: (ExampleServiceState data) => 'Ok Ping Success!',
-                    unit: () => 'Ping Sucess!',
+  Widget _simpleRow({
+    IconData buttonIcon,
+    String buttonText,
+    void Function() onPressed,
+    bool Function(RpcState<ExampleServiceState>) blocRebuildCondition,
+    String Function(ExampleServiceState) onOk,
+    String unitText,
+    String idleText,
+  }) =>
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Container(
+            alignment: Alignment.topLeft,
+            child: RaisedButton(
+              onPressed: onPressed,
+              child: Row(
+                children: <Widget>[
+                  Icon(
+                    buttonIcon,
                   ),
-                ),
-              );
-            }),
-      ],
-    );
-  }
+                  Text(
+                    buttonText,
+                  ),
+                ],
+              ),
+              color: Colors.blue,
+            ),
+          ),
+          BlocBuilder<ExampleServiceBloc, RpcState<ExampleServiceState>>(
+              bloc: bloc,
+              condition: (previous, current) => blocRebuildCondition(current),
+              builder: (context, state) {
+                return Container(
+                  width: 150.0,
+                  alignment: Alignment.topRight,
+                  child: state.when(
+                    err: (reason, status, _) => Text(
+                      'An error occured: $reason status: $status',
+                      textAlign: TextAlign.right,
+                    ),
+                    idle: () => Text(
+                      idleText,
+                      textAlign: TextAlign.right,
+                    ),
+                    loading: () => const CircularProgressIndicator(),
+                    ok: (ExampleServiceState data) => Text(
+                      onOk(data),
+                      textAlign: TextAlign.right,
+                    ),
+                    unit: () => Text(
+                      unitText,
+                      textAlign: TextAlign.right,
+                    ),
+                  ),
+                );
+              }),
+        ],
+      );
 
-  Widget versionMethodRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: <Widget>[
-        RaisedButton(
-          onPressed: bloc.version,
-          child: Row(
-            children: <Widget>[
-              Icon(
-                Icons.info,
-              ),
-              const Text(
-                'Get Version',
-              ),
-            ],
-          ),
-          color: Colors.blue,
+  Widget _pingMethodRow() => _simpleRow(
+        buttonIcon: Icons.network_check,
+        buttonText: 'Ping Server',
+        onPressed: bloc.ping,
+        blocRebuildCondition: (current) => current is RpcState<PingResult>,
+        onOk: (data) => 'Ok Ping Success!',
+        unitText: 'Ping Sucess!',
+        idleText: 'click button to ping',
+      );
+
+  Widget _versionMethodRow() => _simpleRow(
+        buttonIcon: Icons.info_outline,
+        buttonText: 'Get Version',
+        onPressed: bloc.version,
+        blocRebuildCondition: (current) => current is RpcState<VersionResult>,
+        onOk: (data) => data.maybeWhen(
+          versionResult: (version) => version.webrpcVersion,
+          orElse: () => 'failed to get version',
         ),
-        BlocBuilder<ExampleServiceBloc, RpcState<ExampleServiceState>>(
-            bloc: bloc,
-            condition: (previous, current) =>
-                current is RpcState<VersionResult>,
-            builder: (context, state) {
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  state.when(
-                    err: (reason, status, _) =>
-                        'An error occured: $reason status: $status',
-                    idle: () => 'click button to get version',
-                    loading: () => 'Loading Results',
-                    ok: (ExampleServiceState data) =>
-                        'webrpc version is: $data',
-                    unit: () => 'version Sucess!',
-                  ),
-                ),
-              );
-            }),
-      ],
-    );
-  }
+        unitText: 'Got Version!',
+        idleText: 'click button to get version',
+      );
+  Widget _statusMethodRow() => _simpleRow(
+        buttonIcon: Icons.cloud,
+        buttonText: 'Check Server Status',
+        onPressed: bloc.status,
+        blocRebuildCondition: (current) => current is RpcState<StatusResult>,
+        onOk: (data) => data.maybeWhen(
+            statusResult: (status) => 'server up? : $status',
+            orElse: () => 'server is down.'),
+        unitText: 'Server is up.',
+        idleText: 'press button to check server status',
+      );
 
   Widget _usersTable() {
     return StreamBuilder(builder: (context, snapshot) {
