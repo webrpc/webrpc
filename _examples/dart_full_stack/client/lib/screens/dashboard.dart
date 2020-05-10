@@ -4,7 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DashBoard extends StatelessWidget {
   final ExampleServiceBloc bloc = ExampleServiceBloc(
-    exampleService: ExampleServiceRpc(),
+    exampleService: ExampleServiceRpc(
+      host: 'http://localhost:8080',
+    ),
   );
   void dispose() {
     bloc.close();
@@ -18,32 +20,32 @@ class DashBoard extends StatelessWidget {
   }
 
   Widget pingServiceRow() {
-    return BlocBuilder<ExampleServiceBloc, RpcState<ExampleServiceState>>(
-        bloc: bloc,
-        builder: (
-          context,
-          state,
-        ) {
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        RaisedButton(
+          onPressed: () {
+            print('button clicked');
+            bloc.add(
+              ExampleServiceEvent.ping(),
+            );
+          },
+          child: Row(
             children: <Widget>[
-              RaisedButton(
-                onPressed: () => bloc.add(
-                  ExampleServiceEvent.ping(),
-                ),
-                child: Row(
-                  children: <Widget>[
-                    Icon(
-                      Icons.network_check,
-                    ),
-                    const Text(
-                      ' Ping Server',
-                    ),
-                  ],
-                ),
-                color: Colors.blue,
+              Icon(
+                Icons.network_check,
               ),
-              Padding(
+              const Text(
+                ' Ping Server',
+              ),
+            ],
+          ),
+          color: Colors.blue,
+        ),
+        BlocBuilder<ExampleServiceBloc, RpcState<ExampleServiceState>>(
+            bloc: bloc,
+            builder: (context, state) {
+              return Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
                   state.when(
@@ -55,10 +57,10 @@ class DashBoard extends StatelessWidget {
                     unit: () => 'Unit Ping Sucess!',
                   ),
                 ),
-              ),
-            ],
-          );
-        });
+              );
+            }),
+      ],
+    );
   }
 
   Widget _usersTable() {

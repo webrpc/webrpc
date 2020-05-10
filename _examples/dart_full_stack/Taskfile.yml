@@ -41,7 +41,7 @@ tasks:
   run_server:
     dir: server/bin
     cmds:
-      - dart server.dart
+      - dart server.dart --origin="*"
 
   run_client:
     dir: client
@@ -58,10 +58,7 @@ tasks:
     cmds:
       - echo building client and server
 
-  main:
+  setup:
     cmds:
       - task: install
       - task: build
-      - task: run_server
-      - task: run_client
-      - echo app is running.

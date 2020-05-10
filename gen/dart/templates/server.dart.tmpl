@@ -65,7 +65,7 @@ shelf.Handler combineHandlers(List<Map<String, shelf.Handler>> handlerMaps,
         ),
       )
       .addHandler((shelf.Request r) {
-    final handler = handlers[r.requestedUri.toString()] ?? _badRouteHandler;
+    final handler = handlers[r.url.toString()] ?? _badRouteHandler;
     return handler(r);
   });
 }
@@ -79,7 +79,7 @@ class WebRpcServer {
       {{ range .Services }}
       {{$name := .Name}}
       {{- range .Methods}}
-      '/rpc/{{$name}}/{{.Name}}':this._handle{{$name}}{{.Name}}, 
+      'rpc/{{$name}}/{{.Name}}':this._handle{{$name}}{{.Name}}, 
       {{end}}
       {{end}}
     };
@@ -94,7 +94,7 @@ class WebRpcServer {
   // Provide a preconfigured shelf.Pipeline with desired middleware.
   Set<shelf.Middleware> _middleware;
   // Shelf Pipeline.
-  final shelf.Pipeline _pipeline = const shelf.Pipeline();
+  shelf.Pipeline _pipeline = const shelf.Pipeline();
   // A reference to the http server.
   HttpServer _server;
   // Expose internal server for user customization.
@@ -116,7 +116,7 @@ class WebRpcServer {
         logger: (msg, isErr) => isErr ? _log.shout(msg) : _log.info(msg),
       ),
       _nonJsonMddlwr,
-      _notPostMddlwr,
+      _notPostMddlwr,    
     };
   }
 
@@ -137,12 +137,12 @@ class WebRpcServer {
     );
   }
   FutureOr<shelf.Response> _requestHandler(shelf.Request r) async {
-    final route = r.requestedUri.toString();
+    final route = r.url.toString();
     switch (route) {
       {{ range .Services }}
       {{$name := .Name}}
       {{- range .Methods}}
-      case '/rpc/{{$name}}/{{.Name}}': {
+      case 'rpc/{{$name}}/{{.Name}}': {
          return _handle{{$name}}{{.Name}}(r);
       }
       break;
@@ -184,33 +184,52 @@ class WebRpcServer {
     // Catch WebRPCExceptions.
     on WebRPCException catch (e, stackTrace) {
       _logWebRpcExc(_log, e, null, stackTrace,);
-      return _rpcResp.Fail('/rpc/{{$name}}/{{.Name}}');
+      return _rpcResp.Fail('rpc/{{$name}}/{{.Name}}');
     }
     // Catch all other exceptions. 
     on Exception catch (e, stackTrace) {
       _logExc(_log, e, null, stackTrace,);
-      return _rpcResp.Fail('/rpc/{{$name}}/{{.Name}}');
+      return _rpcResp.Fail('rpc/{{$name}}/{{.Name}}');
     }
   }
   {{end}}{{/* end of range .Methods */}}
   {{- end -}} {{/* end of range .Services for Methods */}}
   ArgResults _parseArgs(List<String> args) {
-  final parser = ArgParser()..addOption('port', abbr: 'p');
-  try {
-    return parser.parse(args);
-  } on ArgParserException catch (e, stackTrace) {
-    _logExc(_log, e, null, stackTrace,);
-    print('arg parsing error occured: $e');
-    rethrow;
+    final parser = ArgParser()
+      ..addOption('port', abbr: 'p')
+      ..addOption('origin');
+    try {
+      return parser.parse(args);
+    } on ArgParserException catch (e, stackTrace) {
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
+      print('arg parsing error occured: $e');
+      rethrow;
+    }
   }
-}
 
   // For Google Cloud Run, we respect the PORT environment variable
   int _getPort(ArgResults args) =>
       int.tryParse(args['port'] ?? Platform.environment['PORT'] ?? '8080',);
 
-  void _configurePipeline() =>
-    _middleware.forEach((mddlwr) => _pipeline.addMiddleware(mddlwr),);
+  // Used for Access-Control-Allow-Origin header, very useful during development.
+  String _getOrigin(ArgResults args) => args['origin'] ?? '';
+
+  void _configurePipeline(ArgResults args) {
+    final origin = _getOrigin(args);
+    if (origin != null || origin != '') {
+      _middleware = {_allowOrigin(origin), ..._middleware};
+    }
+    _middleware.forEach(
+      (mddlwr) {
+        _pipeline = _pipeline.addMiddleware(mddlwr);
+      },
+    );
+  }
 
   Future<void> serve(List<String> args,
       {SecurityContext securityContext,
@@ -227,7 +246,7 @@ class WebRpcServer {
       return;
     }
 
-    _configurePipeline();
+    _configurePipeline(result);
     final handler = _pipeline.addHandler(_mergedHandler ?? _requestHandler,);
     _server = await io.serve(handler, _hostname, port,
         securityContext: securityContext, backlog: backlog, shared: shared);

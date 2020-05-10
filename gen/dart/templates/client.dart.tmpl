@@ -55,29 +55,20 @@ abstract class RpcState<T> with _$RpcState<T> {
 {{$serviceName := .Name}}
 class {{.Name}}Rpc implements {{.Name}} {
   final String host;
-  final http.Client client;
-  String _srvcPath = '/rpc/{{.Name}}/';
+  final String _srvcPath;
   {{.Name}}Rpc({
     @required this.host,
-    @required this.client,
-  }) {
-      _srvcPath = '${_removeSlash(host)}/rpc/{{.Name}}/';
-  } 
+  }): _srvcPath = '${_removeSlash(host)}/rpc/{{.Name}}';
 
   Future<http.Response> _makeRequest(String route,
       {dynamic json = "{}", Map<String, String> headers,}) {
-    final path = '$_srvcPath/$route';
-    try {
-    return client.post(path,
+    return http.post('$_srvcPath/$route',
         headers: {
           ...?headers,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
         body: jsonEncode(json),);
-    } finally {
-      client.close();
-    }
   }
 
   _RpcErr _getErr(http.Response r) {

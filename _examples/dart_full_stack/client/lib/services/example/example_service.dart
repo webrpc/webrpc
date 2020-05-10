@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:meta/meta.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'package:http/http.dart' as http show Response, Client;
+import 'package:http/http.dart' as http;
 
 import 'package:flutter/foundation.dart';
 import 'package:bloc/bloc.dart';
@@ -246,7 +246,7 @@ class ExampleServiceBloc
   Stream<RpcState<ExampleServiceState>> mapEventToState(
     ExampleServiceEvent event,
   ) async* {
-    await for (final RpcState<ExampleServiceState> state in event.when(
+    yield* event.when(
       ping: (headers) => exampleService.ping(
         headers: headers,
       ),
@@ -280,10 +280,101 @@ class ExampleServiceBloc
         id: id,
         headers: headers,
       ),
-    )) {
-      yield state;
-    }
+    );
   }
+
+  void ping({
+    Map<String, String> headers,
+  }) =>
+      this.add(
+        ExampleServiceEvent.ping(
+          headers: headers,
+        ),
+      );
+
+  void status({
+    Map<String, String> headers,
+  }) =>
+      this.add(
+        ExampleServiceEvent.status(
+          headers: headers,
+        ),
+      );
+
+  void version({
+    Map<String, String> headers,
+  }) =>
+      this.add(
+        ExampleServiceEvent.version(
+          headers: headers,
+        ),
+      );
+
+  void getUser({
+    @required int userID,
+    Map<String, String> headers,
+  }) =>
+      this.add(
+        ExampleServiceEvent.getUser(
+          userID: userID,
+          headers: headers,
+        ),
+      );
+
+  void updateName({
+    @required int id,
+    @required String username,
+    Map<String, String> headers,
+  }) =>
+      this.add(
+        ExampleServiceEvent.updateName(
+          id: id,
+          username: username,
+          headers: headers,
+        ),
+      );
+
+  void findUserById({
+    @required SearchFilter s,
+    Map<String, String> headers,
+  }) =>
+      this.add(
+        ExampleServiceEvent.findUserById(
+          s: s,
+          headers: headers,
+        ),
+      );
+
+  void addUser({
+    @required User user,
+    Map<String, String> headers,
+  }) =>
+      this.add(
+        ExampleServiceEvent.addUser(
+          user: user,
+          headers: headers,
+        ),
+      );
+
+  void listUsers({
+    Map<String, String> headers,
+  }) =>
+      this.add(
+        ExampleServiceEvent.listUsers(
+          headers: headers,
+        ),
+      );
+
+  void deleteUser({
+    @required int id,
+    Map<String, String> headers,
+  }) =>
+      this.add(
+        ExampleServiceEvent.deleteUser(
+          id: id,
+          headers: headers,
+        ),
+      );
 }
 
 // *********************************************************************
@@ -368,34 +459,25 @@ abstract class RpcState<T> with _$RpcState<T> {
 
 class ExampleServiceRpc implements ExampleService {
   final String host;
-  final http.Client client;
-  String _srvcPath = '/rpc/ExampleService/';
+  final String _srvcPath;
   ExampleServiceRpc({
     @required this.host,
-    @required this.client,
-  }) {
-    _srvcPath = '${_removeSlash(host)}/rpc/ExampleService/';
-  }
+  }) : _srvcPath = '${_removeSlash(host)}/rpc/ExampleService';
 
   Future<http.Response> _makeRequest(
     String route, {
     dynamic json = "{}",
     Map<String, String> headers,
   }) {
-    final path = '$_srvcPath/$route';
-    try {
-      return client.post(
-        path,
-        headers: {
-          ...?headers,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode(json),
-      );
-    } finally {
-      client.close();
-    }
+    return http.post(
+      '$_srvcPath/$route',
+      headers: {
+        ...?headers,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: jsonEncode(json),
+    );
   }
 
   _RpcErr _getErr(http.Response r) {

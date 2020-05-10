@@ -17,12 +17,41 @@ enum RpcLogLevel {
 
 shelf.Response _badRouteHandler(shelf.Request r, {RpcLogger logger}) {
   logger ??= _rpcLogger;
-  final route = r.requestedUri.toString();
+  final route = r.url.toString();
   final info = 'no handler for path: $route';
   logger.info(info);
   return _rpcResp.BadRoute(
     route,
     msg: info,
+  );
+}
+
+shelf.Middleware _allowOrigin(String origin) {
+  return shelf.createMiddleware(
+    responseHandler: (response) {
+      if (origin == '' || origin == null) {
+        return response;
+      }
+      response?.change(
+        headers: {'Access-Control-Allow-Origin': origin},
+      );
+      if (origin != '*') {
+        response.change(
+          headers: {'Vary': 'Origin'},
+        );
+      }
+      return response;
+    },
+    requestHandler: (request) {
+      if (request.method == 'OPTIONS') {
+        return shelf.Response.ok(
+          null,
+          headers: {'Access-Control-Allow-Origin': origin},
+        );
+      } else {
+        return null;
+      }
+    },
   );
 }
 
@@ -38,7 +67,7 @@ bool _jsonFriendly(shelf.Request r) =>
 
 shelf.Response _handleNotJsonFriendly(shelf.Request r, {RpcLogger logger}) {
   logger ??= _rpcLogger;
-  final route = r.requestedUri.toString();
+  final route = r.url.toString();
   if (!_jsonFriendly(r)) {
     final info =
         'unexpected Content-Type: ${r.headers['Content-Type']} or Accept: ${r.headers['Accept']}. path: $route';
@@ -52,11 +81,17 @@ shelf.Response _handleNotJsonFriendly(shelf.Request r, {RpcLogger logger}) {
 }
 
 shelf.Response _handleNotPost(shelf.Request r, {RpcLogger logger}) {
+  print('post middleware called');
   logger ??= _rpcLogger;
-  final route = r.requestedUri.toString();
-  if (r.method != 'POST') {
+  final methods = [
+    'POST',
+    'OPTIONS',
+    'HEAD',
+  ];
+  final route = r.url.toString();
+  if (!methods.contains(r.method)) {
     final info =
-        'unsupported method: ${r.method}, (only POST is allowed. path: $route';
+        'unsupported method: ${r.method}, (only POST, HEAD, and OPTIONS is allowed. path: $route';
     logger.info(info);
     return _rpcResp.BadRoute(
       route,

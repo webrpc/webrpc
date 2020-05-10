@@ -310,7 +310,7 @@ shelf.Handler combineHandlers(List<Map<String, shelf.Handler>> handlerMaps,
         ),
       )
       .addHandler((shelf.Request r) {
-    final handler = handlers[r.requestedUri.toString()] ?? _badRouteHandler;
+    final handler = handlers[r.url.toString()] ?? _badRouteHandler;
     return handler(r);
   });
 }
@@ -320,16 +320,16 @@ class WebRpcServer {
   // to get a shelf.Handler if you would like to configure your
   // server manully outside of this class.
   Map<String, shelf.Handler> get handlers => {
-        '/rpc/ExampleService/Ping': this._handleExampleServicePing,
-        '/rpc/ExampleService/Status': this._handleExampleServiceStatus,
-        '/rpc/ExampleService/Version': this._handleExampleServiceVersion,
-        '/rpc/ExampleService/GetUser': this._handleExampleServiceGetUser,
-        '/rpc/ExampleService/UpdateName': this._handleExampleServiceUpdateName,
-        '/rpc/ExampleService/FindUserById':
+        'rpc/ExampleService/Ping': this._handleExampleServicePing,
+        'rpc/ExampleService/Status': this._handleExampleServiceStatus,
+        'rpc/ExampleService/Version': this._handleExampleServiceVersion,
+        'rpc/ExampleService/GetUser': this._handleExampleServiceGetUser,
+        'rpc/ExampleService/UpdateName': this._handleExampleServiceUpdateName,
+        'rpc/ExampleService/FindUserById':
             this._handleExampleServiceFindUserById,
-        '/rpc/ExampleService/AddUser': this._handleExampleServiceAddUser,
-        '/rpc/ExampleService/ListUsers': this._handleExampleServiceListUsers,
-        '/rpc/ExampleService/DeleteUser': this._handleExampleServiceDeleteUser,
+        'rpc/ExampleService/AddUser': this._handleExampleServiceAddUser,
+        'rpc/ExampleService/ListUsers': this._handleExampleServiceListUsers,
+        'rpc/ExampleService/DeleteUser': this._handleExampleServiceDeleteUser,
       };
 
   shelf.Handler _mergedHandler;
@@ -341,7 +341,7 @@ class WebRpcServer {
   // Provide a preconfigured shelf.Pipeline with desired middleware.
   Set<shelf.Middleware> _middleware;
   // Shelf Pipeline.
-  final shelf.Pipeline _pipeline = const shelf.Pipeline();
+  shelf.Pipeline _pipeline = const shelf.Pipeline();
   // A reference to the http server.
   HttpServer _server;
   // Expose internal server for user customization.
@@ -383,57 +383,57 @@ class WebRpcServer {
   }
 
   FutureOr<shelf.Response> _requestHandler(shelf.Request r) async {
-    final route = r.requestedUri.toString();
+    final route = r.url.toString();
     switch (route) {
-      case '/rpc/ExampleService/Ping':
+      case 'rpc/ExampleService/Ping':
         {
           return _handleExampleServicePing(r);
         }
         break;
 
-      case '/rpc/ExampleService/Status':
+      case 'rpc/ExampleService/Status':
         {
           return _handleExampleServiceStatus(r);
         }
         break;
 
-      case '/rpc/ExampleService/Version':
+      case 'rpc/ExampleService/Version':
         {
           return _handleExampleServiceVersion(r);
         }
         break;
 
-      case '/rpc/ExampleService/GetUser':
+      case 'rpc/ExampleService/GetUser':
         {
           return _handleExampleServiceGetUser(r);
         }
         break;
 
-      case '/rpc/ExampleService/UpdateName':
+      case 'rpc/ExampleService/UpdateName':
         {
           return _handleExampleServiceUpdateName(r);
         }
         break;
 
-      case '/rpc/ExampleService/FindUserById':
+      case 'rpc/ExampleService/FindUserById':
         {
           return _handleExampleServiceFindUserById(r);
         }
         break;
 
-      case '/rpc/ExampleService/AddUser':
+      case 'rpc/ExampleService/AddUser':
         {
           return _handleExampleServiceAddUser(r);
         }
         break;
 
-      case '/rpc/ExampleService/ListUsers':
+      case 'rpc/ExampleService/ListUsers':
         {
           return _handleExampleServiceListUsers(r);
         }
         break;
 
-      case '/rpc/ExampleService/DeleteUser':
+      case 'rpc/ExampleService/DeleteUser':
         {
           return _handleExampleServiceDeleteUser(r);
         }
@@ -467,7 +467,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/Ping');
+      return _rpcResp.Fail('rpc/ExampleService/Ping');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
@@ -477,7 +477,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/Ping');
+      return _rpcResp.Fail('rpc/ExampleService/Ping');
     }
   }
 
@@ -501,7 +501,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/Status');
+      return _rpcResp.Fail('rpc/ExampleService/Status');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
@@ -511,7 +511,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/Status');
+      return _rpcResp.Fail('rpc/ExampleService/Status');
     }
   }
 
@@ -535,7 +535,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/Version');
+      return _rpcResp.Fail('rpc/ExampleService/Version');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
@@ -545,7 +545,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/Version');
+      return _rpcResp.Fail('rpc/ExampleService/Version');
     }
   }
 
@@ -575,7 +575,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/GetUser');
+      return _rpcResp.Fail('rpc/ExampleService/GetUser');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
@@ -585,7 +585,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/GetUser');
+      return _rpcResp.Fail('rpc/ExampleService/GetUser');
     }
   }
 
@@ -616,7 +616,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/UpdateName');
+      return _rpcResp.Fail('rpc/ExampleService/UpdateName');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
@@ -626,7 +626,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/UpdateName');
+      return _rpcResp.Fail('rpc/ExampleService/UpdateName');
     }
   }
 
@@ -656,7 +656,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/FindUserById');
+      return _rpcResp.Fail('rpc/ExampleService/FindUserById');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
@@ -666,7 +666,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/FindUserById');
+      return _rpcResp.Fail('rpc/ExampleService/FindUserById');
     }
   }
 
@@ -696,7 +696,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/AddUser');
+      return _rpcResp.Fail('rpc/ExampleService/AddUser');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
@@ -706,7 +706,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/AddUser');
+      return _rpcResp.Fail('rpc/ExampleService/AddUser');
     }
   }
 
@@ -730,7 +730,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/ListUsers');
+      return _rpcResp.Fail('rpc/ExampleService/ListUsers');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
@@ -740,7 +740,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/ListUsers');
+      return _rpcResp.Fail('rpc/ExampleService/ListUsers');
     }
   }
 
@@ -770,7 +770,7 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/DeleteUser');
+      return _rpcResp.Fail('rpc/ExampleService/DeleteUser');
     }
     // Catch all other exceptions.
     on Exception catch (e, stackTrace) {
@@ -780,12 +780,14 @@ class WebRpcServer {
         null,
         stackTrace,
       );
-      return _rpcResp.Fail('/rpc/ExampleService/DeleteUser');
+      return _rpcResp.Fail('rpc/ExampleService/DeleteUser');
     }
   }
 
   ArgResults _parseArgs(List<String> args) {
-    final parser = ArgParser()..addOption('port', abbr: 'p');
+    final parser = ArgParser()
+      ..addOption('port', abbr: 'p')
+      ..addOption('origin');
     try {
       return parser.parse(args);
     } on ArgParserException catch (e, stackTrace) {
@@ -805,9 +807,20 @@ class WebRpcServer {
         args['port'] ?? Platform.environment['PORT'] ?? '8080',
       );
 
-  void _configurePipeline() => _middleware.forEach(
-        (mddlwr) => _pipeline.addMiddleware(mddlwr),
-      );
+  // Used for Access-Control-Allow-Origin header, very useful during development.
+  String _getOrigin(ArgResults args) => args['origin'] ?? '';
+
+  void _configurePipeline(ArgResults args) {
+    final origin = _getOrigin(args);
+    if (origin != null || origin != '') {
+      _middleware = {_allowOrigin(origin), ..._middleware};
+    }
+    _middleware.forEach(
+      (mddlwr) {
+        _pipeline = _pipeline.addMiddleware(mddlwr);
+      },
+    );
+  }
 
   Future<void> serve(List<String> args,
       {SecurityContext securityContext,
@@ -824,7 +837,7 @@ class WebRpcServer {
       return;
     }
 
-    _configurePipeline();
+    _configurePipeline(result);
     final handler = _pipeline.addHandler(
       _mergedHandler ?? _requestHandler,
     );
@@ -852,12 +865,41 @@ enum RpcLogLevel {
 
 shelf.Response _badRouteHandler(shelf.Request r, {RpcLogger logger}) {
   logger ??= _rpcLogger;
-  final route = r.requestedUri.toString();
+  final route = r.url.toString();
   final info = 'no handler for path: $route';
   logger.info(info);
   return _rpcResp.BadRoute(
     route,
     msg: info,
+  );
+}
+
+shelf.Middleware _allowOrigin(String origin) {
+  return shelf.createMiddleware(
+    responseHandler: (response) {
+      if (origin == '' || origin == null) {
+        return response;
+      }
+      response?.change(
+        headers: {'Access-Control-Allow-Origin': origin},
+      );
+      if (origin != '*') {
+        response.change(
+          headers: {'Vary': 'Origin'},
+        );
+      }
+      return response;
+    },
+    requestHandler: (request) {
+      if (request.method == 'OPTIONS') {
+        return shelf.Response.ok(
+          null,
+          headers: {'Access-Control-Allow-Origin': origin},
+        );
+      } else {
+        return null;
+      }
+    },
   );
 }
 
@@ -873,7 +915,7 @@ bool _jsonFriendly(shelf.Request r) =>
 
 shelf.Response _handleNotJsonFriendly(shelf.Request r, {RpcLogger logger}) {
   logger ??= _rpcLogger;
-  final route = r.requestedUri.toString();
+  final route = r.url.toString();
   if (!_jsonFriendly(r)) {
     final info =
         'unexpected Content-Type: ${r.headers['Content-Type']} or Accept: ${r.headers['Accept']}. path: $route';
@@ -887,11 +929,17 @@ shelf.Response _handleNotJsonFriendly(shelf.Request r, {RpcLogger logger}) {
 }
 
 shelf.Response _handleNotPost(shelf.Request r, {RpcLogger logger}) {
+  print('post middleware called');
   logger ??= _rpcLogger;
-  final route = r.requestedUri.toString();
-  if (r.method != 'POST') {
+  final methods = [
+    'POST',
+    'OPTIONS',
+    'HEAD',
+  ];
+  final route = r.url.toString();
+  if (!methods.contains(r.method)) {
     final info =
-        'unsupported method: ${r.method}, (only POST is allowed. path: $route';
+        'unsupported method: ${r.method}, (only POST, HEAD, and OPTIONS is allowed. path: $route';
     logger.info(info);
     return _rpcResp.BadRoute(
       route,
