@@ -28,7 +28,7 @@ factory {{$serviceName}}Event.{{.Name | methodName}}({
 // {{.Name}} Bloc State.
 // ***********************************************************************
 @freezed
-abstract class {{$serviceName}}State {
+abstract class {{$serviceName}}State with _${{$serviceName}}State {
     {{range .Methods -}}
   factory {{$serviceName}}State.{{. | blocStateFactory}}({{if .Outputs}} {
     {{- range .Outputs}}

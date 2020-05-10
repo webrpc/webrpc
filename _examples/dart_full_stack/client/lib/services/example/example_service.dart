@@ -199,7 +199,7 @@ abstract class ExampleServiceEvent with _$ExampleServiceEvent {
 // ExampleService Bloc State.
 // ***********************************************************************
 @freezed
-abstract class ExampleServiceState {
+abstract class ExampleServiceState with _$ExampleServiceState {
   factory ExampleServiceState.pingResult() = PingResult;
   factory ExampleServiceState.statusResult({
     @required bool status,
