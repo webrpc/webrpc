@@ -536,7 +536,7 @@ class ExampleServiceRpc implements ExampleService {
         );
       } else {
         yield RpcState<StatusResult>.ok(
-          data: ExampleServiceState.fromJson(
+          data: StatusResult.fromJson(
             jsonDecode(
               response.body,
             ),
@@ -571,7 +571,7 @@ class ExampleServiceRpc implements ExampleService {
         );
       } else {
         yield RpcState<VersionResult>.ok(
-          data: ExampleServiceState.fromJson(
+          data: VersionResult.fromJson(
             jsonDecode(
               response.body,
             ),
@@ -614,7 +614,7 @@ class ExampleServiceRpc implements ExampleService {
         );
       } else {
         yield RpcState<GetUserResult>.ok(
-          data: ExampleServiceState.fromJson(
+          data: GetUserResult.fromJson(
             jsonDecode(
               response.body,
             ),
@@ -659,7 +659,7 @@ class ExampleServiceRpc implements ExampleService {
         );
       } else {
         yield RpcState<UpdateNameResult>.ok(
-          data: ExampleServiceState.fromJson(
+          data: UpdateNameResult.fromJson(
             jsonDecode(
               response.body,
             ),
@@ -702,7 +702,7 @@ class ExampleServiceRpc implements ExampleService {
         );
       } else {
         yield RpcState<FindUserByIdResult>.ok(
-          data: ExampleServiceState.fromJson(
+          data: FindUserByIdResult.fromJson(
             jsonDecode(
               response.body,
             ),
@@ -745,7 +745,7 @@ class ExampleServiceRpc implements ExampleService {
         );
       } else {
         yield RpcState<AddUserResult>.ok(
-          data: ExampleServiceState.fromJson(
+          data: AddUserResult.fromJson(
             jsonDecode(
               response.body,
             ),
@@ -780,7 +780,7 @@ class ExampleServiceRpc implements ExampleService {
         );
       } else {
         yield RpcState<ListUsersResult>.ok(
-          data: ExampleServiceState.fromJson(
+          data: ListUsersResult.fromJson(
             jsonDecode(
               response.body,
             ),
@@ -823,7 +823,7 @@ class ExampleServiceRpc implements ExampleService {
         );
       } else {
         yield RpcState<DeleteUserResult>.ok(
-          data: ExampleServiceState.fromJson(
+          data: DeleteUserResult.fromJson(
             jsonDecode(
               response.body,
             ),

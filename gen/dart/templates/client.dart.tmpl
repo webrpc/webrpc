@@ -114,7 +114,7 @@ class {{.Name}}Rpc implements {{.Name}} {
                 );
           } else {
           {{if .Outputs | len}}
-          yield RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.ok(data: {{if $use_bloc | useBloc}}{{$serviceName}}State{{else}}{{. | methodArgumentOutputClassName}}{{end}}.fromJson(
+          yield RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.ok(data: {{. | methodArgumentOutputClassName}}.fromJson(
               jsonDecode(response.body,),),);
           {{else}}
           yield const RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.unit();

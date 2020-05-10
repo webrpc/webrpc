@@ -875,26 +875,37 @@ shelf.Response _badRouteHandler(shelf.Request r, {RpcLogger logger}) {
 }
 
 shelf.Middleware _allowOrigin(String origin) {
+  final Map<String, String> headers = {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'POST,HEAD,OPTIONS',
+    'Access-Control-Allow-Headers':
+        'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+  };
   return shelf.createMiddleware(
     responseHandler: (response) {
       if (origin == '' || origin == null) {
         return response;
       }
-      response?.change(
-        headers: {'Access-Control-Allow-Origin': origin},
-      );
-      if (origin != '*') {
+      if (origin == '*') {
         response.change(
-          headers: {'Vary': 'Origin'},
+          headers: {
+            ...headers,
+            'Vary': 'Origin',
+          },
         );
       }
-      return response;
+      return response?.change(
+        headers: headers,
+      );
     },
     requestHandler: (request) {
       if (request.method == 'OPTIONS') {
         return shelf.Response.ok(
           null,
-          headers: {'Access-Control-Allow-Origin': origin},
+          headers: {
+            ...headers,
+            'Vary': 'Origin',
+          },
         );
       } else {
         return null;

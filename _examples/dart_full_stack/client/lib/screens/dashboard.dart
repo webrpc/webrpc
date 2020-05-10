@@ -16,27 +16,27 @@ class DashBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return pingServiceRow();
+    return Column(
+      children: <Widget>[
+        pingMethodRow(),
+        versionMethodRow(),
+      ],
+    );
   }
 
-  Widget pingServiceRow() {
+  Widget pingMethodRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
         RaisedButton(
-          onPressed: () {
-            print('button clicked');
-            bloc.add(
-              ExampleServiceEvent.ping(),
-            );
-          },
+          onPressed: bloc.ping,
           child: Row(
             children: <Widget>[
               Icon(
                 Icons.network_check,
               ),
               const Text(
-                ' Ping Server',
+                'Ping Server',
               ),
             ],
           ),
@@ -44,6 +44,7 @@ class DashBoard extends StatelessWidget {
         ),
         BlocBuilder<ExampleServiceBloc, RpcState<ExampleServiceState>>(
             bloc: bloc,
+            condition: (previous, current) => current is RpcState<PingResult>,
             builder: (context, state) {
               return Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -51,10 +52,52 @@ class DashBoard extends StatelessWidget {
                   state.when(
                     err: (reason, status, _) =>
                         'An error occured: $reason status: $status',
-                    idle: () => 'waiting to ping',
+                    idle: () => 'click button to ping',
                     loading: () => 'Loading Results',
                     ok: (ExampleServiceState data) => 'Ok Ping Success!',
-                    unit: () => 'Unit Ping Sucess!',
+                    unit: () => 'Ping Sucess!',
+                  ),
+                ),
+              );
+            }),
+      ],
+    );
+  }
+
+  Widget versionMethodRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: <Widget>[
+        RaisedButton(
+          onPressed: bloc.version,
+          child: Row(
+            children: <Widget>[
+              Icon(
+                Icons.info,
+              ),
+              const Text(
+                'Get Version',
+              ),
+            ],
+          ),
+          color: Colors.blue,
+        ),
+        BlocBuilder<ExampleServiceBloc, RpcState<ExampleServiceState>>(
+            bloc: bloc,
+            condition: (previous, current) =>
+                current is RpcState<VersionResult>,
+            builder: (context, state) {
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  state.when(
+                    err: (reason, status, _) =>
+                        'An error occured: $reason status: $status',
+                    idle: () => 'click button to get version',
+                    loading: () => 'Loading Results',
+                    ok: (ExampleServiceState data) =>
+                        'webrpc version is: $data',
+                    unit: () => 'version Sucess!',
                   ),
                 ),
               );
