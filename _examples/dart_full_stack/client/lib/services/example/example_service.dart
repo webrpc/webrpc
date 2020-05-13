@@ -600,9 +600,7 @@ class ExampleServiceRpc implements ExampleService {
 
       final http.Response response = await _makeRequest(
         'GetUser',
-        json: jsonEncode(
-          args.toJson(),
-        ),
+        json: args.toJson(),
         headers: headers,
       );
 
@@ -645,9 +643,7 @@ class ExampleServiceRpc implements ExampleService {
 
       final http.Response response = await _makeRequest(
         'UpdateName',
-        json: jsonEncode(
-          args.toJson(),
-        ),
+        json: args.toJson(),
         headers: headers,
       );
 
@@ -688,9 +684,7 @@ class ExampleServiceRpc implements ExampleService {
 
       final http.Response response = await _makeRequest(
         'FindUserById',
-        json: jsonEncode(
-          args.toJson(),
-        ),
+        json: args.toJson(),
         headers: headers,
       );
 
@@ -731,9 +725,7 @@ class ExampleServiceRpc implements ExampleService {
 
       final http.Response response = await _makeRequest(
         'AddUser',
-        json: jsonEncode(
-          args.toJson(),
-        ),
+        json: args.toJson(),
         headers: headers,
       );
 
@@ -809,9 +801,7 @@ class ExampleServiceRpc implements ExampleService {
 
       final http.Response response = await _makeRequest(
         'DeleteUser',
-        json: jsonEncode(
-          args.toJson(),
-        ),
+        json: args.toJson(),
         headers: headers,
       );
 

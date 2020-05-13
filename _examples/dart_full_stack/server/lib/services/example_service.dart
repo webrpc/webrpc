@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'dart:io';
 
-import 'package:args/args.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:meta/meta.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+import 'package:args/args.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 
@@ -877,12 +879,21 @@ shelf.Middleware _corsMiddleware({String origin = '*'}) {
   final Map<String, String> headers = {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST,HEAD,OPTIONS',
-    'Access-Control-Allow-Headers':
-        'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-goog-api-client',
+    'Access-Control-Allow-Headers': '*',
   };
   return shelf.createMiddleware(
     responseHandler: (response) {
-      print('cors headers ran');
+      if (origin == '' || origin == null) {
+        return response;
+      }
+      if (origin != '*') {
+        response.change(
+          headers: {
+            ...headers,
+            'Vary': 'Origin',
+          },
+        );
+      }
       return response?.change(
         headers: headers,
       );
