@@ -26,19 +26,25 @@ shelf.Response _badRouteHandler(shelf.Request r, {RpcLogger logger}) {
   );
 }
 
-shelf.Middleware _corsMiddleware({String origin = '*'}) {
+shelf.Middleware _allowOrigin({String origin = '*'}) {
   final Map<String, String> headers = {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST,HEAD,OPTIONS',
-    'Access-Control-Allow-Headers':
-        'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-goog-api-client',
+    'Access-Control-Allow-Headers': '*',
   };
   return shelf.createMiddleware(
     responseHandler: (response) {
       if (origin == '' || origin == null) {
         return response;
       }
-
+      if (origin != '*') {
+        response.change(
+          headers: {
+            ...headers,
+            'Vary': 'Origin',
+          },
+        );
+      }
       return response?.change(
         headers: headers,
       );
@@ -55,6 +61,7 @@ shelf.Middleware _corsMiddleware({String origin = '*'}) {
     },
   );
 }
+
 
 
 shelf.Middleware _nonJsonMddlwr =

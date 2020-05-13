@@ -102,7 +102,7 @@ class {{.Name}}Rpc implements {{.Name}} {
           {{end}} {{/* end of if .Inputs */}}
           final http.Response response = await _makeRequest(
             '{{.Name}}',
-            {{- if .Inputs | len}}json: jsonEncode(args.toJson(),),{{end}}
+            {{- if .Inputs | len}}json: args.toJson(),{{end}}
             headers: headers,
           );
 
