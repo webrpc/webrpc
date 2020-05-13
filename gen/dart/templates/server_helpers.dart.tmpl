@@ -26,26 +26,19 @@ shelf.Response _badRouteHandler(shelf.Request r, {RpcLogger logger}) {
   );
 }
 
-shelf.Middleware _allowOrigin(String origin) {
+shelf.Middleware _corsMiddleware({String origin = '*'}) {
   final Map<String, String> headers = {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST,HEAD,OPTIONS',
     'Access-Control-Allow-Headers':
-        'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+        'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-goog-api-client',
   };
   return shelf.createMiddleware(
     responseHandler: (response) {
       if (origin == '' || origin == null) {
         return response;
       }
-      if (origin == '*') {
-        response.change(
-          headers: {
-            ...headers,
-            'Vary': 'Origin',
-          },
-        );
-      }
+
       return response?.change(
         headers: headers,
       );
@@ -54,10 +47,7 @@ shelf.Middleware _allowOrigin(String origin) {
       if (request.method == 'OPTIONS') {
         return shelf.Response.ok(
           null,
-          headers: {
-            ...headers,
-            'Vary': 'Origin',
-          },
+          headers: headers,
         );
       } else {
         return null;
@@ -74,8 +64,11 @@ shelf.Middleware _notPostMddlwr =
     shelf.createMiddleware(requestHandler: _handleNotPost);
 
 bool _jsonFriendly(shelf.Request r) =>
+    r.headers.containsKey('Content-Type') &&
+    r.headers.containsKey('Accept') &&
     r.headers['Content-Type'].contains('application/json') &&
-    r.headers['Accept'].contains('application/json');
+    r.headers['Accept'].contains('application/json') ||
+    r.headers['Accept'].contains('*/*');
 
 shelf.Response _handleNotJsonFriendly(shelf.Request r, {RpcLogger logger}) {
   logger ??= _rpcLogger;
@@ -93,7 +86,6 @@ shelf.Response _handleNotJsonFriendly(shelf.Request r, {RpcLogger logger}) {
 }
 
 shelf.Response _handleNotPost(shelf.Request r, {RpcLogger logger}) {
-  print('post middleware called');
   logger ??= _rpcLogger;
   final methods = [
     'POST',

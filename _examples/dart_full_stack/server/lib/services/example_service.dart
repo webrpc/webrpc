@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'dart:io';
 
-import 'package:meta/meta.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
-
 import 'package:args/args.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 
@@ -320,16 +318,15 @@ class WebRpcServer {
   // to get a shelf.Handler if you would like to configure your
   // server manully outside of this class.
   Map<String, shelf.Handler> get handlers => {
-        'rpc/ExampleService/Ping': this._handleExampleServicePing,
-        'rpc/ExampleService/Status': this._handleExampleServiceStatus,
-        'rpc/ExampleService/Version': this._handleExampleServiceVersion,
-        'rpc/ExampleService/GetUser': this._handleExampleServiceGetUser,
-        'rpc/ExampleService/UpdateName': this._handleExampleServiceUpdateName,
-        'rpc/ExampleService/FindUserById':
-            this._handleExampleServiceFindUserById,
-        'rpc/ExampleService/AddUser': this._handleExampleServiceAddUser,
-        'rpc/ExampleService/ListUsers': this._handleExampleServiceListUsers,
-        'rpc/ExampleService/DeleteUser': this._handleExampleServiceDeleteUser,
+        'rpc/ExampleService/Ping': this._handlePing,
+        'rpc/ExampleService/Status': this._handleStatus,
+        'rpc/ExampleService/Version': this._handleVersion,
+        'rpc/ExampleService/GetUser': this._handleGetUser,
+        'rpc/ExampleService/UpdateName': this._handleUpdateName,
+        'rpc/ExampleService/FindUserById': this._handleFindUserById,
+        'rpc/ExampleService/AddUser': this._handleAddUser,
+        'rpc/ExampleService/ListUsers': this._handleListUsers,
+        'rpc/ExampleService/DeleteUser': this._handleDeleteUser,
       };
 
   shelf.Handler _mergedHandler;
@@ -360,6 +357,7 @@ class WebRpcServer {
       shelf.logRequests(
         logger: (msg, isErr) => isErr ? _log.shout(msg) : _log.info(msg),
       ),
+      _corsMiddleware(),
       _nonJsonMddlwr,
       _notPostMddlwr,
     };
@@ -387,55 +385,55 @@ class WebRpcServer {
     switch (route) {
       case 'rpc/ExampleService/Ping':
         {
-          return _handleExampleServicePing(r);
+          return _handlePing(r);
         }
         break;
 
       case 'rpc/ExampleService/Status':
         {
-          return _handleExampleServiceStatus(r);
+          return _handleStatus(r);
         }
         break;
 
       case 'rpc/ExampleService/Version':
         {
-          return _handleExampleServiceVersion(r);
+          return _handleVersion(r);
         }
         break;
 
       case 'rpc/ExampleService/GetUser':
         {
-          return _handleExampleServiceGetUser(r);
+          return _handleGetUser(r);
         }
         break;
 
       case 'rpc/ExampleService/UpdateName':
         {
-          return _handleExampleServiceUpdateName(r);
+          return _handleUpdateName(r);
         }
         break;
 
       case 'rpc/ExampleService/FindUserById':
         {
-          return _handleExampleServiceFindUserById(r);
+          return _handleFindUserById(r);
         }
         break;
 
       case 'rpc/ExampleService/AddUser':
         {
-          return _handleExampleServiceAddUser(r);
+          return _handleAddUser(r);
         }
         break;
 
       case 'rpc/ExampleService/ListUsers':
         {
-          return _handleExampleServiceListUsers(r);
+          return _handleListUsers(r);
         }
         break;
 
       case 'rpc/ExampleService/DeleteUser':
         {
-          return _handleExampleServiceDeleteUser(r);
+          return _handleDeleteUser(r);
         }
         break;
 
@@ -450,7 +448,7 @@ class WebRpcServer {
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServicePing(
+  FutureOr<shelf.Response> _handlePing(
     shelf.Request r,
   ) async {
     try {
@@ -481,7 +479,7 @@ class WebRpcServer {
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServiceStatus(
+  FutureOr<shelf.Response> _handleStatus(
     shelf.Request r,
   ) async {
     try {
@@ -515,7 +513,7 @@ class WebRpcServer {
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServiceVersion(
+  FutureOr<shelf.Response> _handleVersion(
     shelf.Request r,
   ) async {
     try {
@@ -549,14 +547,16 @@ class WebRpcServer {
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServiceGetUser(
+  FutureOr<shelf.Response> _handleGetUser(
     shelf.Request r,
   ) async {
     try {
       // Attempt to call service method.
-      final json = await r.readAsString();
+      final parsedJson = await r.readAsString();
       final _GetUserArgs args = _GetUserArgs.fromJson(
-        jsonDecode(json),
+        jsonDecode(
+          parsedJson,
+        ),
       );
       final GetUserResult result = await exampleService.getUser(
         userID: args.userID,
@@ -589,14 +589,16 @@ class WebRpcServer {
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServiceUpdateName(
+  FutureOr<shelf.Response> _handleUpdateName(
     shelf.Request r,
   ) async {
     try {
       // Attempt to call service method.
-      final json = await r.readAsString();
+      final parsedJson = await r.readAsString();
       final _UpdateNameArgs args = _UpdateNameArgs.fromJson(
-        jsonDecode(json),
+        jsonDecode(
+          parsedJson,
+        ),
       );
       final UpdateNameResult result = await exampleService.updateName(
         id: args.id,
@@ -630,14 +632,16 @@ class WebRpcServer {
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServiceFindUserById(
+  FutureOr<shelf.Response> _handleFindUserById(
     shelf.Request r,
   ) async {
     try {
       // Attempt to call service method.
-      final json = await r.readAsString();
+      final parsedJson = await r.readAsString();
       final _FindUserByIdArgs args = _FindUserByIdArgs.fromJson(
-        jsonDecode(json),
+        jsonDecode(
+          parsedJson,
+        ),
       );
       final FindUserByIdResult result = await exampleService.findUserById(
         s: args.s,
@@ -670,14 +674,16 @@ class WebRpcServer {
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServiceAddUser(
+  FutureOr<shelf.Response> _handleAddUser(
     shelf.Request r,
   ) async {
     try {
       // Attempt to call service method.
-      final json = await r.readAsString();
+      final parsedJson = await r.readAsString();
       final _AddUserArgs args = _AddUserArgs.fromJson(
-        jsonDecode(json),
+        jsonDecode(
+          parsedJson,
+        ),
       );
       final AddUserResult result = await exampleService.addUser(
         user: args.user,
@@ -710,7 +716,7 @@ class WebRpcServer {
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServiceListUsers(
+  FutureOr<shelf.Response> _handleListUsers(
     shelf.Request r,
   ) async {
     try {
@@ -744,14 +750,16 @@ class WebRpcServer {
     }
   }
 
-  FutureOr<shelf.Response> _handleExampleServiceDeleteUser(
+  FutureOr<shelf.Response> _handleDeleteUser(
     shelf.Request r,
   ) async {
     try {
       // Attempt to call service method.
-      final json = await r.readAsString();
+      final parsedJson = await r.readAsString();
       final _DeleteUserArgs args = _DeleteUserArgs.fromJson(
-        jsonDecode(json),
+        jsonDecode(
+          parsedJson,
+        ),
       );
       final DeleteUserResult result = await exampleService.deleteUser(
         id: args.id,
@@ -785,9 +793,7 @@ class WebRpcServer {
   }
 
   ArgResults _parseArgs(List<String> args) {
-    final parser = ArgParser()
-      ..addOption('port', abbr: 'p')
-      ..addOption('origin');
+    final parser = ArgParser()..addOption('port', abbr: 'p');
     try {
       return parser.parse(args);
     } on ArgParserException catch (e, stackTrace) {
@@ -807,14 +813,7 @@ class WebRpcServer {
         args['port'] ?? Platform.environment['PORT'] ?? '8080',
       );
 
-  // Used for Access-Control-Allow-Origin header, very useful during development.
-  String _getOrigin(ArgResults args) => args['origin'] ?? '';
-
-  void _configurePipeline(ArgResults args) {
-    final origin = _getOrigin(args);
-    if (origin != null || origin != '') {
-      _middleware = {_allowOrigin(origin), ..._middleware};
-    }
+  void _configurePipeline() {
     _middleware.forEach(
       (mddlwr) {
         _pipeline = _pipeline.addMiddleware(mddlwr);
@@ -837,7 +836,7 @@ class WebRpcServer {
       return;
     }
 
-    _configurePipeline(result);
+    _configurePipeline();
     final handler = _pipeline.addHandler(
       _mergedHandler ?? _requestHandler,
     );
@@ -874,26 +873,16 @@ shelf.Response _badRouteHandler(shelf.Request r, {RpcLogger logger}) {
   );
 }
 
-shelf.Middleware _allowOrigin(String origin) {
+shelf.Middleware _corsMiddleware({String origin = '*'}) {
   final Map<String, String> headers = {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'POST,HEAD,OPTIONS',
     'Access-Control-Allow-Headers':
-        'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+        'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-goog-api-client',
   };
   return shelf.createMiddleware(
     responseHandler: (response) {
-      if (origin == '' || origin == null) {
-        return response;
-      }
-      if (origin == '*') {
-        response.change(
-          headers: {
-            ...headers,
-            'Vary': 'Origin',
-          },
-        );
-      }
+      print('cors headers ran');
       return response?.change(
         headers: headers,
       );
@@ -902,10 +891,7 @@ shelf.Middleware _allowOrigin(String origin) {
       if (request.method == 'OPTIONS') {
         return shelf.Response.ok(
           null,
-          headers: {
-            ...headers,
-            'Vary': 'Origin',
-          },
+          headers: headers,
         );
       } else {
         return null;
@@ -921,8 +907,11 @@ shelf.Middleware _notPostMddlwr =
     shelf.createMiddleware(requestHandler: _handleNotPost);
 
 bool _jsonFriendly(shelf.Request r) =>
-    r.headers['Content-Type'].contains('application/json') &&
-    r.headers['Accept'].contains('application/json');
+    r.headers.containsKey('Content-Type') &&
+        r.headers.containsKey('Accept') &&
+        r.headers['Content-Type'].contains('application/json') &&
+        r.headers['Accept'].contains('application/json') ||
+    r.headers['Accept'].contains('*/*');
 
 shelf.Response _handleNotJsonFriendly(shelf.Request r, {RpcLogger logger}) {
   logger ??= _rpcLogger;
@@ -940,7 +929,6 @@ shelf.Response _handleNotJsonFriendly(shelf.Request r, {RpcLogger logger}) {
 }
 
 shelf.Response _handleNotPost(shelf.Request r, {RpcLogger logger}) {
-  print('post middleware called');
   logger ??= _rpcLogger;
   final methods = [
     'POST',

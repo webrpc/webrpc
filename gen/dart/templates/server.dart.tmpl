@@ -79,7 +79,7 @@ class WebRpcServer {
       {{ range .Services }}
       {{$name := .Name}}
       {{- range .Methods}}
-      'rpc/{{$name}}/{{.Name}}':this._handle{{$name}}{{.Name}}, 
+      'rpc/{{$name}}/{{.Name}}':this._handle{{.Name}}, 
       {{end}}
       {{end}}
     };
@@ -115,6 +115,7 @@ class WebRpcServer {
       shelf.logRequests(
         logger: (msg, isErr) => isErr ? _log.shout(msg) : _log.info(msg),
       ),
+      _corsMiddleware(),
       _nonJsonMddlwr,
       _notPostMddlwr,    
     };
@@ -143,7 +144,7 @@ class WebRpcServer {
       {{$name := .Name}}
       {{- range .Methods}}
       case 'rpc/{{$name}}/{{.Name}}': {
-         return _handle{{$name}}{{.Name}}(r);
+         return _handle{{.Name}}(r);
       }
       break;
       {{end -}} {{/* end of range .Methods */}}
@@ -158,12 +159,12 @@ class WebRpcServer {
   {{- range .Services}}
   {{$name := .Name}}
   {{- range .Methods}}
-  FutureOr<shelf.Response> _handle{{$name}}{{.Name}}(shelf.Request r,) async {
+  FutureOr<shelf.Response> _handle{{.Name}}(shelf.Request r,) async {
     try {
       // Attempt to call service method.
     {{- if .Inputs|len }}
-      final json = await r.readAsString();
-      final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}.fromJson(jsonDecode(json),);
+      final parsedJson = await r.readAsString();
+      final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}.fromJson(jsonDecode(parsedJson,),);
       {{ if .Outputs | len -}}
       final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}({{- range .Inputs}}{{.Name}}:args.{{.Name}},{{- end}});  
       return _rpcResp.Ok(json: jsonEncode(result.toJson(),),);
@@ -196,8 +197,7 @@ class WebRpcServer {
   {{- end -}} {{/* end of range .Services for Methods */}}
   ArgResults _parseArgs(List<String> args) {
     final parser = ArgParser()
-      ..addOption('port', abbr: 'p')
-      ..addOption('origin');
+      ..addOption('port', abbr: 'p');
     try {
       return parser.parse(args);
     } on ArgParserException catch (e, stackTrace) {
@@ -216,14 +216,8 @@ class WebRpcServer {
   int _getPort(ArgResults args) =>
       int.tryParse(args['port'] ?? Platform.environment['PORT'] ?? '8080',);
 
-  // Used for Access-Control-Allow-Origin header, very useful during development.
-  String _getOrigin(ArgResults args) => args['origin'] ?? '';
 
-  void _configurePipeline(ArgResults args) {
-    final origin = _getOrigin(args);
-    if (origin != null || origin != '') {
-      _middleware = {_allowOrigin(origin), ..._middleware};
-    }
+  void _configurePipeline() {
     _middleware.forEach(
       (mddlwr) {
         _pipeline = _pipeline.addMiddleware(mddlwr);
@@ -246,7 +240,7 @@ class WebRpcServer {
       return;
     }
 
-    _configurePipeline(result);
+    _configurePipeline();
     final handler = _pipeline.addHandler(_mergedHandler ?? _requestHandler,);
     _server = await io.serve(handler, _hostname, port,
         securityContext: securityContext, backlog: backlog, shared: shared);

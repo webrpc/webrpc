@@ -11,6 +11,12 @@
       "type": "dart",
       "flutterMode": "debug",
       "args": ["run", "-d", "chrome"]
+    },
+    {
+      "name": "WebRpcServer",
+      "program": "server/bin/server.dart",
+      "request": "launch",
+      "type": "dart"
     }
   ]
 }

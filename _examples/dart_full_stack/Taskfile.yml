@@ -41,7 +41,7 @@ tasks:
   run_server:
     dir: server/bin
     cmds:
-      - dart server.dart --origin="*"
+      - dart server.dart
 
   run_client:
     dir: client

@@ -70,6 +70,11 @@ Widget buildDrawer() => Drawer(
           ),
           const ListTile(
             title: Text(
+              'Status()',
+            ),
+          ),
+          const ListTile(
+            title: Text(
               'GetUser()',
             ),
           ),

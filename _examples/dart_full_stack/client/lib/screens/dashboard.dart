@@ -2,17 +2,28 @@ import 'package:client/services/example/example_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class DashBoard extends StatelessWidget {
+class DashBoard extends StatefulWidget {
+  DashBoard({Key key}) : super(key: key);
+
+  @override
+  _DashBoardState createState() => _DashBoardState();
+}
+
+class _DashBoardState extends State<DashBoard> {
+  final _userFormKey = GlobalKey<FormState>();
+  String _username = '';
+  int _userID = 0;
   final ExampleServiceBloc bloc = ExampleServiceBloc(
     exampleService: ExampleServiceRpc(
       host: 'http://localhost:8080',
     ),
   );
+
+  @override
   void dispose() {
     bloc.close();
+    super.dispose();
   }
-
-  DashBoard({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +32,7 @@ class DashBoard extends StatelessWidget {
         _pingMethodRow(),
         _versionMethodRow(),
         _statusMethodRow(),
+        _addUserRow(),
       ],
     );
   }
@@ -107,6 +119,7 @@ class DashBoard extends StatelessWidget {
         unitText: 'Got Version!',
         idleText: 'click button to get version',
       );
+
   Widget _statusMethodRow() => _simpleRow(
         buttonIcon: Icons.cloud,
         buttonText: 'Check Server Status',
@@ -118,6 +131,99 @@ class DashBoard extends StatelessWidget {
         unitText: 'Server is up.',
         idleText: 'press button to check server status',
       );
+  Widget _addUserRow() {
+    final showAlert = (String username) => showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text(
+              'Success!',
+            ),
+            content: Text(
+              'User with username: $username added successfully.',
+            ),
+            actions: <Widget>[
+              RaisedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text(
+                  'Ok',
+                ),
+                color: Colors.green,
+              ),
+            ],
+          ),
+        );
+    return Form(
+      key: _userFormKey,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          const SizedBox(),
+          RaisedButton(
+            onPressed: () {
+              if (_userFormKey.currentState.validate()) {
+                _userFormKey.currentState.save();
+                bloc.addUser(
+                  user: User(
+                    id: _userID++,
+                    username: _username,
+                    role: const Kind.user().toString(),
+                  ),
+                );
+                _userFormKey.currentState.reset();
+              } else {
+                _userFormKey.currentState.reset();
+                return null;
+              }
+            },
+            color: Colors.blue,
+            child: Row(
+              children: <Widget>[
+                Icon(
+                  Icons.add,
+                ),
+                const Text(
+                  'Add User',
+                  textAlign: TextAlign.right,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(),
+          ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 150.0,
+            ),
+            child: TextFormField(
+              decoration: const InputDecoration(
+                labelText: "Enter Username",
+                hintText: "username",
+              ),
+              validator: (val) =>
+                  val.length > 6 ? null : 'username must be 6 char or more.',
+              onSaved: (username) => _username = username,
+            ),
+          ),
+          BlocListener<ExampleServiceBloc, RpcState<ExampleServiceState>>(
+            bloc: bloc,
+            child: const SizedBox(),
+            condition: (previous, current) =>
+                current is RpcState<AddUserResult>,
+            listener: (context, state) => state.maybeWhen(
+              ok: (data) => data.maybeWhen(
+                addUserResult: (wasAdded) => showAlert(
+                  _username,
+                ),
+                orElse: () => 'failed to add user.',
+              ),
+              orElse: () => 'failed to add user',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _usersTable() {
     return StreamBuilder(builder: (context, snapshot) {

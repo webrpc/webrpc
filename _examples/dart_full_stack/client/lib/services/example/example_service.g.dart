@@ -160,7 +160,7 @@ _$_AddUserArgs_Freezed _$_$_AddUserArgs_FreezedFromJson(
   return _$_AddUserArgs_Freezed(
     user: json['user'] == null
         ? null
-        : User.fromJson(json['user'] as Map<String, dynamic>),
+        : User.fromJson(jsonDecode(json['user']) as Map<String, dynamic>),
   );
 }
 
