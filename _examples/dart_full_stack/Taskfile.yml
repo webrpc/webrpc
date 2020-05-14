@@ -58,7 +58,7 @@ tasks:
     cmds:
       - echo building client and server
 
-  setup:
+  bootstrap:
     cmds:
       - task: install
       - task: build
