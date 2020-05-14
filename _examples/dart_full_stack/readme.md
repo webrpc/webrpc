@@ -20,11 +20,18 @@
 
 ## Notes
 
-The cool thing about webrpc and other schema-driven rpc libraries (like grpc), is that you can generate a Go client for this node server just by running:
+The cool thing about webrpc and other schema-driven rpc libraries (like grpc), is that you can generate a Go client for this dart server just by running:
 
 ```
-webrpc-gen -schema=service.ridl -target=go -pkg=proto -client -out=./proto/client.gen.go
+webrpc-gen -schema=example.ridl -target=go -pkg=proto -client -out=./proto/client.gen.go
 ```
 
-and tada, your Go programs now have full type definitions and network communication to the node server!
+and tada, your Go programs now have full type definitions and network communication to the dart server!
+
+To create a node server for your dart client you can run:
+```
+webrpc-gen -schema=example.ridl -target=ts -server -out=./node/server/server.gen.ts
+```
+
+now you have a typescript based node server for your dart/flutter client.
 
