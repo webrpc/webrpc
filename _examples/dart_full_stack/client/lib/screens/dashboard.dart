@@ -11,8 +11,12 @@ class DashBoard extends StatefulWidget {
 
 class _DashBoardState extends State<DashBoard> {
   final _userFormKey = GlobalKey<FormState>();
+  final _findUserFormKey = GlobalKey<FormState>();
+  int _userToFindID;
   String _username = '';
   int _userID = 0;
+  int get userID => _userID = _userID + 1;
+
   final ExampleServiceBloc bloc = ExampleServiceBloc(
     exampleService: ExampleServiceRpc(
       host: 'http://localhost:8080',
@@ -27,12 +31,15 @@ class _DashBoardState extends State<DashBoard> {
 
   @override
   Widget build(BuildContext context) {
+    bloc.listUsers();
     return Column(
       children: <Widget>[
         _pingMethodRow(),
         _versionMethodRow(),
         _statusMethodRow(),
         _addUserRow(),
+        _findUserRow(),
+        _usersTable(),
       ],
     );
   }
@@ -145,6 +152,7 @@ class _DashBoardState extends State<DashBoard> {
               RaisedButton(
                 onPressed: () {
                   Navigator.of(context).pop();
+                  bloc.listUsers();
                 },
                 child: const Text(
                   'Ok',
@@ -166,9 +174,9 @@ class _DashBoardState extends State<DashBoard> {
                 _userFormKey.currentState.save();
                 bloc.addUser(
                   user: User(
-                    id: _userID++,
+                    id: userID,
                     username: _username,
-                    role: const Kind.user().toString(),
+                    role: 'user',
                   ),
                 );
                 _userFormKey.currentState.reset();
@@ -224,36 +232,45 @@ class _DashBoardState extends State<DashBoard> {
   }
 
   Widget _usersTable() {
-    return StreamBuilder(builder: (context, snapshot) {
-      return DataTable(
-        columns: [
-          const DataColumn(
-            label: Text(
-              'id',
-            ),
-          ),
-          const DataColumn(
-            label: Text(
-              'UserName',
-            ),
-          ),
-          const DataColumn(
-            label: Text(
-              'Role',
-            ),
-          ),
-        ],
-        rows: buildRows(),
-      );
-    });
+    return BlocBuilder<ExampleServiceBloc, RpcState<ExampleServiceState>>(
+        bloc: bloc,
+        condition: (prev, current) => current is RpcState<ListUsersResult>,
+        builder: (context, snapshot) {
+          return DataTable(
+            horizontalMargin: 400.0,
+            columns: [
+              const DataColumn(
+                label: Text(
+                  'id',
+                ),
+              ),
+              const DataColumn(
+                label: Text(
+                  'UserName',
+                ),
+              ),
+              const DataColumn(
+                label: Text(
+                  'Role',
+                ),
+              ),
+              const DataColumn(
+                label: Text(
+                  'Delete',
+                ),
+              ),
+            ],
+            rows: buildRows(snapshot),
+          );
+        });
   }
 
-  DataRow _userRow(String id, String username, String role) {
+  DataRow _userRow(int id, String username, String role) {
     return DataRow(
       cells: [
         DataCell(
           Text(
-            id,
+            '$id',
           ),
         ),
         DataCell(
@@ -266,11 +283,132 @@ class _DashBoardState extends State<DashBoard> {
             role,
           ),
         ),
+        DataCell(
+          IconButton(
+            tooltip: 'Delete User',
+            onPressed: () {
+              bloc.deleteUser(
+                id: id,
+              );
+              bloc.listUsers();
+            },
+            color: Colors.red,
+            icon: Icon(
+              Icons.delete,
+            ),
+          ),
+        ),
       ],
     );
   }
 
-  List<DataRow> buildRows() {
-    return null;
+  List<DataRow> buildRows(RpcState<ExampleServiceState> userList) {
+    return userList.when(
+      err: (err, status, stack) => [],
+      idle: () => [],
+      loading: () => [],
+      unit: () => [],
+      ok: (data) => data.maybeWhen(
+        listUsersResult: (data) => [
+          for (final user in data) _userRow(user.id, user.username, user.role),
+        ],
+        orElse: () => [],
+      ),
+    );
+  }
+
+  Widget _findUserRow() {
+    final showAlert = (User user) => showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text(
+              'User Found.',
+            ),
+            content: Text(
+              user.toJson().toString(),
+            ),
+            actions: <Widget>[
+              RaisedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text(
+                  'Ok',
+                ),
+                color: Colors.green,
+              ),
+            ],
+          ),
+        );
+    return Form(
+      key: _findUserFormKey,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          const SizedBox(),
+          RaisedButton(
+            onPressed: () {
+              if (_findUserFormKey.currentState.validate()) {
+                _findUserFormKey.currentState.save();
+                bloc.findUserById(
+                  s: SearchFilter(
+                    id: _userToFindID,
+                  ),
+                );
+              }
+            },
+            color: Colors.blue,
+            child: Row(
+              children: <Widget>[
+                Icon(
+                  Icons.search,
+                ),
+                const Text(
+                  'Find User',
+                  textAlign: TextAlign.right,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(),
+          ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 150.0,
+            ),
+            child: TextFormField(
+              decoration: const InputDecoration(
+                labelText: "Enter User Id",
+                hintText: "user Id",
+              ),
+              validator: (val) =>
+                  int.tryParse(val) != null ? null : 'User Id must be a number',
+              onSaved: (id) {
+                try {
+                  _userToFindID = int.parse(id);
+                } on Exception catch (e) {
+                  print(e);
+                }
+              },
+            ),
+          ),
+          BlocListener<ExampleServiceBloc, RpcState<ExampleServiceState>>(
+            bloc: bloc,
+            child: const SizedBox(),
+            condition: (previous, current) =>
+                current is RpcState<FindUserByIdResult>,
+            listener: (context, state) => state.maybeWhen(
+              ok: (data) => data.maybeWhen(
+                findUserByIdResult: (name, user) {
+                  _userFormKey.currentState.reset();
+                  return showAlert(user);
+                },
+                orElse: () => 'Could not find user',
+              ),
+              orElse: () => 'Could not find user',
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
