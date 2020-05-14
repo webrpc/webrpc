@@ -172,9 +172,6 @@ class _DashBoardState extends State<DashBoard> {
                   ),
                 );
                 _userFormKey.currentState.reset();
-              } else {
-                _userFormKey.currentState.reset();
-                return null;
               }
             },
             color: Colors.blue,
@@ -212,9 +209,10 @@ class _DashBoardState extends State<DashBoard> {
                 current is RpcState<AddUserResult>,
             listener: (context, state) => state.maybeWhen(
               ok: (data) => data.maybeWhen(
-                addUserResult: (wasAdded) => showAlert(
-                  _username,
-                ),
+                addUserResult: (wasAdded) {
+                  _userFormKey.currentState.reset();
+                  return showAlert(_username);
+                },
                 orElse: () => 'failed to add user.',
               ),
               orElse: () => 'failed to add user',
