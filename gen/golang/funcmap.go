@@ -188,10 +188,10 @@ func serverServiceName(in schema.VarName) (string, error) {
 
 func hasStreamOutput(in []*schema.Service) bool {
 	for _, service := range in {
-		for _, method := range service.Methods{
+		for _, method := range service.Methods {
 			if method.StreamOutput {
-			return true
-		}
+				return true
+			}
 		}
 	}
 	return false
@@ -327,30 +327,30 @@ func hasFieldType(proto *schema.WebRPCSchema) func(fieldType string) (bool, erro
 
 func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 	return map[string]interface{}{
-		"serviceMethodName":     serviceMethodName,
-		"hasFieldType":          hasFieldType(proto),
-		"fieldTags":             fieldTags,
-		"fieldType":             fieldType,
-		"fieldOptional":         fieldOptional,
-		"fieldTypeDef":          fieldTypeDef,
-		"newClientServiceName":  newClientServiceName,
-		"newServerServiceName":  newServerServiceName,
-		"hasStreamOutput":  hasStreamOutput,
-		"constPathPrefix":       constPathPrefix,
-		"countMethods":          countMethods,
-		"clientServiceName":     clientServiceName,
-		"serverServiceName":     serverServiceName,
-		"methodInputs":          methodInputs,
-		"methodOutputs":         methodOutputs,
-		"methodOutputsWithTypes":         methodOutputsWithTypes,
-		"methodArgName":         methodArgName,
-		"methodArgType":         methodArgType,
-		"methodArgNames":        methodArgNames,
-		"argsList":              argsList,
-		"commaIfLen":            commaIfLen,
-		"isStruct":              isStruct,
-		"isEnum":                isEnum,
-		"exportedField":         exportedField,
-		"downcaseName":          downcaseName,
+		"serviceMethodName":      serviceMethodName,
+		"hasFieldType":           hasFieldType(proto),
+		"fieldTags":              fieldTags,
+		"fieldType":              fieldType,
+		"fieldOptional":          fieldOptional,
+		"fieldTypeDef":           fieldTypeDef,
+		"newClientServiceName":   newClientServiceName,
+		"newServerServiceName":   newServerServiceName,
+		"hasStreamOutput":        hasStreamOutput,
+		"constPathPrefix":        constPathPrefix,
+		"countMethods":           countMethods,
+		"clientServiceName":      clientServiceName,
+		"serverServiceName":      serverServiceName,
+		"methodInputs":           methodInputs,
+		"methodOutputs":          methodOutputs,
+		"methodOutputsWithTypes": methodOutputsWithTypes,
+		"methodArgName":          methodArgName,
+		"methodArgType":          methodArgType,
+		"methodArgNames":         methodArgNames,
+		"argsList":               argsList,
+		"commaIfLen":             commaIfLen,
+		"isStruct":               isStruct,
+		"isEnum":                 isEnum,
+		"exportedField":          exportedField,
+		"downcaseName":           downcaseName,
 	}
 }
