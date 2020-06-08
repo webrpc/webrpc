@@ -15,8 +15,6 @@ var (
 	client ExampleServiceClient
 )
 
-// func TestMain()
-
 func init() {
 	url := "http://0.0.0.0:4242"
 	client = NewExampleServiceClient(url, &http.Client{})
@@ -44,7 +42,6 @@ func TestGetUser(t *testing.T) {
 	}
 
 	{
-		// Error case, expecting to receive an error
 		user, err := client.GetUser(context.Background(), 911)
 		assert.Nil(t, user)
 		assert.Error(t, err)
@@ -67,12 +64,6 @@ func TestDownload(t *testing.T) {
 
 			if errors.Is(err, ErrStreamLost) {
 				fmt.Println("connection lost..", err)
-				// 	// lets reconnect..
-				// 	stream, err = client.Download(context.Background(), "hi")
-				// 	if err != nil {
-				// 		// ..
-				// 	}
-				// 	continue
 				return
 			}
 			if err != nil {

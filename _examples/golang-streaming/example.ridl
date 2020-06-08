@@ -14,6 +14,6 @@ service ExampleService
   - GetUser(id: uint64) => (user: User)
 
   # single request, streaming response body
-  - Download(filee: string) => stream (beep: string)
+  - Download(file: string) => stream (base64: string)
 
   - Status() => (status: bool)

@@ -26,9 +26,7 @@ func startServer() error {
 	r.Use(middleware.Recoverer)
 
 	cors := cors.New(cors.Options{
-		// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
 		AllowedOrigins: []string{"*"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"POST", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Custom"},
 		ExposedHeaders:   []string{"Link"},
@@ -86,10 +84,6 @@ func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream Do
 			return nil
 		}
 
-		// if i == 2 {
-		// 	panic("oh shit..")
-		// }
-
 		if err != nil {
 			fmt.Println("ERR!!", err)
 			return nil
@@ -102,10 +96,5 @@ func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream Do
 		i += 1
 	}
 
-	// NOTE: stream will close on its own when we return actually, nice.
-	// we can close ourselves too if we want though
-	// stream.Close()
-
 	return nil
-
 }
