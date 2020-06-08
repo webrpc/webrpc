@@ -54,6 +54,10 @@ func (s *ExampleServiceRPC) Ping(ctx context.Context) error {
 	return nil
 }
 
+func (s *ExampleServiceRPC) Status(ctx context.Context) (bool, error) {
+	return true, nil
+}
+
 func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, error) {
 	if userID == 911 {
 		return nil, ErrorNotFound("user doest exist")

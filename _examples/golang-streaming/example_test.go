@@ -18,16 +18,7 @@ var (
 // func TestMain()
 
 func init() {
-	// go func() {
-	// 	startServer()
-	// }()
-
 	url := "http://0.0.0.0:4242"
-	// url := "https://pkgrok.0xhorizon.net"
-
-	// client = NewExampleServiceClient(url, &http.Client{
-	// 	Timeout: time.Duration(10 * time.Second),
-	// })
 	client = NewExampleServiceClient(url, &http.Client{})
 
 	time.Sleep(time.Millisecond * 500)
@@ -36,6 +27,12 @@ func init() {
 
 func TestPing(t *testing.T) {
 	err := client.Ping(context.Background())
+	assert.NoError(t, err)
+}
+
+func TestStatus(t *testing.T) {
+	resp, err := client.Status(context.Background())
+	assert.Equal(t, true, resp)
 	assert.NoError(t, err)
 }
 
@@ -49,7 +46,6 @@ func TestGetUser(t *testing.T) {
 	{
 		// Error case, expecting to receive an error
 		user, err := client.GetUser(context.Background(), 911)
-		fmt.Println(err.Error())
 		assert.Nil(t, user)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not found")
