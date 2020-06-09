@@ -765,7 +765,7 @@ func TestParserService(t *testing.T) {
 		assert.NoError(t, err)
 
 		err = p.run()
-		assert.Erorr(t, err, "cannot stream input")
+		assert.Error(t, err, "cannot stream input")
 	}
 }
 
