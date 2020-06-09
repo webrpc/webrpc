@@ -9,14 +9,14 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
 {{end}}
 
 {{range .Services}}
-	type {{.Name}}Client interface {
+  type {{.Name}}Client interface {
     {{.Name}}
     {{- range .Methods}}
       {{- if .StreamOutput }}
         {{.Name}}({{.Inputs | methodInputs}}) ({{.Name}}StreamReader, error)
       {{- end}}
-		{{end}}
-	}
+    {{end}}
+  }
 {{end}}
 {{range .Services}}
   {{ $serviceName := .Name | clientServiceName}}

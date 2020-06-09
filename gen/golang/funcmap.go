@@ -197,6 +197,11 @@ func hasStreamOutput(in []*schema.Service) bool {
 	return false
 }
 
+func streamWriterName(in schema.VarName) (string, error) {
+	s := string(in)
+	return strings.ToLower(s[0:1]) + s[1:] + "StreamWriter", nil
+}
+
 func methodArgName(in *schema.MethodArgument) string {
 	name := string(in.Name)
 	if name == "" && in.Type != nil {
@@ -335,6 +340,7 @@ func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 		"fieldTypeDef":           fieldTypeDef,
 		"newClientServiceName":   newClientServiceName,
 		"newServerServiceName":   newServerServiceName,
+		"streamWriterName":       streamWriterName,
 		"hasStreamOutput":        hasStreamOutput,
 		"constPathPrefix":        constPathPrefix,
 		"countMethods":           countMethods,

@@ -95,7 +95,7 @@ type WebRPCServer interface {
           return
         }
 
-        streamWriter := &{{.Name | downcaseName}}StreamWriter{sw}
+        streamWriter := &{{.Name | streamWriterName}}{sw}
 
         // connection monitoring and keep-alive
         go func() {
@@ -172,18 +172,18 @@ type WebRPCServer interface {
       {{- end}}
     }
     {{- if .StreamOutput}}
-      type {{.Name | downcaseName}}StreamWriter struct {
+      type {{.Name | streamWriterName}} struct {
         *serverStreamWriter
       }
 
-      func (s *{{.Name | downcaseName}}StreamWriter) Data({{.Outputs | methodOutputsWithTypes}}) error {
+      func (s *{{.Name | streamWriterName}}) Data({{.Outputs | methodOutputsWithTypes}}) error {
         {{- range $i, $output := .Outputs}}
           ret{{$i}} := {{$output.Name | downcaseName}}
         {{- end}}
 
         type data struct {
           {{- range $i, $output := .Outputs}}
-          Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name}}`
+          ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name}}"`
           {{- end}}
         }
 
@@ -191,7 +191,7 @@ type WebRPCServer interface {
           Data data `json:"data"`
         }{data{ret0}}
 
-        payload, err := json.Marshal(body)
+        payload, err := json.Marshal(body.Data)
         if err != nil {
           werr := Errorf(ErrStreamLost, err, "failed to marshal json response")
           s.Error(werr)
@@ -316,8 +316,8 @@ func (s *serverStreamWriter) Done() <-chan struct{} {
   s.mu.Unlock()
   return d
 }
-
 {{- end}}
+
 //
 // Server helpers
 //
