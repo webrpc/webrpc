@@ -28,12 +28,6 @@ func TestPing(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestStatus(t *testing.T) {
-	resp, err := client.Status(context.Background())
-	assert.Equal(t, true, resp)
-	assert.NoError(t, err)
-}
-
 func TestGetUser(t *testing.T) {
 	{
 		user, err := client.GetUser(context.Background(), 12)
