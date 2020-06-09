@@ -15,3 +15,4 @@ service ExampleService
 
   # single request, streaming response body
   - Download(file: string) => stream (base64: string)
+  - DownloadTwo(file: string) => stream (boop: string, beep: string)

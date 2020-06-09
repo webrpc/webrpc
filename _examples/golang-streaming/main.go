@@ -26,7 +26,7 @@ func startServer() error {
 	r.Use(middleware.Recoverer)
 
 	cors := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
+		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"POST", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Custom"},
 		ExposedHeaders:   []string{"Link"},
@@ -79,6 +79,38 @@ func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream Do
 	i := 0
 	for {
 		err := stream.Data(fmt.Sprintf("hiii send %d", i))
+		if err == ErrStreamClosed {
+			fmt.Println("client is gone.....")
+			return nil
+		}
+
+		if err != nil {
+			fmt.Println("ERR!!", err)
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+		if i >= 5 {
+			break
+		}
+
+		i += 1
+	}
+
+	return nil
+}
+
+func (s *ExampleServiceRPC) DownloadTwo(ctx context.Context, file string, stream DownloadTwoStreamWriter) error {
+	// TODO: the middleware.Logger in chi isn't suitable here as well, it will be reading all of this, wrapping it etc.
+	// and we don't want that.. ideally chi logger after amount of bytes stops tracking and drops count
+
+	req, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
+	fmt.Println("==??", req.Header.Get("X-Hi"))
+
+	fmt.Println("req, file:", file)
+
+	i := 0
+	for {
+		err := stream.Data(fmt.Sprintf("hiii download2 send %d", i), "beeep")
 		if err == ErrStreamClosed {
 			fmt.Println("client is gone.....")
 			return nil

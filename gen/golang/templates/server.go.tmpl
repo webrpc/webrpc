@@ -183,13 +183,13 @@ type WebRPCServer interface {
 
         type data struct {
           {{- range $i, $output := .Outputs}}
-          ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name}}"`
+          Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name}}"`
           {{- end}}
         }
 
         body := struct {
           Data data `json:"data"`
-        }{data{ret0}}
+        }{data{ {{argsList .Outputs "ret"}}{{commaIfLen .Outputs}}}}
 
         payload, err := json.Marshal(body.Data)
         if err != nil {

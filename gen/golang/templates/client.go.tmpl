@@ -209,52 +209,59 @@ func GetClientRequestHeaders(ctx context.Context) (http.Header, bool) {
   //
   // Client streaming helpers
   //
-
-  type clientDownloadStreamReader struct {
-    resp    *http.Response
-    reader  io.Reader
-    decoder *json.Decoder
-  }
-
-  func newClientDownloadStreamReader(resp *http.Response) *clientDownloadStreamReader {
-    reader := httputil.NewChunkedReader(resp.Body)
-    decoder := json.NewDecoder(reader)
-    return &clientDownloadStreamReader{
-      resp: resp, reader: reader, decoder: decoder,
+{{- end}}
+{{range .Services}}
+  {{- range .Methods}}
+  {{- if .StreamOutput}}
+    type client{{.Name}}StreamReader struct {
+      resp    *http.Response
+      reader  io.Reader
+      decoder *json.Decoder
     }
-  }
 
-  func (c *clientDownloadStreamReader) Read() (base64 string, err error) {
-    for {
-      out := struct {
-        Data struct {
-          Ret0 string `json:"base64"`
-        } `json:"data"`
-        Error Error `json:"error"`
-        Ping  bool  `json:"ping"`
-      }{}
-
-      err = c.decoder.Decode(&out)
-
-      // Skip ping payloads
-      if err == nil && out.Ping {
-        continue
+    func newClient{{.Name}}StreamReader(resp *http.Response) *client{{.Name}}StreamReader {
+      reader := httputil.NewChunkedReader(resp.Body)
+      decoder := json.NewDecoder(reader)
+      return &client{{.Name}}StreamReader{
+        resp: resp, reader: reader, decoder: decoder,
       }
+    }
 
-      // Error checking
-      if err != nil {
-        if err == io.EOF {
-          return out.Data.Ret0, Errorf(ErrStreamClosed, err, err.Error())
+    func (c *client{{.Name}}StreamReader) Read() ({{.Outputs | methodOutputsWithTypes}}, err error) {
+      for {
+        out := struct {
+          Data struct {
+          {{- range $i, $output := .Outputs}}
+            Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name | downcaseName}}"`
+          {{- end}}
+          } `json:"data"`
+          Error Error `json:"error"`
+          Ping  bool  `json:"ping"`
+        }{}
+
+        err = c.decoder.Decode(&out)
+
+        // Skip ping payloads
+        if err == nil && out.Ping {
+          continue
         }
-        return out.Data.Ret0, Errorf(ErrStreamLost, err, err.Error())
-      }
-      if out.Error.Code != nil || out.Error.Message != "" {
-        return out.Data.Ret0, out.Error
-      }
 
-      return out.Data.Ret0, nil
+        // Error checking
+        if err != nil {
+          if err == io.EOF {
+            return {{argsList .Outputs "out.Data.Ret"}}{{commaIfLen .Outputs}} Errorf(ErrStreamClosed, err, err.Error())
+          }
+          return {{argsList .Outputs "out.Data.Ret"}}{{commaIfLen .Outputs}} Errorf(ErrStreamLost, err, err.Error())
+        }
+        if out.Error.Code != nil || out.Error.Message != "" {
+          return {{argsList .Outputs "out.Data.Ret"}}{{commaIfLen .Outputs}} out.Error
+        }
+
+        return {{argsList .Outputs "out.Data.Ret"}}{{commaIfLen .Outputs}} nil
+      }
     }
-  }
+  {{- end}}
+  {{- end}}
 {{- end}}
 {{end}}
 {{end}}
