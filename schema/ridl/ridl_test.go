@@ -375,16 +375,40 @@ func TestRIDLService(t *testing.T) {
     name = hello-webrpc
 
     service Simple
-      -  stream Ping(code?: uint32) => (code: bool)
+      -  Ping(code?: uint32) => (code: bool)
       -  PingStream(text: string) => stream (code?: bool)
     `
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "Ping", string(s.Services[0].Methods[0].Name))
-		assert.True(t, s.Services[0].Methods[0].StreamInput)
+		assert.True(t, s.Sevices[0].Methods[0].StreamInput)
 		assert.False(t, s.Services[0].Methods[0].StreamOutput)
-		assert.True(t, s.Services[0].Methods[0].Inputs[0].Optional)
+		assert.True(t, s.Serrvices[0].Methods[0].Inputs[0].Optional)
+
+		assert.False(t, s.Services[0].Methods[1].StreamInput)
+		assert.True(t, s.Services[0].Methods[1].StreamOutput)
+		assert.True(t, s.Services[0].Methods[1].Outputs[0].Optional)
+
+	}
+
+	{
+		input := `
+    webrpc = v1
+    version = v0.1.1
+    name = hello-webrpc
+
+    service Simple
+      -  Ping(code?: uint32) => (code: bool)
+      -  PingStream(text: string) => stream (code?: bool)
+    `
+		s, err := parseString(input)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "Ping", string(s.Services[0].Methods[0].Name))
+		assert.True(t, s.Sevices[0].Methods[0].StreamInput)
+		assert.False(t, s.Services[0].Methods[0].StreamOutput)
+		assert.True(t, s.Serrvices[0].Methods[0].Inputs[0].Optional)
 
 		assert.False(t, s.Services[0].Methods[1].StreamInput)
 		assert.True(t, s.Services[0].Methods[1].StreamOutput)
@@ -400,10 +424,10 @@ func TestRIDLService(t *testing.T) {
 
     service Simple
     -  Ping(header: map<string,[][]string>) => (code: bool)
-      -  stream VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code?: bool, ids: []bool)
+    -  stream VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code?: bool, ids: []bool)
     - MoreTest(n: uint64, stuff: []map<uint64,   map<int32,             string>>, etc: string) => (code: bool)`
 		s, err := parseString(input)
-		assert.NoError(t, err)
+		assert.Error(t, err, "Cannot stream input")
 
 		assert.Equal(t, "map<string,[][]string>", s.Services[0].Methods[0].Inputs[0].Type.String())
 		assert.Equal(t, "[]map<uint64,map<int32,string>>", s.Services[0].Methods[2].Inputs[1].Type.String())

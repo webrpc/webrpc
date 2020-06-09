@@ -15,14 +15,14 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 		methodName := matches[2]
 
 		if matches[2].val == "stream" {
-			return p.stateError(fmt.Errorf("Cannot stream input"))
-			// streamInput = true
-			// matches, err := p.match(tokenWhitespace, tokenWord)
-			// if err != nil {
-			// 	return p.stateError(err)
-			// }
+			streamInput = true
+			matches, err := p.match(tokenWhitespace, tokenWord)
+			if err != nil {
+				return p.stateError(err)
+			}
 
-			// methodName = matches[1]
+			methodName = matches[1]
+			return p.stateError(fmt.Errorf("Cannot stream input"))
 		}
 
 		if matches[2].val == wordProxy {
