@@ -375,40 +375,16 @@ func TestRIDLService(t *testing.T) {
     name = hello-webrpc
 
     service Simple
-      -  Ping(code?: uint32) => (code: bool)
+      -  stream Ping(code?: uint32) => (code: bool)
       -  PingStream(text: string) => stream (code?: bool)
     `
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "Ping", string(s.Services[0].Methods[0].Name))
-		assert.True(t, s.Sevices[0].Methods[0].StreamInput)
+		assert.False(t, s.Services[0].Methods[0].StreamInput)
 		assert.False(t, s.Services[0].Methods[0].StreamOutput)
-		assert.True(t, s.Serrvices[0].Methods[0].Inputs[0].Optional)
-
-		assert.False(t, s.Services[0].Methods[1].StreamInput)
-		assert.True(t, s.Services[0].Methods[1].StreamOutput)
-		assert.True(t, s.Services[0].Methods[1].Outputs[0].Optional)
-
-	}
-
-	{
-		input := `
-    webrpc = v1
-    version = v0.1.1
-    name = hello-webrpc
-
-    service Simple
-      -  Ping(code?: uint32) => (code: bool)
-      -  PingStream(text: string) => stream (code?: bool)
-    `
-		s, err := parseString(input)
-		assert.NoError(t, err)
-
-		assert.Equal(t, "Ping", string(s.Services[0].Methods[0].Name))
-		assert.True(t, s.Sevices[0].Methods[0].StreamInput)
-		assert.False(t, s.Services[0].Methods[0].StreamOutput)
-		assert.True(t, s.Serrvices[0].Methods[0].Inputs[0].Optional)
+		assert.True(t, s.Services[0].Methods[0].Inputs[0].Optional)
 
 		assert.False(t, s.Services[0].Methods[1].StreamInput)
 		assert.True(t, s.Services[0].Methods[1].StreamOutput)
