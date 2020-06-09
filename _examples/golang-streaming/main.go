@@ -93,11 +93,6 @@ func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream Do
 }
 
 func (s *ExampleServiceRPC) DownloadTwo(ctx context.Context, file string, stream DownloadTwoStreamWriter) error {
-	// TODO: the middleware.Logger in chi isn't suitable here as well, it will be reading all of this, wrapping it etc.
-	// and we don't want that.. ideally chi logger after amount of bytes stops tracking and drops count
-
-	// req, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
-
 	i := 0
 	for {
 		err := stream.Data(fmt.Sprintf("hiii download2 send %d", i), "beeep")
