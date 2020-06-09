@@ -50,7 +50,6 @@ func TestDownload(t *testing.T) {
 
 		for {
 			respBase64, err := stream.Read()
-
 			if errors.Is(err, ErrStreamClosed) {
 				fmt.Println("success. stream is done.")
 				break
@@ -66,10 +65,5 @@ func TestDownload(t *testing.T) {
 
 			fmt.Println("=> resp:", respBase64)
 		}
-
-		respBase64, err := stream.Read()
-		fmt.Println("=> ha,", respBase64)
-		fmt.Println("=> err", err)
-
 	}
 }

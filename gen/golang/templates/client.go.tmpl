@@ -230,11 +230,9 @@ func GetClientRequestHeaders(ctx context.Context) (http.Header, bool) {
     func (c *client{{.Name}}StreamReader) Read() ({{.Outputs | methodOutputsWithTypes}}, err error) {
       for {
         out := struct {
-          Data struct {
           {{- range $i, $output := .Outputs}}
             Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name | downcaseName}}"`
           {{- end}}
-          } `json:"data"`
           Error Error `json:"error"`
           Ping  bool  `json:"ping"`
         }{}
@@ -249,15 +247,15 @@ func GetClientRequestHeaders(ctx context.Context) (http.Header, bool) {
         // Error checking
         if err != nil {
           if err == io.EOF {
-            return {{argsList .Outputs "out.Data.Ret"}}{{commaIfLen .Outputs}} Errorf(ErrStreamClosed, err, err.Error())
+            return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} Errorf(ErrStreamClosed, err, err.Error())
           }
-          return {{argsList .Outputs "out.Data.Ret"}}{{commaIfLen .Outputs}} Errorf(ErrStreamLost, err, err.Error())
+          return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} Errorf(ErrStreamLost, err, err.Error())
         }
         if out.Error.Code != nil || out.Error.Message != "" {
-          return {{argsList .Outputs "out.Data.Ret"}}{{commaIfLen .Outputs}} out.Error
+          return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} out.Error
         }
 
-        return {{argsList .Outputs "out.Data.Ret"}}{{commaIfLen .Outputs}} nil
+        return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} nil
       }
     }
   {{- end}}

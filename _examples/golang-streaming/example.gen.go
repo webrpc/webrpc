@@ -736,11 +736,9 @@ func newClientDownloadStreamReader(resp *http.Response) *clientDownloadStreamRea
 func (c *clientDownloadStreamReader) Read() (base64 string, err error) {
 	for {
 		out := struct {
-			Data struct {
-				Ret0 string `json:"base64"`
-			} `json:"data"`
-			Error Error `json:"error"`
-			Ping  bool  `json:"ping"`
+			Ret0  string `json:"base64"`
+			Error Error  `json:"error"`
+			Ping  bool   `json:"ping"`
 		}{}
 
 		err = c.decoder.Decode(&out)
@@ -753,15 +751,15 @@ func (c *clientDownloadStreamReader) Read() (base64 string, err error) {
 		// Error checking
 		if err != nil {
 			if err == io.EOF {
-				return out.Data.Ret0, Errorf(ErrStreamClosed, err, err.Error())
+				return out.Ret0, Errorf(ErrStreamClosed, err, err.Error())
 			}
-			return out.Data.Ret0, Errorf(ErrStreamLost, err, err.Error())
+			return out.Ret0, Errorf(ErrStreamLost, err, err.Error())
 		}
 		if out.Error.Code != nil || out.Error.Message != "" {
-			return out.Data.Ret0, out.Error
+			return out.Ret0, out.Error
 		}
 
-		return out.Data.Ret0, nil
+		return out.Ret0, nil
 	}
 }
 
@@ -782,12 +780,10 @@ func newClientDownloadTwoStreamReader(resp *http.Response) *clientDownloadTwoStr
 func (c *clientDownloadTwoStreamReader) Read() (boop string, beep string, err error) {
 	for {
 		out := struct {
-			Data struct {
-				Ret0 string `json:"boop"`
-				Ret1 string `json:"beep"`
-			} `json:"data"`
-			Error Error `json:"error"`
-			Ping  bool  `json:"ping"`
+			Ret0  string `json:"boop"`
+			Ret1  string `json:"beep"`
+			Error Error  `json:"error"`
+			Ping  bool   `json:"ping"`
 		}{}
 
 		err = c.decoder.Decode(&out)
@@ -800,15 +796,15 @@ func (c *clientDownloadTwoStreamReader) Read() (boop string, beep string, err er
 		// Error checking
 		if err != nil {
 			if err == io.EOF {
-				return out.Data.Ret0, out.Data.Ret1, Errorf(ErrStreamClosed, err, err.Error())
+				return out.Ret0, out.Ret1, Errorf(ErrStreamClosed, err, err.Error())
 			}
-			return out.Data.Ret0, out.Data.Ret1, Errorf(ErrStreamLost, err, err.Error())
+			return out.Ret0, out.Ret1, Errorf(ErrStreamLost, err, err.Error())
 		}
 		if out.Error.Code != nil || out.Error.Message != "" {
-			return out.Data.Ret0, out.Data.Ret1, out.Error
+			return out.Ret0, out.Ret1, out.Error
 		}
 
-		return out.Data.Ret0, out.Data.Ret1, nil
+		return out.Ret0, out.Ret1, nil
 	}
 }
 
