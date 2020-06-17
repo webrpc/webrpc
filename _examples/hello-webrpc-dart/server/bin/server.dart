@@ -1,34 +1,60 @@
-import 'dart:io';
+import 'dart:async';
 
-import 'package:args/args.dart';
-import 'package:shelf/shelf.dart' as shelf;
-import 'package:shelf/shelf_io.dart' as io;
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:server/hello_api.gen.dart';
 
-// For Google Cloud Run, set _hostname to '0.0.0.0'.
-const _hostname = 'localhost';
+Future<void> main(List<String> args) async {
+  final server = WebRpcServer(
+    exampleService: ExampleServiceImpl(
+      userRepo: UserRepository(),
+    ),
+  );
 
-void main(List<String> args) async {
-  var parser = ArgParser()..addOption('port', abbr: 'p');
-  var result = parser.parse(args);
-
-  // For Google Cloud Run, we respect the PORT environment variable
-  var portStr = result['port'] ?? Platform.environment['PORT'] ?? '8080';
-  var port = int.tryParse(portStr);
-
-  if (port == null) {
-    stdout.writeln('Could not parse port value "$portStr" into a number.');
-    // 64: command line usage error
-    exitCode = 64;
-    return;
-  }
-
-  var handler = const shelf.Pipeline()
-      .addMiddleware(shelf.logRequests())
-      .addHandler(_echoRequest);
-
-  var server = await io.serve(handler, _hostname, port);
-  print('Serving at http://${server.address.host}:${server.port}');
+  await server.serve(args);
 }
 
-shelf.Response _echoRequest(shelf.Request request) =>
-    shelf.Response.ok('Request for "${request.url}"');
+class ExampleServiceImpl implements ExampleService {
+  final UserRepository userRepo;
+
+  @override
+  FutureOr<FindUsersResult> findUsers({String q}) => FindUsersResult(
+        page: null,
+        users: userRepo.findUsers(q),
+      );
+
+  @override
+  FutureOr<GetUserResult> getUser({int userID}) => GetUserResult(
+        user: userRepo.getUser(userID),
+      );
+
+  @override
+  FutureOr<PingResult> ping() => PingResult(status: true);
+
+  ExampleServiceImpl({@required this.userRepo});
+}
+
+List<User> initUsers() {
+  final ids = [1, 2, 3, 4];
+  return ids.map(
+    (id) => User(
+      ID: id,
+      username: 'user$id',
+      role: const Kind.user(),
+      meta: {},
+      internalID: id,
+      createdAt: DateTime.now(),
+    ),
+  );
+}
+
+class UserRepository {
+  final Set<User> users = Set.from(
+    initUsers(),
+  );
+
+  List<User> findUsers(String query) => users.where(
+        (user) => user.username.contains(query),
+      );
+
+  User getUser(int id) => users.firstWhere((user) => user.ID == id);
+}
