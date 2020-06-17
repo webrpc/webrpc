@@ -8,7 +8,7 @@ A simple example showcasing the use of webrpc dart for fullstack usage using [he
 ## Usage
 
 1. Install dart and run `pub global activate webdev`
-2. $ `make bootstrap` -- runs pub get on both ./server and ./client
+2. $ `make bootstrap` -- runs   `pub get` on both ./server and ./client
 3. $ `make run-server`
 4. $ `make run-client`
 5. To regenerate the client and/or server run `make generate`
