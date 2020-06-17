@@ -1,4 +1,2 @@
-An absolute bare-bones web app.
-
-Created from templates made available by Stagehand under a BSD-style
+A simple webrpc client example using the dart stlib.
 [license](https://github.com/dart-lang/stagehand/blob/master/LICENSE).
