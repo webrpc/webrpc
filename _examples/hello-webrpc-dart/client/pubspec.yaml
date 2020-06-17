@@ -1,0 +1,21 @@
+name: client
+description: An absolute bare-bones web app.
+# version: 1.0.0
+#homepage: https://www.example.com
+
+environment:
+  sdk: '>=2.7.0 <3.0.0'
+
+dependencies:
+  freezed_annotation:
+  http: ^0.12.1
+  meta: ^1.1.8
+  http_parser: ^3.1.4
+
+
+dev_dependencies:
+  build_runner: ^1.10.0
+  build_web_compilers: ^2.11.0
+  freezed:
+  extra_pedantic: ^1.2.0
+  json_serializable: ^3.3.0
