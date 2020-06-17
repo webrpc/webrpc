@@ -44,7 +44,7 @@ List<User> initUsers() {
       internalID: id,
       createdAt: DateTime.now(),
     ),
-  );
+  ).toList();
 }
 
 class UserRepository {

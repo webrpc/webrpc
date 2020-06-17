@@ -16,7 +16,7 @@ bootstrap:
 	cd server && pub get && cd ../client && pub get
 
 run-server:
-	go run ./server
+	dart ./server/bin/server.dart
 
 run-client:
 	cd webapp && npm start
