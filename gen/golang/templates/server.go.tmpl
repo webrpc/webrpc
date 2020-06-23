@@ -125,7 +125,8 @@ type WebRPCServer interface {
         }()
 
         if err != nil {
-          streamWriter.Error(err) // send the error to the client
+          streamWriter.Error(err) // 
+          the error to the client
         }
         streamWriter.Close() // always ensure we close the stream
       {{- else}}
@@ -258,8 +259,6 @@ func (s *serverStreamWriter) Write(payload []byte) error {
     w.Header().Set("Cache-Control", "no-cache")
     s.headerWritten = true
   }
-
-  fmt.Printf("SEND: %s\n", payload)
 
   s.w.Write([]byte(fmt.Sprintf("%x\r\n", len(payload))))
   s.w.Write(payload)
