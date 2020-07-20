@@ -3,10 +3,8 @@ package main
 
 import (
 	"context"
-	"errors"
 	"log"
 	"net/http"
-
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
@@ -55,10 +53,7 @@ func (s *ExampleServiceRPC) Version(ctx context.Context) (*Version, error) {
 
 func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error) {
 	if userID == 911 {
-		return 0, nil, WrapError(ErrInternal, errors.New("bad"), "app msg here")
-		// return 0, nil, ErrorNotFound("unknown userID %d", 911)
-		// return 0, nil, Errorf(ErrNotFound, "unknown userID %d", 911)
-		// return 0, nil, WrapError(ErrNotFound, nil, "unknown userID %d", 911)
+		return 0, nil, ErrorNotFound("user doest exist")
 	}
 
 	return 200, &User{

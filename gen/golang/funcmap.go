@@ -36,11 +36,6 @@ func serviceMethodName(in schema.VarName) (string, error) {
 	return "serve" + strings.ToUpper(s[0:1]) + s[1:], nil
 }
 
-func serviceMethodJSONName(in schema.VarName) (string, error) {
-	s := string(in)
-	return "serve" + strings.ToUpper(s[0:1]) + s[1:] + "JSON", nil
-}
-
 func newServerServiceName(in schema.VarName) (string, error) {
 	return "New" + string(in) + "Server", nil
 }
@@ -191,6 +186,22 @@ func serverServiceName(in schema.VarName) (string, error) {
 	return strings.ToLower(s[0:1]) + s[1:] + "Server", nil
 }
 
+func hasStreamOutput(in []*schema.Service) bool {
+	for _, service := range in {
+		for _, method := range service.Methods {
+			if method.StreamOutput {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func streamWriterName(in schema.VarName) (string, error) {
+	s := string(in)
+	return strings.ToLower(s[0:1]) + s[1:] + "StreamWriter", nil
+}
+
 func methodArgName(in *schema.MethodArgument) string {
 	name := string(in.Name)
 	if name == "" && in.Type != nil {
@@ -238,6 +249,14 @@ func methodOutputs(in []*schema.MethodArgument) (string, error) {
 		outputs = append(outputs, methodArgType(in[i]))
 	}
 	outputs = append(outputs, "error")
+	return strings.Join(outputs, ", "), nil
+}
+
+func methodOutputsWithTypes(in []*schema.MethodArgument) (string, error) {
+	outputs := []string{}
+	for i := range in {
+		outputs = append(outputs, fmt.Sprintf("%s %s", methodArgName(in[i]), methodArgType(in[i])))
+	}
 	return strings.Join(outputs, ", "), nil
 }
 
@@ -313,29 +332,31 @@ func hasFieldType(proto *schema.WebRPCSchema) func(fieldType string) (bool, erro
 
 func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 	return map[string]interface{}{
-		"serviceMethodName":     serviceMethodName,
-		"serviceMethodJSONName": serviceMethodJSONName,
-		"hasFieldType":          hasFieldType(proto),
-		"fieldTags":             fieldTags,
-		"fieldType":             fieldType,
-		"fieldOptional":         fieldOptional,
-		"fieldTypeDef":          fieldTypeDef,
-		"newClientServiceName":  newClientServiceName,
-		"newServerServiceName":  newServerServiceName,
-		"constPathPrefix":       constPathPrefix,
-		"countMethods":          countMethods,
-		"clientServiceName":     clientServiceName,
-		"serverServiceName":     serverServiceName,
-		"methodInputs":          methodInputs,
-		"methodOutputs":         methodOutputs,
-		"methodArgName":         methodArgName,
-		"methodArgType":         methodArgType,
-		"methodArgNames":        methodArgNames,
-		"argsList":              argsList,
-		"commaIfLen":            commaIfLen,
-		"isStruct":              isStruct,
-		"isEnum":                isEnum,
-		"exportedField":         exportedField,
-		"downcaseName":          downcaseName,
+		"serviceMethodName":      serviceMethodName,
+		"hasFieldType":           hasFieldType(proto),
+		"fieldTags":              fieldTags,
+		"fieldType":              fieldType,
+		"fieldOptional":          fieldOptional,
+		"fieldTypeDef":           fieldTypeDef,
+		"newClientServiceName":   newClientServiceName,
+		"newServerServiceName":   newServerServiceName,
+		"streamWriterName":       streamWriterName,
+		"hasStreamOutput":        hasStreamOutput,
+		"constPathPrefix":        constPathPrefix,
+		"countMethods":           countMethods,
+		"clientServiceName":      clientServiceName,
+		"serverServiceName":      serverServiceName,
+		"methodInputs":           methodInputs,
+		"methodOutputs":          methodOutputs,
+		"methodOutputsWithTypes": methodOutputsWithTypes,
+		"methodArgName":          methodArgName,
+		"methodArgType":          methodArgType,
+		"methodArgNames":         methodArgNames,
+		"argsList":               argsList,
+		"commaIfLen":             commaIfLen,
+		"isStruct":               isStruct,
+		"isEnum":                 isEnum,
+		"exportedField":          exportedField,
+		"downcaseName":           downcaseName,
 	}
 }

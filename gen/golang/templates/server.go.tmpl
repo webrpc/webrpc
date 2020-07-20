@@ -12,13 +12,22 @@ type WebRPCServer interface {
   {{$name := .Name}}
   {{$serviceName := .Name | serverServiceName}}
 
-  type {{$serviceName}} struct {
+  type {{.Name}}Server interface {
     {{.Name}}
+    {{- range .Methods}}
+      {{- if .StreamOutput }}
+            {{.Name}}({{ .Inputs | methodInputs }}, stream {{.Name}}StreamWriter) error
+      {{- end}}
+    {{- end}}
   }
 
-  func {{ .Name | newServerServiceName }}(svc {{.Name}}) WebRPCServer {
+  type {{$serviceName}} struct {
+    service {{.Name}}Server
+  }
+
+  func {{ .Name | newServerServiceName }}(svc {{.Name}}Server) WebRPCServer {
     return &{{$serviceName}}{
-      {{.Name}}: svc,
+      service: svc,
     }
   }
 
@@ -29,8 +38,12 @@ type WebRPCServer interface {
     ctx = context.WithValue(ctx, ServiceNameCtxKey, "{{.Name}}")
 
     if r.Method != "POST" {
-      err := Errorf(ErrBadRoute, "unsupported method %q (only POST is allowed)", r.Method)
-      RespondWithError(w, err)
+      RespondWithError(w, Errorf(ErrBadRoute, nil, "unsupported method %q (only POST is allowed)", r.Method))
+      return
+    }
+
+    if !strings.HasPrefix(r.Header.Get("Content-Type"), "application/json") {
+      RespondWithError(w, Errorf(ErrBadRoute, nil, "unexpected Content-Type: %q", r.Header.Get("Content-Type")))
       return
     }
 
@@ -41,32 +54,16 @@ type WebRPCServer interface {
       return
     {{- end}}
     default:
-      err := Errorf(ErrBadRoute, "no handler for path %q", r.URL.Path)
-      RespondWithError(w, err)
+      RespondWithError(w, Errorf(ErrBadRoute, nil, "no handler for path %q", r.URL.Path))
       return
     }
   }
 
   {{range .Methods}}
     func (s *{{$serviceName}}) {{.Name | serviceMethodName}}(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-      header := r.Header.Get("Content-Type")
-      i := strings.Index(header, ";")
-      if i == -1 {
-        i = len(header)
-      }
-
-      switch strings.TrimSpace(strings.ToLower(header[:i])) {
-      case "application/json":
-        s.{{ .Name | serviceMethodJSONName }}(ctx, w, r)
-      default:
-        err := Errorf(ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
-        RespondWithError(w, err)
-      }
-    }
-
-    func (s *{{$serviceName}}) {{.Name | serviceMethodJSONName}}(ctx context.Context, w http.ResponseWriter, r *http.Request) {
       var err error
       ctx = context.WithValue(ctx, MethodNameCtxKey, "{{.Name}}")
+
 
       {{- if .Inputs|len}}
       reqContent := struct {
@@ -77,79 +74,263 @@ type WebRPCServer interface {
 
       reqBody, err := ioutil.ReadAll(r.Body)
       if err != nil {
-        err = WrapError(ErrInternal, err, "failed to read request data")
-        RespondWithError(w, err)
+        RespondWithError(w, Errorf(ErrInternal, err, "failed to read request data"))
         return
       }
       defer r.Body.Close()
 
       err = json.Unmarshal(reqBody, &reqContent)
       if err != nil {
-        err = WrapError(ErrInvalidArgument, err, "failed to unmarshal request data")
-        RespondWithError(w, err)
+        RespondWithError(w, Errorf(ErrInvalidArgument, err, "failed to unmarshal request data"))
         return
       }
       {{- end}}
+
 
       // Call service method
-      {{- range $i, $output := .Outputs}}
-      var ret{{$i}} {{$output | methodArgType}}
-      {{- end}}
-      func() {
-        defer func() {
-          // In case of a panic, serve a 500 error and then panic.
-          if rr := recover(); rr != nil {
-            RespondWithError(w, ErrorInternal("internal service panic"))
-            panic(rr)
+      {{- if .StreamOutput}}
+        sw, err := newServerStreamWriter(w)
+        if err != nil {
+          RespondWithError(w, Errorf(ErrUnsupported, err, "http connection does not support streams"))
+          return
+        }
+
+        streamWriter := &{{.Name | streamWriterName}}{sw}
+
+        // connection monitoring and keep-alive
+        go func() {
+          for {
+            select {
+            case <-time.After(StreamKeepAliveInterval):
+              streamWriter.Ping()
+            case <-r.Context().Done():
+              streamWriter.Close()
+              return
+            case <-streamWriter.Done():
+              return
+            }
           }
         }()
-        {{argsList .Outputs "ret"}}{{.Outputs | commaIfLen}} err = s.{{$name}}.{{.Name}}(ctx{{.Inputs | commaIfLen}}{{argsList .Inputs "reqContent.Arg"}})
-      }()
-      {{- if .Outputs | len}}
-      respContent := struct {
-      {{- range $i, $output := .Outputs}}
-        Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name | downcaseName}}"`
-      {{- end}}         
-      }{ {{argsList .Outputs "ret"}} }
-      {{- end}}
 
-      if err != nil {
-        RespondWithError(w, err)
-        return
-      }
+        func() {
+          defer func() {
+            // In case of a panic, serve a error chunk and then panic.
+            if rr := recover(); rr != nil {
+              streamWriter.Error(ErrorInternal("internal service panic"))
+              streamWriter.Close()
+              panic(rr)
+            }
+          }()
+          err = s.service.{{.Name}}(ctx, reqContent.Arg0, streamWriter)
+        }()
 
-      {{- if .Outputs | len}}
-      respBody, err := json.Marshal(respContent)
-      if err != nil {
-        err = WrapError(ErrInternal, err, "failed to marshal json response")
-        RespondWithError(w, err)
-        return
-      }
-      {{- end}}
+        if err != nil {
+          streamWriter.Error(err) // 
+          the error to the client
+        }
+        streamWriter.Close() // always ensure we close the stream
+      {{- else}}
+        {{- range $i, $output := .Outputs}}
+        var ret{{$i}} {{$output | methodArgType}}
+        {{- end}}
+        func() {
+          defer func() {
+            // In case of a panic, serve a 500 error and then panic.
+            if rr := recover(); rr != nil {
+              RespondWithError(w, ErrorInternal("internal service panic"))
+              panic(rr)
+            }
+          }()
+          {{argsList .Outputs "ret"}}{{.Outputs | commaIfLen}} err = s.service.{{.Name}}(ctx{{.Inputs | commaIfLen}}{{argsList .Inputs "reqContent.Arg"}})
+        }()
+        {{- if .Outputs | len}}
+        respContent := struct {
+        {{- range $i, $output := .Outputs}}
+          Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name | downcaseName}}"`
+        {{- end}}
+        }{ {{argsList .Outputs "ret"}} }
+        {{- end}}
 
-      w.Header().Set("Content-Type", "application/json")
-      w.WriteHeader(http.StatusOK)
+        if err != nil {
+          RespondWithError(w, err)
+          return
+        }
 
-      {{- if .Outputs | len}}
-      w.Write(respBody)
+        {{- if .Outputs | len}}
+        respBody, err := json.Marshal(respContent)
+        if err != nil {
+          RespondWithError(w, Errorf(ErrInternal, err, "failed to marshal json response"))
+          return
+        }
+        {{- end}}
+
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+
+        {{- if .Outputs | len}}
+        w.Write(respBody)
+        {{- end}}
       {{- end}}
     }
+    {{- if .StreamOutput}}
+      type {{.Name | streamWriterName}} struct {
+        *serverStreamWriter
+      }
+
+      func (s *{{.Name | streamWriterName}}) Data({{.Outputs | methodOutputsWithTypes}}) error {
+        {{- range $i, $output := .Outputs}}
+          ret{{$i}} := {{$output.Name | downcaseName}}
+        {{- end}}
+
+        type data struct {
+          {{- range $i, $output := .Outputs}}
+          Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name}}"`
+          {{- end}}
+        }
+
+        body := struct {
+          Data data `json:"data"`
+        }{data{ {{argsList .Outputs "ret"}}{{commaIfLen .Outputs}}}}
+
+        payload, err := json.Marshal(body.Data)
+        if err != nil {
+          werr := Errorf(ErrStreamLost, err, "failed to marshal json response")
+          s.Error(werr)
+          s.Close()
+          return werr
+        }
+
+        return s.Write(payload)
+      }
+    {{- end}}
   {{end}}
 {{- end}}
 
-func RespondWithError(w http.ResponseWriter, err error) {
-	rpcErr, ok := err.(Error)
-	if !ok {
-		rpcErr = WrapError(ErrInternal, err, "webrpc error")
-	}
+{{- if .Services | hasStreamOutput }}
 
-	statusCode := HTTPStatusFromErrorCode(rpcErr.Code())
+//
+// Server streaming helpers
+//
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
+const StreamKeepAliveInterval = 30 * time.Second
 
-	respBody, _ := json.Marshal(rpcErr.Payload())
-	w.Write(respBody)
+type streamWriter interface {
+  Write(payload []byte) error
+  Error(err error) error
+  Ping() error
+  Close() error
+  Done() <-chan struct{}
 }
+
+type serverStreamWriter struct {
+  w             http.ResponseWriter
+  flusher       http.Flusher
+  headerWritten bool
+  done          chan struct{}
+  mu            sync.Mutex
+}
+
+func newServerStreamWriter(w http.ResponseWriter) (*serverStreamWriter, error) {
+  flusher, ok := w.(http.Flusher)
+  if !ok {
+    return nil, errors.New("expected http.ResponseWriter to be an http.Flusher")
+  }
+  return &serverStreamWriter{w: w, flusher: flusher}, nil
+}
+
+func (s *serverStreamWriter) Write(payload []byte) error {
+  select {
+  case <-s.Done():
+    return ErrStreamClosed
+  default:
+  }
+
+  s.mu.Lock()
+  defer s.mu.Unlock()
+
+  w := s.w
+  if !s.headerWritten {
+    // content-type is very improve here as proxy servers treat it differently
+    // w.Header().Set("Content-Type", "application/stream+json")
+    w.Header().Set("Content-Type", "application/json") // TODO: just for testing purposes..
+
+    w.Header().Set("Transfer-Encoding", "chunked")
+    w.Header().Set("Connection", "keep-alive")
+    w.Header().Set("Cache-Control", "no-cache")
+    s.headerWritten = true
+  }
+
+  s.w.Write([]byte(fmt.Sprintf("%x\r\n", len(payload))))
+  s.w.Write(payload)
+  s.w.Write([]byte("\r\n"))
+  s.flusher.Flush()
+  return nil
+}
+
+func (s *serverStreamWriter) Error(err error) error {
+  e, ok := err.(Error)
+  if !ok {
+    e = Errorf(ErrInternal, err, err.Error())
+  }
+
+  body := struct {
+    Error Error `json:"error"`
+  }{e}
+
+  payload, err := json.Marshal(body)
+  if err != nil {
+    werr := Errorf(ErrStreamLost, err, "failed to marshal json response")
+    s.Close()
+    return werr
+  }
+
+  return s.Write(payload)
+}
+
+func (s *serverStreamWriter) Ping() error {
+  return s.Write([]byte(`{"ping":true}`))
+}
+
+func (s *serverStreamWriter) Close() error {
+  select {
+  case <-s.Done():
+    return nil
+  default:
+  }
+
+  s.mu.Lock()
+  fmt.Fprintf(s.w, "0\r\n")
+  s.flusher.Flush()
+  close(s.done)
+  s.mu.Unlock()
+  return nil
+}
+
+func (s *serverStreamWriter) Done() <-chan struct{} {
+  s.mu.Lock()
+  if s.done == nil {
+    s.done = make(chan struct{})
+  }
+  d := s.done
+  s.mu.Unlock()
+  return d
+}
+{{- end}}
+
+//
+// Server helpers
+//
+
+func RespondWithError(w http.ResponseWriter, err error) {
+  e, ok := err.(Error)
+  if !ok {
+    e = Errorf(ErrInternal, err, err.Error())
+  }
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(HTTPStatusFromError(err))
+  respBody, _ := json.Marshal(e)
+  w.Write(respBody)
+}
+
 {{end}}
 {{end}}

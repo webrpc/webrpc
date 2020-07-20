@@ -375,21 +375,15 @@ func TestRIDLService(t *testing.T) {
     name = hello-webrpc
 
     service Simple
-      -  stream Ping(code?: uint32) => (code: bool)
-      -  PingStream(text: string) => stream (code?: bool)
+      -  Ping(code?: uint32) => (code: bool)
     `
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
 		assert.Equal(t, "Ping", string(s.Services[0].Methods[0].Name))
-		assert.True(t, s.Services[0].Methods[0].StreamInput)
+		assert.False(t, s.Services[0].Methods[0].StreamInput)
 		assert.False(t, s.Services[0].Methods[0].StreamOutput)
 		assert.True(t, s.Services[0].Methods[0].Inputs[0].Optional)
-
-		assert.False(t, s.Services[0].Methods[1].StreamInput)
-		assert.True(t, s.Services[0].Methods[1].StreamOutput)
-		assert.True(t, s.Services[0].Methods[1].Outputs[0].Optional)
-
 	}
 
 	{
@@ -399,9 +393,22 @@ func TestRIDLService(t *testing.T) {
     name = hello-webrpc
 
     service Simple
-    -  Ping(header: map<string,[][]string>) => (code: bool)
-      -  stream VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code?: bool, ids: []bool)
-    - MoreTest(n: uint64, stuff: []map<uint64,   map<int32,             string>>, etc: string) => (code: bool)`
+      -  stream Ping(code?: uint32) => (code: bool)
+    `
+		_, err := parseString(input)
+		assert.Error(t, err, "cannot stream input")
+	}
+
+	{
+		input := `
+    webrpc = v1
+    version = v0.1.1
+    name = hello-webrpc
+
+    service Simple
+    - Ping(header: map<string,[][]string>) => (code: bool)
+      - VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code?: bool, ids: []bool)
+    - MoreTest(n: uint64, stuff: []map<uint64, map<int32, string>>, etc: string) => (code: bool)`
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
