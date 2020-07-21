@@ -125,8 +125,7 @@ type WebRPCServer interface {
         }()
 
         if err != nil {
-          streamWriter.Error(err) // 
-          the error to the client
+          streamWriter.Error(err) // the error to the client
         }
         streamWriter.Close() // always ensure we close the stream
       {{- else}}
