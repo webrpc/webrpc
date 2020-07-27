@@ -210,7 +210,7 @@ func HTTPStatusFromError(err error) int {
 	if errors.Is(err, ErrStreamLost) {
 		return 408 // RequestTimeout
 	}
-	return 0 // Invalid!
+	return 400 // Invalid!
 }
 
 func ErrorCodeFromString(code string) error {
