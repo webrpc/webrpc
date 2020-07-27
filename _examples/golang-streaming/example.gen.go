@@ -349,7 +349,7 @@ func (s *serverStreamWriter) Write(payload []byte) error {
 	w := s.w
 	if !s.headerWritten {
 		// content-type is very improve here as proxy servers treat it differently
-		// w.Header().Set("Content-Type", "application/stream+json")
+		// w.Header().Set("Content-Type", "application/stream+json") // Use this!!
 		w.Header().Set("Content-Type", "application/json") // TODO: just for testing purposes..
 
 		w.Header().Set("Transfer-Encoding", "chunked")
@@ -856,7 +856,7 @@ func HTTPStatusFromError(err error) int {
 	if errors.Is(err, ErrStreamLost) {
 		return 408 // RequestTimeout
 	}
-	return 0 // Invalid!
+	return 400 // Invalid!
 }
 
 func ErrorCodeFromString(code string) error {
