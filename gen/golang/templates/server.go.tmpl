@@ -121,7 +121,7 @@ type WebRPCServer interface {
               panic(rr)
             }
           }()
-          err = s.service.{{.Name}}(ctx, reqContent.Arg0, streamWriter)
+          err = s.service.{{.Name}}(ctx{{.Inputs | commaIfLen}}{{argsList .Inputs "reqContent.Arg"}}, streamWriter)
         }()
 
         if err != nil {
