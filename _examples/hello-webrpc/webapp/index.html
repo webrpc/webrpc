@@ -10,14 +10,14 @@
 </style>
 </head>
 <body>
-  
+
 <div id="app">
   <h1>hello webrpc, simple JS app -- open your console</h1>
 </div>
 
 <script>
   const svcFetch = window.fetch.bind(window)
-  let svc = new ExampleService('http://127.0.0.1:4242', svcFetch)
+  let svc = new APIService('http://127.0.0.1:4242', svcFetch)
 
   // Expecting "true"
   console.log('[A] webrpc -- calling Ping() rpc method (expecting true):')

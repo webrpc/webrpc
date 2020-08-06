@@ -17,7 +17,11 @@ const buildResponse = (res: Response): Promise<any> => {
   return res.text().then(text => {
     let data
     try {
-      data = JSON.parse(text)
+      if (text == "") {
+        data = {}
+      } else {
+        data = JSON.parse(text)
+      }
     } catch(err) {
       throw { code: 'unknown', msg: `expecting JSON, got: ${text}`, status: res.status } as WebRPCError
     }
