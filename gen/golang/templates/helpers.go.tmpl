@@ -305,6 +305,10 @@ func ErrorBadRoute(message string, args ...interface{}) Error {
 	return Errorf(ErrBadRoute, nil, message, args...)
 }
 
+func ErrorAlreadyExists(message string, args ...interface{}) Error {
+	return Errorf(ErrAlreadyExists, nil, message, args...)
+}
+
 func ErrorPermissionDenied(message string, args ...interface{}) Error {
 	return Errorf(ErrPermissionDenied, nil, message, args...)
 }
