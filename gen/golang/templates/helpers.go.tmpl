@@ -115,6 +115,11 @@ var (
 	// NotFound or Unimplemented.
 	ErrBadRoute = errors.New("bad route")
 
+	// ErrMethodNotAllowed means that the requested URL path is available and the user
+	// is authenticated and authorized. The input arguments are valid, but the
+	// server needs to refuse the request for some reason
+	ErrMethodNotAllowed = errors.New("method not allowed")
+
 	// AlreadyExists means an attempt to create an entity failed because one
 	// already exists.
 	ErrAlreadyExists = errors.New("already exists")
@@ -183,6 +188,9 @@ func HTTPStatusFromError(err error) int {
 	if errors.Is(err, ErrBadRoute) {
 		return 404 // Not Found
 	}
+	if errors.Is(err, ErrMethodNotAllowed) {
+		return 405 // Method not allowed
+	}
 	if errors.Is(err, ErrAlreadyExists) {
 		return 409 // Conflict
 	}
@@ -235,6 +243,8 @@ func ErrorCodeFromString(code string) error {
 		return ErrNotFound
 	case "bad route":
 		return ErrBadRoute
+	case "method not allowed":
+		return ErrMethodNotAllowed
 	case "already exists":
 		return ErrAlreadyExists
 	case "permission denied":
@@ -303,6 +313,10 @@ func ErrorNotFound(message string, args ...interface{}) Error {
 
 func ErrorBadRoute(message string, args ...interface{}) Error {
 	return Errorf(ErrBadRoute, nil, message, args...)
+}
+
+func ErrorMethodNotAllowed(message string, args ...interface{}) Error {
+	return Errorf(ErrMethodNotAllowed, nil, message, args...)
 }
 
 func ErrorAlreadyExists(message string, args ...interface{}) Error {
