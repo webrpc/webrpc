@@ -11,7 +11,7 @@
     {{$enumType := .EnumType}}
     type {{$enumName}} {{$enumType}}
 
-    const (
+    var (
       {{- range .Fields}}
         {{$enumName}}_{{.Name}} {{$enumName}} = {{.Value}}
       {{- end}}
