@@ -128,6 +128,7 @@ func methodInputs(in *schema.Method) (string, error) {
 		inputs = append(inputs, fmt.Sprintf("args: %s", methodArgumentInputInterfaceName(in)))
 	}
 	inputs = append(inputs, "headers?: object")
+	inputs = append(inputs, "signal?: AbortSignal")
 	return strings.Join(inputs, ", "), nil
 }
 

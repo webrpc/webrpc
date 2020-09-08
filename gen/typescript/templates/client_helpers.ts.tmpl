@@ -5,11 +5,12 @@ export interface WebRPCError extends Error {
 	status: number
 }
 
-const createHTTPRequest = (body: object = {}, headers: object = {}): object => {
+const createHTTPRequest = (body: object = {}, headers: object = {}, signal: AbortSignal = null): object => {
   return {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body || {})
+    body: JSON.stringify(body || {}),
+    signal
   }
 }
 
