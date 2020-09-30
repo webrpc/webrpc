@@ -15,16 +15,17 @@ const createHTTPRequest = (body: object = {}, headers: object = {}, signal: Abor
 }
 
 const buildResponse = (res: Response): Promise<any> => {
+  const { status } = res
   return res.text().then(text => {
     let data
     try {
       if (text == "") {
-        data = {}
+        data = { status }
       } else {
-        data = JSON.parse(text)
+        data = { ...JSON.parse(text), status }
       }
     } catch(err) {
-      throw { code: 'unknown', msg: `expecting JSON, got: ${text}`, status: res.status } as WebRPCError
+      throw { code: 'unknown', msg: `expecting JSON, got: ${text}`, status } as WebRPCError
     }
     if (!res.ok) {
       throw data // webrpc error response
@@ -33,5 +34,5 @@ const buildResponse = (res: Response): Promise<any> => {
   })
 }
 
-export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
+export type Fetch = (input: RequestInfo, init?: RequestInit, abortSignal?: AbortSignal) => Promise<Response>
 {{end}}
