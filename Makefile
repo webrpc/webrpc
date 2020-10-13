@@ -27,6 +27,9 @@ build:
 	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen
 	go generate ./...
 
+build-linux:
+	GOOS=linux GOARCH=amd64 go build -o linuxbuild/webrpc-gen ./cmd/webrpc-gen
+
 clean:
 	rm -rf ./bin
 
