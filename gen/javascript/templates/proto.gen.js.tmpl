@@ -10,9 +10,6 @@ export const WebRPCVersion = "{{.WebRPCVersion}}"
 // Schema version of your RIDL schema
 export const WebRPCSchemaVersion = "{{.SchemaVersion}}"
 
-// Schema hash generated from your RIDL schema
-export const WebRPCSchemaHash = "{{.SchemaHash}}"
-
 {{template "types" .}}
 {{- if .TargetOpts.Client}}
   {{template "client" .}}

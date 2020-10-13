@@ -29,11 +29,6 @@ func WebRPCSchemaVersion() string {
   return "{{.SchemaVersion}}"
 }
 
-// Schema hash generated from your RIDL schema
-func WebRPCSchemaHash() string {
-  return "{{.SchemaHash}}"
-}
-
 {{template "types" .}}
 
 {{if .TargetOpts.Server}}
