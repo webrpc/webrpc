@@ -9,13 +9,23 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
 {{end}}
 
 {{range .Services}}
+  type {{.Name}}Client interface {
+    {{.Name}}
+    {{- range .Methods}}
+      {{- if .StreamOutput }}
+        {{.Name}}({{.Inputs | methodInputs}}) ({{.Name}}StreamReader, error)
+      {{- end}}
+    {{end}}
+  }
+{{end}}
+{{range .Services}}
   {{ $serviceName := .Name | clientServiceName}}
   type {{$serviceName}} struct {
     client HTTPClient
     urls   [{{.Methods | countMethods}}]string
   }
 
-  func {{.Name | newClientServiceName }}(addr string, client HTTPClient) {{.Name}} {
+  func {{.Name | newClientServiceName }}(addr string, client HTTPClient) {{.Name}}Client {
     prefix := urlBase(addr) + {{.Name | constPathPrefix}}
     urls := [{{.Methods | countMethods}}]string{
       {{- range .Methods}}
@@ -29,7 +39,11 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
   }
 
   {{range $i, $method := .Methods}}
+    {{- if .StreamOutput}}
+    func (c *{{$serviceName}}) {{.Name}}({{.Inputs | methodInputs}}) ({{.Name}}StreamReader, error) {
+    {{- else}}
     func (c *{{$serviceName}}) {{.Name}}({{.Inputs | methodInputs}}) ({{.Outputs | methodOutputs }}) {
+    {{- end}}
       {{- $inputVar := "nil" -}}
       {{- $outputVar := "nil" -}}
       {{- if .Inputs | len}}
@@ -37,23 +51,35 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
       in := struct {
         {{- range $i, $input := .Inputs}}
           Arg{{$i}} {{$input | methodArgType}} `json:"{{$input.Name | downcaseName}}"`
-        {{- end}}          
+        {{- end}}
       }{ {{.Inputs | methodArgNames}} }
       {{- end}}
-      {{- if .Outputs | len}}
-      {{- $outputVar = "&out"}}
-      out := struct {
-        {{- range $i, $output := .Outputs}}
-          Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name | downcaseName}}"`
-        {{- end}}          
-      }{}
-      {{- end}}
+      {{- if .StreamOutput}}
+        resp, err := clientRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}})
+        if err != nil {
+          return nil, err
+        }
 
-      err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}})
-      return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} err
+        return newClient{{.Name}}StreamReader(resp), nil
+      {{- else}}
+        {{- if .Outputs | len}}
+        {{- $outputVar = "&out"}}
+        out := struct {
+          {{- range $i, $output := .Outputs}}
+            Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name | downcaseName}}"`
+          {{- end}}
+        }{}
+        {{- end}}
+        _, err := clientRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}})
+        return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} err
+      {{- end}}
     }
   {{end}}
 {{end}}
+
+//
+// Client helpers
+//
 
 // HTTPClient is the interface used by generated clients to send HTTP requests.
 // It is fulfilled by *(net/http).Client, which is sufficient for most users.
@@ -77,129 +103,163 @@ func urlBase(addr string) string {
   return url.String()
 }
 
-// newRequest makes an http.Request from a client, adding common headers.
-func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType string) (*http.Request, error) {
-  req, err := http.NewRequest("POST", url, reqBody)
+func clientRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
+  reqBody, err := json.Marshal(in)
+  if err != nil {
+    return nil, Errorf(ErrInvalidArgument, err, "failed to marshal json request")
+  }
+  if err = ctx.Err(); err != nil {
+    return nil, Errorf(ErrAborted, err, "aborted because context was done")
+  }
+
+  req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqBody))
   if err != nil {
     return nil, err
   }
-  req.Header.Set("Accept", contentType)
-  req.Header.Set("Content-Type", contentType)
-	if headers, ok := HTTPRequestHeaders(ctx); ok {
-		for k := range headers {
-			for _, v := range headers[k] {
-				req.Header.Add(k, v)
-			}
-		}
-	}
-  return req, nil
-}
+  req.Header.Set("Content-Type", "application/json")
+  if headers, ok := GetClientRequestHeaders(ctx); ok {
+    for k := range headers {
+      for _, v := range headers[k] {
+        req.Header.Add(k, v)
+      }
+    }
+  }
 
-// doJSONRequest is common code to make a request to the remote service.
-func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) error {
-	reqBody, err := json.Marshal(in)
-	if err != nil {
-		return clientError("failed to marshal json request", err)
-	}
-	if err = ctx.Err(); err != nil {
-		return clientError("aborted because context was done", err)
-	}
+  resp, err := client.Do(req)
+  if err != nil {
+    return resp, Errorf(ErrFail, err, "request failed")
+  }
 
-	req, err := newRequest(ctx, url, bytes.NewBuffer(reqBody), "application/json")
-	if err != nil {
-		return clientError("could not build request", err)
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return clientError("request failed", err)
-	}
+  // auto-close body for non-streaming outputs
+  if out != nil {
+    defer func() {
+      cerr := resp.Body.Close()
+      if err == nil && cerr != nil {
+        err = Errorf(ErrFail, cerr, "failed to close response body")
+      }
+    }()
+  }
 
-	defer func() {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = clientError("failed to close response body", cerr)
-		}
-	}()
+  if err = ctx.Err(); err != nil {
+    return resp, Errorf(ErrAborted, err, "aborted because context was done")
+  }
 
-	if err = ctx.Err(); err != nil {
-		return clientError("aborted because context was done", err)
-	}
+  if resp.StatusCode != 200 {
+    return resp, errorFromResponse(resp)
+  }
 
-	if resp.StatusCode != 200 {
-		return errorFromResponse(resp)
-	}
+  if out != nil {
+    respBody, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+      return resp, Errorf(ErrInternal, err, "failed to read response body")
+    }
 
-	if out != nil {
-		respBody, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return clientError("failed to read response body", err)
-		}
+    err = json.Unmarshal(respBody, &out)
+    if err != nil {
+      return resp, Errorf(ErrInternal, err, "failed to unmarshal json response body")
+    }
+    if err = ctx.Err(); err != nil {
+      return resp, Errorf(ErrAborted, err, "aborted because context was done")
+    }
+  }
 
-		err = json.Unmarshal(respBody, &out)
-		if err != nil {
-			return clientError("failed to unmarshal json response body", err)
-		}
-		if err = ctx.Err(); err != nil {
-			return clientError("aborted because context was done", err)
-		}
-	}
-
-	return nil
+  return resp, nil
 }
 
 // errorFromResponse builds a webrpc Error from a non-200 HTTP response.
 func errorFromResponse(resp *http.Response) Error {
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return clientError("failed to read server error response body", err)
-	}
-
-	var respErr ErrorPayload
-	if err := json.Unmarshal(respBody, &respErr); err != nil {
-		return clientError("failed unmarshal error response", err)
-	}
-
-	errCode := ErrorCode(respErr.Code)
-
-	if HTTPStatusFromErrorCode(errCode) == 0 {
-		return ErrorInternal("invalid code returned from server error response: %s", respErr.Code)
-	}
-
-	return &rpcErr{
-		code:  errCode,
-		msg:   respErr.Msg,
-		cause: errors.New(respErr.Cause),
-	}
+  respBody, err := ioutil.ReadAll(resp.Body)
+  if err != nil {
+    return Errorf(ErrInternal, err, "failed to read server error response body")
+  }
+  var respErr Error
+  if err := json.Unmarshal(respBody, &respErr); err != nil {
+    return Errorf(ErrInternal, err, "failed unmarshal error response")
+  }
+  return respErr
 }
 
-func clientError(desc string, err error) Error {
-	return WrapError(ErrInternal, err, desc)
+func WithClientRequestHeaders(ctx context.Context, h http.Header) (context.Context, error) {
+  if _, ok := h["Accept"]; ok {
+    return nil, errors.New("provided header cannot set Accept")
+  }
+  if _, ok := h["Content-Type"]; ok {
+    return nil, errors.New("provided header cannot set Content-Type")
+  }
+
+  copied := make(http.Header, len(h))
+  for k, vv := range h {
+    if vv == nil {
+      copied[k] = nil
+      continue
+    }
+    copied[k] = make([]string, len(vv))
+    copy(copied[k], vv)
+  }
+
+  return context.WithValue(ctx, HTTPClientRequestHeadersCtxKey, copied), nil
 }
 
-func WithHTTPRequestHeaders(ctx context.Context, h http.Header) (context.Context, error) {
-	if _, ok := h["Accept"]; ok {
-		return nil, errors.New("provided header cannot set Accept")
-	}
-	if _, ok := h["Content-Type"]; ok {
-		return nil, errors.New("provided header cannot set Content-Type")
-	}
-
-	copied := make(http.Header, len(h))
-	for k, vv := range h {
-		if vv == nil {
-			copied[k] = nil
-			continue
-		}
-		copied[k] = make([]string, len(vv))
-		copy(copied[k], vv)
-	}
-
-	return context.WithValue(ctx, HTTPClientRequestHeadersCtxKey, copied), nil
+func GetClientRequestHeaders(ctx context.Context) (http.Header, bool) {
+  h, ok := ctx.Value(HTTPClientRequestHeadersCtxKey).(http.Header)
+  return h, ok
 }
 
-func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
-	h, ok := ctx.Value(HTTPClientRequestHeadersCtxKey).(http.Header)
-	return h, ok
-}
+{{- if .Services | hasStreamOutput}}
+  //
+  // Client streaming helpers
+  //
+{{- end}}
+{{range .Services}}
+  {{- range .Methods}}
+  {{- if .StreamOutput}}
+    type client{{.Name}}StreamReader struct {
+      resp    *http.Response
+      reader  io.Reader
+      decoder *json.Decoder
+    }
+
+    func newClient{{.Name}}StreamReader(resp *http.Response) *client{{.Name}}StreamReader {
+      reader := httputil.NewChunkedReader(resp.Body)
+      decoder := json.NewDecoder(reader)
+      return &client{{.Name}}StreamReader{
+        resp: resp, reader: reader, decoder: decoder,
+      }
+    }
+
+    func (c *client{{.Name}}StreamReader) Read() ({{.Outputs | methodOutputsWithTypes}}, err error) {
+      for {
+        out := struct {
+          {{- range $i, $output := .Outputs}}
+            Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name | downcaseName}}"`
+          {{- end}}
+          Error Error `json:"error"`
+          Ping  bool  `json:"ping"`
+        }{}
+
+        err = c.decoder.Decode(&out)
+
+        // Skip ping payloads
+        if err == nil && out.Ping {
+          continue
+        }
+
+        // Error checking
+        if err != nil {
+          if err == io.EOF {
+            return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} Errorf(ErrStreamClosed, err, err.Error())
+          }
+          return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} Errorf(ErrStreamLost, err, err.Error())
+        }
+        if out.Error.Code != nil || out.Error.Message != "" {
+          return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} out.Error
+        }
+
+        return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} nil
+      }
+    }
+  {{- end}}
+  {{- end}}
+{{- end}}
 {{end}}
 {{end}}

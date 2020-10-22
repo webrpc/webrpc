@@ -2,7 +2,7 @@ webrpc = v1             # version of webrpc schema format (ridl or json)
 
 name = example          # name if your backend app
 version = v0.0.1        # version of your schema
-              
+
 
 enum Kind: uint32
   - USER

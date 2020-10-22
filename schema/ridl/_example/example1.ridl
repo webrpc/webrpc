@@ -37,7 +37,7 @@ message User
     + json = created_at
     + go.tag.json = created_at,omitempty
     + go.tag.db = created_at
-    
+
 
 message Notice
   - msg: string
@@ -51,14 +51,14 @@ service ExampleService
 
   - GetUser(req: GetUserRequest) => (user: User)
 
-  - stream Recv(req: string)
+  - Recv(req: string)
 
-  - stream Send() => (resp: string)
+  - Send() => (resp: string)
 
-  - stream SendAndRecv(req: string) => stream (resp: string)
+  - SendAndRecv(req: string) => stream (resp: string)
 
   - Broadcast() => stream (resp: Notice)
 
   -	VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code: bool, ids: []bool)
-	
+
   - MoreTest(n: uint64, stuff: []map<uint64,string>, etc: string) => (code?: bool)

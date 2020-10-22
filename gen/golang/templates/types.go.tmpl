@@ -63,10 +63,26 @@
   {{range .Services}}
     type {{.Name}} interface {
       {{- range .Methods}}
-        {{.Name}}({{.Inputs | methodInputs}}) ({{.Outputs | methodOutputs}})
+        {{- if not .StreamOutput }}
+          {{.Name}}({{.Inputs | methodInputs}}) ({{.Outputs | methodOutputs}})
+        {{- end}}
       {{- end}}
     }
+    {{- range .Methods}}
+      {{- if .StreamOutput }}
+
+          type {{.Name}}StreamWriter interface {
+            streamWriter
+            Data({{.Outputs | methodOutputsWithTypes}}) error
+          }
+
+          type {{.Name}}StreamReader interface {
+            Read() ({{.Outputs | methodOutputsWithTypes}}, err error)
+          }
+      {{- end}}
+    {{- end}}
   {{end}}
+
   var WebRPCServices = map[string][]string{
     {{- range .Services}}
       "{{.Name}}": {

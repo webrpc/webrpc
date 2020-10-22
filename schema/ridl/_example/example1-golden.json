@@ -238,8 +238,7 @@
                         }
                     ],
                     "name": "Recv",
-                    "outputs": [],
-                    "streamInput": true
+                    "outputs": []
                 },
                 {
                     "inputs": [],
@@ -250,8 +249,7 @@
                             "optional": false,
                             "type": "string"
                         }
-                    ],
-                    "streamInput": true
+                    ]
                 },
                 {
                     "inputs": [
@@ -269,7 +267,6 @@
                             "type": "string"
                         }
                     ],
-                    "streamInput": true,
                     "streamOutput": true
                 },
                 {
