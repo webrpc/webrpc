@@ -1,0 +1,63 @@
+{{define "helpers"}}
+// *********************************************************************
+// WEBRPC-DART HELPER CODE.
+// *********************************************************************
+{{if .TargetOpts.Client}}
+String _removeSlash(String host) => host.endsWith('/')
+    ? host.replaceRange(host.length - 1, host.length, '')
+    : host;
+
+const Set<int> _nonErrorcodes = {
+  200,
+  201,
+  202,
+  203,
+  204,
+  205,
+  206,
+  300,
+  301,
+  302,
+  303,
+  304,
+  307,
+  308,
+};
+{{end}}
+// An http error.
+class _HttpErr {
+  final String status;
+  final int code;
+  const _HttpErr(this.status, this.code);
+
+  Map<String, dynamic> toMap() => {'status': status, 'code': code};
+  String toJson() => jsonEncode(toMap());
+  static _HttpErr fromMap(Map<String, dynamic> map) =>
+      _HttpErr(map['status'] as String, map['code'] as int);
+
+  static _HttpErr fromJson(dynamic json) => fromMap(jsonDecode(json),);
+}
+
+// An error created by the rpc server.
+class _RpcErr {
+  final String message;
+  final String path;
+  final DateTime time;
+  final _HttpErr httpErr;
+  const _RpcErr({this.message, this.path, this.httpErr, this.time});
+  static const _RpcErr unknown = _RpcErr(message: 'an unknown error has occured', path: 'unknown', httpErr: _HttpErr('unknown', 400), time: null );
+  Map<String, dynamic> toMap() => {
+        'message': message,
+        'path': path,
+        'httpErr': httpErr.toMap(),
+        'time-stamp': time.toString()
+      };
+  String toJson() => jsonEncode(toMap());
+  static _RpcErr fromMap(Map<String, dynamic> map) => _RpcErr(
+      message: map['message'] as String,
+      path: map['path'] as String,
+      time: DateTime.parse(map['time-stamp'],),
+      httpErr: _HttpErr.fromMap(map['httpErr'],),);
+  static _RpcErr fromJson(dynamic json) => fromMap(jsonDecode(json),);
+}
+{{end}}

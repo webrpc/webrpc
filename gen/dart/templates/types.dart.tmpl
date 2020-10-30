@@ -1,0 +1,108 @@
+{{define "types"}}
+{{$use_bloc := .TargetOpts.Extra}}
+// **********************************************************************
+// MESSAGE TYPES.
+// **********************************************************************
+{{- if .Messages -}}
+{{range .Messages -}}
+
+{{if .Type | isEnum -}}
+{{$enumName := .Name}}
+@freezed
+abstract class {{$enumName}} with _${{$enumName}} {
+{{- range .Fields}}
+  const factory {{$enumName}}.{{. | makeLowerCase}}() = {{.Name}};
+{{- end}}
+  factory {{$enumName}}.fromJson(Map<String, dynamic> json) => _${{$enumName}}FromJson(json);
+}
+{{end -}}
+
+{{- if .Type | isStruct  }}
+@freezed
+abstract class {{.Name}} with _${{.Name}} {
+  @JsonSerializable(explicitToJson: true)
+  factory {{.Name}}({{if .Fields}}{
+  {{- range .Fields}}
+  {{- if not .Optional}}
+    {{if . | exportableField -}}{{. | jsonKey}} {{end}}@required {{.Type | fieldType}} {{.Name}},
+    {{- end -}}
+    {{- end -}}
+    {{- range .Fields}}
+  {{- if .Optional}}
+   {{if . | exportableField -}}{{. | jsonKey}}{{end}} {{.Type | fieldType}} {{.Name}},
+  {{- end -}}
+  {{- end }}
+  }{{ end }}) = _{{.Name}};
+  factory {{.Name}}.fromJson(Map<String, dynamic> json) => _${{.Name}}FromJson(json);
+}
+{{- end -}}
+
+{{- end -}}
+{{- end}}
+
+
+{{if .Services -}}
+{{$isClient := .TargetOpts.Client}}
+{{range .Services -}}
+// *********************************************************************
+// {{.Name}} METHOD ARGUMENT TYPES.
+// *********************************************************************
+{{- range .Methods -}}
+{{- if .Inputs }}
+@freezed
+abstract class _{{. | methodArgumentInputClassName}} with _$_{{. | methodArgumentInputClassName}} {
+  @JsonSerializable(explicitToJson: true)
+  factory _{{. | methodArgumentInputClassName}} ({
+  {{- range .Inputs}}
+  {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+  {{- end -}} {{/* end of range .Inputs */}}
+  {{- range .Inputs}}
+  {{if .Optional}}
+  {{.Type | fieldType}} {{.Name}},
+  {{- end -}}
+{{- end}}
+  }) = _{{. | methodArgumentInputClassName}}_Freezed;
+  factory _{{. | methodArgumentInputClassName}}.fromJson(Map<String, dynamic> json) => _$_{{. | methodArgumentInputClassName}}FromJson(json);
+}
+{{- end -}} {{/* end of if .Inputs */}}
+{{- end -}} {{/* end of range .Methods */}}
+
+{{if $use_bloc | useBloc}}
+{{if $isClient}}
+{{end}} {{/* end of if $isClient */}}
+{{else}}
+// *********************************************************************
+// {{.Name}} METHOD RETURN TYPES.
+// *********************************************************************
+{{end}}
+{{range .Methods -}}
+{{if .Outputs}}
+{{if $use_bloc | useBloc}}
+{{if $isClient}}
+{{end}} {{/* end of if $isClient */}}
+{{else}}
+@freezed
+abstract class {{. | methodArgumentOutputClassName}} with _${{. | methodArgumentOutputClassName}} {
+  @JsonSerializable(explicitToJson: true)
+  factory {{. | methodArgumentOutputClassName}}({
+    {{- range .Outputs}}
+  {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+  {{- end -}} {{/* end of range .Outputs */}}
+  {{- range .Outputs }}
+  {{- if .Optional}}
+  {{.Type | fieldType}} {{.Name}},
+  {{- end -}}
+  {{- end -}}
+  }) = _{{. | methodArgumentOutputClassName}};
+  factory {{. | methodArgumentOutputClassName}}.fromJson(Map<String, dynamic> json) => _${{. | methodArgumentOutputClassName}}FromJson(json);
+}
+{{end}} {{/* end of if $use_bloc */}}
+{{end}} {{/* end of if .Outputs */}}
+{{- end -}} {{/* end of range .Methods */}}
+{{- end -}}  {{/* end of range .Services For Inputs and Outputs */}}
+
+{{- end -}} {{/* end of if .Services */}}
+
+{{- end -}} {{/* end of top level define */}}

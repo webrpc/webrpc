@@ -1,0 +1,513 @@
+{{ define "server_helpers" }}
+// *********************************************************************
+// SERVER-SIDE HELPER CODE.
+// *********************************************************************
+
+// The log level for [RpcLogger] and [WebRPCException]s.
+enum RpcLogLevel {
+  Info,
+  Fine,
+  Finer,
+  Finest,
+  Config,
+  Warning,
+  Severe,
+  Shout,
+}
+
+shelf.Response _badRouteHandler(shelf.Request r, {RpcLogger logger}) {
+  logger ??= _rpcLogger;
+  final route = r.url.toString();
+  final info = 'no handler for path: $route';
+  logger.info(info);
+  return _rpcResp.BadRoute(
+    route,
+    msg: info,
+  );
+}
+
+shelf.Middleware _corsMiddleware({String origin = '*'}) {
+  final Map<String, String> headers = {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'POST,HEAD,OPTIONS',
+    'Access-Control-Allow-Headers': '*',
+  };
+  return shelf.createMiddleware(
+    responseHandler: (response) {
+      if (origin == '' || origin == null) {
+        return response;
+      }
+      if (origin != '*') {
+        response.change(
+          headers: {
+            ...headers,
+            'Vary': 'Origin',
+          },
+        );
+      }
+      return response?.change(
+        headers: headers,
+      );
+    },
+    requestHandler: (request) {
+      if (request.method == 'OPTIONS') {
+        return shelf.Response.ok(
+          null,
+          headers: headers,
+        );
+      } else {
+        return null;
+      }
+    },
+  );
+}
+
+
+
+shelf.Middleware _nonJsonMddlwr =
+    shelf.createMiddleware(requestHandler: _handleNotJsonFriendly);
+
+shelf.Middleware _notPostMddlwr =
+    shelf.createMiddleware(requestHandler: _handleNotPost);
+
+bool _jsonFriendly(shelf.Request r) =>
+    r.headers.containsKey('Content-Type') &&
+    r.headers.containsKey('Accept') &&
+    r.headers['Content-Type'].contains('application/json') &&
+    r.headers['Accept'].contains('application/json') ||
+    r.headers['Accept'].contains('*/*');
+
+shelf.Response _handleNotJsonFriendly(shelf.Request r, {RpcLogger logger}) {
+  logger ??= _rpcLogger;
+  final route = r.url.toString();
+  if (!_jsonFriendly(r)) {
+    final info =
+        'unexpected Content-Type: ${r.headers['Content-Type']} or Accept: ${r.headers['Accept']}. path: $route';
+    logger.info(info);
+    return _rpcResp.BadRoute(
+      route,
+      msg: info,
+    );
+  }
+  return null;
+}
+
+shelf.Response _handleNotPost(shelf.Request r, {RpcLogger logger}) {
+  logger ??= _rpcLogger;
+  final methods = [
+    'POST',
+    'OPTIONS',
+    'HEAD',
+  ];
+  final route = r.url.toString();
+  if (!methods.contains(r.method)) {
+    final info =
+        'unsupported method: ${r.method}, (only POST, HEAD, and OPTIONS is allowed. path: $route';
+    logger.info(info);
+    return _rpcResp.BadRoute(
+      route,
+      msg: info,
+    );
+  }
+  return null;
+}
+
+// This exception should be thrown from all WEBRPC-DART service method implementations.
+// Throwing this exception and providing an [RpcLogLevel] allows the rpc logging mechanism to log all caught excetpions at the correct level.
+class WebRPCException extends HttpException {
+  @override
+  final String message;
+  final RpcLogLevel level;
+  WebRPCException(
+      {this.message = 'webrpc error', this.level = RpcLogLevel.Info})
+      : super('$message');
+}
+
+String _rpcLogMsg(WebRPCException exc, [Object error, stackTrace,]) =>
+    '{message: ${exc.message}, level: ${exc.level}, timeStamp: ${DateTime.now().toString()}, error: $error, stackTrace,: $stackTrace}';
+
+// Helper Method for logging WebRPCExceptions.
+void _logWebRpcExc(RpcLogger log, WebRPCException exc,
+    [Object error, stackTrace,]) {
+  switch (exc.level) {
+    case RpcLogLevel.Config:
+      {
+        log.config(_rpcLogMsg(exc, error, stackTrace,), error, stackTrace,);
+      }
+      break;
+    case RpcLogLevel.Fine:
+      {
+        log.fine(_rpcLogMsg(exc, error, stackTrace,), error, stackTrace,);
+      }
+      break;
+    case RpcLogLevel.Finer:
+      {
+        log.finer(_rpcLogMsg(exc, error, stackTrace,), error, stackTrace,);
+      }
+      break;
+    case RpcLogLevel.Finest:
+      {
+        log.finest(_rpcLogMsg(exc, error, stackTrace,), error, stackTrace,);
+      }
+      break;
+    case RpcLogLevel.Info:
+      {
+        log.info(_rpcLogMsg(exc, error, stackTrace,), error, stackTrace,);
+      }
+      break;
+    case RpcLogLevel.Warning:
+      {
+        log.warning(_rpcLogMsg(exc, error, stackTrace,), error, stackTrace,);
+      }
+      break;
+    case RpcLogLevel.Severe:
+      {
+        log.severe(_rpcLogMsg(exc, error, stackTrace,), error, stackTrace,);
+      }
+      break;
+    case RpcLogLevel.Shout:
+      {
+        log.shout(_rpcLogMsg(exc, error, stackTrace,), error, stackTrace,);
+      }
+  }
+}
+
+// Contains static method helpers for handling requests.
+class _rpcResp {
+  static String _message(String status, {String info}) =>
+      'webrpc error: $status, details: $info';
+
+  static const _jsonHeader = {
+    'Content-Type': 'application/json',
+    'X-Content-Type-Options': 'nosniff'
+  };
+
+  static shelf.Response _jsonResp(int code, {dynamic json}) => shelf.Response(
+        code,
+        headers: _jsonHeader,
+        body: json,
+      );
+
+  static shelf.Response Ok({String json}) => shelf.Response.ok(
+        json,
+        headers: _jsonHeader,
+      );
+
+  static shelf.Response Found(String route, {String msg = ''}) =>
+      shelf.Response.found(route, headers: _jsonHeader, body: msg);
+
+  static shelf.Response MovedPerm(String route, {String msg = ''}) =>
+      shelf.Response.movedPermanently(
+        route,
+        headers: _jsonHeader,
+      );
+
+  static shelf.Response NotModified() =>
+      shelf.Response.notModified(headers: _jsonHeader);
+
+  static shelf.Response SeeOther(String route, {String msg = ''}) =>
+      shelf.Response.seeOther(
+        route,
+        headers: _jsonHeader,
+        body: msg,
+      );
+
+  static shelf.Response Unknown(String route, {String msg = ''}) => _jsonResp(
+        _err.Unknown.code,
+        json: _RpcErr(
+                message: _message(_err.Unknown.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.Unknown)
+            .toJson(),
+      );
+
+  static shelf.Response Fail(String route, {String msg = ''}) => _jsonResp(
+        _err.Fail.code,
+        json: _RpcErr(
+                message: _message(_err.Fail.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.Fail)
+            .toJson(),
+      );
+
+  static shelf.Response Canceled(String route, {String msg = ''}) => _jsonResp(
+        _err.Canceled.code,
+        json: _RpcErr(
+                message: _message(_err.Canceled.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.Canceled)
+            .toJson(),
+      );
+
+  static shelf.Response InvalidArgument(String route, {String msg = ''}) =>
+      _jsonResp(
+        _err.InvalidArgument.code,
+        json: _RpcErr(
+                message: _message(_err.InvalidArgument.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.InvalidArgument)
+            .toJson(),
+      );
+
+  static shelf.Response DeadlineExceeded(String route, {String msg = ''}) =>
+      _jsonResp(
+        _err.DeadlineExceeded.code,
+        json: _RpcErr(
+                message: _message(_err.DeadlineExceeded.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.DeadlineExceeded)
+            .toJson(),
+      );
+
+  static shelf.Response NotFound(String route, {String msg = ''}) => _jsonResp(
+        _err.NotFound.code,
+        json: _RpcErr(
+                message: _message(_err.NotFound.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.NotFound)
+            .toJson(),
+      );
+
+  static shelf.Response BadRoute(String route, {String msg = ''}) => _jsonResp(
+        _err.BadRoute.code,
+        json: _RpcErr(
+                message: _message(_err.BadRoute.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.BadRoute)
+            .toJson(),
+      );
+
+  static shelf.Response AlreadyExists(String route, {String msg = ''}) =>
+      _jsonResp(
+        _err.AlreadyExists.code,
+        json: _RpcErr(
+                message: _message(_err.AlreadyExists.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.AlreadyExists)
+            .toJson(),
+      );
+
+  static shelf.Response PermissionDenied(String route, {String msg = ''}) =>
+      _jsonResp(
+        _err.PermissionDenied.code,
+        json: _RpcErr(
+                message: _message(_err.PermissionDenied.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.PermissionDenied)
+            .toJson(),
+      );
+
+  static shelf.Response Unauthenticated(String route, {String msg = ''}) =>
+      _jsonResp(
+        _err.Unauthenticated.code,
+        json: _RpcErr(
+                message: _message(_err.Unauthenticated.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.Unauthenticated)
+            .toJson(),
+      );
+
+  static shelf.Response ResourceExhausted(String route, {String msg = ''}) =>
+      _jsonResp(
+        _err.ResourceExhausted.code,
+        json: _RpcErr(
+                message: _message(_err.ResourceExhausted.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.ResourceExhausted)
+            .toJson(),
+      );
+
+  static shelf.Response FailedPrecondition(String route, {String msg = ''}) =>
+      _jsonResp(
+        _err.FailedPrecondition.code,
+        json: _RpcErr(
+                message: _message(_err.FailedPrecondition.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.FailedPrecondition)
+            .toJson(),
+      );
+
+  static shelf.Response Aborted(String route, {String msg = ''}) => _jsonResp(
+        _err.Aborted.code,
+        json: _RpcErr(
+                message: _message(_err.Aborted.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.Aborted)
+            .toJson(),
+      );
+
+  static shelf.Response OutOfRange(String route, {String msg = ''}) =>
+      _jsonResp(
+        _err.OutOfRange.code,
+        json: _RpcErr(
+                message: _message(_err.OutOfRange.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.OutOfRange)
+            .toJson(),
+      );
+
+  static shelf.Response Unimplemented(String route, {String msg = ''}) =>
+      _jsonResp(
+        _err.Unimplemented.code,
+        json: _RpcErr(
+                message: _message(_err.Unimplemented.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.Unimplemented)
+            .toJson(),
+      );
+
+  static shelf.Response Internal(String route, {String msg = ''}) => _jsonResp(
+        _err.Internal.code,
+        json: _RpcErr(
+                message: _message(_err.Internal.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.Internal)
+            .toJson(),
+      );
+
+  static shelf.Response Unavailable(String route, {String msg = ''}) =>
+      _jsonResp(
+        _err.Unavailable.code,
+        json: _RpcErr(
+                message: _message(_err.Unavailable.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.Unavailable)
+            .toJson(),
+      );
+
+  static shelf.Response DataLoss(String route, {String msg = ''}) => _jsonResp(
+        _err.DataLoss.code,
+        json: _RpcErr(
+                message: _message(_err.DataLoss.status, info: msg),
+                path: route,
+                time: DateTime.now(),
+                httpErr: _err.DataLoss)
+            .toJson(),
+      );
+}
+
+String _logMsg(Exception exc, [Object error, StackTrace stackTrace,]) =>
+    '{message: ${exc.toString()}, timeStamp: ${DateTime.now().toString()}, error: $error, stackTrace: $stackTrace}';
+
+void _logExc(RpcLogger log, Exception exc,
+        [Object error, StackTrace stackTrace,]) =>
+    log.warning(_logMsg(exc, error, stackTrace));
+
+abstract class RpcLogger {
+  void _log(String message, [Object error, StackTrace stackTrace,]) => print(
+      '{message: $message}, error: $error, stackTrace: $stackTrace, time: ${DateTime.now()}');
+  void finest(String message, [Object error, StackTrace stackTrace,]) =>
+      _log(message, error, stackTrace);
+  void finer(String message, [Object error, StackTrace stackTrace,]) =>
+      _log(message, error, stackTrace);
+  void fine(String message, [Object error, StackTrace stackTrace,]) =>
+      _log(message, error, stackTrace);
+  void config(String message, [Object error, StackTrace stackTrace,]) =>
+      _log(message, error, stackTrace);
+  void info(String message, [Object error, StackTrace stackTrace,]) =>
+      _log(message, error, stackTrace);
+  void warning(String message, [Object error, StackTrace stackTrace,]) =>
+      _log(message, error, stackTrace);
+  void severe(String message, [Object error, StackTrace stackTrace,]) =>
+      _log(message, error, stackTrace);
+  void shout(String message, [Object error, StackTrace stackTrace,]) =>
+      _log(message, error, stackTrace);
+}
+
+class _Logger extends RpcLogger {
+  _Logger();
+}
+
+final _rpcLogger = _Logger();
+
+// Contains static fields for creating and identifying http errors.
+class _err {
+  // Unknown error. For example when handling errors raised by APIs that do not
+  // return enough error information.
+  static const _HttpErr Unknown = _HttpErr('unknown', 400);
+  // 422 (Unprocessable Entity) Fail error. General failure error type.
+  static const _HttpErr Fail = _HttpErr('fail', 422);
+  // RequestTimeout Canceled indicates the operation was cancelled (typically by the caller).
+  static const _HttpErr Canceled = _HttpErr('canceled', 408);
+  // InvalidArgument indicates client specified an invalid argument. It
+  // indicates arguments that are problematic regardless of the state of the
+  // system (i.e. a malformed file name, required argument, number out of range,
+  // etc.).
+  static const _HttpErr InvalidArgument = _HttpErr('invalid argument', 422);
+  // RequestTimeOut. DeadlineExceeded means operation expired before completion. For operations
+  // that change the state of the system, this error may be returned even if the
+  // operation has completed successfully (timeout).
+  static const _HttpErr DeadlineExceeded = _HttpErr('deadline exceeded', 408);
+  // NotFound means some requested entity was not found.
+  static const _HttpErr NotFound = _HttpErr('not found', 404);
+  // BadRoute means that the requested URL path wasn't routable to a webrpc
+  // service and method. This is returned by the generated server, and usually
+  // shouldn't be returned by applications. Instead, applications should use
+  // NotFound or Unimplemented.
+  static const _HttpErr BadRoute = _HttpErr('bad route', 404);
+  // AlreadyExists means an attempt to create an entity failed because one
+  // already exists. Conflict.
+  static const _HttpErr AlreadyExists = _HttpErr('already exists', 409);
+  // PermissionDenied indicates the caller does not have permission to execute
+  // the specified operation. It must not be used if the caller cannot be
+  // identified (Unauthenticated).
+  static const _HttpErr PermissionDenied = _HttpErr('permission denied', 403);
+  // Unauthenticated indicates the request does not have valid authentication
+  // credentials for the operation. Unauthorized.
+  static const _HttpErr Unauthenticated = _HttpErr('unauthenticated', 401);
+  // ResourceExhausted indicates some resource has been exhausted, perhaps a
+  // per-user quota, or perhaps the entire file system is out of space. Forbidden.
+  static const _HttpErr ResourceExhausted = _HttpErr('resource exhausted', 403);
+  // FailedPrecondition indicates operation was rejected because the system is
+  // not in a state required for the operation's execution. For example, doing
+  // an rmdir operation on a directory that is non-empty, or on a non-directory
+  // object, or when having conflicting read-modify-write on the same resource. Precondition failed.
+  static const _HttpErr FailedPrecondition = _HttpErr('failed precondition', 412);
+  // Aborted indicates the operation was aborted, typically due to a concurrency
+  // issue like sequencer check failures, transaction aborts, etc.
+  static const _HttpErr Aborted = _HttpErr('aborted', 409);
+  // OutOfRange means operation was attempted past the valid range. For example,
+  // seeking or reading past end of a paginated collection.
+  //
+  // Unlike InvalidArgument, this error indicates a problem that may be fixed if
+  // the system state changes (i.e. adding more items to the collection).
+  //
+  // There is a fair bit of overlap between FailedPrecondition and OutOfRange.
+  // We recommend using OutOfRange (the more specific error) when it applies so
+  // that callers who are iterating through a space can easily look for an
+  // OutOfRange error to detect when they are done.
+  static const _HttpErr OutOfRange = _HttpErr('out of range', 400);
+  // Unimplemented indicates operation is not implemented or not
+  // supported/enabled in this service.
+  static const _HttpErr Unimplemented = _HttpErr('unimplemented', 501);
+  // Internal errors. When some invariants expected by the underlying system
+  // have been broken. In other words, something bad happened in the library or
+  // backend service. Do not confuse with HTTP Internal Server Error; an
+  // Internal error could also happen on the client code, i.e. when parsing a
+  // server response.
+  static const _HttpErr Internal = _HttpErr('internal', 500);
+  // Unavailable indicates the service is currently unavailable. This is a most
+  // likely a transient condition and may be corrected by retrying with a
+  // backoff. Service Unavailable.
+  static const _HttpErr Unavailable = _HttpErr('unavailable', 503);
+  // DataLoss indicates unrecoverable data loss or corruption.
+  static const _HttpErr DataLoss = _HttpErr('data loss', 500);
+}
+{{ end -}}

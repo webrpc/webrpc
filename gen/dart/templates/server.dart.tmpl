@@ -1,0 +1,253 @@
+{{define "server"}}
+{{- if .Services}}
+// *********************************************************************
+// SERVICE INTERFACES.
+// *********************************************************************
+{{range .Services -}}
+// TODO implement {{.Name}}.
+abstract class {{.Name}} {
+  {{- range .Methods}}
+  {{. | methodOutputs}} {{.Name | methodName}}({{if .Inputs}} {  
+  {{- range .Inputs}}
+  {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+  {{- end -}} {{/* end of range .Inputs */}}
+  {{- range .Inputs}}
+  {{if .Optional}}
+  {{.Type | fieldType}} {{.Name}},
+  {{- end -}}
+{{- end}}
+  } {{- end}});
+  {{- end}}
+}
+{{end}}  {{/* end of range .Services for INTERFACES */}}
+
+// *********************************************************************
+// SERVER IMPLEMENTATION.
+// *********************************************************************
+
+// If for some reason you do not want to use the provided WebRpcServer 
+// below, you can create and instance of it, and instead of
+// calling the .serve method, pass the results of the .handlers
+// getter as a list to this function. This can be useful if you are
+// adding a webRpc server to an existing shelf server or if you
+// have unique requirements on how your server is run.
+// If you want to combine handlers from multiple WebRpcServe instances
+// and still use an instance's .serve method, you should use
+// WebRpcServer.mergeHandlers instead.
+///
+/// ```dart
+/// # server1.dart
+/// final service1Handlers = WebRpcServer(// service implementations)..
+/// handlers;
+/// # server2.dart
+/// final service2Handlers = WebRpcServer(// service implementations)..
+/// handlers;
+/// # main.dart
+/// import 'service1.dart' show service1Handlers;
+/// import 'service2.dart' show service2Handlers, combineHandlers;
+/// final shelf.Handler handler = handlerFromServers([service1Handlers, 
+/// service2Handlers, ...]);
+/// await io.serve(handler, _hostname, port);
+/// ```
+shelf.Handler combineHandlers(List<Map<String, shelf.Handler>> handlerMaps,
+    {RpcLogger logger}) {
+  logger ??= _rpcLogger;
+  final Map<String, shelf.Handler> handlers = {
+    for (final map in handlerMaps) ...?map,
+  };
+  return const shelf.Pipeline()
+      .addMiddleware(_nonJsonMddlwr)
+      .addMiddleware(_notPostMddlwr)
+      .addMiddleware(
+        shelf.logRequests(
+          logger: (msg, isErr) => isErr ? logger.shout(msg) : logger.info(msg),
+        ),
+      )
+      .addHandler((shelf.Request r) {
+    final handler = handlers[r.url.toString()] ?? _badRouteHandler;
+    return handler(r);
+  });
+}
+
+class WebRpcServer {
+  // Pass the results of this getter to the combineHandlers function
+  // to get a shelf.Handler if you would like to configure your
+  // server manully outside of this class.
+  Map<String, shelf.Handler> get handlers =>
+    {
+      {{ range .Services }}
+      {{$name := .Name}}
+      {{- range .Methods}}
+      'rpc/{{$name}}/{{.Name}}':this._handle{{.Name}}, 
+      {{end}}
+      {{end}}
+    };
+  
+
+  shelf.Handler _mergedHandler;
+
+  // For Google Cloud Run, set _hostname to '0.0.0.0'.
+  String _hostname;
+  // Provide a {Logger} implementation to log exceptions.
+  RpcLogger _log;
+  // Provide a preconfigured shelf.Pipeline with desired middleware.
+  Set<shelf.Middleware> _middleware;
+  // Shelf Pipeline.
+  shelf.Pipeline _pipeline = const shelf.Pipeline();
+  // A reference to the http server.
+  HttpServer _server;
+  // Expose internal server for user customization.
+  HttpServer get server => _server;
+{{- range .Services}}
+  final {{.Name}} {{.Name | serviceImplName}};
+{{- end}}  
+  WebRpcServer(
+    { {{ range .Services }}@required this.{{.Name | serviceImplName}},
+      {{end -}}
+      RpcLogger logger,
+      String hostName = 'localhost',
+      List<shelf.Middleware> middleware,}) {
+      _hostname = hostName;
+      _log = logger ?? _rpcLogger;
+      _middleware = {
+      ...?middleware?.toSet(),
+      shelf.logRequests(
+        logger: (msg, isErr) => isErr ? _log.shout(msg) : _log.info(msg),
+      ),
+      _corsMiddleware(),
+      _nonJsonMddlwr,
+      _notPostMddlwr,    
+    };
+  }
+
+  // If you would like to merge all of the shelf.Handlers from multiple 
+  // WebRPCServer instances into one shelf.Handler and still use this 
+  // class's .serve method as an entrypoint to your app, call this method
+  // first.
+  /// ```dart
+  /// WebRpcServer(// constructor args)..mergeHandlers(
+  ///      [server1.handlers, /// server2.handlers],
+  ///      );
+  /// ```  
+  void mergeHandlers(
+    List<Map<String, shelf.Handler>> handlerMaps,
+  ) {
+    _mergedHandler = combineHandlers(
+      [...?handlerMaps, handlers],
+    );
+  }
+  FutureOr<shelf.Response> _requestHandler(shelf.Request r) async {
+    final route = r.url.toString();
+    switch (route) {
+      {{ range .Services }}
+      {{$name := .Name}}
+      {{- range .Methods}}
+      case 'rpc/{{$name}}/{{.Name}}': {
+         return _handle{{.Name}}(r);
+      }
+      break;
+      {{end -}} {{/* end of range .Methods */}}
+      {{end -}} {{/* end of range .Services */}}
+      default:
+        {
+          return _badRouteHandler(r, logger: _log,);
+        }
+        break;
+    }
+  }
+  {{- range .Services}}
+  {{$name := .Name}}
+  {{- range .Methods}}
+  FutureOr<shelf.Response> _handle{{.Name}}(shelf.Request r,) async {
+    try {
+      // Attempt to call service method.
+    {{- if .Inputs|len }}
+      final parsedJson = await r.readAsString();
+      final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}.fromJson(jsonDecode(parsedJson,),);
+      {{ if .Outputs | len -}}
+      final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}({{- range .Inputs}}{{.Name}}:args.{{.Name}},{{- end}});  
+      return _rpcResp.Ok(json: jsonEncode(result.toJson(),),);
+      {{else}}
+      await {{$name | serviceImplName}}.{{.Name | methodName}}({{- range .Inputs}}{{.Name}}:args.{{.Name}},{{- end}});
+      return _rpcResp.Ok();
+      {{- end -}} {{/* end if .Outputs */}}
+    {{else}}
+      {{ if .Outputs | len -}}
+      final {{. | methodArgumentOutputClassName}} result = await {{$name | serviceImplName}}.{{.Name | methodName}}();  
+      return _rpcResp.Ok(json: jsonEncode(result.toJson(),),);
+      {{else}}
+      await {{$name | serviceImplName}}.{{.Name | methodName}}();
+      return _rpcResp.Ok();
+      {{- end -}}
+    {{- end -}} {{/* end if .Inputs */}}
+    }
+    // Catch WebRPCExceptions.
+    on WebRPCException catch (e, stackTrace) {
+      _logWebRpcExc(_log, e, null, stackTrace,);
+      return _rpcResp.Fail('rpc/{{$name}}/{{.Name}}');
+    }
+    // Catch all other exceptions. 
+    on Exception catch (e, stackTrace) {
+      _logExc(_log, e, null, stackTrace,);
+      return _rpcResp.Fail('rpc/{{$name}}/{{.Name}}');
+    }
+  }
+  {{end}}{{/* end of range .Methods */}}
+  {{- end -}} {{/* end of range .Services for Methods */}}
+  ArgResults _parseArgs(List<String> args) {
+    final parser = ArgParser()
+      ..addOption('port', abbr: 'p');
+    try {
+      return parser.parse(args);
+    } on ArgParserException catch (e, stackTrace) {
+      _logExc(
+        _log,
+        e,
+        null,
+        stackTrace,
+      );
+      print('arg parsing error occured: $e');
+      rethrow;
+    }
+  }
+
+  // For Google Cloud Run, we respect the PORT environment variable
+  int _getPort(ArgResults args) =>
+      int.tryParse(args['port'] ?? Platform.environment['PORT'] ?? '8080',);
+
+
+  void _configurePipeline() {
+    _middleware.forEach(
+      (mddlwr) {
+        _pipeline = _pipeline.addMiddleware(mddlwr);
+      },
+    );
+  }
+
+  Future<void> serve(List<String> args,
+      {SecurityContext securityContext,
+      int backlog,
+      bool shared = false}) async {
+    final result = _parseArgs(args);
+    final port = _getPort(result);
+
+    if (port == null) {
+      stdout.writeln(
+          'Could not parse port value "${port.toString()}" into a number.');
+      // 64: command line usage error
+      exitCode = 64;
+      return;
+    }
+
+    _configurePipeline();
+    final handler = _pipeline.addHandler(_mergedHandler ?? _requestHandler,);
+    _server = await io.serve(handler, _hostname, port,
+        securityContext: securityContext, backlog: backlog, shared: shared);
+    print('Serving at http://${_server.address.host}:${_server.port}');
+  }
+
+
+}
+{{end}} {{/* end of if .Services */}}
+{{end}} {{/* end of top level define */}}

@@ -5,310 +5,266 @@
 // Do not edit by hand. Update your webrpc schema and re-generate.
 
 // WebRPC description and code-gen version
-export const WebRPCVersion = "v1"
+export const WebRPCVersion = "v1";
 
 // Schema version of your RIDL schema
-export const WebRPCSchemaVersion = "v1.0.0"
+export const WebRPCSchemaVersion = "v1.0.0";
 
 // Schema hash generated from your RIDL schema
-export const WebRPCSchemaHash = "4d2858fa129683e5775e9b863ceceb740e7e09b1"
-
+export const WebRPCSchemaHash = "4d2858fa129683e5775e9b863ceceb740e7e09b1";
 
 //
 // Types
 //
 export enum Kind {
-  USER = 'USER',
-  ADMIN = 'ADMIN'
+  USER = "USER",
+  ADMIN = "ADMIN",
 }
 
 export interface User {
-  id: number
-  USERNAME: string
-  role: Kind
-  meta: {[key: string]: any}
-  
-  createdAt?: string
+  id: number;
+  USERNAME: string;
+  role: Kind;
+  meta: { [key: string]: any };
+
+  createdAt?: string;
 }
 
 export interface Page {
-  num: number
+  num: number;
 }
 
 export interface ExampleService {
-  ping(headers?: object): Promise<PingReturn>
-  getUser(args: GetUserArgs, headers?: object): Promise<GetUserReturn>
+  ping(headers?: object): Promise<PingReturn>;
+  getUser(args: GetUserArgs, headers?: object): Promise<GetUserReturn>;
 }
 
-export interface PingArgs {
-}
+export interface PingArgs {}
 
 export interface PingReturn {
-  status: boolean  
+  status: boolean;
 }
 export interface GetUserArgs {
-  userID: number
+  userID: number;
 }
 
 export interface GetUserReturn {
-  code: number
-  user: User  
+  code: number;
+  user: User;
 }
 
-
-  
 //
 // Server
 //
 export class WebRPCError extends Error {
-    statusCode?: number
+  statusCode?: number;
 
-    constructor(msg: string = "error", statusCode?: number) {
-        super("webrpc error: " + msg);
+  constructor(msg: string = "error", statusCode?: number) {
+    super("webrpc error: " + msg);
 
-        Object.setPrototypeOf(this, WebRPCError.prototype);
+    Object.setPrototypeOf(this, WebRPCError.prototype);
 
-        this.statusCode = statusCode;
-    }
+    this.statusCode = statusCode;
+  }
 }
 
-import express from 'express'
-        
-        
+import express from "express";
 
-        export type ExampleServiceService = {
-            
-                Ping: (args: PingArgs) => PingReturn | Promise<PingReturn>
-            
-                GetUser: (args: GetUserArgs) => GetUserReturn | Promise<GetUserReturn>
-            
+export type ExampleServiceService = {
+  Ping: (args: PingArgs) => PingReturn | Promise<PingReturn>;
+
+  GetUser: (args: GetUserArgs) => GetUserReturn | Promise<GetUserReturn>;
+};
+
+export const createExampleServiceApp = (
+  serviceImplementation: ExampleServiceService
+) => {
+  const app = express();
+
+  app.use(express.json());
+
+  app.post("/*", async (req, res) => {
+    const requestPath = req.baseUrl + req.path;
+
+    if (!req.body) {
+      res.status(400).send("webrpc error: missing body");
+
+      return;
+    }
+
+    switch (requestPath) {
+      case "/rpc/ExampleService/Ping":
+        {
+          try {
+            const response = await serviceImplementation["Ping"](req.body);
+
+            if (!("status" in response)) {
+              throw new WebRPCError("internal", 500);
+            }
+
+            res.status(200).json(response);
+          } catch (err) {
+            if (err instanceof WebRPCError) {
+              const statusCode = err.statusCode || 400;
+              const message = err.message;
+
+              res.status(statusCode).json({
+                msg: message,
+                status: statusCode,
+                code: "",
+              });
+
+              return;
+            }
+
+            if (err.message) {
+              res.status(400).send(err.message);
+
+              return;
+            }
+
+            res.status(400).end();
+          }
         }
 
-        export const createExampleServiceApp = (serviceImplementation: ExampleServiceService) => {
-            const app = express();
+        return;
 
-            app.use(express.json())
+      case "/rpc/ExampleService/GetUser":
+        {
+          try {
+            if (!("userID" in req.body)) {
+              throw new WebRPCError("Missing Argument `userID`");
+            }
+            if (
+              "userID" in req.body &&
+              !validateType(req.body["userID"], "number")
+            ) {
+              throw new WebRPCError("Invalid Argument: userID");
+            }
 
-            app.post('/*', async (req, res) => {
-                const requestPath = req.baseUrl + req.path
+            const response = await serviceImplementation["GetUser"](req.body);
 
-                if (!req.body) {
-                    res.status(400).send("webrpc error: missing body");
+            if (!("code" in response)) {
+              throw new WebRPCError("internal", 500);
+            }
 
-                    return
-                }
+            if (!("user" in response)) {
+              throw new WebRPCError("internal", 500);
+            }
 
-                switch(requestPath) {
-                    
+            res.status(200).json(response);
+          } catch (err) {
+            if (err instanceof WebRPCError) {
+              const statusCode = err.statusCode || 400;
+              const message = err.message;
 
-                    case "/rpc/ExampleService/Ping": {                        
-                        try {
-                            
+              res.status(statusCode).json({
+                msg: message,
+                status: statusCode,
+                code: "",
+              });
 
-                            const response = await serviceImplementation["Ping"](req.body);
+              return;
+            }
 
-                            
-                                if (!("status" in response)) {
-                                    throw new WebRPCError("internal", 500);
-                                }
-                            
+            if (err.message) {
+              res.status(400).send(err.message);
 
-                            res.status(200).json(response);
-                        } catch (err) {
-                            if (err instanceof WebRPCError) {
-                                const statusCode = err.statusCode || 400
-                                const message = err.message
+              return;
+            }
 
-                                res.status(statusCode).json({
-                                    msg: message,
-                                    status: statusCode,
-                                    code: ""
-                                });
+            res.status(400).end();
+          }
+        }
 
-                                return
-                            }
+        return;
 
-                            if (err.message) {
-                                res.status(400).send(err.message);
+      default: {
+        res.status(404).end();
+      }
+    }
+  });
 
-                                return;
-                            }
-
-                            res.status(400).end();
-                        }
-                    }
-
-                    return;
-                    
-
-                    case "/rpc/ExampleService/GetUser": {                        
-                        try {
-                            
-                                    if (!("userID" in req.body)) {
-                                        throw new WebRPCError("Missing Argument `userID`")
-                                    }
-                                if ("userID" in req.body && !validateType(req.body["userID"], "number")) {
-                                    throw new WebRPCError("Invalid Argument: userID")
-                                }
-                            
-
-                            const response = await serviceImplementation["GetUser"](req.body);
-
-                            
-                                if (!("code" in response)) {
-                                    throw new WebRPCError("internal", 500);
-                                }
-                            
-                                if (!("user" in response)) {
-                                    throw new WebRPCError("internal", 500);
-                                }
-                            
-
-                            res.status(200).json(response);
-                        } catch (err) {
-                            if (err instanceof WebRPCError) {
-                                const statusCode = err.statusCode || 400
-                                const message = err.message
-
-                                res.status(statusCode).json({
-                                    msg: message,
-                                    status: statusCode,
-                                    code: ""
-                                });
-
-                                return
-                            }
-
-                            if (err.message) {
-                                res.status(400).send(err.message);
-
-                                return;
-                            }
-
-                            res.status(400).end();
-                        }
-                    }
-
-                    return;
-                    
-
-                    default: {
-                        res.status(404).end()
-                    }
-                }
-            });
-
-            return app;
-        };
-
-  
+  return app;
+};
 
 const JS_TYPES = [
-    "bigint",
-    "boolean",
-    "function",
-    "number",
-    "object",
-    "string",
-    "symbol",
-    "undefined"
-]
+  "bigint",
+  "boolean",
+  "function",
+  "number",
+  "object",
+  "string",
+  "symbol",
+  "undefined",
+];
 
+const validateKind = (value: any) => {
+  if (!("USER" in value) || !validateType(value["USER"], "number")) {
+    return false;
+  }
 
-    const validateKind = (value: any) => {
-        
-            
-                if (!("USER" in value) || !validateType(value["USER"], "number")) {
-                    return false
-                }
-            
-        
-            
-                if (!("ADMIN" in value) || !validateType(value["ADMIN"], "number")) {
-                    return false
-                }
-            
-        
+  if (!("ADMIN" in value) || !validateType(value["ADMIN"], "number")) {
+    return false;
+  }
 
-        return true
-    }
+  return true;
+};
 
-    const validateUser = (value: any) => {
-        
-            
-                if (!("id" in value) || !validateType(value["id"], "number")) {
-                    return false
-                }
-            
-        
-            
-                if (!("USERNAME" in value) || !validateType(value["USERNAME"], "string")) {
-                    return false
-                }
-            
-        
-            
-                if (!("role" in value) || !validateType(value["role"], "Kind")) {
-                    return false
-                }
-            
-        
-            
-                if (!("meta" in value) || !validateType(value["meta"], "object")) {
-                    return false
-                }
-            
-        
-            
-                if (!("-" in value) || !validateType(value["-"], "number")) {
-                    return false
-                }
-            
-        
-            
-                if ("createdAt" in value && !validateType(value["createdAt"], "string")) {
-                    return false
-                }
-            
-        
+const validateUser = (value: any) => {
+  if (!("id" in value) || !validateType(value["id"], "number")) {
+    return false;
+  }
 
-        return true
-    }
+  if (!("USERNAME" in value) || !validateType(value["USERNAME"], "string")) {
+    return false;
+  }
 
-    const validatePage = (value: any) => {
-        
-            
-                if (!("num" in value) || !validateType(value["num"], "number")) {
-                    return false
-                }
-            
-        
+  if (!("role" in value) || !validateType(value["role"], "Kind")) {
+    return false;
+  }
 
-        return true
-    }
+  if (!("meta" in value) || !validateType(value["meta"], "object")) {
+    return false;
+  }
 
+  if (!("-" in value) || !validateType(value["-"], "number")) {
+    return false;
+  }
+
+  if ("createdAt" in value && !validateType(value["createdAt"], "string")) {
+    return false;
+  }
+
+  return true;
+};
+
+const validatePage = (value: any) => {
+  if (!("num" in value) || !validateType(value["num"], "number")) {
+    return false;
+  }
+
+  return true;
+};
 
 const TYPE_VALIDATORS: { [type: string]: (value: any) => boolean } = {
-    
-        Kind: validateKind,
-    
-        User: validateUser,
-    
-        Page: validatePage,
-    
-}
+  Kind: validateKind,
+
+  User: validateUser,
+
+  Page: validatePage,
+};
 
 const validateType = (value: any, type: string) => {
-    if (JS_TYPES.indexOf(type) > -1) {
-        return typeof value === type;
-    }
+  if (JS_TYPES.indexOf(type) > -1) {
+    return typeof value === type;
+  }
 
-    const validator = TYPE_VALIDATORS[type];
+  const validator = TYPE_VALIDATORS[type];
 
-    if (!validator) {
-        return false;
-    }
+  if (!validator) {
+    return false;
+  }
 
-    return validator(value);
-}
-
+  return validator(value);
+};

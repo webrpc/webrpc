@@ -1,0 +1,139 @@
+{{define "client"}}
+{{$use_bloc := .TargetOpts.Extra}}
+{{if .Services}}
+
+// *********************************************************************
+// Service Interfaces. Useful for testing purposes.
+// *********************************************************************
+{{range .Services}}
+abstract class {{.Name}} {
+  {{range .Methods}}
+  {{if $use_bloc | useBloc}}{{. | methodOutputsClientBloc}}{{else}}{{. | methodOutputsClient}}{{end}} {{.Name | methodName}}({
+  {{if .Inputs}}
+  {{- range .Inputs}}
+  {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+  {{- end -}} {{/* end of range .Inputs */}}
+  {{- range .Inputs}}
+  {{if .Optional}}
+  {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+{{- end}} {{/* end of range .Inputs */}}
+{{- end}} {{/* end of if .Inputs */}}
+  Map<String, String> headers,
+  });
+  {{end}} {{/* end of range .Methods */}}
+}
+{{end}} {{/* end of range .Services */}}
+// *********************************************************************
+// RpcResponse TYPE.
+// *********************************************************************
+
+// This class provides type safe access to the state of an Rpc Request 
+// and it's Response data. Can be used easily with Bloc. For more info See https://www.azavea.com/blog/2019/12/12/modeling-state-with-typescript/
+// See https://pub.dev/packages/freezed to learn how to use this type.
+@freezed
+abstract class RpcState<T> with _$RpcState<T> {
+  // initial state prior to any request being made.
+  const factory RpcState.idle() = _RpcStateIdle<T>;
+  // request has been made and awaiting a response.
+  const factory RpcState.loading() = _RpcStateLoading<T>;
+  // request made and returned successfully with data.
+  const factory RpcState.ok({@required T data,}) = _RpcStateOk<T>;
+  // request made and returned successfully without data.
+  const factory RpcState.unit() = _RpcStateUnit<T>;
+  // request returned an error with a message and status code.
+  // The optional stackTrace is useful for debugging exceptions
+  // thrown in Rpc client methods.
+  const factory RpcState.err({@required String reason, @required int statusCode, String stackTrace,}) = _RpcStateErr<T>;
+}
+// ***********************************************************************
+// WEBRPC-DART SERVICE CLIENTS.
+// ***********************************************************************
+
+{{range .Services}}
+{{$serviceName := .Name}}
+class {{.Name}}Rpc implements {{.Name}} {
+  final String host;
+  final String _srvcPath;
+  {{.Name}}Rpc({
+    @required this.host,
+  }): _srvcPath = '${_removeSlash(host)}/rpc/{{.Name}}';
+
+  Future<http.Response> _makeRequest(String route,
+      {dynamic json = "{}", Map<String, String> headers,}) {
+    return http.post('$_srvcPath/$route',
+        headers: {
+          ...?headers,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(json),);
+  }
+
+  _RpcErr _getErr(http.Response r) {
+    try {
+      return _RpcErr.fromJson(jsonDecode(r.body)); 
+    } on Exception catch (_) {
+      return _RpcErr.unknown;
+    }
+  }
+ 
+  {{range .Methods}}
+  @override
+  {{if $use_bloc | useBloc}}{{. | methodOutputsClientBloc}}{{else}}{{. | methodOutputsClient}}{{end}} {{.Name | methodName}}({
+  {{if .Inputs}}
+  {{- range .Inputs}}
+  {{- if not .Optional}}@required {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+  {{- end -}} {{/* end of range .Inputs */}}
+  {{- range .Inputs}}
+  {{if .Optional}}
+  {{.Type | fieldType}} {{.Name}},
+  {{- end -}} {{/* end of if not .Optional */}}
+{{- end}} {{/* end of range .Inputs */}}
+{{- end}} {{/* end of if .Inputs */}}
+  Map<String, String> headers,
+  }) async* {
+      yield const RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.loading();
+      try {
+        {{- if .Inputs | len}} {{/* if method has args */}}
+          final _{{. | methodArgumentInputClassName}} args = _{{. | methodArgumentInputClassName}}({{- range .Inputs}}{{.Name}}:{{.Name}},{{- end}});
+          {{end}} {{/* end of if .Inputs */}}
+          final http.Response response = await _makeRequest(
+            '{{.Name}}',
+            {{- if .Inputs | len}}json: args.toJson(),{{end}}
+            headers: headers,
+          );
+
+          if (!_nonErrorcodes.contains(response.statusCode)) {
+            final _RpcErr err = _getErr(response);
+            yield RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.err(
+                reason: err.message,
+                statusCode: err.httpErr.code,
+                );
+          } else {
+          {{if .Outputs | len}}
+          yield RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.ok(data: {{. | methodArgumentOutputClassName}}.fromJson(
+              jsonDecode(response.body,),),);
+          {{else}}
+          yield const RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.unit();
+              {{end}}
+          }
+      } on Exception catch (e, stackTrace) {
+        yield RpcState{{if $use_bloc | useBloc}}<{{. | methodArgumentOutputClassName }}>{{end}}.err(
+          statusCode: 400,
+          reason: e.toString(),
+          stackTrace: stackTrace.toString(),
+        );
+    } 
+ 
+  }
+  {{end}} {{/* end of range .Methods */}}
+
+}
+{{end}} {{/* end of range .Services */}}
+
+
+{{end}} {{/* end of if .Services */}}
+{{end}} {{/* end of top level Define */}}
