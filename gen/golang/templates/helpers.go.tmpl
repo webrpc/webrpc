@@ -11,10 +11,7 @@ type Error struct {
 }
 
 func (e Error) Error() string {
-	if e.Code == nil {
-		return e.Message
-	}
-	return fmt.Sprintf("%s: %s", e.Code, e.Message)
+	return e.Message
 }
 
 func (e Error) Is(target error) bool {
@@ -41,7 +38,6 @@ func (e Error) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	j := bytes.NewBufferString(`{`)
-	j.WriteString(fmt.Sprintf(`"code": "%s",`, e.Code.Error()))
 	j.WriteString(`"message": `)
 	j.Write(m)
 	j.WriteString(`}`)
@@ -81,7 +77,7 @@ var (
 	// backend service. Do not confuse with HTTP Internal Server Error; an
 	// Internal error could also happen on the client code, i.e. when parsing a
 	// server response.
-	ErrInternal = errors.New("internal")
+	ErrInternal = errors.New("internal server error")
 
 	// Unavailable indicates the service is currently unavailable. This is a most
 	// likely a transient condition and may be corrected by retrying with a
