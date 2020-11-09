@@ -223,7 +223,7 @@ func ErrorCodeFromString(code string) error {
 		return ErrFail
 	case "unknown":
 		return ErrUnknown
-	case "internal":
+	case "internal server error":
 		return ErrInternal
 	case "unavailable":
 		return ErrUnavailable
