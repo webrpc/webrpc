@@ -6,9 +6,9 @@
 
 {{- range .Services}}
 export class {{.Name}} implements {{.Name | serviceInterfaceName}} {
-  private hostname: string
-  private fetch: Fetch
-  private path = '/rpc/{{.Name}}/'
+  protected hostname: string
+  protected fetch: Fetch
+  protected path = '/rpc/{{.Name}}/'
 
   constructor(hostname: string, fetch: Fetch) {
     this.hostname = hostname
