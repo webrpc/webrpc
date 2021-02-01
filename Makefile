@@ -22,9 +22,6 @@ all:
 tools:
 	GO111MODULE=off go get -u github.com/goware/statik
 
-build0:
-	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen
-
 build:
 	go generate ./gen/...
 	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen

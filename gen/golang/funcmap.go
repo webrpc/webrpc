@@ -10,7 +10,9 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-var fieldTypeMap = map[schema.DataType]string{
+// TODO gen type kind .. + intersect meta..
+
+var fieldTypeMap = map[schema.CoreType]string{
 	schema.T_Uint:      "uint",
 	schema.T_Uint8:     "uint8",
 	schema.T_Uint16:    "uint16",
@@ -80,7 +82,7 @@ func fieldType(in *schema.VarType) (string, error) {
 	return "", fmt.Errorf("could not represent type: %#v", in)
 }
 
-func fieldOptional(field *schema.MessageField) (string, error) {
+func fieldOptional(field *schema.TypeField) (string, error) {
 	if !field.Optional {
 		return "", nil
 	}
@@ -99,7 +101,7 @@ func fieldOptional(field *schema.MessageField) (string, error) {
 	return "", fmt.Errorf("could not represent type: %#v", field)
 }
 
-func fieldTypeDef(in *schema.MessageField) (string, error) {
+func fieldTypeDef(in *schema.TypeField) (string, error) {
 	goFieldType := ""
 
 	meta := in.Meta
@@ -118,7 +120,7 @@ func fieldTypeDef(in *schema.MessageField) (string, error) {
 	return fieldType(in.Type)
 }
 
-func fieldTags(in *schema.MessageField) (string, error) {
+func fieldTags(in *schema.TypeField) (string, error) {
 	fieldTags := map[string]interface{}{}
 
 	jsonFieldName, err := downcaseName(in.Name)
@@ -157,7 +159,7 @@ func fieldTags(in *schema.MessageField) (string, error) {
 	}
 
 	tagKeys := []string{}
-	for k, _ := range fieldTags {
+	for k := range fieldTags {
 		if k != "json" {
 			tagKeys = append(tagKeys, k)
 		}
@@ -264,11 +266,11 @@ func commaIfLen(in []*schema.MethodArgument) string {
 	return ""
 }
 
-func isStruct(t schema.MessageType) bool {
+func isStruct(t string) bool {
 	return t == "struct"
 }
 
-func exportedField(in *schema.MessageField) (string, error) {
+func exportedField(in *schema.TypeField) (string, error) {
 	s := string(in.Name)
 	s = strings.ToUpper(s[0:1]) + s[1:]
 
@@ -301,7 +303,7 @@ func downcaseName(v interface{}) (string, error) {
 	}
 }
 
-func isEnum(t schema.MessageType) bool {
+func isEnum(t string) bool {
 	return t == "enum"
 }
 

@@ -1,4 +1,4 @@
-webrpc = v1
+webrpc = v2
 
 name = hello-webrpc
 version = v1.0.0

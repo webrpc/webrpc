@@ -1,14 +1,14 @@
 {{define "types"}}
 
-{{if .Messages}}
+{{if .Types}}
 //
 // Types
 //
 
-{{range .Messages}}
-  {{if .Type | isEnum}}
+{{range .Types}}
+  {{if .Kind | isEnum}}
     {{$enumName := .Name}}
-    {{$enumType := .EnumType}}
+    {{$enumType := .Type}}
     type {{$enumName}} {{$enumType}}
 
     const (
@@ -50,7 +50,7 @@
       return nil
     }
   {{end}}
-  {{if .Type | isStruct  }}
+  {{if .Kind | isStruct  }}
     type {{.Name}} struct {
       {{- range .Fields}}
         {{. | exportedField}} {{. | fieldOptional}}{{. | fieldTypeDef}} {{. | fieldTags}}
