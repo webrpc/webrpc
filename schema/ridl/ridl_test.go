@@ -43,7 +43,7 @@ func TestRIDLHeader(t *testing.T) {
 
 	{
 		buf := `
-    webrpc = v1
+    webrpc = v2
 
     name = myapi1
     name = myapi2
@@ -54,7 +54,7 @@ func TestRIDLHeader(t *testing.T) {
 
 	{
 		buf := `
-    webrpc = v1 #comment
+    webrpc = v2 #comment
     # comment
   version = v0.1.1
 
@@ -63,7 +63,7 @@ func TestRIDLHeader(t *testing.T) {
 		s, err := parseString(buf)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "v1", s.WebRPCVersion)
+		assert.Equal(t, "v2", s.WebRPCVersion)
 		assert.Equal(t, "h_ello-webrpc", s.Name)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 	}
@@ -75,7 +75,7 @@ func TestRIDLImport(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
       version = v0.1.1
   name = hello-webrpc
 
@@ -90,7 +90,7 @@ func TestRIDLImport(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "v1", s.WebRPCVersion)
+		assert.Equal(t, "v2", s.WebRPCVersion)
 		assert.Equal(t, "hello-webrpc", s.Name)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
@@ -100,7 +100,7 @@ func TestRIDLImport(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1 # version number
   name     = hello-webrpc
 
@@ -111,7 +111,7 @@ func TestRIDLImport(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "v1", s.WebRPCVersion)
+		assert.Equal(t, "v2", s.WebRPCVersion)
 		assert.Equal(t, "hello-webrpc", s.Name)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
@@ -123,7 +123,7 @@ func TestRIDLImport(t *testing.T) {
 func TestRIDLEnum(t *testing.T) {
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
@@ -148,6 +148,7 @@ func TestRIDLEnum(t *testing.T) {
 
 		assert.Equal(t, "Kind", string(s.Types[0].Name))
 		assert.Equal(t, "enum", string(s.Types[0].Kind))
+		assert.Equal(t, "uint32", string(s.Types[0].Type.String()))
 
 		assert.Equal(t, "USER", string(s.Types[0].Fields[0].Name))
 		assert.Equal(t, "ADMIN", string(s.Types[0].Fields[1].Name))
@@ -155,15 +156,16 @@ func TestRIDLEnum(t *testing.T) {
 		assert.Equal(t, "33", string(s.Types[0].Fields[0].Value))
 		assert.Equal(t, "44", string(s.Types[0].Fields[1].Value))
 
-		assert.Equal(t, "uint32", string(s.Types[0].Fields[0].Type.String()))
-		assert.Equal(t, "uint32", string(s.Types[0].Fields[1].Type.String()))
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[0].Fields[0].Type)
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[0].Fields[1].Type)
 
 		assert.Equal(t, "KindTwo", string(s.Types[1].Name))
 		assert.Equal(t, "enum", string(s.Types[1].Kind))
+		assert.Equal(t, "uint32", string(s.Types[1].Type.String()))
 
-		assert.Equal(t, "uint32", string(s.Types[1].Fields[0].Type.String()))
-		assert.Equal(t, "uint32", string(s.Types[1].Fields[1].Type.String()))
-		assert.Equal(t, "uint32", string(s.Types[1].Fields[2].Type.String()))
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[1].Fields[0].Type)
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[1].Fields[1].Type)
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[1].Fields[2].Type)
 
 		assert.Equal(t, "0", string(s.Types[1].Fields[0].Value))
 		assert.Equal(t, "1", string(s.Types[1].Fields[1].Value))
@@ -174,7 +176,7 @@ func TestRIDLEnum(t *testing.T) {
 func TestRIDLTypes(t *testing.T) {
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
@@ -189,7 +191,7 @@ func TestRIDLTypes(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
@@ -205,7 +207,7 @@ func TestRIDLTypes(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
@@ -230,7 +232,7 @@ func TestRIDLTypes(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
@@ -268,7 +270,7 @@ func TestRIDLTypes(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
@@ -296,7 +298,7 @@ func TestRIDLTypes(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
@@ -325,7 +327,7 @@ func TestRIDLTypes(t *testing.T) {
 func TestRIDLService(t *testing.T) {
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
@@ -341,7 +343,7 @@ func TestRIDLService(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
           name = hello-webrpc
 
@@ -370,7 +372,7 @@ func TestRIDLService(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
     name = hello-webrpc
 
@@ -394,7 +396,7 @@ func TestRIDLService(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
     name = hello-webrpc
 
@@ -436,10 +438,10 @@ func TestRIDLTables(t *testing.T) {
 	}{
 		{
 			// Whitespace bug
-			"webrpc = v1\n \nname = test\n   \nversion=v1.1\n",
+			"webrpc = v2\n \nname = test\n   \nversion=v1.1\n",
 			[]byte(`
         {
-         "webrpc": "v1",
+         "webrpc": "v2",
          "name": "test",
          "version": "v1.1",
          "imports": [],
@@ -449,10 +451,10 @@ func TestRIDLTables(t *testing.T) {
     `),
 		},
 		{
-			"webrpc = v1\n \nname = test\n",
+			"webrpc = v2\n \nname = test\n",
 			[]byte(`
         {
-         "webrpc": "v1",
+         "webrpc": "v2",
          "name": "test",
          "version": "",
          "imports": [],
@@ -463,7 +465,7 @@ func TestRIDLTables(t *testing.T) {
 		},
 		{
 			`
-        webrpc = v1
+        webrpc = v2
 
         name = hello-webrpc
         version = v0.0.1
@@ -474,7 +476,7 @@ func TestRIDLTables(t *testing.T) {
       `,
 			[]byte(`
 				{
-				 "webrpc": "v1",
+				 "webrpc": "v2",
 				 "name": "hello-webrpc",
 				 "version": "v0.0.1",
 				 "imports": [

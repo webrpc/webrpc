@@ -35,29 +35,29 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 	}
 
 	{
-		p, err := newStringParser("\n\n\n\nwebrpc=v1 #a comment\n")
+		p, err := newStringParser("\n\n\n\nwebrpc=v2 #a comment\n")
 		assert.NoError(t, err)
 
 		err = p.run()
 		assert.NoError(t, err)
 
 		assert.Equal(t, "webrpc", p.root.Definitions()[0].Left().String())
-		assert.Equal(t, "v1", p.root.Definitions()[0].Right().String())
+		assert.Equal(t, "v2", p.root.Definitions()[0].Right().String())
 	}
 
 	{
-		p, err := newStringParser("\n\n\n\nwebrpc\t=\tv1. # a comment\n")
+		p, err := newStringParser("\n\n\n\nwebrpc\t=\tv2. # a comment\n")
 		assert.NoError(t, err)
 
 		err = p.run()
 		assert.NoError(t, err)
 
 		assert.Equal(t, "webrpc", p.root.Definitions()[0].Left().String())
-		assert.Equal(t, "v1.", p.root.Definitions()[0].Right().String())
+		assert.Equal(t, "v2.", p.root.Definitions()[0].Right().String())
 	}
 
 	{
-		p, err := newStringParser("\n\n\n\nwebrpc = v1 .# a comment\nname=FOO")
+		p, err := newStringParser("\n\n\n\nwebrpc = v2 .# a comment\nname=FOO")
 		assert.NoError(t, err)
 
 		err = p.run()
@@ -67,14 +67,14 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 	}
 
 	{
-		p, err := newStringParser("\n\n\n\nwebrpc = v1 # a comment\t\t\n\n\tname   = \tEXAMPLE_SERVICE   \n\nversion = v1.2.3")
+		p, err := newStringParser("\n\n\n\nwebrpc = v2 # a comment\t\t\n\n\tname   = \tEXAMPLE_SERVICE   \n\nversion = v1.2.3")
 		assert.NoError(t, err)
 
 		err = p.run()
 		assert.NoError(t, err)
 
 		expectations := []expectation{
-			{"webrpc", "v1"},
+			{"webrpc", "v2"},
 			{"name", "EXAMPLE_SERVICE"},
 			{"version", "v1.2.3"},
 		}
@@ -86,14 +86,14 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 	}
 
 	{
-		p, err := newStringParser("\n\n\n\nwebrpc = v1 # a comment\n\tname =foo-bar#")
+		p, err := newStringParser("\n\n\n\nwebrpc = v2 # a comment\n\tname =foo-bar#")
 		assert.NoError(t, err)
 
 		err = p.run()
 		assert.NoError(t, err)
 
 		expectations := []expectation{
-			{"webrpc", "v1"},
+			{"webrpc", "v2"},
 			{"name", "foo-bar#"},
 		}
 
@@ -341,7 +341,7 @@ func TestParserImport(t *testing.T) {
 	{
 		p, err := newStringParser(`
 			# api.ridl
-			webrpc = v1
+			webrpc = v2
 
 			import "./users.ridl" #comment
 			import "./users # .ridl" #comment
@@ -359,7 +359,7 @@ func TestParserImport(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.Equal(t, "webrpc", p.root.Definitions()[0].Left().String())
-		assert.Equal(t, "v1", p.root.Definitions()[0].Right().String())
+		assert.Equal(t, "v2", p.root.Definitions()[0].Right().String())
 
 		assert.Equal(t, "./users.ridl", p.root.Imports()[0].Path().String())
 		assert.Equal(t, "./users # .ridl", p.root.Imports()[1].Path().String())
@@ -773,7 +773,7 @@ func TestParserExamples(t *testing.T) {
 	{
 		p, err := newStringParser(`
 			# contacts.ridl
-			webrpc = v1
+			webrpc = v2
 
 			struct Contact
 				- id: int
@@ -795,7 +795,7 @@ func TestParserExamples(t *testing.T) {
 	{
 		p, err := newStringParser(`
 			# api.ridl
-			webrpc = v1
+			webrpc = v2
 
 			import "../contacts/proto/contacts.ridl"
 

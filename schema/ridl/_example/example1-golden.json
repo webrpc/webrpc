@@ -19,19 +19,18 @@
                     "meta": null,
                     "name": "USER",
                     "optional": false,
-                    "type": null,
                     "value": "1"
                 },
                 {
                     "meta": null,
                     "name": "ADMIN",
                     "optional": false,
-                    "type": null,
                     "value": "2"
                 }
             ],
             "name": "Kind",
-            "type": "enum"
+            "type": "uint32",
+            "kind": "enum"
         },
         {
             "fields": [
@@ -39,24 +38,23 @@
                     "meta": null,
                     "name": "USER",
                     "optional": false,
-                    "type": "uint32",
                     "value": "0"
                 },
                 {
                     "meta": null,
                     "name": "ADMIN",
                     "optional": false,
-                    "type": "uint32",
                     "value": "1"
                 }
             ],
             "name": "Kind2",
-            "type": "enum"
+            "type": "uint32",
+            "kind": "enum"
         },
         {
             "fields": null,
             "name": "Empty",
-            "type": "struct"
+            "kind": "struct"
         },
         {
             "fields": [
@@ -69,7 +67,7 @@
                 }
             ],
             "name": "GetUserRequest",
-            "type": "struct"
+            "kind": "struct"
         },
         {
             "fields": [
@@ -103,7 +101,7 @@
                 }
             ],
             "name": "Role",
-            "type": "struct"
+            "kind": "struct"
         },
         {
             "fields": [
@@ -165,7 +163,7 @@
                 }
             ],
             "name": "User",
-            "type": "struct"
+            "kind": "struct"
         },
         {
             "fields": [
@@ -178,7 +176,7 @@
                 }
             ],
             "name": "Notice",
-            "type": "struct"
+            "kind": "struct"
         }
     ],
     "name": "hello-webrpc",
@@ -348,5 +346,5 @@
         }
     ],
     "version": "v0.0.1",
-    "webrpc": "v1"
+    "webrpc": "v2"
 }

@@ -6,17 +6,17 @@ import (
 )
 
 type Type struct {
-	Kind   string       `json:"kind"`
-	Name   VarName      `json:"name"`
-	Type   *VarType     `json:"type"`
-	Fields []*TypeField `json:"fields"`
-	TypeExtra
+	Kind       string       `json:"kind"`
+	Name       VarName      `json:"name"`
+	Type       *VarType     `json:"type,omitempty"`
+	Fields     []*TypeField `json:"fields"`
+	*TypeExtra `json:",omitempty"`
 }
 
 type TypeField struct {
-	Name VarName  `json:"name"`
-	Type *VarType `json:"type"`
-	TypeExtra
+	Name       VarName  `json:"name"`
+	Type       *VarType `json:"type,omitempty"`
+	*TypeExtra `json:",omitempty"`
 }
 
 type TypeExtra struct {
@@ -115,7 +115,7 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 			}
 
 			// Ensure value isn't set
-			if field.Value != "" {
+			if field.TypeExtra != nil && field.Value != "" {
 				return fmt.Errorf("schema error: struct '%s' with field '%s' cannot contain value field - please remove it", m.Name, field.Name)
 			}
 		}

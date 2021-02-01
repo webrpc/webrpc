@@ -25,14 +25,14 @@ func TestError(t *testing.T) {
 		`name = myapi1
 			name = myapi2`,
 		`
-				webrpc = v1
+				webrpc = v2
 				name = foo
 				version = v1
 
 				import -
 			`,
 		`
-				webrpc = v1
+				webrpc = v2
 				name = foo
 				version = v1
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -177,7 +176,7 @@ func TestSchema(t *testing.T) {
 	schema, err := ParseSchemaJSON([]byte(input))
 	assert.NoError(t, err)
 
-	spew.Dump(schema)
+	// spew.Dump(schema)
 
 	jout, err := schema.ToJSON(true)
 	assert.NoError(t, err)
