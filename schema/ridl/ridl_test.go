@@ -173,6 +173,43 @@ func TestRIDLEnum(t *testing.T) {
 	}
 }
 
+func TestRIDLType(t *testing.T) {
+	{
+		input := `webrpc = v2
+    version = v0.1.1
+  name = hello-webrpc
+
+          # this is a comment
+            # yep
+					type balance: uint32
+					
+					# another
+					type another: string
+						+ go.tag.db = another
+						+ json = ANOTHER
+  `
+		s, err := parseString(input)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "v2", s.WebRPCVersion)
+		assert.Equal(t, "hello-webrpc", s.Name)
+		assert.Equal(t, "v0.1.1", s.SchemaVersion)
+
+		assert.Len(t, s.Types, 2)
+
+		assert.Equal(t, "type", s.Types[0].Kind)
+		assert.Equal(t, "balance", string(s.Types[0].Name))
+		assert.Equal(t, "uint32", string(s.Types[0].Type.String()))
+		assert.Equal(t, 0, len(s.Types[0].Meta))
+
+		assert.Equal(t, "type", s.Types[1].Kind)
+		assert.Equal(t, "another", string(s.Types[1].Name))
+		assert.Equal(t, "string", string(s.Types[1].Type.String()))
+		assert.Equal(t, "another", s.Types[1].Meta[0]["go.tag.db"])
+		assert.Equal(t, "ANOTHER", s.Types[1].Meta[1]["json"])
+	}
+}
+
 func TestRIDLTypes(t *testing.T) {
 	{
 		input := `
@@ -507,7 +544,7 @@ func TestRIDLTables(t *testing.T) {
 	}
 }
 
-func TestRIDLImports(t *testing.T) {
+func TestRIDLExample1(t *testing.T) {
 	os.Chdir("_example")
 
 	fp, err := os.Open("example1.ridl")

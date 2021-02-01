@@ -9,7 +9,7 @@ type Type struct {
 	Kind       string       `json:"kind"`
 	Name       VarName      `json:"name"`
 	Type       *VarType     `json:"type,omitempty"`
-	Fields     []*TypeField `json:"fields"`
+	Fields     []*TypeField `json:"fields,omitempty"`
 	*TypeExtra `json:",omitempty"`
 }
 
@@ -20,11 +20,11 @@ type TypeField struct {
 }
 
 type TypeExtra struct {
-	Optional bool   `json:"optional"` // used by structs
-	Value    string `json:"value"`    // used by enums
+	Optional bool   `json:"optional"`        // used by structs
+	Value    string `json:"value,omitempty"` // used by enums
 
 	// Meta store extra metadata on a field for plugins
-	Meta []TypeFieldMeta `json:"meta"`
+	Meta []TypeFieldMeta `json:"meta,omitempty"`
 }
 
 type TypeFieldMeta map[string]interface{}

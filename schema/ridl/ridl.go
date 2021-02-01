@@ -167,9 +167,30 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		})
 	}
 
+	// type
 	for _, line := range q.root.Types() {
-		fmt.Println("==>", line)
-		panic("TODO")
+		typeDef := &schema.Type{
+			Kind:      schemaTypeKindType,
+			Name:      schema.VarName(line.Name().String()),
+			TypeExtra: &schema.TypeExtra{},
+		}
+
+		var typeType schema.VarType
+		err := schema.ParseVarTypeExpr(s, line.TypeName().String(), &typeType)
+		if err != nil {
+			return nil, fmt.Errorf("unknown data type: %v", line.TypeName())
+		}
+		typeDef.Type = &typeType
+
+		// typeDef.Meta
+		for _, meta := range line.Extra().Meta() {
+			key, val := meta.Left().String(), meta.Right().String()
+			typeDef.Meta = append(typeDef.Meta, schema.TypeFieldMeta{
+				key: val,
+			})
+		}
+
+		s.Types = append(s.Types, typeDef)
 	}
 
 	// enum fields
@@ -186,7 +207,6 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		if err != nil {
 			return nil, fmt.Errorf("unknown data type: %v", line.TypeName())
 		}
-
 		enumDef.Type = &enumType
 
 		for i, def := range line.Values() {

@@ -223,8 +223,9 @@ func (in ImportNode) Type() NodeType {
 type TypeNode struct {
 	node
 
-	name  *TokenNode
-	extra *DefinitionNode // TODO: review..
+	name     *TokenNode
+	typeType *TokenNode
+	extra    *DefinitionNode
 }
 
 func (tn TypeNode) Type() NodeType {
@@ -233,6 +234,10 @@ func (tn TypeNode) Type() NodeType {
 
 func (tn TypeNode) Name() *TokenNode {
 	return tn.name
+}
+
+func (tn TypeNode) TypeName() *TokenNode {
+	return tn.typeType
 }
 
 func (tn TypeNode) Extra() *DefinitionNode {
