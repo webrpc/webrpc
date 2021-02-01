@@ -12,21 +12,21 @@
             "path": "example1-partials.ridl"
         }
     ],
-    "messages": [
+    "types": [
         {
             "fields": [
                 {
                     "meta": null,
                     "name": "USER",
                     "optional": false,
-                    "type": "uint32",
+                    "type": null,
                     "value": "1"
                 },
                 {
                     "meta": null,
                     "name": "ADMIN",
                     "optional": false,
-                    "type": "uint32",
+                    "type": null,
                     "value": "2"
                 }
             ],

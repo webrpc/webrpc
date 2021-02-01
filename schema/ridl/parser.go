@@ -11,10 +11,11 @@ import (
 )
 
 const (
+	wordType    = "type"
 	wordEnum    = "enum"
+	wordStruct  = "struct"
 	wordImport  = "import"
 	wordMap     = "map"
-	wordMessage = "message"
 	wordName    = "name"
 	wordProxy   = "proxy"
 	wordService = "service"
@@ -390,15 +391,19 @@ func parserStateDeclaration(p *parser) parserState {
 		// import
 		//   - <value> [<# comment>]
 		return parserStateImport
+	case wordType:
+		// type <name>: <type>
+		//   + <tag.name> = <VALUE>
+		return parserStateType
 	case wordEnum:
 		// enum <name>: <type>
 		//   - <name>[<space>=<space><value>][<#comment>]
 		return parserStateEnum
-	case wordMessage:
-		// message <name>
+	case wordStruct:
+		// struct <name>
 		//   - <name>: <type>
 		//     + <tag.name> = <VALUE>
-		return parserStateMessage
+		return parserStateStruct
 	case wordService:
 		// service <name>
 		//   - <name>([arguments]) [=> ([arguments])]

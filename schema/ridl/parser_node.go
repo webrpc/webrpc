@@ -8,8 +8,9 @@ const (
 	TokenNodeType
 	DefinitionNodeType
 	ImportNodeType
+	TypeNodeType
 	EnumNodeType
-	MessageNodeType
+	StructNodeType
 	ArgumentNodeType
 	MethodNodeType
 	ServiceNodeType
@@ -81,15 +82,15 @@ func (rn RootNode) Imports() []*ImportNode {
 	return importNodes
 }
 
-func (rn RootNode) Messages() []*MessageNode {
-	nodes := rn.Filter(MessageNodeType)
+func (rn RootNode) Structs() []*StructNode {
+	nodes := rn.Filter(StructNodeType)
 
-	messageNodes := make([]*MessageNode, 0, len(nodes))
+	structNodes := make([]*StructNode, 0, len(nodes))
 	for i := range nodes {
-		messageNodes = append(messageNodes, nodes[i].(*MessageNode))
+		structNodes = append(structNodes, nodes[i].(*StructNode))
 	}
 
-	return messageNodes
+	return structNodes
 }
 
 func (rn RootNode) Enums() []*EnumNode {
@@ -101,6 +102,17 @@ func (rn RootNode) Enums() []*EnumNode {
 	}
 
 	return enumNodes
+}
+
+func (rn RootNode) Types() []*TypeNode {
+	nodes := rn.Filter(TypeNodeType)
+
+	typeNodes := make([]*TypeNode, 0, len(nodes))
+	for i := range nodes {
+		typeNodes = append(typeNodes, nodes[i].(*TypeNode))
+	}
+
+	return typeNodes
 }
 
 func (rn RootNode) Services() []*ServiceNode {
@@ -208,6 +220,25 @@ func (in ImportNode) Type() NodeType {
 	return ImportNodeType
 }
 
+type TypeNode struct {
+	node
+
+	name  *TokenNode
+	extra *DefinitionNode // TODO: review..
+}
+
+func (tn TypeNode) Type() NodeType {
+	return TypeNodeType
+}
+
+func (tn TypeNode) Name() *TokenNode {
+	return tn.name
+}
+
+func (tn TypeNode) Extra() *DefinitionNode {
+	return tn.extra
+}
+
 type EnumNode struct {
 	node
 
@@ -232,22 +263,22 @@ func (en EnumNode) Values() []*DefinitionNode {
 	return en.values
 }
 
-type MessageNode struct {
+type StructNode struct {
 	node
 
 	name   *TokenNode
 	fields []*DefinitionNode
 }
 
-func (mn MessageNode) Name() *TokenNode {
+func (mn StructNode) Name() *TokenNode {
 	return mn.name
 }
 
-func (mn *MessageNode) Type() NodeType {
-	return MessageNodeType
+func (mn *StructNode) Type() NodeType {
+	return StructNodeType
 }
 
-func (mn *MessageNode) Fields() []*DefinitionNode {
+func (mn *StructNode) Fields() []*DefinitionNode {
 	return mn.fields
 }
 

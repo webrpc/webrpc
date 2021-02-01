@@ -6,10 +6,10 @@ version = v0.1
 import
   - ../example1-partials.ridl
 
-message MessageA
+struct MessageA
   - name: string
   - last_name: string
 
-message MessageB
+struct MessageB
   - foo: string
   - bar: string

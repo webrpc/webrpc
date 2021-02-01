@@ -107,8 +107,6 @@ func parserStateImport(p *parser) parserState {
 		return parserStateImportMembers(p, importNode)
 	}
 
-	return parserDefaultState
-
 }
 
 func (p *parser) expectPath() (*token, error) {
