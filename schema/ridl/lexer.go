@@ -9,7 +9,7 @@ var (
 )
 
 var (
-	wordBeginning = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")
+	wordBeginning = []rune("$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")
 	wordBreak     = []rune("\x00 \t\r\n[]()<>{}=:¿?¡!,\"")
 )
 

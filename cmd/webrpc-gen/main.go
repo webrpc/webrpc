@@ -3,15 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-
 	"github.com/webrpc/webrpc"
 	"github.com/webrpc/webrpc/gen"
 	_ "github.com/webrpc/webrpc/gen/golang"
 	_ "github.com/webrpc/webrpc/gen/javascript"
 	_ "github.com/webrpc/webrpc/gen/typescript"
+	schema2 "github.com/webrpc/webrpc/schema"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 var flags = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
@@ -50,6 +50,52 @@ func main() {
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
+	}
+
+	cpy, err := webrpc.ParseSchemaFile(*schemaFlag)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	cpy2, err := webrpc.ParseSchemaFile(*schemaFlag)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	for _, msg := range cpy.Messages {
+		msg.Name = "Partial" + msg.Name
+		for _, field := range msg.Fields {
+			field.Optional = true
+		}
+		keys := schema2.MessageField{
+			Name: "keys",
+			Type: &schema2.VarType{
+				Type: schema2.T_List,
+				List: &schema2.VarListType{
+					Elem: &schema2.VarType{
+						Type:   schema2.T_String,
+						List:   nil,
+						Map:    nil,
+						Struct: nil,
+					},
+				},
+				Map:    nil,
+				Struct: nil,
+			},
+			Optional: false,
+			Value:    "",
+			Meta:     nil,
+		}
+		msg.Fields = append(msg.Fields, &keys)
+	}
+
+	schema.Messages = []*schema2.Message{}
+
+	for i, msg := range cpy.Messages {
+		schema.Messages = append(schema.Messages, cpy2.Messages[i])
+		schema.Messages = append(schema.Messages, msg)
 	}
 
 	// Test the schema file (useful for ridl files)

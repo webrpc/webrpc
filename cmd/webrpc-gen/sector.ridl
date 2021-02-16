@@ -1,0 +1,82 @@
+webrpc = v1
+
+name = api
+version = v0.0.1
+import ./status.ridl
+
+message Buyer
+  - name: string
+  - email: string
+
+message SectorData
+  - buyer: Buyer
+  - arr: []string
+
+message Quote
+- id?: uint32
+  + go.field.name = ID
+- title: string
+- program_id: uint32
+  + go.field.name = ProgramID
+- floorplan_id?: uint32
+  + go.field.name = FloorplanID
+- logo?: string
+- description?: string
+- data: map<string,any>
+- status: map<string,any>
+
+message Sector
+  - id?: uint32
+    + go.field.name = ID
+  - uuid: string
+    + go.field.name = UUID
+  - company_id: uint32
+    + go.field.name = CompanyID
+  - program_id: uint32
+    + go.field.name = ProgramID
+  - user_id: uint32
+    + go.field.name = UserID
+  - name: string
+  - floor_no: uint32
+    + go.field.name = FloorNo
+  - data?: SectorData
+  - floorplan?: Floorplan
+  - owner_name?: string
+    + go.field.name = OwnerName
+  - owner_email?: string
+    + go.field.name = OwnerEmail
+  - owner_phone?: string
+    + go.field.name = OwnerPhone
+  - original_bf_id: uint32
+    + go.field.name = OriginalBF
+  - status: map<string,any>
+
+
+message Floorplan
+  - id?: uint32
+    + go.field.name = ID
+  - sector_id: uint32
+    + go.field.name = SectorID
+  - name: string
+  - image: string
+  - data: map<string,any>
+  - status?: map<string,any>
+  - version: uint32
+  - quote: map<string,any>
+
+message BaseFloorplan
+  - id: uint32
+    + go.field.name = ID
+  - sector_id: uint32
+    + go.field.name = SectorID
+  - data: map<string,any>
+  - status?: map<string,any>
+
+service SectorService
+  - GetBaseFloorplansBySector(sector_id: uint32) => (result: []BaseFloorplan)
+  - UpdateFloorplan(id: uint32, floorplan: $Floorplan) => (status: Status)
+  - CreateFloorplan(floorplan: Floorplan, sectorStatus: string) => (status: Status)
+  - GetFloorplanImageUploadURL(id: uint32) => (url: string)
+  - GetByUUID(uuid: string) => (result: Sector)
+  - Get(id: uint32) => (result: Sector)
+  - GetCurrent() => (result: []Sector)

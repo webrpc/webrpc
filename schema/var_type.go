@@ -137,13 +137,20 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 	case T_Unknown:
 
 		structExpr := expr
+		structName := expr
+
+		if strings.HasPrefix(structExpr, "$") {
+			structExpr = expr[1:len(expr)]
+			structName = "Partial" + expr[1:len(expr)]
+		}
+
 		msg, ok := getMessageType(schema, structExpr)
 		if !ok || msg == nil {
 			return errors.Errorf("schema error: invalid struct/message type '%s'", structExpr)
 		}
 
 		vt.Type = T_Struct
-		vt.Struct = &VarStructType{Name: structExpr, Message: msg}
+		vt.Struct = &VarStructType{Name: structName, Message: msg}
 
 	default:
 		// basic type, we're done here
