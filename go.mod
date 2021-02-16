@@ -1,4 +1,4 @@
-module github.com/webrpc/webrpc
+module gitlab.com/logement3d/webrpc
 
 go 1.15
 
