@@ -8,9 +8,9 @@ import (
 	"text/template"
 
 	"github.com/goware/statik/fs"
-	"github.com/webrpc/webrpc/gen"
-	"github.com/webrpc/webrpc/gen/javascript/embed"
-	"github.com/webrpc/webrpc/schema"
+	"gitlab.com/logement3d/webrpc/gen"
+	"gitlab.com/logement3d/webrpc/gen/javascript/embed"
+	"gitlab.com/logement3d/webrpc/schema"
 )
 
 func init() {

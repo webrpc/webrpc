@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/webrpc/webrpc/gen"
-	"github.com/webrpc/webrpc/schema"
+	"gitlab.com/logement3d/webrpc/gen"
+	"gitlab.com/logement3d/webrpc/schema"
 )
 
 const input = `

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/webrpc/webrpc/schema"
+	"gitlab.com/logement3d/webrpc/schema"
 )
 
 var (

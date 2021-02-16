@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/webrpc/webrpc/gen"
-	"github.com/webrpc/webrpc/schema"
+	"gitlab.com/logement3d/webrpc/gen"
+	"gitlab.com/logement3d/webrpc/schema"
 )
 
 var fieldTypeMap = map[schema.DataType]string{

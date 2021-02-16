@@ -9,9 +9,9 @@ import (
 
 	"github.com/goware/statik/fs"
 	"github.com/pkg/errors"
-	"github.com/webrpc/webrpc/gen"
-	"github.com/webrpc/webrpc/gen/golang/embed"
-	"github.com/webrpc/webrpc/schema"
+	"gitlab.com/logement3d/webrpc/gen"
+	"gitlab.com/logement3d/webrpc/gen/golang/embed"
+	"gitlab.com/logement3d/webrpc/schema"
 )
 
 func init() {

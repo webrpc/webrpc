@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
-	"github.com/webrpc/webrpc/schema"
-	"github.com/webrpc/webrpc/schema/ridl"
+	"gitlab.com/logement3d/webrpc/schema"
+	"gitlab.com/logement3d/webrpc/schema/ridl"
 )
 
 const VERSION = "v0.6.0"
