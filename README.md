@@ -71,12 +71,12 @@ how the `golang-basics` example was built.
 
 ## Why
 
-**TLDR;** its much simpler and faster to write + consume webrpc services than traditional approaches
+**TLDR;** its much simpler + faster to write and consume a webrpc service than traditional approaches
 like a REST api or gRPC service.
 
   1. Code-generate your client libraries in full -- never write another API client again
-  2. Compatible with the Web. A Webrpc server transport is just HTTP/HTTPS with JSON, and thus
-     all existing load balancers, proxies and tools work out of the box (versus gRPC). cURL "just works".
+  2. Compatible with the Web. A Webrpc server is just a HTTP/HTTPS server that speaks JSON, and thus
+     all existing load balancers, proxies, caches, and tools work out of the box (versus gRPC). cURL "just works".
   3. Be more productive, write more correct systems.
 
 ---
