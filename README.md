@@ -71,10 +71,20 @@ how the `golang-basics` example was built.
 
 ## Why
 
-Writing a Web service / microservice takes a lot of work and time. There are many pieces
-to build -- designing the routes of your service, agreeing on conventions for the routes
-with your team, the request payloads, the response payloads, writing the actual server logic,
-routing the methods and requests to the server handlers, implementing the handlers, and
+**TLDR;** its much simpler and faster to write + consume webrpc services than traditional approaches
+like a REST api or gRPC service.
+
+  1. Code-generate your client libraries in full -- never write another API client again
+  2. Compatible with the Web. A Webrpc server transport is just HTTP/HTTPS with JSON, and thus
+     all existing load balancers, proxies and tools work out of the box (versus gRPC). cURL "just works".
+  3. Be more productive, write more correct systems.
+
+---
+
+Writing a Web service / microservice takes a lot of work and time. REST is making me tired.
+There are many pieces to build -- designing the routes of your service, agreeing on conventions
+for the routes with your team, the request payloads, the response payloads, writing the actual server
+logic, routing the methods and requests to the server handlers, implementing the handlers, and
 then writing a client library for your desired language so it can speak to your Web
 service. Yikes, it's a lot of work. Want to add an additional field or handler? yea, you
 have to go through the entire cycle. And what about type-safety across the wire?
