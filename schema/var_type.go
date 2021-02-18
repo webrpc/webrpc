@@ -144,6 +144,11 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 			structName = "Partial" + expr[1:len(expr)]
 		}
 
+		if strings.HasPrefix(structExpr, "Partial") {
+			structExpr = expr[7:len(expr)]
+			structName = expr
+		}
+
 		msg, ok := getMessageType(schema, structExpr)
 		if !ok || msg == nil {
 			return errors.Errorf("schema error: invalid struct/message type '%s'", structExpr)
