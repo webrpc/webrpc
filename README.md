@@ -76,7 +76,8 @@ like a REST api or gRPC service.
 
   1. Code-generate your client libraries in full -- never write another API client again
   2. Compatible with the Web. A Webrpc server is just a HTTP/HTTPS server that speaks JSON, and thus
-     all existing load balancers, proxies, caches, and tools work out of the box (versus gRPC). cURL "just works".
+     all existing browsers, http clients, load balancers, proxies, caches, and tools work
+     out of the box (versus gRPC). cURL "just works".
   3. Be more productive, write more correct systems.
 
 ---
