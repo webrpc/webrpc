@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/webrpc/webrpc/schema"
+	"github.com/webrpc/webrpc/schema/golang"
 	"github.com/webrpc/webrpc/schema/ridl"
 )
 
@@ -51,11 +52,19 @@ func ParseSchemaFile(schemaFilePath string) (*schema.WebRPCSchema, error) {
 		rdr := ridl.NewParser(schema.NewReader(fp, path))
 		s, err := rdr.Parse()
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "failed to parse RIDL schema")
+		}
+
+		return s, nil
+	} else if ext == ".go" {
+		goParser := golang.NewParser(schema.NewReader(fp, path))
+		s, err := goParser.Parse(path)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse Go schema")
 		}
 
 		return s, nil
 	} else {
-		return nil, errors.Errorf("error! invalid extension, %s", ext)
+		return nil, errors.Errorf("unknown schema file extension .%s", ext)
 	}
 }
