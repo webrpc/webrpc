@@ -1,4 +1,4 @@
-webrpc = v1
+webrpc = v2
 
 name = node-ts
 version = v1.0.0
@@ -9,7 +9,7 @@ enum Kind: uint32
   - ADMIN
 
 
-message User
+struct User
   - ID: uint64
     + json = id
 
@@ -26,10 +26,10 @@ message User
   - createdAt?: timestamp
 
 
-message Page
+struct Page
   - num: uint32
 
 
-service ExampleService
+service Example
   - Ping() => (status: bool)
   - GetUser(userID: uint64) => (code: uint32, user: User)

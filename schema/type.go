@@ -6,22 +6,22 @@ import (
 )
 
 type Type struct {
-	Kind       string       `json:"kind"`
-	Name       VarName      `json:"name"`
-	Type       *VarType     `json:"type,omitempty"`
-	Fields     []*TypeField `json:"fields,omitempty"`
-	*TypeExtra `json:",omitempty"`
+	Kind      string       `json:"kind"`
+	Name      VarName      `json:"name"`
+	Type      *VarType     `json:"type,omitempty"`
+	Fields    []*TypeField `json:"fields,omitempty"`
+	TypeExtra `json:",omitempty"`
 }
 
 type TypeField struct {
-	Name       VarName  `json:"name"`
-	Type       *VarType `json:"type,omitempty"`
-	*TypeExtra `json:",omitempty"`
+	Name      VarName  `json:"name"`
+	Type      *VarType `json:"type,omitempty"`
+	TypeExtra `json:",omitempty"`
 }
 
 type TypeExtra struct {
-	Optional bool   `json:"optional"`        // used by structs
-	Value    string `json:"value,omitempty"` // used by enums
+	Optional bool   `json:"optional,omitempty"` // used by structs
+	Value    string `json:"value,omitempty"`    // used by enums
 
 	// Meta store extra metadata on a field for plugins
 	Meta []TypeFieldMeta `json:"meta,omitempty"`
@@ -115,7 +115,7 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 			}
 
 			// Ensure value isn't set
-			if field.TypeExtra != nil && field.Value != "" {
+			if field.Value != "" {
 				return fmt.Errorf("schema error: struct '%s' with field '%s' cannot contain value field - please remove it", m.Name, field.Name)
 			}
 		}

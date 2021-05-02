@@ -17,7 +17,7 @@ package golang
 //   "messages": [
 //     {
 //       "name": "Kind",
-//       "type": "enum",
+//       "kind": "enum",
 //       "fields": [
 //         {
 //           "name": "USER",
@@ -33,13 +33,13 @@ package golang
 //     },
 //     {
 //       "name": "Empty",
-//       "type": "struct",
+//       "kind": "struct",
 //       "fields": [
 //       ]
 //     },
 //     {
 //       "name": "GetUserRequest",
-//       "type": "struct",
+//       "kind": "struct",
 //       "fields": [
 //         {
 //           "name": "userID",
@@ -50,7 +50,7 @@ package golang
 //     },
 //     {
 //       "name": "User",
-//       "type": "struct",
+//       "kind": "struct",
 //       "fields": [
 //         {
 //           "name": "ID",
@@ -84,7 +84,7 @@ package golang
 //     },
 //     {
 //       "name": "RandomStuff",
-//       "type": "struct",
+//       "kind": "struct",
 //       "fields": [
 //         {
 //           "name": "meta",
@@ -127,7 +127,7 @@ package golang
 //   ],
 //   "services": [
 //     {
-//       "name": "ExampleService",
+//       "name": "Example",
 //       "methods": [
 //         {
 //           "name": "Ping",

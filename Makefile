@@ -39,6 +39,10 @@ test: generate
 generate:
 	go generate ./...
 
+.PHONY: generate-examples
+generate-examples:
+	@for d in ./_examples/* ; do (cd "$$d" && make generate); done
+
 dep:
 	@export GO111MODULE=on && go mod tidy
 

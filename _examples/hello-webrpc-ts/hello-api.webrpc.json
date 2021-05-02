@@ -1,33 +1,32 @@
 {
-  "webrpc": "v1",
+  "webrpc": "v2",
   "name": "hello-api",
   "version": "v0.0.1",
   "types": [
     {
       "name": "Kind",
-      "type": "enum",
+      "kind": "enum",
+      "type": "uint32",
       "fields": [
         {
           "name": "USER",
-          "type": "uint32",
           "value": "1"
         },
         {
           "name": "ADMIN",
-          "type": "uint32",
           "value": "2"
         }
       ]
     },
     {
       "name": "Empty",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
       ]
     },
     {
       "name": "GetUserRequest",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "userID",
@@ -38,7 +37,7 @@
     },
     {
       "name": "User",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "ID",
@@ -78,7 +77,7 @@
   ],
   "services": [
     {
-      "name": "ExampleService",
+      "name": "Example",
       "methods": [
         {
           "name": "Ping",

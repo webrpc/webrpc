@@ -14,7 +14,7 @@ enum Kind2: uint32
   - USER                 # aka, = 0
   - ADMIN                # aka, = 1
 
-service PingerService
+service Pinger
 
   # comment can go here
   # too .. :)

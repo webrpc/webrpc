@@ -1,4 +1,4 @@
-webrpc = v1             # version of webrpc schema format (ridl or json)
+webrpc = v2             # version of webrpc schema format (ridl or json)
 
 name = example          # name of your backend app
 version = v0.0.1        # version of your schema
@@ -9,10 +9,10 @@ enum Kind: uint32
   - ADMIN
 
 
-message Empty
+struct Empty
 
 
-message User
+struct User
   - id: uint64
     + json = id
     + go.field.name = ID
@@ -25,15 +25,15 @@ message User
   - role: string
     + go.tag.db = -
 
-message SearchFilter
+struct SearchFilter
   - q: string
 
-message Version
+struct Version
   - webrpcVersion: string
   - schemaVersion: string
   - schemaHash: string
 
-message ComplexType
+struct ComplexType
   - meta: map<string,any>
   - metaNestedExample: map<string,map<string,uint32>>
   - namesList: []string
@@ -45,7 +45,7 @@ message ComplexType
   - user: User
 
 
-service ExampleService
+service Example
   - Ping()
   - Status() => (status: bool)
   - Version() => (version: Version)

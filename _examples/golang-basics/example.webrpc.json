@@ -2,10 +2,10 @@
   "webrpc": "v1",
   "name": "example",
   "version": "v0.0.1",
-  "messages": [
+  "types": [
     {
       "name": "Kind",
-      "type": "enum",
+      "kind": "enum",
       "fields": [
         {
           "name": "USER",
@@ -21,13 +21,13 @@
     },
     {
       "name": "Empty",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
       ]
     },
     {
       "name": "User",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "ID",
@@ -70,7 +70,7 @@
     },
     {
       "name": "ComplexType",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "meta",
@@ -113,7 +113,7 @@
   ],
   "services": [
     {
-      "name": "ExampleService",
+      "name": "Example",
       "methods": [
         {
           "name": "Ping",

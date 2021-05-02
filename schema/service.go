@@ -17,7 +17,7 @@ type Method struct {
 
 	StreamInput  bool `json:"streamInput,omitempty"`
 	StreamOutput bool `json:"streamOutput,omitempty"`
-	Proxy        bool `json:"-"` // TODO: actual implementation
+	// Proxy        bool `json:"-"` // TODO: actual implementation
 
 	Inputs  []*MethodArgument `json:"inputs"`
 	Outputs []*MethodArgument `json:"outputs"`
@@ -28,7 +28,7 @@ type Method struct {
 type MethodArgument struct {
 	Name     VarName  `json:"name"`
 	Type     *VarType `json:"type"`
-	Optional bool     `json:"optional"`
+	Optional bool     `json:"optional,omitempty"`
 
 	InputArg  bool `json:"-"` // denormalize/back-reference
 	OutputArg bool `json:"-"` // denormalize/back-reference

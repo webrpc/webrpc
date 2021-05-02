@@ -1,33 +1,32 @@
 {
-  "webrpc": "v1",
+  "webrpc": "v2",
   "name": "example",
   "version":" v0.0.1",
-  "messages": [
+  "types": [
     {
+      "kind": "enum",
       "name": "Kind",
-      "type": "enum",
+      "type": "uint32",
       "fields": [
         {
           "name": "USER",
-          "type": "uint32",
           "value": "1"
         },
         {
           "name": "ADMIN",
-          "type": "uint32",
           "value": "2"
         }
       ]
     },
     {
+      "kind": "struct",
       "name": "Empty",
-      "type": "struct",
       "fields": [
       ]
     },
     {
+      "kind": "struct",
       "name": "GetUserRequest",
-      "type": "struct",
       "fields": [
         {
           "name": "userID",
@@ -38,7 +37,7 @@
     },
     {
       "name": "User",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "ID",
@@ -67,12 +66,11 @@
             { "go.tag.db": "created_at" }
           ]
         }
-
       ]
     },
     {
+      "kind": "struct",
       "name": "RandomStuff",
-      "type": "struct",
       "fields": [
         {
           "name": "meta",
@@ -115,7 +113,7 @@
   ],
   "services": [
     {
-      "name": "ExampleService",
+      "name": "Example",
       "methods": [
         {
           "name": "Ping",
@@ -124,21 +122,6 @@
             {
               "name": "status",
               "type": "bool"
-            }
-          ]
-        },
-        {
-          "name": "GetUser",
-          "inputs": [
-            {
-              "name": "req",
-              "type": "GetUserRequest"
-            }
-          ],
-          "outputs": [
-            {
-              "name": "user",
-              "type": "User"
             }
           ]
         }

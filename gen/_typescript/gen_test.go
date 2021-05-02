@@ -16,7 +16,7 @@ const input = `
   "messages": [
     {
       "name": "Kind",
-      "type": "enum",
+      "kind": "enum",
       "fields": [
         {
           "name": "USER",
@@ -32,13 +32,13 @@ const input = `
     },
     {
       "name": "Empty",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
       ]
     },
     {
       "name": "GetUserRequest",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "userID",
@@ -49,7 +49,7 @@ const input = `
     },
     {
       "name": "User",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "ID",
@@ -83,7 +83,7 @@ const input = `
     },
     {
       "name": "RandomStuff",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "meta",
@@ -126,7 +126,7 @@ const input = `
   ],
   "services": [
     {
-      "name": "ExampleService",
+      "name": "Example",
       "methods": [
         {
           "name": "Ping",

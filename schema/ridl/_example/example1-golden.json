@@ -23,12 +23,10 @@
             "fields": [
                 {
                     "name": "USER",
-                    "optional": false,
                     "value": "1"
                 },
                 {
                     "name": "ADMIN",
-                    "optional": false,
                     "value": "2"
                 }
             ]
@@ -40,12 +38,10 @@
             "fields": [
                 {
                     "name": "USER",
-                    "optional": false,
                     "value": "0"
                 },
                 {
                     "name": "ADMIN",
-                    "optional": false,
                     "value": "1"
                 }
             ]
@@ -60,8 +56,7 @@
             "fields": [
                 {
                     "name": "userID",
-                    "type": "uint64",
-                    "optional": false
+                    "type": "uint64"
                 }
             ]
         },
@@ -71,23 +66,19 @@
             "fields": [
                 {
                     "name": "name",
-                    "type": "string",
-                    "optional": false
+                    "type": "string"
                 },
                 {
                     "name": "users",
-                    "type": "map<uint64,User>",
-                    "optional": false
+                    "type": "map<uint64,User>"
                 },
                 {
                     "name": "perms",
-                    "type": "[]string",
-                    "optional": false
+                    "type": "[]string"
                 },
                 {
                     "name": "other",
-                    "type": "map<uint64,map<string,string>>",
-                    "optional": false
+                    "type": "map<uint64,map<string,string>>"
                 }
             ]
         },
@@ -98,7 +89,6 @@
                 {
                     "name": "ID",
                     "type": "uint64",
-                    "optional": false,
                     "meta": [
                         {
                             "json": "id"
@@ -111,7 +101,6 @@
                 {
                     "name": "username",
                     "type": "string",
-                    "optional": false,
                     "meta": [
                         {
                             "json": "USERNAME"
@@ -123,13 +112,11 @@
                 },
                 {
                     "name": "amount",
-                    "type": "balance",
-                    "optional": false
+                    "type": "balance"
                 },
                 {
                     "name": "role",
                     "type": "string",
-                    "optional": false,
                     "meta": [
                         {
                             "go.tag.db": "-"
@@ -160,8 +147,7 @@
             "fields": [
                 {
                     "name": "msg",
-                    "type": "string",
-                    "optional": false
+                    "type": "string"
                 }
             ]
         },
@@ -169,7 +155,6 @@
             "kind": "type",
             "name": "balance",
             "type": "string",
-            "optional": false,
             "meta": [
                 {
                     "go.field.type": "BigInt"
@@ -182,7 +167,7 @@
     ],
     "services": [
         {
-            "name": "PingerService",
+            "name": "Pinger",
             "methods": [
                 {
                     "name": "Ping",
@@ -190,15 +175,14 @@
                     "outputs": [
                         {
                             "name": "status",
-                            "type": "bool",
-                            "optional": false
+                            "type": "bool"
                         }
                     ]
                 }
             ]
         },
         {
-            "name": "ExampleService",
+            "name": "Example",
             "methods": [
                 {
                     "name": "Ping",
@@ -206,8 +190,7 @@
                     "outputs": [
                         {
                             "name": "status",
-                            "type": "bool",
-                            "optional": false
+                            "type": "bool"
                         }
                     ]
                 },
@@ -216,15 +199,13 @@
                     "inputs": [
                         {
                             "name": "req",
-                            "type": "GetUserRequest",
-                            "optional": false
+                            "type": "GetUserRequest"
                         }
                     ],
                     "outputs": [
                         {
                             "name": "user",
-                            "type": "User",
-                            "optional": false
+                            "type": "User"
                         }
                     ]
                 },
@@ -234,8 +215,7 @@
                     "inputs": [
                         {
                             "name": "req",
-                            "type": "string",
-                            "optional": false
+                            "type": "string"
                         }
                     ],
                     "outputs": []
@@ -247,8 +227,7 @@
                     "outputs": [
                         {
                             "name": "resp",
-                            "type": "string",
-                            "optional": false
+                            "type": "string"
                         }
                     ]
                 },
@@ -259,15 +238,13 @@
                     "inputs": [
                         {
                             "name": "req",
-                            "type": "string",
-                            "optional": false
+                            "type": "string"
                         }
                     ],
                     "outputs": [
                         {
                             "name": "resp",
-                            "type": "string",
-                            "optional": false
+                            "type": "string"
                         }
                     ]
                 },
@@ -284,8 +261,7 @@
                     "outputs": [
                         {
                             "name": "resp",
-                            "type": "Notice",
-                            "optional": false
+                            "type": "Notice"
                         }
                     ]
                 },
@@ -294,8 +270,7 @@
                     "inputs": [
                         {
                             "name": "seq",
-                            "type": "int32",
-                            "optional": false
+                            "type": "int32"
                         },
                         {
                             "name": "header",
@@ -304,20 +279,17 @@
                         },
                         {
                             "name": "ids",
-                            "type": "[]uint64",
-                            "optional": false
+                            "type": "[]uint64"
                         }
                     ],
                     "outputs": [
                         {
                             "name": "code",
-                            "type": "bool",
-                            "optional": false
+                            "type": "bool"
                         },
                         {
                             "name": "ids",
-                            "type": "[]bool",
-                            "optional": false
+                            "type": "[]bool"
                         }
                     ]
                 },
@@ -326,18 +298,15 @@
                     "inputs": [
                         {
                             "name": "n",
-                            "type": "uint64",
-                            "optional": false
+                            "type": "uint64"
                         },
                         {
                             "name": "stuff",
-                            "type": "[]map<uint64,string>",
-                            "optional": false
+                            "type": "[]map<uint64,string>"
                         },
                         {
                             "name": "etc",
-                            "type": "string",
-                            "optional": false
+                            "type": "string"
                         }
                     ],
                     "outputs": [

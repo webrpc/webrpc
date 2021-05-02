@@ -51,7 +51,7 @@ struct Notice
   - msg: string
 
 
-service ExampleService
+service Example
 
   # comment can go here
   # too .. :)

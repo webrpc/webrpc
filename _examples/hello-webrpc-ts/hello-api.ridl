@@ -40,7 +40,7 @@ struct Page
   - num: uint32
 
 
-service ExampleService
+service Example
   - Ping() => (status: bool)
   - GetUser(userID: uint64) => (user: User)
   - FindUsers(q: string) => (page: Page, users: []User)

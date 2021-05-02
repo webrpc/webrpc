@@ -27,17 +27,17 @@ webrpc = v1
 name = your-app
 version = v0.1.0
 
-message User
+struct User
   - id: uint64
   - username: string
   - createdAt?: timestamp
 
-message UsersQueryFilter
+struct UsersQueryFilter
   - page?: uint32
   - name?: string
   - location?: string
 
-service ExampleService
+service Example
   - Ping()
   - Status() => (status: bool)
   - GetUserByID(userID: uint64) => (user: User)

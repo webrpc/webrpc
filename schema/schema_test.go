@@ -132,7 +132,7 @@ func TestSchema(t *testing.T) {
 		],
 		"services": [
 			{
-				"name": "ExampleService",
+				"name": "Example",
 				"methods": [
 					{
 						"name": "Ping",

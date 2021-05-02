@@ -172,7 +172,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		typeDef := &schema.Type{
 			Kind:      schemaTypeKindType,
 			Name:      schema.VarName(line.Name().String()),
-			TypeExtra: &schema.TypeExtra{},
+			TypeExtra: schema.TypeExtra{},
 		}
 
 		var typeType schema.VarType
@@ -218,7 +218,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 			enumDef.Fields = append(enumDef.Fields, &schema.TypeField{
 				Name: schema.VarName(key),
-				TypeExtra: &schema.TypeExtra{
+				TypeExtra: schema.TypeExtra{
 					Value: val,
 				},
 			})
@@ -246,7 +246,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			field := &schema.TypeField{
 				Name: schema.VarName(fieldName),
 				Type: &varType,
-				TypeExtra: &schema.TypeExtra{
+				TypeExtra: schema.TypeExtra{
 					Optional: def.Optional(),
 				},
 			}
