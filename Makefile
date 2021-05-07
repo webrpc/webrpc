@@ -19,9 +19,6 @@ all:
 	@echo "   - dep-upgrade-all"
 	@echo ""
 
-tools:
-	GO111MODULE=off go get -u github.com/goware/statik
-
 build:
 	go generate ./gen/...
 	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen
