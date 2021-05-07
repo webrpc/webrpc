@@ -1,8 +1,7 @@
 language: go
 
 go:
-  - 1.13
+  - 1.16
 
 script:
-  - make tools
   - make test
