@@ -20,7 +20,6 @@ all:
 	@echo ""
 
 build:
-	go generate ./gen/...
 	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen
 	go generate ./...
 
