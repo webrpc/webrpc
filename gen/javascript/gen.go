@@ -14,7 +14,7 @@ func init() {
 	gen.Register("js", &generator{})
 }
 
-//go:embed templates/*
+//go:embed templates/*.js.tmpl
 var templatesFS embed.FS
 
 type generator struct{}
@@ -24,7 +24,7 @@ func (g *generator) Gen(proto *schema.WebRPCSchema, opts gen.TargetOptions) (str
 	tmpl, err := template.
 		New("webrpc-gen-js").
 		Funcs(templateFuncMap(opts)).
-		ParseFS(templatesFS, "*.go.tmpl")
+		ParseFS(templatesFS, "templates/*.js.tmpl")
 	if err != nil {
 		return "", errors.Wrap(err, "failed to parse javascript templates")
 	}
