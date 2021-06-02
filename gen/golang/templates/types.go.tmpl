@@ -49,6 +49,16 @@
       *x = {{$enumName}}({{$enumName}}_value[j])
       return nil
     }
+
+    func (x *{{$enumName}}) UnmarshalText(b []byte) error {
+      enum := string(b)
+      *x = {{$enumName}}({{$enumName}}_value[enum])
+      return nil
+    }
+
+    func (x {{$enumName}}) MarshalText() ([]byte, error) {
+      return []byte({{$enumName}}_name[{{$enumType}}(x)]), nil
+    }
   {{end}}
   {{if .Type | isStruct  }}
     type {{.Name}} struct {
