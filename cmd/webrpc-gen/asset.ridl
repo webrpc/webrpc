@@ -1,0 +1,29 @@
+webrpc = v1
+
+name = api
+version = v0.0.1
+import ./status.ridl
+
+message AssetData
+  - type: string
+  - file: string
+
+message Asset
+  - id?: uint32
+    + go.field.name = ID
+  - uuid?: string
+    + go.field.name = UUID
+  - product_id: uint32
+    + go.field.name = ProductID
+  - resolution: string
+  - revision?: int
+  - data: AssetData
+
+service AssetService
+  - Get(id: uint32) => (result: Asset)
+  - GetAll(product_id: uint32, limit: int) => (result: []Asset)
+  - GetByUUID(uuid: string) => (result: Asset)
+  - Create(asset: Asset) => (status: Status)
+  - Update(id: uint32, asset: $Asset) => (status: Status)
+  - Remove(id: uint32) => (status: Status)
+  - GetFileUploadURL(id: uint32) => (url: string)

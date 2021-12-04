@@ -2,81 +2,112 @@ webrpc = v1
 
 name = api
 version = v0.0.1
-import ./status.ridl
+import ./asset.ridl
 
-message Buyer
+message Coordinates
+  - x: float32
+  - y: float32
+  - z: float32
+
+message Group
   - name: string
-  - email: string
 
-message SectorData
-  - buyer: Buyer
-  - arr: []string
-
-message Quote
-- id?: uint32
-  + go.field.name = ID
-- title: string
-- program_id: uint32
-  + go.field.name = ProgramID
-- floorplan_id?: uint32
-  + go.field.name = FloorplanID
-- logo?: string
-- description?: string
-- data: map<string,any>
-- status: map<string,any>
-
-message Sector
-  - id?: uint32
+message Choice
+  - name: string
+  - group?: uint32
+  - id: string
     + go.field.name = ID
-  - uuid: string
-    + go.field.name = UUID
-  - company_id: uint32
-    + go.field.name = CompanyID
-  - program_id: uint32
-    + go.field.name = ProgramID
-  - user_id: uint32
-    + go.field.name = UserID
+  - thumbnail?: string
+
+message Option
   - name: string
-  - floor_no: uint32
-    + go.field.name = FloorNo
-  - data?: SectorData
-  - floorplan?: Floorplan
-  - owner_name?: string
-    + go.field.name = OwnerName
-  - owner_email?: string
-    + go.field.name = OwnerEmail
-  - owner_phone?: string
-    + go.field.name = OwnerPhone
-  - original_bf_id: uint32
-    + go.field.name = OriginalBF
-  - status: map<string,any>
-
-
-message Floorplan
-  - id?: uint32
+  - groups?: []Group
+  - choices: []Choice
+  - id: string
     + go.field.name = ID
-  - sector_id: uint32
-    + go.field.name = SectorID
-  - name: string
-  - image: string
-  - data: map<string,any>
-  - status?: map<string,any>
-  - version: uint32
-  - quote: map<string,any>
+  - creatorOnly: bool
 
-message BaseFloorplan
+message SizeOptions
+  - step: uint32
+  - start: uint32
+  - end: uint32
+
+message ProductData
+  - size: Coordinates
+    + json = size,omitempty
+  - offset: Coordinates
+    + json = offset,omitempty
+  - options?: []Option
+  - size_options?: SizeOptions
+    + go.field.name = SizeOptions
+  - data_sheet?: string
+      + go.field.name = DataSheet
+
+message Product
   - id: uint32
     + go.field.name = ID
-  - sector_id: uint32
-    + go.field.name = SectorID
-  - data: map<string,any>
-  - status?: map<string,any>
+  - uuid?: string
+    + go.field.name = UUID
+  - name: string
+  - description: string
+  - typ: string
+  - category: Category
+  - brand: Brand
+  - data: ProductData
+  - thumbnail: string
+  - price: float32
+    + json = price,omitempty
+  - asset: []Asset
+    + json = asset,omitempty
 
-service SectorService
-  - GetBaseFloorplansBySector(sector_id: uint32) => (result: []BaseFloorplan)
-  - UpdateFloorplan(id: uint32, floorplan: $Floorplan) => (status: Status)
-  - CreateFloorplan(floorplan: Floorplan, sectorStatus: string) => (status: Status)
-  - GetFloorplanImageUploadURL(id: uint32) => (url: string)
-  - GetByUUID(uuid: string) => (result: Sector)
-  - Get(id: uint32) => (result: Sector)
-  - GetCurrent() => (result: []Sector)
+message ProductRequest
+  - id: uint32
+    + go.field.name = ID
+  - name: string
+  - description: string
+  - typ: string
+  - data: ProductData
+  - category_id: uint32
+    + go.field.name = CategoryID
+  - brand_id: uint32
+    + go.field.name = BrandID
+
+message Program
+  - id?: uint32
+    + go.field.name = ID
+  - company_id: uint32
+    + go.field.name = CompanyID
+  - name: string
+  - address: string
+  - thumbnail: string
+  - flat_count: uint32
+  - user_id: uint32
+    + go.field.name = UserID
+  - products?: []uint32
+	  + go.tag.pg = ,array
+  - data: string
+
+message Brand
+  - id: uint32
+  - name: string
+
+message Category
+  - id: uint32
+	+ go.field.name = ID
+  - parent_id: uint32
+	+ go.field.name = ParentID
+  - name: string
+
+service ProductService
+  - GetAll(typ: string, limit: int) => (result: []Product)
+  - GetByProgram(typ: string, id: uint32) => (result: []Product)
+  - Get(id: uint32) => (result: Product)
+  - Create(product: ProductRequest) => (status: Status)
+  - Update(id: uint32, product: $ProductRequest) => (status: Status)
+  - Remove(id: uint32) => (status: Status)
+  - GetBrands() => (result: []Brand)
+  - GetCategories() => (result: []Category)
+  - GetByCategory(typ: string, category: uint32, limit: int) => (result: []Product)
+  - GetThumbnailUploadURL(id: uint32) => (url: string)
+  - GetPDFUploadURL(id: uint32) => (url: string)
+  - GetOptionThumbnailUploadURL(productID: uint32, optionID: string, choiceID: string) => (url: string)
