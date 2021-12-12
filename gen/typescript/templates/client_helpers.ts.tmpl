@@ -5,6 +5,21 @@ export interface WebRPCError extends Error {
 	status: number
 }
 
+export class WebRPCError extends Error implements WebRPCError {
+  code: string
+  msg: string
+  status: number
+
+  constructor(props: { code: string; msg: string; status: number }) {
+    const { code, msg, status } = props
+    super(msg)
+    this.name = 'WebRPCError'
+    this.code = code
+    this.msg = msg
+    this.status = status
+  }
+}
+
 const createHTTPRequest = (body: object = {}, headers: object = {}): object => {
   return {
     method: 'POST',
@@ -19,10 +34,10 @@ const buildResponse = (res: Response): Promise<any> => {
     try {
       data = JSON.parse(text)
     } catch(err) {
-      throw { code: 'unknown', msg: `expecting JSON, got: ${text}`, status: res.status } as WebRPCError
+      throw new WebRPCError({ code: 'unknown', msg: `expecting JSON, got: ${text}`, status: res.status })
     }
     if (!res.ok) {
-      throw data // webrpc error response
+      throw new WebRPCError(data) // webrpc error response
     }
     return data
   })
