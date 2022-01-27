@@ -4,6 +4,8 @@
 // Client
 //
 
+type InjectHTTPRequestFunction func(*http.Request, context.Context) *http.Request
+
 {{range .Services}}
 const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
 {{end}}
@@ -21,20 +23,30 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
 {{range .Services}}
   {{ $serviceName := .Name | clientServiceName}}
   type {{$serviceName}} struct {
-    client HTTPClient
-    urls   [{{.Methods | countMethods}}]string
+    client         HTTPClient
+    urls           [{{.Methods | countMethods}}]string
+    InjectFunction InjectHTTPRequestFunction
   }
 
-  func {{.Name | newClientServiceName }}(addr string, client HTTPClient) {{.Name}}Client {
+  func {{.Name | newClientServiceName }}(addr string, client HTTPClient, injectFunction ...InjectHTTPRequestFunction) {{.Name}}Client {
     prefix := urlBase(addr) + {{.Name | constPathPrefix}}
     urls := [{{.Methods | countMethods}}]string{
       {{- range .Methods}}
       prefix + "{{.Name}}",
       {{- end}}
     }
-    return &{{$serviceName}}{
-      client: client,
-      urls:   urls,
+
+    if len(injectFunction) > 0 {
+      return &{{$serviceName}}{
+        client: client,
+        urls:   urls,
+        InjectFunction: injectFunction[0],
+      }
+    } else {
+      return &{{$serviceName}}{
+        client: client,
+        urls:   urls,
+      }
     }
   }
 
@@ -55,7 +67,7 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
       }{ {{.Inputs | methodArgNames}} }
       {{- end}}
       {{- if .StreamOutput}}
-        resp, err := clientRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}})
+        resp, err := clientRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}}, c.InjectFunction)
         if err != nil {
           return nil, err
         }
@@ -70,7 +82,7 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
           {{- end}}
         }{}
         {{- end}}
-        _, err := clientRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}})
+        _, err := clientRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}}, c.InjectFunction)
         return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} err
       {{- end}}
     }
@@ -103,7 +115,7 @@ func urlBase(addr string) string {
   return url.String()
 }
 
-func clientRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
+func clientRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}, injectFunction InjectHTTPRequestFunction) (*http.Response, error) {
   reqBody, err := json.Marshal(in)
   if err != nil {
     return nil, Errorf(ErrInvalidArgument, err, "failed to marshal json request")
@@ -123,6 +135,10 @@ func clientRequest(ctx context.Context, client HTTPClient, url string, in, out i
         req.Header.Add(k, v)
       }
     }
+  }
+
+  if injectFunction != nil {
+    req = injectFunction(req, ctx)
   }
 
   resp, err := client.Do(req)
