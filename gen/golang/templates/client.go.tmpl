@@ -4,7 +4,7 @@
 // Client
 //
 
-type InjectHTTPRequestFunction func(*http.Request, context.Context) *http.Request
+type InjectHTTPRequestFunc func(*http.Request, context.Context) *http.Request
 
 {{range .Services}}
 const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
@@ -25,10 +25,10 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
   type {{$serviceName}} struct {
     client         HTTPClient
     urls           [{{.Methods | countMethods}}]string
-    InjectFunction InjectHTTPRequestFunction
+    InjectFunc InjectHTTPRequestFunc
   }
 
-  func {{.Name | newClientServiceName }}(addr string, client HTTPClient, injectFunction InjectHTTPRequestFunction) {{.Name}}Client {
+  func {{.Name | newClientServiceName }}(addr string, client HTTPClient, injectFunc InjectHTTPRequestFunc) {{.Name}}Client {
     prefix := urlBase(addr) + {{.Name | constPathPrefix}}
     urls := [{{.Methods | countMethods}}]string{
       {{- range .Methods}}
@@ -39,7 +39,7 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
     return &{{$serviceName}}{
       client: client,
       urls:   urls,
-      InjectFunction: injectFunction,
+      InjectFunc: injectFunc,
     }
   }
 
@@ -108,7 +108,7 @@ func urlBase(addr string) string {
   return url.String()
 }
 
-func clientRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}, injectFunction InjectHTTPRequestFunction) (*http.Response, error) {
+func clientRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}, injectFunc InjectHTTPRequestFunc) (*http.Response, error) {
   reqBody, err := json.Marshal(in)
   if err != nil {
     return nil, Errorf(ErrInvalidArgument, err, "failed to marshal json request")
@@ -130,8 +130,8 @@ func clientRequest(ctx context.Context, client HTTPClient, url string, in, out i
     }
   }
 
-  if injectFunction != nil {
-    req = injectFunction(req, ctx)
+  if injectFunc != nil {
+    req = injectFunc(req, ctx)
   }
 
   resp, err := client.Do(req)
