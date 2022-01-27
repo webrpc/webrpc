@@ -28,7 +28,7 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
     InjectFunction InjectHTTPRequestFunction
   }
 
-  func {{.Name | newClientServiceName }}(addr string, client HTTPClient, injectFunction ...InjectHTTPRequestFunction) {{.Name}}Client {
+  func {{.Name | newClientServiceName }}(addr string, client HTTPClient, injectFunction InjectHTTPRequestFunction) {{.Name}}Client {
     prefix := urlBase(addr) + {{.Name | constPathPrefix}}
     urls := [{{.Methods | countMethods}}]string{
       {{- range .Methods}}
@@ -36,17 +36,10 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
       {{- end}}
     }
 
-    if len(injectFunction) > 0 {
-      return &{{$serviceName}}{
-        client: client,
-        urls:   urls,
-        InjectFunction: injectFunction[0],
-      }
-    } else {
-      return &{{$serviceName}}{
-        client: client,
-        urls:   urls,
-      }
+    return &{{$serviceName}}{
+      client: client,
+      urls:   urls,
+      InjectFunction: injectFunction,
     }
   }
 

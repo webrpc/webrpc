@@ -422,7 +422,7 @@ type exampleServiceClient struct {
 	InjectFunction InjectHTTPRequestFunction
 }
 
-func NewExampleServiceClient(addr string, client HTTPClient, injectFunction ...InjectHTTPRequestFunction) ExampleServiceClient {
+func NewExampleServiceClient(addr string, client HTTPClient, injectFunction InjectHTTPRequestFunction) ExampleServiceClient {
 	prefix := urlBase(addr) + ExampleServicePathPrefix
 	urls := [5]string{
 		prefix + "Ping",
@@ -432,17 +432,10 @@ func NewExampleServiceClient(addr string, client HTTPClient, injectFunction ...I
 		prefix + "FindUser",
 	}
 
-	if len(injectFunction) > 0 {
-		return &exampleServiceClient{
-			client:         client,
-			urls:           urls,
-			InjectFunction: injectFunction[0],
-		}
-	} else {
-		return &exampleServiceClient{
-			client: client,
-			urls:   urls,
-		}
+	return &exampleServiceClient{
+		client:         client,
+		urls:           urls,
+		InjectFunction: injectFunction,
 	}
 }
 
