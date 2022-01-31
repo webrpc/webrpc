@@ -440,7 +440,7 @@ func NewExampleServiceClient(addr string, client HTTPClient, injectFunc InjectHT
 }
 
 func (c *exampleServiceClient) Ping(ctx context.Context) error {
-	_, err := clientRequest(ctx, c.client, c.urls[0], nil, nil, c.InjectFunction)
+	_, err := clientRequest(ctx, c.client, c.urls[0], nil, nil, c.InjectFunc)
 	return err
 }
 
@@ -448,7 +448,7 @@ func (c *exampleServiceClient) Status(ctx context.Context) (bool, error) {
 	out := struct {
 		Ret0 bool `json:"status"`
 	}{}
-	_, err := clientRequest(ctx, c.client, c.urls[1], nil, &out, c.InjectFunction)
+	_, err := clientRequest(ctx, c.client, c.urls[1], nil, &out, c.InjectFunc)
 	return out.Ret0, err
 }
 
@@ -456,7 +456,7 @@ func (c *exampleServiceClient) Version(ctx context.Context) (*Version, error) {
 	out := struct {
 		Ret0 *Version `json:"version"`
 	}{}
-	_, err := clientRequest(ctx, c.client, c.urls[2], nil, &out, c.InjectFunction)
+	_, err := clientRequest(ctx, c.client, c.urls[2], nil, &out, c.InjectFunc)
 	return out.Ret0, err
 }
 
@@ -469,7 +469,7 @@ func (c *exampleServiceClient) GetUser(ctx context.Context, header map[string]st
 		Ret0 uint32 `json:"code"`
 		Ret1 *User  `json:"user"`
 	}{}
-	_, err := clientRequest(ctx, c.client, c.urls[3], in, &out, c.InjectFunction)
+	_, err := clientRequest(ctx, c.client, c.urls[3], in, &out, c.InjectFunc)
 	return out.Ret0, out.Ret1, err
 }
 
@@ -481,7 +481,7 @@ func (c *exampleServiceClient) FindUser(ctx context.Context, s *SearchFilter) (s
 		Ret0 string `json:"name"`
 		Ret1 *User  `json:"user"`
 	}{}
-	_, err := clientRequest(ctx, c.client, c.urls[4], in, &out, c.InjectFunction)
+	_, err := clientRequest(ctx, c.client, c.urls[4], in, &out, c.InjectFunc)
 	return out.Ret0, out.Ret1, err
 }
 

@@ -60,7 +60,7 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
       }{ {{.Inputs | methodArgNames}} }
       {{- end}}
       {{- if .StreamOutput}}
-        resp, err := clientRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}}, c.InjectFunction)
+        resp, err := clientRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}}, c.InjectFunc)
         if err != nil {
           return nil, err
         }
@@ -75,7 +75,7 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
           {{- end}}
         }{}
         {{- end}}
-        _, err := clientRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}}, c.InjectFunction)
+        _, err := clientRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}}, c.InjectFunc)
         return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} err
       {{- end}}
     }
