@@ -81,6 +81,19 @@ func exportedField(in schema.VarName) (string, error) {
 	return strings.ToUpper(s[0:1]) + s[1:], nil
 }
 
+func exportableField(in schema.MessageField) bool {
+	for _, meta := range in.Meta {
+		for k := range meta {
+			if k == "json" {
+				if meta[k] == "-" {
+					return false
+				}
+			}
+		}
+	}
+	return true
+}
+
 func exportedJSONField(in schema.MessageField) (string, error) {
 	for i := range in.Meta {
 		for k := range in.Meta[i] {
@@ -188,6 +201,7 @@ func templateFuncMap(opts gen.TargetOptions) map[string]interface{} {
 		"isStruct":             isStruct,
 		"isEnum":               isEnum,
 		"listComma":            listComma,
+		"exportableField":      exportableField,
 		"exportedField":        exportedField,
 		"exportedJSONField":    exportedJSONField,
 		"newOutputArgResponse": newOutputArgResponse,

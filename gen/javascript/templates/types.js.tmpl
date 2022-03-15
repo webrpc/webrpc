@@ -26,12 +26,14 @@
     }
   }
   {{ range .Fields -}}
+  {{if . | exportableField}}
   get {{. | exportedJSONField}}() {
     return this._data['{{. | exportedJSONField }}']
   }
   set {{. | exportedJSONField}}(value) {
     this._data['{{. | exportedJSONField}}'] = value
   }
+  {{end}}
   {{end}}
   toJSON() {
     return this._data
