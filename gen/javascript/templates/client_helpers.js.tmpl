@@ -13,10 +13,10 @@ const buildResponse = (res) => {
     try {
       data = JSON.parse(text)
     } catch(err) {
-      throw { code: 'unknown', msg: `expecting JSON, got: ${text}`, status: res.status }
+      throw new WebRPCError("The server sent an invalid response.", 500, "SyntaxError");
     }
     if (!res.ok) {
-      throw data // webrpc error response
+      throw new WebRPCError(data.message, data.status, data.code);
     }
     return data
   })

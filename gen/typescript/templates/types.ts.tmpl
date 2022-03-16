@@ -2,6 +2,28 @@
 //
 // Types
 //
+export interface WebRPCError extends Error {
+  code: string
+  msg: string
+  status: number
+}
+
+export class WebRPCError extends Error implements WebRPCError {
+  code: string
+  msg: string
+  status: number
+
+  constructor(msg = "Error", status = 400, code = "BadRequest") {
+    super(msg);
+    this.name = 'WebRPCError'
+    this.msg = msg;
+    this.status = status;
+    this.code = code;
+
+    // https://github.com/microsoft/TypeScript/issues/13965
+    Object.setPrototypeOf(this, WebRPCError.prototype);
+  }
+}
 
 {{- if .Messages -}}
 {{range .Messages -}}

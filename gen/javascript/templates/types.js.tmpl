@@ -2,6 +2,16 @@
 //
 // Types
 //
+{{exportKeyword}}class WebRPCError extends Error {
+    constructor(msg = "Error", status = 400, code = "BadRequest") {
+        super(msg);
+        this.name = 'WebRPCError'
+        this.msg = msg;
+        this.status = status;
+        this.code = code;
+    }
+}
+
 {{ if .Messages -}}
 {{range .Messages -}}
 

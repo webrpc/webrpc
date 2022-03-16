@@ -4,15 +4,6 @@
 //
 // Server
 //
-
-class WebRPCError extends Error {
-    constructor(msg = "error", statusCode) {
-        super("webrpc eror: " + msg);
-
-        this.statusCode = statusCode
-    }
-}
-
 import express from 'express'
 
     {{- range .Services}}
@@ -61,25 +52,22 @@ import express from 'express'
                             res.status(200).json(response);
                         } catch (err) {
                             if (err instanceof WebRPCError) {
-                                const statusCode = err.statusCode || 400
-                                const message = err.message
-
-                                res.status(statusCode).json({
-                                    msg: message,
-                                    status: statusCode,
-                                    code: ""
+                                res.status(err.status).json({
+                                    msg: err.msg,
+                                    status: err.status,
+                                    code: err.code
                                 });
-
-                                return
-                            }
-
-                            if (err.message) {
-                                res.status(400).send(err.message);
 
                                 return;
                             }
 
-                            res.status(400).end();
+                            if (err.message) {
+                                res.status(500).send(err.message);
+
+                                return;
+                            }
+
+                            res.status(500).end();
                         }
                     }
 

@@ -4,17 +4,6 @@
 //
 // Server
 //
-export class WebRPCError extends Error {
-    statusCode?: number
-
-    constructor(msg: string = "error", statusCode?: number) {
-        super("webrpc error: " + msg);
-
-        Object.setPrototypeOf(this, WebRPCError.prototype);
-
-        this.statusCode = statusCode;
-    }
-}
 
 import express from 'express'
 
@@ -49,13 +38,12 @@ import express from 'express'
                         try {
                             {{ range .Inputs }}
                                 {{- if not .Optional}}
-                                    if (!("{{ .Name }}" in req.body)) {
-                                        throw new WebRPCError("Missing Argument `{{ .Name }}`")
-                                    }
+                                if (!("{{ .Name }}" in req.body)) {
+                                    throw new WebRPCError("Missing argument: {{ .Name }}")
+                                }
                                 {{end -}}
-
                                 if ("{{ .Name }}" in req.body && !validateType(req.body["{{ .Name }}"], "{{ .Type | jsFieldType }}")) {
-                                    throw new WebRPCError("Invalid Argument: {{ .Name }}")
+                                    throw new WebRPCError("Invalid argument type: {{ .Name }}. Expected {{ .Type | jsFieldType }}.")
                                 }
                             {{end}}
 
@@ -70,25 +58,22 @@ import express from 'express'
                             res.status(200).json(response);
                         } catch (err) {
                             if (err instanceof WebRPCError) {
-                                const statusCode = err.statusCode || 400
-                                const message = err.message
-
-                                res.status(statusCode).json({
-                                    msg: message,
-                                    status: statusCode,
-                                    code: ""
+                                res.status(err.status).json({
+                                    msg: err.msg,
+                                    status: err.status,
+                                    code: err.code
                                 });
-
-                                return
-                            }
-
-                            if (err.message) {
-                                res.status(400).send(err.message);
 
                                 return;
                             }
 
-                            res.status(400).end();
+                            if (err.message) {
+                                res.status(500).send(err.message);
+
+                                return;
+                            }
+
+                            res.status(500).end();
                         }
                     }
 

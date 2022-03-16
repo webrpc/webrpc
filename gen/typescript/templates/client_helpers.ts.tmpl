@@ -1,25 +1,4 @@
 {{define "client_helpers"}}
-export interface WebRPCError extends Error {
-  code: string
-  msg: string
-	status: number
-}
-
-export class WebRPCError extends Error implements WebRPCError {
-  code: string
-  msg: string
-  status: number
-
-  constructor(props: { code: string; msg: string; status: number }) {
-    const { code, msg, status } = props
-    super(msg)
-    this.name = 'WebRPCError'
-    this.code = code
-    this.msg = msg
-    this.status = status
-  }
-}
-
 const createHTTPRequest = (body: object = {}, headers: object = {}): object => {
   return {
     method: 'POST',
