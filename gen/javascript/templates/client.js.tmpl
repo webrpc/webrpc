@@ -8,7 +8,7 @@
   constructor(hostname, fetch) {
     this.path = '/rpc/{{.Name}}/'
     this.hostname = hostname
-    this.fetch = (input: RequestInfo, init?: RequestInit) => fetch(input, init)
+    this.fetch = (input, init) => fetch(input, init)
   }
 
   url(name) {
