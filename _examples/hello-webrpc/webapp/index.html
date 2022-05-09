@@ -16,8 +16,7 @@
 </div>
 
 <script>
-  const svcFetch = window.fetch.bind(window)
-  let svc = new ExampleService('http://127.0.0.1:4242', svcFetch)
+  let svc = new ExampleService('http://127.0.0.1:4242', fetch)
 
   // Expecting "true"
   console.log('[A] webrpc -- calling Ping() rpc method (expecting true):')
