@@ -4,10 +4,9 @@
 // see the `hello-api.ridl` schema where the API is defined
 // and the client.gen.ts file is code-generated which we use below..
 //
-import { fetch as polyfetch } from 'whatwg-fetch'
 import * as client from './client.gen'
 
-const api = new client.ExampleService('http://127.0.01:4242', polyfetch)
+const api = new client.ExampleService('http://127.0.01:4242', fetch)
 
 async function main() {
 
