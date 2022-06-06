@@ -25,6 +25,8 @@ struct User
   - role: string
     + go.tag.db = -
 
+  - kind: Kind # TODO: fix this.. should not be *Kind
+
 struct SearchFilter
   - q: string
 
@@ -45,9 +47,29 @@ struct ComplexType
   - user: User
 
 
+##error ErrInvalidUsername  [400_100]   invalid username
+##error ErrMemoryFull       [500_100]   system memory is full
+
+# syntax is: error <code> <name> <message>
+#error 500100 InvalidUsername  invalid username
+#error 400100 MemoryFull       system memory is full
+
+# we can just define some json here, it will work :D cuz, why not..
+#value NetworkNames: map<string,Chain> = {
+#  "blah": { etc }
+#}
+
+#value AuthorName: string = "Peter"
+
+#type BigInt = prototyp.BigInt # hmmm...? how to do this..? 
+
 service Example
   - Ping()
   - Status() => (status: bool)
   - Version() => (version: Version)
   - GetUser(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
   - FindUser(s: SearchFilter) => (name: string, user: User)
+  #- SomeMethod(SomeMethodRequest) => (SomeMethodResponse) # alternative form, which will use struct types, and flatten them
+
+service ExampleAdmin
+  - AdminAddUser(username: string) => (id: uint64)

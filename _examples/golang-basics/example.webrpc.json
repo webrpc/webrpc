@@ -1,20 +1,19 @@
 {
-  "webrpc": "v1",
+  "webrpc": "v2",
   "name": "example",
   "version": "v0.0.1",
   "types": [
     {
       "name": "Kind",
       "kind": "enum",
+      "type": "uint32",
       "fields": [
         {
           "name": "USER",
-          "type": "uint32",
           "value": "0"
         },
         {
           "name": "ADMIN",
-          "type": "uint32",
           "value": "1"
         }
       ]
@@ -110,6 +109,12 @@
         }
       ]
     }
+  ],
+  "values": [
+
+  ],
+  "errors": [
+
   ],
   "services": [
     {

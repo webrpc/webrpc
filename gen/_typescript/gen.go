@@ -1,4 +1,4 @@
-//go:generate statik -src=./templates -dest=. -f -Z -p=embed
+//go:generate go run github.com/goware/statik -src=./templates -dest=. -f -Z -p=embed
 package typescript
 
 import (
