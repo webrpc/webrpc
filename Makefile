@@ -29,8 +29,9 @@ clean:
 install: build
 	go install ./cmd/webrpc-gen
 
-test: generate
+test: build
 	go test ./...
+	cd _examples/node-ts && make test
 
 generate:
 	go generate ./...

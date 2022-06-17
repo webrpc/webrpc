@@ -10,6 +10,10 @@ generate:
 	../../bin/webrpc-gen -schema=service.ridl -target=ts -server -out=./server/server.gen.ts
 	../../bin/webrpc-gen -schema=service.ridl -target=ts -client -out=./webapp/client.gen.ts
 
+test: generate
+	./server/node_modules/.bin/tsc --project server/tsconfig.json --noEmit
+	./webapp/node_modules/.bin/tsc --project webapp/tsconfig.json --noEmit
+
 run-server:
 	yarn --cwd ./server start
 

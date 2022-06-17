@@ -13,10 +13,11 @@ const buildResponse = (res: Response): Promise<any> => {
     try {
       data = JSON.parse(text)
     } catch(err) {
-      throw new WebRPCError({ code: 'unknown', msg: `expecting JSON, got: ${text}`, status: res.status })
+      throw new WebRPCError({code: ErrorCode.ErrInternal, msg: "failed to parse server response", cause: err})
     }
     if (!res.ok) {
-      throw new WebRPCError(data) // webrpc error response
+      const err = data as ErrorPayload;
+      throw new WebRPCError({code: err.code as ErrorCode, msg: err.msg, cause: err.cause ? new Error(err.cause) : undefined})
     }
     return data
   })

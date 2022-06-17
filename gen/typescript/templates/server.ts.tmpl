@@ -39,11 +39,11 @@ import express from 'express'
                             {{ range .Inputs }}
                                 {{- if not .Optional}}
                                 if (!("{{ .Name }}" in req.body)) {
-                                    throw new WebRPCError("Missing argument: {{ .Name }}")
+                                    throw new WebRPCError({msg: "Missing argument: {{ .Name }}", code: ErrorCode.ErrInvalidArgument})
                                 }
                                 {{end -}}
                                 if ("{{ .Name }}" in req.body && !validateType(req.body["{{ .Name }}"], "{{ .Type | jsFieldType }}")) {
-                                    throw new WebRPCError("Invalid argument type: {{ .Name }}. Expected {{ .Type | jsFieldType }}.")
+                                    throw new WebRPCError({msg: "Invalid argument type: {{ .Name }}. Expected {{ .Type | jsFieldType }}.", code: ErrorCode.ErrInvalidArgument})
                                 }
                             {{end}}
 
@@ -51,28 +51,20 @@ import express from 'express'
 
                             {{ range .Outputs}}
                                 if (!("{{ .Name }}" in response)) {
-                                    throw new WebRPCError("internal", 500);
+                                    throw new WebRPCError({msg: "internal", code: ErrorCode.ErrInternal});
                                 }
                             {{end}}
 
                             res.status(200).json(response);
                         } catch (err) {
                             if (err instanceof WebRPCError) {
-                                res.status(err.status).json({
-                                    msg: err.msg,
-                                    status: err.status,
-                                    code: err.code
-                                });
-
+                                res.status(err.httpStatusFromErrorCode()).json(err);
                                 return;
                             }
-
                             if (err.message) {
                                 res.status(500).send(err.message);
-
                                 return;
                             }
-
                             res.status(500).end();
                         }
                     }
