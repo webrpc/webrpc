@@ -3,12 +3,10 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -39,37 +37,7 @@ func startServer() error {
 type ExampleServiceRPC struct {
 }
 
-func init() {
-	// err := RPCError{Code: 123}
-	// // hmm...
-	// if errors.Is(err, RPCError{}) {
-	// 	fmt.Println("yep")
-	// }
-
-	err := ErrorWithCause(ErrInvalidName, Errorf("yes: %w", ErrMemoryFull))
-	if errors.Is(err, ErrInvalidName) {
-		fmt.Println("yep")
-	}
-	if errors.Is(err, ErrMemoryFull) {
-		fmt.Println("ahaha")
-	}
-	spew.Dump(err)
-	fmt.Println("??", err.Unwrap())
-
-	// err := Errorf("hiiii: %w", ErrInvalidName)
-	// if errors.Is(err, ErrInvalidName) {
-	// 	fmt.Println("kkff..")
-	// }
-}
-
 func (s *ExampleServiceRPC) Ping(ctx context.Context) error {
-	// panic("nooo")
-	// return ErrInvalidName
-	// return Errorf("dfdfdf")
-
-	// return ErrorWithCause(ErrInvalidName, err)
-	// return ErrorWithCause(Errorf(), err)
-
 	return nil
 }
 
@@ -86,19 +54,14 @@ func (s *ExampleServiceRPC) Version(ctx context.Context) (*Version, error) {
 }
 
 func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error) {
-	// HMM.. so, what are the http status codes we'll use..? lets copy json-rpc
-	// which is..
-	// 200 for OK
-	// 400 for any general error
-	// 404 is rpc method is not found
-	// 401/403 for unauthorized requests..
-	// 500 of course can happen
-
 	if userID == 911 {
 		return 0, nil, ErrorWithCause(ErrUserNotFound, fmt.Errorf("unknown user id %d", userID))
 	}
 	if userID == 31337 {
 		return 0, nil, ErrUnauthorized
+	}
+	if userID == 666 {
+		panic("oh no")
 	}
 
 	return 200, &User{

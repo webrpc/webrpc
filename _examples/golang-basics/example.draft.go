@@ -764,11 +764,11 @@ var (
 )
 
 var (
-	RPCErrorPanic            = RPCError{Code: 1, Name: "RPCErrorPanic", Message: "panic"}
-	RPCErrorRequest          = RPCError{Code: 2, Name: "RPCErrorRequest", Message: "req.."}
-	RPCErrorBadRoute         = RPCError{Code: 3, Name: "RPCErrorBadRoute", Message: "bad route"}
-	RPCErrorInvalidArguments = RPCError{Code: 4, Name: "RPCErrorInvalidArguments", Message: "invalid args"}
-	RPCErrorUnmarshal        = RPCError{Code: 5, Name: "RPCErrorUnmarshal", Message: "unmarshal"}
+	RPCErrorPanic            = RPCError{Code: 1, Name: "RPCErrorPanic", Message: "panic", HTTPStatus: 500}
+	RPCErrorBadRoute         = RPCError{Code: 2, Name: "RPCErrorBadRoute", Message: "bad route", HTTPStatus: 404}
+	RPCErrorRequest          = RPCError{Code: 3, Name: "RPCErrorRequest", Message: "req..", HTTPStatus: 400}
+	RPCErrorInvalidArguments = RPCError{Code: 4, Name: "RPCErrorInvalidArguments", Message: "invalid args", HTTPStatus: 400}
+	RPCErrorUnauthorized     = RPCError{Code: 5, Name: "RPCErrorUnauthorized", Message: "unauthorized", HTTPStatus: 401}
 )
 
 func Errorf(messagef string, args ...interface{}) RPCError {
