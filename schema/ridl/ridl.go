@@ -83,6 +83,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	s := &schema.WebRPCSchema{
 		Imports:  []*schema.Import{},
 		Types:    []*schema.Type{},
+		Errors:   []*schema.Error{},
 		Services: []*schema.Service{},
 	}
 

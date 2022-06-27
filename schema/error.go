@@ -18,8 +18,13 @@ func (s *Error) Parse(schema *WebRPCSchema) error {
 	if s.Code == 0 {
 		return fmt.Errorf("schema error: error code cannot be 0")
 	}
+	s.Name = strings.TrimSpace(s.Name)
 	if s.Name == "" {
 		return fmt.Errorf("schema error: name cannot be empty")
+	}
+	n := strings.Fields(s.Name)
+	if len(n) > 1 {
+		return fmt.Errorf("schema error: name must be a single word")
 	}
 	if s.Message == "" {
 		return fmt.Errorf("schema error: message cannot be empty")

@@ -483,6 +483,7 @@ func TestRIDLTables(t *testing.T) {
          "version": "v1.1",
          "imports": [],
          "types": [],
+				 "errors": [],
          "services": []
         }
     `),
@@ -496,6 +497,7 @@ func TestRIDLTables(t *testing.T) {
          "version": "",
          "imports": [],
          "types": [],
+				 "errors": [],
          "services": []
         }
     `),
@@ -527,6 +529,7 @@ func TestRIDLTables(t *testing.T) {
 					}
 				 ],
 				 "types": [],
+				 "errors": [],
 				 "services": []
 				}
       `),
