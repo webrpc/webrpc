@@ -9,8 +9,8 @@ import (
 	"net/http"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
@@ -63,7 +63,8 @@ func init() {
 }
 
 func (s *ExampleServiceRPC) Ping(ctx context.Context) error {
-	return ErrInvalidName
+	// panic("nooo")
+	// return ErrInvalidName
 	// return Errorf("dfdfdf")
 
 	// return ErrorWithCause(ErrInvalidName, err)
@@ -94,11 +95,10 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]strin
 	// 500 of course can happen
 
 	if userID == 911 {
-		// return 0, nil, WrapError(ErrInternal, errors.New("bad"), "app msg here")
-		return 0, nil, Errorf("hihi")
-		// return 0, nil, ErrorNotFound("unknown userID %d", 911)
-		// return 0, nil, Errorf(ErrNotFound, "unknown userID %d", 911)
-		// return 0, nil, WrapError(ErrNotFound, nil, "unknown userID %d", 911)
+		return 0, nil, ErrorWithCause(ErrUserNotFound, fmt.Errorf("unknown user id %d", userID))
+	}
+	if userID == 31337 {
+		return 0, nil, ErrUnauthorized
 	}
 
 	return 200, &User{
