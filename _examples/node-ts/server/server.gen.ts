@@ -17,13 +17,13 @@ export const WebRPCSchemaHash = "ecee5cfb3e360bc0bc632e78556b19a2c58d4e25"
 //
 // Types
 //
-type RpcError = {
+export type RpcError = {
   code:  ErrorCode
 	msg:   string
 	cause?: Error
 }
 
-enum ErrorCode {
+export enum ErrorCode {
 	// Unknown error. For example when handling errors raised by APIs that do not
 	// return enough error information.
 	ErrUnknown = "unknown",
@@ -118,7 +118,7 @@ enum ErrorCode {
 }
 
 /** The JSON payload returned by an WebRPC server when an error occurs */
-type ErrorPayload = {
+export type ErrorPayload = {
 	/** One of the valid error codes */ 
    code: string
 	/** A human-readable, unstructured messages describing the error */ 
@@ -145,15 +145,14 @@ export class WebRPCError extends Error {
     this.cause = err.cause;
   }
 
-  toJSON() {
-    const payload: ErrorPayload = {
+  toJSON(): ErrorPayload {
+    return {
       code: this.err.code,
       msg: this.err.msg,
       cause: this.err.cause ? this.err.cause.message : undefined,
       status: this.httpStatusFromErrorCode(),
-      error: `webrpc error ${this.err.code}: {msg}`
+      error: `webrpc error ${this.err.code}: ${this.err.msg}`
     }
-    return JSON.stringify(payload)
   }
 
   httpStatusFromErrorCode(): number {
