@@ -20,7 +20,9 @@ type WebRPCSchema struct {
 	SchemaVersion string    `json:"version"`
 	Imports       []*Import `json:"imports"`
 
-	Types    []*Type    `json:"types"`
+	Types  []*Type  `json:"types"`
+	Errors []*Error `json:"errors"`
+	// Values   []*Value   `json:"values"` // TODO: future
 	Services []*Service `json:"services"`
 }
 
@@ -42,6 +44,19 @@ func (s *WebRPCSchema) Validate() error {
 			return err
 		}
 	}
+	for _, serr := range s.Errors {
+		err := serr.Parse(s)
+		if err != nil {
+			return err
+		}
+	}
+	// TODO: future feature
+	// for _, sval := range s.Values {
+	// 	err := sval.Parse(s)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 	for _, svc := range s.Services {
 		err := svc.Parse(s)
 		if err != nil {

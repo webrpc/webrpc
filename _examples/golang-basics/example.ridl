@@ -53,7 +53,9 @@ struct ComplexType
 # syntax is: error <code> <name> <message>
 #error 500100 InvalidUsername  invalid username
 #error 400100 MemoryFull       system memory is full
+# TODO ^ include http status code somehow..?
 
+# TODO: we'll do this in the future..
 # we can just define some json here, it will work :D cuz, why not..
 #value NetworkNames: map<string,Chain> = {
 #  "blah": { etc }
@@ -61,7 +63,11 @@ struct ComplexType
 
 #value AuthorName: string = "Peter"
 
-#type BigInt = prototyp.BigInt # hmmm...? how to do this..? 
+
+# so this works like a type of field .. 
+#type BigInt: string
+#  + go.field.type = prototyp.BigInt
+
 
 service Example
   - Ping()

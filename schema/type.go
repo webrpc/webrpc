@@ -46,7 +46,7 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 
 	// Ensure we have a valid kind
 	if m.Kind != "type" && m.Kind != "enum" && m.Kind != "struct" {
-		return fmt.Errorf("schema error: type must be one of 'type', 'enum' or 'struct' for '%s'", typName)
+		return fmt.Errorf("schema error: type must be one of 'type', 'enum', or 'struct' for '%s'", typName)
 	}
 
 	// NOTE: so far, lets allow messages with no fields.. so just empty object, why, I dunno, but gRPC allows it
