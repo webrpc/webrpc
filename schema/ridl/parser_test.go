@@ -3,7 +3,9 @@ package ridl
 import (
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParserTopLevelDefinitions(t *testing.T) {
@@ -102,7 +104,19 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 			assert.Equal(t, e.right, p.root.Definitions()[i].Right().String())
 		}
 	}
+}
 
+func TestParserError(t *testing.T) {
+	p, err := newStringParser(`
+		error 12345 InvalidUsername username
+		error 45678 Unauthorized    unauthorized
+	`)
+	require.NoError(t, err)
+
+	err = p.run()
+	require.NoError(t, err)
+
+	spew.Dump(p)
 }
 
 func TestParserImport(t *testing.T) {

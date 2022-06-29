@@ -11,6 +11,7 @@ const (
 	TypeNodeType
 	EnumNodeType
 	StructNodeType
+	ErrorNodeType
 	ArgumentNodeType
 	MethodNodeType
 	ServiceNodeType
@@ -114,6 +115,17 @@ func (rn RootNode) Types() []*TypeNode {
 
 	return typeNodes
 }
+
+// func (rn RootNode) Errors() []*ErrorNode {
+// 	nodes := rn.Filter(ErrorNodeType)
+
+// 	errorNodes := make([]*TypeNode, 0, len(nodes))
+// 	for i := range nodes {
+// 		errorNodes = append(errorNodes, nodes[i].(*TypeNode))
+// 	}
+
+// 	return errorNodes
+// }
 
 func (rn RootNode) Services() []*ServiceNode {
 	nodes := rn.Filter(ServiceNodeType)
@@ -285,6 +297,23 @@ func (mn *StructNode) Type() NodeType {
 
 func (mn *StructNode) Fields() []*DefinitionNode {
 	return mn.fields
+}
+
+type ErrorNode struct {
+	node
+
+	code       *TokenNode
+	name       *TokenNode
+	message    *TokenNode
+	httpStatus *TokenNode
+}
+
+func (en ErrorNode) Type() NodeType {
+	return ErrorNodeType
+}
+
+func (en ErrorNode) Name() *TokenNode {
+	return en.name
 }
 
 type ArgumentNode struct {

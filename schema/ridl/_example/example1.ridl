@@ -12,7 +12,7 @@ import example1-partials.ridl
   - GetUserRequest
 
 
-type balance: string
+type Balance: string
   + go.field.type = BigInt
   + go.tag.db = balance
 
@@ -36,7 +36,7 @@ struct User
     + json = USERNAME
     + go.tag.db = username
 
-  - amount: balance
+  - amount: Balance
 
   - role: string
     + go.tag.db = -
@@ -49,6 +49,11 @@ struct User
 
 struct Notice
   - msg: string
+
+
+# syntax is: error <code> <name> <message> [-- <http status code>]
+error 500100 InvalidUsername invalid username
+error 403000 Unauthorized    unauthorized access #-- 401
 
 
 service Example
@@ -65,7 +70,7 @@ service Example
 
   - stream SendAndRecv(req: string) => stream (resp: string)
 
-  - Broadcast(qty?: balance) => stream (resp: Notice)
+  - Broadcast(qty?: Balance) => stream (resp: Notice)
 
   -	VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code: bool, ids: []bool)
 	

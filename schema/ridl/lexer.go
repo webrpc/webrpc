@@ -10,6 +10,7 @@ var (
 
 var (
 	wordBeginning = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")
+	wordNumber    = []rune("0123456789")
 	wordBreak     = []rune("\x00 \t\r\n[]()<>{}=:¿?¡!,\"")
 )
 
@@ -375,8 +376,6 @@ func lexDefaultState(lx *lexer) lexState {
 		return lexStateExtra
 
 	}
-
-	panic("unreachable")
 }
 
 type lexer struct {

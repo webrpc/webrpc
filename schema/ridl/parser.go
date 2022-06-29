@@ -15,6 +15,7 @@ const (
 	wordEnum    = "enum"
 	wordStruct  = "struct"
 	wordImport  = "import"
+	wordError   = "error"
 	wordMap     = "map"
 	wordName    = "name"
 	wordProxy   = "proxy"
@@ -258,6 +259,8 @@ func (p *parser) match(tokenTypes ...tokenType) ([]*token, error) {
 		for _, expecting := range tokenTypes {
 			tok := p.cursor()
 
+			fmt.Println("==>", tok.tt)
+
 			if tok.tt == expecting {
 				tokens = append(tokens, tok)
 				p.next()
@@ -404,6 +407,9 @@ func parserStateDeclaration(p *parser) parserState {
 		//   - <name>: <type>
 		//     + <tag.name> = <VALUE>
 		return parserStateStruct
+	case wordError:
+		// error <code> <name> <message>
+		return parserStateError
 	case wordService:
 		// service <name>
 		//   - <name>([arguments]) [=> ([arguments])]
@@ -411,8 +417,6 @@ func parserStateDeclaration(p *parser) parserState {
 	default:
 		return p.stateError(errUnexpectedToken)
 	}
-
-	return parserDefaultState
 }
 
 func parserDefaultState(p *parser) parserState {
