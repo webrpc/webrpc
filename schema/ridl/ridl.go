@@ -334,6 +334,30 @@ func isImportAllowed(name string, whitelist []string) bool {
 func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema.MethodArgument, error) {
 	output := []*schema.MethodArgument{}
 
+	// succint form
+	if len(args) == 1 && args[0].inlineStruct != nil {
+		node := args[0].inlineStruct
+		structName := node.tok.val
+
+		typ := s.GetTypeByName(structName)
+		if typ.Kind != "struct" {
+			return nil, fmt.Errorf("expecting struct type for inline definition of '%s'", structName)
+		}
+
+		for _, arg := range typ.Fields {
+			methodArgument := &schema.MethodArgument{
+				Name:      arg.Name,
+				Type:      arg.Type,
+				Optional:  arg.Optional,
+				TypeExtra: arg.TypeExtra,
+			}
+			output = append(output, methodArgument)
+		}
+
+		return output, nil
+	}
+
+	// normal form
 	for _, arg := range args {
 
 		var varType schema.VarType
@@ -347,7 +371,6 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 			Type:     &varType,
 			Optional: arg.Optional(),
 		}
-
 		output = append(output, methodArgument)
 	}
 

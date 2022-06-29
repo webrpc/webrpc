@@ -76,3 +76,21 @@ service Example
   -	VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code: bool, ids: []bool)
 	
   - MoreTest(n: uint64, stuff: []map<uint64,string>, etc: string) => (code?: bool)
+
+
+
+struct FlattenRequest
+  - name: string
+    + go.tag.db = name
+  - amount?: Balance
+    + go.tag.db = amount
+
+struct FlattenResponse
+  - id: uint64
+    + go.field.name = ID
+  - count: uint64
+    + json = counter
+
+service Another
+  - Flatten(FlattenRequest) => (FlattenResponse)
+  - GetAccountBalance(name: string) => (balance: Balance)

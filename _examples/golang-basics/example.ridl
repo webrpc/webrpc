@@ -47,18 +47,16 @@ struct ComplexType
   - user: User
 
 
-##error ErrInvalidUsername  [400_100]   invalid username
-##error ErrMemoryFull       [500_100]   system memory is full
-
 # syntax is: error <code> <name> <message> [-- <http status code>]
 error 500100 InvalidUsername  "invalid username" -- 403 # sets 403 http status code
 error 400100 MemoryFull       "system memory is full"
 
+
 # TODO: we'll do this in the future..
 # we can just define some json here, it will work :D cuz, why not..
-#value NetworkNames: map<string,Chain> = {
+#value NetworkNames: map<string,Chain> = '''{
 #  "blah": { etc }
-#}
+#}'''
 
 #value AuthorName: string = "Peter"
 

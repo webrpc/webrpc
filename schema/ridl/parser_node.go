@@ -321,10 +321,9 @@ type ArgumentNode struct {
 
 	name         *TokenNode
 	argumentType *TokenNode
+	optional     bool
 
-	optional bool
-
-	stream bool //TODO: should be deprecated
+	inlineStruct *TokenNode
 }
 
 func (an *ArgumentNode) Name() *TokenNode {

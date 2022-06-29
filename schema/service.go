@@ -32,6 +32,8 @@ type MethodArgument struct {
 
 	InputArg  bool `json:"-"` // denormalize/back-reference
 	OutputArg bool `json:"-"` // denormalize/back-reference
+
+	TypeExtra `json:",omitempty"`
 }
 
 func (s *Service) Parse(schema *WebRPCSchema) error {

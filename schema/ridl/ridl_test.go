@@ -567,5 +567,11 @@ func TestRIDLExample1(t *testing.T) {
 	golden, err := ioutil.ReadFile("example1-golden.json")
 	assert.NoError(t, err)
 
-	assert.JSONEq(t, compactJSON(golden), compactJSON([]byte(jout)))
+	a := compactJSON(golden)
+	b := compactJSON([]byte(jout))
+
+	// fmt.Println("==> GOLDEN:", a)
+	// fmt.Println("==> PARSED:", b)
+
+	assert.JSONEq(t, a, b)
 }

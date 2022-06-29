@@ -15,12 +15,15 @@ type Error struct {
 }
 
 func (s *Error) Parse(schema *WebRPCSchema) error {
-	if s.Code == 0 {
-		return fmt.Errorf("schema error: error code cannot be 0")
-	}
 	s.Name = strings.TrimSpace(s.Name)
 	if s.Name == "" {
 		return fmt.Errorf("schema error: name cannot be empty")
+	}
+	if s.Code == 0 {
+		return fmt.Errorf("schema error: error code cannot be 0")
+	}
+	if s.Code < 100 {
+		return fmt.Errorf("schema error: error code must 100 or greater, '%s'", s.Name)
 	}
 	n := strings.Fields(s.Name)
 	if len(n) > 1 {
