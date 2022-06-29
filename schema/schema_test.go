@@ -30,7 +30,7 @@ func TestSchema(t *testing.T) {
 			},
 			{
 				"kind": "type",
-				"name": "balance",
+				"name": "Balance",
 				"type": "string",
 				"meta": [
 					{ "go.field.type": "BigInt" }

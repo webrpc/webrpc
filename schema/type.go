@@ -35,6 +35,9 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 	if typName == "" {
 		return fmt.Errorf("schema error: type name cannot be empty")
 	}
+	if !IsStartsWithUpper(typName) {
+		return fmt.Errorf("schema error: type name must start with upper case for '%s'", typName)
+	}
 
 	// Ensure we don't have dupe types (w/ normalization)
 	name := strings.ToLower(typName)

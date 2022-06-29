@@ -42,6 +42,9 @@ func (s *Service) Parse(schema *WebRPCSchema) error {
 	if string(s.Name) == "" {
 		return fmt.Errorf("schema error: service name cannot be empty")
 	}
+	if !IsStartsWithUpper(serviceName) {
+		return fmt.Errorf("schema error: service name must start with upper case for '%s'", serviceName)
+	}
 
 	// Ensure we don't have dupe service names (w/ normalization)
 	name := strings.ToLower(string(s.Name))

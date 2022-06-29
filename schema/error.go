@@ -26,6 +26,9 @@ func (s *Error) Parse(schema *WebRPCSchema) error {
 	if len(n) > 1 {
 		return fmt.Errorf("schema error: name must be a single word")
 	}
+	if !IsStartsWithUpper(s.Name) {
+		return fmt.Errorf("schema error: error name must start with upper case for '%s'", s.Name)
+	}
 	if s.Message == "" {
 		return fmt.Errorf("schema error: message cannot be empty")
 	}

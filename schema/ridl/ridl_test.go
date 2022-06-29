@@ -181,10 +181,10 @@ func TestRIDLType(t *testing.T) {
 
           # this is a comment
             # yep
-					type balance: uint32
+					type Balance: uint32
 					
 					# another
-					type another: string
+					type Another: string
 						+ go.tag.db = another
 						+ json = ANOTHER
   `
@@ -198,12 +198,12 @@ func TestRIDLType(t *testing.T) {
 		assert.Len(t, s.Types, 2)
 
 		assert.Equal(t, "type", s.Types[0].Kind)
-		assert.Equal(t, "balance", string(s.Types[0].Name))
+		assert.Equal(t, "Balance", string(s.Types[0].Name))
 		assert.Equal(t, "uint32", string(s.Types[0].Type.String()))
 		assert.Equal(t, 0, len(s.Types[0].Meta))
 
 		assert.Equal(t, "type", s.Types[1].Kind)
-		assert.Equal(t, "another", string(s.Types[1].Name))
+		assert.Equal(t, "Another", string(s.Types[1].Name))
 		assert.Equal(t, "string", string(s.Types[1].Type.String()))
 		assert.Equal(t, "another", s.Types[1].Meta[0]["go.tag.db"])
 		assert.Equal(t, "ANOTHER", s.Types[1].Meta[1]["json"])
