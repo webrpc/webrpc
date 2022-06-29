@@ -259,8 +259,6 @@ func (p *parser) match(tokenTypes ...tokenType) ([]*token, error) {
 		for _, expecting := range tokenTypes {
 			tok := p.cursor()
 
-			fmt.Println("==>", tok.tt)
-
 			if tok.tt == expecting {
 				tokens = append(tokens, tok)
 				p.next()

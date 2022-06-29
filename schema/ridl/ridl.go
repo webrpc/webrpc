@@ -226,6 +226,20 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		}
 	}
 
+	// error types
+	for _, line := range q.root.Errors() {
+		var errorType schema.Error
+		code, _ := strconv.ParseInt(line.code.String(), 10, 64)
+		errorType.Code = uint64(code)
+		errorType.Name = line.name.String()
+		errorType.Message = line.message.String()
+		if line.httpStatus != nil {
+			httpStatus, _ := strconv.ParseInt(line.httpStatus.String(), 10, 64)
+			errorType.HTTPStatus = uint64(httpStatus)
+		}
+		s.Errors = append(s.Errors, &errorType)
+	}
+
 	// struct fields
 	for _, line := range q.root.Structs() {
 		name := schema.VarName(line.Name().String())

@@ -3,7 +3,6 @@ package ridl
 import (
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -108,15 +107,14 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 
 func TestParserError(t *testing.T) {
 	p, err := newStringParser(`
-		error 12345 InvalidUsername username
-		error 45678 Unauthorized    unauthorized
+		error 12345 InvalidUsername "username is invalid" -- 401
+		error 45678 Unauthorized    "unauthorized access"
 	`)
 	require.NoError(t, err)
 
 	err = p.run()
 	require.NoError(t, err)
-
-	spew.Dump(p)
+	require.Equal(t, 2, len(p.root.Errors()))
 }
 
 func TestParserImport(t *testing.T) {

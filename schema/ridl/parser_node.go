@@ -94,6 +94,17 @@ func (rn RootNode) Structs() []*StructNode {
 	return structNodes
 }
 
+func (rn RootNode) Errors() []*ErrorNode {
+	nodes := rn.Filter(ErrorNodeType)
+
+	errorNodes := make([]*ErrorNode, 0, len(nodes))
+	for i := range nodes {
+		errorNodes = append(errorNodes, nodes[i].(*ErrorNode))
+	}
+
+	return errorNodes
+}
+
 func (rn RootNode) Enums() []*EnumNode {
 	nodes := rn.Filter(EnumNodeType)
 
@@ -115,17 +126,6 @@ func (rn RootNode) Types() []*TypeNode {
 
 	return typeNodes
 }
-
-// func (rn RootNode) Errors() []*ErrorNode {
-// 	nodes := rn.Filter(ErrorNodeType)
-
-// 	errorNodes := make([]*TypeNode, 0, len(nodes))
-// 	for i := range nodes {
-// 		errorNodes = append(errorNodes, nodes[i].(*TypeNode))
-// 	}
-
-// 	return errorNodes
-// }
 
 func (rn RootNode) Services() []*ServiceNode {
 	nodes := rn.Filter(ServiceNodeType)

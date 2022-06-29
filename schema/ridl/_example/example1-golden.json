@@ -174,7 +174,7 @@
     {
       "code": 403000,
       "name": "Unauthorized",
-      "message": "Unauthorized access",
+      "message": "unauthorized access",
       "httpStatus": 401
     }
   ],

@@ -2,17 +2,30 @@ package ridl
 
 import (
 	"fmt"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 func parserStateErrorDefinition(et *ErrorNode) parserState {
 	return func(p *parser) parserState {
+		var err error
 		tok := p.cursor()
 
 		switch tok.tt {
 
-		case tokenNewLine, tokenWhitespace:
+		case tokenQuote:
+			tok, err = p.expectStringValue()
+			if err != nil {
+				return p.stateError(err)
+			}
+			et.message = newTokenNode(tok)
+
+		case tokenMinusSign:
+			matches, err := p.match(tokenDash, tokenDash, tokenWhitespace, tokenWord)
+			if err != nil {
+				return p.stateError(err)
+			}
+			et.httpStatus = newTokenNode(matches[3])
+
+		case tokenWhitespace, tokenNewLine:
 			p.next()
 
 		case tokenHash:
@@ -21,6 +34,7 @@ func parserStateErrorDefinition(et *ErrorNode) parserState {
 		default:
 			p.emit(et)
 			return parserDefaultState
+
 		}
 
 		return parserStateErrorDefinition(et)
@@ -29,12 +43,10 @@ func parserStateErrorDefinition(et *ErrorNode) parserState {
 
 func parserStateError(p *parser) parserState {
 	// error <code> <name> <message> [-- <http status code>]
-	matches, err := p.match(tokenWord, tokenWhitespace, tokenWord, tokenWhitespace, tokenWord, tokenWhitespace, tokenWord, tokenEOL)
+	matches, err := p.match(tokenWord, tokenWhitespace, tokenWord, tokenWhitespace, tokenWord, tokenWhitespace)
 	if err != nil {
 		return p.stateError(err)
 	}
-
-	spew.Dump(matches)
 
 	if matches[0].val != wordError {
 		return p.stateError(errUnexpectedToken)
@@ -45,9 +57,7 @@ func parserStateError(p *parser) parserState {
 	}
 
 	return parserStateErrorDefinition(&ErrorNode{
-		code:    newTokenNode(matches[2]),
-		name:    newTokenNode(matches[4]),
-		message: newTokenNode(matches[6]),
-		// TODO: rest.. etc..
+		code: newTokenNode(matches[2]),
+		name: newTokenNode(matches[4]),
 	})
 }
