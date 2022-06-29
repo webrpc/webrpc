@@ -51,6 +51,7 @@ struct Notice
   - msg: string
 
 
+
 # syntax is: error <code> <name> <message> [-- <http status code>]
 error 500100 InvalidUsername "invalid username"
 error 403000 Unauthorized    "unauthorized access" -- 401
