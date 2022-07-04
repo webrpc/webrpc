@@ -87,7 +87,7 @@ class StreamClient<TArgs,TData> {
     // private args: TArgs,
     // private headers?: object
   ) {
-    this._fetch = (input, init) => fetch(input, init)
+    this._fetch = fetch
     this._oncloseListeners = []
     this._ondataListeners = []
   }
@@ -299,7 +299,7 @@ export class ExampleService implements ExampleService {
 
   constructor(hostname: string, fetch: Fetch, defaultHeaders?: object) {
     this._hostname = hostname
-    this._fetch = fetch
+    this._fetch = (input, init) => fetch(input, init)
     this._defaultHeaders = defaultHeaders || {}
   }
 
