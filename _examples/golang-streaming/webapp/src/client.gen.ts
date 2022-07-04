@@ -64,7 +64,7 @@ export interface DownloadReturn {
 }
 
 export interface DownloadStream {
-  open(args?: DownloadArgs, headers?: object): Promise<boolean|WebRPCError> // hmmpf..
+  open(args?: DownloadArgs, headers?: object): Promise<Response>
   close(): void
   // onopen(handler: () => void): void
   onclose(handler: (err?: WebRPCError) => void): void
@@ -74,9 +74,10 @@ export interface DownloadStream {
 
 class StreamClient<TArgs,TData> {
   // private handlers: string
-  private fetch: Fetch
-  private ondataListeners: Array<(data: TData) => void>
-  private oncloseListeners: Array<(err?: WebRPCError) => void>
+  private _fetch: Fetch
+  private _reader: ReadableStreamDefaultReader<Uint8Array> | null
+  private _ondataListeners: Array<(data: TData) => void>
+  private _oncloseListeners: Array<(err?: WebRPCError) => void>
 
   // readyState ? opened, closed, closed-lost
 
@@ -86,39 +87,39 @@ class StreamClient<TArgs,TData> {
     // private args: TArgs,
     // private headers?: object
   ) {
-    this.fetch = (input, init) => fetch(input, init)
-    this.oncloseListeners = []
-    this.ondataListeners = []
+    this._fetch = (input, init) => fetch(input, init)
+    this._oncloseListeners = []
+    this._ondataListeners = []
   }
 
-  open = (args?: TArgs, headers?: object): Promise<boolean> => {
+  open = async (args?: TArgs, headers?: object) => {
     console.log('open() top', args)
 
-    return new Promise<boolean>((resolve, reject) => {
-      // TODO: review this call, either something or nothing..
+    this._reader = null
 
-      this.fetch(this.url, { ...createHTTPRequest(args, headers) }).then(resp => {
+    const resp = await this._fetch(this.url, { ...createHTTPRequest(args, headers) })
+    if (resp.body) {
+      this._reader = resp.body.getReader()
+    }
 
-        // hmm, perhaps setup reader on "this".. we could..
-        // then we'd have .read(), or make it private...
+    // ...?
+    await this.read()
 
-        this.read(resp)
-        resolve(true) // TODO ..
-      }).catch(err => {
-        console.log(err)
-        reject(err)
-      })
-    })
+    // we done...? ...
+    this._reader = null
+
+    return resp
   }
 
-  read = async (resp: Response) => {
+  read = async () => {
     console.log('read()')
 
-    if (!resp.body) {
+    if (!this._reader) {
+      // throw new Error('response body readable stream is unavailable')
       return
     }
 
-    const reader = resp.body.getReader()
+    const reader = this._reader
     const decoder = new ChunkDecoder()
 
     var count = 0 // here for debug reasons..
@@ -140,12 +141,13 @@ class StreamClient<TArgs,TData> {
       })
 
       // debug code--
-      count++
-      if (count == 3) {
-        console.log('cancelling stream..')
-        reader.cancel()
-        return
-      }
+      // count++
+      // if (count == 3) {
+      //   console.log('cancelling stream..')
+      //   this.close()
+      //   // reader.cancel()
+      //   return
+      // }
       // --debug code
 
       if (result.done) {
@@ -156,27 +158,25 @@ class StreamClient<TArgs,TData> {
       stream()
     })
     stream()
-
   }
 
   close = () => {
-    // instead, this.reader.cancel()
+    this._reader?.cancel('cancelled by client')
+    this._reader = null
   }
 
-  // TODO, onopen ?
-
   ondata = (handler: (data: TData) => void) => {
-    this.ondataListeners.push(handler)
+    this._ondataListeners.push(handler)
   }
 
   onclose = (handler: (err?: WebRPCError) => void) => {
-    this.oncloseListeners.push(handler)
+    this._oncloseListeners.push(handler)
   }
 
   private emitData = (data: TData) => {
     // console.log('data:', data)
-    for (let i=0; i < this.oncloseListeners.length; i++) {
-      this.ondataListeners[i](data)
+    for (let i=0; i < this._oncloseListeners.length; i++) {
+      this._ondataListeners[i](data)
     }
   }
 
@@ -290,25 +290,33 @@ class ChunkDecoder {
 // Client
 //
 export class ExampleService implements ExampleService {
-  private hostname: string
-  private fetch: Fetch
-  private path = '/rpc/ExampleService/'
+  private _hostname: string
+  private _fetch: Fetch
+  private _path = '/rpc/ExampleService/'
+  private _defaultHeaders?: object
 
-  constructor(hostname: string, fetch: Fetch) {
-    this.hostname = hostname
-    this.fetch = fetch
+  // TODO: perhaps include default headers or something..?
+
+  constructor(hostname: string, fetch: Fetch, defaultHeaders?: object) {
+    this._hostname = hostname
+    this._fetch = fetch
+    this._defaultHeaders = defaultHeaders || {}
   }
 
-  private url(name: string): string {
-    return this.hostname + this.path + name
+  private _url(name: string): string {
+    return this._hostname + this._path + name
+  }
+
+  set clientDefaultHeaders(defaultHeaders: object) {
+    this._defaultHeaders = defaultHeaders
   }
 
   ping = (headers?: object): Promise<PingReturn> => {
-    return this.fetch(
-      this.url('Ping'),
-      createHTTPRequest({}, headers)
-      ).then((res) => {
-      return buildResponse(res).then(_data => {
+    return this._fetch(
+      this._url('Ping'),
+      createHTTPRequest({}, { ...this._defaultHeaders, headers })
+    ).then(resp => {
+      return buildResponse(resp).then(_data => {
         return {
           // status: <boolean>(_data.status)
         }
@@ -317,9 +325,10 @@ export class ExampleService implements ExampleService {
   }
   
   getUser = (args: GetUserArgs, headers?: object): Promise<GetUserReturn> => {
-    return this.fetch(
-      this.url('GetUser'),
-      createHTTPRequest(args, headers)).then((resp) => {
+    return this._fetch(
+      this._url('GetUser'),
+      createHTTPRequest(args, { ...this._defaultHeaders, headers })
+    ).then(resp => {
       return buildResponse(resp).then(_data => {
         return {
           user: <User>(_data.user)
@@ -329,7 +338,7 @@ export class ExampleService implements ExampleService {
   }
   
   download = async (args: DownloadArgs, headers?: object): Promise<DownloadStream> => {
-    const stream = new StreamClient<DownloadArgs, DownloadReturn>(this.fetch, this.url('Download'))//, args, headers)
+    const stream = new StreamClient<DownloadArgs, DownloadReturn>(this._fetch, this._url('Download'))//, args, headers)
     // const stream = new StreamReader(this.fetch, this.url('Download'), args, headers)
     await stream.open(args, headers) // to be or not to be....?
     return stream

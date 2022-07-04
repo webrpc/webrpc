@@ -637,7 +637,7 @@ func (c *clientDownloadStreamReader) Read(autoRetry ...bool) (base64 string, eof
 		// Error checking
 		if err != nil {
 			if err == io.EOF {
-				return out.Data.Ret0, true, Errorf(ErrStreamClosed, err, err.Error()) // TODO: .. err nil?
+				return out.Data.Ret0, true, nil //Errorf(ErrStreamClosed, err, err.Error()) // TODO: .. err nil?
 			}
 			return out.Data.Ret0, false, Errorf(ErrStreamLost, err, err.Error())
 		}

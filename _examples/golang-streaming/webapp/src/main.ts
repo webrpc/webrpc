@@ -47,11 +47,6 @@ async function main() {
 
   console.log('yes..?')
 
-  // hmm, could keep these separate?
-  // await stream.open()
-  // stream.onopen(() => {
-  // })
-
   setTimeout(() => {
     // console.log('closing........')
     // stream.close()
@@ -59,8 +54,9 @@ async function main() {
 
   stream.ondata((data: client.DownloadReturn) => {
     // do something with data..
-    console.log('YES, now we talkin.......', data)
+    console.log('data:', data)
   })
+
   stream.onclose((err) => {
     // err is empty if no error ..
 
