@@ -12,7 +12,13 @@ webrpc v2 TODO
 
 - [ ] separate out generators.. ie. `github.com/webrpc/gen-golang , gen-ts, gen-js, gen-csharp, gen-XXX
 
-streaming
+Streaming TODO
+==============
+- [ ] stream, then error logic
+- [ ] retry logic
+- [ ] webapp test
+- [ ] node v18 test
+
 - [ ] update example
 - [ ] update generator
 

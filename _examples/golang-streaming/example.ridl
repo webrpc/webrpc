@@ -1,0 +1,21 @@
+webrpc = v1
+
+name = golang-streaming
+version = v0.0.1
+              
+
+message User
+  - id: uint64
+  - username: string
+
+
+
+service ExampleService
+  - Ping()
+ 
+  - GetUser(id: uint64) => (user: User)
+
+  # single request, streaming response body
+  - Download(file: string) => stream (base64: string)
+
+  # TODO: do not allow streaming input, just out
