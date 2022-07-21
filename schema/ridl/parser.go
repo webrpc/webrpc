@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	wordType    = "type"
+	wordAlias   = "alias"
 	wordEnum    = "enum"
 	wordStruct  = "struct"
 	wordImport  = "import"
@@ -392,8 +392,8 @@ func parserStateDeclaration(p *parser) parserState {
 		// import
 		//   - <value> [<# comment>]
 		return parserStateImport
-	case wordType:
-		// type <name>: <type>
+	case wordAlias:
+		// alias <name>: <type>
 		//   + <tag.name> = <VALUE>
 		return parserStateType
 	case wordEnum:

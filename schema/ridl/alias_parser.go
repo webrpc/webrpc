@@ -1,17 +1,17 @@
 package ridl
 
-// type <name>: <type>
+// alias <name>: <type>
 //  + <tag.name> = <VALUE>
 //  + <tag.name2> = <VALUE>
 
-func parserStateTypeDefinition(tn *TypeNode) parserState {
+func parserStateAliasDefinition(tn *AliasNode) parserState {
 	return func(p *parser) parserState {
 		tok := p.cursor()
 
 		switch tok.tt {
 
 		case tokenPlusSign:
-			return parserStateTypeFieldMetaDefinition(tn)
+			return parserStateAliasFieldMetaDefinition(tn)
 
 		case tokenNewLine, tokenWhitespace:
 			// case tokenWhitespace:
@@ -26,11 +26,11 @@ func parserStateTypeDefinition(tn *TypeNode) parserState {
 
 		}
 
-		return parserStateTypeDefinition(tn)
+		return parserStateAliasDefinition(tn)
 	}
 }
 
-func parserStateTypeFieldMetaDefinition(tn *TypeNode) parserState {
+func parserStateAliasFieldMetaDefinition(tn *AliasNode) parserState {
 	return func(p *parser) parserState {
 		// + <tag.name> = value
 		_, err := p.match(tokenPlusSign, tokenWhitespace)
@@ -61,11 +61,11 @@ func parserStateTypeFieldMetaDefinition(tn *TypeNode) parserState {
 			rightNode: newTokenNode(right),
 		})
 
-		return parserStateTypeFieldMeta(tn)
+		return parserStateAliasFieldMeta(tn)
 	}
 }
 
-func parserStateTypeFieldMeta(tn *TypeNode) parserState {
+func parserStateAliasFieldMeta(tn *AliasNode) parserState {
 	return func(p *parser) parserState {
 
 		tok := p.cursor()
@@ -79,7 +79,7 @@ func parserStateTypeFieldMeta(tn *TypeNode) parserState {
 			p.continueUntilEOL()
 
 		case tokenPlusSign:
-			return parserStateTypeFieldMetaDefinition(tn)
+			return parserStateAliasFieldMetaDefinition(tn)
 
 		default:
 			p.emit(tn)
@@ -87,24 +87,24 @@ func parserStateTypeFieldMeta(tn *TypeNode) parserState {
 
 		}
 
-		return parserStateTypeFieldMeta(tn)
+		return parserStateAliasFieldMeta(tn)
 	}
 }
 
 func parserStateType(p *parser) parserState {
-	// type <name>: <type>[<# comment>]
+	// alias <name>: <type>[<# comment>]
 	matches, err := p.match(tokenWord, tokenWhitespace, tokenWord, tokenColon, tokenWhitespace, tokenWord, tokenEOL)
 	if err != nil {
 		return p.stateError(err)
 	}
 
-	if matches[0].val != wordType {
+	if matches[0].val != wordAlias {
 		return p.stateError(errUnexpectedToken)
 	}
 
-	return parserStateTypeDefinition(&TypeNode{
-		name:     newTokenNode(matches[2]),
-		typeType: newTokenNode(matches[5]),
-		extra:    &DefinitionNode{},
+	return parserStateAliasDefinition(&AliasNode{
+		name:      newTokenNode(matches[2]),
+		aliasType: newTokenNode(matches[5]),
+		extra:     &DefinitionNode{},
 	})
 }

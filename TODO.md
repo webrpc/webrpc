@@ -4,11 +4,11 @@ webrpc v2 TODO
 - [x] finalize error handling in the draft
 - [x] update ridl parser
 - [x] confirm type and struct names must start with upper case
+- [x] rename `type` keyword to `alias`
+- [x] error if we try to `alias` with a struct or enum type, as wouldn't make sense
 - [ ] add streaming to example again
-- [ ] rename `type` keyword to `alias`
-- [ ] error if we try to `alias` with a struct or enum type, as wouldn't make sense
 - [ ] update generator for go
-- [ ] in generator, for golden ridl, Another.Flatten(etc) .. and Another.GetAccountBalance, should we copy over "meta" at this point, or, look it up during generation..? at schema parse time..
+- [ ] in generator, for golden ridl, Another.Flatten(etc) .. and Another.GetAccountBalance, should we copy over "meta" at this point, or, look it up during generation..? at schema parse time I think..
 
 - [ ] separate out generators.. ie. `github.com/webrpc/gen-golang , gen-ts, gen-js, gen-csharp, gen-XXX
 

@@ -201,7 +201,7 @@
       ]
     },
     {
-      "kind": "type",
+      "kind": "alias",
       "name": "Balance",
       "type": "string",
       "meta": [

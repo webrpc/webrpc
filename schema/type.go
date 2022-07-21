@@ -48,8 +48,8 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 	}
 
 	// Ensure we have a valid kind
-	if m.Kind != "type" && m.Kind != "enum" && m.Kind != "struct" {
-		return fmt.Errorf("schema error: type must be one of 'type', 'enum', or 'struct' for '%s'", typName)
+	if m.Kind != "alias" && m.Kind != "enum" && m.Kind != "struct" {
+		return fmt.Errorf("schema error: type must be one of 'alias', 'enum', or 'struct' for '%s'", typName)
 	}
 
 	// NOTE: so far, lets allow messages with no fields.. so just empty object, why, I dunno, but gRPC allows it
@@ -80,12 +80,16 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 		fieldList[nFieldName] = fieldName
 	}
 
-	// For type only
-	if m.Kind == "type" {
+	// For alias kind only
+	if m.Kind == "alias" {
 		// ensure valid type expression
 		err := m.Type.Parse(schema)
 		if err != nil {
 			return err
+		}
+
+		if m.Type.Type == T_Struct {
+			return fmt.Errorf("schema error: alias '%s' must alias primitive types only.", m.Name)
 		}
 	}
 

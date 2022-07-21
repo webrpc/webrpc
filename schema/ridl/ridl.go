@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	schemaTypeKindType   = "type"
+	schemaTypeKindAlias  = "alias"
 	schemaTypeKindEnum   = "enum"
 	schemaTypeKindStruct = "struct"
 )
@@ -168,10 +168,10 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		})
 	}
 
-	// type
-	for _, line := range q.root.Types() {
+	// alias
+	for _, line := range q.root.Aliases() {
 		typeDef := &schema.Type{
-			Kind:      schemaTypeKindType,
+			Kind:      schemaTypeKindAlias,
 			Name:      schema.VarName(line.Name().String()),
 			TypeExtra: schema.TypeExtra{},
 		}

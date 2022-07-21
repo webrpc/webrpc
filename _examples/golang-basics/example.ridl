@@ -62,7 +62,7 @@ error 400100 MemoryFull       "system memory is full"
 
 
 # so this works like a type of field .. 
-type BigInt: string
+alias BigInt: string
   + go.field.type = prototyp.BigInt
 
 

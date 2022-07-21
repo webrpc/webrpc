@@ -12,10 +12,9 @@ import example1-partials.ridl
   - GetUserRequest
 
 
-type Balance: string
+alias Balance: string
   + go.field.type = BigInt
   + go.tag.db = balance
-
 
 struct Role
   - name: string

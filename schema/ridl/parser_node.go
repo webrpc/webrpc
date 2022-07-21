@@ -8,7 +8,7 @@ const (
 	TokenNodeType
 	DefinitionNodeType
 	ImportNodeType
-	TypeNodeType
+	AliasNodeType
 	EnumNodeType
 	StructNodeType
 	ErrorNodeType
@@ -116,15 +116,15 @@ func (rn RootNode) Enums() []*EnumNode {
 	return enumNodes
 }
 
-func (rn RootNode) Types() []*TypeNode {
-	nodes := rn.Filter(TypeNodeType)
+func (rn RootNode) Aliases() []*AliasNode {
+	nodes := rn.Filter(AliasNodeType)
 
-	typeNodes := make([]*TypeNode, 0, len(nodes))
+	aliasNodes := make([]*AliasNode, 0, len(nodes))
 	for i := range nodes {
-		typeNodes = append(typeNodes, nodes[i].(*TypeNode))
+		aliasNodes = append(aliasNodes, nodes[i].(*AliasNode))
 	}
 
-	return typeNodes
+	return aliasNodes
 }
 
 func (rn RootNode) Services() []*ServiceNode {
@@ -232,27 +232,27 @@ func (in ImportNode) Type() NodeType {
 	return ImportNodeType
 }
 
-type TypeNode struct {
+type AliasNode struct {
 	node
 
-	name     *TokenNode
-	typeType *TokenNode
-	extra    *DefinitionNode
+	name      *TokenNode
+	aliasType *TokenNode
+	extra     *DefinitionNode
 }
 
-func (tn TypeNode) Type() NodeType {
-	return TypeNodeType
+func (tn AliasNode) Type() NodeType {
+	return AliasNodeType
 }
 
-func (tn TypeNode) Name() *TokenNode {
+func (tn AliasNode) Name() *TokenNode {
 	return tn.name
 }
 
-func (tn TypeNode) TypeName() *TokenNode {
-	return tn.typeType
+func (tn AliasNode) TypeName() *TokenNode {
+	return tn.aliasType
 }
 
-func (tn TypeNode) Extra() *DefinitionNode {
+func (tn AliasNode) Extra() *DefinitionNode {
 	return tn.extra
 }
 

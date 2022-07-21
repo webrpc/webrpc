@@ -139,7 +139,7 @@
     },
     {
       "name": "BigInt",
-      "kind": "type",
+      "kind": "alias",
       "type": "string",
       "meta": [
         { "go.field.type": "prototyp.BigInt" }

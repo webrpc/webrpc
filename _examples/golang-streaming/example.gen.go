@@ -237,7 +237,10 @@ func (s *exampleServiceServer) serveDownload(ctx context.Context, w http.Respons
 		for {
 			select {
 			case <-time.After(StreamKeepAliveInterval):
-				streamWriter.Ping()
+				err := streamWriter.Ping()
+				if err != nil {
+					return
+				}
 			case <-r.Context().Done():
 				streamWriter.Close()
 				return

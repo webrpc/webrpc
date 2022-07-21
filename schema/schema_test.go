@@ -29,7 +29,12 @@ func TestSchema(t *testing.T) {
 				]
 			},
 			{
-				"kind": "type",
+				"kind": "alias",
+				"name": "Sup",
+				"type": "string"
+			},
+			{
+				"kind": "alias",
 				"name": "Balance",
 				"type": "string",
 				"meta": [
