@@ -72,6 +72,96 @@ export interface DownloadStream {
 }
 
 
+//
+// Client
+//
+export class ExampleService implements ExampleService {
+  private _hostname: string
+  private _fetch: Fetch
+  private _path = '/rpc/ExampleService/'
+  private _defaultHeaders?: object
+
+  constructor(hostname: string, fetch: Fetch) {
+    this._hostname = hostname
+    this._fetch = (input, init) => fetch(input, init)
+  }
+
+  private _url(name: string): string {
+    return this._hostname + this._path + name
+  }
+
+  get rpcDefaultHeaders(): object | undefined {
+    return this._defaultHeaders
+  }
+
+  set rpcDefaultHeaders(defaultHeaders: object | undefined) {
+    this._defaultHeaders = defaultHeaders
+  }
+
+  ping = (headers?: object): Promise<PingReturn> => {
+    return this._fetch(
+      this._url('Ping'),
+      createHTTPRequest({}, this._defaultHeaders ? { ...this._defaultHeaders, ...headers } : headers)
+    ).then(resp => {
+      return buildResponse(resp).then(_data => {
+        return {
+          // status: <boolean>(_data.status)
+        }
+      })
+    })
+  }
+  
+  getUser = (args: GetUserArgs, headers?: object): Promise<GetUserReturn> => {
+    return this._fetch(
+      this._url('GetUser'),
+      createHTTPRequest(args, { ...this._defaultHeaders, ...headers })
+    ).then(resp => {
+      return buildResponse(resp).then(_data => {
+        return {
+          user: <User>(_data.user)
+        }
+      })
+    })
+  }
+  
+  download = async (args: DownloadArgs, headers?: object): Promise<DownloadStream> => {
+    const stream = new StreamClient<DownloadArgs, DownloadReturn>(this._fetch, this._url('Download'))//, args, headers)
+    // const stream = new StreamReader(this.fetch, this.url('Download'), args, headers)
+    await stream.open(args, headers) // to be or not to be....?
+    return stream
+  }
+  
+}
+
+// TODO: use a class..?
+export interface WebRPCError extends Error {
+  code: string
+  message: string
+}
+
+const createHTTPRequest = <TBody>(body: TBody | object = {}, headers: object = {}): object => {
+  return {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': 'application/json', 'Accept': '*/*' },
+    body: JSON.stringify(body || {})
+  }
+}
+
+const buildResponse = (res: Response): Promise<any> => {
+  return res.text().then(text => {
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch(err) {
+      throw { code: 'unknown', message: `client error, expecting JSON object but got: '${text}'` } as WebRPCError
+    }
+    if (!res.ok) {
+      throw data as WebRPCError // webrpc error response
+    }
+    return data
+  })
+}
+
 class StreamClient<TArgs,TData> {
   // private handlers: string
   private _fetch: Fetch
@@ -103,10 +193,7 @@ class StreamClient<TArgs,TData> {
     }
 
     // ...?
-    await this.read()
-
-    // we done...? ...
-    this._reader = null
+    this.read()
 
     return resp
   }
@@ -125,8 +212,10 @@ class StreamClient<TArgs,TData> {
     var count = 0 // here for debug reasons..
 
     const stream = () => reader.read().then(result => {
-      if (result.done) {
+      if (result.done) { // TODO: is looked at twice..?
         // do we get final value or done first..? I think .done ..
+        console.log('1result.done .. yes')
+        this._reader = null
         return
       }
 
@@ -150,9 +239,11 @@ class StreamClient<TArgs,TData> {
       // }
       // --debug code
 
-      if (result.done) {
+      if (result.done) { // TODO: is looked at twice..?
         // resolve(true)
         // return true
+        console.log('1result.done .. yes')
+        this._reader = null
         return
       }
       stream()
@@ -286,93 +377,11 @@ class ChunkDecoder {
   }
 }
 
-//
-// Client
-//
-export class ExampleService implements ExampleService {
-  private _hostname: string
-  private _fetch: Fetch
-  private _path = '/rpc/ExampleService/'
-  private _defaultHeaders?: object
-
-  // TODO: perhaps include default headers or something..?
-
-  constructor(hostname: string, fetch: Fetch, defaultHeaders?: object) {
-    this._hostname = hostname
-    this._fetch = (input, init) => fetch(input, init)
-    this._defaultHeaders = defaultHeaders || {}
-  }
-
-  private _url(name: string): string {
-    return this._hostname + this._path + name
-  }
-
-  set clientDefaultHeaders(defaultHeaders: object) {
-    this._defaultHeaders = defaultHeaders
-  }
-
-  ping = (headers?: object): Promise<PingReturn> => {
-    return this._fetch(
-      this._url('Ping'),
-      createHTTPRequest({}, { ...this._defaultHeaders, headers })
-    ).then(resp => {
-      return buildResponse(resp).then(_data => {
-        return {
-          // status: <boolean>(_data.status)
-        }
-      })
-    })
-  }
-  
-  getUser = (args: GetUserArgs, headers?: object): Promise<GetUserReturn> => {
-    return this._fetch(
-      this._url('GetUser'),
-      createHTTPRequest(args, { ...this._defaultHeaders, headers })
-    ).then(resp => {
-      return buildResponse(resp).then(_data => {
-        return {
-          user: <User>(_data.user)
-        }
-      })
-    })
-  }
-  
-  download = async (args: DownloadArgs, headers?: object): Promise<DownloadStream> => {
-    const stream = new StreamClient<DownloadArgs, DownloadReturn>(this._fetch, this._url('Download'))//, args, headers)
-    // const stream = new StreamReader(this.fetch, this.url('Download'), args, headers)
-    await stream.open(args, headers) // to be or not to be....?
-    return stream
-  }
-  
-}
-
-// TODO: use a class..?
-export interface WebRPCError extends Error {
-  code: string
-  message: string
-}
-
-const createHTTPRequest = <TBody>(body: TBody | object = {}, headers: object = {}): object => {
-  return {
-    method: 'POST',
-    headers: { ...headers, 'Content-Type': 'application/json', 'Accept': '*/*' },
-    body: JSON.stringify(body || {})
-  }
-}
-
-const buildResponse = (res: Response): Promise<any> => {
-  return res.text().then(text => {
-    let data
-    try {
-      data = JSON.parse(text)
-    } catch(err) {
-      throw { code: 'unknown', message: `client error, expecting JSON object but got: '${text}'` } as WebRPCError
-    }
-    if (!res.ok) {
-      throw data as WebRPCError // webrpc error response
-    }
-    return data
-  })
-}
-
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
+
+if (process && process.version && process.version < 'v18') {
+  console.error(`ERROR! expecting node v18+ but your node version is reporting ${process.version}`)
+  if (process && process.exit) {
+    process.exit(1)
+  }
+}

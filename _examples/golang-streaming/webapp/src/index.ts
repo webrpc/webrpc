@@ -5,64 +5,37 @@
 // and the client.gen.ts file is code-generated which we use below..
 //
 
-// import { fetch as polyfetch } from 'whatwg-fetch'
-
-// import * as polyfetch from 'node-fetch' // for now..
-
-// import * as client from './client-xhr.gen'
 import * as client from './client.gen'
 
+// const appFetch = (input: RequestInfo, init?: RequestInit): Promise<Response> => {
+//   return new Promise<Response>((resolve, reject) => {
+//     // before the request is made..
 
-// let fetch: client.Fetch
-
-// if (window.fetch) {
-//   fetch = window.fetch.bind(window)
-// } else {
-//   fetch = polyfetch
-// }
-
-// fetch = window.fetch.bind(window)
-// fetch = polyfetch
-
-
-const appFetch = (input: RequestInfo, init?: RequestInit): Promise<Response> => {
-  return new Promise<Response>((resolve, reject) => {
-    // before the request is made..
-    init!.headers = { ...init!.headers, 'X-Custom': 'yes' }
-
-    fetch(input, init).then(resp => {
-      // after the request has been made..
-      resolve(resp)
-    }).catch(err => {
-      // request error
-      reject(err)
-    })
-  })
-}
-
-
-
-const api = new client.ExampleService('http://localhost:4242', appFetch)
-// const api = new client.ExampleService('https://pkgrok.0xhorizon.net', appFetch)
-// const api = new client.ExampleService('https://pkgrok.ngrok.io', appFetch)
-
-
-// const appFetch: Fetch = async (input: RequestInfo, init?: RequestInit) => {
-//   try {
-//     const response = await polyfetch(input, init)
-
-//     if (!response.ok) {
-//       const json = await response.json()
-
-//       throw new Error(json.msg)
+//     if (!init) {
+//       init = {}
 //     }
 
-//     return wrapResponse(response)
-//   } catch (err) {
-//     throw err
-//   }
+//     init.headers = { ...init!.headers, 'X-Custom': 'yes' }
+//     init.mode = 'cors'
+
+//     window.fetch(input, init).then(resp => {
+//       // after the request has been made..
+//       resolve(resp)
+//     }).catch(err => {
+//       // request error
+//       reject(err)
+//     })
+//   })
 // }
 
+
+
+const api = new client.ExampleService('http://localhost:4242', window.fetch)
+// const api = new client.ExampleService('https://ba48911374e9.ngrok.io', window.fetch)
+
+api.rpcDefaultHeaders = {
+  'X-Custom': 'v123'
+}
 
 
 async function main() {
@@ -78,7 +51,6 @@ async function main() {
   } catch (err) {
     console.log('[A]', {err})
   }
-    
 
   //
   // Get a user from the API

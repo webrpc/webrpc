@@ -27,8 +27,8 @@ func startServer() error {
 
 	cors := cors.New(cors.Options{
 		// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"*"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		// AllowedOrigins: []string{"*"},
+		AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"POST", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Custom"},
 		ExposedHeaders:   []string{"Link"},
