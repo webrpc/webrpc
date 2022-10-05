@@ -7,8 +7,21 @@ webrpc v2 TODO
 - [x] rename `type` keyword to `alias`
 - [x] error if we try to `alias` with a struct or enum type, as wouldn't make sense
 
-- [ ] add streaming to example again
-- [ ] update Go code, and ts code of the golang-streaming with new errors, etc.
+--
+
+- [x] update golang-streaming with new errors support on Go side + example.ridl
+  - [ ] above is looking good, but could use another review, and testing
+        certain situations like streamlost, closed, writing error on the stream, etc.
+- [ ] finalize webapp/ source in client.gen.ts with streaming + errors, etc.
+
+
+--
+or
+
+- [ ] add streaming to example again in golang-basics
+- [ ] finalize Go client and server, ie. what we'd use for gen-golang
+
+- [ ] finalize ts client in golang-streaming with new errors too
 
 
 - [ ] update generator for go

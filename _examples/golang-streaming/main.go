@@ -56,7 +56,8 @@ func (s *ExampleServiceRPC) Ping(ctx context.Context) error {
 
 func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, error) {
 	if userID == 911 {
-		return nil, ErrorNotFound("user doest exist")
+		// return nil, ErrUserNotFound
+		return nil, ErrorWithCause(ErrUserNotFound, fmt.Errorf("unknown user id %d", userID))
 	}
 
 	return &User{
@@ -77,7 +78,7 @@ func (s *ExampleServiceRPC) Download(ctx context.Context, file string, stream Do
 	i := 0
 	for {
 		err := stream.Write(fmt.Sprintf("hiii send %d", i))
-		if err == ErrStreamClosed {
+		if err == RPCErrorStreamClosed {
 			fmt.Println("client is gone.....")
 			return nil
 		}

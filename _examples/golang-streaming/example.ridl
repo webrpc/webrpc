@@ -1,7 +1,7 @@
-webrpc = v1
+webrpc = v2
 
 name = golang-streaming
-version = v0.0.1
+version = v0.0.2
               
 
 message User
@@ -9,8 +9,14 @@ message User
   - username: string
 
 
+# syntax is: error <code> <name> <message> [-- <http status code>]
+error 500100 InvalidUsername  "invalid username"
+error 400100 MemoryFull       "system memory is full"
+error 400200 FileNotFound     "file not found"
+error 403000 Unauthorized     "unauthorized" -- 401 # sets 401 http status code
+error 403001 UserNotFound     "user not found"
 
-service ExampleService
+service Example
   - Ping()
  
   - GetUser(id: uint64) => (user: User)
@@ -19,3 +25,4 @@ service ExampleService
   - Download(file: string) => stream (base64: string)
 
   # TODO: do not allow streaming input, just out
+  # that is on RIDL type-checking time, or webrpc build time, either..

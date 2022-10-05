@@ -127,7 +127,7 @@ var WebRPCServices = map[string][]string{
 
 //
 // Server
-//
+//WebRPCServer
 
 type exampleServer struct {
 	Example
@@ -628,8 +628,6 @@ func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out i
 		if err != nil {
 			return rpcClientError(err, "failed to read response body")
 		}
-		// TODO: do we need deffer resp.Body.Close() // .. I think so..?
-		defer resp.Body.Close()
 
 		err = json.Unmarshal(respBody, &out)
 		if err != nil {

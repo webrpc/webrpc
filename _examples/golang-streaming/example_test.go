@@ -49,7 +49,13 @@ func TestGetUser(t *testing.T) {
 	{
 		// Error case, expecting to receive an error
 		user, err := client.GetUser(context.Background(), 911)
-		fmt.Println(err.Error())
+
+		rpcErr, ok := err.(RPCError)
+		assert.True(t, ok)
+		assert.Equal(t, 0, rpcErr.HTTPStatus)
+		assert.Equal(t, "UserNotFound", rpcErr.Name)
+		assert.Equal(t, uint64(403001), rpcErr.Code)
+
 		assert.Nil(t, user)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not found")
@@ -71,7 +77,7 @@ func TestDownload(t *testing.T) {
 				break
 			}
 
-			if errors.Is(err, ErrStreamLost) {
+			if errors.Is(err, RPCErrorStreamLost) {
 				fmt.Println("connection lost..", err)
 				// 	// lets reconnect..
 				// 	stream, err = client.Download(context.Background(), "hi")

@@ -14,7 +14,6 @@ export const WebRPCSchemaVersion = "v1.0.0"
 export const WebRPCSchemaHash = "87ce8159bce3ad056518dfb1f1877b1a1012b34d"
 
 
-
 //
 // Types
 //
@@ -67,7 +66,7 @@ export interface DownloadStream {
   open(args?: DownloadArgs, headers?: object): Promise<Response>
   close(): void
   // onopen(handler: () => void): void
-  onclose(handler: (err?: WebRPCError) => void): void
+  onclose(handler: (err?: RPCError) => void): void
   ondata(handler: (data: DownloadReturn) => void): void
 }
 
@@ -75,10 +74,11 @@ export interface DownloadStream {
 //
 // Client
 //
-export class ExampleService implements ExampleService {
+
+export class ExampleServiceClient implements ExampleService {
   private _hostname: string
   private _fetch: Fetch
-  private _path = '/rpc/ExampleService/'
+  private _path = '/rpc/Example/'
   private _defaultHeaders?: object
 
   constructor(hostname: string, fetch: Fetch) {
@@ -90,11 +90,11 @@ export class ExampleService implements ExampleService {
     return this._hostname + this._path + name
   }
 
-  get rpcDefaultHeaders(): object | undefined {
+  get httpDefaultHeaders(): object | undefined {
     return this._defaultHeaders
   }
 
-  set rpcDefaultHeaders(defaultHeaders: object | undefined) {
+  set httpDefaultHeaders(defaultHeaders: object | undefined) {
     this._defaultHeaders = defaultHeaders
   }
 
@@ -133,12 +133,6 @@ export class ExampleService implements ExampleService {
   
 }
 
-// TODO: use a class..?
-export interface WebRPCError extends Error {
-  code: string
-  message: string
-}
-
 const createHTTPRequest = <TBody>(body: TBody | object = {}, headers: object = {}): object => {
   return {
     method: 'POST',
@@ -153,10 +147,20 @@ const buildResponse = (res: Response): Promise<any> => {
     try {
       data = JSON.parse(text)
     } catch(err) {
-      throw { code: 'unknown', message: `client error, expecting JSON object but got: '${text}'` } as WebRPCError
+      throw new RPCError('RPCError', 0, `client error, expecting JSON object but got: '${text}'`)
     }
     if (!res.ok) {
-      throw data as WebRPCError // webrpc error response
+      if (data.code && typeof data.code === 'number') {
+        const err = rpcErrorsByCode[data.code] as any
+        if (err && err.throwError) {
+          err.throwError(data)
+        }
+      }
+      if (data.message) {
+        RPCError.throwError(data)
+      } else {
+        throw data // unknown payload
+      }
     }
     return data
   })
@@ -167,7 +171,7 @@ class StreamClient<TArgs,TData> {
   private _fetch: Fetch
   private _reader: ReadableStreamDefaultReader<Uint8Array> | null
   private _ondataListeners: Array<(data: TData) => void>
-  private _oncloseListeners: Array<(err?: WebRPCError) => void>
+  private _oncloseListeners: Array<(err?: RPCError) => void>
 
   // readyState ? opened, closed, closed-lost
 
@@ -260,7 +264,7 @@ class StreamClient<TArgs,TData> {
     this._ondataListeners.push(handler)
   }
 
-  onclose = (handler: (err?: WebRPCError) => void) => {
+  onclose = (handler: (err?: RPCError) => void) => {
     this._oncloseListeners.push(handler)
   }
 
@@ -378,6 +382,53 @@ class ChunkDecoder {
 }
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
+
+
+//
+// Errors
+//
+
+export class RPCError extends Error {
+  name: string
+  code: number
+  message: string
+  cause?: string
+
+  constructor(name: string, code: number, message: string, cause?: string) {
+    super(message)
+    this.name = name || 'RPCError'
+    this.code = code || 0
+    this.message = message
+    this.cause = cause
+    Object.setPrototypeOf(this, RPCError.prototype)
+  }
+
+  static throwError(payload: any) {
+    throw new this(payload.error, payload.code, payload.message, payload.cause)
+  }
+}
+
+export class UserNotFoundError extends RPCError {
+  constructor(
+    name: string = 'UserNotFoundError',
+    code: number = 403001,
+    message: string = 'user not found',
+    cause?: string
+  ) {
+    super(name, code, message, cause)
+    Object.setPrototypeOf(this, UserNotFoundError.prototype)
+  }
+}
+
+export enum errors {
+  RPCError = 'RPCError',
+  UserNotFoundError = 'UserNotFoundError'
+}
+
+const rpcErrorsByCode: { [code: number]: any } = {
+  0: RPCError,
+  403001: UserNotFoundError
+}
 
 if (process && process.version && process.version < 'v18') {
   console.error(`ERROR! expecting node v18+ but your node version is reporting ${process.version}`)
