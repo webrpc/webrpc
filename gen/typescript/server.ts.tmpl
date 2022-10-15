@@ -20,7 +20,7 @@ import express from 'express'
 
     {{- range .Services}}
         {{$name := .Name}}
-        {{$serviceName := .Name | serviceInterfaceName}}
+        {{$serviceName := .Name | tsServiceInterfaceName}}
 
         export type {{$serviceName}}Service = {
             {{range .Methods}}

@@ -5,7 +5,7 @@
 //
 
 {{- range .Services}}
-export class {{.Name}} implements {{.Name | serviceInterfaceName}} {
+export class {{.Name}} implements {{.Name | tsServiceInterfaceName}} {
   protected hostname: string
   protected fetch: Fetch
   protected path = '/rpc/{{.Name}}/'
@@ -19,7 +19,7 @@ export class {{.Name}} implements {{.Name | serviceInterfaceName}} {
     return this.hostname + this.path + name
   }
   {{range .Methods}}
-  {{.Name | methodName}} = ({{. | methodInputs}}): {{. | methodOutputs}} => {
+  {{.Name | tsMethodName}} = ({{. | tsMethodInputs}}): {{. | tsMethodOutputs}} => {
     return this.fetch(
       this.url('{{.Name}}'),
       {{- if .Inputs | len}}
@@ -32,7 +32,7 @@ export class {{.Name}} implements {{.Name | serviceInterfaceName}} {
         return {
         {{- $outputsCount := .Outputs|len -}}
         {{- range $i, $output := .Outputs}}
-          {{$output | newOutputArgResponse}}{{listComma $i $outputsCount}}
+          {{$output | tsNewOutputArgResponse}}{{listComma $i $outputsCount}}
         {{- end}}
         }
       })

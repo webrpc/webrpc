@@ -17,9 +17,9 @@ export enum {{$enumName}} {
 {{end -}}
 
 {{- if .Type | isStruct  }}
-export interface {{.Name | interfaceName}} {
+export interface {{.Name | tsInterfaceName}} {
   {{- range .Fields}}
-  {{if . | exportableField -}}{{. | exportedJSONField}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}{{- end -}}
+  {{if . | tsExportableField -}}{{. | tsExportedJSONField}}{{if .Optional}}?{{end}}: {{.Type | tsFieldType}}{{- end -}}
   {{- end}}
 }
 {{end -}}
@@ -28,22 +28,22 @@ export interface {{.Name | interfaceName}} {
 
 {{if .Services}}
 {{- range .Services}}
-export interface {{.Name | serviceInterfaceName}} {
+export interface {{.Name | tsServiceInterfaceName}} {
 {{- range .Methods}}
-  {{.Name | methodName}}({{. | methodInputs}}): {{. | methodOutputs}}
+  {{.Name | tsMethodName}}({{. | tsMethodInputs}}): {{. | tsMethodOutputs}}
 {{- end}}
 }
 
 {{range .Methods -}}
-export interface {{. | methodArgumentInputInterfaceName}} {
+export interface {{. | tsMethodArgumentInputInterfaceName}} {
 {{- range .Inputs}}
-  {{.Name}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}
+  {{.Name}}{{if .Optional}}?{{end}}: {{.Type | tsFieldType}}
 {{- end}}
 }
 
-export interface {{. | methodArgumentOutputInterfaceName}} {
+export interface {{. | tsMethodArgumentOutputInterfaceName}} {
 {{- range .Outputs}}
-  {{.Name}}{{if .Optional}}?{{end}}: {{.Type | fieldType}}
+  {{.Name}}{{if .Optional}}?{{end}}: {{.Type | tsFieldType}}
 {{- end}}  
 }
 {{end}}

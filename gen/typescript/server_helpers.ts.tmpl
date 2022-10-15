@@ -15,11 +15,11 @@ const JS_TYPES = [
     const validate{{ .Name }} = (value: any) => {
         {{ range .Fields }}
             {{ if .Optional }}
-                if ("{{ . | exportedJSONField }}" in value && !validateType(value["{{ . | exportedJSONField }}"], "{{ .Type | jsFieldType }}")) {
+                if ("{{ . | tsExportedJSONField }}" in value && !validateType(value["{{ . | tsExportedJSONField }}"], "{{ .Type | jsFieldType }}")) {
                     return false
                 }
             {{ else }}
-                if (!("{{ . | exportedJSONField }}" in value) || !validateType(value["{{ . | exportedJSONField }}"], "{{ .Type | jsFieldType }}")) {
+                if (!("{{ . | tsExportedJSONField }}" in value) || !validateType(value["{{ . | tsExportedJSONField }}"], "{{ .Type | jsFieldType }}")) {
                     return false
                 }
             {{ end }}
