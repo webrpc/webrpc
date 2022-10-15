@@ -1,23 +1,13 @@
 package gen
 
 import (
+	"bytes"
+	"io/fs"
+	"text/template"
+
+	"github.com/pkg/errors"
 	"github.com/webrpc/webrpc/schema"
 )
-
-type Generator interface {
-	Gen(proto *schema.WebRPCSchema, opts TargetOptions) (string, error)
-}
-
-var Generators = map[string]Generator{}
-
-func Register(target string, generator Generator) {
-	Generators[target] = generator
-}
-
-func GetGenerator(target string) Generator {
-	g, _ := Generators[target]
-	return g
-}
 
 type TargetOptions struct {
 	PkgName   string
@@ -25,4 +15,39 @@ type TargetOptions struct {
 	Server    bool
 	Extra     string
 	Websocket bool
+}
+
+func Generate(proto *schema.WebRPCSchema, templatesFS fs.FS, opts TargetOptions) (string, error) {
+	// Load templates
+	tmpl, err := template.
+		New("webrpc-gen").
+		Funcs(templateFuncMap(proto)).
+		ParseFS(templatesFS, "*.go.tmpl")
+	if err != nil {
+		return "", errors.Wrap(err, "failed to parse Go templates")
+	}
+
+	// generate deterministic schema hash of the proto file
+	schemaHash, err := proto.SchemaHash()
+	if err != nil {
+		return "", err
+	}
+
+	// template vars
+	vars := struct {
+		*schema.WebRPCSchema
+		SchemaHash string
+		TargetOpts TargetOptions
+	}{
+		proto, schemaHash, opts,
+	}
+
+	// generate the template
+	genBuf := bytes.NewBuffer(nil)
+	err = tmpl.ExecuteTemplate(genBuf, "proto", vars)
+	if err != nil {
+		return "", err
+	}
+
+	return string(genBuf.Bytes()), nil
 }

@@ -1,7 +1,7 @@
 package golang
 
 import (
-	"log"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -169,15 +169,16 @@ const input = `
 }
 `
 
-func TestGenTypescript(t *testing.T) {
-	g := &generator{}
-
-	s, err := schema.ParseSchemaJSON([]byte(input))
+func TestGolangTemplate(t *testing.T) {
+	schema, err := schema.ParseSchemaJSON([]byte(input))
 	assert.NoError(t, err)
 
-	o, err := g.Gen(s, gen.TargetOptions{PkgName: "test", Client: true, Server: true})
-	assert.NoError(t, err)
-	_ = o
+	tmplFS := os.DirFS("./")
 
-	log.Printf("o: %v", o)
+	_, err = gen.Generate(schema, tmplFS, gen.TargetOptions{PkgName: "test", Client: true, Server: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.NoError(t, err)
 }

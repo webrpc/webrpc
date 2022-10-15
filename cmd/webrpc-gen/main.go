@@ -9,9 +9,6 @@ import (
 
 	"github.com/webrpc/webrpc"
 	"github.com/webrpc/webrpc/gen"
-	_ "github.com/webrpc/webrpc/gen/golang"
-	_ "github.com/webrpc/webrpc/gen/javascript"
-	_ "github.com/webrpc/webrpc/gen/typescript"
 )
 
 var flags = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
@@ -25,12 +22,7 @@ func main() {
 	clientFlag := flags.Bool("client", false, "enable webrpc client library generation, default: off")
 	serverFlag := flags.Bool("server", false, "enable webrpc server library generation, default: off")
 
-	// registered/available target languages
-	targets := []string{}
-	for k, _ := range gen.Generators {
-		targets = append(targets, k)
-	}
-	targetFlag := flags.String("target", "", fmt.Sprintf("target language for webrpc library generation, %s (required)", targets))
+	targetFlag := flags.String("target", "", fmt.Sprintf("target language for webrpc library generation (required)"))
 	targetExtra := flags.String("extra", "", "target language extra/custom options")
 
 	flags.Parse(os.Args[1:])
@@ -69,19 +61,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	targetLang := *targetFlag
-	if _, ok := gen.Generators[targetLang]; !ok {
-		fmt.Printf("oops, you passed an invalid -target flag, try one of registered generators: %s\n", targets)
-		os.Exit(1)
-	}
-
-	// Call our target code-generator
-	generator := gen.GetGenerator(*targetFlag)
-	if generator == nil {
-		fmt.Printf("error! unable to find generator for target '%s'\n", *targetFlag)
-		os.Exit(1)
-	}
-
 	targetOpts := gen.TargetOptions{
 		PkgName: *pkgFlag,
 		Client:  *clientFlag,
@@ -89,7 +68,11 @@ func main() {
 		Extra:   *targetExtra,
 	}
 
-	protoGen, err := generator.Gen(schema, targetOpts)
+	// Open a FS for given target (local directory with Go templates).
+	// TODO: Support remote github.com/ URLs.
+	tmplFS := os.DirFS(*targetFlag)
+
+	protoGen, err := gen.Generate(schema, tmplFS, targetOpts)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
