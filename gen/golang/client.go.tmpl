@@ -9,13 +9,13 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
 {{end}}
 
 {{range .Services}}
-  {{ $serviceName := .Name | clientServiceName}}
+  {{ $serviceName := .Name | goClientServiceName}}
   type {{$serviceName}} struct {
     client HTTPClient
     urls   [{{.Methods | countMethods}}]string
   }
 
-  func {{.Name | newClientServiceName }}(addr string, client HTTPClient) {{.Name}} {
+  func {{.Name | goNewClientServiceName }}(addr string, client HTTPClient) {{.Name}} {
     prefix := urlBase(addr) + {{.Name | constPathPrefix}}
     urls := [{{.Methods | countMethods}}]string{
       {{- range .Methods}}
@@ -29,28 +29,28 @@ const {{.Name | constPathPrefix}} = "/rpc/{{.Name}}/"
   }
 
   {{range $i, $method := .Methods}}
-    func (c *{{$serviceName}}) {{.Name}}({{.Inputs | methodInputs}}) ({{.Outputs | methodOutputs }}) {
+    func (c *{{$serviceName}}) {{.Name}}({{.Inputs | goMethodInputs}}) ({{.Outputs | goMethodOutputs }}) {
       {{- $inputVar := "nil" -}}
       {{- $outputVar := "nil" -}}
       {{- if .Inputs | len}}
       {{- $inputVar = "in"}}
       in := struct {
         {{- range $i, $input := .Inputs}}
-          Arg{{$i}} {{$input | methodArgType}} `json:"{{$input.Name | downcaseName}}"`
+          Arg{{$i}} {{$input | goMethodArgType}} `json:"{{$input.Name | downcaseName}}"`
         {{- end}}          
-      }{ {{.Inputs | methodArgNames}} }
+      }{ {{.Inputs | goMethodArgNames}} }
       {{- end}}
       {{- if .Outputs | len}}
       {{- $outputVar = "&out"}}
       out := struct {
         {{- range $i, $output := .Outputs}}
-          Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name | downcaseName}}"`
+          Ret{{$i}} {{$output | goMethodArgType}} `json:"{{$output.Name | downcaseName}}"`
         {{- end}}          
       }{}
       {{- end}}
 
       err := doJSONRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}})
-      return {{argsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} err
+      return {{goArgsList .Outputs "out.Ret"}}{{commaIfLen .Outputs}} err
     }
   {{end}}
 {{end}}

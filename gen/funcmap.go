@@ -10,7 +10,7 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-var fieldTypeMap = map[schema.DataType]string{
+var goFieldTypeMap = map[schema.DataType]string{
 	schema.T_Uint:      "uint",
 	schema.T_Uint8:     "uint8",
 	schema.T_Uint16:    "uint16",
@@ -31,39 +31,39 @@ var fieldTypeMap = map[schema.DataType]string{
 	schema.T_Bool:      "bool",
 }
 
-func serviceMethodName(in schema.VarName) (string, error) {
+func goServiceMethodName(in schema.VarName) (string, error) {
 	s := string(in)
 	return "serve" + strings.ToUpper(s[0:1]) + s[1:], nil
 }
 
-func serviceMethodJSONName(in schema.VarName) (string, error) {
+func goServiceMethodJSONName(in schema.VarName) (string, error) {
 	s := string(in)
 	return "serve" + strings.ToUpper(s[0:1]) + s[1:] + "JSON", nil
 }
 
-func newServerServiceName(in schema.VarName) (string, error) {
+func goNewServerServiceName(in schema.VarName) (string, error) {
 	return "New" + string(in) + "Server", nil
 }
 
-func newClientServiceName(in schema.VarName) (string, error) {
+func goNewClientServiceName(in schema.VarName) (string, error) {
 	return "New" + string(in) + "Client", nil
 }
 
-func fieldType(in *schema.VarType) (string, error) {
+func goFieldType(in *schema.VarType) (string, error) {
 	switch in.Type {
 	case schema.T_Map:
-		typK, ok := fieldTypeMap[in.Map.Key]
+		typK, ok := goFieldTypeMap[in.Map.Key]
 		if !ok {
 			return "", fmt.Errorf("unknown type mapping %v", in.Map.Key)
 		}
-		typV, err := fieldType(in.Map.Value)
+		typV, err := goFieldType(in.Map.Value)
 		if err != nil {
 			return "", err
 		}
 		return fmt.Sprintf("map[%v]%s", typK, typV), nil
 
 	case schema.T_List:
-		z, err := fieldType(in.List.Elem)
+		z, err := goFieldType(in.List.Elem)
 		if err != nil {
 			return "", err
 		}
@@ -73,14 +73,14 @@ func fieldType(in *schema.VarType) (string, error) {
 		return "*" + in.Struct.Name, nil
 
 	default:
-		if fieldTypeMap[in.Type] != "" {
-			return fieldTypeMap[in.Type], nil
+		if goFieldTypeMap[in.Type] != "" {
+			return goFieldTypeMap[in.Type], nil
 		}
 	}
 	return "", fmt.Errorf("could not represent type: %#v", in)
 }
 
-func fieldOptional(field *schema.MessageField) (string, error) {
+func goFieldOptional(field *schema.MessageField) (string, error) {
 	if !field.Optional {
 		return "", nil
 	}
@@ -92,40 +92,40 @@ func fieldOptional(field *schema.MessageField) (string, error) {
 	case schema.T_Struct:
 		return "", nil // noop because by default struct uses '*' prefix
 	default:
-		if fieldTypeMap[field.Type.Type] != "" {
+		if goFieldTypeMap[field.Type.Type] != "" {
 			return "*", nil
 		}
 	}
 	return "", fmt.Errorf("could not represent type: %#v", field)
 }
 
-func fieldTypeDef(in *schema.MessageField) (string, error) {
-	goFieldType := ""
+func goFieldTypeDef(in *schema.MessageField) (string, error) {
+	gogoFieldType := ""
 
 	meta := in.Meta
 	for kk := range meta {
 		for k, v := range meta[kk] {
 			if k == "go.field.type" {
-				goFieldType = fmt.Sprintf("%v", v)
+				gogoFieldType = fmt.Sprintf("%v", v)
 			}
 		}
 	}
 
-	if goFieldType != "" {
-		return goFieldType, nil
+	if gogoFieldType != "" {
+		return gogoFieldType, nil
 	}
 
-	return fieldType(in.Type)
+	return goFieldType(in.Type)
 }
 
-func fieldTags(in *schema.MessageField) (string, error) {
-	fieldTags := map[string]interface{}{}
+func goFieldTags(in *schema.MessageField) (string, error) {
+	goFieldTags := map[string]interface{}{}
 
 	jsonFieldName, err := downcaseName(in.Name)
 	if err != nil {
 		return "", err
 	}
-	fieldTags["json"] = fmt.Sprintf("%s", jsonFieldName)
+	goFieldTags["json"] = fmt.Sprintf("%s", jsonFieldName)
 
 	goTagJSON := ""
 
@@ -136,28 +136,28 @@ func fieldTags(in *schema.MessageField) (string, error) {
 			switch {
 			case k == "json":
 				if goTagJSON == "" {
-					fieldTags["json"] = fmt.Sprintf("%v", v)
+					goFieldTags["json"] = fmt.Sprintf("%v", v)
 				}
 
 			case strings.HasPrefix(k, "go.tag.json"):
 				goTagJSON = fmt.Sprintf("%v", v)
-				if !strings.HasPrefix(goTagJSON, fmt.Sprintf("%v", fieldTags["json"])) {
+				if !strings.HasPrefix(goTagJSON, fmt.Sprintf("%v", goFieldTags["json"])) {
 					return "", errors.New("go.tag.json is invalid, it must match the json fieldname")
 				}
-				fieldTags[k[7:]] = fmt.Sprintf("%v", v)
+				goFieldTags[k[7:]] = fmt.Sprintf("%v", v)
 
 			case strings.HasPrefix(k, "go.tag."):
 				if k == "go.tag.json" {
 					goTagJSON = fmt.Sprintf("%v", v)
 				}
-				fieldTags[k[7:]] = fmt.Sprintf("%v", v)
+				goFieldTags[k[7:]] = fmt.Sprintf("%v", v)
 			}
 
 		}
 	}
 
 	tagKeys := []string{}
-	for k, _ := range fieldTags {
+	for k, _ := range goFieldTags {
 		if k != "json" {
 			tagKeys = append(tagKeys, k)
 		}
@@ -167,7 +167,7 @@ func fieldTags(in *schema.MessageField) (string, error) {
 
 	tags := []string{}
 	for _, k := range tagKeys {
-		tags = append(tags, fmt.Sprintf(`%s:"%v"`, k, fieldTags[k]))
+		tags = append(tags, fmt.Sprintf(`%s:"%v"`, k, goFieldTags[k]))
 	}
 
 	return "`" + strings.Join(tags, " ") + "`", nil
@@ -181,17 +181,17 @@ func countMethods(in []*schema.Method) (string, error) {
 	return strconv.Itoa(len(in)), nil
 }
 
-func clientServiceName(in schema.VarName) (string, error) {
+func goClientServiceName(in schema.VarName) (string, error) {
 	s := string(in)
 	return strings.ToLower(s[0:1]) + s[1:] + "Client", nil
 }
 
-func serverServiceName(in schema.VarName) (string, error) {
+func goServerServiceName(in schema.VarName) (string, error) {
 	s := string(in)
 	return strings.ToLower(s[0:1]) + s[1:] + "Server", nil
 }
 
-func methodArgName(in *schema.MethodArgument) string {
+func goMethodArgName(in *schema.MethodArgument) string {
 	name := string(in.Name)
 	if name == "" && in.Type != nil {
 		name = in.Type.String()
@@ -202,8 +202,8 @@ func methodArgName(in *schema.MethodArgument) string {
 	return ""
 }
 
-func methodArgType(in *schema.MethodArgument) string {
-	z, err := fieldType(in.Type)
+func goMethodArgType(in *schema.MethodArgument) string {
+	z, err := goFieldType(in.Type)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -224,32 +224,32 @@ func methodArgType(in *schema.MethodArgument) string {
 	return prefix + z
 }
 
-func methodInputs(in []*schema.MethodArgument) (string, error) {
+func goMethodInputs(in []*schema.MethodArgument) (string, error) {
 	inputs := []string{"ctx context.Context"}
 	for i := range in {
-		inputs = append(inputs, fmt.Sprintf("%s %s", methodArgName(in[i]), methodArgType(in[i])))
+		inputs = append(inputs, fmt.Sprintf("%s %s", goMethodArgName(in[i]), goMethodArgType(in[i])))
 	}
 	return strings.Join(inputs, ", "), nil
 }
 
-func methodOutputs(in []*schema.MethodArgument) (string, error) {
+func goMethodOutputs(in []*schema.MethodArgument) (string, error) {
 	outputs := []string{}
 	for i := range in {
-		outputs = append(outputs, methodArgType(in[i]))
+		outputs = append(outputs, goMethodArgType(in[i]))
 	}
 	outputs = append(outputs, "error")
 	return strings.Join(outputs, ", "), nil
 }
 
-func methodArgNames(in []*schema.MethodArgument) (string, error) {
+func goMethodArgNames(in []*schema.MethodArgument) (string, error) {
 	inputs := []string{}
 	for i := range in {
-		inputs = append(inputs, fmt.Sprintf("%s", methodArgName(in[i])))
+		inputs = append(inputs, fmt.Sprintf("%s", goMethodArgName(in[i])))
 	}
 	return strings.Join(inputs, ", "), nil
 }
 
-func argsList(in []*schema.MethodArgument, prefix string) (string, error) {
+func goArgsList(in []*schema.MethodArgument, prefix string) (string, error) {
 	ins := []string{}
 	for i := range in {
 		ins = append(ins, fmt.Sprintf("%s%d", prefix, i))
@@ -268,7 +268,7 @@ func isStruct(t schema.MessageType) bool {
 	return t == "struct"
 }
 
-func exportedField(in *schema.MessageField) (string, error) {
+func goExportedField(in *schema.MessageField) (string, error) {
 	s := string(in.Name)
 	s = strings.ToUpper(s[0:1]) + s[1:]
 
@@ -305,37 +305,40 @@ func isEnum(t schema.MessageType) bool {
 	return t == "enum"
 }
 
-func hasFieldType(proto *schema.WebRPCSchema) func(fieldType string) (bool, error) {
-	return func(fieldType string) (bool, error) {
-		return proto.HasFieldType(fieldType)
+func goHasGoFieldType(proto *schema.WebRPCSchema) func(goFieldType string) (bool, error) {
+	return func(goFieldType string) (bool, error) {
+		return proto.HasFieldType(goFieldType)
 	}
 }
 
 func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 	return map[string]interface{}{
-		"serviceMethodName":     serviceMethodName,
-		"serviceMethodJSONName": serviceMethodJSONName,
-		"hasFieldType":          hasFieldType(proto),
-		"fieldTags":             fieldTags,
-		"fieldType":             fieldType,
-		"fieldOptional":         fieldOptional,
-		"fieldTypeDef":          fieldTypeDef,
-		"newClientServiceName":  newClientServiceName,
-		"newServerServiceName":  newServerServiceName,
-		"constPathPrefix":       constPathPrefix,
-		"countMethods":          countMethods,
-		"clientServiceName":     clientServiceName,
-		"serverServiceName":     serverServiceName,
-		"methodInputs":          methodInputs,
-		"methodOutputs":         methodOutputs,
-		"methodArgName":         methodArgName,
-		"methodArgType":         methodArgType,
-		"methodArgNames":        methodArgNames,
-		"argsList":              argsList,
-		"commaIfLen":            commaIfLen,
-		"isStruct":              isStruct,
-		"isEnum":                isEnum,
-		"exportedField":         exportedField,
-		"downcaseName":          downcaseName,
+		// Generic functions.
+		"constPathPrefix": constPathPrefix,
+		"countMethods":    countMethods,
+		"commaIfLen":      commaIfLen,
+		"isStruct":        isStruct,
+		"isEnum":          isEnum,
+		"downcaseName":    downcaseName,
+
+		// Golang specific functions.
+		"goServiceMethodName":     goServiceMethodName,
+		"goServiceMethodJSONName": goServiceMethodJSONName,
+		"goHasGoFieldType":        goHasGoFieldType(proto),
+		"goFieldTags":             goFieldTags,
+		"goFieldType":             goFieldType,
+		"goFieldOptional":         goFieldOptional,
+		"goFieldTypeDef":          goFieldTypeDef,
+		"goNewClientServiceName":  goNewClientServiceName,
+		"goNewServerServiceName":  goNewServerServiceName,
+		"goClientServiceName":     goClientServiceName,
+		"goServerServiceName":     goServerServiceName,
+		"goMethodInputs":          goMethodInputs,
+		"goMethodOutputs":         goMethodOutputs,
+		"goMethodArgName":         goMethodArgName,
+		"goMethodArgType":         goMethodArgType,
+		"goMethodArgNames":        goMethodArgNames,
+		"goArgsList":              goArgsList,
+		"goExportedField":         goExportedField,
 	}
 }

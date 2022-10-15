@@ -10,13 +10,13 @@ type WebRPCServer interface {
 
 {{- range .Services}}
   {{$name := .Name}}
-  {{$serviceName := .Name | serverServiceName}}
+  {{$serviceName := .Name | goServerServiceName}}
 
   type {{$serviceName}} struct {
     {{.Name}}
   }
 
-  func {{ .Name | newServerServiceName }}(svc {{.Name}}) WebRPCServer {
+  func {{ .Name | goNewServerServiceName }}(svc {{.Name}}) WebRPCServer {
     return &{{$serviceName}}{
       {{.Name}}: svc,
     }
@@ -37,7 +37,7 @@ type WebRPCServer interface {
     switch r.URL.Path {
     {{- range .Methods}}
     case "/rpc/{{$name}}/{{.Name}}":
-      s.{{.Name | serviceMethodName}}(ctx, w, r)
+      s.{{.Name | goServiceMethodName}}(ctx, w, r)
       return
     {{- end}}
     default:
@@ -48,7 +48,7 @@ type WebRPCServer interface {
   }
 
   {{range .Methods}}
-    func (s *{{$serviceName}}) {{.Name | serviceMethodName}}(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+    func (s *{{$serviceName}}) {{.Name | goServiceMethodName}}(ctx context.Context, w http.ResponseWriter, r *http.Request) {
       header := r.Header.Get("Content-Type")
       i := strings.Index(header, ";")
       if i == -1 {
@@ -57,21 +57,21 @@ type WebRPCServer interface {
 
       switch strings.TrimSpace(strings.ToLower(header[:i])) {
       case "application/json":
-        s.{{ .Name | serviceMethodJSONName }}(ctx, w, r)
+        s.{{ .Name | goServiceMethodJSONName }}(ctx, w, r)
       default:
         err := Errorf(ErrBadRoute, "unexpected Content-Type: %q", r.Header.Get("Content-Type"))
         RespondWithError(w, err)
       }
     }
 
-    func (s *{{$serviceName}}) {{.Name | serviceMethodJSONName}}(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+    func (s *{{$serviceName}}) {{.Name | goServiceMethodJSONName}}(ctx context.Context, w http.ResponseWriter, r *http.Request) {
       var err error
       ctx = context.WithValue(ctx, MethodNameCtxKey, "{{.Name}}")
 
       {{- if .Inputs|len}}
       reqContent := struct {
       {{- range $i, $input := .Inputs}}
-        Arg{{$i}} {{. | methodArgType}} `json:"{{$input.Name | downcaseName}}"`
+        Arg{{$i}} {{. | goMethodArgType}} `json:"{{$input.Name | downcaseName}}"`
       {{- end}}
       }{}
 
@@ -93,7 +93,7 @@ type WebRPCServer interface {
 
       // Call service method
       {{- range $i, $output := .Outputs}}
-      var ret{{$i}} {{$output | methodArgType}}
+      var ret{{$i}} {{$output | goMethodArgType}}
       {{- end}}
       func() {
         defer func() {
@@ -103,14 +103,14 @@ type WebRPCServer interface {
             panic(rr)
           }
         }()
-        {{argsList .Outputs "ret"}}{{.Outputs | commaIfLen}} err = s.{{$name}}.{{.Name}}(ctx{{.Inputs | commaIfLen}}{{argsList .Inputs "reqContent.Arg"}})
+        {{goArgsList .Outputs "ret"}}{{.Outputs | commaIfLen}} err = s.{{$name}}.{{.Name}}(ctx{{.Inputs | commaIfLen}}{{goArgsList .Inputs "reqContent.Arg"}})
       }()
       {{- if .Outputs | len}}
       respContent := struct {
       {{- range $i, $output := .Outputs}}
-        Ret{{$i}} {{$output | methodArgType}} `json:"{{$output.Name | downcaseName}}"`
+        Ret{{$i}} {{$output | goMethodArgType}} `json:"{{$output.Name | downcaseName}}"`
       {{- end}}         
-      }{ {{argsList .Outputs "ret"}} }
+      }{ {{goArgsList .Outputs "ret"}} }
       {{- end}}
 
       if err != nil {

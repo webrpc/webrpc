@@ -1,15 +1,14 @@
-package golang
+package gen
 
 import (
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/webrpc/webrpc/gen"
 	"github.com/webrpc/webrpc/schema"
 )
 
-const input = `
+const goInput = `
 {
   "webrpc": "v1",
   "name": "example",
@@ -170,12 +169,12 @@ const input = `
 `
 
 func TestGolangTemplate(t *testing.T) {
-	schema, err := schema.ParseSchemaJSON([]byte(input))
+	schema, err := schema.ParseSchemaJSON([]byte(goInput))
 	assert.NoError(t, err)
 
-	tmplFS := os.DirFS("./")
+	goTemplates := os.DirFS("./golang")
 
-	_, err = gen.Generate(schema, tmplFS, gen.TargetOptions{PkgName: "test", Client: true, Server: true})
+	_, err = Generate(schema, goTemplates, TargetOptions{PkgName: "test", Client: true, Server: true})
 	if err != nil {
 		t.Fatal(err)
 	}

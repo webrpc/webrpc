@@ -53,7 +53,7 @@
   {{if .Type | isStruct  }}
     type {{.Name}} struct {
       {{- range .Fields}}
-        {{. | exportedField}} {{. | fieldOptional}}{{. | fieldTypeDef}} {{. | fieldTags}}
+        {{. | goExportedField}} {{. | goFieldOptional}}{{. | goFieldTypeDef}} {{. | goFieldTags}}
       {{- end}}
     }
   {{end}}
@@ -63,7 +63,7 @@
   {{range .Services}}
     type {{.Name}} interface {
       {{- range .Methods}}
-        {{.Name}}({{.Inputs | methodInputs}}) ({{.Outputs | methodOutputs}})
+        {{.Name}}({{.Inputs | goMethodInputs}}) ({{.Outputs | goMethodOutputs}})
       {{- end}}
     }
   {{end}}
