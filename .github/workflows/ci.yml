@@ -31,9 +31,6 @@ jobs:
       - name: Build
         run: go install ./cmd/webrpc-gen
       - name: Regenerate examples
-        run: |
-          cd _examples
-          go generate ./..
-          for i in */Makefile; do cd $(dirname $i); make generate; cd -; done
+        run: make generate
       - name: Git diff of regenerated examples
         run: git diff --color --exit-code
