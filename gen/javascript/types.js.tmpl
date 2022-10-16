@@ -7,7 +7,7 @@
 
 {{if .Type | isEnum -}}
 {{$enumName := .Name}}
-{{exportKeyword}}var {{$enumName}};
+{{jsExportKeyword}}var {{$enumName}};
 (function ({{$enumName}}) {
 {{- range $i, $field := .Fields}}
   {{$enumName}}["{{$field.Name}}"] = "{{$field.Name}}"
@@ -16,21 +16,21 @@
 {{end -}}
 
 {{- if .Type | isStruct  }}
-{{exportKeyword}}class {{.Name}} {
+{{jsExportKeyword}}class {{.Name}} {
   constructor(_data) {
     this._data = {}
     if (_data) {
       {{range .Fields -}}
-      this._data['{{. | exportedJSONField}}'] = _data['{{. | exportedJSONField}}']
+      this._data['{{. | jsExportedJSONField}}'] = _data['{{. | jsExportedJSONField}}']
       {{end}}
     }
   }
   {{ range .Fields -}}
-  get {{. | exportedJSONField}}() {
-    return this._data['{{. | exportedJSONField }}']
+  get {{. | jsExportedJSONField}}() {
+    return this._data['{{. | jsExportedJSONField }}']
   }
-  set {{. | exportedJSONField}}(value) {
-    this._data['{{. | exportedJSONField}}'] = value
+  set {{. | jsExportedJSONField}}(value) {
+    this._data['{{. | jsExportedJSONField}}'] = value
   }
   {{end}}
   toJSON() {

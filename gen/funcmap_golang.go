@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/webrpc/webrpc/schema"
@@ -171,14 +170,6 @@ func goFieldTags(in *schema.MessageField) (string, error) {
 	}
 
 	return "`" + strings.Join(tags, " ") + "`", nil
-}
-
-func constPathPrefix(in schema.VarName) (string, error) {
-	return string(in) + "PathPrefix", nil
-}
-
-func countMethods(in []*schema.Method) (string, error) {
-	return strconv.Itoa(len(in)), nil
 }
 
 func goClientServiceName(in schema.VarName) (string, error) {

@@ -21,7 +21,7 @@ func Generate(proto *schema.WebRPCSchema, templatesFS fs.FS, opts TargetOptions)
 	// Load templates
 	tmpl, err := template.
 		New("webrpc-gen").
-		Funcs(templateFuncMap(proto)).
+		Funcs(templateFuncMap(proto, opts)).
 		ParseFS(templatesFS, "*.tmpl")
 	if err != nil {
 		return "", errors.Wrap(err, "failed to parse Go templates")

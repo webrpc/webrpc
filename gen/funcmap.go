@@ -2,12 +2,13 @@ package gen
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 
 	"github.com/webrpc/webrpc/schema"
 )
 
-func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
+func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]interface{} {
 	return map[string]interface{}{
 		// Generic template functions.
 		"constPathPrefix": constPathPrefix,
@@ -52,6 +53,14 @@ func templateFuncMap(proto *schema.WebRPCSchema) map[string]interface{} {
 		"tsExportedField":                     tsExportedField,
 		"tsExportedJSONField":                 tsExportedJSONField,
 		"jsFieldType":                         jsFieldType,
+
+		// JavaScript specific template functions.
+		"jsExportKeyword":        jsExportKeyword(opts),
+		"jsMethodName":           jsMethodName,
+		"jsMethodInputs":         jsMethodInputs,
+		"jsNewOutputArgResponse": jsNewOutputArgResponse,
+		"jsServiceInterfaceName": jsServiceInterfaceName,
+		"jsExportedJSONField":    jsExportedJSONField,
 	}
 }
 
@@ -92,4 +101,12 @@ func downcaseName(v interface{}) (string, error) {
 	default:
 		return "", errors.New("downcaseFieldName, unknown arg type")
 	}
+}
+
+func constPathPrefix(in schema.VarName) (string, error) {
+	return string(in) + "PathPrefix", nil
+}
+
+func countMethods(in []*schema.Method) (string, error) {
+	return strconv.Itoa(len(in)), nil
 }

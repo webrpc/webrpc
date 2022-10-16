@@ -4,7 +4,7 @@
 // Client
 //
 {{ range .Services}}
-{{exportKeyword}}class {{.Name}} {
+{{jsExportKeyword}}class {{.Name}} {
   constructor(hostname, fetch) {
     this.path = '/rpc/{{.Name}}/'
     this.hostname = hostname
@@ -15,7 +15,7 @@
     return this.hostname + this.path + name
   }
   {{range .Methods}}
-  {{.Name | methodName}} = ({{.Inputs | methodInputs}}) => {
+  {{.Name | jsMethodName}} = ({{.Inputs | jsMethodInputs}}) => {
     return this.fetch(
       this.url('{{.Name}}'),
       {{- if .Inputs | len}}
@@ -28,7 +28,7 @@
         return {
         {{- $outputsCount := .Outputs|len -}}
         {{- range $i, $output := .Outputs}}
-          {{$output | newOutputArgResponse}}{{listComma $i $outputsCount}}
+          {{$output | jsNewOutputArgResponse}}{{listComma $i $outputsCount}}
         {{- end}}
         }
       })

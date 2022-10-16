@@ -1,10 +1,10 @@
-package javascript
+package gen
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/webrpc/webrpc/gen"
 	"github.com/webrpc/webrpc/schema"
 )
 
@@ -160,14 +160,15 @@ const input = `
 `
 
 func TestGenJavascript(t *testing.T) {
-	s, err := schema.ParseSchemaJSON([]byte(input))
+	schema, err := schema.ParseSchemaJSON([]byte(input))
 	assert.NoError(t, err)
 
-	g := &generator{}
+	tsTemplates := os.DirFS("./javascript")
 
-	o, err := g.Gen(s, gen.TargetOptions{})
-	assert.NoError(t, err)
-	_ = o
+	o, err := Generate(schema, tsTemplates, TargetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	// t.Logf("%s", o)
+	t.Logf("%s", o)
 }
