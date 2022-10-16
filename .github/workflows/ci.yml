@@ -9,15 +9,31 @@ on:
       - "**"
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version: 1.19
-
       - name: Test
         run: go test -v ./...
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+      - name: Build
+        run: go install ./cmd/webrpc-gen
+      - name: Re-generate examples
+        run: |
+          cd _examples
+          go generate ./..
+          for i in */Makefile; do cd $(dirname $i); make generate; cd -; done
+      - name: Git diff
+        run: git diff --exit-code
