@@ -1,4 +1,4 @@
-//go:generate ../../bin/webrpc-gen -schema=./proto/api.ridl -target=go -pkg=main -server -client -out=./api.gen.go
+//go:generate webrpc-gen -schema=./proto/api.ridl -target=go -pkg=main -server -client -out=./api.gen.go
 package main
 
 import (

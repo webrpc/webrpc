@@ -9,15 +9,28 @@ on:
       - "**"
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version: 1.19
-
       - name: Test
         run: go test -v ./...
+
+  examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+      - name: Build
+        run: go install ./cmd/webrpc-gen
+      - name: Regenerate examples
+        run: make generate
+      - name: Git diff of regenerated examples
+        run: git diff --color --exit-code
