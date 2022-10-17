@@ -37,7 +37,7 @@ generate:
 	@for i in _examples/*/Makefile; do           \
 		echo; echo $$ cd $$i \&\& make generate; \
 		cd $$(dirname $$i);                      \
-		make generate;                           \
+		make generate || exit 1;                 \
 		cd ../../;                               \
 	done
 
