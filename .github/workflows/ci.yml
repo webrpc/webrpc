@@ -33,4 +33,4 @@ jobs:
       - name: Regenerate examples
         run: make generate
       - name: Git diff of regenerated examples
-        run: git diff --color --exit-code
+        run: git diff --color --ignore-all-space --ignore-blank-lines --exit-code
