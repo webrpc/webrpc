@@ -6,42 +6,39 @@
 package {{.TargetOpts.PkgName}}
 
 import (
-  "context"
-  "encoding/json"
-  "fmt"
-  "io/ioutil"
-  "net/http"
-  "time"
-  "strings"
-  "bytes"
-  "errors"
-  "io"
-  "net/url"
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strings"
+	"time"
 )
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
-  return "{{.WebRPCVersion}}"
+	return "{{.WebRPCVersion}}"
 }
 
 // Schema version of your RIDL schema
 func WebRPCSchemaVersion() string {
-  return "{{.SchemaVersion}}"
+	return "{{.SchemaVersion}}"
 }
 
 // Schema hash generated from your RIDL schema
 func WebRPCSchemaHash() string {
-  return "{{.SchemaHash}}"
+	return "{{.SchemaHash}}"
 }
 
 {{template "types" .}}
 
 {{if .TargetOpts.Server}}
-  {{template "server" .}}
+	{{template "server" .}}
 {{end}}
 
 {{if .TargetOpts.Client}}
-  {{template "client" .}}
+	{{template "client" .}}
 {{end}}
 
 {{template "helpers" .}}
