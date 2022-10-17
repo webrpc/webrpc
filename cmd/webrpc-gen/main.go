@@ -68,6 +68,17 @@ func main() {
 		Extra:   *targetExtra,
 	}
 
+	// Backward compatibility with webrpc v0.6.0.
+	// TODO: Rename to github.com/webrpc/{lang}
+	switch *targetFlag {
+	case "go":
+		*targetFlag = "../../gen/golang"
+	case "ts":
+		*targetFlag = "../../gen/typescript"
+	case "js":
+		*targetFlag = "../../gen/javascript"
+	}
+
 	// Open a FS for given target (local directory with Go templates).
 	// TODO: Support remote github.com/ URLs.
 	tmplFS := os.DirFS(*targetFlag)
