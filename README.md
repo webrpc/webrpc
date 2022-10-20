@@ -148,7 +148,8 @@ Future goals/work:
 
 ## Getting started
 
-1. `go get -u github.com/webrpc/webrpc/cmd/webrpc-gen`
+1.  * for Go v1.17+: `go install github.com/webrpc/webrpc/cmd/webrpc-gen`
+    * for earlier versions: `go get -u github.com/webrpc/webrpc/cmd/webrpc-gen`  
 2. Write+design a [webrpc schema file](./_examples/golang-basics/example.ridl) for your Web service
 3. Run the code-generator to create your server interface and client, ie.
   * `webrpc-gen -schema=example.ridl -target=go -pkg=service -server -client -out=./service/proto.gen.go`

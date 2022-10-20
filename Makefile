@@ -35,6 +35,12 @@ test: build
 
 generate:
 	go generate ./...
+	@for i in _examples/*/Makefile; do           \
+		echo; echo $$ cd $$i \&\& make generate; \
+		cd $$(dirname $$i);                      \
+		make generate;                           \
+		cd ../../;                               \
+	done
 
 dep:
 	@export GO111MODULE=on && go mod tidy
