@@ -17,11 +17,6 @@ func jsExportKeyword(opts TargetOptions) func() string {
 	}
 }
 
-func jsMethodName(in interface{}) string {
-	v, _ := downcaseName(in)
-	return v
-}
-
 func jsMethodInputs(in []*schema.MethodArgument) (string, error) {
 	inputs := []string{}
 

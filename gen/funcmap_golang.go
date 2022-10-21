@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/golang-cz/textcase"
 	"github.com/webrpc/webrpc/schema"
 )
 
@@ -120,10 +121,7 @@ func goFieldTypeDef(in *schema.MessageField) (string, error) {
 func goFieldTags(in *schema.MessageField) (string, error) {
 	goFieldTags := map[string]interface{}{}
 
-	jsonFieldName, err := downcaseName(in.Name)
-	if err != nil {
-		return "", err
-	}
+	jsonFieldName := textcase.CamelCase(string(in.Name))
 	goFieldTags["json"] = fmt.Sprintf("%s", jsonFieldName)
 
 	goTagJSON := ""
