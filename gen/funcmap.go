@@ -1,22 +1,42 @@
 package gen
 
 import (
-	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
+	"github.com/golang-cz/textcase"
 	"github.com/webrpc/webrpc/schema"
 )
 
+// Template functions are part of webrpc-gen API. Keep backward-compatible.
 func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]interface{} {
 	return map[string]interface{}{
+
+		// String manipulation.
+		"toLower": applyStringFunction("toLower", strings.ToLower),
+		"toUpper": applyStringFunction("toLower", strings.ToUpper),
+		"firstLetterToLower": applyStringFunction("firstLetterToLower", func(input string) string {
+			if input == "" {
+				return ""
+			}
+			return strings.ToLower(input[:1]) + input[1:]
+		}),
+		"firstLetterToUpper": applyStringFunction("firstLetterToUpper", func(input string) string {
+
+			return input
+		}),
+		"camelCase":  applyStringFunction("camelCase", textcase.CamelCase),
+		"pascalCase": applyStringFunction("pascalCase", textcase.PascalCase),
+		"snakeCase":  applyStringFunction("snakeCase", textcase.SnakeCase),
+		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),
+
 		// Generic template functions.
 		"constPathPrefix": constPathPrefix,
 		"countMethods":    countMethods,
 		"commaIfLen":      commaIfLen,
 		"isStruct":        isStruct,
 		"isEnum":          isEnum,
-		"downcaseName":    downcaseName,
 		"listComma":       listComma,
 
 		// Golang specific template functions.
@@ -42,7 +62,6 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 		// TypeScript specific template functions.
 		"tsFieldType":                         tsFieldType,
 		"tsInterfaceName":                     tsInterfaceName,
-		"tsMethodName":                        tsMethodName,
 		"tsMethodInputs":                      tsMethodInputs,
 		"tsMethodOutputs":                     tsMethodOutputs,
 		"tsNewOutputArgResponse":              tsNewOutputArgResponse,
@@ -56,11 +75,23 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 
 		// JavaScript specific template functions.
 		"jsExportKeyword":        jsExportKeyword(opts),
-		"jsMethodName":           jsMethodName,
 		"jsMethodInputs":         jsMethodInputs,
 		"jsNewOutputArgResponse": jsNewOutputArgResponse,
 		"jsServiceInterfaceName": jsServiceInterfaceName,
 		"jsExportedJSONField":    jsExportedJSONField,
+	}
+}
+
+func applyStringFunction(fnName string, fn func(string) string) func(v interface{}) (string, error) {
+	return func(v interface{}) (string, error) {
+		switch t := v.(type) {
+		case schema.VarName:
+			return fn(string(t)), nil
+		case string:
+			return fn(t), nil
+		default:
+			return "", fmt.Errorf("%v: unknown arg type %T", fnName, v)
+		}
 	}
 }
 
@@ -86,22 +117,60 @@ func isEnum(t schema.MessageType) bool {
 	return t == "enum"
 }
 
-func downcaseName(v interface{}) (string, error) {
-	downFn := func(s string) string {
-		if s == "" {
-			return ""
-		}
-		return strings.ToLower(s[0:1]) + s[1:]
-	}
-	switch t := v.(type) {
-	case schema.VarName:
-		return downFn(string(t)), nil
-	case string:
-		return downFn(t), nil
-	default:
-		return "", errors.New("downcaseFieldName, unknown arg type")
-	}
-}
+// func camelCase(v interface{}) (string, error) {
+// 	switch t := v.(type) {
+// 	case schema.VarName:
+// 		return textcase.CamelCase(string(t)), nil
+// 	case string:
+// 		return textcase.CamelCase(t), nil
+// 	default:
+// 		return "", errors.New("camelCase, unknown arg type")
+// 	}
+// }
+
+// func pascalCase(v interface{}) (string, error) {
+// 	switch t := v.(type) {
+// 	case schema.VarName:
+// 		return textcase.PascalCase(string(t)), nil
+// 	case string:
+// 		return textcase.PascalCase(t), nil
+// 	default:
+// 		return "", errors.New("PascalCase, unknown arg type")
+// 	}
+// }
+
+// func snakeCase(v interface{}) (string, error) {
+// 	switch t := v.(type) {
+// 	case schema.VarName:
+// 		return textcase.SnakeCase(string(t)), nil
+// 	case string:
+// 		return textcase.SnakeCase(t), nil
+// 	default:
+// 		return "", errors.New("snake_case, unknown arg type")
+// 	}
+// }
+
+// func kebabCase(v interface{}) (string, error) {
+// 	switch t := v.(type) {
+// 	case schema.VarName:
+// 		return textcase.KebabCase(string(t)), nil
+// 	case string:
+// 		return textcase.KebabCase(t), nil
+// 	default:
+// 		return "", errors.New("snake_case, unknown arg type")
+// 	}
+// }
+
+// func toLower(v interface{}) (string, error) {
+// 	switch t := v.(type) {
+// 	case schema.VarName:
+// 		return strings.ToLower(string(t)), nil
+// 	case string:
+// 		return strings.ToLower(t), nil
+// 	default:
+// 		return "", errors.New("snake_case, unknown arg type")
+// 	}
+// }
 
 func constPathPrefix(in schema.VarName) (string, error) {
 	return string(in) + "PathPrefix", nil

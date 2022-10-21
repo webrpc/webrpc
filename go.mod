@@ -3,6 +3,7 @@ module github.com/webrpc/webrpc
 go 1.16
 
 require (
+	github.com/golang-cz/textcase v1.2.0
 	github.com/pkg/errors v0.8.1
 	github.com/posener/gitfs v1.2.1
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749

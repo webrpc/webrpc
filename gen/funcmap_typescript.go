@@ -114,11 +114,6 @@ func tsMethodOutputs(in *schema.Method) (string, error) {
 	return fmt.Sprintf("Promise<%s>", tsMethodArgumentOutputInterfaceName(in)), nil
 }
 
-func tsMethodName(in interface{}) string {
-	v, _ := downcaseName(in)
-	return v
-}
-
 func tsExportedField(in schema.VarName) (string, error) {
 	return string(in), nil
 }
