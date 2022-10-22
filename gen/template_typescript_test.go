@@ -1,10 +1,8 @@
 package gen
 
 import (
-	"context"
 	"testing"
 
-	"github.com/posener/gitfs"
 	"github.com/stretchr/testify/assert"
 	"github.com/webrpc/webrpc/schema"
 )
@@ -164,13 +162,7 @@ func TestGenTypescript(t *testing.T) {
 	schema, err := schema.ParseSchemaJSON([]byte(tsInput))
 	assert.NoError(t, err)
 
-	ctx := context.Background()
-	tmplFS, err := gitfs.New(ctx, "github.com/webrpc/gen-typescript@v0.6.0")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	o, err := Generate(schema, tmplFS, TargetOptions{})
+	o, err := Generate(schema, "github.com/webrpc/gen-typescript@v0.6.0", TargetOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}

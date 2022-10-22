@@ -1,15 +1,12 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
-	"github.com/posener/gitfs"
 	"github.com/webrpc/webrpc"
 	"github.com/webrpc/webrpc/gen"
 )
@@ -71,31 +68,7 @@ func main() {
 		Extra:   *targetExtra,
 	}
 
-	repo := *targetFlag
-
-	if !strings.HasPrefix(repo, "github.com") {
-		// Backward compatibility with webrpc-gen v0.6.0.
-		switch repo {
-		case "go":
-			repo = "github.com/webrpc/gen-golang@v0.6.0"
-		case "ts":
-			repo = "github.com/webrpc/gen-typescript@v0.6.0"
-		case "js":
-			repo = "github.com/webrpc/gen-javascript@v0.6.0"
-		default:
-			fmt.Fprint(os.Stderr, "-target= must be github.com/org/repo@tag")
-			os.Exit(1)
-		}
-	}
-
-	ctx := context.TODO()
-	tmplFS, err := gitfs.New(ctx, repo)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-		os.Exit(1)
-	}
-
-	protoGen, err := gen.Generate(schema, tmplFS, targetOpts)
+	protoGen, err := gen.Generate(schema, *targetFlag, targetOpts)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
