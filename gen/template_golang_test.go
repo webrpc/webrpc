@@ -1,9 +1,10 @@
 package gen
 
 import (
-	"os"
+	"context"
 	"testing"
 
+	"github.com/posener/gitfs"
 	"github.com/stretchr/testify/assert"
 	"github.com/webrpc/webrpc/schema"
 )
@@ -172,9 +173,13 @@ func TestGolangTemplate(t *testing.T) {
 	schema, err := schema.ParseSchemaJSON([]byte(goInput))
 	assert.NoError(t, err)
 
-	goTemplates := os.DirFS("./golang")
+	ctx := context.Background()
+	tmplFS, err := gitfs.New(ctx, "github.com/webrpc/gen-golang@v0.6.0")
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	_, err = Generate(schema, goTemplates, TargetOptions{PkgName: "test", Client: true, Server: true})
+	_, err = Generate(schema, tmplFS, TargetOptions{PkgName: "test", Client: true, Server: true})
 	if err != nil {
 		t.Fatal(err)
 	}
