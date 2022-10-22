@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/posener/gitfs"
 	"github.com/webrpc/webrpc"
 	"github.com/webrpc/webrpc/gen"
 )
@@ -22,7 +25,7 @@ func main() {
 	clientFlag := flags.Bool("client", false, "enable webrpc client library generation, default: off")
 	serverFlag := flags.Bool("server", false, "enable webrpc server library generation, default: off")
 
-	targetFlag := flags.String("target", "", fmt.Sprintf("target language for webrpc library generation (required)"))
+	targetFlag := flags.String("target", "", fmt.Sprintf("target generator for webrpc library generation (required), ie. github.com/webrpc/gen-golang@v0.6.0"))
 	targetExtra := flags.String("extra", "", "target language extra/custom options")
 
 	flags.Parse(os.Args[1:])
@@ -68,20 +71,29 @@ func main() {
 		Extra:   *targetExtra,
 	}
 
-	// Backward compatibility with webrpc v0.6.0.
-	// TODO: Rename to github.com/webrpc/{lang}
-	switch *targetFlag {
-	case "go":
-		*targetFlag = "../../gen/golang"
-	case "ts":
-		*targetFlag = "../../gen/typescript"
-	case "js":
-		*targetFlag = "../../gen/javascript"
+	repo := *targetFlag
+
+	if !strings.HasPrefix(repo, "github.com") {
+		// Backward compatibility with webrpc-gen v0.6.0.
+		switch repo {
+		case "go":
+			repo = "github.com/webrpc/gen-golang@v0.6.0"
+		case "ts":
+			repo = "github.com/webrpc/gen-typescript@v0.6.0"
+		case "js":
+			repo = "github.com/webrpc/gen-javascript@v0.6.0"
+		default:
+			fmt.Fprint(os.Stderr, "-target= must be github.com/org/repo@tag")
+			os.Exit(1)
+		}
 	}
 
-	// Open a FS for given target (local directory with Go templates).
-	// TODO: Support remote github.com/ URLs.
-	tmplFS := os.DirFS(*targetFlag)
+	ctx := context.TODO()
+	tmplFS, err := gitfs.New(ctx, repo)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
+	}
 
 	protoGen, err := gen.Generate(schema, tmplFS, targetOpts)
 	if err != nil {
