@@ -12,6 +12,9 @@ import (
 // Template functions are part of webrpc-gen API. Keep backward-compatible.
 func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]interface{} {
 	return map[string]interface{}{
+		"dict": newDict,
+		"set":  set,
+		"get":  get,
 
 		// String manipulation.
 		"toLower": applyStringFunction("toLower", strings.ToLower),
@@ -95,6 +98,54 @@ func applyStringFunction(fnName string, fn func(string) string) func(v interface
 	}
 }
 
+// Dictionary, a map of string to string with a default value.
+type dict struct {
+	m            map[string]string
+	defaultValue string
+}
+
+func newDict(defaultValue string) *dict {
+	return &dict{
+		m:            map[string]string{},
+		defaultValue: defaultValue,
+	}
+}
+
+func set(d *dict, key string, value string) string {
+	if d == nil {
+		panic(fmt.Sprintf("set: dict is nil, did you call $dict:=newDict ?"))
+	}
+
+	d.m[key] = value
+	return ""
+}
+
+func get(d *dict, key interface{}) string {
+	switch t := key.(type) {
+	case string:
+		return d.get(t)
+	case schema.VarName:
+		return d.get(string(t))
+	case schema.VarType:
+		return d.get(t.Type.String())
+	case *schema.VarType:
+		return d.get(t.Type.String())
+	default:
+		panic(fmt.Sprintf("get: unknown type %T", key))
+	}
+}
+
+func (d *dict) get(key string) string {
+	if d == nil {
+		return ""
+	}
+	v, ok := d.m[key]
+	if !ok {
+		return d.defaultValue
+	}
+	return v
+}
+
 func commaIfLen(in []*schema.MethodArgument) string {
 	if len(in) > 0 {
 		return ","
@@ -116,61 +167,6 @@ func isStruct(t schema.MessageType) bool {
 func isEnum(t schema.MessageType) bool {
 	return t == "enum"
 }
-
-// func camelCase(v interface{}) (string, error) {
-// 	switch t := v.(type) {
-// 	case schema.VarName:
-// 		return textcase.CamelCase(string(t)), nil
-// 	case string:
-// 		return textcase.CamelCase(t), nil
-// 	default:
-// 		return "", errors.New("camelCase, unknown arg type")
-// 	}
-// }
-
-// func pascalCase(v interface{}) (string, error) {
-// 	switch t := v.(type) {
-// 	case schema.VarName:
-// 		return textcase.PascalCase(string(t)), nil
-// 	case string:
-// 		return textcase.PascalCase(t), nil
-// 	default:
-// 		return "", errors.New("PascalCase, unknown arg type")
-// 	}
-// }
-
-// func snakeCase(v interface{}) (string, error) {
-// 	switch t := v.(type) {
-// 	case schema.VarName:
-// 		return textcase.SnakeCase(string(t)), nil
-// 	case string:
-// 		return textcase.SnakeCase(t), nil
-// 	default:
-// 		return "", errors.New("snake_case, unknown arg type")
-// 	}
-// }
-
-// func kebabCase(v interface{}) (string, error) {
-// 	switch t := v.(type) {
-// 	case schema.VarName:
-// 		return textcase.KebabCase(string(t)), nil
-// 	case string:
-// 		return textcase.KebabCase(t), nil
-// 	default:
-// 		return "", errors.New("snake_case, unknown arg type")
-// 	}
-// }
-
-// func toLower(v interface{}) (string, error) {
-// 	switch t := v.(type) {
-// 	case schema.VarName:
-// 		return strings.ToLower(string(t)), nil
-// 	case string:
-// 		return strings.ToLower(t), nil
-// 	default:
-// 		return "", errors.New("snake_case, unknown arg type")
-// 	}
-// }
 
 func constPathPrefix(in schema.VarName) (string, error) {
 	return string(in) + "PathPrefix", nil
