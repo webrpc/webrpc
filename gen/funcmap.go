@@ -12,13 +12,26 @@ import (
 // Template functions are part of webrpc-gen API. Keep backward-compatible.
 func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]interface{} {
 	return map[string]interface{}{
-		"dict": newDict,
+		"dict": dict,
 		"set":  set,
 		"get":  get,
+		"str":  str,
 
 		// String manipulation.
 		"toLower": applyStringFunction("toLower", strings.ToLower),
 		"toUpper": applyStringFunction("toLower", strings.ToUpper),
+		"downcaseName": applyStringFunction("downcaseName", func(input string) string {
+			if input == "" {
+				return ""
+			}
+			return strings.ToLower(input[:1]) + input[1:]
+		}),
+		"tsMethodName": applyStringFunction("tsMethodName", func(input string) string {
+			if input == "" {
+				return ""
+			}
+			return strings.ToLower(input[:1]) + input[1:]
+		}),
 		"firstLetterToLower": applyStringFunction("firstLetterToLower", func(input string) string {
 			if input == "" {
 				return ""
@@ -26,13 +39,19 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 			return strings.ToLower(input[:1]) + input[1:]
 		}),
 		"firstLetterToUpper": applyStringFunction("firstLetterToUpper", func(input string) string {
-
-			return input
+			if input == "" {
+				return ""
+			}
+			return strings.ToUpper(input[:1]) + input[1:]
 		}),
 		"camelCase":  applyStringFunction("camelCase", textcase.CamelCase),
 		"pascalCase": applyStringFunction("pascalCase", textcase.PascalCase),
 		"snakeCase":  applyStringFunction("snakeCase", textcase.SnakeCase),
 		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),
+
+		// String utils.
+		"hasPrefix": strings.HasPrefix,
+		"hasSuffix": strings.HasSuffix,
 
 		// Generic template functions.
 		"constPathPrefix": constPathPrefix,
