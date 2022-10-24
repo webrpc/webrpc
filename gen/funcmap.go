@@ -104,65 +104,72 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 	}
 }
 
-func applyStringFunction(fnName string, fn func(string) string) func(v interface{}) (string, error) {
-	return func(v interface{}) (string, error) {
+func str(v interface{}) string {
+	switch t := v.(type) {
+	case schema.VarName:
+		return string(t)
+	case schema.VarType:
+		return t.Type.String()
+	case *schema.VarType:
+		return t.Type.String()
+	case schema.MessageType:
+		return string(t)
+	case string:
+		return t
+	default:
+		panic(fmt.Sprintf("str: unknown arg type %T", v))
+	}
+}
+
+func applyStringFunction(fnName string, fn func(string) string) func(v interface{}) string {
+	return func(v interface{}) string {
 		switch t := v.(type) {
 		case schema.VarName:
-			return fn(string(t)), nil
+			return fn(string(t))
 		case string:
-			return fn(t), nil
+			return fn(t)
 		default:
-			return "", fmt.Errorf("%v: unknown arg type %T", fnName, v)
+			panic(fmt.Errorf("%v: unknown arg type %T", fnName, v))
 		}
 	}
 }
 
-// Dictionary, a map of string to string with a default value.
-type dict struct {
-	m            map[string]string
-	defaultValue string
-}
-
-func newDict(defaultValue string) *dict {
-	return &dict{
-		m:            map[string]string{},
-		defaultValue: defaultValue,
-	}
-}
-
-func set(d *dict, key string, value string) string {
-	if d == nil {
-		panic(fmt.Sprintf("set: dict is nil, did you call $dict:=newDict ?"))
+// Create new dictionary.
+func dict(pairs ...interface{}) map[string]interface{} {
+	if len(pairs)%2 == 1 {
+		panic("dict must be created with even number of parameters (key:value pairs)")
 	}
 
-	d.m[key] = value
+	m := map[string]interface{}{}
+	for i := 0; i < len(pairs); i += 2 {
+		key, ok := pairs[i].(string)
+		if !ok {
+			panic(fmt.Sprintf("dict argument(%v) must be string key", i))
+		}
+		m[key] = pairs[i+1]
+	}
+
+	return m
+}
+
+func set(m map[string]interface{}, key string, value interface{}) string {
+	m[key] = value
 	return ""
 }
 
-func get(d *dict, key interface{}) string {
+func get(m map[string]interface{}, key interface{}) interface{} {
 	switch t := key.(type) {
 	case string:
-		return d.get(t)
+		return m[t]
 	case schema.VarName:
-		return d.get(string(t))
+		return m[string(t)]
 	case schema.VarType:
-		return d.get(t.Type.String())
+		return m[t.Type.String()]
 	case *schema.VarType:
-		return d.get(t.Type.String())
+		return m[t.Type.String()]
 	default:
 		panic(fmt.Sprintf("get: unknown type %T", key))
 	}
-}
-
-func (d *dict) get(key string) string {
-	if d == nil {
-		return ""
-	}
-	v, ok := d.m[key]
-	if !ok {
-		return d.defaultValue
-	}
-	return v
 }
 
 func commaIfLen(in []*schema.MethodArgument) string {
