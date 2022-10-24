@@ -18,10 +18,11 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 		"get":  get,
 
 		// Type helpers.
+		"isBaseType":    isBaseType,
 		"isMapType":     isMapType,
+		"isArrayType":   isArrayType,
 		"mapKeyType":    mapKeyType,
 		"mapValueType":  mapValueType,
-		"isArrayType":   isArrayType,
 		"arrayItemType": arrayItemType,
 
 		// String manipulation.
@@ -113,10 +114,22 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 	}
 }
 
+// Base webrpc type is anything but map, array or custom message type.
+func isBaseType(v interface{}) bool {
+	str := str(v)
+	_, ok := schema.DataTypeFromString[str]
+	return ok
+}
+
 func isMapType(v interface{}) bool {
 	str := str(v)
 	key, value, found := strings.Cut(str, ",")
 	return found && strings.HasPrefix(key, "map<") && strings.HasSuffix(value, ">")
+}
+
+func isArrayType(v interface{}) bool {
+	str := str(v)
+	return strings.HasPrefix(str, "[]")
 }
 
 // Expects webrpc map type, ie. "map<Type1,Type2>".
@@ -128,11 +141,6 @@ func mapKeyType(v interface{}) string {
 		panic(fmt.Errorf("mapKeyValue: expected map<Type1,Type2>, got %v", str))
 	}
 	return strings.TrimPrefix(key, "map<")
-}
-
-func isArrayType(v interface{}) bool {
-	str := str(v)
-	return strings.HasPrefix(str, "[]")
 }
 
 // Expects webrpc map type, ie. "map<Type1,Type2>".
