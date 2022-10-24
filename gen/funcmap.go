@@ -29,18 +29,6 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 		"indent":  indent,
 		"toLower": applyStringFunction("toLower", strings.ToLower),
 		"toUpper": applyStringFunction("toLower", strings.ToUpper),
-		"downcaseName": applyStringFunction("downcaseName", func(input string) string {
-			if input == "" {
-				return ""
-			}
-			return strings.ToLower(input[:1]) + input[1:]
-		}),
-		"tsMethodName": applyStringFunction("tsMethodName", func(input string) string {
-			if input == "" {
-				return ""
-			}
-			return strings.ToLower(input[:1]) + input[1:]
-		}),
 		"firstLetterToLower": applyStringFunction("firstLetterToLower", func(input string) string {
 			if input == "" {
 				return ""
@@ -63,14 +51,33 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 		"hasPrefix": strings.HasPrefix,
 		"hasSuffix": strings.HasSuffix,
 
-		// Generic template functions.
+		// OBSOLETE generic template functions.
 		"constPathPrefix": constPathPrefix,
 		"countMethods":    countMethods,
 		"commaIfLen":      commaIfLen,
 		"isStruct":        isStruct,
 		"isEnum":          isEnum,
 		"listComma":       listComma,
+		"downcaseName": applyStringFunction("downcaseName", func(input string) string {
+			if input == "" {
+				return ""
+			}
+			return strings.ToLower(input[:1]) + input[1:]
+		}),
+		"tsMethodName": applyStringFunction("tsMethodName", func(input string) string {
+			if input == "" {
+				return ""
+			}
+			return strings.ToLower(input[:1]) + input[1:]
+		}),
+		"jsMethodName": applyStringFunction("jsMethodName", func(input string) string {
+			if input == "" {
+				return ""
+			}
+			return strings.ToLower(input[:1]) + input[1:]
+		}),
 
+		// OBSOLETE
 		// Golang specific template functions.
 		"goServiceMethodName":     goServiceMethodName,
 		"goServiceMethodJSONName": goServiceMethodJSONName,
@@ -91,6 +98,7 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 		"goArgsList":              goArgsList,
 		"goExportedField":         goExportedField,
 
+		// OBSOLETE
 		// TypeScript specific template functions.
 		"tsFieldType":                         tsFieldType,
 		"tsInterfaceName":                     tsInterfaceName,
@@ -105,6 +113,7 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 		"tsExportedJSONField":                 tsExportedJSONField,
 		"jsFieldType":                         jsFieldType,
 
+		// OBSOLETE
 		// JavaScript specific template functions.
 		"jsExportKeyword":        jsExportKeyword(opts),
 		"jsMethodInputs":         jsMethodInputs,
