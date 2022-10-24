@@ -12,12 +12,20 @@ import (
 // Template functions are part of webrpc-gen API. Keep backward-compatible.
 func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]interface{} {
 	return map[string]interface{}{
+		// Dictionary, aka runtime map[string]interface{}.
 		"dict": dict,
 		"set":  set,
 		"get":  get,
-		"str":  str,
+
+		// Type helpers.
+		"isMapType":     isMapType,
+		"mapKeyType":    mapKeyType,
+		"mapValueType":  mapValueType,
+		"isArrayType":   isArrayType,
+		"arrayItemType": arrayItemType,
 
 		// String manipulation.
+		"indent":  indent,
 		"toLower": applyStringFunction("toLower", strings.ToLower),
 		"toUpper": applyStringFunction("toLower", strings.ToUpper),
 		"downcaseName": applyStringFunction("downcaseName", func(input string) string {
@@ -50,6 +58,7 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),
 
 		// String utils.
+		"str":       str,
 		"hasPrefix": strings.HasPrefix,
 		"hasSuffix": strings.HasSuffix,
 
@@ -104,14 +113,61 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 	}
 }
 
+func isMapType(v interface{}) bool {
+	str := str(v)
+	key, value, found := strings.Cut(str, ",")
+	return found && strings.HasPrefix(key, "map<") && strings.HasSuffix(value, ">")
+}
+
+// Expects webrpc map type, ie. "map<Type1,Type2>".
+// Returns the key type, ie. "Type1".
+func mapKeyType(v interface{}) string {
+	str := str(v)
+	key, value, found := strings.Cut(str, ",")
+	if !found || !strings.HasPrefix(key, "map<") || !strings.HasSuffix(value, ">") {
+		panic(fmt.Errorf("mapKeyValue: expected map<Type1,Type2>, got %v", str))
+	}
+	return strings.TrimPrefix(key, "map<")
+}
+
+func isArrayType(v interface{}) bool {
+	str := str(v)
+	return strings.HasPrefix(str, "[]")
+}
+
+// Expects webrpc map type, ie. "map<Type1,Type2>".
+// Returns the value type, ie. "Type2".
+func mapValueType(v interface{}) string {
+	str := str(v)
+	key, value, found := strings.Cut(str, ",")
+	if !found || !strings.HasPrefix(key, "map<") || !strings.HasSuffix(value, ">") {
+		panic(fmt.Errorf("mapKeyValue: expected map<Type1,Type2>, got %v", str))
+	}
+	return strings.TrimSuffix(value, ">")
+}
+
+// Expects webrpc array of types, ie. "[]Type".
+// Returns the item, ie. "Type".
+func arrayItemType(v interface{}) string {
+	str := str(v)
+	if !strings.HasPrefix(str, "[]") {
+		panic(fmt.Errorf("arrayItemType: expected []Type, got %v", str))
+	}
+	return strings.TrimPrefix(str, "[]")
+}
+
+func indent(str string, prefix string) string {
+	return prefix + strings.ReplaceAll(str, "\n", "\n"+prefix)
+}
+
 func str(v interface{}) string {
 	switch t := v.(type) {
 	case schema.VarName:
 		return string(t)
 	case schema.VarType:
-		return t.Type.String()
+		return t.String()
 	case *schema.VarType:
-		return t.Type.String()
+		return t.String()
 	case schema.MessageType:
 		return string(t)
 	case string:
