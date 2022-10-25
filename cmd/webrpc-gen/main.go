@@ -62,10 +62,11 @@ func main() {
 	}
 
 	targetOpts := gen.TargetOptions{
-		PkgName: *pkgFlag,
-		Client:  *clientFlag,
-		Server:  *serverFlag,
-		Extra:   *targetExtra,
+		PkgName:     *pkgFlag,
+		Client:      *clientFlag,
+		Server:      *serverFlag,
+		Extra:       *targetExtra,
+		OutFilename: *outFlag,
 	}
 
 	protoGen, err := gen.Generate(schema, *targetFlag, targetOpts)

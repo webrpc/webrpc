@@ -3,6 +3,7 @@ package gen
 import (
 	"bytes"
 	"context"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -13,11 +14,11 @@ import (
 )
 
 type TargetOptions struct {
-	PkgName   string
-	Client    bool
-	Server    bool
-	Extra     string
-	Websocket bool
+	PkgName     string
+	Client      bool
+	Server      bool
+	Extra       string
+	OutFilename string
 }
 
 func Generate(proto *schema.WebRPCSchema, target string, opts TargetOptions) (string, error) {
@@ -29,7 +30,7 @@ func Generate(proto *schema.WebRPCSchema, target string, opts TargetOptions) (st
 	// Load templates
 	if isLocalDir(target) {
 		// from local directory
-		tmpl, err = tmpl.ParseGlob("*.tmpl")
+		tmpl, err = tmpl.ParseGlob(filepath.Join(target, "/*.tmpl"))
 		if err != nil {
 			return "", errors.Wrapf(err, "failed to load templates from %s", target)
 		}
@@ -68,7 +69,14 @@ func Generate(proto *schema.WebRPCSchema, target string, opts TargetOptions) (st
 		return "", err
 	}
 
-	return string(buf.Bytes()), nil
+	out := buf.Bytes()
+
+	// Auto-format certain extensions
+	if filepath.Ext(opts.OutFilename) == ".go" {
+		out, _ = FormatGoSource(out)
+	}
+
+	return string(out), nil
 }
 
 // Backward compatibility with webrpc-gen v0.6.0.
