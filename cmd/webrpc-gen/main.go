@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/webrpc/webrpc"
 	"github.com/webrpc/webrpc/gen"
@@ -16,16 +17,34 @@ var flags = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
 func main() {
 	versionFlag := flags.Bool("version", false, "print webrpc version and exit")
 	schemaFlag := flags.String("schema", "", "webrpc schema file (required)")
-	pkgFlag := flags.String("pkg", "proto", "generated package name for target language, default: proto")
+	// pkgFlag := flags.String("pkg", "proto", "generated package name for target language, default: proto")
 	outFlag := flags.String("out", "", "generated output file, default: stdout")
 	testFlag := flags.Bool("test", false, "test schema parsing (skips code-gen)")
-	clientFlag := flags.Bool("client", false, "enable webrpc client library generation, default: off")
-	serverFlag := flags.Bool("server", false, "enable webrpc server library generation, default: off")
+	// clientFlag := flags.Bool("client", false, "enable webrpc client library generation, default: off")
+	// serverFlag := flags.Bool("server", false, "enable webrpc server library generation, default: off")
 
 	targetFlag := flags.String("target", "", fmt.Sprintf("target generator for webrpc library generation (required), ie. github.com/webrpc/gen-golang@v0.6.0"))
-	targetExtra := flags.String("extra", "", "target language extra/custom options")
+	//targetExtra := flags.String("extra", "", "target language extra/custom options")
 
-	flags.Parse(os.Args[1:])
+	var cliFlags []string
+	opts := map[string]interface{}{}
+
+	// Collect CLI -flags and template -Options.
+	for _, flag := range os.Args[1:] {
+		name, value, _ := strings.Cut(flag, "=")
+		if !strings.HasPrefix(name, "-") {
+			fmt.Printf("oops, option %q is invalid (format must be -name=value)\n", flag)
+			os.Exit(1)
+		}
+		name = strings.TrimLeft(name, "-")
+		if strings.ToUpper(name[:1]) == name[:1] {
+			opts[name] = value
+		} else {
+			cliFlags = append(cliFlags, flag)
+		}
+	}
+
+	flags.Parse(cliFlags)
 
 	if *versionFlag {
 		fmt.Printf("webrpc %s\n", webrpc.VERSION)
@@ -61,15 +80,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	targetOpts := gen.TargetOptions{
-		PkgName:     *pkgFlag,
-		Client:      *clientFlag,
-		Server:      *serverFlag,
-		Extra:       *targetExtra,
-		OutFilename: *outFlag,
-	}
-
-	protoGen, err := gen.Generate(schema, *targetFlag, targetOpts)
+	protoGen, err := gen.Generate(schema, *targetFlag, opts)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)

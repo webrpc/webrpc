@@ -7,9 +7,9 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-func jsExportKeyword(opts TargetOptions) func() string {
+func jsExportKeyword(opts map[string]interface{}) func() string {
 	return func() string {
-		if opts.Extra == "noexports" {
+		if opts["extra"] == "noexports" {
 			return ""
 		} else {
 			return "export "

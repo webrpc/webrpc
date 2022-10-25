@@ -34,9 +34,13 @@ func Generate(proto *schema.WebRPCSchema, target string, opts TargetOptions) (st
 	vars := struct {
 		*schema.WebRPCSchema
 		SchemaHash string
-		TargetOpts TargetOptions
+		Opts       map[string]interface{}
+		Cmd        string
 	}{
-		proto, schemaHash, opts,
+		proto,
+		schemaHash,
+		opts,
+		strings.Join(os.Args, " "),
 	}
 
 	// Generate the template

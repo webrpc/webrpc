@@ -2,6 +2,8 @@ package gen
 
 import (
 	"fmt"
+	"os"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -10,12 +12,19 @@ import (
 )
 
 // Template functions are part of webrpc-gen API. Keep backward-compatible.
-func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]interface{} {
+func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
+		// Flow.
+		"error": printError,
+		"fatal": fatalError,
+
 		// Dictionary, aka runtime map[string]interface{}.
-		"dict": dict,
-		"set":  set,
-		"get":  get,
+		"dict":   dict,
+		"get":    get,
+		"set":    set,
+		"exists": exists,
+
+		"first": first,
 
 		// Type helpers.
 		"isBaseType":    isBaseType,
@@ -25,10 +34,13 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 		"mapValueType":  mapValueType,
 		"arrayItemType": arrayItemType,
 
-		// String manipulation.
-		"indent":  indent,
-		"toLower": applyStringFunction("toLower", strings.ToLower),
-		"toUpper": applyStringFunction("toLower", strings.ToUpper),
+		// String utils.
+		"str":       str,
+		"hasPrefix": strings.HasPrefix,
+		"hasSuffix": strings.HasSuffix,
+		"indent":    indent,
+		"toLower":   applyStringFunction("toLower", strings.ToLower),
+		"toUpper":   applyStringFunction("toLower", strings.ToUpper),
 		"firstLetterToLower": applyStringFunction("firstLetterToLower", func(input string) string {
 			if input == "" {
 				return ""
@@ -45,11 +57,6 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 		"pascalCase": applyStringFunction("pascalCase", textcase.PascalCase),
 		"snakeCase":  applyStringFunction("snakeCase", textcase.SnakeCase),
 		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),
-
-		// String utils.
-		"str":       str,
-		"hasPrefix": strings.HasPrefix,
-		"hasSuffix": strings.HasSuffix,
 
 		// OBSOLETE generic template functions.
 		"constPathPrefix": constPathPrefix,
@@ -123,6 +130,17 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]
 	}
 }
 
+func printError(v interface{}) error {
+	fmt.Fprintln(os.Stderr, str(v))
+	return nil
+}
+
+func fatalError(v interface{}) error {
+	fmt.Fprintln(os.Stderr, str(v))
+	os.Exit(1)
+	return nil
+}
+
 // Base webrpc type is anything but map, array or custom message type.
 func isBaseType(v interface{}) bool {
 	str := str(v)
@@ -189,6 +207,12 @@ func str(v interface{}) string {
 		return string(t)
 	case string:
 		return t
+	case map[string]interface{}:
+		var b strings.Builder
+		for k, v := range t {
+			b.WriteString(fmt.Sprintf("%v=%v\n", k, v))
+		}
+		return b.String()
 	default:
 		panic(fmt.Sprintf("str: unknown arg type %T", v))
 	}
@@ -225,11 +249,6 @@ func dict(pairs ...interface{}) map[string]interface{} {
 	return m
 }
 
-func set(m map[string]interface{}, key string, value interface{}) string {
-	m[key] = value
-	return ""
-}
-
 func get(m map[string]interface{}, key interface{}) interface{} {
 	switch t := key.(type) {
 	case string:
@@ -243,6 +262,29 @@ func get(m map[string]interface{}, key interface{}) interface{} {
 	default:
 		panic(fmt.Sprintf("get: unknown type %T", key))
 	}
+}
+
+func set(m map[string]interface{}, key string, value interface{}) string {
+	m[key] = value
+	return ""
+}
+
+// TODO: Support slices too?
+func exists(m map[string]interface{}, key string) bool {
+	_, ok := m[key]
+	return ok
+}
+
+// Returns first non-empty value.
+func first(v ...interface{}) interface{} {
+	for _, v := range v {
+		val := reflect.ValueOf(v)
+		if !val.IsValid() || val.IsZero() {
+			continue
+		}
+		return v
+	}
+	return ""
 }
 
 func commaIfLen(in []*schema.MethodArgument) string {
