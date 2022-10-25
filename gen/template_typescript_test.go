@@ -1,14 +1,13 @@
-package javascript
+package gen
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/webrpc/webrpc/gen"
 	"github.com/webrpc/webrpc/schema"
 )
 
-const input = `
+const tsInput = `
 {
   "webrpc": "v1",
   "name": "example",
@@ -159,15 +158,14 @@ const input = `
 }
 `
 
-func TestGenJavascript(t *testing.T) {
-	s, err := schema.ParseSchemaJSON([]byte(input))
+func TestGenTypescript(t *testing.T) {
+	schema, err := schema.ParseSchemaJSON([]byte(tsInput))
 	assert.NoError(t, err)
 
-	g := &generator{}
+	o, err := Generate(schema, "github.com/webrpc/gen-typescript@v0.6.0", TargetOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	o, err := g.Gen(s, gen.TargetOptions{})
-	assert.NoError(t, err)
-	_ = o
-
-	// t.Logf("%s", o)
+	t.Logf("%s", o)
 }

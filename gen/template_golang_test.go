@@ -1,15 +1,13 @@
-package golang
+package gen
 
 import (
-	"log"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/webrpc/webrpc/gen"
 	"github.com/webrpc/webrpc/schema"
 )
 
-const input = `
+const goInput = `
 {
   "webrpc": "v1",
   "name": "example",
@@ -169,15 +167,14 @@ const input = `
 }
 `
 
-func TestGenTypescript(t *testing.T) {
-	g := &generator{}
-
-	s, err := schema.ParseSchemaJSON([]byte(input))
+func TestGolangTemplate(t *testing.T) {
+	schema, err := schema.ParseSchemaJSON([]byte(goInput))
 	assert.NoError(t, err)
 
-	o, err := g.Gen(s, gen.TargetOptions{PkgName: "test", Client: true, Server: true})
-	assert.NoError(t, err)
-	_ = o
+	_, err = Generate(schema, "github.com/webrpc/gen-javascript@v0.6.0", TargetOptions{PkgName: "test", Client: true, Server: true})
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	log.Printf("o: %v", o)
+	assert.NoError(t, err)
 }
