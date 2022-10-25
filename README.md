@@ -185,7 +185,7 @@ For more information please see the [schema readme](./schema/README.md).
 
 ### Dev
 
-1. Install Go 1.11+
+1. Install Go 1.17+
 2. $ `go get -u github.com/webrpc/webrpc/...`
 3. $ `make tools`
 4. $ `make build`
@@ -206,6 +206,7 @@ Some tips..
 
 * [Peter Kieltyka](https://github.com/pkieltyka)
 * [José Carlos Nieto](https://github.com/xiam)
+* [Vojtech Vitek](https://github.com/VojtechVitek)
 * ..and full list of [contributors](https://github.com/webrpc/webrpc/graphs/contributors)!
 
 ## Credits
