@@ -11,9 +11,9 @@ Under the hood, webrpc is a Web service meta-protocol, schema and code-generator
 simplifying the development of backend services for modern Web applications.
 
 Current code-generation language targets:
-* [Go](./gen/golang)
-* [Typescript](./gen/typescript)
-* [Javascript](./gen/javascript)
+* [Go](https://github.com/webrpc/gen-golang)
+* [Typescript](https://github.com/webrpc/gen-typescript)
+* [Javascript](https://github.com/webrpc/gen-javascript)
 * .. contribute more! they're just templates
 
 
@@ -185,7 +185,7 @@ For more information please see the [schema readme](./schema/README.md).
 
 ### Dev
 
-1. Install Go 1.11+
+1. Install Go 1.17+
 2. $ `go get -u github.com/webrpc/webrpc/...`
 3. $ `make tools`
 4. $ `make build`
@@ -206,7 +206,9 @@ Some tips..
 
 * [Peter Kieltyka](https://github.com/pkieltyka)
 * [José Carlos Nieto](https://github.com/xiam)
+* [Vojtech Vitek](https://github.com/VojtechVitek)
 * ..and full list of [contributors](https://github.com/webrpc/webrpc/graphs/contributors)!
+
 
 ## Credits
 
@@ -214,16 +216,6 @@ Some tips..
 library comes from the twirp project.
 * [gRPC authors](https://grpc.io), for coming up with the overall architecture and patterns
 for code-generating the bindings between client and server from a common IDL.
-
-
-## We're hiring!
-
-Our team at https://horizon.io is building [Arcadeum.net](https://arcadeum.net), a distributed
-network and platform for blockchain based video games :) built for Ethereum.
-
-If you're passionate about distributed systems, cryptography, privacy, and
-writing awesome network infrastructure to help power the Arcadeum network, please
-write to us, hello at arcadeum.net
 
 
 ## License
