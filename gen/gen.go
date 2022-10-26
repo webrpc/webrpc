@@ -44,20 +44,13 @@ func Generate(proto *schema.WebRPCSchema, target string, opts TargetOptions) (st
 	}
 
 	// Generate the template
-	buf := bytes.NewBuffer(nil)
-	err = tmpl.ExecuteTemplate(buf, "proto", vars)
+	var b bytes.Buffer
+	err = tmpl.ExecuteTemplate(&b, "proto", vars)
 	if err != nil {
 		return "", err
 	}
 
-	out := buf.Bytes()
-
-	// Auto-format certain extensions
-	if filepath.Ext(opts.OutFilename) == ".go" {
-		out, _ = FormatGoSource(out)
-	}
-
-	return string(out), nil
+	return b.String(), nil
 }
 
 // Backward compatibility with webrpc-gen v0.6.0.
