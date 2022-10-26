@@ -35,14 +35,16 @@ func Generate(proto *schema.WebRPCSchema, target string, opts TargetOptions) (st
 		*schema.WebRPCSchema
 		SchemaHash       string
 		WebrpcGenVersion string
+		WebrpcGenCLI     string
+		WebrpcTarget     string
 		Opts             map[string]interface{}
-		Cmd              string
 	}{
 		proto,
 		schemaHash,
 		VERSION,
-		opts,
 		strings.Join(os.Args, " "),
+		target,
+		opts,
 	}
 
 	// Generate the template
