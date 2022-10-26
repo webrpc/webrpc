@@ -5,9 +5,8 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -34,7 +33,7 @@ type Import struct {
 // the json has been unmarshalled
 func (s *WebRPCSchema) Validate() error {
 	if s.WebRPCVersion != VERSION {
-		return errors.Errorf("webrpc schema version, '%s' is invalid, try '%s'", s.WebRPCVersion, VERSION)
+		return fmt.Errorf("webrpc schema version, '%s' is invalid, try '%s'", s.WebRPCVersion, VERSION)
 	}
 
 	for _, msg := range s.Messages {
@@ -111,7 +110,7 @@ func (s *WebRPCSchema) HasFieldType(fieldType string) (bool, error) {
 	fieldType = strings.ToLower(fieldType)
 	_, ok := DataTypeFromString[fieldType]
 	if !ok {
-		return false, errors.Errorf("webrpc: invalid data type '%s'", fieldType)
+		return false, fmt.Errorf("webrpc: invalid data type '%s'", fieldType)
 	}
 
 	for _, m := range s.Messages {

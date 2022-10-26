@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 type VarType struct {
@@ -30,16 +28,16 @@ func (t *VarType) MarshalJSON() ([]byte, error) {
 
 func (t *VarType) UnmarshalJSON(b []byte) error {
 	if len(b) <= 2 {
-		return errors.Errorf("json error: type cannot be empty")
+		return fmt.Errorf("json error: type cannot be empty")
 	}
 	s := string(b) // string value will be wrapped in quotes
 
 	// validate its a string value
 	if s[0:1] != "\"" {
-		return errors.Errorf("json error: string value is expected")
+		return fmt.Errorf("json error: string value is expected")
 	}
 	if s[len(s)-1:] != "\"" {
-		return errors.Errorf("json error: string value is expected")
+		return fmt.Errorf("json error: string value is expected")
 	}
 
 	// trim string quotes from the json string
@@ -54,7 +52,7 @@ func (t *VarType) UnmarshalJSON(b []byte) error {
 
 func (t *VarType) Parse(schema *WebRPCSchema) error {
 	if t.expr == "" {
-		return errors.Errorf("schema error: type expr cannot be empty")
+		return fmt.Errorf("schema error: type expr cannot be empty")
 	}
 	err := ParseVarTypeExpr(schema, t.expr, t)
 	if err != nil {
@@ -121,7 +119,7 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 
 		keyDataType, ok := DataTypeFromString[key]
 		if !ok {
-			return errors.Errorf("schema error: invalid map key type '%s' for expr '%s'", key, expr)
+			return fmt.Errorf("schema error: invalid map key type '%s' for expr '%s'", key, expr)
 		}
 
 		// create sub-type object for map
@@ -139,7 +137,7 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 		structExpr := expr
 		msg, ok := getMessageType(schema, structExpr)
 		if !ok || msg == nil {
-			return errors.Errorf("schema error: invalid struct/message type '%s'", structExpr)
+			return fmt.Errorf("schema error: invalid struct/message type '%s'", structExpr)
 		}
 
 		vt.Type = T_Struct
@@ -154,30 +152,30 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 
 func parseMapExpr(expr string) (string, string, error) {
 	if !isMapExpr(expr) {
-		return "", "", errors.Errorf("schema error: invalid map expr for '%s'", expr)
+		return "", "", fmt.Errorf("schema error: invalid map expr for '%s'", expr)
 	}
 
 	mapKeyword := DataTypeToString[T_Map]
 	expr = expr[len(mapKeyword):]
 
 	if expr[0:1] != "<" {
-		return "", "", errors.Errorf("schema error: invalid map syntax for '%s'", expr)
+		return "", "", fmt.Errorf("schema error: invalid map syntax for '%s'", expr)
 	}
 	if expr[len(expr)-1:] != ">" {
-		return "", "", errors.Errorf("schema error: invalid map syntax for '%s'", expr)
+		return "", "", fmt.Errorf("schema error: invalid map syntax for '%s'", expr)
 	}
 	expr = expr[1 : len(expr)-1]
 
 	p := strings.Index(expr, ",")
 	if p < 0 {
-		return "", "", errors.Errorf("schema error: invalid map syntax for '%s'", expr)
+		return "", "", fmt.Errorf("schema error: invalid map syntax for '%s'", expr)
 	}
 
 	key := expr[0:p]
 	value := expr[p+1:]
 
 	if !isValidVarKeyType(key) {
-		return "", "", errors.Errorf("schema error: invalid map key '%s' for '%s'", key, expr)
+		return "", "", fmt.Errorf("schema error: invalid map key '%s' for '%s'", key, expr)
 	}
 
 	return key, value, nil

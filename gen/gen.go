@@ -3,11 +3,11 @@ package gen
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"path/filepath"
 	"strings"
 	"text/template"
 
-	"github.com/pkg/errors"
 	"github.com/posener/gitfs"
 	"github.com/shurcooL/httpfs/text/vfstemplate"
 	"github.com/webrpc/webrpc/schema"
@@ -24,27 +24,9 @@ type TargetOptions struct {
 func Generate(proto *schema.WebRPCSchema, target string, opts TargetOptions) (string, error) {
 	target = getBuiltInTarget(target)
 
-	var err error
-	tmpl := template.New("webrpc-gen").Funcs(templateFuncMap(proto, opts))
-
-	// Load templates
-	if isLocalDir(target) {
-		// from local directory
-		tmpl, err = tmpl.ParseGlob(filepath.Join(target, "/*.tmpl"))
-		if err != nil {
-			return "", errors.Wrapf(err, "failed to load templates from %s", target)
-		}
-	} else {
-		// from remote git directory
-		remoteFS, err := gitfs.New(context.Background(), target)
-		if err != nil {
-			return "", errors.Wrapf(err, "failed to load templates from remote git repository %s", target)
-		}
-
-		tmpl, err = vfstemplate.ParseGlob(remoteFS, tmpl, "/*.tmpl")
-		if err != nil {
-			return "", errors.Wrap(err, "failed to parse Go templates")
-		}
+	tmpl, err := LoadTemplates(proto, target, opts)
+	if err != nil {
+		return "", err
 	}
 
 	// Generate deterministic schema hash of the proto file
@@ -77,6 +59,33 @@ func Generate(proto *schema.WebRPCSchema, target string, opts TargetOptions) (st
 	}
 
 	return string(out), nil
+}
+
+func LoadTemplates(proto *schema.WebRPCSchema, target string, opts TargetOptions) (*template.Template, error) {
+	var err error
+	tmpl := template.New("webrpc-gen").Funcs(templateFuncMap(proto, opts))
+
+	// Load templates
+	if isLocalDir(target) {
+		// from local directory
+		tmpl, err = tmpl.ParseGlob(filepath.Join(target, "/*.tmpl"))
+		if err != nil {
+			return nil, fmt.Errorf("failed to load templates from %s: %w", target, err)
+		}
+	} else {
+		// from remote git directory
+		remoteFS, err := gitfs.New(context.Background(), target)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load templates from remote git repository %s: %w", target, err)
+		}
+
+		tmpl, err = vfstemplate.ParseGlob(remoteFS, tmpl, "/*.tmpl")
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse Go templates: %w", err)
+		}
+	}
+
+	return tmpl, nil
 }
 
 // Backward compatibility with webrpc-gen v0.6.0.
