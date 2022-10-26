@@ -21,22 +21,10 @@ func main() {
 	outFlag := flags.String("out", "", "generated output file, default: stdout")
 	testFlag := flags.Bool("test", false, "test schema parsing (skips code-gen)")
 
-	// Obsolete flags (v0.6.0).
-	pkgFlag := flags.String("pkg", "proto", "generated package name for target language, default: proto")
-	clientFlag := flags.Bool("client", false, "enable webrpc client library generation, default: off")
-	serverFlag := flags.Bool("server", false, "enable webrpc server library generation, default: off")
-	targetExtra := flags.String("extra", "", "target language extra/custom options")
-
 	var cliFlags []string
-	opts := map[string]interface{}{
-		// Support the obsolete webrpc-gen flags (v0.6.0) in the new templates (v0.7.0+).
-		"Pkg":    *pkgFlag,
-		"Client": fmt.Sprintf("%v", clientFlag),
-		"Server": fmt.Sprintf("%v", serverFlag),
-		"Extra":  *targetExtra,
-	}
+	templateOpts := map[string]interface{}{}
 
-	// Collect CLI -flags and template -Options.
+	// Collect custom template -Options and CLI -flags.
 	for _, flag := range os.Args[1:] {
 		name, value, _ := strings.Cut(flag, "=")
 		if !strings.HasPrefix(name, "-") {
@@ -45,9 +33,15 @@ func main() {
 		}
 		name = strings.TrimLeft(name, "-")
 		if strings.ToUpper(name[:1]) == name[:1] {
-			opts[name] = value
+			templateOpts[name] = value
 		} else {
-			cliFlags = append(cliFlags, flag)
+			switch name {
+			case "pkg", "client", "server", "extra":
+				// Support obsolete flags (v0.6.0) in new templates.
+				templateOpts[strings.Title(name)] = value
+			default:
+				cliFlags = append(cliFlags, flag)
+			}
 		}
 	}
 
@@ -87,7 +81,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	protoGen, err := gen.Generate(schema, *targetFlag, opts)
+	protoGen, err := gen.Generate(schema, *targetFlag, templateOpts)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
