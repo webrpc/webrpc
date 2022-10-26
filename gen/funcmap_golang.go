@@ -30,24 +30,6 @@ var goFieldTypeMap = map[schema.DataType]string{
 	schema.T_Bool:      "bool",
 }
 
-func goServiceMethodName(in schema.VarName) (string, error) {
-	s := string(in)
-	return "serve" + strings.ToUpper(s[0:1]) + s[1:], nil
-}
-
-func goServiceMethodJSONName(in schema.VarName) (string, error) {
-	s := string(in)
-	return "serve" + strings.ToUpper(s[0:1]) + s[1:] + "JSON", nil
-}
-
-func goNewServerServiceName(in schema.VarName) (string, error) {
-	return "New" + string(in) + "Server", nil
-}
-
-func goNewClientServiceName(in schema.VarName) (string, error) {
-	return "New" + string(in) + "Client", nil
-}
-
 func goFieldType(in *schema.VarType) (string, error) {
 	switch in.Type {
 	case schema.T_Map:
@@ -187,16 +169,6 @@ func goFieldTags(in *schema.MessageField) (string, error) {
 	}
 
 	return "`" + strings.Join(tags, " ") + "`", nil
-}
-
-func goClientServiceName(in schema.VarName) (string, error) {
-	s := string(in)
-	return strings.ToLower(s[0:1]) + s[1:] + "Client", nil
-}
-
-func goServerServiceName(in schema.VarName) (string, error) {
-	s := string(in)
-	return strings.ToLower(s[0:1]) + s[1:] + "Server", nil
 }
 
 func goMethodArgName(in *schema.MethodArgument) string {

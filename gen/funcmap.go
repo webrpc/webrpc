@@ -85,24 +85,18 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 
 		// OBSOLETE
 		// Golang specific template functions.
-		"goServiceMethodName":     goServiceMethodName,
-		"goServiceMethodJSONName": goServiceMethodJSONName,
-		"goHasGoFieldType":        goHasGoFieldType(proto),
-		"goFieldTags":             goFieldTags,
-		"goFieldType":             goFieldType,
-		"goFieldOptional":         goFieldOptional,
-		"goFieldTypeDef":          goFieldTypeDef,
-		"goNewClientServiceName":  goNewClientServiceName,
-		"goNewServerServiceName":  goNewServerServiceName,
-		"goClientServiceName":     goClientServiceName,
-		"goServerServiceName":     goServerServiceName,
-		"goMethodInputs":          goMethodInputs,
-		"goMethodOutputs":         goMethodOutputs,
-		"goMethodArgName":         goMethodArgName,
-		"goMethodArgType":         goMethodArgType,
-		"goMethodArgNames":        goMethodArgNames,
-		"goArgsList":              goArgsList,
-		"goExportedField":         goExportedField,
+		"goHasGoFieldType": goHasGoFieldType(proto),
+		"goFieldTags":      goFieldTags,
+		"goFieldType":      goFieldType,
+		"goFieldOptional":  goFieldOptional,
+		"goFieldTypeDef":   goFieldTypeDef,
+		"goMethodInputs":   goMethodInputs,
+		"goMethodOutputs":  goMethodOutputs,
+		"goMethodArgName":  goMethodArgName,
+		"goMethodArgType":  goMethodArgType,
+		"goMethodArgNames": goMethodArgNames,
+		"goArgsList":       goArgsList,
+		"goExportedField":  goExportedField,
 
 		// OBSOLETE
 		// TypeScript specific template functions.
