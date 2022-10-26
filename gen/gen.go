@@ -74,18 +74,40 @@ func LoadTemplates(proto *schema.WebRPCSchema, target string, opts TargetOptions
 		}
 	} else {
 		// from remote git directory
-		remoteFS, err := gitfs.New(context.Background(), target)
+		remoteFS, err := gitfs.New(context.Background(), inferRemoteTarget(target))
 		if err != nil {
 			return nil, fmt.Errorf("failed to load templates from remote git repository %s: %w", target, err)
 		}
 
 		tmpl, err = vfstemplate.ParseGlob(remoteFS, tmpl, "/*.tmpl")
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse Go templates: %w", err)
+			return nil, fmt.Errorf("failed to parse templates: %w", err)
 		}
 	}
 
 	return tmpl, nil
+}
+
+func isLocalDir(target string) bool {
+	return strings.HasPrefix(target, "/") || strings.HasPrefix(target, ".")
+}
+
+func inferRemoteTarget(target string) string {
+	// extra check to ensure its not a local dir
+	if isLocalDir(target) {
+		return target
+	}
+
+	// determine if a url is passed or just a gen-XXX name
+	parts := strings.Split(target, "/")
+
+	// just a name, so by convention assume the default target of the webrpc org
+	if len(parts) == 1 {
+		return fmt.Sprintf("github.com/webrpc/gen-%s", strings.ToLower(target))
+	}
+
+	// accept the target as is
+	return target
 }
 
 // Backward compatibility with webrpc-gen v0.6.0.
@@ -99,8 +121,4 @@ func getBuiltInTarget(target string) string {
 		return "github.com/webrpc/gen-javascript@v0.6.0"
 	}
 	return target
-}
-
-func isLocalDir(target string) bool {
-	return strings.HasPrefix(target, "/") || strings.HasPrefix(target, ".")
 }
