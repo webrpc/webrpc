@@ -2,7 +2,6 @@ package gen
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -15,8 +14,8 @@ import (
 func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		// Flow.
-		"error": printError,
-		"fatal": fatalError,
+		"printfStderr": printfStderr,
+		"exit":         exit,
 
 		// Dictionary, aka runtime map[string]interface{}.
 		"dict":   dict,
@@ -128,17 +127,6 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"jsServiceInterfaceName": jsServiceInterfaceName,
 		"jsExportedJSONField":    jsExportedJSONField,
 	}
-}
-
-func printError(v interface{}) error {
-	fmt.Fprintln(os.Stderr, str(v))
-	return nil
-}
-
-func fatalError(v interface{}) error {
-	fmt.Fprintln(os.Stderr, str(v))
-	os.Exit(1)
-	return nil
 }
 
 // Base webrpc type is anything but map, array or custom message type.
