@@ -17,17 +17,24 @@ var flags = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
 func main() {
 	versionFlag := flags.Bool("version", false, "print webrpc version and exit")
 	schemaFlag := flags.String("schema", "", "webrpc schema file (required)")
-	// pkgFlag := flags.String("pkg", "proto", "generated package name for target language, default: proto")
+	targetFlag := flags.String("target", "", fmt.Sprintf("target generator for webrpc library generation (required), ie. github.com/webrpc/gen-golang@v0.6.0"))
 	outFlag := flags.String("out", "", "generated output file, default: stdout")
 	testFlag := flags.Bool("test", false, "test schema parsing (skips code-gen)")
-	// clientFlag := flags.Bool("client", false, "enable webrpc client library generation, default: off")
-	// serverFlag := flags.Bool("server", false, "enable webrpc server library generation, default: off")
 
-	targetFlag := flags.String("target", "", fmt.Sprintf("target generator for webrpc library generation (required), ie. github.com/webrpc/gen-golang@v0.6.0"))
-	//targetExtra := flags.String("extra", "", "target language extra/custom options")
+	// Obsolete flags (v0.6.0).
+	pkgFlag := flags.String("pkg", "proto", "generated package name for target language, default: proto")
+	clientFlag := flags.Bool("client", false, "enable webrpc client library generation, default: off")
+	serverFlag := flags.Bool("server", false, "enable webrpc server library generation, default: off")
+	targetExtra := flags.String("extra", "", "target language extra/custom options")
 
 	var cliFlags []string
-	opts := map[string]interface{}{}
+	opts := map[string]interface{}{
+		// Support the obsolete webrpc-gen flags (v0.6.0) in the new templates (v0.7.0+).
+		"Pkg":    *pkgFlag,
+		"Client": fmt.Sprintf("%v", clientFlag),
+		"Server": fmt.Sprintf("%v", serverFlag),
+		"Extra":  *targetExtra,
+	}
 
 	// Collect CLI -flags and template -Options.
 	for _, flag := range os.Args[1:] {

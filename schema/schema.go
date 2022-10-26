@@ -15,11 +15,11 @@ const (
 
 // schema of webrpc json file, and validations
 type WebRPCSchema struct {
-	WebRPCVersion string    `json:"webrpc"`
-	Name          string    `json:"name"`
-	SchemaVersion string    `json:"version"`
-	Imports       []*Import `json:"imports"`
+	WebrpcVersion string `json:"webrpc"`
+	SchemaName    string `json:"name"`
+	SchemaVersion string `json:"version"`
 
+	Imports  []*Import  `json:"imports"`
 	Messages []*Message `json:"messages"`
 	Services []*Service `json:"services"`
 }

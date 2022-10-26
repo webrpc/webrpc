@@ -35,7 +35,7 @@ func Generate(proto *schema.WebRPCSchema, target string, opts TargetOptions) (st
 		*schema.WebRPCSchema
 		SchemaHash       string
 		WebrpcGenVersion string
-		WebrpcGenCLI     string
+		WebrpcGenCommand string
 		WebrpcTarget     string
 		Opts             map[string]interface{}
 	}{
