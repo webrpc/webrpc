@@ -171,17 +171,6 @@ func goFieldTags(in *schema.MessageField) (string, error) {
 	return "`" + strings.Join(tags, " ") + "`", nil
 }
 
-func goMethodArgName(in *schema.MethodArgument) string {
-	name := string(in.Name)
-	if name == "" && in.Type != nil {
-		name = in.Type.String()
-	}
-	if name != "" {
-		return name
-	}
-	return ""
-}
-
 func goMethodArgType(in *schema.MethodArgument) string {
 	z, err := goFieldType(in.Type)
 	if err != nil {
@@ -204,38 +193,6 @@ func goMethodArgType(in *schema.MethodArgument) string {
 	return prefix + z
 }
 
-func goMethodInputs(in []*schema.MethodArgument) (string, error) {
-	inputs := []string{"ctx context.Context"}
-	for i := range in {
-		inputs = append(inputs, fmt.Sprintf("%s %s", goMethodArgName(in[i]), goMethodArgType(in[i])))
-	}
-	return strings.Join(inputs, ", "), nil
-}
-
-func goMethodOutputs(in []*schema.MethodArgument) (string, error) {
-	outputs := []string{}
-	for i := range in {
-		outputs = append(outputs, goMethodArgType(in[i]))
-	}
-	outputs = append(outputs, "error")
-	return strings.Join(outputs, ", "), nil
-}
-
-func goMethodArgNames(in []*schema.MethodArgument) (string, error) {
-	inputs := []string{}
-	for i := range in {
-		inputs = append(inputs, fmt.Sprintf("%s", goMethodArgName(in[i])))
-	}
-	return strings.Join(inputs, ", "), nil
-}
-
-func goArgsList(in []*schema.MethodArgument, prefix string) (string, error) {
-	ins := []string{}
-	for i := range in {
-		ins = append(ins, fmt.Sprintf("%s%d", prefix, i))
-	}
-	return strings.Join(ins, ", "), nil
-}
 func goExportedField(in *schema.MessageField) (string, error) {
 	s := string(in.Name)
 	s = strings.ToUpper(s[0:1]) + s[1:]

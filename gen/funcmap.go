@@ -23,7 +23,7 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"set":    set,
 		"exists": exists,
 
-		"first": first,
+		"first": first, // rename to coalesce?
 
 		// Type helpers.
 		"isBaseType":    isBaseType,
@@ -35,6 +35,7 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 
 		// String utils.
 		"str":       str,
+		"join":      join,
 		"hasPrefix": strings.HasPrefix,
 		"hasSuffix": strings.HasSuffix,
 		"indent":    indent,
@@ -90,12 +91,7 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"goFieldType":      goFieldType,
 		"goFieldOptional":  goFieldOptional,
 		"goFieldTypeDef":   goFieldTypeDef,
-		"goMethodInputs":   goMethodInputs,
-		"goMethodOutputs":  goMethodOutputs,
-		"goMethodArgName":  goMethodArgName,
 		"goMethodArgType":  goMethodArgType,
-		"goMethodArgNames": goMethodArgNames,
-		"goArgsList":       goArgsList,
 		"goExportedField":  goExportedField,
 
 		// OBSOLETE
@@ -171,46 +167,6 @@ func arrayItemType(v interface{}) string {
 		panic(fmt.Errorf("arrayItemType: expected []Type, got %v", str))
 	}
 	return strings.TrimPrefix(str, "[]")
-}
-
-func indent(str string, prefix string) string {
-	return prefix + strings.ReplaceAll(str, "\n", "\n"+prefix)
-}
-
-func str(v interface{}) string {
-	switch t := v.(type) {
-	case schema.VarName:
-		return string(t)
-	case schema.VarType:
-		return t.String()
-	case *schema.VarType:
-		return t.String()
-	case schema.MessageType:
-		return string(t)
-	case string:
-		return t
-	case map[string]interface{}:
-		var b strings.Builder
-		for k, v := range t {
-			b.WriteString(fmt.Sprintf("%v=%v\n", k, v))
-		}
-		return b.String()
-	default:
-		panic(fmt.Sprintf("str: unknown arg type %T", v))
-	}
-}
-
-func applyStringFunction(fnName string, fn func(string) string) func(v interface{}) string {
-	return func(v interface{}) string {
-		switch t := v.(type) {
-		case schema.VarName:
-			return fn(string(t))
-		case string:
-			return fn(t)
-		default:
-			panic(fmt.Errorf("%v: unknown arg type %T", fnName, v))
-		}
-	}
 }
 
 // Create new dictionary.
