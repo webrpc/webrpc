@@ -38,6 +38,9 @@ func Generate(proto *schema.WebRPCSchema, target string, refreshCache bool, opts
 		target,
 		opts,
 	}
+	if isLocalDir(target) {
+		vars.WebrpcTarget = "custom"
+	}
 
 	// Generate the template
 	var b bytes.Buffer

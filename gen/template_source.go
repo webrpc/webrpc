@@ -56,7 +56,7 @@ func newTemplateSource(proto *schema.WebRPCSchema, target string, refreshCache b
 }
 
 func (s *templateSource) loadTemplates() (*template.Template, error) {
-	if s.isLocalDir(s.target) {
+	if isLocalDir(s.target) {
 		// from local directory
 		tmpl, err := s.tmpl.ParseGlob(filepath.Join(s.target, "/*.tmpl"))
 		if err != nil {
@@ -205,7 +205,7 @@ func (s *templateSource) getTmpCacheDir() (string, error) {
 
 func (s *templateSource) inferRemoteTarget(target string) string {
 	// extra check to ensure its not a local dir
-	if s.isLocalDir(target) {
+	if isLocalDir(target) {
 		return target
 	}
 
@@ -221,6 +221,6 @@ func (s *templateSource) inferRemoteTarget(target string) string {
 	return target
 }
 
-func (s *templateSource) isLocalDir(target string) bool {
+func isLocalDir(target string) bool {
 	return strings.HasPrefix(target, "/") || strings.HasPrefix(target, ".")
 }
