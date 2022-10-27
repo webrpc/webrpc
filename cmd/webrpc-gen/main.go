@@ -11,7 +11,7 @@ import (
 	"github.com/webrpc/webrpc/gen"
 )
 
-var flags = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
+var flags = flag.NewFlagSet(fmt.Sprintf("webrpc-gen (%s)", webrpc.VERSION), flag.ExitOnError)
 
 func main() {
 	versionFlag := flags.Bool("version", false, "print webrpc version and exit")

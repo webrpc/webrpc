@@ -1,4 +1,4 @@
-webrpc = v1
+webrpc = v2
 
 name = hello-webrpc
 version = v1.0.0
@@ -7,9 +7,9 @@ enum Kind: uint32
   - USER = 1
   - ADMIN = 2
 
-message Empty
+struct Empty
 
-message User
+struct User
   - ID: uint64
     + json = id
     + go.tag.db = id
@@ -23,6 +23,6 @@ message User
     + go.tag.db = created_at
 
 
-service ExampleService
+service Example
   - Ping() => (status: bool)
   - GetUser(userID: uint64) => (user: User)

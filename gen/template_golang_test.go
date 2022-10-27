@@ -31,13 +31,13 @@ const goInput = `
     },
     {
       "name": "Empty",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
       ]
     },
     {
       "name": "GetUserRequest",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "userID",
@@ -48,7 +48,7 @@ const goInput = `
     },
     {
       "name": "User",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "ID",
@@ -82,7 +82,7 @@ const goInput = `
     },
     {
       "name": "RandomStuff",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "meta",
@@ -125,7 +125,7 @@ const goInput = `
   ],
   "services": [
     {
-      "name": "ExampleService",
+      "name": "Example",
       "methods": [
         {
           "name": "Ping",

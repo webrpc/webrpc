@@ -22,22 +22,22 @@ Current code-generation language targets:
 Here is an example webrpc schema in RIDL format (a new documentation-like format introduced by webrpc)
 
 ```
-webrpc = v1
+webrpc = v2
 
 name = your-app
 version = v0.1.0
 
-message User
+struct User
   - id: uint64
   - username: string
   - createdAt?: timestamp
 
-message UsersQueryFilter
+struct UsersQueryFilter
   - page?: uint32
   - name?: string
   - location?: string
 
-service ExampleService
+service Example
   - Ping()
   - Status() => (status: bool)
   - GetUserByID(userID: uint64) => (user: User)
@@ -53,7 +53,7 @@ source code for your target language.
 For example, to generate webrpc server+client code -- run:
 
 ```
-bin/webrpc-gen -schema=example.ridl -target=go -pkg=main -server -client -out=./example.gen.go
+bin/webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -out=./example.gen.go
 ```
 
 and see the generated `./example.gen.go` file of types, server and client in Go. This is essentially
@@ -152,8 +152,8 @@ Future goals/work:
     * for earlier versions: `go get -u github.com/webrpc/webrpc/cmd/webrpc-gen`  
 2. Write+design a [webrpc schema file](./_examples/golang-basics/example.ridl) for your Web service
 3. Run the code-generator to create your server interface and client, ie.
-  * `webrpc-gen -schema=example.ridl -target=go -pkg=service -server -client -out=./service/proto.gen.go`
-  * `webrpc-gen -schema=example.ridl -target=ts -pkg=client -client -out=./web/client.ts`
+  * `webrpc-gen -schema=example.ridl -target=golang -pkg=service -server -client -out=./service/proto.gen.go`
+  * `webrpc-gen -schema=example.ridl -target=typescript -pkg=client -client -out=./web/client.ts`
 4. Implement the handlers for your server -- of course, it can't guess the server logic :)
 
 another option is to copy the [hello-webrpc](./_examples/hello-webrpc) example, and adapt for your own webapp and server.

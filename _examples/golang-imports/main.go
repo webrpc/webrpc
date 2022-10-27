@@ -1,4 +1,4 @@
-//go:generate webrpc-gen -schema=./proto/api.ridl -target=go -pkg=main -server -client -out=./api.gen.go
+//go:generate webrpc-gen -schema=./proto/api.ridl -target=golang -pkg=main -server -client -out=./api.gen.go
 package main
 
 import (
@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {

@@ -1,14 +1,14 @@
-//go:generate webrpc-gen -schema=example.ridl -target=go -pkg=main -server -client -out=./example.gen.go
+//go:generate ../../bin/webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -out=./example.gen.go
 package main
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
@@ -28,24 +28,24 @@ func startServer() error {
 		w.Write([]byte("."))
 	})
 
-	webrpcHandler := NewExampleServiceServer(&ExampleServiceRPC{})
+	webrpcHandler := NewExampleServer(&ExampleRPC{})
 	r.Handle("/*", webrpcHandler)
 
 	return http.ListenAndServe(":4242", r)
 }
 
-type ExampleServiceRPC struct {
+type ExampleRPC struct {
 }
 
-func (s *ExampleServiceRPC) Ping(ctx context.Context) error {
+func (s *ExampleRPC) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (s *ExampleServiceRPC) Status(ctx context.Context) (bool, error) {
+func (s *ExampleRPC) Status(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (s *ExampleServiceRPC) Version(ctx context.Context) (*Version, error) {
+func (s *ExampleRPC) Version(ctx context.Context) (*Version, error) {
 	return &Version{
 		WebrpcVersion: WebRPCVersion(),
 		SchemaVersion: WebRPCSchemaVersion(),
@@ -53,12 +53,15 @@ func (s *ExampleServiceRPC) Version(ctx context.Context) (*Version, error) {
 	}, nil
 }
 
-func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error) {
+func (s *ExampleRPC) GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error) {
 	if userID == 911 {
-		return 0, nil, WrapError(ErrInternal, errors.New("bad"), "app msg here")
-		// return 0, nil, ErrorNotFound("unknown userID %d", 911)
-		// return 0, nil, Errorf(ErrNotFound, "unknown userID %d", 911)
-		// return 0, nil, WrapError(ErrNotFound, nil, "unknown userID %d", 911)
+		return 0, nil, ErrorWithCause(ErrUserNotFound, fmt.Errorf("unknown user id %d", userID))
+	}
+	if userID == 31337 {
+		return 0, nil, ErrUnauthorized
+	}
+	if userID == 666 {
+		panic("oh no")
 	}
 
 	return 200, &User{
@@ -67,7 +70,7 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]strin
 	}, nil
 }
 
-func (s *ExampleServiceRPC) FindUser(ctx context.Context, f *SearchFilter) (string, *User, error) {
+func (s *ExampleRPC) FindUser(ctx context.Context, f *SearchFilter) (string, *User, error) {
 	name := f.Q
 	return f.Q, &User{
 		ID: 123, Username: name,

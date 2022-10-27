@@ -1,11 +1,11 @@
 {
-  "webrpc": "v1",
+  "webrpc": "v2",
   "name": "hello-api",
   "version": "v0.0.1",
-  "messages": [
+  "types": [
     {
       "name": "Kind",
-      "type": "enum",
+      "kind": "enum",
       "fields": [
         {
           "name": "USER",
@@ -21,13 +21,13 @@
     },
     {
       "name": "Empty",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
       ]
     },
     {
       "name": "GetUserRequest",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "userID",
@@ -38,7 +38,7 @@
     },
     {
       "name": "User",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "ID",
@@ -73,7 +73,7 @@
   ],
   "services": [
     {
-      "name": "ExampleService",
+      "name": "Example",
       "methods": [
         {
           "name": "Ping",

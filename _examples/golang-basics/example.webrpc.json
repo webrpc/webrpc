@@ -1,33 +1,32 @@
 {
-  "webrpc": "v1",
+  "webrpc": "v2",
   "name": "example",
   "version": "v0.0.1",
-  "messages": [
+  "types": [
     {
       "name": "Kind",
-      "type": "enum",
+      "kind": "enum",
+      "type": "uint32",
       "fields": [
         {
           "name": "USER",
-          "type": "uint32",
           "value": "0"
         },
         {
           "name": "ADMIN",
-          "type": "uint32",
           "value": "1"
         }
       ]
     },
     {
       "name": "Empty",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
       ]
     },
     {
       "name": "User",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "ID",
@@ -70,7 +69,7 @@
     },
     {
       "name": "ComplexType",
-      "type": "struct",
+      "kind": "struct",
       "fields": [
         {
           "name": "meta",
@@ -109,11 +108,65 @@
           "type": "User"
         }
       ]
+    },
+    {
+      "name": "SearchFilter",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "q",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "Version",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "webrpcVersion",
+          "type": "string"
+        },
+        {
+          "name": "schemaVersion",
+          "type": "string"
+        },
+        {
+          "name": "schemaHash",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "BigInt",
+      "kind": "alias",
+      "type": "string",
+      "meta": [
+        { "go.field.type": "prototyp.BigInt" }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 500100,
+      "name": "InvalidUsername",
+      "message": "invalid username"
+    },
+    {
+      "code": 400100,
+      "name": "MemoryFull",
+      "message": "system memory is full"
+    },
+    {
+      "code": 403000,
+      "name": "Unauthorized",
+      "message": "Unauthorized",
+      "httpStatus": 401
     }
   ],
   "services": [
     {
-      "name": "ExampleService",
+      "name": "Example",
       "methods": [
         {
           "name": "Ping",
@@ -146,6 +199,35 @@
             {
               "name": "code",
               "type": "uint32"
+            },
+            {
+              "name": "user",
+              "type": "User"
+            }
+          ]
+        },
+        {
+          "name": "Version",
+          "inputs": [],
+          "outputs": [
+            {
+              "name": "version",
+              "type": "Version"
+            }
+          ]
+        },
+        {
+          "name": "FindUser",
+          "inputs": [
+            {
+              "name": "s",
+              "type": "SearchFilter"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "name",
+              "type": "string"
             },
             {
               "name": "user",
