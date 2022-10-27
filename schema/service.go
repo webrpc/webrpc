@@ -1,9 +1,8 @@
 package schema
 
 import (
+	"fmt"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 type Service struct {
@@ -41,34 +40,34 @@ func (s *Service) Parse(schema *WebRPCSchema) error {
 	// Service name
 	serviceName := string(s.Name)
 	if string(s.Name) == "" {
-		return errors.Errorf("schema error: service name cannot be empty")
+		return fmt.Errorf("schema error: service name cannot be empty")
 	}
 
 	// Ensure we don't have dupe service names (w/ normalization)
 	name := strings.ToLower(string(s.Name))
 	for _, svc := range schema.Services {
 		if svc != s && name == strings.ToLower(string(svc.Name)) {
-			return errors.Errorf("schema error: duplicate service name detected in service '%s'", serviceName)
+			return fmt.Errorf("schema error: duplicate service name detected in service '%s'", serviceName)
 		}
 	}
 
 	// Ensure methods is defined
 	if len(s.Methods) == 0 {
-		return errors.Errorf("schema error: methods cannot be empty for service '%s'", serviceName)
+		return fmt.Errorf("schema error: methods cannot be empty for service '%s'", serviceName)
 	}
 
 	// Verify method names and ensure we don't have any duplicate method names
 	methodList := map[string]string{}
 	for _, method := range s.Methods {
 		if string(method.Name) == "" {
-			return errors.Errorf("schema error: detected empty method name in service '%s", serviceName)
+			return fmt.Errorf("schema error: detected empty method name in service '%s", serviceName)
 		}
 
 		methodName := string(method.Name)
 		nMethodName := strings.ToLower(methodName)
 
 		if _, ok := methodList[nMethodName]; ok {
-			return errors.Errorf("schema error: detected duplicate method name of '%s' in service '%s'", methodName, serviceName)
+			return fmt.Errorf("schema error: detected duplicate method name of '%s' in service '%s'", methodName, serviceName)
 		}
 		methodList[nMethodName] = methodName
 	}
@@ -86,7 +85,7 @@ func (s *Service) Parse(schema *WebRPCSchema) error {
 
 func (m *Method) Parse(schema *WebRPCSchema, service *Service) error {
 	if service == nil {
-		return errors.Errorf("parse error, service arg cannot be nil")
+		return fmt.Errorf("parse error, service arg cannot be nil")
 	}
 	m.Service = service // back-ref
 	serviceName := string(service.Name)
@@ -95,7 +94,7 @@ func (m *Method) Parse(schema *WebRPCSchema, service *Service) error {
 	for _, input := range m.Inputs {
 		input.InputArg = true // back-ref
 		if input.Name == "" {
-			return errors.Errorf("schema error: detected empty input argument name for method '%s' in service '%s'", m.Name, serviceName)
+			return fmt.Errorf("schema error: detected empty input argument name for method '%s' in service '%s'", m.Name, serviceName)
 		}
 		err := input.Type.Parse(schema)
 		if err != nil {
@@ -107,7 +106,7 @@ func (m *Method) Parse(schema *WebRPCSchema, service *Service) error {
 	for _, output := range m.Outputs {
 		output.OutputArg = true // back-ref
 		if output.Name == "" {
-			return errors.Errorf("schema error: detected empty output name for method '%s' in service '%s'", m.Name, serviceName)
+			return fmt.Errorf("schema error: detected empty output name for method '%s' in service '%s'", m.Name, serviceName)
 		}
 		err := output.Type.Parse(schema)
 		if err != nil {

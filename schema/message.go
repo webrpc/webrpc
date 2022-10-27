@@ -1,9 +1,8 @@
 package schema
 
 import (
+	"fmt"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 type Message struct {
@@ -34,20 +33,20 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 	// Message name
 	msgName := string(m.Name)
 	if msgName == "" {
-		return errors.Errorf("schema error: message name cannot be empty")
+		return fmt.Errorf("schema error: message name cannot be empty")
 	}
 
 	// Ensure we don't have dupe message types (w/ normalization)
 	name := strings.ToLower(msgName)
 	for _, msg := range schema.Messages {
 		if msg != m && name == strings.ToLower(string(msg.Name)) {
-			return errors.Errorf("schema error: duplicate message type detected, '%s'", msgName)
+			return fmt.Errorf("schema error: duplicate message type detected, '%s'", msgName)
 		}
 	}
 
 	// Ensure we have a message type
 	if string(m.Type) != "enum" && string(m.Type) != "struct" {
-		return errors.Errorf("schema error: message type must be 'enum' or 'struct' for '%s'", msgName)
+		return fmt.Errorf("schema error: message type must be 'enum' or 'struct' for '%s'", msgName)
 	}
 
 	// NOTE: so far, lets allow messages with no fields.. so just empty object, why, I dunno, but gRPC allows it
@@ -60,7 +59,7 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 	fieldList := map[string]string{}
 	for _, field := range m.Fields {
 		if string(field.Name) == "" {
-			return errors.Errorf("schema error: detected empty field name in message '%s", msgName)
+			return fmt.Errorf("schema error: detected empty field name in message '%s", msgName)
 		}
 
 		fieldName := string(field.Name)
@@ -68,12 +67,12 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 
 		// Verify name format
 		if !IsValidArgName(fieldName) {
-			return errors.Errorf("schema error: invalid field name of '%s' in message '%s'", fieldName, msgName)
+			return fmt.Errorf("schema error: invalid field name of '%s' in message '%s'", fieldName, msgName)
 		}
 
 		// Ensure no dupes
 		if _, ok := fieldList[nFieldName]; ok {
-			return errors.Errorf("schema error: detected duplicate field name of '%s' in message '%s'", fieldName, msgName)
+			return fmt.Errorf("schema error: detected duplicate field name of '%s' in message '%s'", fieldName, msgName)
 		}
 		fieldList[nFieldName] = fieldName
 	}
@@ -94,17 +93,17 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 			fieldType := field.Type.expr
 			fieldTypes[fieldType] = struct{}{}
 			if field.Value == "" {
-				return errors.Errorf("schema error: enum message '%s' with field '%s' is missing value", m.Name, field.Name)
+				return fmt.Errorf("schema error: enum message '%s' with field '%s' is missing value", m.Name, field.Name)
 			}
 		}
 		if len(fieldTypes) > 1 {
-			return errors.Errorf("schema error: enum message '%s' must all have the same field type", m.Name)
+			return fmt.Errorf("schema error: enum message '%s' must all have the same field type", m.Name)
 		}
 
 		// ensure enum type is one of the allowed types.. aka integer
 		fieldType := m.Fields[0].Type
 		if !isValidVarType(fieldType.String(), VarIntegerDataTypes) {
-			return errors.Errorf("schema error: enum message '%s' field '%s' is invalid. must be an integer type.", m.Name, fieldType.String())
+			return fmt.Errorf("schema error: enum message '%s' field '%s' is invalid. must be an integer type.", m.Name, fieldType.String())
 		}
 		m.EnumType = fieldType
 	}
@@ -113,7 +112,7 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 	if m.Type == "struct" {
 		for _, field := range m.Fields {
 			if field.Value != "" {
-				return errors.Errorf("schema error: struct message '%s' with field '%s' cannot contain value field - please remove it", m.Name, field.Name)
+				return fmt.Errorf("schema error: struct message '%s' with field '%s' cannot contain value field - please remove it", m.Name, field.Name)
 			}
 		}
 

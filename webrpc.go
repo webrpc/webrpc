@@ -1,11 +1,11 @@
 package webrpc
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
-	"github.com/pkg/errors"
 	"github.com/webrpc/webrpc/schema"
 	"github.com/webrpc/webrpc/schema/ridl"
 )
@@ -56,6 +56,6 @@ func ParseSchemaFile(schemaFilePath string) (*schema.WebRPCSchema, error) {
 
 		return s, nil
 	} else {
-		return nil, errors.Errorf("error! invalid extension, %s", ext)
+		return nil, fmt.Errorf("error! invalid extension, %s: %w", ext, err)
 	}
 }

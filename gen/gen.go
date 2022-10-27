@@ -2,49 +2,26 @@ package gen
 
 import (
 	"bytes"
-	"context"
 	"path/filepath"
-	"strings"
-	"text/template"
 
-	"github.com/pkg/errors"
-	"github.com/posener/gitfs"
-	"github.com/shurcooL/httpfs/text/vfstemplate"
 	"github.com/webrpc/webrpc/schema"
 )
 
 type TargetOptions struct {
-	PkgName     string
-	Client      bool
-	Server      bool
-	Extra       string
-	OutFilename string
+	PkgName      string
+	Client       bool
+	Server       bool
+	Extra        string
+	OutFilename  string
+	RefreshCache bool
 }
 
 func Generate(proto *schema.WebRPCSchema, target string, opts TargetOptions) (string, error) {
 	target = getBuiltInTarget(target)
 
-	var err error
-	tmpl := template.New("webrpc-gen").Funcs(templateFuncMap(proto, opts))
-
-	// Load templates
-	if isLocalDir(target) {
-		// from local directory
-		tmpl, err = tmpl.ParseGlob(filepath.Join(target, "/*.tmpl"))
-		if err != nil {
-			return "", errors.Wrapf(err, "failed to load templates from %s", target)
-		}
-	} else {
-		// from remote git directory
-		remoteFS, err := gitfs.New(context.Background(), target)
-		if err != nil {
-			return "", errors.Wrapf(err, "failed to load templates from remote git repository %s", target)
-		}
-
-		tmpl, err = vfstemplate.ParseGlob(remoteFS, tmpl, "/*.tmpl")
-		if err != nil {
-			return "", errors.Wrap(err, "failed to parse Go templates")
-		}
+	tmpl, err := loadTemplates(proto, target, opts)
+	if err != nil {
+		return "", err
 	}
 
 	// Generate deterministic schema hash of the proto file
@@ -90,8 +67,4 @@ func getBuiltInTarget(target string) string {
 		return "github.com/webrpc/gen-javascript@v0.6.0"
 	}
 	return target
-}
-
-func isLocalDir(target string) bool {
-	return strings.HasPrefix(target, "/") || strings.HasPrefix(target, ".")
 }
