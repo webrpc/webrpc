@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 )
 
-type DataType int
+type CoreType int
 
 const (
-	T_Unknown DataType = iota
+	T_Unknown CoreType = iota
 
 	T_Null
 	T_Any
@@ -38,10 +38,10 @@ const (
 	T_Map
 
 	T_Primitive
-	T_Struct // aka, a reference to our own webrpc proto struct/message
+	T_Struct // aka, a reference to our own webrpc proto struct
 )
 
-var DataTypeToString = map[DataType]string{
+var DataTypeToString = map[CoreType]string{
 	T_Null: "null",
 	T_Any:  "any",
 	T_Byte: "byte",
@@ -70,7 +70,7 @@ var DataTypeToString = map[DataType]string{
 	T_List: "[]",
 }
 
-var DataTypeFromString = map[string]DataType{
+var CoreTypeFromString = map[string]CoreType{
 	"null": T_Null,
 	"any":  T_Any,
 	"byte": T_Byte,
@@ -99,23 +99,23 @@ var DataTypeFromString = map[string]DataType{
 	"[]":  T_List,
 }
 
-func (t DataType) String() string {
+func (t CoreType) String() string {
 	return DataTypeToString[t]
 }
 
-func (t DataType) MarshalJSON() ([]byte, error) {
+func (t CoreType) MarshalJSON() ([]byte, error) {
 	buf := bytes.NewBufferString(`"`)
 	buf.WriteString(DataTypeToString[t])
 	buf.WriteString(`"`)
 	return buf.Bytes(), nil
 }
 
-func (t *DataType) UnmarshalJSON(b []byte) error {
+func (t *CoreType) UnmarshalJSON(b []byte) error {
 	var j string
 	err := json.Unmarshal(b, &j)
 	if err != nil {
 		return err
 	}
-	*t = DataTypeFromString[j]
+	*t = CoreTypeFromString[j]
 	return nil
 }

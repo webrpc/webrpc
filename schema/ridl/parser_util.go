@@ -12,6 +12,24 @@ func expectWord(tok *token, value string) error {
 	return nil
 }
 
+func expectNumber(tok *token, value string) error {
+	if tok.tt != tokenWord {
+		return errUnexpectedToken
+	}
+	for _, r := range value {
+		found := false
+		for _, m := range wordNumber {
+			if r == m {
+				found = true
+			}
+		}
+		if !found {
+			return errUnexpectedToken
+		}
+	}
+	return nil
+}
+
 func unescapeString(in string) (string, error) {
 	size := len(in)
 	out := ""

@@ -8,7 +8,7 @@ import (
 
 type VarType struct {
 	expr string
-	Type DataType
+	Type CoreType
 
 	List   *VarListType
 	Map    *VarMapType
@@ -51,7 +51,7 @@ func (t *VarType) UnmarshalJSON(b []byte) error {
 }
 
 func (t *VarType) Parse(schema *WebRPCSchema) error {
-	if t.expr == "" {
+	if t == nil || t.expr == "" {
 		return fmt.Errorf("schema error: type expr cannot be empty")
 	}
 	err := ParseVarTypeExpr(schema, t.expr, t)
@@ -67,13 +67,13 @@ type VarListType struct {
 }
 
 type VarMapType struct {
-	Key   DataType // see, VarMapKeyDataTypes -- only T_String or T_XintX supported
+	Key   CoreType // see, VarMapKeyCoreTypes -- only T_String or T_XintX supported
 	Value *VarType
 }
 
 type VarStructType struct {
-	Name    string
-	Message *Message
+	Name string
+	Type *Type
 }
 
 func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
@@ -83,7 +83,7 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 	vt.expr = expr
 
 	// parse data type from string
-	dataType, ok := DataTypeFromString[expr]
+	dataType, ok := CoreTypeFromString[expr]
 
 	if !ok {
 		// test for complex datatype
@@ -117,7 +117,7 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 			return err
 		}
 
-		keyDataType, ok := DataTypeFromString[key]
+		keyDataType, ok := CoreTypeFromString[key]
 		if !ok {
 			return fmt.Errorf("schema error: invalid map key type '%s' for expr '%s'", key, expr)
 		}
@@ -133,15 +133,14 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 		}
 
 	case T_Unknown:
-
 		structExpr := expr
-		msg, ok := getMessageType(schema, structExpr)
-		if !ok || msg == nil {
-			return fmt.Errorf("schema error: invalid struct/message type '%s'", structExpr)
+		typ, ok := getType(schema, structExpr)
+		if !ok || typ == nil {
+			return fmt.Errorf("schema error: invalid struct type '%s'", structExpr)
 		}
 
 		vt.Type = T_Struct
-		vt.Struct = &VarStructType{Name: structExpr, Message: msg}
+		vt.Struct = &VarStructType{Name: structExpr, Type: typ}
 
 	default:
 		// basic type, we're done here
@@ -215,29 +214,29 @@ func isMapExpr(expr string) bool {
 	return strings.HasPrefix(expr, mapTest)
 }
 
-func getMessageType(schema *WebRPCSchema, structExpr string) (*Message, bool) {
-	for _, msg := range schema.Messages {
-		if structExpr == string(msg.Name) {
-			return msg, true
+func getType(schema *WebRPCSchema, structExpr string) (*Type, bool) {
+	for _, typ := range schema.Types {
+		if structExpr == string(typ.Name) {
+			return typ, true
 		}
 	}
 	return nil, false
 }
 
-var VarKeyDataTypes = []DataType{
+var VarKeyCoreTypes = []CoreType{
 	T_String, T_Uint, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
-var VarIntegerDataTypes = []DataType{
+var VarIntegerCoreTypes = []CoreType{
 	T_Uint, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
 func isValidVarKeyType(s string) bool {
-	return isValidVarType(s, VarKeyDataTypes)
+	return isValidVarType(s, VarKeyCoreTypes)
 }
 
-func isValidVarType(s string, allowedList []DataType) bool {
-	dt, ok := DataTypeFromString[s]
+func isValidVarType(s string, allowedList []CoreType) bool {
+	dt, ok := CoreTypeFromString[s]
 	if !ok {
 		return false
 	}

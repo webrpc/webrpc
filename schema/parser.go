@@ -3,6 +3,7 @@ package schema
 import (
 	"encoding/json"
 	"regexp"
+	"unicode"
 )
 
 type Parser interface {
@@ -28,6 +29,16 @@ var NameWhitelistRexp = regexp.MustCompile(`^[a-zA-Z]+[a-zA-Z0-9_]*$`)
 
 func IsValidArgName(s string) bool {
 	if !NameWhitelistRexp.MatchString(s) {
+		return false
+	}
+	return true
+}
+
+func IsStartsWithUpper(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	if !unicode.IsUpper(rune(s[0])) {
 		return false
 	}
 	return true

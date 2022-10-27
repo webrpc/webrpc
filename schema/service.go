@@ -15,9 +15,14 @@ type Service struct {
 type Method struct {
 	Name VarName `json:"name"`
 
-	StreamInput  bool `json:"streamInput,omitempty"`
+	// NOTE: we don't support input streaming at this time, but maybe some day
+	StreamInput bool `json:"streamInput,omitempty"`
+
+	// StreamOutput marks the method output to support a streaming response
 	StreamOutput bool `json:"streamOutput,omitempty"`
-	Proxy        bool `json:"-"` // TODO: actual implementation
+
+	// TODO: future idea
+	// Proxy        bool `json:"-"`
 
 	Inputs  []*MethodArgument `json:"inputs"`
 	Outputs []*MethodArgument `json:"outputs"`
@@ -28,10 +33,12 @@ type Method struct {
 type MethodArgument struct {
 	Name     VarName  `json:"name"`
 	Type     *VarType `json:"type"`
-	Optional bool     `json:"optional"`
+	Optional bool     `json:"optional,omitempty"`
 
 	InputArg  bool `json:"-"` // denormalize/back-reference
 	OutputArg bool `json:"-"` // denormalize/back-reference
+
+	TypeExtra `json:",omitempty"`
 }
 
 func (s *Service) Parse(schema *WebRPCSchema) error {
@@ -41,6 +48,9 @@ func (s *Service) Parse(schema *WebRPCSchema) error {
 	serviceName := string(s.Name)
 	if string(s.Name) == "" {
 		return fmt.Errorf("schema error: service name cannot be empty")
+	}
+	if !IsStartsWithUpper(serviceName) {
+		return fmt.Errorf("schema error: service name must start with upper case for '%s'", serviceName)
 	}
 
 	// Ensure we don't have dupe service names (w/ normalization)

@@ -8,8 +8,10 @@ const (
 	TokenNodeType
 	DefinitionNodeType
 	ImportNodeType
+	AliasNodeType
 	EnumNodeType
-	MessageNodeType
+	StructNodeType
+	ErrorNodeType
 	ArgumentNodeType
 	MethodNodeType
 	ServiceNodeType
@@ -81,15 +83,26 @@ func (rn RootNode) Imports() []*ImportNode {
 	return importNodes
 }
 
-func (rn RootNode) Messages() []*MessageNode {
-	nodes := rn.Filter(MessageNodeType)
+func (rn RootNode) Structs() []*StructNode {
+	nodes := rn.Filter(StructNodeType)
 
-	messageNodes := make([]*MessageNode, 0, len(nodes))
+	structNodes := make([]*StructNode, 0, len(nodes))
 	for i := range nodes {
-		messageNodes = append(messageNodes, nodes[i].(*MessageNode))
+		structNodes = append(structNodes, nodes[i].(*StructNode))
 	}
 
-	return messageNodes
+	return structNodes
+}
+
+func (rn RootNode) Errors() []*ErrorNode {
+	nodes := rn.Filter(ErrorNodeType)
+
+	errorNodes := make([]*ErrorNode, 0, len(nodes))
+	for i := range nodes {
+		errorNodes = append(errorNodes, nodes[i].(*ErrorNode))
+	}
+
+	return errorNodes
 }
 
 func (rn RootNode) Enums() []*EnumNode {
@@ -101,6 +114,17 @@ func (rn RootNode) Enums() []*EnumNode {
 	}
 
 	return enumNodes
+}
+
+func (rn RootNode) Aliases() []*AliasNode {
+	nodes := rn.Filter(AliasNodeType)
+
+	aliasNodes := make([]*AliasNode, 0, len(nodes))
+	for i := range nodes {
+		aliasNodes = append(aliasNodes, nodes[i].(*AliasNode))
+	}
+
+	return aliasNodes
 }
 
 func (rn RootNode) Services() []*ServiceNode {
@@ -208,6 +232,30 @@ func (in ImportNode) Type() NodeType {
 	return ImportNodeType
 }
 
+type AliasNode struct {
+	node
+
+	name      *TokenNode
+	aliasType *TokenNode
+	extra     *DefinitionNode
+}
+
+func (tn AliasNode) Type() NodeType {
+	return AliasNodeType
+}
+
+func (tn AliasNode) Name() *TokenNode {
+	return tn.name
+}
+
+func (tn AliasNode) TypeName() *TokenNode {
+	return tn.aliasType
+}
+
+func (tn AliasNode) Extra() *DefinitionNode {
+	return tn.extra
+}
+
 type EnumNode struct {
 	node
 
@@ -232,23 +280,40 @@ func (en EnumNode) Values() []*DefinitionNode {
 	return en.values
 }
 
-type MessageNode struct {
+type StructNode struct {
 	node
 
 	name   *TokenNode
 	fields []*DefinitionNode
 }
 
-func (mn MessageNode) Name() *TokenNode {
+func (mn StructNode) Name() *TokenNode {
 	return mn.name
 }
 
-func (mn *MessageNode) Type() NodeType {
-	return MessageNodeType
+func (mn *StructNode) Type() NodeType {
+	return StructNodeType
 }
 
-func (mn *MessageNode) Fields() []*DefinitionNode {
+func (mn *StructNode) Fields() []*DefinitionNode {
 	return mn.fields
+}
+
+type ErrorNode struct {
+	node
+
+	code       *TokenNode
+	name       *TokenNode
+	message    *TokenNode
+	httpStatus *TokenNode
+}
+
+func (en ErrorNode) Type() NodeType {
+	return ErrorNodeType
+}
+
+func (en ErrorNode) Name() *TokenNode {
+	return en.name
 }
 
 type ArgumentNode struct {
@@ -256,10 +321,9 @@ type ArgumentNode struct {
 
 	name         *TokenNode
 	argumentType *TokenNode
+	optional     bool
 
-	optional bool
-
-	stream bool //TODO: should be deprecated
+	inlineStruct *TokenNode
 }
 
 func (an *ArgumentNode) Name() *TokenNode {
