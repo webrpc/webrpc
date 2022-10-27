@@ -32,8 +32,8 @@ type Import struct {
 // Validate validates the schema through the AST, intended to be called after
 // the json has been unmarshalled
 func (s *WebRPCSchema) Validate() error {
-	if s.WebRPCVersion != VERSION {
-		return fmt.Errorf("webrpc schema version, '%s' is invalid, try '%s'", s.WebRPCVersion, VERSION)
+	if s.WebrpcVersion != VERSION {
+		return fmt.Errorf("webrpc schema version, '%s' is invalid, try '%s'", s.WebrpcVersion, VERSION)
 	}
 
 	for _, msg := range s.Messages {

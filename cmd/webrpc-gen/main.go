@@ -17,8 +17,9 @@ var flags = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
 func main() {
 	versionFlag := flags.Bool("version", false, "print webrpc version and exit")
 	schemaFlag := flags.String("schema", "", "webrpc schema file (required)")
-	targetFlag := flags.String("target", "", fmt.Sprintf("target generator for webrpc library generation (required), ie. github.com/webrpc/gen-golang@v0.6.0"))
+	targetFlag := flags.String("target", "", fmt.Sprintf("target generator (required), ie. golang@v0.6.0"))
 	outFlag := flags.String("out", "", "generated output file, default: stdout")
+	refreshCache := flags.Bool("refreshCache", false, "refresh webrpc cache")
 	testFlag := flags.Bool("test", false, "test schema parsing (skips code-gen)")
 
 	var cliFlags []string
@@ -81,7 +82,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	protoGen, err := gen.Generate(schema, *targetFlag, templateOpts)
+	protoGen, err := gen.Generate(schema, *targetFlag, *refreshCache, templateOpts)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)

@@ -2,24 +2,16 @@ package gen
 
 import (
 	"bytes"
-	"path/filepath"
+	"os"
+	"strings"
 
 	"github.com/webrpc/webrpc/schema"
 )
 
-type TargetOptions struct {
-	PkgName      string
-	Client       bool
-	Server       bool
-	Extra        string
-	OutFilename  string
-	RefreshCache bool
-}
-
-func Generate(proto *schema.WebRPCSchema, target string, opts TargetOptions) (string, error) {
+func Generate(proto *schema.WebRPCSchema, target string, refreshCache bool, opts map[string]interface{}) (string, error) {
 	target = getBuiltInTarget(target)
 
-	tmpl, err := loadTemplates(proto, target, opts)
+	tmpl, err := loadTemplates(proto, target, refreshCache, opts)
 	if err != nil {
 		return "", err
 	}

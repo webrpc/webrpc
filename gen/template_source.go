@@ -21,8 +21,8 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-func loadTemplates(proto *schema.WebRPCSchema, target string, opts TargetOptions) (*template.Template, error) {
-	s, err := newTemplateSource(proto, target, opts)
+func loadTemplates(proto *schema.WebRPCSchema, target string, refreshCache bool, opts map[string]interface{}) (*template.Template, error) {
+	s, err := newTemplateSource(proto, target, refreshCache, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -37,19 +37,21 @@ const (
 )
 
 type templateSource struct {
-	tmpl   *template.Template
-	proto  *schema.WebRPCSchema
-	target string
-	opts   TargetOptions
+	tmpl         *template.Template
+	proto        *schema.WebRPCSchema
+	target       string
+	refreshCache bool
+	opts         map[string]interface{}
 }
 
-func newTemplateSource(proto *schema.WebRPCSchema, target string, opts TargetOptions) (*templateSource, error) {
+func newTemplateSource(proto *schema.WebRPCSchema, target string, refreshCache bool, opts map[string]interface{}) (*templateSource, error) {
 	tmpl := template.New("webrpc-gen").Funcs(templateFuncMap(proto, opts))
 	return &templateSource{
-		tmpl:   tmpl,
-		proto:  proto,
-		target: target,
-		opts:   opts,
+		tmpl:         tmpl,
+		proto:        proto,
+		target:       target,
+		refreshCache: refreshCache,
+		opts:         opts,
 	}, nil
 }
 
@@ -81,7 +83,7 @@ func (s *templateSource) loadRemote() (*template.Template, error) {
 	}
 
 	// cache is new, so lets fetch from git
-	if !cacheAvailable || s.opts.RefreshCache || time.Now().Unix()-cacheTS > int64(templateCacheTime.Seconds()) {
+	if !cacheAvailable || s.refreshCache || time.Now().Unix()-cacheTS > int64(templateCacheTime.Seconds()) {
 		sourceFS, err = gitfs.New(context.Background(), s.target) //, gitfs.OptPrefetch(true), gitfs.OptGlob("/*.tmpl"))
 
 		if err != nil {
@@ -155,7 +157,7 @@ func (s *templateSource) openCacheDir() (string, http.FileSystem, bool, int64, e
 	}
 
 	// delete the directory if asked to refresh
-	if s.opts.RefreshCache {
+	if s.refreshCache {
 		os.RemoveAll(cacheDir)
 	}
 
