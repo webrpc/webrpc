@@ -83,11 +83,6 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		}),
 
 		// OBSOLETE
-		// Golang specific template functions.
-
-		"goFieldTags": goFieldTags,
-
-		// OBSOLETE
 		// TypeScript specific template functions.
 		"tsFieldType":                         tsFieldType,
 		"tsInterfaceName":                     tsInterfaceName,
