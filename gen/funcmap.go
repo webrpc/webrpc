@@ -1,7 +1,6 @@
 package gen
 
 import (
-	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -13,7 +12,7 @@ import (
 // Template functions are part of webrpc-gen API. Keep backward-compatible.
 func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		// Flow.
+		// Template flow.
 		"printfStderr": printfStderr,
 		"exit":         exit,
 
@@ -23,9 +22,7 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"set":    set,
 		"exists": exists,
 
-		"first": first, // rename to coalesce?
-
-		// Type helpers.
+		// Schema type helpers.
 		"isBaseType":    isBaseType,
 		"isMapType":     isMapType,
 		"isArrayType":   isArrayType,
@@ -36,6 +33,7 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		// String utils.
 		"str":       str,
 		"join":      join,
+		"coalesce":  coalesce,
 		"hasPrefix": strings.HasPrefix,
 		"hasSuffix": strings.HasSuffix,
 		"indent":    indent,
@@ -86,13 +84,8 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 
 		// OBSOLETE
 		// Golang specific template functions.
-		"goHasGoFieldType": goHasGoFieldType(proto),
-		"goFieldTags":      goFieldTags,
-		"goFieldType":      goFieldType,
-		"goFieldOptional":  goFieldOptional,
-		"goFieldTypeDef":   goFieldTypeDef,
-		"goMethodArgType":  goMethodArgType,
-		"goExportedField":  goExportedField,
+
+		"goFieldTags": goFieldTags,
 
 		// OBSOLETE
 		// TypeScript specific template functions.
@@ -119,102 +112,8 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 	}
 }
 
-// Base webrpc type is anything but map, array or custom message type.
-func isBaseType(v interface{}) bool {
-	str := str(v)
-	_, ok := schema.DataTypeFromString[str]
-	return ok
-}
-
-func isMapType(v interface{}) bool {
-	str := str(v)
-	key, value, found := strings.Cut(str, ",")
-	return found && strings.HasPrefix(key, "map<") && strings.HasSuffix(value, ">")
-}
-
-func isArrayType(v interface{}) bool {
-	str := str(v)
-	return strings.HasPrefix(str, "[]")
-}
-
-// Expects webrpc map type, ie. "map<Type1,Type2>".
-// Returns the key type, ie. "Type1".
-func mapKeyType(v interface{}) string {
-	str := str(v)
-	key, value, found := strings.Cut(str, ",")
-	if !found || !strings.HasPrefix(key, "map<") || !strings.HasSuffix(value, ">") {
-		panic(fmt.Errorf("mapKeyValue: expected map<Type1,Type2>, got %v", str))
-	}
-	return strings.TrimPrefix(key, "map<")
-}
-
-// Expects webrpc map type, ie. "map<Type1,Type2>".
-// Returns the value type, ie. "Type2".
-func mapValueType(v interface{}) string {
-	str := str(v)
-	key, value, found := strings.Cut(str, ",")
-	if !found || !strings.HasPrefix(key, "map<") || !strings.HasSuffix(value, ">") {
-		panic(fmt.Errorf("mapKeyValue: expected map<Type1,Type2>, got %v", str))
-	}
-	return strings.TrimSuffix(value, ">")
-}
-
-// Expects webrpc array of types, ie. "[]Type".
-// Returns the item, ie. "Type".
-func arrayItemType(v interface{}) string {
-	str := str(v)
-	if !strings.HasPrefix(str, "[]") {
-		panic(fmt.Errorf("arrayItemType: expected []Type, got %v", str))
-	}
-	return strings.TrimPrefix(str, "[]")
-}
-
-// Create new dictionary.
-func dict(pairs ...interface{}) map[string]interface{} {
-	if len(pairs)%2 == 1 {
-		panic("dict must be created with even number of parameters (key:value pairs)")
-	}
-
-	m := map[string]interface{}{}
-	for i := 0; i < len(pairs); i += 2 {
-		key, ok := pairs[i].(string)
-		if !ok {
-			panic(fmt.Sprintf("dict argument(%v) must be string key", i))
-		}
-		m[key] = pairs[i+1]
-	}
-
-	return m
-}
-
-func get(m map[string]interface{}, key interface{}) interface{} {
-	switch t := key.(type) {
-	case string:
-		return m[t]
-	case schema.VarName:
-		return m[string(t)]
-	case schema.VarType:
-		return m[t.Type.String()]
-	case *schema.VarType:
-		return m[t.Type.String()]
-	default:
-		panic(fmt.Sprintf("get: unknown type %T", key))
-	}
-}
-
-func set(m map[string]interface{}, key string, value interface{}) string {
-	m[key] = value
-	return ""
-}
-
-// TODO: Support slices too?
-func exists(m map[string]interface{}, key string) bool {
-	_, ok := m[key]
-	return ok
-}
-
 // Returns first non-empty value.
-func first(v ...interface{}) interface{} {
+func coalesce(v ...interface{}) interface{} {
 	for _, v := range v {
 		val := reflect.ValueOf(v)
 		if !val.IsValid() || val.IsZero() {
@@ -237,14 +136,6 @@ func listComma(item int, count int) string {
 		return ", "
 	}
 	return ""
-}
-
-func isStruct(t schema.MessageType) bool {
-	return t == "struct"
-}
-
-func isEnum(t schema.MessageType) bool {
-	return t == "enum"
 }
 
 func constPathPrefix(in schema.VarName) (string, error) {

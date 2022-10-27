@@ -61,44 +61,6 @@ func goFieldType(in *schema.VarType) (string, error) {
 	return "", fmt.Errorf("could not represent type: %#v", in)
 }
 
-func goFieldOptional(field *schema.MessageField) (string, error) {
-	if !field.Optional {
-		return "", nil
-	}
-	switch field.Type.Type {
-	case schema.T_Map:
-		return "", nil // noop
-	case schema.T_List:
-		return "", nil // noop
-	case schema.T_Struct:
-		return "", nil // noop because by default struct uses '*' prefix
-	default:
-		if goFieldTypeMap[field.Type.Type] != "" {
-			return "*", nil
-		}
-	}
-	return "", fmt.Errorf("could not represent type: %#v", field)
-}
-
-func goFieldTypeDef(in *schema.MessageField) (string, error) {
-	gogoFieldType := ""
-
-	meta := in.Meta
-	for kk := range meta {
-		for k, v := range meta[kk] {
-			if k == "go.field.type" {
-				gogoFieldType = fmt.Sprintf("%v", v)
-			}
-		}
-	}
-
-	if gogoFieldType != "" {
-		return gogoFieldType, nil
-	}
-
-	return goFieldType(in.Type)
-}
-
 func downcaseName(v interface{}) (string, error) {
 	downFn := func(s string) string {
 		if s == "" {
@@ -169,44 +131,6 @@ func goFieldTags(in *schema.MessageField) (string, error) {
 	}
 
 	return "`" + strings.Join(tags, " ") + "`", nil
-}
-
-func goMethodArgType(in *schema.MethodArgument) string {
-	z, err := goFieldType(in.Type)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	var prefix string
-	typ := in.Type.Type
-
-	if in.Optional {
-		prefix = "*"
-	}
-	if typ == schema.T_Struct {
-		prefix = "" // noop, as already pointer applied elsewhere
-	}
-	if typ == schema.T_List || typ == schema.T_Map {
-		prefix = ""
-	}
-
-	return prefix + z
-}
-
-func goExportedField(in *schema.MessageField) (string, error) {
-	s := string(in.Name)
-	s = strings.ToUpper(s[0:1]) + s[1:]
-
-	nameTag := "go.field.name"
-	for k := range in.Meta {
-		for k, v := range in.Meta[k] {
-			if k == nameTag {
-				s = fmt.Sprintf("%v", v)
-			}
-		}
-	}
-
-	return s, nil
 }
 
 func goHasGoFieldType(proto *schema.WebRPCSchema) func(goFieldType string) (bool, error) {
