@@ -61,7 +61,7 @@ service Example
 
   # comment can go here
   # too .. :)
-  - Ping() => (status: bool)
+  - Ping()
 
   - GetUser(req: GetUserRequest) => (user: User)
 

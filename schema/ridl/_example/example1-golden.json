@@ -252,12 +252,7 @@
         {
           "name": "Ping",
           "inputs": [],
-          "outputs": [
-            {
-              "name": "status",
-              "type": "bool"
-            }
-          ]
+          "outputs": []
         },
         {
           "name": "GetUser",
