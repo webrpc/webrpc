@@ -61,6 +61,8 @@ service Example
 
   # comment can go here
   # too .. :)
+
+  # methods without a response body are okay too
   - Ping()
 
   - GetUser(req: GetUserRequest) => (user: User)
