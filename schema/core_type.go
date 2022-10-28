@@ -38,7 +38,8 @@ const (
 	T_Map
 
 	T_Primitive
-	T_Struct // aka, a reference to our own webrpc proto struct
+	T_Struct // aka, a reference to our own webrpc struct type
+	T_Alias  // aka, a reference to our own webrpc alias type
 )
 
 var DataTypeToString = map[CoreType]string{

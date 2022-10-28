@@ -210,6 +210,9 @@
         },
         {
           "go.tag.db": "balance"
+        },
+        {
+          "json": "b_a_l_a_n_c_e"
         }
       ]
     }

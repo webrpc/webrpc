@@ -5,6 +5,12 @@ import (
 	"strings"
 )
 
+const (
+	TypeKind_Struct = "struct"
+	TypeKind_Alias  = "alias"
+	TypeKind_Enum   = "enum"
+)
+
 type Type struct {
 	Kind      string       `json:"kind"`
 	Name      VarName      `json:"name"`
@@ -48,7 +54,7 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 	}
 
 	// Ensure we have a valid kind
-	if m.Kind != "alias" && m.Kind != "enum" && m.Kind != "struct" {
+	if m.Kind != TypeKind_Alias && m.Kind != TypeKind_Enum && m.Kind != TypeKind_Struct {
 		return fmt.Errorf("schema error: type must be one of 'alias', 'enum', or 'struct' for '%s'", typName)
 	}
 
@@ -81,7 +87,7 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 	}
 
 	// For alias kind only
-	if m.Kind == "alias" {
+	if m.Kind == TypeKind_Alias {
 		// ensure valid type expression
 		err := m.Type.Parse(schema)
 		if err != nil {
@@ -94,7 +100,7 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 	}
 
 	// For enums only, ensure all field types are the same
-	if m.Kind == "enum" {
+	if m.Kind == TypeKind_Enum {
 		// ensure enum fields have value key set
 		for _, field := range m.Fields {
 			if field.Value == "" {
@@ -113,7 +119,7 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 	}
 
 	// For structs only
-	if m.Kind == "struct" {
+	if m.Kind == TypeKind_Struct {
 		for _, field := range m.Fields {
 			// Parse+validate type fields
 			err := field.Type.Parse(schema)

@@ -13,6 +13,8 @@ type VarType struct {
 	List   *VarListType
 	Map    *VarMapType
 	Struct *VarStructType
+
+	Alias *Type
 }
 
 func (t *VarType) String() string {
@@ -133,14 +135,23 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 		}
 
 	case T_Unknown:
-		structExpr := expr
-		typ, ok := getType(schema, structExpr)
+
+		// must be a struct or alias type
+		sexpr := expr
+		typ, ok := getType(schema, sexpr)
 		if !ok || typ == nil {
-			return fmt.Errorf("schema error: invalid struct type '%s'", structExpr)
+			return fmt.Errorf("schema error: invalid struct type '%s'", sexpr)
 		}
 
-		vt.Type = T_Struct
-		vt.Struct = &VarStructType{Name: structExpr, Type: typ}
+		if typ.Kind == TypeKind_Struct {
+			vt.Type = T_Struct
+			vt.Struct = &VarStructType{Name: sexpr, Type: typ}
+		} else if typ.Kind == TypeKind_Alias {
+			vt.Type = T_Alias
+			vt.Alias = typ
+		} else {
+			return fmt.Errorf("schema error: unexpected type '%s'", sexpr)
+		}
 
 	default:
 		// basic type, we're done here
@@ -195,6 +206,10 @@ func buildVarTypeExpr(vt *VarType, expr string) string {
 
 	case T_Struct:
 		expr += vt.Struct.Name
+		return expr
+
+	case T_Alias:
+		expr += string(vt.Alias.Name)
 		return expr
 
 	default:

@@ -15,6 +15,7 @@ import example1-partials.ridl
 alias Balance: string
   + go.field.type = BigInt
   + go.tag.db = balance
+  + json = b_a_l_a_n_c_e
 
 struct Role
   - name: string
