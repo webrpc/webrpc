@@ -2,7 +2,6 @@ package gen
 
 import (
 	"reflect"
-	"strconv"
 	"strings"
 
 	"github.com/golang-cz/textcase"
@@ -24,6 +23,8 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 
 		// Schema type helpers.
 		"isBaseType":    isBaseType,
+		"isEnum":        isEnum,
+		"isStruct":      isStruct,
 		"isMapType":     isMapType,
 		"isArrayType":   isArrayType,
 		"mapKeyType":    mapKeyType,
@@ -57,12 +58,8 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),
 
 		// OBSOLETE generic template functions.
-		"constPathPrefix": constPathPrefix,
-		"countMethods":    countMethods,
-		"commaIfLen":      commaIfLen,
-		"isStruct":        isStruct,
-		"isEnum":          isEnum,
-		"listComma":       listComma,
+		"commaIfLen": commaIfLen,
+		"listComma":  listComma,
 		"downcaseName": applyStringFunction("downcaseName", func(input string) string {
 			if input == "" {
 				return ""
@@ -119,6 +116,7 @@ func coalesce(v ...interface{}) interface{} {
 	return ""
 }
 
+// appendComma
 func commaIfLen(in []*schema.MethodArgument) string {
 	if len(in) > 0 {
 		return ","
@@ -126,17 +124,10 @@ func commaIfLen(in []*schema.MethodArgument) string {
 	return ""
 }
 
+// prependComma
 func listComma(item int, count int) string {
 	if item+1 < count {
 		return ", "
 	}
 	return ""
-}
-
-func constPathPrefix(in schema.VarName) (string, error) {
-	return string(in) + "PathPrefix", nil
-}
-
-func countMethods(in []*schema.Method) (string, error) {
-	return strconv.Itoa(len(in)), nil
 }
