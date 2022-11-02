@@ -44,7 +44,7 @@ func Generate(proto *schema.WebRPCSchema, target string, refreshCache bool, opts
 
 	// Generate the template
 	var b bytes.Buffer
-	err = tmpl.ExecuteTemplate(&b, "proto", vars)
+	err = tmpl.ExecuteTemplate(&b, "main", vars)
 	if err != nil {
 		return "", err
 	}
