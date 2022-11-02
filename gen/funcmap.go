@@ -1,6 +1,8 @@
 package gen
 
 import (
+	"fmt"
+	"os"
 	"reflect"
 	"strings"
 
@@ -12,7 +14,7 @@ import (
 func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		// Template flow.
-		"printfStderr": printfStderr,
+		"stderrPrintf": stderrPrintf,
 		"exit":         exit,
 
 		// Dictionary, aka runtime map[string]interface{}.
@@ -37,7 +39,6 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"coalesce":  coalesce,
 		"hasPrefix": strings.HasPrefix,
 		"hasSuffix": strings.HasSuffix,
-		"indent":    indent,
 		"toLower":   applyStringFunction("toLower", strings.ToLower),
 		"toUpper":   applyStringFunction("toLower", strings.ToUpper),
 		"firstLetterToLower": applyStringFunction("firstLetterToLower", func(input string) string {
@@ -102,6 +103,20 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"jsServiceInterfaceName": jsServiceInterfaceName,
 		"jsExportedJSONField":    jsExportedJSONField,
 	}
+}
+
+// Similar to "printf" but instead of writing into the generated
+// output file, stderrPrintf writes to webrpc-gen CLI stderr.
+// Useful for printing template errors or for template debugging.
+func stderrPrintf(format string, a ...interface{}) error {
+	_, err := fmt.Fprintf(os.Stderr, format, a...)
+	return err
+}
+
+// Exit from the template. Useful for fatal errors.
+func exit(code int) error {
+	os.Exit(code)
+	return nil
 }
 
 // Returns first non-empty value.

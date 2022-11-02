@@ -7,10 +7,6 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-func indent(str string, prefix string) string {
-	return prefix + strings.ReplaceAll(str, "\n", "\n"+prefix)
-}
-
 func str(v interface{}) string {
 	switch t := v.(type) {
 	case schema.VarName:
