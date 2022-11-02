@@ -29,7 +29,7 @@ func main() {
 	for _, flag := range os.Args[1:] {
 		name, value, _ := strings.Cut(flag, "=")
 		if !strings.HasPrefix(name, "-") {
-			fmt.Printf("oops, option %q is invalid (format must be -name=value)\n", flag)
+			fmt.Fprintf(os.Stderr, "oops, option %q is invalid (format must be -name=value)\n", flag)
 			os.Exit(1)
 		}
 		name = strings.TrimLeft(name, "-")
@@ -54,14 +54,14 @@ func main() {
 	}
 
 	if *schemaFlag == "" {
-		fmt.Println("oops, you must pass a -schema flag, see -h for help/usage")
+		fmt.Fprintln(os.Stderr, "oops, you must pass a -schema flag, see -h for help/usage")
 		os.Exit(1)
 	}
 
 	// Parse+validate the webrpc schema file
 	schema, err := webrpc.ParseSchemaFile(*schemaFlag)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
@@ -69,7 +69,7 @@ func main() {
 	if *testFlag {
 		jout, err := schema.ToJSON(true)
 		if err != nil {
-			fmt.Println(err.Error())
+			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
 		}
 		fmt.Println(jout)
@@ -78,13 +78,13 @@ func main() {
 
 	// Code-gen targets
 	if *targetFlag == "" {
-		fmt.Println("oops, you must pass a -target flag, see -h for help/usage")
+		fmt.Fprintln(os.Stderr, "oops, you must pass a -target flag, see -h for help/usage")
 		os.Exit(1)
 	}
 
 	protoGen, err := gen.Generate(schema, *targetFlag, *refreshCache, templateOpts)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
@@ -98,7 +98,7 @@ func main() {
 	outfile := *outFlag
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 	if outfile[0:1] != "/" {
@@ -109,14 +109,14 @@ func main() {
 	if _, err := os.Stat(outdir); os.IsNotExist(err) {
 		err := os.MkdirAll(outdir, 0755)
 		if err != nil {
-			fmt.Println(err.Error())
+			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
 		}
 	}
 
 	err = ioutil.WriteFile(outfile, []byte(protoGen), 0644)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 }
