@@ -88,33 +88,35 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Write output
-	if *outFlag != "" && *outFlag != "stdout" {
-		outfile := *outFlag
-		cwd, err := os.Getwd()
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-		if outfile[0:1] != "/" {
-			outfile = filepath.Join(cwd, outfile)
-		}
-
-		outdir := filepath.Dir(outfile)
-		if _, err := os.Stat(outdir); os.IsNotExist(err) {
-			err := os.MkdirAll(outdir, 0755)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(1)
-			}
-		}
-
-		err = ioutil.WriteFile(outfile, []byte(protoGen), 0644)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-	} else {
+	// Write output to stdout
+	if *outFlag == "" || *outFlag == "stdout" {
 		fmt.Println(protoGen)
+		os.Exit(0)
+	}
+
+	// Write output to a file
+	outfile := *outFlag
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	if outfile[0:1] != "/" {
+		outfile = filepath.Join(cwd, outfile)
+	}
+
+	outdir := filepath.Dir(outfile)
+	if _, err := os.Stat(outdir); os.IsNotExist(err) {
+		err := os.MkdirAll(outdir, 0755)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+	}
+
+	err = ioutil.WriteFile(outfile, []byte(protoGen), 0644)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
 	}
 }
