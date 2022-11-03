@@ -7,15 +7,16 @@ The Go templates are used in many popular projects including [Hugo](https://gohu
 - [Developing a new generator](#developing-a-new-generator)
 - [Template structure](#template-structure)
   - [Create "main" template](#create-main-template)
-  - [Require specific webrpc schema version](#require-specific-webrpc-schema-version)
+  - [Require specific webrpc protocol version](#require-specific-webrpc-protocol-version)
+  - [Require specific webrpc-gen version](#require-specific-webrpc-gen-version)
   - [Print help on -Help flag](#print-help-on--help-flag)
-  - [Set variables via custom CLI `-Flags`](#set-variables-via-custom-cli--flags)
   - [Set default values for your custom options](#set-default-values-for-your-custom-options)
   - [Map webrpc types to your type system](#map-webrpc-types-to-your-type-system)
   - [Split your template into sub-templates](#split-your-template-into-sub-templates)
   - [Create a recursive "type" template](#create-a-recursive-type-template)
 - [Template variables](#template-variables)
-  - [CLI variables](#cli-variables)
+  - [Default CLI variables](#default-cli-variables)
+  - [Custom CLI variables](#custom-cli-variables)
   - [Schema variables](#schema-variables)
 - [Template functions](#template-functions)
   - [Go text/template functions](#go-texttemplate-functions)
@@ -43,11 +44,22 @@ webrpc-gen -schema=api.ridl -target=./local/directory
 {{- end -}}
 ```
 
-## Require specific webrpc schema version
+## Require specific webrpc protocol version
 
 ```go
 {{- if ne .WebrpcVersion "v1" -}}
-  {{- stderrPrintf "%s generator error: unsupported webrpc version %s\n" .WebrpcTarget .WebrpcVersion -}}
+  {{- stderrPrintf "%s generator error: unsupported webrpc protocol version %s\n" .WebrpcTarget .WebrpcVersion -}}
+  {{- exit 1 -}}
+{{- end -}}
+```
+
+## Require specific webrpc-gen version
+
+Require specific `webrpc-gen` version to ensure the API of the template functions.
+
+```go
+{{- if not (minVersion .WebrpcGenVersion "v0.7.0") -}}
+  {{- stderrPrintf "%s generator error: unsupported webrpc-gen version %s, please update\n" .WebrpcTarget .WebrpcGenVersion -}}
   {{- exit 1 -}}
 {{- end -}}
 ```
@@ -62,21 +74,6 @@ webrpc-gen -schema=api.ridl -target=./local/directory
   {{- exit 0 -}}
 {{- end -}}
 ```
-
-## Set variables via custom CLI `-Flags`
-
-You can pass custom variables into your template by adding CLI `-Flags` to `webrpc-gen` binary.
-
-| webrpc-gen CLI flag          | Template variable              |
-|------------------------------|--------------------------------|
-| `-UpperName=Hello`           | `{{.Opts.UpperName}}`          |
-| `-PassYourOwn="value"`       | `{{.Opts.PassYourOwn}}`        |
-
-Example:
-
-`webrpc-gen -schema=proto.ridl -target=./custom-template -UpperName=Hello -PassYourOwn="value"`
-
-will pass `{{.UpperName}}` and `{{.PassYourOwn}}` variables into your template.
 
 ## Set default values for your custom options
 
@@ -161,7 +158,7 @@ Base webrpc types can be nested (ie. `map<string,map<string,User>>`), so you wil
 
 # Template variables
 
-## CLI variables
+## Default CLI variables
 
 | Variable                     | Description             | Example value                           |
 |------------------------------|-------------------------|-----------------------------------------|
@@ -169,6 +166,22 @@ Base webrpc types can be nested (ie. `map<string,map<string,User>>`), so you wil
 | `{{.WebrpcGenVersion}}`      | webrpc-gen CLI version  | `"v0.7.0"`                              |
 | `{{.WebrpcGenCmd}}`          | webrpc-gen command      | `"webrpc-gen ..."`                      |
 | `{{.WebrpcTarget}}`          | webrpc-gen target       | `"github.com/webrpc/gen-golang@v0.7.0"` |
+
+## Custom CLI variables
+
+You can pass custom variables into your template by adding CLI `-Flags` to `webrpc-gen` binary.
+
+| webrpc-gen CLI flag          | Template variable              |
+|------------------------------|--------------------------------|
+| `-UpperName=Hello`           | `{{.Opts.UpperName}}`          |
+| `-PassYourOwn="value"`       | `{{.Opts.PassYourOwn}}`        |
+
+Example:
+
+`webrpc-gen -schema=proto.ridl -target=./custom-template -UpperName=Hello -PassYourOwn="value"`
+
+will pass `{{.UpperName}}` and `{{.PassYourOwn}}` variables into your template.
+
 
 ## Schema variables 
 
