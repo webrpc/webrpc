@@ -45,7 +45,7 @@ type templateSource struct {
 }
 
 func newTemplateSource(proto *schema.WebRPCSchema, target string, refreshCache bool, opts map[string]interface{}) (*templateSource, error) {
-	tmpl := template.New("webrpc-gen").Funcs(templateFuncMap(proto, opts))
+	tmpl := template.New(target).Funcs(templateFuncMap(proto, opts))
 	return &templateSource{
 		tmpl:         tmpl,
 		proto:        proto,
