@@ -1,16 +1,35 @@
-# webrpc generator templates
+# webrpc generators <!-- omit in toc -->
 
 `webrpc-gen` uses Go [text/template](https://pkg.go.dev/text/template) language, along with the webrpc schema AST (abtract-syntax-tree)
 to generate source code of the target's type system, client library and server handlers.
 
-`webrpc-gen` can be invoked against templates in local directory:
+`webrpc-gen` can be invoked against templates in a local directory:
 ```
 webrpc-gen -schema=api.ridl -target=./local/directory
 ```
 
+- [Go templates](#go-templates)
+  - [Create "main" template](#create-main-template)
+  - [Require specific webrpc schema version](#require-specific-webrpc-schema-version)
+  - [Print help on -Help flag](#print-help-on--help-flag)
+  - [Set variables via custom CLI `-Flags`](#set-variables-via-custom-cli--flags)
+  - [Set default values for your custom options](#set-default-values-for-your-custom-options)
+  - [Map webrpc types to your type system](#map-webrpc-types-to-your-type-system)
+  - [Split your template into sub-templates](#split-your-template-into-sub-templates)
+  - [Create a recursive "type" template](#create-a-recursive-type-template)
+- [Template variables](#template-variables)
+  - [CLI variables](#cli-variables)
+  - [Schema variables](#schema-variables)
+- [Template functions](#template-functions)
+  - [Base functions from Go text/template package](#base-functions-from-go-texttemplate-package)
+  - [String manipulation](#string-manipulation)
+    - [`.camelCase STRING`](#camelcase-string)
+
+# Go templates
+
 ## Create "main" template
 
-`webrpc-gen` expects at least one `*.go.tmpl` file with entrypoint template called `"main"`.
+`webrpc-gen` expects at least one `*.go.tmpl` file with the entrypoint template called `"main"`.
 
 ```go
 {{- define "main" -}}
@@ -104,7 +123,8 @@ Call `{{ get $typeMap .Type }}` to print your type.
 
 ## Split your template into sub-templates
 
-You can import template.
+Import a sub-template.
+
 ```go
 {{ template "sub-template" }}
 ```
@@ -138,7 +158,7 @@ Base webrpc types can be nested (ie. `map<string,map<string,User>>`), so you wil
 
 # Template variables
 
-## Built-in template variables
+## CLI variables
 
 | Variable                     | Description             | Example value                           |
 |------------------------------|-------------------------|-----------------------------------------|
@@ -147,15 +167,42 @@ Base webrpc types can be nested (ie. `map<string,map<string,User>>`), so you wil
 | `{{.WebrpcGenCmd}}`          | webrpc-gen command      | `"webrpc-gen ..."`                      |
 | `{{.WebrpcTarget}}`          | webrpc-gen target       | `"github.com/webrpc/gen-golang@v0.7.0"` |
 
-## Variables 
-| Variable                     | Description                    | Example value              |
-|------------------------------|--------------------------------|----------------------------|
-| `{{.SchemaName}}`            | schema name                    | `"example schema"`         |
-| `{{.SchemaVersion}}`         | schema version                 | `"v0.0.1"`                 |
-| `{{.SchemaHash}}`            | `sha1` schema hash             | object                     |
-| `{{.Imports}}`               | schema imports                 | object                     |
-| `{{.Messages}}`              | schema messages                | object                     |
-| `{{.Services}}`              | schema services                | object                     |
+## Schema variables 
+
+| Variable                                       | Description                    | Example value               |
+|------------------------------------------------|--------------------------------|-----------------------------|
+| `{{.SchemaName}}`                              | schema name                    | `"example schema"`          |
+| `{{.SchemaVersion}}`                           | schema version                 | `"v0.0.1"`                  |
+| `{{.SchemaHash}}`                              | `sha1` schema hash             | `483889fb084764e3a256`      |
+| `{{.Imports}}`                                 | schema imports                 | array of imports            |
+| `{{.Messages}}`                                | schema messages                | array of messages           |
+| `{{.Services}}`                                | schema services                | array of services           |
+| `{{.Messages[0].Name}}`                        | messages name                  | `"User"`                    |
+| `{{.Messages[0].Type}}`                        | messages type                  | `"struct"`                  |
+| `{{.Messages[0].Fields}}`                      | messages fields                | array                       |
+| `{{.Messages[0].Fields[0].Name}}`              | message name                   | `"ID"`                      |
+| `{{.Messages[0].Fields[0].Type}}`              | message type                   | `"int"`                     |
+| `{{.Messages[0].Fields[0].Optional}}`          | messages fields                | `false`                     |
+| `{{.Messages[0].Fields[0].Meta}}`              | messages fields                | array of `{"key": "value"}` |
+| `{{.Services[0].Name}}`                        | service name                   | `"ExampleService"`          |
+| `{{.Services[0].Methods}}`                     | service methods                | array of methods            |
+| `{{.Services[0].Methods[0].Inputs}}`           | method inputs                  | array of inputs             |
+| `{{.Services[0].Methods[0].Outputs}}`          | method outputs                 | array of outputs            |
+| `{{.Services[0].Methods[0].Inputs[0].Name}}`   | input name                     | `"header"`                  |
+| `{{.Services[0].Methods[0].Inputs[0].Type}}`   | input type                     | `"map<string,string>"`      |
+| `{{.Services[0].Methods[0].Outputs[0].Name}}`  | output name                    | `"user"`                    |
+| `{{.Services[0].Methods[0].Outputs[0].Type}}`  | output type                    | `"User"`                    |
+
+See the [example schema JSON file](https://github.com/webrpc/webrpc/blob/master/_examples/golang-basics/example.webrpc.json).
+
+For example, you can iterate over the schema methods and print their names:
+```go
+{{- range $i, $msg := .Messages -}}
+  {{- range $i, $method := .Methods -}}
+    method {{.Name}}()
+  {{- end -}}
+{{- end -}}
+```
 
 # Template functions
 
@@ -170,7 +217,7 @@ See https://pkg.go.dev/text/template#hdr-Functions
 Converts input string to "camelCase" (lower camel case) naming convention.
 Removes all whitespace and special characters. Supports Unicode characters.
 
-```
+```go
 {{- range .Methods}}
   {{.Name | camelCase}} = () => {}
 {{- end}}
