@@ -219,7 +219,7 @@ For example, you can iterate over the schema methods and print their names:
 | `index ARRAY 1` | Returns the result of indexing its first argument by the following arguments. Thus "index x 1 2 3" is, in Go syntax, x[1][2][3]. Each indexed item must be a map, slice, or array. |
 | `slice ARRAY 1 2` | slice returns the result of slicing its first argument by the remaining arguments. Thus "slice x 1 2" is, in Go syntax, x[1:2], while "slice x" is x[:], "slice x 1" is x[1:], and "slice x 1 2 3" is x[1:2:3]. The first argument must be a string, slice, or array. |
 | `js STRING` | Returns the escaped JavaScript equivalent of the textual representation of its arguments. |
-| `len ARRAY|MAP` | Returns the integer length of its argument. |
+| `len ARRAY\|MAP` | Returns the integer length of its argument. |
 | `not EXPR` | Returns the boolean negation of its single argument. |
 | `or EXPR` | Returns the boolean OR of its arguments by returning the first non-empty argument or the last argument, that is, "or x y" behaves as "if x then x else y". Evaluation proceeds through the arguments left to right and returns when the result is determined. |
 | `print "format %v" ARGS...` | Print and format, see Go's [fmt.Sprint()](https://pkg.go.dev/fmt) |
