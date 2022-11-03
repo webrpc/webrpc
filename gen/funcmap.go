@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/golang-cz/textcase"
@@ -16,6 +17,7 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		// Template flow.
 		"stderrPrintf": stderrPrintf,
 		"exit":         exit,
+		"minVersion":   minVersion,
 
 		// Dictionary, aka runtime map[string]interface{}.
 		"dict":   dict,
@@ -25,8 +27,6 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 
 		// Schema type helpers.
 		"isBaseType":    isBaseType,
-		"isEnum":        isEnum,
-		"isStruct":      isStruct,
 		"isMapType":     isMapType,
 		"isArrayType":   isArrayType,
 		"mapKeyType":    mapKeyType,
@@ -59,6 +59,8 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),
 
 		// OBSOLETE generic template functions.
+		"isEnum":     isEnum,
+		"isStruct":   isStruct,
 		"commaIfLen": commaIfLen,
 		"listComma":  listComma,
 		"downcaseName": applyStringFunction("downcaseName", func(input string) string {
@@ -113,7 +115,7 @@ func stderrPrintf(format string, a ...interface{}) error {
 	return err
 }
 
-// Exit from the template. Useful for fatal errors.
+// Terminate template execution. Useful for fatal errors.
 func exit(code int) error {
 	os.Exit(code)
 	return nil
@@ -129,6 +131,47 @@ func coalesce(v ...interface{}) interface{} {
 		return v
 	}
 	return ""
+}
+
+func minVersion(version string, minVersion string) bool {
+	major, minor, err := parseMajorMinorVersion(version)
+	if err != nil {
+		panic(fmt.Sprintf("minVersion: unexpected version %q", version))
+	}
+
+	minMajor, minMinor, err := parseMajorMinorVersion(minVersion)
+	if err != nil {
+		panic(fmt.Sprintf("minVersion: unexpected min version %q", minVersion))
+	}
+
+	if minMajor > major {
+		return false
+	}
+
+	if minMinor > minor {
+		return false
+	}
+
+	return true
+}
+
+func parseMajorMinorVersion(version string) (major int, minor int, err error) {
+	version = strings.TrimPrefix(version, "v")
+	parts := strings.Split(version, ".")
+
+	major, err = strconv.Atoi(parts[0])
+	if err != nil {
+		return
+	}
+
+	if len(parts) > 1 {
+		minor, err = strconv.Atoi(parts[1])
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }
 
 // appendComma
