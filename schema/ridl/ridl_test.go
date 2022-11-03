@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -414,7 +414,7 @@ func TestRIDLParse(t *testing.T) {
 	fp, err := os.Open("_example/example0.ridl")
 	assert.NoError(t, err)
 
-	buf, err := ioutil.ReadAll(fp)
+	buf, err := io.ReadAll(fp)
 	assert.NoError(t, err)
 
 	s, err := parseString(string(buf))
@@ -511,7 +511,7 @@ func TestRIDLImports(t *testing.T) {
 	fp, err := os.Open("example1.ridl")
 	assert.NoError(t, err)
 
-	buf, err := ioutil.ReadAll(fp)
+	buf, err := io.ReadAll(fp)
 	assert.NoError(t, err)
 
 	s, err := parseString(string(buf))
@@ -522,7 +522,7 @@ func TestRIDLImports(t *testing.T) {
 
 	assert.NotZero(t, jout)
 
-	golden, err := ioutil.ReadFile("example1-golden.json")
+	golden, err := os.ReadFile("example1-golden.json")
 	assert.NoError(t, err)
 
 	assert.JSONEq(t, compactJSON(golden), compactJSON([]byte(jout)))

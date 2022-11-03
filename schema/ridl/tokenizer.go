@@ -2,11 +2,10 @@ package ridl
 
 import (
 	"io"
-	"io/ioutil"
 )
 
 func tokenize(r io.Reader) ([]token, error) {
-	in, err := ioutil.ReadAll(r)
+	in, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}

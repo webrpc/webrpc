@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"hash/fnv"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -129,7 +128,7 @@ func (s *templateSource) syncTemplates(remoteFS, cacheFS http.FileSystem, cacheD
 			return err
 		}
 
-		err = ioutil.WriteFile(filepath.Join(cacheDir, filename), data, 0755)
+		err = os.WriteFile(filepath.Join(cacheDir, filename), data, 0755)
 		if err != nil {
 			return err
 		}
@@ -138,7 +137,7 @@ func (s *templateSource) syncTemplates(remoteFS, cacheFS http.FileSystem, cacheD
 	now := time.Now().Unix()
 	data := []byte(fmt.Sprintf("%d", now))
 
-	err = ioutil.WriteFile(filepath.Join(cacheDir, templateCacheTimestampFilename), data, 0755)
+	err = os.WriteFile(filepath.Join(cacheDir, templateCacheTimestampFilename), data, 0755)
 	if err != nil {
 		return err
 	}

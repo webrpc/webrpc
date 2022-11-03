@@ -2,7 +2,7 @@ package webrpc
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -39,7 +39,7 @@ func ParseSchemaFile(schemaFilePath string) (*schema.WebRPCSchema, error) {
 	if ext == ".json" {
 		// TODO: implement ParseSchemaJSON with io.Reader or read contents
 		// before passing them.
-		contents, err := ioutil.ReadAll(fp)
+		contents, err := io.ReadAll(fp)
 		if err != nil {
 			return nil, err
 		}

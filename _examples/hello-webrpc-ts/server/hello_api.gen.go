@@ -10,7 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -222,7 +222,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 		Arg0 uint64 `json:"userID"`
 	}{}
 
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		err = WrapError(ErrInternal, err, "failed to read request data")
 		RespondWithError(w, err)
@@ -292,7 +292,7 @@ func (s *exampleServiceServer) serveFindUsersJSON(ctx context.Context, w http.Re
 		Arg0 string `json:"q"`
 	}{}
 
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		err = WrapError(ErrInternal, err, "failed to read request data")
 		RespondWithError(w, err)

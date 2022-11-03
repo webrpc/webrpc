@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -346,7 +345,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 		Arg1 uint64            `json:"userID"`
 	}{}
 
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		err = WrapError(ErrInternal, err, "failed to read request data")
 		RespondWithError(w, err)
@@ -418,7 +417,7 @@ func (s *exampleServiceServer) serveFindUserJSON(ctx context.Context, w http.Res
 		Arg0 *SearchFilter `json:"s"`
 	}{}
 
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		err = WrapError(ErrInternal, err, "failed to read request data")
 		RespondWithError(w, err)
@@ -634,7 +633,7 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out i
 	}
 
 	if out != nil {
-		respBody, err := ioutil.ReadAll(resp.Body)
+		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return clientError("failed to read response body", err)
 		}
@@ -653,7 +652,7 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out i
 
 // errorFromResponse builds a webrpc Error from a non-200 HTTP response.
 func errorFromResponse(resp *http.Response) Error {
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return clientError("failed to read server error response body", err)
 	}
