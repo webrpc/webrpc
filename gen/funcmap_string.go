@@ -43,6 +43,20 @@ func applyStringFunction(fnName string, fn func(string) string) func(v interface
 	}
 }
 
-func join(elems []string, sep string) string {
-	return strings.Join(elems, sep)
+func split(sep string, str string) []string {
+	return strings.Split(str, sep)
+}
+
+func first(elems []string) (string, error) {
+	if len(elems) == 0 {
+		return "", fmt.Errorf("first: no elements in string array")
+	}
+	return elems[0], nil
+}
+
+func last(elems []string) (string, error) {
+	if len(elems) == 0 {
+		return "", fmt.Errorf("last: no elements in string array")
+	}
+	return elems[len(elems)-1], nil
 }

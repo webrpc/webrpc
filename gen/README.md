@@ -260,9 +260,13 @@ See https://pkg.go.dev/text/template#hdr-Functions
 | `mapValueType .Type`                           | Returns map value type (`T2` from `map<T1,T2>`) | v0.7.0 |
 | `arrayItemType .Type`                          | Returns type of array items (`T` from `[]T`) | v0.7.0 |
 | `join ARRAY SEPARATOR`                         | Join array items with a separator (see [strings.Join()](https://pkg.go.dev/strings#Join)) | v0.7.0 |
+| `split SEPARATOR STRING`                       | Split string by a separator into array `[]string` | v0.7.0 |
+| `first ARRAY`                                  | Return first element from the given string array | v0.7.0 |
+| `last ARRAY`                                  | Return last element from the given string array | v0.7.0 |
+| `in FIRST VALUES...`                           | Returns `true` if any of the given VALUES match the `first` value | v0.7.0 |
 | `default VALUE DEFAULT`                        | Returns `DEFAULT` value, if given `VALUE` is empty | v0.7.0 |
 | `coalesce VALUES...`                           | Returns first non-empty value | v0.7.0 |
-| `in FIRST VALUES...`                           | Returns `true` if any of the given VALUES match the `first` value | v0.7.0 |
+| `ternary BOOL FIRST SECOND`                    | Ternary if-else. Returns first value if `true`, second value if `false` | v0.7.0 |
 | `hasPrefix STRING PREFIX`                      | Returns `true` if the given string starts with PREFIX | v0.7.0 |
 | `hasSuffix STRING SUFFIX`                      | Returns `true` if the given string ends with SUFFIX | v0.7.0 |
 | `toLower STRING`                               | Converts input to `"lower case"` | v0.7.0 |

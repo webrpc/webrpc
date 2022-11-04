@@ -128,7 +128,7 @@ func collectFlags(flags []string) (cliFlags []string, templateOpts map[string]in
 				templateOpts[strings.Title(name)] = value
 			case "extra":
 				if value == "noexports" {
-					templateOpts["Export"] = false
+					templateOpts["Export"] = "false"
 				}
 			default:
 				cliFlags = append(cliFlags, flag)

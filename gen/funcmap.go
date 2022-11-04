@@ -34,10 +34,14 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"arrayItemType": arrayItemType,
 
 		// String utils.
-		"join":      join,
+		"join":      strings.Join,
+		"split":     split,
+		"first":     first,
+		"last":      last,
 		"in":        in,
 		"default":   defaultFn,
 		"coalesce":  coalesce,
+		"ternary":   ternary,
 		"hasPrefix": strings.HasPrefix,
 		"hasSuffix": strings.HasSuffix,
 		"toLower":   applyStringFunction("toLower", strings.ToLower),
@@ -152,6 +156,31 @@ func coalesce(v ...interface{}) interface{} {
 		return v
 	}
 	return ""
+}
+
+// Ternary if-else. Returns first value if true, second value if false.
+func ternary(boolean interface{}, first interface{}, second interface{}) interface{} {
+	if toBool(boolean) {
+		return first
+	}
+	return second
+}
+
+func toBool(in interface{}) bool {
+	switch v := in.(type) {
+	case bool:
+		return v
+	case string:
+		if in == "true" {
+			return true
+		}
+		if in == "false" {
+			return false
+		}
+		panic(fmt.Sprintf("unexpected boolean %q", in))
+	default:
+		panic(fmt.Sprintf("unexpected boolean %v", v))
+	}
 }
 
 func minVersion(version string, minVersion string) bool {
