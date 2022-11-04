@@ -22,28 +22,11 @@ func main() {
 	refreshCache := flags.Bool("refreshCache", false, "refresh webrpc cache")
 	testFlag := flags.Bool("test", false, "test schema parsing (skips code-gen)")
 
-	var cliFlags []string
-	templateOpts := map[string]interface{}{}
-
-	// Collect custom template -Options and CLI -flags.
-	for _, flag := range os.Args[1:] {
-		name, value, _ := strings.Cut(flag, "=")
-		if !strings.HasPrefix(name, "-") {
-			fmt.Fprintf(os.Stderr, "oops, option %q is invalid (format must be -name=value)\n", flag)
-			os.Exit(1)
-		}
-		name = strings.TrimLeft(name, "-")
-		if strings.ToUpper(name[:1]) == name[:1] {
-			templateOpts[name] = value
-		} else {
-			switch name {
-			case "pkg", "client", "server", "extra":
-				// Support obsolete flags (v0.6.0) in new templates.
-				templateOpts[strings.Title(name)] = value
-			default:
-				cliFlags = append(cliFlags, flag)
-			}
-		}
+	// Collect CLI -flags and custom -Flags (template options).
+	cliFlags, templateOpts, err := collectFlags(os.Args[1:])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to parse CLI flags: %v", err)
+		os.Exit(1)
 	}
 
 	flags.Parse(cliFlags)
@@ -61,7 +44,7 @@ func main() {
 	// Parse+validate the webrpc schema file
 	schema, err := webrpc.ParseSchemaFile(*schemaFlag)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
+		fmt.Fprintf(os.Stderr, "failed to parse schema file: %v", err)
 		os.Exit(1)
 	}
 
@@ -119,4 +102,39 @@ func main() {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
+}
+
+func collectFlags(flags []string) (cliFlags []string, templateOpts map[string]interface{}, err error) {
+	templateOpts = map[string]interface{}{}
+
+	for _, flag := range flags {
+		name, value, _ := strings.Cut(flag, "=")
+		if !strings.HasPrefix(name, "-") {
+			return nil, nil, fmt.Errorf("option %q is invalid (expected -name=value)", flag)
+		}
+		name = strings.TrimLeft(name, "-")
+		if len(name) == 0 {
+			return nil, nil, fmt.Errorf("option %q is invalid (expected -name=value)", flag)
+		}
+
+		if name[0] >= 'A' && name[0] <= 'Z' {
+			// -Flag
+			templateOpts[name] = value
+		} else {
+			// -flag
+			// Support webrpc-gen v0.6.0 flags in new templates.
+			switch name {
+			case "pkg", "client", "server":
+				templateOpts[strings.Title(name)] = value
+			case "extra":
+				if value == "noexports" {
+					templateOpts["Export"] = false
+				}
+			default:
+				cliFlags = append(cliFlags, flag)
+			}
+		}
+	}
+
+	return
 }
