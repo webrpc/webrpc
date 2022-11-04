@@ -36,6 +36,7 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		// String utils.
 		"str":       str,
 		"join":      join,
+		"default":   defaultValue,
 		"coalesce":  coalesce,
 		"hasPrefix": strings.HasPrefix,
 		"hasSuffix": strings.HasSuffix,
@@ -119,6 +120,16 @@ func stderrPrintf(format string, a ...interface{}) error {
 func exit(code int) error {
 	os.Exit(code)
 	return nil
+}
+
+// Returns defaultValue, if given value is empty.
+func defaultValue(value interface{}, defaultValue interface{}) interface{} {
+	val := reflect.ValueOf(value)
+	if !val.IsValid() || val.IsZero() {
+		return defaultValue
+	}
+
+	return value
 }
 
 // Returns first non-empty value.
