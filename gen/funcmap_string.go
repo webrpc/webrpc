@@ -7,7 +7,7 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-func str(v interface{}) string {
+func toString(v interface{}) string {
 	switch t := v.(type) {
 	case schema.VarName:
 		return string(t)

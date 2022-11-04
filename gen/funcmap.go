@@ -34,9 +34,9 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"arrayItemType": arrayItemType,
 
 		// String utils.
-		"str":       str,
 		"join":      join,
-		"default":   defaultValue,
+		"in":        in,
+		"default":   defaultFn,
 		"coalesce":  coalesce,
 		"hasPrefix": strings.HasPrefix,
 		"hasSuffix": strings.HasSuffix,
@@ -122,8 +122,18 @@ func exit(code int) error {
 	return nil
 }
 
+// Returns true if any of the given values match the first value.
+func in(first interface{}, values ...interface{}) bool {
+	for _, value := range values {
+		if reflect.DeepEqual(first, value) {
+			return true
+		}
+	}
+	return false
+}
+
 // Returns defaultValue, if given value is empty.
-func defaultValue(value interface{}, defaultValue interface{}) interface{} {
+func defaultFn(value interface{}, defaultValue interface{}) interface{} {
 	val := reflect.ValueOf(value)
 	if !val.IsValid() || val.IsZero() {
 		return defaultValue
