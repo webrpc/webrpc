@@ -64,33 +64,6 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"pascalCase": applyStringFunction("pascalCase", textcase.PascalCase),
 		"snakeCase":  applyStringFunction("snakeCase", textcase.SnakeCase),
 		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),
-
-		// OBSOLETE generic template functions.
-		"commaIfLen": commaIfLen,
-		"listComma":  listComma,
-		"downcaseName": applyStringFunction("downcaseName", func(input string) string {
-			if input == "" {
-				return ""
-			}
-			return strings.ToLower(input[:1]) + input[1:]
-		}),
-		"tsMethodName": applyStringFunction("tsMethodName", func(input string) string {
-			if input == "" {
-				return ""
-			}
-			return strings.ToLower(input[:1]) + input[1:]
-		}),
-
-		// OBSOLETE
-		// TypeScript specific template functions.
-		"tsFieldType":                         tsFieldType,
-		"tsInterfaceName":                     tsInterfaceName,
-		"tsMethodInputs":                      tsMethodInputs,
-		"tsMethodOutputs":                     tsMethodOutputs,
-		"tsNewOutputArgResponse":              tsNewOutputArgResponse,
-		"tsMethodArgumentInputInterfaceName":  tsMethodArgumentInputInterfaceName,
-		"tsMethodArgumentOutputInterfaceName": tsMethodArgumentOutputInterfaceName,
-		"tsServiceInterfaceName":              tsServiceInterfaceName,
 	}
 }
 
@@ -204,20 +177,4 @@ func parseMajorMinorVersion(version string) (major int, minor int, err error) {
 	}
 
 	return
-}
-
-// appendComma
-func commaIfLen(in []*schema.MethodArgument) string {
-	if len(in) > 0 {
-		return ","
-	}
-	return ""
-}
-
-// prependComma
-func listComma(item int, count int) string {
-	if item+1 < count {
-		return ", "
-	}
-	return ""
 }
