@@ -26,12 +26,14 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"exists": exists,
 
 		// Schema type helpers.
-		"isBaseType":    isBaseType,
-		"isMapType":     isMapType,
-		"isArrayType":   isArrayType,
-		"mapKeyType":    mapKeyType,
-		"mapValueType":  mapValueType,
-		"arrayItemType": arrayItemType,
+		"isBasicType":  isBasicType,
+		"isStructType": isStructType,
+		"isEnumType":   isEnumType,
+		"isMapType":    isMapType,
+		"isListType":   isListType,
+		"mapKeyType":   mapKeyType,
+		"mapValueType": mapValueType,
+		"listElemType": listElemType,
 
 		// String utils.
 		"join":      strings.Join,
@@ -64,8 +66,6 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),
 
 		// OBSOLETE generic template functions.
-		"isEnum":     isEnum,
-		"isStruct":   isStruct,
 		"commaIfLen": commaIfLen,
 		"listComma":  listComma,
 		"downcaseName": applyStringFunction("downcaseName", func(input string) string {
@@ -91,7 +91,6 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"tsMethodArgumentInputInterfaceName":  tsMethodArgumentInputInterfaceName,
 		"tsMethodArgumentOutputInterfaceName": tsMethodArgumentOutputInterfaceName,
 		"tsServiceInterfaceName":              tsServiceInterfaceName,
-		"jsFieldType":                         jsFieldType,
 	}
 }
 

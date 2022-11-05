@@ -253,12 +253,14 @@ See https://pkg.go.dev/text/template#hdr-Functions
 | `get $dict KEY`                                | Get value for the given KEY in dictionary | v0.7.0 |
 | `set $dict KEY VALUE`                          | Set value for the given KEY in dictionary | v0.7.0 |
 | `exists $dict KEY`                             | Returns `true` if the KEY exists in the given dictionary | v0.7.0 |
-| `isBaseType .Type`                             | Returns `true` if the given type is [base webrpc type](https://github.com/webrpc/webrpc/tree/master/schema#type-system) (not a custom struct) | v0.7.0 |
-| `isMapType .Type`                              | Returns `true` if the given type is map (`map<T1,T2>`) | v0.7.0 |
-| `isArrayType .Type`                            | Returns `true` if the given type is array (`[]T`) | v0.7.0 |
-| `mapKeyType .Type`                             | Returns map key type (`T1` from `map<T1,T2>`) | v0.7.0 |
-| `mapValueType .Type`                           | Returns map value type (`T2` from `map<T1,T2>`) | v0.7.0 |
-| `arrayItemType .Type`                          | Returns type of array items (`T` from `[]T`) | v0.7.0 |
+| `isBasicType .Type`                            | Returns `true` if `.Type` is [basic type](https://github.com/webrpc/webrpc/tree/master/schema#basic-types) | v0.7.0 |
+| `isStructType .Type`                           | Returns `true` if `.Type` is [struct](https://github.com/webrpc/webrpc/tree/master/schema#struct) | v0.7.0 |
+| `isEnumType .Type`                             | Returns `true` if `.Type` is [enum](https://github.com/webrpc/webrpc/tree/master/schema#enum) | v0.7.0 |
+| `isMapType .Type`                              | Returns `true` if `.Type` is [map](https://github.com/webrpc/webrpc/tree/master/schema#map) (`map<T1,T2>`) | v0.7.0 |
+| `isListType .Type`                             | Returns `true` if `.Type` is [list](https://github.com/webrpc/webrpc/tree/master/schema#list-array) (`[]T`) | v0.7.0 |
+| `mapKeyType .MapType`                          | Returns map's key type (`T1` from `map<T1,T2>`) | v0.7.0 |
+| `mapValueType .MapType`                        | Returns map's value type (`T2` from `map<T1,T2>`) | v0.7.0 |
+| `listElemType .ListType`                       | Returns list's element type (`T` from `[]T`) | v0.7.0 |
 | `join ARRAY SEPARATOR`                         | Join array items with a separator (see [strings.Join()](https://pkg.go.dev/strings#Join)) | v0.7.0 |
 | `split SEPARATOR STRING`                       | Split string by a separator into array `[]string` | v0.7.0 |
 | `first ARRAY`                                  | Return first element from the given string array | v0.7.0 |

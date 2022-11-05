@@ -28,32 +28,6 @@ var tsFieldTypeMap = map[schema.DataType]string{
 	schema.T_Bool:      "boolean",
 }
 
-func jsFieldType(in *schema.VarType) (string, error) {
-	switch in.Type {
-	case schema.T_Map:
-		return "object", nil
-
-	case schema.T_List:
-		z, err := tsFieldType(in.List.Elem)
-
-		if err != nil {
-			return "", err
-		}
-
-		return z + "[]", nil
-
-	case schema.T_Struct:
-		return in.Struct.Name, nil
-
-	default:
-		if tsFieldTypeMap[in.Type] != "" {
-			return tsFieldTypeMap[in.Type], nil
-		}
-	}
-
-	return "", fmt.Errorf("could not represent type: %#v", in)
-}
-
 func tsFieldType(in *schema.VarType) (string, error) {
 	switch in.Type {
 	case schema.T_Map:
