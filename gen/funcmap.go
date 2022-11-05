@@ -80,12 +80,6 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 			}
 			return strings.ToLower(input[:1]) + input[1:]
 		}),
-		"jsMethodName": applyStringFunction("jsMethodName", func(input string) string {
-			if input == "" {
-				return ""
-			}
-			return strings.ToLower(input[:1]) + input[1:]
-		}),
 
 		// OBSOLETE
 		// TypeScript specific template functions.
@@ -97,18 +91,7 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"tsMethodArgumentInputInterfaceName":  tsMethodArgumentInputInterfaceName,
 		"tsMethodArgumentOutputInterfaceName": tsMethodArgumentOutputInterfaceName,
 		"tsServiceInterfaceName":              tsServiceInterfaceName,
-		"tsExportableField":                   tsExportableField,
-		"tsExportedField":                     tsExportedField,
-		"tsExportedJSONField":                 tsExportedJSONField,
 		"jsFieldType":                         jsFieldType,
-
-		// OBSOLETE
-		// JavaScript specific template functions.
-		"jsExportKeyword":        jsExportKeyword(opts),
-		"jsMethodInputs":         jsMethodInputs,
-		"jsNewOutputArgResponse": jsNewOutputArgResponse,
-		"jsServiceInterfaceName": jsServiceInterfaceName,
-		"jsExportedJSONField":    jsExportedJSONField,
 	}
 }
 

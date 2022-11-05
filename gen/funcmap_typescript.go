@@ -114,35 +114,6 @@ func tsMethodOutputs(in *schema.Method) (string, error) {
 	return fmt.Sprintf("Promise<%s>", tsMethodArgumentOutputInterfaceName(in)), nil
 }
 
-func tsExportedField(in schema.VarName) (string, error) {
-	return string(in), nil
-}
-
-func tsExportableField(in schema.MessageField) bool {
-	for _, meta := range in.Meta {
-		for k := range meta {
-			if k == "json" {
-				if meta[k] == "-" {
-					return false
-				}
-			}
-		}
-	}
-	return true
-}
-
-func tsExportedJSONField(in schema.MessageField) (string, error) {
-	for _, meta := range in.Meta {
-		for k := range meta {
-			if k == "json" {
-				s := strings.Split(fmt.Sprintf("%v", meta[k]), ",")
-				return s[0], nil
-			}
-		}
-	}
-	return string(in.Name), nil
-}
-
 func tsInterfaceName(in schema.VarName) (string, error) {
 	s := string(in)
 	return s, nil

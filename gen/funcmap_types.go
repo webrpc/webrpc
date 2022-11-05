@@ -7,11 +7,13 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-// Base webrpc type is anything but map, array or custom message type.
+// Return true if given type is a base webrpc type (not a custom struct).
+// See https://github.com/webrpc/webrpc/tree/master/schema#type-system.
 func isBaseType(v interface{}) bool {
 	str := toString(v)
 	_, ok := schema.DataTypeFromString[str]
-	return ok
+
+	return ok && !isMapType(v) && !isArrayType(v)
 }
 
 // TODO: Consider removing.

@@ -252,10 +252,10 @@ See https://pkg.go.dev/text/template#hdr-Functions
 | `dict [KEY VALUE]...`                          | Create a new dictionary (`map[string]any`) | v0.7.0 |
 | `get $dict KEY`                                | Get value for the given KEY in dictionary | v0.7.0 |
 | `set $dict KEY VALUE`                          | Set value for the given KEY in dictionary | v0.7.0 |
-| `exists $dict KEY`                             | Returns `boolean` whether the KEY exists in the given dictionary | v0.7.0 |
-| `isBaseType .Type`                             | Returns `boolean` whether the given type is [base webrpc type](https://github.com/webrpc/webrpc/tree/master/schema#type-system) | v0.7.0 |
-| `isMapType .Type`                              | Returns `boolean` whether the given type is map (`map<T1,T2>`) | v0.7.0 |
-| `isArrayType .Type`                            | Returns `boolean` whether the given type is `struct` | v0.7.0 |
+| `exists $dict KEY`                             | Returns `true` if the KEY exists in the given dictionary | v0.7.0 |
+| `isBaseType .Type`                             | Returns `true` if the given type is [base webrpc type](https://github.com/webrpc/webrpc/tree/master/schema#type-system) (not a custom struct) | v0.7.0 |
+| `isMapType .Type`                              | Returns `true` if the given type is map (`map<T1,T2>`) | v0.7.0 |
+| `isArrayType .Type`                            | Returns `true` if the given type is array (`[]T`) | v0.7.0 |
 | `mapKeyType .Type`                             | Returns map key type (`T1` from `map<T1,T2>`) | v0.7.0 |
 | `mapValueType .Type`                           | Returns map value type (`T2` from `map<T1,T2>`) | v0.7.0 |
 | `arrayItemType .Type`                          | Returns type of array items (`T` from `[]T`) | v0.7.0 |
