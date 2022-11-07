@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -50,12 +49,12 @@ func main() {
 
 	// Test the schema file (useful for ridl files)
 	if *testFlag {
-		jout, err := schema.ToJSON(true)
+		out, err := schema.ToJSON(true)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
 		}
-		fmt.Println(jout)
+		fmt.Println(out)
 		os.Exit(0)
 	}
 
@@ -97,7 +96,7 @@ func main() {
 		}
 	}
 
-	err = ioutil.WriteFile(outfile, []byte(protoGen), 0644)
+	err = os.WriteFile(outfile, []byte(protoGen), 0644)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
