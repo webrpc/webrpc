@@ -23,11 +23,11 @@ func getOldTarget(target string) string {
 func isGolangTarget(target string) bool {
 	target, _, _ = strings.Cut(target, "@")
 
-	if strings.HasSuffix(target, "gen-golang") {
+	if target == "golang" || target == "go" {
 		return true
 	}
 
-	if target == "go" {
+	if strings.HasSuffix(target, "gen-golang") {
 		return true
 	}
 

@@ -18,6 +18,7 @@ func main() {
 	schemaFlag := flags.String("schema", "", "webrpc schema file (required)")
 	targetFlag := flags.String("target", "", fmt.Sprintf("target generator (required), ie. golang@v0.7.0"))
 	outFlag := flags.String("out", "", "generated output file, default: stdout")
+	fmtFlag := flags.Bool("fmt", true, "format generated code (gofmt)")
 	refreshCache := flags.Bool("refreshCache", false, "refresh webrpc cache")
 	testFlag := flags.Bool("test", false, "test schema parsing (skips code-gen)")
 
@@ -63,6 +64,9 @@ func main() {
 		fmt.Fprintln(os.Stderr, "oops, you must pass a -target flag, see -h for help/usage")
 		os.Exit(1)
 	}
+
+	// TODO: Pass all -flags as templateOpts.
+	templateOpts["fmt"] = *fmtFlag
 
 	protoGen, err := gen.Generate(schema, *targetFlag, *refreshCache, templateOpts)
 	if err != nil {

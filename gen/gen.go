@@ -42,6 +42,9 @@ func Generate(proto *schema.WebRPCSchema, target string, refreshCache bool, opts
 		vars.WebrpcTarget = "custom"
 	}
 
+	fmt, _ := opts["fmt"].(bool)
+	delete(opts, "fmt")
+
 	// Generate the template
 	var b bytes.Buffer
 	err = tmpl.ExecuteTemplate(&b, "main", vars)
@@ -49,7 +52,7 @@ func Generate(proto *schema.WebRPCSchema, target string, refreshCache bool, opts
 		return "", err
 	}
 
-	if isGolangTarget(target) {
+	if fmt && isGolangTarget(target) {
 		return formatGoSource(b.Bytes())
 	}
 
