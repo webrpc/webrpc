@@ -7,10 +7,10 @@ tools:
 generate: generate-server generate-client
 
 generate-server:
-	webrpc-gen -schema=hello-api.ridl -target=go -pkg=main -server -out=./server/hello_api.gen.go
+	webrpc-gen -schema=hello-api.ridl -target=golang -Pkg=main -Server -out=./server/hello_api.gen.go
 
 generate-client:
-	webrpc-gen -schema=hello-api.ridl -target=ts -client -out=./webapp/src/client.gen.ts
+	webrpc-gen -schema=hello-api.ridl -target=typescript -Client -out=./webapp/src/client.gen.ts
 
 bootstrap:
 	rm -rf webapp/node_modules

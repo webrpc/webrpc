@@ -16,15 +16,15 @@ to your service
 4. From the inputs and outputs for the function definitions, start writing the "messages"
 section of the data types needed in your program.
 5. Run the code generator to build the server and client:
-  * `webrpc-gen -schema=example.ridl -target=go -pkg=main -server -client -out=./example.gen.go`
-  * or...   * `webrpc-gen -schema=example.webrpc.json -target=go -pkg=main -server -client -out=./example.gen.go`
+  * `webrpc-gen -schema=example.ridl -target=golang -Pkg=main -Server -Client -out=./example.gen.go`
+  * or...   * `webrpc-gen -schema=example.webrpc.json -target=golang -Pkg=main -Server -Client -out=./example.gen.go`
   * however, in this example we put it inside a `go:generate`, so you can run `go generate .`
 6. Write your server ([./main.go](./main.go)) and implement the `ExampleServiceRPC` interface type
 that was created by the code generator, and located in the [gen'd file](./example.gen.go).
 7. Enjoy!
 
 Next steps, you can generate a Typescript client by running:
-* `webrpc-gen -schema=example.ridl -target=ts -pkg=example -client -out=./example-client.ts`
+* `webrpc-gen -schema=example.ridl -target=typescript -Client -out=./example-client.ts`
 * check out the [hello-webrpc](../hello-webrpc) for an example with a Webapp client talking to a webrpc backend
 
 
