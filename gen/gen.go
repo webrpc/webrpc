@@ -9,7 +9,7 @@ import (
 )
 
 func Generate(proto *schema.WebRPCSchema, target string, refreshCache bool, opts map[string]interface{}) (string, error) {
-	target = getBuiltInTarget(target)
+	target = getOldTarget(target)
 
 	tmpl, err := loadTemplates(proto, target, refreshCache, opts)
 	if err != nil {
@@ -49,18 +49,9 @@ func Generate(proto *schema.WebRPCSchema, target string, refreshCache bool, opts
 		return "", err
 	}
 
-	return b.String(), nil
-}
-
-// Backward compatibility with webrpc-gen v0.6.0.
-func getBuiltInTarget(target string) string {
-	switch target {
-	case "go":
-		return "github.com/webrpc/gen-golang@v0.6.0"
-	case "ts":
-		return "github.com/webrpc/gen-typescript@v0.6.0"
-	case "js":
-		return "github.com/webrpc/gen-javascript@v0.6.0"
+	if isGolangTarget(target) {
+		return formatGoSource(b.Bytes())
 	}
-	return target
+
+	return b.String(), nil
 }
