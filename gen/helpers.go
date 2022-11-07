@@ -21,10 +21,13 @@ func getOldTarget(target string) string {
 }
 
 func isGolangTarget(target string) bool {
-	targetName, _, _ := strings.Cut(target, "@")
+	target, _, _ = strings.Cut(target, "@")
 
-	switch targetName {
-	case "go", "golang", "github.com/webrpc/gen-golang":
+	if strings.HasSuffix(target, "gen-golang") {
+		return true
+	}
+
+	if target == "go" {
 		return true
 	}
 
