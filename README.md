@@ -12,7 +12,7 @@ simplifying the development of backend services for modern Web applications.
 
 | Generator                                              | Description           | Schema | Client | Server |
 |--------------------------------------------------------|-----------------------|--------|--------|--------|
-| [golang](https://github.com/webrpc/gen-golang)         | Go 1.14+              | v1     | ✅     | ✅     |
+| [golang](https://github.com/webrpc/gen-golang)         | Go 1.16+              | v1     | ✅     | ✅     |
 | [typescript](https://github.com/webrpc/gen-typescript) | TypeScript            | v1     | ✅     | ✅     |
 | [javascript](https://github.com/webrpc/gen-javascript) | JavaScript (ES6)      | v1     | ✅     | ✅     |
 | [openapi](https://github.com/webrpc/gen-openapi)       | OpenAPI 3.x (Swagger) | v1     | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview) | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview) |
