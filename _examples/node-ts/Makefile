@@ -7,8 +7,8 @@ bootstrap:
 	cd webapp && yarn
 
 generate:
-	webrpc-gen -schema=service.ridl -target=typescript -Server -out=./server/server.gen.ts
-	webrpc-gen -schema=service.ridl -target=typescript -Client -out=./webapp/client.gen.ts
+	webrpc-gen -schema=service.ridl -target=typescript -server -out=./server/server.gen.ts
+	webrpc-gen -schema=service.ridl -target=typescript -client -out=./webapp/client.gen.ts
 
 run-server:
 	yarn --cwd ./server start

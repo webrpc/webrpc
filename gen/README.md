@@ -9,8 +9,8 @@ The Go templates are used in many popular projects including [Hugo](https://gohu
   - [Create "main" template](#create-main-template)
   - [Require specific webrpc protocol version](#require-specific-webrpc-protocol-version)
   - [Require specific webrpc-gen version](#require-specific-webrpc-gen-version)
-  - [Print help on -Help flag](#print-help-on--help-flag)
-  - [Set default values for your custom options](#set-default-values-for-your-custom-options)
+  - [Print help on -help flag](#print-help-on--help-flag)
+  - [Set default values for your custom generator options](#set-default-values-for-your-custom-generator-options)
   - [Map webrpc types to your type system](#map-webrpc-types-to-your-type-system)
   - [Split your template into sub-templates](#split-your-template-into-sub-templates)
   - [Create a recursive "type" template](#create-a-recursive-type-template)
@@ -64,29 +64,29 @@ Require specific `webrpc-gen` version to ensure the API of the template function
 {{- end -}}
 ```
 
-## Print help on -Help flag
+## Print help on -help flag
 
-`webrpc-gen -schema=proto.ridl -target=golang -Help`
+`webrpc-gen -schema=proto.ridl -target=golang -h`
 
 ```go
-{{- if exists .Opts "Help" -}}
-  {{ template "help" $opts }}
+{{- if exists .Opts "help" -}}
+  {{- template "help" $opts -}}
   {{- exit 0 -}}
 {{- end -}}
 ```
 
-## Set default values for your custom options
+## Set default values for your custom generator options
 
 ```go
 {{- $opts := dict -}}
-{{- set $opts "Pkg" (coalesce .Opts.Pkg "proto") -}}
-{{- set $opts "Client" (coalesce .Opts.Version false) -}}
-{{- set $opts "Server" (coalesce .Opts.Version false) -}}
+{{- set $opts "pkg" (default .Opts.pkg "proto") -}}
+{{- set $opts "client" (ternary (in .Opts.client "" "true") true false) -}}
+{{- set $opts "server" (ternary (in .Opts.server "" "true") true false) -}}
 
 {{- /* Print help on unsupported option. */ -}}
 {{- range $k, $v := .Opts }}
   {{- if not (exists $opts $k) -}}
-    {{- stderrPrintf "  -%v=%q is not supported option\n" $k $v -}}
+    {{- stderrPrintf "-%v=%q is not supported target option\n\nUsage:\n" $k $v -}}
     {{- template "help" $opts -}}
     {{- exit 1 -}}
   {{- end -}}
@@ -169,18 +169,19 @@ Base webrpc types can be nested (ie. `map<string,map<string,User>>`), so you wil
 
 ## Custom CLI variables
 
-You can pass custom variables into your template by adding CLI `-Flags` to `webrpc-gen` binary.
+You can let users pass custom variables into your template by adding custom `-options` to `webrpc-gen` CLI.
 
-| webrpc-gen CLI flag          | Template variable              |
-|------------------------------|--------------------------------|
-| `-UpperName=Hello`           | `{{.Opts.UpperName}}`          |
-| `-PassYourOwn="value"`       | `{{.Opts.PassYourOwn}}`        |
+| webrpc-gen -option          | Template variable         |
+|-----------------------------|---------------------------|
+| `-name=HelloService`        | `{{.Opts.name}}`          |
+| `-description="some value"` | `{{.Opts.description}}`   |
+| `-enableFeature`            | `{{.Opts.someFeature}}`   |
 
 Example:
 
-`webrpc-gen -schema=proto.ridl -target=./custom-template -UpperName=Hello -PassYourOwn="value"`
+`webrpc-gen -schema=proto.ridl -target=./custom-template -name=Hello -description="some value" -enableFeature`
 
-will pass `{{.UpperName}}` and `{{.PassYourOwn}}` variables into your template.
+will pass `{{.Opts.name}}`, `{{.Opts.description}}` and `{{.Opts.enableFeature}}` variables into your template.
 
 
 ## Schema variables 
