@@ -8,10 +8,16 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-func Generate(proto *schema.WebRPCSchema, target string, refreshCache bool, opts map[string]interface{}) (string, error) {
+type Config struct {
+	RefreshCache    bool
+	Format          bool
+	TemplateOptions map[string]interface{}
+}
+
+func Generate(proto *schema.WebRPCSchema, target string, config *Config) (string, error) {
 	target = getOldTarget(target)
 
-	tmpl, err := loadTemplates(proto, target, refreshCache, opts)
+	tmpl, err := loadTemplates(proto, target, config)
 	if err != nil {
 		return "", err
 	}
@@ -36,14 +42,11 @@ func Generate(proto *schema.WebRPCSchema, target string, refreshCache bool, opts
 		VERSION,
 		strings.Join(os.Args, " "),
 		target,
-		opts,
+		config.TemplateOptions,
 	}
 	if isLocalDir(target) {
 		vars.WebrpcTarget = "custom"
 	}
-
-	fmt, _ := opts["fmt"].(bool)
-	delete(opts, "fmt")
 
 	// Generate the template
 	var b bytes.Buffer
@@ -52,7 +55,7 @@ func Generate(proto *schema.WebRPCSchema, target string, refreshCache bool, opts
 		return "", err
 	}
 
-	if fmt && isGolangTarget(target) {
+	if config.Format && isGolangTarget(target) {
 		return formatGoSource(b.Bytes())
 	}
 

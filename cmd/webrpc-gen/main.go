@@ -9,6 +9,7 @@ import (
 
 	"github.com/webrpc/webrpc"
 	"github.com/webrpc/webrpc/gen"
+	"github.com/webrpc/webrpc/schema"
 )
 
 var flags = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
@@ -18,15 +19,31 @@ func main() {
 	schemaFlag := flags.String("schema", "", "webrpc schema file (required)")
 	targetFlag := flags.String("target", "", fmt.Sprintf("target generator (required), ie. golang@v0.7.0"))
 	outFlag := flags.String("out", "", "generated output file, default: stdout")
-	fmtFlag := flags.Bool("fmt", true, "format generated code (gofmt)")
-	refreshCache := flags.Bool("refreshCache", false, "refresh webrpc cache")
+	fmtFlag := flags.Bool("fmt", true, "format generated code")
+	refreshCacheFlag := flags.Bool("refreshCache", false, "refresh webrpc cache")
 	testFlag := flags.Bool("test", false, "test schema parsing (skips code-gen)")
 
-	// Collect CLI -flags and custom -Flags (template options).
-	cliFlags, templateOpts, err := collectFlags(os.Args[1:])
+	// Collect CLI -flags and custom template -options.
+	cliFlags, templateOpts, err := collectCliArgs(flags, os.Args[1:])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to parse CLI flags: %v", err)
+		fmt.Fprintf(os.Stderr, "failed to parse CLI flags: %v\n", err)
 		os.Exit(1)
+	}
+
+	flags.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: %s -schema=<file.[ridl|json]> -target=<target> -out=<file> [...targetOpts]\n", flags.Name())
+		flags.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "See https://github.com/webrpc/webrpc for more info.\n")
+
+		if *targetFlag != "" {
+			fmt.Fprintf(os.Stderr, "\nTarget generator usage:\n")
+			templateHelp, err := gen.Generate(&schema.WebRPCSchema{}, *targetFlag, &gen.Config{TemplateOptions: templateOpts})
+			if err != nil {
+				fmt.Fprintln(os.Stderr, templateHelp)
+			} else {
+				fmt.Fprintf(os.Stderr, "failed to render -help: %v\n", err)
+			}
+		}
 	}
 
 	flags.Parse(cliFlags)
@@ -37,14 +54,15 @@ func main() {
 	}
 
 	if *schemaFlag == "" {
-		fmt.Fprintln(os.Stderr, "oops, you must pass a -schema flag, see -h for help/usage")
+		fmt.Fprintf(os.Stderr, "-schema flag is required\n\n")
+		flags.Usage()
 		os.Exit(1)
 	}
 
 	// Parse+validate the webrpc schema file
 	schema, err := webrpc.ParseSchemaFile(*schemaFlag)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to parse schema file: %v", err)
+		fmt.Fprintf(os.Stderr, "failed to parse schema file: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -61,14 +79,18 @@ func main() {
 
 	// Code-gen targets
 	if *targetFlag == "" {
-		fmt.Fprintln(os.Stderr, "oops, you must pass a -target flag, see -h for help/usage")
+		fmt.Fprintf(os.Stderr, "-target flag is required\n\n")
+		flags.Usage()
 		os.Exit(1)
 	}
 
-	// TODO: Pass all -flags as templateOpts.
-	templateOpts["fmt"] = *fmtFlag
+	config := &gen.Config{
+		RefreshCache:    *refreshCacheFlag,
+		Format:          *fmtFlag,
+		TemplateOptions: templateOpts,
+	}
 
-	protoGen, err := gen.Generate(schema, *targetFlag, *refreshCache, templateOpts)
+	protoGen, err := gen.Generate(schema, *targetFlag, config)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
@@ -107,35 +129,31 @@ func main() {
 	}
 }
 
-func collectFlags(flags []string) (cliFlags []string, templateOpts map[string]interface{}, err error) {
+func collectCliArgs(flags *flag.FlagSet, args []string) (cliFlags []string, templateOpts map[string]interface{}, err error) {
 	templateOpts = map[string]interface{}{}
 
-	for _, flag := range flags {
-		name, value, _ := strings.Cut(flag, "=")
+	for _, arg := range args {
+		name, value, _ := strings.Cut(arg, "=")
 		if !strings.HasPrefix(name, "-") {
-			return nil, nil, fmt.Errorf("option %q is invalid (expected -name=value)", flag)
+			return nil, nil, fmt.Errorf("option %q is invalid (expected -name=value)", arg)
 		}
 		name = strings.TrimLeft(name, "-")
 		if len(name) == 0 {
-			return nil, nil, fmt.Errorf("option %q is invalid (expected -name=value)", flag)
+			return nil, nil, fmt.Errorf("option %q is invalid (expected -name=value)", arg)
 		}
 
-		if name[0] >= 'A' && name[0] <= 'Z' {
-			// -Flag
-			templateOpts[name] = value
+		if flags.Lookup(name) != nil {
+			cliFlags = append(cliFlags, arg)
+		} else if name == "h" || name == "help" {
+			cliFlags = append(cliFlags, arg)
+			templateOpts["help"] = ""
 		} else {
-			// -flag
-			// Support webrpc-gen v0.6.0 flags in new templates.
-			switch name {
-			case "pkg", "client", "server":
-				templateOpts[strings.Title(name)] = value
-			case "extra":
-				if value == "noexports" {
-					templateOpts["Export"] = "false"
-				}
-			default:
-				cliFlags = append(cliFlags, flag)
-			}
+			templateOpts[name] = value
+		}
+
+		// Support webrpc-gen v0.6.0 -target=js -extra=noexports flag.
+		if name == "extra" && value == "noexports" {
+			templateOpts["export"] = "false"
 		}
 	}
 

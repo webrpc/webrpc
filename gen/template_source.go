@@ -21,8 +21,8 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-func loadTemplates(proto *schema.WebRPCSchema, target string, refreshCache bool, opts map[string]interface{}) (*template.Template, error) {
-	s, err := newTemplateSource(proto, target, refreshCache, opts)
+func loadTemplates(proto *schema.WebRPCSchema, target string, config *Config) (*template.Template, error) {
+	s, err := newTemplateSource(proto, target, config)
 	if err != nil {
 		return nil, err
 	}
@@ -37,21 +37,19 @@ const (
 )
 
 type templateSource struct {
-	tmpl         *template.Template
-	proto        *schema.WebRPCSchema
-	target       string
-	refreshCache bool
-	opts         map[string]interface{}
+	tmpl   *template.Template
+	proto  *schema.WebRPCSchema
+	target string
+	config *Config
 }
 
-func newTemplateSource(proto *schema.WebRPCSchema, target string, refreshCache bool, opts map[string]interface{}) (*templateSource, error) {
-	tmpl := template.New(target).Funcs(templateFuncMap(proto, opts))
+func newTemplateSource(proto *schema.WebRPCSchema, target string, config *Config) (*templateSource, error) {
+	tmpl := template.New(target).Funcs(templateFuncMap(proto, config.TemplateOptions))
 	return &templateSource{
-		tmpl:         tmpl,
-		proto:        proto,
-		target:       target,
-		refreshCache: refreshCache,
-		opts:         opts,
+		tmpl:   tmpl,
+		proto:  proto,
+		target: target,
+		config: config,
 	}, nil
 }
 
@@ -83,7 +81,7 @@ func (s *templateSource) loadRemote() (*template.Template, error) {
 	}
 
 	// cache is new, so lets fetch from git
-	if !cacheAvailable || s.refreshCache || time.Now().Unix()-cacheTS > int64(templateCacheTime.Seconds()) {
+	if !cacheAvailable || s.config.RefreshCache || time.Now().Unix()-cacheTS > int64(templateCacheTime.Seconds()) {
 		sourceFS, err = gitfs.New(context.Background(), s.target) //, gitfs.OptPrefetch(true), gitfs.OptGlob("/*.tmpl"))
 
 		if err != nil {
@@ -157,7 +155,7 @@ func (s *templateSource) openCacheDir() (string, http.FileSystem, bool, int64, e
 	}
 
 	// delete the directory if asked to refresh
-	if s.refreshCache {
+	if s.config.RefreshCache {
 		os.RemoveAll(cacheDir)
 	}
 
