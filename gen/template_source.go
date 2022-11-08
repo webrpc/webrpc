@@ -21,8 +21,8 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-func loadTemplates(proto *schema.WebRPCSchema, target string, opts TargetOptions) (*template.Template, error) {
-	s, err := newTemplateSource(proto, target, opts)
+func loadTemplates(proto *schema.WebRPCSchema, target string, config *Config) (*template.Template, error) {
+	s, err := newTemplateSource(proto, target, config)
 	if err != nil {
 		return nil, err
 	}
@@ -40,21 +40,21 @@ type templateSource struct {
 	tmpl   *template.Template
 	proto  *schema.WebRPCSchema
 	target string
-	opts   TargetOptions
+	config *Config
 }
 
-func newTemplateSource(proto *schema.WebRPCSchema, target string, opts TargetOptions) (*templateSource, error) {
-	tmpl := template.New("webrpc-gen").Funcs(templateFuncMap(proto, opts))
+func newTemplateSource(proto *schema.WebRPCSchema, target string, config *Config) (*templateSource, error) {
+	tmpl := template.New(target).Funcs(templateFuncMap(proto, config.TemplateOptions))
 	return &templateSource{
 		tmpl:   tmpl,
 		proto:  proto,
 		target: target,
-		opts:   opts,
+		config: config,
 	}, nil
 }
 
 func (s *templateSource) loadTemplates() (*template.Template, error) {
-	if s.isLocalDir(s.target) {
+	if isLocalDir(s.target) {
 		// from local directory
 		tmpl, err := s.tmpl.ParseGlob(filepath.Join(s.target, "/*.tmpl"))
 		if err != nil {
@@ -81,7 +81,7 @@ func (s *templateSource) loadRemote() (*template.Template, error) {
 	}
 
 	// cache is new, so lets fetch from git
-	if !cacheAvailable || s.opts.RefreshCache || time.Now().Unix()-cacheTS > int64(templateCacheTime.Seconds()) {
+	if !cacheAvailable || s.config.RefreshCache || time.Now().Unix()-cacheTS > int64(templateCacheTime.Seconds()) {
 		sourceFS, err = gitfs.New(context.Background(), s.target) //, gitfs.OptPrefetch(true), gitfs.OptGlob("/*.tmpl"))
 
 		if err != nil {
@@ -155,7 +155,7 @@ func (s *templateSource) openCacheDir() (string, http.FileSystem, bool, int64, e
 	}
 
 	// delete the directory if asked to refresh
-	if s.opts.RefreshCache {
+	if s.config.RefreshCache {
 		os.RemoveAll(cacheDir)
 	}
 
@@ -203,7 +203,7 @@ func (s *templateSource) getTmpCacheDir() (string, error) {
 
 func (s *templateSource) inferRemoteTarget(target string) string {
 	// extra check to ensure its not a local dir
-	if s.isLocalDir(target) {
+	if isLocalDir(target) {
 		return target
 	}
 
@@ -219,6 +219,6 @@ func (s *templateSource) inferRemoteTarget(target string) string {
 	return target
 }
 
-func (s *templateSource) isLocalDir(target string) bool {
+func isLocalDir(target string) bool {
 	return strings.HasPrefix(target, "/") || strings.HasPrefix(target, ".")
 }

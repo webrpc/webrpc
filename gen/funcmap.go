@@ -1,112 +1,180 @@
 package gen
 
 import (
-	"errors"
+	"fmt"
+	"os"
+	"reflect"
 	"strconv"
 	"strings"
 
+	"github.com/golang-cz/textcase"
 	"github.com/webrpc/webrpc/schema"
 )
 
-func templateFuncMap(proto *schema.WebRPCSchema, opts TargetOptions) map[string]interface{} {
+// Template functions are part of webrpc-gen API. Keep backward-compatible.
+func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		// Generic template functions.
-		"constPathPrefix": constPathPrefix,
-		"countMethods":    countMethods,
-		"commaIfLen":      commaIfLen,
-		"isStruct":        isStruct,
-		"isEnum":          isEnum,
-		"downcaseName":    downcaseName,
-		"listComma":       listComma,
+		// Template flow.
+		"stderrPrintf": stderrPrintf,
+		"exit":         exit,
+		"minVersion":   minVersion,
 
-		// Golang specific template functions.
-		"goServiceMethodName":     goServiceMethodName,
-		"goServiceMethodJSONName": goServiceMethodJSONName,
-		"goHasGoFieldType":        goHasGoFieldType(proto),
-		"goFieldTags":             goFieldTags,
-		"goFieldType":             goFieldType,
-		"goFieldOptional":         goFieldOptional,
-		"goFieldTypeDef":          goFieldTypeDef,
-		"goNewClientServiceName":  goNewClientServiceName,
-		"goNewServerServiceName":  goNewServerServiceName,
-		"goClientServiceName":     goClientServiceName,
-		"goServerServiceName":     goServerServiceName,
-		"goMethodInputs":          goMethodInputs,
-		"goMethodOutputs":         goMethodOutputs,
-		"goMethodArgName":         goMethodArgName,
-		"goMethodArgType":         goMethodArgType,
-		"goMethodArgNames":        goMethodArgNames,
-		"goArgsList":              goArgsList,
-		"goExportedField":         goExportedField,
+		// Dictionary, aka runtime map[string]interface{}.
+		"dict":   dict,
+		"get":    get,
+		"set":    set,
+		"exists": exists,
 
-		// TypeScript specific template functions.
-		"tsFieldType":                         tsFieldType,
-		"tsInterfaceName":                     tsInterfaceName,
-		"tsMethodName":                        tsMethodName,
-		"tsMethodInputs":                      tsMethodInputs,
-		"tsMethodOutputs":                     tsMethodOutputs,
-		"tsNewOutputArgResponse":              tsNewOutputArgResponse,
-		"tsMethodArgumentInputInterfaceName":  tsMethodArgumentInputInterfaceName,
-		"tsMethodArgumentOutputInterfaceName": tsMethodArgumentOutputInterfaceName,
-		"tsServiceInterfaceName":              tsServiceInterfaceName,
-		"tsExportableField":                   tsExportableField,
-		"tsExportedField":                     tsExportedField,
-		"tsExportedJSONField":                 tsExportedJSONField,
-		"jsFieldType":                         jsFieldType,
+		// Schema type helpers.
+		"isBasicType":  isBasicType,
+		"isStructType": isStructType,
+		"isEnumType":   isEnumType,
+		"isMapType":    isMapType,
+		"isListType":   isListType,
+		"mapKeyType":   mapKeyType,
+		"mapValueType": mapValueType,
+		"listElemType": listElemType,
 
-		// JavaScript specific template functions.
-		"jsExportKeyword":        jsExportKeyword(opts),
-		"jsMethodName":           jsMethodName,
-		"jsMethodInputs":         jsMethodInputs,
-		"jsNewOutputArgResponse": jsNewOutputArgResponse,
-		"jsServiceInterfaceName": jsServiceInterfaceName,
-		"jsExportedJSONField":    jsExportedJSONField,
+		// String utils.
+		"join":      strings.Join,
+		"split":     split,
+		"first":     first,
+		"last":      last,
+		"in":        in,
+		"default":   defaultFn,
+		"coalesce":  coalesce,
+		"ternary":   ternary,
+		"hasPrefix": strings.HasPrefix,
+		"hasSuffix": strings.HasSuffix,
+		"toLower":   applyStringFunction("toLower", strings.ToLower),
+		"toUpper":   applyStringFunction("toLower", strings.ToUpper),
+		"firstLetterToLower": applyStringFunction("firstLetterToLower", func(input string) string {
+			if input == "" {
+				return ""
+			}
+			return strings.ToLower(input[:1]) + input[1:]
+		}),
+		"firstLetterToUpper": applyStringFunction("firstLetterToUpper", func(input string) string {
+			if input == "" {
+				return ""
+			}
+			return strings.ToUpper(input[:1]) + input[1:]
+		}),
+		"camelCase":  applyStringFunction("camelCase", textcase.CamelCase),
+		"pascalCase": applyStringFunction("pascalCase", textcase.PascalCase),
+		"snakeCase":  applyStringFunction("snakeCase", textcase.SnakeCase),
+		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),
 	}
 }
 
-func commaIfLen(in []*schema.MethodArgument) string {
-	if len(in) > 0 {
-		return ","
-	}
-	return ""
+// Similar to "printf" but instead of writing into the generated
+// output file, stderrPrintf writes to webrpc-gen CLI stderr.
+// Useful for printing template errors or for template debugging.
+func stderrPrintf(format string, a ...interface{}) error {
+	_, err := fmt.Fprintf(os.Stderr, format, a...)
+	return err
 }
 
-func listComma(item int, count int) string {
-	if item+1 < count {
-		return ", "
-	}
-	return ""
+// Terminate template execution. Useful for fatal errors.
+func exit(code int) error {
+	os.Exit(code)
+	return nil
 }
 
-func isStruct(t schema.MessageType) bool {
-	return t == "struct"
-}
-
-func isEnum(t schema.MessageType) bool {
-	return t == "enum"
-}
-
-func downcaseName(v interface{}) (string, error) {
-	downFn := func(s string) string {
-		if s == "" {
-			return ""
+// Returns true if any of the given values match the first value.
+func in(first interface{}, values ...interface{}) bool {
+	for _, value := range values {
+		if reflect.DeepEqual(first, value) {
+			return true
 		}
-		return strings.ToLower(s[0:1]) + s[1:]
 	}
-	switch t := v.(type) {
-	case schema.VarName:
-		return downFn(string(t)), nil
+	return false
+}
+
+// Returns defaultValue, if given value is empty.
+func defaultFn(value interface{}, defaultValue interface{}) interface{} {
+	val := reflect.ValueOf(value)
+	if !val.IsValid() || val.IsZero() {
+		return defaultValue
+	}
+
+	return value
+}
+
+// Returns first non-empty value.
+func coalesce(v ...interface{}) interface{} {
+	for _, v := range v {
+		val := reflect.ValueOf(v)
+		if !val.IsValid() || val.IsZero() {
+			continue
+		}
+		return v
+	}
+	return ""
+}
+
+// Ternary if-else. Returns first value if true, second value if false.
+func ternary(boolean interface{}, first interface{}, second interface{}) interface{} {
+	if toBool(boolean) {
+		return first
+	}
+	return second
+}
+
+func toBool(in interface{}) bool {
+	switch v := in.(type) {
+	case bool:
+		return v
 	case string:
-		return downFn(t), nil
+		if in == "true" {
+			return true
+		}
+		if in == "false" {
+			return false
+		}
+		panic(fmt.Sprintf("unexpected boolean %q", in))
 	default:
-		return "", errors.New("downcaseFieldName, unknown arg type")
+		panic(fmt.Sprintf("unexpected boolean %v", v))
 	}
 }
 
-func constPathPrefix(in schema.VarName) (string, error) {
-	return string(in) + "PathPrefix", nil
+func minVersion(version string, minVersion string) bool {
+	major, minor, err := parseMajorMinorVersion(version)
+	if err != nil {
+		panic(fmt.Sprintf("minVersion: unexpected version %q", version))
+	}
+
+	minMajor, minMinor, err := parseMajorMinorVersion(minVersion)
+	if err != nil {
+		panic(fmt.Sprintf("minVersion: unexpected min version %q", minVersion))
+	}
+
+	if minMajor > major {
+		return false
+	}
+
+	if minMinor > minor {
+		return false
+	}
+
+	return true
 }
 
-func countMethods(in []*schema.Method) (string, error) {
-	return strconv.Itoa(len(in)), nil
+func parseMajorMinorVersion(version string) (major int, minor int, err error) {
+	version = strings.TrimPrefix(version, "v")
+	parts := strings.Split(version, ".")
+
+	major, err = strconv.Atoi(parts[0])
+	if err != nil {
+		return
+	}
+
+	if len(parts) > 1 {
+		minor, err = strconv.Atoi(parts[1])
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }

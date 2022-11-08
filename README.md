@@ -10,12 +10,14 @@ strongly-typed Web services and never having to write an API client library agai
 Under the hood, webrpc is a Web service meta-protocol, schema and code-generator tool for
 simplifying the development of backend services for modern Web applications.
 
-Current code-generation language targets:
-* [Go](https://github.com/webrpc/gen-golang)
-* [Typescript](https://github.com/webrpc/gen-typescript)
-* [Javascript](https://github.com/webrpc/gen-javascript)
-* .. contribute more! they're just templates
+| Generator                                              | Description           | Schema | Client | Server |
+|--------------------------------------------------------|-----------------------|--------|--------|--------|
+| [golang](https://github.com/webrpc/gen-golang)         | Go 1.16+              | v1     | ✅     | ✅     |
+| [typescript](https://github.com/webrpc/gen-typescript) | TypeScript            | v1     | ✅     | ✅     |
+| [javascript](https://github.com/webrpc/gen-javascript) | JavaScript (ES6)      | v1     | ✅     | ✅     |
+| [openapi](https://github.com/webrpc/gen-openapi)       | OpenAPI 3.x (Swagger) | v1     | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview) | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview) |
 
+..contribute more! [webrpc generators](./gen/) are just Go templates (similar to [Hugo](https://gohugo.io/templates/) or [Helm](https://helm.sh/docs/chart_best_practices/templates/)).
 
 ## Quick example
 
@@ -53,7 +55,7 @@ source code for your target language.
 For example, to generate webrpc server+client code -- run:
 
 ```
-bin/webrpc-gen -schema=example.ridl -target=go -pkg=main -server -client -out=./example.gen.go
+bin/webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -out=./example.gen.go
 ```
 
 and see the generated `./example.gen.go` file of types, server and client in Go. This is essentially
@@ -152,8 +154,8 @@ Future goals/work:
     * for earlier versions: `go get -u github.com/webrpc/webrpc/cmd/webrpc-gen`  
 2. Write+design a [webrpc schema file](./_examples/golang-basics/example.ridl) for your Web service
 3. Run the code-generator to create your server interface and client, ie.
-  * `webrpc-gen -schema=example.ridl -target=go -pkg=service -server -client -out=./service/proto.gen.go`
-  * `webrpc-gen -schema=example.ridl -target=ts -pkg=client -client -out=./web/client.ts`
+  * `webrpc-gen -schema=example.ridl -target=golang -pkg=service -server -client -out=./service/proto.gen.go`
+  * `webrpc-gen -schema=example.ridl -target=typescript -client -out=./web/client.ts`
 4. Implement the handlers for your server -- of course, it can't guess the server logic :)
 
 another option is to copy the [hello-webrpc](./_examples/hello-webrpc) example, and adapt for your own webapp and server.

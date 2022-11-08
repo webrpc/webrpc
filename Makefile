@@ -44,6 +44,9 @@ generate:
 dep:
 	@export GO111MODULE=on && go mod tidy
 
+diff:
+	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
+
 dep-upgrade-all:
 	@GO111MODULE=on go get -u
 	@$(MAKE) dep

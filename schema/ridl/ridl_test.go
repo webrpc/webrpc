@@ -63,8 +63,8 @@ func TestRIDLHeader(t *testing.T) {
 		s, err := parseString(buf)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "v1", s.WebRPCVersion)
-		assert.Equal(t, "h_ello-webrpc", s.Name)
+		assert.Equal(t, "v1", s.WebrpcVersion)
+		assert.Equal(t, "h_ello-webrpc", s.SchemaName)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 	}
 }
@@ -90,8 +90,8 @@ func TestRIDLImport(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "v1", s.WebRPCVersion)
-		assert.Equal(t, "hello-webrpc", s.Name)
+		assert.Equal(t, "v1", s.WebrpcVersion)
+		assert.Equal(t, "hello-webrpc", s.SchemaName)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
 		assert.Equal(t, "foo", s.Imports[0].Path)
@@ -111,8 +111,8 @@ func TestRIDLImport(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "v1", s.WebRPCVersion)
-		assert.Equal(t, "hello-webrpc", s.Name)
+		assert.Equal(t, "v1", s.WebrpcVersion)
+		assert.Equal(t, "hello-webrpc", s.SchemaName)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
 		assert.Equal(t, "foo1", s.Imports[0].Path)
@@ -142,8 +142,8 @@ func TestRIDLEnum(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "v1", s.WebRPCVersion)
-		assert.Equal(t, "hello-webrpc", s.Name)
+		assert.Equal(t, "v1", s.WebrpcVersion)
+		assert.Equal(t, "hello-webrpc", s.SchemaName)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
 		assert.Equal(t, "Kind", string(s.Messages[0].Name))

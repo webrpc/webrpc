@@ -91,15 +91,15 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 		switch key {
 		case wordWebRPC:
-			if s.WebRPCVersion != "" {
+			if s.WebrpcVersion != "" {
 				return nil, fmt.Errorf(`webrpc was previously declared`)
 			}
-			s.WebRPCVersion = value
+			s.WebrpcVersion = value
 		case wordName:
-			if s.Name != "" {
+			if s.SchemaName != "" {
 				return nil, fmt.Errorf(`name was previously declared`)
 			}
-			s.Name = value
+			s.SchemaName = value
 		case wordVersion:
 			if s.SchemaVersion != "" {
 				return nil, fmt.Errorf(`version was previously declared`)

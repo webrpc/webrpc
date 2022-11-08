@@ -2,24 +2,22 @@ package gen
 
 import (
 	"bytes"
-	"path/filepath"
+	"os"
+	"strings"
 
 	"github.com/webrpc/webrpc/schema"
 )
 
-type TargetOptions struct {
-	PkgName      string
-	Client       bool
-	Server       bool
-	Extra        string
-	OutFilename  string
-	RefreshCache bool
+type Config struct {
+	RefreshCache    bool
+	Format          bool
+	TemplateOptions map[string]interface{}
 }
 
-func Generate(proto *schema.WebRPCSchema, target string, opts TargetOptions) (string, error) {
-	target = getBuiltInTarget(target)
+func Generate(proto *schema.WebRPCSchema, target string, config *Config) (string, error) {
+	target = getOldTarget(target)
 
-	tmpl, err := loadTemplates(proto, target, opts)
+	tmpl, err := loadTemplates(proto, target, config)
 	if err != nil {
 		return "", err
 	}
@@ -33,38 +31,33 @@ func Generate(proto *schema.WebRPCSchema, target string, opts TargetOptions) (st
 	// Template vars
 	vars := struct {
 		*schema.WebRPCSchema
-		SchemaHash string
-		TargetOpts TargetOptions
+		SchemaHash       string
+		WebrpcGenVersion string
+		WebrpcGenCommand string
+		WebrpcTarget     string
+		Opts             map[string]interface{}
 	}{
-		proto, schemaHash, opts,
+		proto,
+		schemaHash,
+		VERSION,
+		strings.Join(os.Args, " "),
+		target,
+		config.TemplateOptions,
+	}
+	if isLocalDir(target) {
+		vars.WebrpcTarget = "custom"
 	}
 
 	// Generate the template
-	buf := bytes.NewBuffer(nil)
-	err = tmpl.ExecuteTemplate(buf, "proto", vars)
+	var b bytes.Buffer
+	err = tmpl.ExecuteTemplate(&b, "main", vars)
 	if err != nil {
 		return "", err
 	}
 
-	out := buf.Bytes()
-
-	// Auto-format certain extensions
-	if filepath.Ext(opts.OutFilename) == ".go" {
-		out, _ = FormatGoSource(out)
+	if config.Format && isGolangTarget(target) {
+		return formatGoSource(b.Bytes())
 	}
 
-	return string(out), nil
-}
-
-// Backward compatibility with webrpc-gen v0.6.0.
-func getBuiltInTarget(target string) string {
-	switch target {
-	case "go":
-		return "github.com/webrpc/gen-golang@v0.6.0"
-	case "ts":
-		return "github.com/webrpc/gen-typescript@v0.6.0"
-	case "js":
-		return "github.com/webrpc/gen-javascript@v0.6.0"
-	}
-	return target
+	return b.String(), nil
 }
