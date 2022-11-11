@@ -1,14 +1,13 @@
 package schema
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 )
 
 type VarType struct {
-	expr string
-	Type DataType
+	Expr string   // Type, ie. map<string,map<string,uint32>> or []User
+	Type DataType // Kind, ie. map or struct
 
 	List   *VarListType
 	Map    *VarMapType
@@ -16,14 +15,11 @@ type VarType struct {
 }
 
 func (t *VarType) String() string {
-	return t.expr
+	return t.Expr
 }
 
 func (t *VarType) MarshalJSON() ([]byte, error) {
-	buf := bytes.NewBufferString(`"`)
-	buf.WriteString(t.String())
-	buf.WriteString(`"`)
-	return buf.Bytes(), nil
+	return []byte(fmt.Sprintf("%q", t)), nil
 }
 
 func (t *VarType) UnmarshalJSON(b []byte) error {
@@ -45,20 +41,20 @@ func (t *VarType) UnmarshalJSON(b []byte) error {
 	s = s[:len(s)-1]
 
 	// set the expr from value
-	t.expr = s
+	t.Expr = s
 
 	return nil
 }
 
 func (t *VarType) Parse(schema *WebRPCSchema) error {
-	if t.expr == "" {
+	if t.Expr == "" {
 		return fmt.Errorf("schema error: type expr cannot be empty")
 	}
-	err := ParseVarTypeExpr(schema, t.expr, t)
+	err := ParseVarTypeExpr(schema, t.Expr, t)
 	if err != nil {
 		return err
 	}
-	t.expr = buildVarTypeExpr(t, "")
+	t.Expr = buildVarTypeExpr(t, "")
 	return nil
 }
 
@@ -80,7 +76,7 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 	if expr == "" {
 		return nil
 	}
-	vt.expr = expr
+	vt.Expr = expr
 
 	// parse data type from string
 	dataType, ok := DataTypeFromString[expr]
