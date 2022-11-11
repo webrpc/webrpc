@@ -90,7 +90,7 @@ func (m *Message) Parse(schema *WebRPCSchema) error {
 		// ensure enum fields have value key set, and are all of the same type
 		fieldTypes := map[string]struct{}{}
 		for _, field := range m.Fields {
-			fieldType := field.Type.expr
+			fieldType := field.Type.Expr
 			fieldTypes[fieldType] = struct{}{}
 			if field.Value == "" {
 				return fmt.Errorf("schema error: enum message '%s' with field '%s' is missing value", m.Name, field.Name)
