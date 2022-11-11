@@ -37,7 +37,6 @@ const (
 	T_List
 	T_Map
 
-	T_Primitive
 	T_Struct // aka, a reference to our own webrpc proto struct/message
 )
 
