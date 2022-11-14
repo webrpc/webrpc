@@ -89,7 +89,6 @@ export class ExampleService implements ExampleService {
       ).then((res) => {
       return buildResponse(res).then(_data => {
         return {
-        
           status: <boolean>(_data.status)
         }
       })
@@ -102,7 +101,6 @@ export class ExampleService implements ExampleService {
       createHTTPRequest(args, headers)).then((res) => {
       return buildResponse(res).then(_data => {
         return {
-        
           user: <User>(_data.user)
         }
       })
@@ -115,7 +113,6 @@ export class ExampleService implements ExampleService {
       createHTTPRequest(args, headers)).then((res) => {
       return buildResponse(res).then(_data => {
         return {
-        
           page: <Page>(_data.page), 
           users: <Array<User>>(_data.users)
         }

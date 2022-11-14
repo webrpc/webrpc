@@ -31,5 +31,5 @@ message Page
 
 
 service ExampleService
-  - Ping() => (status: bool)
+  - Ping() => ()
   - GetUser(userID: uint64) => (code: uint32, user: User)

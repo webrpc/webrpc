@@ -5,19 +5,22 @@
         display: none;
       }
 
-      .user.loaded {
-        display: block;
+      div {
+        padding-bottom: 10px;
       }
     </style>
   </head>
 
   <body>
-    <div class="js-user user">
-      <h1>Username:</h1>
-      <p class="js-username"></p>
+    <div>
+      <button id="js-ping-btn">Ping</button>
+      <span id="js-ping-text"></span>
     </div>
 
-    <button class="js-load-user-btn">Get user</button>
+    <div>
+      <button id="js-get-user-btn">Get user</button>
+      <span id="js-username-text"></span>
+    </div>
 
     <script src="./index.ts"></script>
   </body>
