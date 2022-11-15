@@ -2,7 +2,9 @@ package gen
 
 import (
 	"bytes"
+	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/webrpc/webrpc/schema"
@@ -40,7 +42,7 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (string
 		proto,
 		schemaHash,
 		VERSION,
-		strings.Join(os.Args, " "),
+		getWebrpcGenCommand(),
 		target,
 		config.TemplateOptions,
 	}
@@ -60,4 +62,12 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (string
 	}
 
 	return b.String(), nil
+}
+
+func getWebrpcGenCommand() string {
+	cmd := filepath.Base(os.Args[0])
+	if len(os.Args) > 1 {
+		cmd = fmt.Sprintf("%s %s", cmd, strings.Join(os.Args[1:], " "))
+	}
+	return cmd
 }

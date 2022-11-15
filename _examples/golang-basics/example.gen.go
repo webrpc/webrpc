@@ -215,6 +215,7 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("{}"))
 }
 
 func (s *exampleServiceServer) serveStatus(ctx context.Context, w http.ResponseWriter, r *http.Request) {
