@@ -1,4 +1,4 @@
-webrpc = v1
+webrpc = v2
 
 name = hello-webrpc
 version = v0.0.1
@@ -11,7 +11,13 @@ import example1-partials.ridl
   - Empty
   - GetUserRequest
 
-message Role
+
+alias Balance: string
+  + go.field.type = BigInt
+  + go.tag.db = balance
+  + json = b_a_l_a_n_c_e
+
+struct Role
   - name: string
 
   - users: map<uint64,User>
@@ -21,7 +27,7 @@ message Role
   - other: map<uint64,map<string,string>> # comment
 
 
-message User
+struct User
   - ID: uint64
     + json = id
     + go.tag.db = id
@@ -29,6 +35,8 @@ message User
   - username: string
     + json = USERNAME
     + go.tag.db = username
+
+  - amount: Balance
 
   - role: string
     + go.tag.db = -
@@ -39,15 +47,23 @@ message User
     + go.tag.db = created_at
     
 
-message Notice
+struct Notice
   - msg: string
 
 
-service ExampleService
+
+# syntax is: error <code> <name> <message> [-- <http status code>]
+error 500100 InvalidUsername "invalid username"
+error 403000 Unauthorized    "unauthorized access" -- 401
+
+
+service Example
 
   # comment can go here
   # too .. :)
-  - Ping() => (status: bool)
+
+  # methods without a response body are okay too
+  - Ping()
 
   - GetUser(req: GetUserRequest) => (user: User)
 
@@ -57,8 +73,26 @@ service ExampleService
 
   - stream SendAndRecv(req: string) => stream (resp: string)
 
-  - Broadcast() => stream (resp: Notice)
+  - Broadcast(qty?: Balance) => stream (resp: Notice)
 
   -	VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code: bool, ids: []bool)
 	
   - MoreTest(n: uint64, stuff: []map<uint64,string>, etc: string) => (code?: bool)
+
+
+
+struct FlattenRequest
+  - name: string
+    + go.tag.db = name
+  - amount?: Balance
+    + go.tag.db = amount
+
+struct FlattenResponse
+  - id: uint64
+    + go.field.name = ID
+  - count: uint64
+    + json = counter
+
+service Another
+  - Flatten(FlattenRequest) => (FlattenResponse)
+  - GetAccountBalance(name: string) => (balance: Balance)

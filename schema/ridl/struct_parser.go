@@ -1,6 +1,6 @@
 package ridl
 
-func parserStateMessageFieldMetaDefinition(mn *MessageNode) parserState {
+func parserStateStructFieldMetaDefinition(mn *StructNode) parserState {
 	return func(p *parser) parserState {
 		// add to latest field
 		field := mn.fields[len(mn.fields)-1]
@@ -34,11 +34,11 @@ func parserStateMessageFieldMetaDefinition(mn *MessageNode) parserState {
 			rightNode: newTokenNode(right),
 		})
 
-		return parserStateMessageFieldMeta(mn)
+		return parserStateStructFieldMeta(mn)
 	}
 }
 
-func parserStateMessageFieldMeta(mn *MessageNode) parserState {
+func parserStateStructFieldMeta(mn *StructNode) parserState {
 	return func(p *parser) parserState {
 
 		tok := p.cursor()
@@ -52,18 +52,18 @@ func parserStateMessageFieldMeta(mn *MessageNode) parserState {
 			p.continueUntilEOL()
 
 		case tokenPlusSign:
-			return parserStateMessageFieldMetaDefinition(mn)
+			return parserStateStructFieldMetaDefinition(mn)
 
 		default:
-			return parserStateMessageField(mn)
+			return parserStateStructField(mn)
 
 		}
 
-		return parserStateMessageFieldMeta(mn)
+		return parserStateStructFieldMeta(mn)
 	}
 }
 
-func parserStateMessageFieldDefinition(mn *MessageNode) parserState {
+func parserStateStructFieldDefinition(mn *StructNode) parserState {
 	return func(p *parser) parserState {
 		// - <name>: <type> [<# comment>][EOL]
 		matches, err := p.match(tokenDash, tokenWhitespace, tokenWord)
@@ -96,11 +96,11 @@ func parserStateMessageFieldDefinition(mn *MessageNode) parserState {
 
 		mn.fields = append(mn.fields, field)
 
-		return parserStateMessageFieldMeta(mn)
+		return parserStateStructFieldMeta(mn)
 	}
 }
 
-func parserStateMessageField(mn *MessageNode) parserState {
+func parserStateStructField(mn *StructNode) parserState {
 	return func(p *parser) parserState {
 		tok := p.cursor()
 
@@ -113,7 +113,7 @@ func parserStateMessageField(mn *MessageNode) parserState {
 			p.continueUntilEOL()
 
 		case tokenDash:
-			return parserStateMessageFieldDefinition(mn)
+			return parserStateStructFieldDefinition(mn)
 
 		default:
 			p.emit(mn)
@@ -121,22 +121,22 @@ func parserStateMessageField(mn *MessageNode) parserState {
 
 		}
 
-		return parserStateMessageField(mn)
+		return parserStateStructField(mn)
 	}
 }
 
-func parserStateMessage(p *parser) parserState {
-	// message <name>
+func parserStateStruct(p *parser) parserState {
+	// struct <name>
 	matches, err := p.match(tokenWord, tokenWhitespace, tokenWord)
 	if err != nil {
 		return p.stateError(err)
 	}
 
-	if matches[0].val != wordMessage {
+	if matches[0].val != wordStruct {
 		return p.stateError(errUnexpectedToken)
 	}
 
-	return parserStateMessageField(&MessageNode{
+	return parserStateStructField(&StructNode{
 		name:   newTokenNode(matches[2]),
 		fields: []*DefinitionNode{},
 	})

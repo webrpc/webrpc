@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	schemaMessageTypeEnum   = schema.MessageType("enum")
-	schemaMessageTypeStruct = schema.MessageType("struct")
+	schemaTypeKindAlias  = "alias"
+	schemaTypeKindEnum   = "enum"
+	schemaTypeKindStruct = "struct"
 )
 
 type Parser struct {
@@ -26,7 +27,7 @@ func NewParser(r *schema.Reader) *Parser {
 		reader: r,
 		imports: map[string]struct{}{
 			// this file imports itself
-			r.File: struct{}{},
+			r.File: {},
 		},
 	}
 }
@@ -81,7 +82,8 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 	s := &schema.WebRPCSchema{
 		Imports:  []*schema.Import{},
-		Messages: []*schema.Message{},
+		Types:    []*schema.Type{},
+		Errors:   []*schema.Error{},
 		Services: []*schema.Service{},
 	}
 
@@ -91,15 +93,15 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 		switch key {
 		case wordWebRPC:
-			if s.WebrpcVersion != "" {
+			if s.WebRPCVersion != "" {
 				return nil, fmt.Errorf(`webrpc was previously declared`)
 			}
-			s.WebrpcVersion = value
+			s.WebRPCVersion = value
 		case wordName:
-			if s.SchemaName != "" {
+			if s.Name != "" {
 				return nil, fmt.Errorf(`name was previously declared`)
 			}
-			s.SchemaName = value
+			s.Name = value
 		case wordVersion:
 			if s.SchemaVersion != "" {
 				return nil, fmt.Errorf(`version was previously declared`)
@@ -127,9 +129,9 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			return nil, p.trace(err, line.Path())
 		}
 
-		for i := range imported.Messages {
-			if isImportAllowed(string(imported.Messages[i].Name), importDef.Members) {
-				s.Messages = append(s.Messages, imported.Messages[i])
+		for i := range imported.Types {
+			if isImportAllowed(string(imported.Types[i].Name), importDef.Members) {
+				s.Types = append(s.Types, imported.Types[i])
 			}
 		}
 		for i := range imported.Services {
@@ -143,18 +145,18 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 	// pushing enums (1st pass)
 	for _, line := range q.root.Enums() {
-		s.Messages = append(s.Messages, &schema.Message{
+		s.Types = append(s.Types, &schema.Type{
+			Kind:   schemaTypeKindEnum,
 			Name:   schema.VarName(line.Name().String()),
-			Type:   schemaMessageTypeEnum,
-			Fields: []*schema.MessageField{},
+			Fields: []*schema.TypeField{},
 		})
 	}
 
-	// pushing messages (1st pass)
-	for _, line := range q.root.Messages() {
-		s.Messages = append(s.Messages, &schema.Message{
+	// pushing types (1st pass)
+	for _, line := range q.root.Structs() {
+		s.Types = append(s.Types, &schema.Type{
+			Kind: schemaTypeKindStruct,
 			Name: schema.VarName(line.Name().String()),
-			Type: schemaMessageTypeStruct,
 		})
 	}
 
@@ -166,10 +168,36 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		})
 	}
 
+	// alias
+	for _, line := range q.root.Aliases() {
+		typeDef := &schema.Type{
+			Kind:      schemaTypeKindAlias,
+			Name:      schema.VarName(line.Name().String()),
+			TypeExtra: schema.TypeExtra{},
+		}
+
+		var typeType schema.VarType
+		err := schema.ParseVarTypeExpr(s, line.TypeName().String(), &typeType)
+		if err != nil {
+			return nil, fmt.Errorf("unknown data type: %v", line.TypeName())
+		}
+		typeDef.Type = &typeType
+
+		// typeDef.Meta
+		for _, meta := range line.Extra().Meta() {
+			key, val := meta.Left().String(), meta.Right().String()
+			typeDef.Meta = append(typeDef.Meta, schema.TypeFieldMeta{
+				key: val,
+			})
+		}
+
+		s.Types = append(s.Types, typeDef)
+	}
+
 	// enum fields
 	for _, line := range q.root.Enums() {
 		name := schema.VarName(line.Name().String())
-		enumDef := s.GetMessageByName(string(name))
+		enumDef := s.GetTypeByName(string(name))
 
 		if enumDef == nil {
 			return nil, fmt.Errorf("unexpected error, could not find definition for: %v", name)
@@ -180,6 +208,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		if err != nil {
 			return nil, fmt.Errorf("unknown data type: %v", line.TypeName())
 		}
+		enumDef.Type = &enumType
 
 		for i, def := range line.Values() {
 			key, val := def.Left().String(), def.Right().String()
@@ -188,22 +217,35 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				val = strconv.Itoa(i)
 			}
 
-			enumDef.Fields = append(enumDef.Fields, &schema.MessageField{
-				Name:  schema.VarName(key),
-				Type:  &enumType,
-				Value: val,
+			enumDef.Fields = append(enumDef.Fields, &schema.TypeField{
+				Name: schema.VarName(key),
+				TypeExtra: schema.TypeExtra{
+					Value: val,
+				},
 			})
 		}
-
-		enumDef.EnumType = &enumType
 	}
 
-	// message fields
-	for _, line := range q.root.Messages() {
-		name := schema.VarName(line.Name().String())
-		messageDef := s.GetMessageByName(string(name))
+	// error types
+	for _, line := range q.root.Errors() {
+		var errorType schema.Error
+		code, _ := strconv.ParseInt(line.code.String(), 10, 64)
+		errorType.Code = uint64(code)
+		errorType.Name = line.name.String()
+		errorType.Message = line.message.String()
+		if line.httpStatus != nil {
+			httpStatus, _ := strconv.ParseInt(line.httpStatus.String(), 10, 64)
+			errorType.HTTPStatus = uint64(httpStatus)
+		}
+		s.Errors = append(s.Errors, &errorType)
+	}
 
-		if messageDef == nil {
+	// struct fields
+	for _, line := range q.root.Structs() {
+		name := schema.VarName(line.Name().String())
+		structDef := s.GetTypeByName(string(name))
+
+		if structDef == nil {
 			return nil, fmt.Errorf("unexpected error, could not find definition for: %v", name)
 		}
 
@@ -216,18 +258,20 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				return nil, fmt.Errorf("unknown data type: %v", fieldType)
 			}
 
-			field := &schema.MessageField{
-				Name:     schema.VarName(fieldName),
-				Optional: def.Optional(),
-				Type:     &varType,
+			field := &schema.TypeField{
+				Name: schema.VarName(fieldName),
+				Type: &varType,
+				TypeExtra: schema.TypeExtra{
+					Optional: def.Optional(),
+				},
 			}
 			for _, meta := range def.Meta() {
 				key, val := meta.Left().String(), meta.Right().String()
-				field.Meta = append(field.Meta, schema.MessageFieldMeta{
+				field.Meta = append(field.Meta, schema.TypeFieldMeta{
 					key: val,
 				})
 			}
-			messageDef.Fields = append(messageDef.Fields, field)
+			structDef.Fields = append(structDef.Fields, field)
 		}
 	}
 
@@ -290,6 +334,30 @@ func isImportAllowed(name string, whitelist []string) bool {
 func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema.MethodArgument, error) {
 	output := []*schema.MethodArgument{}
 
+	// succint form
+	if len(args) == 1 && args[0].inlineStruct != nil {
+		node := args[0].inlineStruct
+		structName := node.tok.val
+
+		typ := s.GetTypeByName(structName)
+		if typ.Kind != "struct" {
+			return nil, fmt.Errorf("expecting struct type for inline definition of '%s'", structName)
+		}
+
+		for _, arg := range typ.Fields {
+			methodArgument := &schema.MethodArgument{
+				Name:      arg.Name,
+				Type:      arg.Type,
+				Optional:  arg.Optional,
+				TypeExtra: arg.TypeExtra,
+			}
+			output = append(output, methodArgument)
+		}
+
+		return output, nil
+	}
+
+	// normal form
 	for _, arg := range args {
 
 		var varType schema.VarType
@@ -303,7 +371,6 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 			Type:     &varType,
 			Optional: arg.Optional(),
 		}
-
 		output = append(output, methodArgument)
 	}
 

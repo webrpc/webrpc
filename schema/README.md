@@ -1,7 +1,7 @@
-webrpc schema <!-- omit in toc -->
+WebRPC Schema
 =============
 
-webrpc is a design/schema driven approach to writing backend servers, with fully-generated
+WebRPC is a design/schema driven approach to writing backend servers, with fully-generated
 client libraries. Write your schema, and it will generate strongly-typed bindings between
 your server and client. The type system is described below.
 
@@ -10,20 +10,10 @@ Some example webrpc schemas:
   in [JSON](../_examples/golang-basics/example.webrpc.json)
   * ..find more in ./_examples
 
-- [Type system](#type-system)
-  - [Basic types](#basic-types)
-    - [Integers](#integers)
-    - [Floats](#floats)
-    - [Strings](#strings)
-    - [Timestamps (date/time)](#timestamps-datetime)
-  - [List (Array)](#list-array)
-  - [Map](#map)
-  - [Enum](#enum)
-  - [Struct (Message)](#struct-message)
 
-# Type system
+## Type system
 
-## Basic types
+### Basics
 
 - `byte` (aka uint8)
 - `bool`
@@ -60,7 +50,7 @@ Some example webrpc schemas:
 - `timestamp` - for date/time
 
 
-## List (Array)
+### Lists
 
 - form: `[]<type>`
 - ie.
@@ -70,7 +60,7 @@ Some example webrpc schemas:
   * ..
 
 
-## Map
+### Map
 
 - form: `map<key,value>`
 - ie.
@@ -81,16 +71,27 @@ Some example webrpc schemas:
   * `map<string,User>` - where `User` is a struct type defined in schema
 
 
-## Enum
+### Enums
 
 - enum, see examples
 
 
-## Struct (Message)
+### Binary (future / v2)
 
-- think of a struct as a JavaScript or JSON object
-- struct has 0..N fields
-  - field can be `optional`
-  - fields are by default required, unless made optional
-  - fields always return default values by default, ie. default of int is 0, string is "", etc. (like in Go)
-    - otherwise someone should make it optional which will have it be nullable
+- `blob` aka.. `[]byte`
+  * TODO: https://github.com/PsychoLlama/bin-json might have some ideas for us
+
+
+### Structs aka Objects / Messages
+
+- struct or object
+  * think of it just as a Javascript object or JSON object
+
+
+#### Some notes on structs
+
+- fields of an object can be `optional`
+- fields of an object are by default required, unless made optional
+- fields of an object always return default values by default, ie. default of int is 0, string is "", etc. (like in Go)
+  - otherwise someone should make it optional which will have it be nullable
+

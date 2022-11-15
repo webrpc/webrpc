@@ -1,7 +1,8 @@
-webrpc = v1
+webrpc = v2
 
 name = hello-webrpc
 version = v0.0.1
+
 
 # this is a comment
 # yep
@@ -9,13 +10,14 @@ enum Kind: uint32
   - USER = 1             # comment
   - ADMIN = 2            # comment..
 
+
 # or.. just..
 enum Kind2: uint32
   - USER                 # aka, = 0
   - ADMIN                # aka, = 1
 
-service PingerService
 
+service Pinger
   # comment can go here
   # too .. :)
   - Ping() => (status: bool)

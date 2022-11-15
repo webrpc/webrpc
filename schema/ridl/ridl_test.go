@@ -43,7 +43,7 @@ func TestRIDLHeader(t *testing.T) {
 
 	{
 		buf := `
-    webrpc = v1
+    webrpc = v2
 
     name = myapi1
     name = myapi2
@@ -54,7 +54,7 @@ func TestRIDLHeader(t *testing.T) {
 
 	{
 		buf := `
-    webrpc = v1 #comment
+    webrpc = v2 #comment
     # comment
   version = v0.1.1
 
@@ -63,8 +63,8 @@ func TestRIDLHeader(t *testing.T) {
 		s, err := parseString(buf)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "v1", s.WebrpcVersion)
-		assert.Equal(t, "h_ello-webrpc", s.SchemaName)
+		assert.Equal(t, "v2", s.WebRPCVersion)
+		assert.Equal(t, "h_ello-webrpc", s.Name)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 	}
 }
@@ -75,7 +75,7 @@ func TestRIDLImport(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
       version = v0.1.1
   name = hello-webrpc
 
@@ -90,8 +90,8 @@ func TestRIDLImport(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "v1", s.WebrpcVersion)
-		assert.Equal(t, "hello-webrpc", s.SchemaName)
+		assert.Equal(t, "v2", s.WebRPCVersion)
+		assert.Equal(t, "hello-webrpc", s.Name)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
 		assert.Equal(t, "foo", s.Imports[0].Path)
@@ -100,7 +100,7 @@ func TestRIDLImport(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1 # version number
   name     = hello-webrpc
 
@@ -111,8 +111,8 @@ func TestRIDLImport(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "v1", s.WebrpcVersion)
-		assert.Equal(t, "hello-webrpc", s.SchemaName)
+		assert.Equal(t, "v2", s.WebRPCVersion)
+		assert.Equal(t, "hello-webrpc", s.Name)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
 		assert.Equal(t, "foo1", s.Imports[0].Path)
@@ -123,7 +123,7 @@ func TestRIDLImport(t *testing.T) {
 func TestRIDLEnum(t *testing.T) {
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
@@ -142,99 +142,138 @@ func TestRIDLEnum(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "v1", s.WebrpcVersion)
-		assert.Equal(t, "hello-webrpc", s.SchemaName)
+		assert.Equal(t, "v2", s.WebRPCVersion)
+		assert.Equal(t, "hello-webrpc", s.Name)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
-		assert.Equal(t, "Kind", string(s.Messages[0].Name))
-		assert.Equal(t, "enum", string(s.Messages[0].Type))
+		assert.Equal(t, "Kind", string(s.Types[0].Name))
+		assert.Equal(t, "enum", string(s.Types[0].Kind))
+		assert.Equal(t, "uint32", string(s.Types[0].Type.String()))
 
-		assert.Equal(t, "USER", string(s.Messages[0].Fields[0].Name))
-		assert.Equal(t, "ADMIN", string(s.Messages[0].Fields[1].Name))
+		assert.Equal(t, "USER", string(s.Types[0].Fields[0].Name))
+		assert.Equal(t, "ADMIN", string(s.Types[0].Fields[1].Name))
 
-		assert.Equal(t, "33", string(s.Messages[0].Fields[0].Value))
-		assert.Equal(t, "44", string(s.Messages[0].Fields[1].Value))
+		assert.Equal(t, "33", string(s.Types[0].Fields[0].Value))
+		assert.Equal(t, "44", string(s.Types[0].Fields[1].Value))
 
-		assert.Equal(t, "uint32", string(s.Messages[0].Fields[0].Type.String()))
-		assert.Equal(t, "uint32", string(s.Messages[0].Fields[1].Type.String()))
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[0].Fields[0].Type)
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[0].Fields[1].Type)
 
-		assert.Equal(t, "KindTwo", string(s.Messages[1].Name))
-		assert.Equal(t, "enum", string(s.Messages[1].Type))
+		assert.Equal(t, "KindTwo", string(s.Types[1].Name))
+		assert.Equal(t, "enum", string(s.Types[1].Kind))
+		assert.Equal(t, "uint32", string(s.Types[1].Type.String()))
 
-		assert.Equal(t, "uint32", string(s.Messages[1].Fields[0].Type.String()))
-		assert.Equal(t, "uint32", string(s.Messages[1].Fields[1].Type.String()))
-		assert.Equal(t, "uint32", string(s.Messages[1].Fields[2].Type.String()))
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[1].Fields[0].Type)
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[1].Fields[1].Type)
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[1].Fields[2].Type)
 
-		assert.Equal(t, "0", string(s.Messages[1].Fields[0].Value))
-		assert.Equal(t, "1", string(s.Messages[1].Fields[1].Value))
-		assert.Equal(t, "2", string(s.Messages[1].Fields[2].Value))
+		assert.Equal(t, "0", string(s.Types[1].Fields[0].Value))
+		assert.Equal(t, "1", string(s.Types[1].Fields[1].Value))
+		assert.Equal(t, "2", string(s.Types[1].Fields[2].Value))
 	}
 }
 
-func TestRIDLMessages(t *testing.T) {
+func TestRIDLType(t *testing.T) {
 	{
-		input := `
-    webrpc = v1
+		input := `webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
-  message Empty
+          # this is a comment
+            # yep
+					alias Balance: uint32
+					
+					# another
+					alias Another: string
+						+ go.tag.db = another
+						+ json = ANOTHER
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "Empty", string(s.Messages[0].Name))
-		assert.Equal(t, "struct", string(s.Messages[0].Type))
-	}
+		assert.Equal(t, "v2", s.WebRPCVersion)
+		assert.Equal(t, "hello-webrpc", s.Name)
+		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
+		assert.Len(t, s.Types, 2)
+
+		assert.Equal(t, "alias", s.Types[0].Kind)
+		assert.Equal(t, "Balance", string(s.Types[0].Name))
+		assert.Equal(t, "uint32", string(s.Types[0].Type.String()))
+		assert.Equal(t, 0, len(s.Types[0].Meta))
+
+		assert.Equal(t, "alias", s.Types[1].Kind)
+		assert.Equal(t, "Another", string(s.Types[1].Name))
+		assert.Equal(t, "string", string(s.Types[1].Type.String()))
+		assert.Equal(t, "another", s.Types[1].Meta[0]["go.tag.db"])
+		assert.Equal(t, "ANOTHER", s.Types[1].Meta[1]["json"])
+	}
+}
+
+func TestRIDLTypes(t *testing.T) {
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
-  message Empty # with a, comment
+  struct Empty
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "Empty", string(s.Messages[0].Name))
-		assert.Equal(t, "struct", string(s.Messages[0].Type))
+		assert.Equal(t, "struct", string(s.Types[0].Kind))
+		assert.Equal(t, "Empty", string(s.Types[0].Name))
+	}
+
+	{
+		input := `
+    webrpc = v2
+    version = v0.1.1
+  name = hello-webrpc
+
+  struct Empty # with a, comment
+  `
+		s, err := parseString(input)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "struct", string(s.Types[0].Kind))
+		assert.Equal(t, "Empty", string(s.Types[0].Name))
 
 	}
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
-  message Simple # with a, comment
+  struct Simple # with a, comment
     - ID: uint32
     - Value?: uint32
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "Simple", string(s.Messages[0].Name))
-		assert.Equal(t, "struct", string(s.Messages[0].Type))
+		assert.Equal(t, "struct", string(s.Types[0].Kind))
+		assert.Equal(t, "Simple", string(s.Types[0].Name))
 
-		assert.Equal(t, "ID", string(s.Messages[0].Fields[0].Name))
-		assert.Equal(t, "uint32", string(s.Messages[0].Fields[0].Type.String()))
-		assert.Equal(t, false, s.Messages[0].Fields[0].Optional)
+		assert.Equal(t, "ID", string(s.Types[0].Fields[0].Name))
+		assert.Equal(t, "uint32", string(s.Types[0].Fields[0].Type.String()))
+		assert.Equal(t, false, s.Types[0].Fields[0].Optional)
 
-		assert.Equal(t, "Value", string(s.Messages[0].Fields[1].Name))
-		assert.Equal(t, "uint32", string(s.Messages[0].Fields[1].Type.String()))
-		assert.Equal(t, true, s.Messages[0].Fields[1].Optional)
+		assert.Equal(t, "Value", string(s.Types[0].Fields[1].Name))
+		assert.Equal(t, "uint32", string(s.Types[0].Fields[1].Type.String()))
+		assert.Equal(t, true, s.Types[0].Fields[1].Optional)
 	}
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
-  message Simple # with a-comment an,d meta fields
+  struct Simple # with a-comment an,d meta fields
     - ID: uint32
   - Field2: uint64 # one two #t
       + json = field_2 # a comment
@@ -245,34 +284,34 @@ func TestRIDLMessages(t *testing.T) {
     + go.tag.db = - # omits the field from db
 
 
-  message Simple2 # with a-comment an,d meta fields
+  struct Simple2 # with a-comment an,d meta fields
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "Simple", string(s.Messages[0].Name))
-		assert.Equal(t, "struct", string(s.Messages[0].Type))
+		assert.Equal(t, "struct", string(s.Types[0].Kind))
+		assert.Equal(t, "Simple", string(s.Types[0].Name))
 
-		assert.Equal(t, "Simple2", string(s.Messages[1].Name))
-		assert.Equal(t, "struct", string(s.Messages[1].Type))
+		assert.Equal(t, "struct", string(s.Types[1].Kind))
+		assert.Equal(t, "Simple2", string(s.Types[1].Name))
 
-		assert.Equal(t, "ID", string(s.Messages[0].Fields[0].Name))
-		assert.Equal(t, "Field2", string(s.Messages[0].Fields[1].Name))
-		assert.Equal(t, "Field3", string(s.Messages[0].Fields[2].Name))
+		assert.Equal(t, "ID", string(s.Types[0].Fields[0].Name))
+		assert.Equal(t, "Field2", string(s.Types[0].Fields[1].Name))
+		assert.Equal(t, "Field3", string(s.Types[0].Fields[2].Name))
 
-		assert.Equal(t, "field_2", s.Messages[0].Fields[1].Meta[0]["json"])
-		assert.Equal(t, "field_3", s.Messages[0].Fields[1].Meta[1]["go.tag.db"])
+		assert.Equal(t, "field_2", s.Types[0].Fields[1].Meta[0]["json"])
+		assert.Equal(t, "field_3", s.Types[0].Fields[1].Meta[1]["go.tag.db"])
 
-		assert.Equal(t, "-", s.Messages[0].Fields[2].Meta[0]["go.tag.db"])
+		assert.Equal(t, "-", s.Types[0].Fields[2].Meta[0]["go.tag.db"])
 	}
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
-  message Simple # with a-comment an,d meta fields
+  struct Simple # with a-comment an,d meta fields
     - ID: uint32
   - Field2: map<string, string> # one two #t
       + json = field_2 # a comment
@@ -284,23 +323,23 @@ func TestRIDLMessages(t *testing.T) {
       + json = field_2 # a comment
         + go.tag.db = field_2
 
-  message Simple2 # with a-comment an,d meta fields
+  struct Simple2 # with a-comment an,d meta fields
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "map<string,string>", string(s.Messages[0].Fields[1].Type.String()))
-		assert.Equal(t, "[]bool", string(s.Messages[0].Fields[2].Type.String()))
-		assert.Equal(t, "[][][]bool", string(s.Messages[0].Fields[3].Type.String()))
+		assert.Equal(t, "map<string,string>", string(s.Types[0].Fields[1].Type.String()))
+		assert.Equal(t, "[]bool", string(s.Types[0].Fields[2].Type.String()))
+		assert.Equal(t, "[][][]bool", string(s.Types[0].Fields[3].Type.String()))
 	}
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
-  message Simple # with a-comment an,d meta fields
+  struct Simple # with a-comment an,d meta fields
     - ID: uint32
   - Field2: map<string, string> # one two #t
       + json = field_2 # a comment
@@ -313,19 +352,19 @@ func TestRIDLMessages(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "map<string,string>", string(s.Messages[0].Fields[1].Type.String()))
-		assert.Equal(t, "field_2", s.Messages[0].Fields[1].Meta[1]["go.tag.db"])
-		assert.Equal(t, "default**:**now**()**,use_zero#000", s.Messages[0].Fields[1].Meta[2]["go.tag.db.1"])
-		assert.Equal(t, `default**:**now**()**,use_zero,"//`, s.Messages[0].Fields[1].Meta[3]["go.tag.db.2"])
-		assert.Equal(t, "default**:**now**()**,use_zero,// # not a comment", s.Messages[0].Fields[1].Meta[4]["go.tag.db.3"])
-		assert.Equal(t, "default**:**now**()**,use_zero", s.Messages[0].Fields[1].Meta[5]["go.tag.db.4"])
+		assert.Equal(t, "map<string,string>", string(s.Types[0].Fields[1].Type.String()))
+		assert.Equal(t, "field_2", s.Types[0].Fields[1].Meta[1]["go.tag.db"])
+		assert.Equal(t, "default**:**now**()**,use_zero#000", s.Types[0].Fields[1].Meta[2]["go.tag.db.1"])
+		assert.Equal(t, `default**:**now**()**,use_zero,"//`, s.Types[0].Fields[1].Meta[3]["go.tag.db.2"])
+		assert.Equal(t, "default**:**now**()**,use_zero,// # not a comment", s.Types[0].Fields[1].Meta[4]["go.tag.db.3"])
+		assert.Equal(t, "default**:**now**()**,use_zero", s.Types[0].Fields[1].Meta[5]["go.tag.db.4"])
 	}
 }
 
 func TestRIDLService(t *testing.T) {
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
   name = hello-webrpc
 
@@ -341,7 +380,7 @@ func TestRIDLService(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
           name = hello-webrpc
 
@@ -370,7 +409,7 @@ func TestRIDLService(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
     name = hello-webrpc
 
@@ -394,7 +433,7 @@ func TestRIDLService(t *testing.T) {
 
 	{
 		input := `
-    webrpc = v1
+    webrpc = v2
     version = v0.1.1
     name = hello-webrpc
 
@@ -436,34 +475,36 @@ func TestRIDLTables(t *testing.T) {
 	}{
 		{
 			// Whitespace bug
-			"webrpc = v1\n \nname = test\n   \nversion=v1.1\n",
+			"webrpc = v2\n \nname = test\n   \nversion=v1.1\n",
 			[]byte(`
         {
-         "webrpc": "v1",
+         "webrpc": "v2",
          "name": "test",
          "version": "v1.1",
          "imports": [],
-         "messages": [],
+         "types": [],
+				 "errors": [],
          "services": []
         }
     `),
 		},
 		{
-			"webrpc = v1\n \nname = test\n",
+			"webrpc = v2\n \nname = test\n",
 			[]byte(`
         {
-         "webrpc": "v1",
+         "webrpc": "v2",
          "name": "test",
          "version": "",
          "imports": [],
-         "messages": [],
+         "types": [],
+				 "errors": [],
          "services": []
         }
     `),
 		},
 		{
 			`
-        webrpc = v1
+        webrpc = v2
 
         name = hello-webrpc
         version = v0.0.1
@@ -474,7 +515,7 @@ func TestRIDLTables(t *testing.T) {
       `,
 			[]byte(`
 				{
-				 "webrpc": "v1",
+				 "webrpc": "v2",
 				 "name": "hello-webrpc",
 				 "version": "v0.0.1",
 				 "imports": [
@@ -487,7 +528,8 @@ func TestRIDLTables(t *testing.T) {
 					 "members": []
 					}
 				 ],
-				 "messages": [],
+				 "types": [],
+				 "errors": [],
 				 "services": []
 				}
       `),
@@ -505,7 +547,7 @@ func TestRIDLTables(t *testing.T) {
 	}
 }
 
-func TestRIDLImports(t *testing.T) {
+func TestRIDLExample1(t *testing.T) {
 	os.Chdir("_example")
 
 	fp, err := os.Open("example1.ridl")
@@ -525,5 +567,11 @@ func TestRIDLImports(t *testing.T) {
 	golden, err := ioutil.ReadFile("example1-golden.json")
 	assert.NoError(t, err)
 
-	assert.JSONEq(t, compactJSON(golden), compactJSON([]byte(jout)))
+	a := compactJSON(golden)
+	b := compactJSON([]byte(jout))
+
+	// fmt.Println("==> GOLDEN:", a)
+	// fmt.Println("==> PARSED:", b)
+
+	assert.JSONEq(t, a, b)
 }

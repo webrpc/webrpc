@@ -1,4 +1,4 @@
-webrpc = v1
+webrpc = v2
 
 name = messages
 version = v0.1
@@ -6,10 +6,10 @@ version = v0.1
 import
   - ../example1-partials.ridl
 
-message MessageA
+struct MessageA
   - name: string
   - last_name: string
 
-message MessageB
+struct MessageB
   - foo: string
   - bar: string

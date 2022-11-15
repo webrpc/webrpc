@@ -9,7 +9,7 @@ import (
 
 // Returns true if given type is basic type.
 func isBasicType(v interface{}) bool {
-	_, isBasicType := schema.DataTypeFromString[toString(v)]
+	_, isBasicType := schema.CoreTypeFromString[toString(v)]
 	return isBasicType
 }
 

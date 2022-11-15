@@ -10,17 +10,19 @@ import (
 )
 
 const (
-	VERSION = "v1" // todo rename to schema_version
+	SCHEMA_VERSION = "v2"
 )
 
 // schema of webrpc json file, and validations
 type WebRPCSchema struct {
-	WebrpcVersion string `json:"webrpc"`
-	SchemaName    string `json:"name"`
-	SchemaVersion string `json:"version"`
+	WebRPCVersion string    `json:"webrpc"`
+	Name          string    `json:"name"`
+	SchemaVersion string    `json:"version"`
+	Imports       []*Import `json:"imports"`
 
-	Imports  []*Import  `json:"imports"`
-	Messages []*Message `json:"messages"`
+	Types  []*Type  `json:"types"`
+	Errors []*Error `json:"errors"`
+	// Values   []*Value   `json:"values"` // TODO: future
 	Services []*Service `json:"services"`
 }
 
@@ -32,16 +34,29 @@ type Import struct {
 // Validate validates the schema through the AST, intended to be called after
 // the json has been unmarshalled
 func (s *WebRPCSchema) Validate() error {
-	if s.WebrpcVersion != VERSION {
-		return fmt.Errorf("webrpc schema version, '%s' is invalid, try '%s'", s.WebrpcVersion, VERSION)
+	if s.WebRPCVersion != SCHEMA_VERSION {
+		return fmt.Errorf("invalid webrpc schema version '%s', expecting '%s'", s.WebRPCVersion, SCHEMA_VERSION)
 	}
 
-	for _, msg := range s.Messages {
-		err := msg.Parse(s)
+	for _, typ := range s.Types {
+		err := typ.Parse(s)
 		if err != nil {
 			return err
 		}
 	}
+	for _, serr := range s.Errors {
+		err := serr.Parse(s)
+		if err != nil {
+			return err
+		}
+	}
+	// TODO: future feature
+	// for _, sval := range s.Values {
+	// 	err := sval.Parse(s)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 	for _, svc := range s.Services {
 		err := svc.Parse(s)
 		if err != nil {
@@ -86,11 +101,11 @@ func (s *WebRPCSchema) ToJSON(optIndent ...bool) (string, error) {
 	return string(buf.Bytes()), nil
 }
 
-func (s *WebRPCSchema) GetMessageByName(name string) *Message {
+func (s *WebRPCSchema) GetTypeByName(name string) *Type {
 	name = strings.ToLower(name)
-	for _, message := range s.Messages {
-		if strings.ToLower(string(message.Name)) == name {
-			return message
+	for _, typ := range s.Types {
+		if strings.ToLower(string(typ.Name)) == name {
+			return typ
 		}
 	}
 	return nil
@@ -108,12 +123,12 @@ func (s *WebRPCSchema) GetServiceByName(name string) *Service {
 
 func (s *WebRPCSchema) HasFieldType(fieldType string) (bool, error) {
 	fieldType = strings.ToLower(fieldType)
-	_, ok := DataTypeFromString[fieldType]
+	_, ok := CoreTypeFromString[fieldType]
 	if !ok {
 		return false, fmt.Errorf("webrpc: invalid data type '%s'", fieldType)
 	}
 
-	for _, m := range s.Messages {
+	for _, m := range s.Types {
 		for _, f := range m.Fields {
 			if DataTypeToString[f.Type.Type] == fieldType {
 				return true, nil

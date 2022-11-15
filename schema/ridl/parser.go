@@ -11,10 +11,12 @@ import (
 )
 
 const (
+	wordAlias   = "alias"
 	wordEnum    = "enum"
+	wordStruct  = "struct"
 	wordImport  = "import"
+	wordError   = "error"
 	wordMap     = "map"
-	wordMessage = "message"
 	wordName    = "name"
 	wordProxy   = "proxy"
 	wordService = "service"
@@ -390,15 +392,22 @@ func parserStateDeclaration(p *parser) parserState {
 		// import
 		//   - <value> [<# comment>]
 		return parserStateImport
+	case wordAlias:
+		// alias <name>: <type>
+		//   + <tag.name> = <VALUE>
+		return parserStateType
 	case wordEnum:
 		// enum <name>: <type>
 		//   - <name>[<space>=<space><value>][<#comment>]
 		return parserStateEnum
-	case wordMessage:
-		// message <name>
+	case wordStruct:
+		// struct <name>
 		//   - <name>: <type>
 		//     + <tag.name> = <VALUE>
-		return parserStateMessage
+		return parserStateStruct
+	case wordError:
+		// error <code> <name> <message>
+		return parserStateError
 	case wordService:
 		// service <name>
 		//   - <name>([arguments]) [=> ([arguments])]
@@ -406,8 +415,6 @@ func parserStateDeclaration(p *parser) parserState {
 	default:
 		return p.stateError(errUnexpectedToken)
 	}
-
-	return parserDefaultState
 }
 
 func parserDefaultState(p *parser) parserState {
