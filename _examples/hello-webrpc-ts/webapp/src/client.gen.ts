@@ -75,7 +75,7 @@ export class ExampleService implements ExampleService {
 
   constructor(hostname: string, fetch: Fetch) {
     this.hostname = hostname
-    this.fetch = fetch
+    this.fetch = (input: RequestInfo, init?: RequestInit) => fetch(input, init)
   }
 
   private url(name: string): string {
