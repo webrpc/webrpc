@@ -79,7 +79,7 @@ class ExampleService {
   constructor(hostname, fetch) {
     this.path = '/rpc/ExampleService/'
     this.hostname = hostname
-    this.fetch = fetch
+    this.fetch = () => fetch
   }
 
   url(name) {
