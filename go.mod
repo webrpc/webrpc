@@ -21,3 +21,6 @@ require (
 	golang.org/x/crypto v0.2.0 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1 // indirect
 )
+
+// Last version working with Go 1.16 (undefined: unsafe.Slice).
+replace golang.org/x/sys => golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab
