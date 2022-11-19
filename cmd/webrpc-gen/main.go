@@ -133,7 +133,13 @@ func collectCliArgs(flags *flag.FlagSet, args []string) (cliFlags []string, temp
 	templateOpts = map[string]interface{}{}
 
 	for _, arg := range args {
-		name, value, _ := strings.Cut(arg, "=")
+		//name, value, _ := strings.Cut(arg, "=") // Added in Go 1.18.
+		name, value := arg, ""
+		if i := strings.Index(arg, "="); i >= 0 {
+			name = arg[:i]
+			value = arg[i+1:]
+		}
+
 		if !strings.HasPrefix(name, "-") {
 			return nil, nil, fmt.Errorf("option %q is invalid (expected -name=value)", arg)
 		}
