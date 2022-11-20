@@ -21,7 +21,6 @@ all:
 
 build:
 	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen
-	go generate ./...
 
 clean:
 	rm -rf ./bin
@@ -44,10 +43,9 @@ generate:
 dep:
 	go mod tidy
 
-diff:
-	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
-
 dep-upgrade-all:
 	go get -u ./...
 	@$(MAKE) dep
 
+diff:
+	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
