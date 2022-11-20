@@ -1,0 +1,24 @@
+# See documentation at https://goreleaser.com/customization/build.
+project_name: webrpc
+
+builds:
+  - main: ./cmd/webrpc-gen
+    binary: webrpc-gen
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - name_template: "{{ .Binary }}.{{ .Os }}-{{ .Arch }}"
+    format: binary
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  use: github
+  sort: asc
