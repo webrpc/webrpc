@@ -49,7 +49,7 @@ func main() {
 	flags.Parse(cliFlags)
 
 	if *versionFlag {
-		fmt.Printf("webrpc %s\n", gen.VERSION)
+		fmt.Printf("%s %s\n", flags.Name(), gen.VERSION)
 		os.Exit(0)
 	}
 
