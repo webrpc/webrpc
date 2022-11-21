@@ -44,6 +44,12 @@ func TestParseMajorMinorVersion(t *testing.T) {
 		Minor   int
 		Error   bool
 	}{
+		{"v0.7", 0, 7, false},
+		{"v0.7.0", 0, 7, false},
+		{"v0.7.5", 0, 7, false},
+		{"v0.7.0-dev", 0, 7, false},
+		{"v0.7.x-dev", 0, 7, false},
+
 		{"v1", 1, 0, false},
 		{"v1.0", 1, 0, false},
 		{"v1.1", 1, 1, false},

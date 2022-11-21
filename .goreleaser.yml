@@ -11,6 +11,8 @@ builds:
     goarch:
       - amd64
       - arm64
+    ldflags:
+      - -s -w -X github.com/webrpc/webrpc/gen.VERSION={{.Version}}
 
 archives:
   - name_template: "{{ .Binary }}.{{ .Os }}-{{ .Arch }}"
