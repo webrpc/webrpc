@@ -1,14 +1,41 @@
 <img alt="webrpc" src="https://github.com/webrpc/webrpc/raw/master/webrpc.png" width="1024" />
 
 webrpc is a schema-driven approach to writing backend servers for the Web. Write your server's
-api interface in a schema format of [RIDL](./_examples/golang-basics/example.ridl) or [JSON](./_examples/golang-basics/example.webrpc.json),
+API interface in a schema format of [RIDL](./_examples/golang-basics/example.ridl) or [JSON](./_examples/golang-basics/example.webrpc.json),
 and then run `webrpc-gen` to generate the networking source code for your server and client apps. From the schema,
-webrpc-gen will generate application base class types/interfaces, JSON encoders, and networking code. In doing
+`webrpc-gen` will generate application base class types/interfaces, JSON encoders, and networking code. In doing
 so, it's able to generate fully functioning and typed client libraries to communicate with your server. Enjoy
 strongly-typed Web services and never having to write an API client library again.
 
 Under the hood, webrpc is a Web service meta-protocol, schema and code-generator tool for
 simplifying the development of backend services for modern Web applications.
+
+- [Getting started](#getting-started)
+- [Code generators](#code-generators)
+- [Quick example](#quick-example)
+  - [Example apps](#example-apps)
+- [Why](#why)
+- [Design / architecture](#design--architecture)
+- [Schema](#schema)
+- [Development](#development)
+  - [Building from source](#building-from-source)
+  - [Writing your own code-generator](#writing-your-own-code-generator)
+- [Authors](#authors)
+- [Credits](#credits)
+- [License](#license)
+
+# Getting started
+
+1. Install [webrpc-gen](https://github.com/webrpc/webrpc/releases)
+2. Write+design a [webrpc schema file](./_examples/golang-basics/example.ridl) for your Web service
+3. Run the code-generator to create your server interface and client, ie.
+   - `webrpc-gen -schema=example.ridl -target=golang -pkg=service -server -client -out=./service/proto.gen.go`
+   - `webrpc-gen -schema=example.ridl -target=typescript -client -out=./web/client.ts`
+4. Implement the handlers for your server -- of course, it can't guess the server logic :)
+
+another option is to copy the [hello-webrpc](./_examples/hello-webrpc) example, and adapt for your own webapp and server.
+
+# Code generators
 
 | Generator                                              | Description           | Schema | Client | Server |
 |--------------------------------------------------------|-----------------------|--------|--------|--------|
@@ -19,7 +46,7 @@ simplifying the development of backend services for modern Web applications.
 
 ..contribute more! [webrpc generators](./gen/) are just Go templates (similar to [Hugo](https://gohugo.io/templates/) or [Helm](https://helm.sh/docs/chart_best_practices/templates/)).
 
-## Quick example
+# Quick example
 
 Here is an example webrpc schema in RIDL format (a new documentation-like format introduced by webrpc)
 
@@ -47,34 +74,30 @@ service ExampleService
   - ListUsers(q?: UsersQueryFilter) => (page: uint32, users: []User)
 ```
 
-WebRPC is a design/schema-driven approach to writing backend servers. Write your server's
-api interface in a schema format of [RIDL](./_examples/golang-basics/example.ridl) or
-[JSON](./_examples/golang-basics/example.webrpc.json) format and run `webrpc-gen` to generate
-source code for your target language.
-
-For example, to generate webrpc server+client code -- run:
+Generate webrpc Go server+client code:
 
 ```
-bin/webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -out=./example.gen.go
+webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -out=./example.gen.go
 ```
 
 and see the generated `./example.gen.go` file of types, server and client in Go. This is essentially
-how the `golang-basics` example was built.
+how the [golang-basics](./_examples/golang-basics) example was built.
 
 
-### More example apps
+## Example apps
 
-* [hello-webrpc](./_examples/hello-webrpc) - webrpc service with Go server and Javascript webapp
-* [hello-webrpc-ts](./_examples/hello-webrpc-ts) - webrpc service with Go server and Typescript webapp
-* [golang-basics](./_examples/golang-basics) - webrpc service with Go server and Go client
-* [golang-nodejs](./_examples/golang-nodejs) - webrpc service with Go server and nodejs (Javascript ES6) client
-* [node-ts](./_examples/node-ts) - webrpc service with nodejs server and Typescript webapp client
+| Example                                        | Description                                   |
+|------------------------------------------------|-----------------------------------------------|
+| [hello-webrpc](./_examples/hello-webrpc)       | Go server <=> Javascript webapp               |
+| [hello-webrpc-ts](./_examples/hello-webrpc-ts) | Go server <=> Typescript webapp               |
+| [golang-basics](./_examples/golang-basics)     | Go server <=> Go client                       |
+| [golang-nodejs](./_examples/golang-nodejs)     | Go server <=> Node.js (Javascript ES6) client |
+| [node-ts](./_examples/node-ts)                 | Node.js server <=> Typescript webapp client   |
 
+# Why
 
-## Why
-
-**TLDR;** its much simpler + faster to write and consume a webrpc service than traditional approaches
-like a REST api or gRPC service.
+**TLDR;** it's much simpler + faster to write and consume a webrpc service than traditional approaches
+like a REST API or gRPC service.
 
   1. Code-generate your client libraries in full -- never write another API client again
   2. Compatible with the Web. A Webrpc server is just a HTTP/HTTPS server that speaks JSON, and thus
@@ -99,7 +122,7 @@ you can use the `webrpc-gen` cli to generate source code for:
 * Complete client library to communicate with the web service
 
 
-## Design / architecture
+# Design / architecture
 
 webrpc services speak JSON, as our goals are to build services that communicate with webapps.
 We optimize for developer experience, ease of use and productivity when building backends
@@ -147,21 +170,7 @@ Future goals/work:
 1. Add RPC streaming support for client/server
 2. More code generators.. for Rust, Python, ..
 
-
-## Getting started
-
-1.  * for Go v1.17+: `go install github.com/webrpc/webrpc/cmd/webrpc-gen`
-    * for earlier versions: `go get -u github.com/webrpc/webrpc/cmd/webrpc-gen`  
-2. Write+design a [webrpc schema file](./_examples/golang-basics/example.ridl) for your Web service
-3. Run the code-generator to create your server interface and client, ie.
-  * `webrpc-gen -schema=example.ridl -target=golang -pkg=service -server -client -out=./service/proto.gen.go`
-  * `webrpc-gen -schema=example.ridl -target=typescript -client -out=./web/client.ts`
-4. Implement the handlers for your server -- of course, it can't guess the server logic :)
-
-another option is to copy the [hello-webrpc](./_examples/hello-webrpc) example, and adapt for your own webapp and server.
-
-
-## Schema
+# Schema
 
 The webrpc schema type system is inspired by Go and TypeScript, and is simple and flexible enough
 to cover the wide variety of language targets, designed to target RPC communication with Web
@@ -183,28 +192,23 @@ High-level features:
 For more information please see the [schema readme](./schema/README.md).
 
 
-## Building from source / making your own code-generator
+# Development
 
-### Dev
+## Building from source
 
-1. Install Go 1.17+
+1. Install Go 1.16+
 2. $ `go get -u github.com/webrpc/webrpc/...`
-3. $ `make tools`
-4. $ `make build`
-5. $ `make test`
-6. $ `go install ./cmd/webrpc-gen`
+3. $ `make build`
+4. $ `make test`
+5. $ `go install ./cmd/webrpc-gen`
 
 
-### Writing your own code-generator
+## Writing your own code-generator
 
-Some tips..
-
-1. Copy `gen/golang` to `gen/<yourtargetlang>` and start writing templates
-2. Write an example service and use `make build` to regenerate 
-3. Write tests, TDD is a great approach to confirm things work
+See [webrpc-gen documentation](./gen).
 
 
-## Authors
+# Authors
 
 * [Peter Kieltyka](https://github.com/pkieltyka)
 * [José Carlos Nieto](https://github.com/xiam)
@@ -212,7 +216,7 @@ Some tips..
 * ..and full list of [contributors](https://github.com/webrpc/webrpc/graphs/contributors)!
 
 
-## Credits
+# Credits
 
 * [Twirp authors](https://github.com/twitchtv/twirp) for making twirp. Much of the webrpc-go
 library comes from the twirp project.
@@ -220,6 +224,6 @@ library comes from the twirp project.
 for code-generating the bindings between client and server from a common IDL.
 
 
-## License
+# License
 
 MIT
