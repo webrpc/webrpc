@@ -1,6 +1,9 @@
 package gen
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestMinVersion(t *testing.T) {
 	tt := []struct {
@@ -91,5 +94,38 @@ func TestParseMajorMinorVersion(t *testing.T) {
 		if minor != tc.Minor {
 			t.Errorf("_, minor, _ := parseMajorMinorVersion(%q): got %v, expected %v", tc.Version, minor, tc.Minor)
 		}
+	}
+}
+
+func TestArray(t *testing.T) {
+	arr := array("c", "d")
+	if got := len(arr); got != 2 {
+		t.Errorf("array: expected two elements, got %v", got)
+	}
+
+	arr = appendFn(arr, "a", "b")
+	if got := len(arr); got != 4 {
+		t.Errorf("append: expected four elements, got %v", got)
+	}
+
+	sorted := sortFn(arr)
+	if got := strings.Join(sorted, " "); got != "a b c d" {
+		t.Errorf("sort: expected sorted array, got %v", got)
+	}
+
+	if got, _ := first(sorted); got != "a" {
+		t.Errorf("first: expected a, got %v", got)
+	}
+
+	if got, _ := last(sorted); got != "d" {
+		t.Errorf("last: expected d, got %v", got)
+	}
+
+	if got, err := first([]string{}); err == nil || got != "" {
+		t.Errorf("first(empty): expected error")
+	}
+
+	if got, err := last([]string{}); err == nil || got != "" {
+		t.Errorf("last(empty): expected error")
 	}
 }

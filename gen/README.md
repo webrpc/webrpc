@@ -245,15 +245,14 @@ See https://pkg.go.dev/text/template#hdr-Functions
 
 ## webrpc-gen functions
 
-| Function                                       | Description                    | webrpc-gen |
+| Template flow                                  | Description                    | webrpc-gen |
 |------------------------------------------------|-------------------------------------------------|-------------|
-| `minVersion {{.WebrpcVersion}} v1.4`           | Returns `boolean` if the given major/minor semver is at least v1.4 |
+| `minVersion {{.WebrpcVersion}} v1.4`           | Returns `boolean` if the given major/minor semver is at least v1.4 | v0.7.0 |
 | `stderrPrintf "format %v" ARGS...`             | `printf` to `webrpc-gen` stderr | v0.7.0 |
 | `exit INT`                                     | Terminate template execution, useful for fatal errors | v0.7.0 |
-| `dict [KEY VALUE]...`                          | Create a new dictionary (`map[string]any`) | v0.7.0 |
-| `get $dict KEY`                                | Get value for the given KEY in dictionary | v0.7.0 |
-| `set $dict KEY VALUE`                          | Set value for the given KEY in dictionary | v0.7.0 |
-| `exists $dict KEY`                             | Returns `true` if the KEY exists in the given dictionary | v0.7.0 |
+
+| Schema type helpers                            | Description                    | webrpc-gen |
+|------------------------------------------------|-------------------------------------------------|-------------|
 | `isBasicType .Type`                            | Returns `true` if `.Type` is [basic type](https://github.com/webrpc/webrpc/tree/master/schema#basic-types) | v0.7.0 |
 | `isStructType .Type`                           | Returns `true` if `.Type` is [struct](https://github.com/webrpc/webrpc/tree/master/schema#struct) | v0.7.0 |
 | `isEnumType .Type`                             | Returns `true` if `.Type` is [enum](https://github.com/webrpc/webrpc/tree/master/schema#enum) | v0.7.0 |
@@ -262,15 +261,27 @@ See https://pkg.go.dev/text/template#hdr-Functions
 | `mapKeyType .MapType`                          | Returns map's key type (ie. `T1` from `map<T1,T2>`) | v0.7.0 |
 | `mapValueType .MapType`                        | Returns map's value type (ie. `T2` from `map<T1,T2>`) | v0.7.0 |
 | `listElemType .ListType`                       | Returns list's element type (ie. `T` from `[]T`) | v0.7.0 |
-| `join ARRAY SEPARATOR`                         | Join array items with a separator (see [strings.Join()](https://pkg.go.dev/strings#Join)) | v0.7.0 |
-| `split SEPARATOR STRING`                       | Split string by a separator into array `[]string` | v0.7.0 |
-| `first ARRAY`                                  | Return first element from the given string array | v0.7.0 |
-| `last ARRAY`                                   | Return last element from the given string array | v0.7.0 |
+
+| Dictionary (`map[string]any`)                  | Description                    | webrpc-gen |
+|------------------------------------------------|-------------------------------------------------|-------------|
+| `dict [KEY VALUE]...`                          | Create a new dictionary (`map[string]any`) | v0.7.0 |
+| `get $dict KEY`                                | Get value for the given KEY in dictionary | v0.7.0 |
+| `set $dict KEY VALUE`                          | Set value for the given KEY in dictionary | v0.7.0 |
+| `exists $dict KEY`                             | Returns `true` if the KEY exists in the given dictionary | v0.7.0 |
+
+| String arrays                                  | Description                    | webrpc-gen |
+|------------------------------------------------|-------------------------------------------------|-------------|
+dev/strings#Join)) | v0.7.0 |
+| `array [ELEMENTS]...`                          | Create a new string array | v0.8.0 |
+| `append ARRAY [ELEMENTS]...`                   | Append elements to existing string array | v0.8.0 |
+| `first ARRAY`                                  | Return first element from the given array | v0.7.0 |
+| `join ARRAY SEPARATOR`                         | Join array items with a separator (see [strings.Join()](https://pkg.go.
+| `last ARRAY`                                   | Return last element from the given array | v0.7.0 |
 | `sort ARRAY`                                   | Return sorted copy of the given array (ascending order) | v0.8.0 |
-| `in FIRST VALUES...`                           | Returns `true` if any of the given VALUES match the `first` value | v0.7.0 |
-| `default VALUE DEFAULT`                        | Returns `DEFAULT` value, if given `VALUE` is empty | v0.7.0 |
-| `coalesce VALUES...`                           | Returns first non-empty value | v0.7.0 |
-| `ternary BOOL FIRST SECOND`                    | Ternary if-else. Returns first value if `true`, second value if `false` | v0.7.0 |
+| `split SEPARATOR STRING`                       | Split string by a separator into array `[]string` | v0.7.0 |
+
+| String utils                                   | Description                    | webrpc-gen |
+|------------------------------------------------|-------------------------------------------------|-------------|
 | `hasPrefix STRING PREFIX`                      | Returns `true` if the given string starts with PREFIX | v0.8.0 |
 | `hasSuffix STRING SUFFIX`                      | Returns `true` if the given string ends with SUFFIX | v0.8.0 |
 | `trimPrefix STRING PREFIX`                     | Trim prefix from a given string | v0.8.0 |
@@ -283,3 +294,10 @@ See https://pkg.go.dev/text/template#hdr-Functions
 | `pascalCase STRING`                            | Converts input to `"PascalCase"` | v0.7.0 |
 | `snakeCase STRING`                             | Converts input to `"snake_case"` | v0.7.0 |
 | `kebabCase STRING`                             | Converts input to `"kebab-case"` | v0.7.0 |
+
+| Generic utils                                  | Description                    | webrpc-gen |
+|------------------------------------------------|-------------------------------------------------|-------------|
+| `coalesce VALUES...`                           | Returns first non-empty value | v0.7.0 |
+| `default VALUE DEFAULT`                        | Returns `DEFAULT` value if given `VALUE` is empty | v0.7.0 |
+| `in FIRST VALUES...`                           | Returns `true` if any of the given VALUES match the `first` value | v0.7.0 |
+| `ternary BOOL FIRST SECOND`                    | Ternary if-else. Returns first value if `true`, second value if `false` | v0.7.0 |

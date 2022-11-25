@@ -2,7 +2,6 @@ package gen
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/webrpc/webrpc/schema"
@@ -42,29 +41,4 @@ func applyStringFunction(fnName string, fn func(string) string) func(v interface
 			panic(fmt.Errorf("%v: unknown arg type %T", fnName, v))
 		}
 	}
-}
-
-func sortFn(slice []string) []string {
-	sorted := make([]string, len(slice))
-	copy(sorted, slice)
-	sort.Strings(sorted)
-	return sorted
-}
-
-func split(sep string, str string) []string {
-	return strings.Split(str, sep)
-}
-
-func first(elems []string) (string, error) {
-	if len(elems) == 0 {
-		return "", fmt.Errorf("first: no elements in string array")
-	}
-	return elems[0], nil
-}
-
-func last(elems []string) (string, error) {
-	if len(elems) == 0 {
-		return "", fmt.Errorf("last: no elements in string array")
-	}
-	return elems[len(elems)-1], nil
 }
