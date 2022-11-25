@@ -10,4 +10,4 @@ package gen
 //
 // Templates can check against {{.WerbpcGenVersion}} to require minimal major/minor
 // version that guarantees certain Template functions API.
-var VERSION = "v0.7.x-dev"
+var VERSION = "v0.8.x-dev"
