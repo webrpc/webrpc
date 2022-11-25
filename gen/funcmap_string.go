@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/webrpc/webrpc/schema"
@@ -41,6 +42,13 @@ func applyStringFunction(fnName string, fn func(string) string) func(v interface
 			panic(fmt.Errorf("%v: unknown arg type %T", fnName, v))
 		}
 	}
+}
+
+func sortFn(slice []string) []string {
+	sorted := make([]string, len(slice))
+	copy(sorted, slice)
+	sort.Strings(sorted)
+	return sorted
 }
 
 func split(sep string, str string) []string {

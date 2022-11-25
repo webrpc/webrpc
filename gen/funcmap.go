@@ -15,57 +15,58 @@ import (
 func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		// Template flow.
-		"stderrPrintf": stderrPrintf,
-		"exit":         exit,
-		"minVersion":   minVersion,
+		"stderrPrintf": stderrPrintf, // v0.7.0
+		"exit":         exit,         // v0.7.0
+		"minVersion":   minVersion,   // v0.7.0
 
 		// Dictionary, aka runtime map[string]interface{}.
-		"dict":   dict,
-		"get":    get,
-		"set":    set,
-		"exists": exists,
+		"dict":   dict,   // v0.7.0
+		"get":    get,    // v0.7.0
+		"set":    set,    // v0.7.0
+		"exists": exists, // v0.7.0
 
 		// Schema type helpers.
-		"isBasicType":  isBasicType,
-		"isStructType": isStructType,
-		"isEnumType":   isEnumType,
-		"isMapType":    isMapType,
-		"isListType":   isListType,
-		"mapKeyType":   mapKeyType,
-		"mapValueType": mapValueType,
-		"listElemType": listElemType,
+		"isBasicType":  isBasicType,  // v0.7.0
+		"isStructType": isStructType, // v0.7.0
+		"isEnumType":   isEnumType,   // v0.7.0
+		"isMapType":    isMapType,    // v0.7.0
+		"isListType":   isListType,   // v0.7.0
+		"mapKeyType":   mapKeyType,   // v0.7.0
+		"mapValueType": mapValueType, // v0.7.0
+		"listElemType": listElemType, // v0.7.0
 
 		// String utils.
-		"join":       strings.Join,
-		"split":      split,
-		"first":      first,
-		"last":       last,
-		"in":         in,
-		"default":    defaultFn,
-		"coalesce":   coalesce,
-		"ternary":    ternary,
-		"hasPrefix":  strings.HasPrefix,
-		"hasSuffix":  strings.HasSuffix,
-		"trimPrefix": strings.TrimPrefix,
-		"trimSuffix": strings.TrimSuffix,
-		"toLower":    applyStringFunction("toLower", strings.ToLower),
-		"toUpper":    applyStringFunction("toLower", strings.ToUpper),
-		"firstLetterToLower": applyStringFunction("firstLetterToLower", func(input string) string {
+		"join":       strings.Join,                                    // v0.7.0
+		"split":      split,                                           // v0.7.0
+		"first":      first,                                           // v0.7.0
+		"last":       last,                                            // v0.7.0
+		"sort":       sortFn,                                          // v0.8.0
+		"in":         in,                                              // v0.7.0
+		"default":    defaultFn,                                       // v0.7.0
+		"coalesce":   coalesce,                                        // v0.7.0
+		"ternary":    ternary,                                         // v0.7.0
+		"hasPrefix":  strings.HasPrefix,                               // v0.7.0
+		"hasSuffix":  strings.HasSuffix,                               // v0.7.0
+		"trimPrefix": strings.TrimPrefix,                              // v0.8.0
+		"trimSuffix": strings.TrimSuffix,                              // v0.8.0
+		"toLower":    applyStringFunction("toLower", strings.ToLower), // v0.7.0
+		"toUpper":    applyStringFunction("toLower", strings.ToUpper), // v0.7.0
+		"firstLetterToLower": applyStringFunction("firstLetterToLower", func(input string) string { // v0.7.0
 			if input == "" {
 				return ""
 			}
 			return strings.ToLower(input[:1]) + input[1:]
 		}),
-		"firstLetterToUpper": applyStringFunction("firstLetterToUpper", func(input string) string {
+		"firstLetterToUpper": applyStringFunction("firstLetterToUpper", func(input string) string { // v0.7.0
 			if input == "" {
 				return ""
 			}
 			return strings.ToUpper(input[:1]) + input[1:]
 		}),
-		"camelCase":  applyStringFunction("camelCase", textcase.CamelCase),
-		"pascalCase": applyStringFunction("pascalCase", textcase.PascalCase),
-		"snakeCase":  applyStringFunction("snakeCase", textcase.SnakeCase),
-		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),
+		"camelCase":  applyStringFunction("camelCase", textcase.CamelCase),   // v0.7.0
+		"pascalCase": applyStringFunction("pascalCase", textcase.PascalCase), // v0.7.0
+		"snakeCase":  applyStringFunction("snakeCase", textcase.SnakeCase),   // v0.7.0
+		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),   // v0.7.0
 	}
 }
 
