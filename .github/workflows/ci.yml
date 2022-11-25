@@ -21,7 +21,7 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
       - name: Test
-        run: go test -v ./...
+        run: make test
 
   examples:
     runs-on: ubuntu-latest
