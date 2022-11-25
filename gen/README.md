@@ -262,31 +262,26 @@ See https://pkg.go.dev/text/template#hdr-Functions
 | `mapValueType .MapType`                        | Returns map's value type (ie. `T2` from `map<T1,T2>`) | v0.7.0 |
 | `listElemType .ListType`                       | Returns list's element type (ie. `T` from `[]T`) | v0.7.0 |
 
-| Dictionary                                     | Description                    | webrpc-gen |
+| Dictionary (`map[string]any`)                  | Description                    | webrpc-gen |
 |------------------------------------------------|-------------------------------------------------|-------------|
 | `dict [KEY VALUE]...`                          | Create a new dictionary (`map[string]any`) | v0.7.0 |
 | `get $dict KEY`                                | Get value for the given KEY in dictionary | v0.7.0 |
 | `set $dict KEY VALUE`                          | Set value for the given KEY in dictionary | v0.7.0 |
 | `exists $dict KEY`                             | Returns `true` if the KEY exists in the given dictionary | v0.7.0 |
 
-| Arrays                                         | Description                    | webrpc-gen |
+| String arrays                                  | Description                    | webrpc-gen |
 |------------------------------------------------|-------------------------------------------------|-------------|
 dev/strings#Join)) | v0.7.0 |
-| `first ARRAY`                                  | Return first element from the given string array | v0.7.0 |
-| `last ARRAY`                                   | Return last element from the given string array | v0.7.0 |
+| `array [ELEMENTS]...`                          | Create a new string array | v0.8.0 |
+| `append ARRAY [ELEMENTS]...`                   | Append elements to existing string array | v0.8.0 |
+| `first ARRAY`                                  | Return first element from the given array | v0.7.0 |
+| `join ARRAY SEPARATOR`                         | Join array items with a separator (see [strings.Join()](https://pkg.go.
+| `last ARRAY`                                   | Return last element from the given array | v0.7.0 |
 | `sort ARRAY`                                   | Return sorted copy of the given array (ascending order) | v0.8.0 |
-
-| Generic utils                                  | Description                    | webrpc-gen |
-|------------------------------------------------|-------------------------------------------------|-------------|
-| `coalesce VALUES...`                           | Returns first non-empty value | v0.7.0 |
-| `default VALUE DEFAULT`                        | Returns `DEFAULT` value if given `VALUE` is empty | v0.7.0 |
-| `in FIRST VALUES...`                           | Returns `true` if any of the given VALUES match the `first` value | v0.7.0 |
-| `ternary BOOL FIRST SECOND`                    | Ternary if-else. Returns first value if `true`, second value if `false` | v0.7.0 |
+| `split SEPARATOR STRING`                       | Split string by a separator into array `[]string` | v0.7.0 |
 
 | String utils                                   | Description                    | webrpc-gen |
 |------------------------------------------------|-------------------------------------------------|-------------|
-| `join ARRAY SEPARATOR`                         | Join array items with a separator (see [strings.Join()](https://pkg.go.
-| `split SEPARATOR STRING`                       | Split string by a separator into array `[]string` | v0.7.0 |
 | `hasPrefix STRING PREFIX`                      | Returns `true` if the given string starts with PREFIX | v0.8.0 |
 | `hasSuffix STRING SUFFIX`                      | Returns `true` if the given string ends with SUFFIX | v0.8.0 |
 | `trimPrefix STRING PREFIX`                     | Trim prefix from a given string | v0.8.0 |
@@ -299,3 +294,10 @@ dev/strings#Join)) | v0.7.0 |
 | `pascalCase STRING`                            | Converts input to `"PascalCase"` | v0.7.0 |
 | `snakeCase STRING`                             | Converts input to `"snake_case"` | v0.7.0 |
 | `kebabCase STRING`                             | Converts input to `"kebab-case"` | v0.7.0 |
+
+| Generic utils                                  | Description                    | webrpc-gen |
+|------------------------------------------------|-------------------------------------------------|-------------|
+| `coalesce VALUES...`                           | Returns first non-empty value | v0.7.0 |
+| `default VALUE DEFAULT`                        | Returns `DEFAULT` value if given `VALUE` is empty | v0.7.0 |
+| `in FIRST VALUES...`                           | Returns `true` if any of the given VALUES match the `first` value | v0.7.0 |
+| `ternary BOOL FIRST SECOND`                    | Ternary if-else. Returns first value if `true`, second value if `false` | v0.7.0 |

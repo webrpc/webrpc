@@ -25,16 +25,20 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"mapValueType": mapValueType, // v0.7.0
 		"listElemType": listElemType, // v0.7.0
 
-		// Dictionary, aka runtime map[string]any.
+		// Dictionary (map[string]any).
 		"dict":   dict,   // v0.7.0
 		"get":    get,    // v0.7.0
 		"set":    set,    // v0.7.0
 		"exists": exists, // v0.7.0
 
-		// Arrays, aka runtime []any.
-		"first": first,  // v0.7.0
-		"last":  last,   // v0.7.0
-		"sort":  sortFn, // v0.8.0
+		// String arrays.
+		"array":  array,        // v0.8.0
+		"append": appendFn,     // v0.8.0
+		"first":  first,        // v0.7.0
+		"join":   strings.Join, // v0.7.0
+		"last":   last,         // v0.7.0
+		"sort":   sortFn,       // v0.8.0
+		"split":  split,        // v0.7.0
 
 		// Generic utils.
 		"coalesce": coalesce,  // v0.7.0
@@ -43,8 +47,6 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"ternary":  ternary,   // v0.7.0
 
 		// String utils.
-		"join":       strings.Join,                                    // v0.7.0
-		"split":      split,                                           // v0.7.0
 		"hasPrefix":  strings.HasPrefix,                               // v0.7.0
 		"hasSuffix":  strings.HasSuffix,                               // v0.7.0
 		"trimPrefix": strings.TrimPrefix,                              // v0.8.0
