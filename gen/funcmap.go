@@ -36,18 +36,20 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"listElemType": listElemType,
 
 		// String utils.
-		"join":      strings.Join,
-		"split":     split,
-		"first":     first,
-		"last":      last,
-		"in":        in,
-		"default":   defaultFn,
-		"coalesce":  coalesce,
-		"ternary":   ternary,
-		"hasPrefix": strings.HasPrefix,
-		"hasSuffix": strings.HasSuffix,
-		"toLower":   applyStringFunction("toLower", strings.ToLower),
-		"toUpper":   applyStringFunction("toLower", strings.ToUpper),
+		"join":       strings.Join,
+		"split":      split,
+		"first":      first,
+		"last":       last,
+		"in":         in,
+		"default":    defaultFn,
+		"coalesce":   coalesce,
+		"ternary":    ternary,
+		"hasPrefix":  strings.HasPrefix,
+		"hasSuffix":  strings.HasSuffix,
+		"trimPrefix": strings.TrimPrefix,
+		"trimSuffix": strings.TrimSuffix,
+		"toLower":    applyStringFunction("toLower", strings.ToLower),
+		"toUpper":    applyStringFunction("toLower", strings.ToUpper),
 		"firstLetterToLower": applyStringFunction("firstLetterToLower", func(input string) string {
 			if input == "" {
 				return ""
