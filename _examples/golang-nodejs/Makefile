@@ -1,5 +1,5 @@
 all:
-	@echo "please read Makefile source or README to see available commands"
+	@awk -F'[ :]' '!/^all:/ && /^([A-z_-]+):/ {print "make " $$1}' Makefile
 
 generate:
 	webrpc-gen -schema=example.webrpc.json -target=golang -pkg=main -server -out=./server/server.gen.go

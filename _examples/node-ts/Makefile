@@ -1,5 +1,5 @@
 all:
-	@echo "please read Makefile source or README to see available commands"
+	@awk -F'[ :]' '!/^all:/ && /^([A-z_-]+):/ {print "make " $$1}' Makefile
 
 bootstrap:
 	rm -rf server/node_modules && rm -rf webapp/node_modules
