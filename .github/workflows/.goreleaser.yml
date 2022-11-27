@@ -22,7 +22,7 @@ checksum:
   name_template: "checksums.txt"
 
 release:
-  header: |
+  footer: |
     ## Docker
     ```
     docker run ghcr.io/webrpc/webrpc-gen:v{{.Version}}
@@ -30,13 +30,19 @@ release:
 
     ## Homebrew
     ```
-    brew install webrpc/tap/webrpc-gen
+    brew tap webrpc/tap
+    brew install webrpc-gen
     ```
 
-    ## Build & install from source manually
+    ## Build from source
     ```
-    go install github.com/webrpc/webrpc/cmd/webrpc-gen
+    go install -ldflags="-s -w -X github.com/webrpc/webrpc/gen.VERSION=v{{.Version}}" github.com/webrpc/webrpc/cmd/webrpc-gen@v{{.Version}}
     ```
+
+    ## Download binaries
+    macOS: [amd64](https://github.com/webrpc/webrpc/releases/download/v{{.Version}}/webrpc-gen.darwin-amd64), [arm64](https://github.com/webrpc/webrpc/releases/download/v{{.Version}}/webrpc-gen.darwin-arm64) (Apple Silicon)
+    Linux: [amd64](https://github.com/webrpc/webrpc/releases/download/v{{.Version}}/webrpc-gen.linux-amd64), [arm64](https://github.com/webrpc/webrpc/releases/download/v{{.Version}}/webrpc-gen.linux-arm64)
+    Windows: [amd64](https://github.com/webrpc/webrpc/releases/download/v{{.Version}}/webrpc-gen.windows-amd64.exe), [arm64](https://github.com/webrpc/webrpc/releases/download/v{{.Version}}/webrpc-gen.windows-arm64.exe)
 
 changelog:
   use: github
