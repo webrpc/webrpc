@@ -120,7 +120,7 @@ func main() {
 	fmt.Println("=========================")
 	fmt.Println("- schema:", *schemaFlag)
 	fmt.Println("- target:", genOutput.TmplVersion)
-	fmt.Println("- template soruce:", genOutput.TmplDir)
+	fmt.Println("- template source:", genOutput.TmplDir)
 	fmt.Println("- output file:", *outFlag)
 }
 
