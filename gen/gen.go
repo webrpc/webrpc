@@ -16,18 +16,26 @@ type Config struct {
 	TemplateOptions map[string]interface{}
 }
 
-func Generate(proto *schema.WebRPCSchema, target string, config *Config) (string, error) {
+type GenOutput struct {
+	Code string
+	*TemplateSource
+}
+
+func Generate(proto *schema.WebRPCSchema, target string, config *Config) (*GenOutput, error) {
+	genOutput := &GenOutput{}
+
 	target = getOldTarget(target)
 
-	tmpl, err := loadTemplates(proto, target, config)
+	tmpl, tmplSource, err := loadTemplates(proto, target, config)
 	if err != nil {
-		return "", err
+		return genOutput, err
 	}
+	genOutput.TemplateSource = tmplSource
 
 	// Generate deterministic schema hash of the proto file
 	schemaHash, err := proto.SchemaHash()
 	if err != nil {
-		return "", err
+		return genOutput, err
 	}
 
 	// Template vars
@@ -54,14 +62,21 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (string
 	var b bytes.Buffer
 	err = tmpl.ExecuteTemplate(&b, "main", vars)
 	if err != nil {
-		return "", err
+		return genOutput, err
 	}
 
 	if config.Format && isGolangTarget(target) {
-		return formatGoSource(b.Bytes())
+		genCode, err := formatGoSource(b.Bytes())
+		if err != nil {
+			return genOutput, err
+		}
+		genOutput.Code = genCode
+		return genOutput, nil
 	}
 
-	return b.String(), nil
+	genOutput.Code = b.String()
+
+	return genOutput, nil
 }
 
 func getWebrpcGenCommand() string {
