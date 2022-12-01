@@ -115,13 +115,13 @@ func main() {
 		os.Exit(0)
 	}
 
-	fmt.Println("=========================")
-	fmt.Println("webrpc generated summary:")
-	fmt.Println("=========================")
-	fmt.Println("- schema:", *schemaFlag)
-	fmt.Println("- target:", genOutput.TmplVersion)
-	fmt.Println("- template source:", genOutput.TmplDir)
-	fmt.Println("- output file:", *outFlag)
+	fmt.Println("=======================================")
+	fmt.Println("|      webrpc generated summary       |")
+	fmt.Println("=======================================")
+	fmt.Println(" webrpc-gen version :", gen.VERSION)
+	fmt.Println(" target             :", genOutput.TmplVersion)
+	fmt.Println(" schema file        :", *schemaFlag)
+	fmt.Println(" output file        :", *outFlag)
 }
 
 func collectCliArgs(flags *flag.FlagSet, args []string) (cliFlags []string, templateOpts map[string]interface{}, err error) {
