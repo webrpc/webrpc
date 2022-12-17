@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/webrpc/webrpc/tests/client"
 	"github.com/webrpc/webrpc/tests/server"
 )
 
@@ -45,10 +46,12 @@ func main() {
 			os.Exit(1)
 		}
 
-		err := clientMode()
+		err := client.RunTests(*urlFlag)
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		fmt.Printf("All tests ran successfully against %v\n", *urlFlag)
 		os.Exit(0)
 	}
 
@@ -61,10 +64,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func clientMode() error {
-	return nil
 }
 
 func serverMode() error {
