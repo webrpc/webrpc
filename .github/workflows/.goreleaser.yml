@@ -13,6 +13,17 @@ builds:
       - arm64
     ldflags:
       - -s -w -X github.com/webrpc/webrpc/gen.VERSION=v{{.Version}}
+  - main: ./cmd/webrpc-test
+    binary: webrpc-test
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X github.com/webrpc/webrpc/gen.VERSION=v{{.Version}}
 
 archives:
   - name_template: "{{ .Binary }}.{{ .Os }}-{{ .Arch }}"
