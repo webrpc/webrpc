@@ -2,8 +2,21 @@
 project_name: webrpc
 
 builds:
-  - main: ./cmd/webrpc-gen
+  - id: webrpc-gen
+    main: ./cmd/webrpc-gen
     binary: webrpc-gen
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X github.com/webrpc/webrpc/gen.VERSION=v{{.Version}}
+  - id: webrpc-test
+    main: ./cmd/webrpc-test
+    binary: webrpc-test
     goos:
       - darwin
       - linux
@@ -15,7 +28,15 @@ builds:
       - -s -w -X github.com/webrpc/webrpc/gen.VERSION=v{{.Version}}
 
 archives:
-  - name_template: "{{ .Binary }}.{{ .Os }}-{{ .Arch }}"
+  - id: webrpc-gen
+    builds:
+      - webrpc-gen
+    name_template: "{{ .Binary }}.{{ .Os }}-{{ .Arch }}"
+    format: binary
+  - id: webrpc-test
+    builds:
+      - webrpc-test
+    name_template: "{{ .Binary }}.{{ .Os }}-{{ .Arch }}"
     format: binary
 
 checksum:
@@ -25,8 +46,10 @@ release:
   footer: |
     ## Docker
     ```
-    docker run ghcr.io/webrpc/webrpc-gen:v{{.Version}}
+    docker pull ghcr.io/webrpc/webrpc-gen:v{{.Version}}
     ```
+
+    Example: `docker run -v $PWD:$PWD ghcr.io/webrpc/webrpc-gen:v{{.Version}} -schema=$PWD/api.ridl -target=golang`
 
     ## Homebrew
     ```
@@ -50,6 +73,22 @@ changelog:
 
 brews:
   - name: webrpc-gen
+    ids:
+      - webrpc-gen
+    tap:
+      owner: webrpc
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    homepage: "https://github.com/webrpc/webrpc"
+    description: "generate source code for your target language from webrpc schema"
+    license: "MIT"
+  - name: webrpc-test
+    ids:
+      - webrpc-test
     tap:
       owner: webrpc
       name: homebrew-tap
