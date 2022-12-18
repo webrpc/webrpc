@@ -2,7 +2,8 @@
 project_name: webrpc
 
 builds:
-  - main: ./cmd/webrpc-gen
+  - id: webrpc-gen
+    main: ./cmd/webrpc-gen
     binary: webrpc-gen
     goos:
       - darwin
@@ -13,7 +14,8 @@ builds:
       - arm64
     ldflags:
       - -s -w -X github.com/webrpc/webrpc/gen.VERSION=v{{.Version}}
-  - main: ./cmd/webrpc-test
+  - id: webrpc-test
+    main: ./cmd/webrpc-test
     binary: webrpc-test
     goos:
       - darwin
