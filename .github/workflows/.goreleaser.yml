@@ -38,8 +38,10 @@ release:
   footer: |
     ## Docker
     ```
-    docker run ghcr.io/webrpc/webrpc-gen:v{{.Version}}
+    docker pull ghcr.io/webrpc/webrpc-gen:v{{.Version}}
     ```
+
+    Example: `docker run -v $PWD:$PWD ghcr.io/webrpc/webrpc-gen:v{{.Version}} -schema=$PWD/api.ridl -target=golang`
 
     ## Homebrew
     ```
