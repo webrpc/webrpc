@@ -62,7 +62,21 @@ changelog:
   sort: asc
 
 brews:
-  - name: webrpc-gen
+  - id: webrpc-gen
+    name: webrpc-gen
+    tap:
+      owner: webrpc
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    homepage: "https://github.com/webrpc/webrpc"
+    description: "generate source code for your target language from webrpc schema"
+    license: "MIT"
+  - id: webrpc-test
+    name: webrpc-test
     tap:
       owner: webrpc
       name: homebrew-tap
