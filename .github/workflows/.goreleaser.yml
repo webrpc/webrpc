@@ -28,7 +28,15 @@ builds:
       - -s -w -X github.com/webrpc/webrpc/gen.VERSION=v{{.Version}}
 
 archives:
-  - name_template: "{{ .Binary }}.{{ .Os }}-{{ .Arch }}"
+  - id: webrpc-gen
+    builds:
+      - webrpc-gen
+    name_template: "{{ .Binary }}.{{ .Os }}-{{ .Arch }}"
+    format: binary
+  - id: webrpc-test
+    builds:
+      - webrpc-test
+    name_template: "{{ .Binary }}.{{ .Os }}-{{ .Arch }}"
     format: binary
 
 checksum:
@@ -66,8 +74,7 @@ changelog:
 brews:
   - name: webrpc-gen
     ids:
-      - webrpc-gen-darwin-amd64
-      - webrpc-gen-darwin-arm64
+      - webrpc-gen
     tap:
       owner: webrpc
       name: homebrew-tap
@@ -81,8 +88,7 @@ brews:
     license: "MIT"
   - name: webrpc-test
     ids:
-      - webrpc-test-darwin-amd64
-      - webrpc-test-darwin-arm64
+      - webrpc-test
     tap:
       owner: webrpc
       name: homebrew-tap
