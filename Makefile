@@ -21,9 +21,9 @@ all:
 
 build:
 	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen
-	./bin/webrpc-gen -schema=./tests/schema/api.ridl -target=golang -pkg=client -client -out=./tests/client/client.go
+	go build -o ./bin/webrpc-test ./cmd/webrpc-test
+	./bin/webrpc-gen -schema=./tests/schema/api.ridl -target=golang -pkg=client -client -out=./tests/client/client.gen.go
 	./bin/webrpc-gen -schema=./tests/schema/api.ridl -target=golang -pkg=server -server -out=./tests/server/server.gen.go
-	go build -o ./bin/webrpc-server ./cmd/webrpc-server
 
 clean:
 	rm -rf ./bin
@@ -32,8 +32,6 @@ install: build
 	go install ./cmd/webrpc-gen
 
 test: build
-	go clean -testcache
-	./bin/webrpc-server &
 	go test -v ./...
 
 generate:

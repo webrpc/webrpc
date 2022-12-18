@@ -1,21 +1,18 @@
 package tests
 
 import (
-	"context"
+	"net/http/httptest"
 	"testing"
-	"net/http"
-	"github.com/webrpc/webrpc/tests/client"
+
 	"github.com/stretchr/testify/assert"
+	"github.com/webrpc/webrpc/tests/client"
+	"github.com/webrpc/webrpc/tests/server"
 )
 
 func TestGetComplexStructure(t *testing.T) {
-	httpClient := client.NewComplexApiClient("http://localhost:9999/complex", &http.Client{})
+	srv := httptest.NewServer(server.NewComplexApiServer(&server.ComplexServer{}))
+	defer srv.Close()
 
-	// test getting data from client
-	resp, err := httpClient.GetComplex(context.Background())
-	assert.NoError(t, err)
-
-	// test sending the same data to server
-	err = httpClient.SendComplex(context.Background(), resp)
+	err := client.TestComplexData(srv.URL)
 	assert.NoError(t, err)
 }
