@@ -64,8 +64,10 @@ changelog:
   sort: asc
 
 brews:
-  - id: webrpc-gen
-    name: webrpc-gen
+  - name: webrpc-gen
+    ids:
+      - webrpc-gen-darwin-amd64
+      - webrpc-gen-darwin-arm64
     tap:
       owner: webrpc
       name: homebrew-tap
@@ -77,8 +79,10 @@ brews:
     homepage: "https://github.com/webrpc/webrpc"
     description: "generate source code for your target language from webrpc schema"
     license: "MIT"
-  - id: webrpc-test
-    name: webrpc-test
+  - name: webrpc-test
+    ids:
+      - webrpc-test-darwin-amd64
+      - webrpc-test-darwin-arm64
     tap:
       owner: webrpc
       name: homebrew-tap
