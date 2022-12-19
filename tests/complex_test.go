@@ -1,5 +1,8 @@
 package tests
 
+//go:generate ../bin/webrpc-gen -schema=./schema/api.ridl -target=golang -pkg=client -client -out=./client/client.gen.go
+//go:generate ../bin/webrpc-gen -schema=./schema/api.ridl -target=golang -pkg=server -server -out=./server/server.gen.go
+
 import (
 	"net/http/httptest"
 	"testing"

@@ -21,20 +21,17 @@ all:
 
 build:
 	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen
+
+build-test:
 	go build -o ./bin/webrpc-test ./cmd/webrpc-test
-	./bin/webrpc-gen -schema=./tests/schema/api.ridl -target=golang -pkg=client -client -out=./tests/client/client.gen.go
-	./bin/webrpc-gen -schema=./tests/schema/api.ridl -target=golang -pkg=server -server -out=./tests/server/server.gen.go
 
 clean:
 	rm -rf ./bin
 
-install: build
+install:
 	go install ./cmd/webrpc-gen
 
-test: build
-	go test -v ./...
-
-generate:
+generate: build build-test
 	go generate ./...
 	@for i in _examples/*/Makefile; do           \
 		echo; echo $$ cd $$i \&\& make generate; \
@@ -52,3 +49,8 @@ dep-upgrade-all:
 
 diff:
 	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
+
+test: build-test generate
+	go test -v ./...
+	./bin/webrpc-test -server -port=9988 -timeout=1s &
+	./bin/webrpc-test -client -url=http://localhost:9988
