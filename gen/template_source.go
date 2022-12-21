@@ -35,7 +35,7 @@ func loadTemplates(proto *schema.WebRPCSchema, target string, config *Config) (*
 // period of time before we attempt to refetch from git source again.
 // in case of a failure, we will use the local cache.
 const (
-	templateCacheTime              = 1 * time.Hour
+	templateCacheTTL               = 1 * time.Hour
 	templateCacheTimestampFilename = ".webrpc-gen-timestamp"
 	templateCacheInfoFilename      = ".webrpc-gen-info"
 )
@@ -46,9 +46,11 @@ type TemplateSource struct {
 	target string
 	config *Config
 
-	IsLocal     bool
-	TmplDir     string
-	TmplVersion string // git url and hash, or the local dir same as TmplDir
+	IsLocal         bool
+	TmplDir         string
+	TmplVersion     string // git url and hash, or the local dir same as TmplDir
+	CacheAge        time.Duration
+	CacheRefreshErr error
 }
 
 func NewTemplateSource(proto *schema.WebRPCSchema, target string, config *Config) (*TemplateSource, error) {
@@ -65,7 +67,7 @@ func (s *TemplateSource) loadTemplates() (*template.Template, error) {
 	if isLocalDir(s.target) {
 		// from local directory
 		s.IsLocal = true
-		tmpl, err := s.tmpl.ParseGlob(filepath.Join(s.target, "/*.tmpl"))
+		tmpl, err := s.tmpl.ParseGlob(filepath.Join(s.target, "/*.go.tmpl"))
 		if err != nil {
 			return nil, fmt.Errorf("failed to load templates from %s: %w", s.target, err)
 		}
@@ -78,49 +80,43 @@ func (s *TemplateSource) loadTemplates() (*template.Template, error) {
 		s.target = s.inferRemoteTarget(s.target)
 		tmpl, err := s.loadRemote()
 		if err != nil {
-			return nil, fmt.Errorf("failed to load templates from git %s: %w", s.target, err)
+			return nil, fmt.Errorf("failed to load templates from %s: %w", s.target, err)
 		}
 		return tmpl, err
 	}
 }
 
 func (s *TemplateSource) loadRemote() (*template.Template, error) {
+	var err error
 	var sourceFS http.FileSystem
 
-	cacheDir, cacheFS, cacheAvailable, cacheTS, err := s.openCacheDir()
-	if err != nil {
-		return nil, err
-	}
-	s.IsLocal = false
+	cacheAvailable, cacheDir, cacheFS, cacheAge := s.openCacheDir()
 	s.TmplDir = cacheDir
 
-	// cache is new, so lets fetch from git
-	if !cacheAvailable || s.config.RefreshCache || time.Now().Unix()-cacheTS > int64(templateCacheTime.Seconds()) {
-		sourceFS, err = gitfs.New(context.Background(), s.target) //, gitfs.OptPrefetch(true), gitfs.OptGlob("/*.tmpl"))
+	if !cacheAvailable || s.config.RefreshCache || cacheAge > templateCacheTTL {
 		s.TmplVersion = s.target
-
+		// fetch from remote git
+		sourceFS, err = gitfs.New(context.Background(), s.target, gitfs.OptPrefetch(true), gitfs.OptGlob("*.go.tmpl"))
 		if err != nil {
-			// error occured reading from git, if cache is available, use that instead
+			s.CacheRefreshErr = err
+			// load from cache, if available
 			if cacheAvailable {
-				sourceFS = http.Dir(cacheDir)
-			} else {
-				return nil, fmt.Errorf("failed to load templates from remote git repository %s: %w", s.target, err)
-			}
-
-		} else {
-			// using git remote source -- lets cache the files too
-			err := s.syncTemplates(s.target, sourceFS, cacheFS, cacheDir)
-			if err != nil {
-				// in case of error, just print a warning and carry on
-				log.Println("[warning] error syncing git templates to local cache:", err.Error())
-			} else {
-				// read from our cache
 				sourceFS = cacheFS
+				s.CacheAge = cacheAge
+			} else {
+				return nil, fmt.Errorf("failed to fetch from remote git: %w", err)
+			}
+		} else {
+			// cache remote git
+			if err := s.cacheTemplates(s.target, sourceFS, cacheFS, cacheDir); err != nil {
+				s.CacheRefreshErr = err
+				log.Println(err)
 			}
 		}
 	} else {
-		// load from cache directory
+		// load from cache
 		sourceFS = cacheFS
+		s.CacheAge = cacheAge
 	}
 
 	// read template version info
@@ -130,7 +126,7 @@ func (s *TemplateSource) loadRemote() (*template.Template, error) {
 	}
 
 	// parse the template files from the source
-	tmpl, err := vfstemplate.ParseGlob(sourceFS, s.tmpl, "/*.tmpl")
+	tmpl, err := vfstemplate.ParseGlob(sourceFS, s.tmpl, "/*.go.tmpl")
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse templates: %w", err)
 	}
@@ -138,8 +134,18 @@ func (s *TemplateSource) loadRemote() (*template.Template, error) {
 	return tmpl, nil
 }
 
-func (s *TemplateSource) syncTemplates(target string, remoteFS, cacheFS http.FileSystem, cacheDir string) error {
-	filenames, err := vfspath.Glob(remoteFS, "/*.tmpl")
+func (s *TemplateSource) cacheTemplates(target string, remoteFS, cacheFS http.FileSystem, cacheDir string) error {
+	// create empty cache directory
+	if _, err := os.Stat(cacheDir); os.IsExist(err) {
+		if err := os.RemoveAll(cacheDir); err != nil {
+			return err
+		}
+	}
+	if err := os.MkdirAll(cacheDir, 0755); err != nil {
+		return fmt.Errorf("unable to create directory for template cache at %s: %w", cacheDir, err)
+	}
+
+	filenames, err := vfspath.Glob(remoteFS, "/*.go.tmpl")
 	if err != nil {
 		return err
 	}
@@ -156,15 +162,15 @@ func (s *TemplateSource) syncTemplates(target string, remoteFS, cacheFS http.Fil
 		}
 	}
 
-	now := time.Now().Unix()
-	data := []byte(fmt.Sprintf("%d", now))
-
-	err = os.WriteFile(filepath.Join(cacheDir, templateCacheTimestampFilename), data, 0755)
+	err = os.WriteFile(filepath.Join(cacheDir, templateCacheInfoFilename), []byte(strings.TrimSpace(target)), 0755)
 	if err != nil {
 		return err
 	}
 
-	err = os.WriteFile(filepath.Join(cacheDir, templateCacheInfoFilename), []byte(strings.TrimSpace(target)), 0755)
+	now := time.Now()
+	data := []byte(fmt.Sprintf("%d", now.Unix()))
+
+	err = os.WriteFile(filepath.Join(cacheDir, templateCacheTimestampFilename), data, 0755)
 	if err != nil {
 		return err
 	}
@@ -172,26 +178,12 @@ func (s *TemplateSource) syncTemplates(target string, remoteFS, cacheFS http.Fil
 	return nil
 }
 
-func (s *TemplateSource) openCacheDir() (string, http.FileSystem, bool, int64, error) {
+func (s *TemplateSource) openCacheDir() (bool, string, http.FileSystem, time.Duration) {
 	cacheDir, _ := s.getTmpCacheDir()
 	if cacheDir == "" {
 		// unable to find OS temp dir, but we don't error -- although
 		// we probably should print a warning
-		return "", nil, false, 0, nil
-	}
-
-	// delete the directory if asked to refresh
-	if s.config.RefreshCache {
-		os.RemoveAll(cacheDir)
-	}
-
-	// create the directory if it doesn't exist
-	_, err := os.Stat(cacheDir)
-	if !os.IsExist(err) {
-		err := os.MkdirAll(cacheDir, 0755)
-		if err != nil {
-			return "", nil, false, 0, fmt.Errorf("unable to create directory for template cache at %s: %w", cacheDir, err)
-		}
+		return false, "", nil, 0
 	}
 
 	// convert local fs to http filesystem
@@ -208,7 +200,7 @@ func (s *TemplateSource) openCacheDir() (string, http.FileSystem, bool, int64, e
 		}
 	}
 
-	return cacheDir, cacheFS, available, ts, nil
+	return available, cacheDir, cacheFS, time.Since(time.Unix(ts, 0))
 }
 
 func (s *TemplateSource) getTmpCacheDir() (string, error) {
@@ -218,11 +210,11 @@ func (s *TemplateSource) getTmpCacheDir() (string, error) {
 	}
 
 	// derive a deterministic folder for this template source
-	parts := strings.Split(s.target, "/")
-	name := parts[len(parts)-1]
-
 	hash := fnv.New32a()
 	hash.Write([]byte(s.target))
+
+	parts := strings.Split(s.target, "/")
+	name := parts[len(parts)-1]
 
 	return filepath.Join(dir, "webrpc-cache", fmt.Sprintf("%d-%s", hash.Sum32(), name)), nil
 }
