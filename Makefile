@@ -58,4 +58,5 @@ diff:
 test: build-test generate
 	go test -v ./...
 	./bin/webrpc-test -server -port=9988 -timeout=2s &
+	sleep 0.5
 	./bin/webrpc-test -client -url=http://localhost:9988
