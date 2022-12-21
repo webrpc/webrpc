@@ -16,7 +16,7 @@ import (
 var flags = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
 
 func main() {
-	versionFlag := flags.Bool("version", false, "print webrpc version and exit")
+	versionFlag := flags.Bool("version", false, "print version and exit")
 	schemaFlag := flags.String("schema", "", "webrpc schema file (required)")
 	targetFlag := flags.String("target", "", "target generator (required), ie. golang or golang@v0.7.0")
 	outFlag := flags.String("out", "", "generated output file, default: stdout")
@@ -51,7 +51,7 @@ func main() {
 	flags.Parse(cliFlags)
 
 	if *versionFlag {
-		fmt.Printf("%s %s\n", flags.Name(), gen.VERSION)
+		fmt.Println("webrpc-gen", webrpc.VERSION)
 		os.Exit(0)
 	}
 
@@ -119,7 +119,7 @@ func main() {
 	fmt.Println("=======================================")
 	fmt.Println("|      webrpc generated summary       |")
 	fmt.Println("=======================================")
-	fmt.Println(" webrpc-gen version :", gen.VERSION)
+	fmt.Println(" webrpc-gen version :", webrpc.VERSION)
 	fmt.Println(" target             :", genOutput.TmplVersion)
 	if !genOutput.IsLocal {
 		fmt.Println(" target cache       :", genOutput.TmplDir)

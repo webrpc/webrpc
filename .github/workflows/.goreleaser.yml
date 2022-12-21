@@ -13,7 +13,7 @@ builds:
       - amd64
       - arm64
     ldflags:
-      - -s -w -X github.com/webrpc/webrpc/gen.VERSION=v{{.Version}}
+      - -s -w -X github.com/webrpc/webrpc.VERSION=v{{.Version}}
   - id: webrpc-test
     main: ./cmd/webrpc-test
     binary: webrpc-test
@@ -25,7 +25,7 @@ builds:
       - amd64
       - arm64
     ldflags:
-      - -s -w -X github.com/webrpc/webrpc/gen.VERSION=v{{.Version}}
+      - -s -w -X github.com/webrpc/webrpc.VERSION=v{{.Version}}
 
 archives:
   - id: webrpc-gen
@@ -59,7 +59,7 @@ release:
 
     ## Build from source
     ```
-    go install -ldflags="-s -w -X github.com/webrpc/webrpc/gen.VERSION=v{{.Version}}" github.com/webrpc/webrpc/cmd/webrpc-gen@v{{.Version}}
+    go install -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=v{{.Version}}" github.com/webrpc/webrpc/cmd/webrpc-gen@v{{.Version}}
     ```
 
     ## Download binaries

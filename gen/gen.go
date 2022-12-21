@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/webrpc/webrpc"
 	"github.com/webrpc/webrpc/schema"
 )
 
@@ -49,7 +50,7 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (*GenOu
 	}{
 		proto,
 		schemaHash,
-		VERSION,
+		webrpc.VERSION,
 		getWebrpcGenCommand(),
 		target,
 		config.TemplateOptions,

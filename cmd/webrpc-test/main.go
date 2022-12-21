@@ -9,14 +9,16 @@ import (
 	"os"
 	"time"
 
+	"github.com/webrpc/webrpc"
 	"github.com/webrpc/webrpc/tests/client"
 	"github.com/webrpc/webrpc/tests/server"
 )
 
 var (
-	flags      = flag.NewFlagSet("webrpc-test", flag.ContinueOnError)
-	clientFlag = flags.Bool("client", false, "client mode")
-	serverFlag = flags.Bool("server", false, "server mode")
+	flags       = flag.NewFlagSet("webrpc-test", flag.ContinueOnError)
+	clientFlag  = flags.Bool("client", false, "client mode")
+	serverFlag  = flags.Bool("server", false, "server mode")
+	versionFlag = flags.Bool("version", false, "print version and exit")
 
 	// -client
 	clientFlags = flag.NewFlagSet("webrpc-test -client", flag.ExitOnError)
@@ -35,6 +37,12 @@ func main() {
 	}
 
 	_ = flags.Parse(os.Args[1:2])
+
+	if *versionFlag {
+		fmt.Println("webrpc-test", webrpc.VERSION)
+		os.Exit(0)
+	}
+
 	if !*serverFlag && !*clientFlag {
 		fmt.Fprintf(os.Stderr, "-server or -client flag is required\n")
 		os.Exit(1)

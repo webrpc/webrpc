@@ -9,7 +9,7 @@ RUN apk add --update git
 ADD ./ /src
 
 WORKDIR /src
-RUN go build -ldflags="-s -w -X github.com/webrpc/webrpc/gen.VERSION=${VERSION}" -o /usr/bin/webrpc-gen ./cmd/webrpc-gen
+RUN go build -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=${VERSION}" -o /usr/bin/webrpc-gen ./cmd/webrpc-gen
 
 # -----------------------------------------------------------------
 # Runner
