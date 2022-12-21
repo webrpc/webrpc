@@ -86,5 +86,9 @@ func serverMode() error {
 		}()
 	}
 
-	return srv.ListenAndServe()
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return err
+	}
+
+	return nil
 }
