@@ -39,7 +39,7 @@ install:
 generate: build
 	go generate ./...
 	@for i in _examples/*/Makefile; do           \
-		echo; echo $$ cd $$i \&\& make generate; \
+		echo; echo $$ cd $$(dirname $$i) \&\& make generate; \
 		cd $$(dirname $$i);                      \
 		make generate || exit 1;                 \
 		cd ../../;                               \
@@ -57,7 +57,7 @@ diff:
 
 test: generate build-test
 	go test -v ./...
-	echo "Running imperoperability test"; \
+	echo "Running inperoperability test"; \
 		./bin/webrpc-test -server -port=9988 -timeout=2s & \
 		sleep 0.5; \
 		./bin/webrpc-test -client -url=http://localhost:9988; \
