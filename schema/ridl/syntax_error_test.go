@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestError(t *testing.T) {
+func TestSyntaxError(t *testing.T) {
 	syntaxErrors := []string{
 		`
 

@@ -7,15 +7,15 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-// Returns true if given type is basic type.
-func isBasicType(v interface{}) bool {
-	_, isBasicType := schema.DataTypeFromString[toString(v)]
-	return isBasicType
+// Returns true if given type is core type.
+func isCoreType(v interface{}) bool {
+	_, isCoreType := schema.CoreTypeFromString[toString(v)]
+	return isCoreType
 }
 
 // Returns true if given type is struct.
 func isStructType(v interface{}) bool {
-	return !isBasicType(v) && !isListType(v) && !isMapType(v) && !isEnumType(v)
+	return !isCoreType(v) && !isListType(v) && !isMapType(v) && !isEnumType(v)
 }
 
 // Returns true if given type is enum.

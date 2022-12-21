@@ -7,7 +7,7 @@ import (
 
 type VarType struct {
 	Expr string   // Type, ie. map<string,map<string,uint32>> or []User
-	Type DataType // Kind, ie. map or struct
+	Type CoreType // Kind, ie. map or struct
 
 	List   *VarListType
 	Map    *VarMapType
@@ -63,7 +63,7 @@ type VarListType struct {
 }
 
 type VarMapType struct {
-	Key   DataType // see, VarMapKeyDataTypes -- only T_String or T_XintX supported
+	Key   CoreType // see, VarMapKeyDataTypes -- only T_String or T_XintX supported
 	Value *VarType
 }
 
@@ -79,7 +79,7 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 	vt.Expr = expr
 
 	// parse data type from string
-	dataType, ok := DataTypeFromString[expr]
+	dataType, ok := CoreTypeFromString[expr]
 
 	if !ok {
 		// test for complex datatype
@@ -100,7 +100,7 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 		vt.List = &VarListType{Elem: &VarType{}}
 
 		// shift expr, and keep parsing
-		expr = strings.TrimPrefix(expr, DataTypeToString[T_List])
+		expr = strings.TrimPrefix(expr, CoreTypeToString[T_List])
 		err := ParseVarTypeExpr(schema, expr, vt.List.Elem)
 		if err != nil {
 			return err
@@ -113,7 +113,7 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 			return err
 		}
 
-		keyDataType, ok := DataTypeFromString[key]
+		keyDataType, ok := CoreTypeFromString[key]
 		if !ok {
 			return fmt.Errorf("schema error: invalid map key type '%s' for expr '%s'", key, expr)
 		}
@@ -140,7 +140,7 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 		vt.Struct = &VarStructType{Name: structExpr, Message: msg}
 
 	default:
-		// basic type, we're done here
+		// core type, we're done here
 	}
 
 	return nil
@@ -151,7 +151,7 @@ func parseMapExpr(expr string) (string, string, error) {
 		return "", "", fmt.Errorf("schema error: invalid map expr for '%s'", expr)
 	}
 
-	mapKeyword := DataTypeToString[T_Map]
+	mapKeyword := CoreTypeToString[T_Map]
 	expr = expr[len(mapKeyword):]
 
 	if expr[0:1] != "<" {
@@ -195,19 +195,19 @@ func buildVarTypeExpr(vt *VarType, expr string) string {
 		return expr
 
 	default:
-		// basic type
+		// core type
 		expr += vt.Type.String()
 		return expr
 	}
 }
 
 func isListExpr(expr string) bool {
-	listTest := DataTypeToString[T_List]
+	listTest := CoreTypeToString[T_List]
 	return strings.HasPrefix(expr, listTest)
 }
 
 func isMapExpr(expr string) bool {
-	mapTest := DataTypeToString[T_Map] + "<"
+	mapTest := CoreTypeToString[T_Map] + "<"
 	return strings.HasPrefix(expr, mapTest)
 }
 
@@ -220,11 +220,11 @@ func getMessageType(schema *WebRPCSchema, structExpr string) (*Message, bool) {
 	return nil, false
 }
 
-var VarKeyDataTypes = []DataType{
+var VarKeyDataTypes = []CoreType{
 	T_String, T_Uint, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
-var VarIntegerDataTypes = []DataType{
+var VarIntegerDataTypes = []CoreType{
 	T_Uint, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
@@ -232,8 +232,8 @@ func isValidVarKeyType(s string) bool {
 	return isValidVarType(s, VarKeyDataTypes)
 }
 
-func isValidVarType(s string, allowedList []DataType) bool {
-	dt, ok := DataTypeFromString[s]
+func isValidVarType(s string, allowedList []CoreType) bool {
+	dt, ok := CoreTypeFromString[s]
 	if !ok {
 		return false
 	}
