@@ -1,3 +1,5 @@
+export PATH = $(shell echo $$PWD/bin:$$PATH)
+
 all:
 	@echo "*****************************************"
 	@echo "**             WebRPC Dev             **"
@@ -8,11 +10,14 @@ all:
 	@echo ""
 	@echo " + Testing:"
 	@echo "   - test"
+	@echo "   - generate"
+	@echo "   - diff"
 	@echo ""
 	@echo " + Builds:"
 	@echo "   - build"
+	@echo "   - build-test"
 	@echo "   - clean"
-	@echo "   - generate"
+	@echo "   - install"
 	@echo ""
 	@echo " + Dep management:"
 	@echo "   - dep"
@@ -21,23 +26,20 @@ all:
 
 build:
 	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen
+
+build-test:
 	go build -o ./bin/webrpc-test ./cmd/webrpc-test
-	./bin/webrpc-gen -schema=./tests/schema/api.ridl -target=golang -pkg=client -client -out=./tests/client/client.gen.go
-	./bin/webrpc-gen -schema=./tests/schema/api.ridl -target=golang -pkg=server -server -out=./tests/server/server.gen.go
 
 clean:
 	rm -rf ./bin
 
-install: build
+install:
 	go install ./cmd/webrpc-gen
 
-test: build
-	go test -v ./...
-
-generate:
+generate: build
 	go generate ./...
 	@for i in _examples/*/Makefile; do           \
-		echo; echo $$ cd $$i \&\& make generate; \
+		echo; echo $$ cd $$(dirname $$i) \&\& make generate; \
 		cd $$(dirname $$i);                      \
 		make generate || exit 1;                 \
 		cd ../../;                               \
@@ -52,3 +54,11 @@ dep-upgrade-all:
 
 diff:
 	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
+
+test: generate build-test
+	go test -v ./...
+	echo "Running inperoperability test"; \
+		./bin/webrpc-test -server -port=9988 -timeout=2s & \
+		sleep 0.5; \
+		./bin/webrpc-test -client -url=http://localhost:9988; \
+		wait
