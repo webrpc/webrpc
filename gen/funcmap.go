@@ -16,7 +16,8 @@ func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) ma
 		"minVersion":   minVersion,   // v0.7.0
 
 		// Schema type helpers.
-		"isBasicType":  isBasicType,  // v0.7.0
+		"isBasicType":  isCoreType,   // v0.7.0 (deprecated)
+		"isCoreType":   isCoreType,   // v0.9.0
 		"isStructType": isStructType, // v0.7.0
 		"isEnumType":   isEnumType,   // v0.7.0
 		"isMapType":    isMapType,    // v0.7.0

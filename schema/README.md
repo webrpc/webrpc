@@ -11,7 +11,7 @@ Some example webrpc schemas:
   * ..find more in ./_examples
 
 - [Type system](#type-system)
-  - [Basic types](#basic-types)
+  - [Core types](#core-types)
     - [Integers](#integers)
     - [Floats](#floats)
     - [Strings](#strings)
@@ -23,7 +23,7 @@ Some example webrpc schemas:
 
 # Type system
 
-## Basic types
+## Core types
 
 - `byte` (aka uint8)
 - `bool`

@@ -253,7 +253,8 @@ See https://pkg.go.dev/text/template#hdr-Functions
 
 | Schema type helpers                            | Description                    | webrpc-gen |
 |------------------------------------------------|-------------------------------------------------|-------------|
-| `isBasicType .Type`                            | Returns `true` if `.Type` is [basic type](https://github.com/webrpc/webrpc/tree/master/schema#basic-types) | v0.7.0 |
+| `isBasicType .Type`                            | Returns `true` if `.Type` is [core type](https://github.com/webrpc/webrpc/tree/master/schema#core-types) | v0.7.0 (deprecated) |
+| `isCoreType .Type`                            | Returns `true` if `.Type` is [core type](https://github.com/webrpc/webrpc/tree/master/schema#core-types) | v0.9.0 |
 | `isStructType .Type`                           | Returns `true` if `.Type` is [struct](https://github.com/webrpc/webrpc/tree/master/schema#struct) | v0.7.0 |
 | `isEnumType .Type`                             | Returns `true` if `.Type` is [enum](https://github.com/webrpc/webrpc/tree/master/schema#enum) | v0.7.0 |
 | `isMapType .Type`                              | Returns `true` if `.Type` is [map](https://github.com/webrpc/webrpc/tree/master/schema#map) (`map<T1,T2>`) | v0.7.0 |
