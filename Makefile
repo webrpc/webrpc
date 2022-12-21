@@ -1,3 +1,5 @@
+export PATH = $(shell echo $$PWD/bin:$$PATH)
+
 all:
 	@echo "*****************************************"
 	@echo "**             WebRPC Dev             **"
@@ -35,7 +37,6 @@ install:
 	go install ./cmd/webrpc-gen
 
 generate: build
-	export PATH="$$PWD/bin:$$PATH"
 	go generate ./...
 	@for i in _examples/*/Makefile; do           \
 		echo; echo $$ cd $$i \&\& make generate; \
@@ -56,6 +57,5 @@ diff:
 
 test: build-test generate
 	go test -v ./...
-	export PATH="$$PWD/bin:$$PATH"
 	./bin/webrpc-test -server -port=9988 -timeout=2s &
 	./bin/webrpc-test -client -url=http://localhost:9988
