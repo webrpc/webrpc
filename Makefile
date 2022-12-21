@@ -8,11 +8,14 @@ all:
 	@echo ""
 	@echo " + Testing:"
 	@echo "   - test"
+	@echo "   - generate"
+	@echo "   - diff"
 	@echo ""
 	@echo " + Builds:"
 	@echo "   - build"
+	@echo "   - build-test"
 	@echo "   - clean"
-	@echo "   - generate"
+	@echo "   - install"
 	@echo ""
 	@echo " + Dep management:"
 	@echo "   - dep"
@@ -31,7 +34,8 @@ clean:
 install:
 	go install ./cmd/webrpc-gen
 
-generate: build build-test
+generate: build
+	export PATH="$$PWD/bin:$$PATH"
 	go generate ./...
 	@for i in _examples/*/Makefile; do           \
 		echo; echo $$ cd $$i \&\& make generate; \
@@ -52,5 +56,6 @@ diff:
 
 test: build-test generate
 	go test -v ./...
-	./bin/webrpc-test -server -port=9988 -timeout=1s &
+	export PATH="$$PWD/bin:$$PATH"
+	./bin/webrpc-test -server -port=9988 -timeout=2s &
 	./bin/webrpc-test -client -url=http://localhost:9988
