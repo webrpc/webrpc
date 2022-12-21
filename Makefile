@@ -55,8 +55,10 @@ dep-upgrade-all:
 diff:
 	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
 
-test: build-test generate
+test: generate build-test
 	go test -v ./...
-	./bin/webrpc-test -server -port=9988 -timeout=2s &
-	sleep 0.5
-	./bin/webrpc-test -client -url=http://localhost:9988
+	echo "Running imperoperability test"; \
+		./bin/webrpc-test -server -port=9988 -timeout=2s & \
+		sleep 0.5; \
+		./bin/webrpc-test -client -url=http://localhost:9988; \
+		wait
