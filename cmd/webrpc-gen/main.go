@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/webrpc/webrpc"
 	"github.com/webrpc/webrpc/gen"
@@ -120,6 +121,17 @@ func main() {
 	fmt.Println("=======================================")
 	fmt.Println(" webrpc-gen version :", gen.VERSION)
 	fmt.Println(" target             :", genOutput.TmplVersion)
+	if !genOutput.IsLocal {
+		fmt.Println(" target cache       :", genOutput.TmplDir)
+		cacheAge := "now (refreshed)"
+		if genOutput.CacheAge > 0 {
+			cacheAge = fmt.Sprintf("%v", genOutput.CacheAge.Truncate(time.Second))
+			if genOutput.CacheRefreshErr != nil {
+				cacheAge += fmt.Sprintf(" (failed to refresh: %v)", genOutput.CacheRefreshErr)
+			}
+		}
+		fmt.Println(" target cache age   :", cacheAge)
+	}
 	fmt.Println(" schema file        :", *schemaFlag)
 	fmt.Println(" output file        :", *outFlag)
 }
