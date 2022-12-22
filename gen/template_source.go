@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"hash/fnv"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -110,7 +109,6 @@ func (s *TemplateSource) loadRemote() (*template.Template, error) {
 			// cache remote git
 			if err := s.cacheTemplates(s.target, sourceFS, cacheFS, cacheDir); err != nil {
 				s.CacheRefreshErr = err
-				log.Println(err)
 			}
 		}
 	} else {

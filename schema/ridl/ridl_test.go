@@ -142,7 +142,8 @@ func TestRIDLEnum(t *testing.T) {
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
 		assert.Equal(t, "Kind", string(s.Types[0].Name))
-		assert.Equal(t, "enum", string(s.Types[0].Type))
+		assert.Equal(t, "enum", string(s.Types[0].Kind))
+		assert.Equal(t, "uint32", string(s.Types[0].Type.String()))
 
 		assert.Equal(t, "USER", string(s.Types[0].Fields[0].Name))
 		assert.Equal(t, "ADMIN", string(s.Types[0].Fields[1].Name))
@@ -150,15 +151,16 @@ func TestRIDLEnum(t *testing.T) {
 		assert.Equal(t, "33", string(s.Types[0].Fields[0].Value))
 		assert.Equal(t, "44", string(s.Types[0].Fields[1].Value))
 
-		assert.Equal(t, "uint32", string(s.Types[0].Fields[0].Type.String()))
-		assert.Equal(t, "uint32", string(s.Types[0].Fields[1].Type.String()))
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[0].Fields[0].Type)
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[0].Fields[1].Type)
 
 		assert.Equal(t, "KindTwo", string(s.Types[1].Name))
-		assert.Equal(t, "enum", string(s.Types[1].Type))
+		assert.Equal(t, "enum", string(s.Types[1].Kind))
+		assert.Equal(t, "uint32", string(s.Types[1].Type.String()))
 
-		assert.Equal(t, "uint32", string(s.Types[1].Fields[0].Type.String()))
-		assert.Equal(t, "uint32", string(s.Types[1].Fields[1].Type.String()))
-		assert.Equal(t, "uint32", string(s.Types[1].Fields[2].Type.String()))
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[1].Fields[0].Type)
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[1].Fields[1].Type)
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[1].Fields[2].Type)
 
 		assert.Equal(t, "0", string(s.Types[1].Fields[0].Value))
 		assert.Equal(t, "1", string(s.Types[1].Fields[1].Value))
@@ -166,7 +168,7 @@ func TestRIDLEnum(t *testing.T) {
 	}
 }
 
-func TestRIDLMessages(t *testing.T) {
+func TestRIDLTypes(t *testing.T) {
 	{
 		input := `
     webrpc = v1
@@ -178,8 +180,8 @@ func TestRIDLMessages(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
+		assert.Equal(t, "struct", string(s.Types[0].Kind))
 		assert.Equal(t, "Empty", string(s.Types[0].Name))
-		assert.Equal(t, "struct", string(s.Types[0].Type))
 	}
 
 	{
@@ -193,8 +195,8 @@ func TestRIDLMessages(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
+		assert.Equal(t, "struct", string(s.Types[0].Kind))
 		assert.Equal(t, "Empty", string(s.Types[0].Name))
-		assert.Equal(t, "struct", string(s.Types[0].Type))
 
 	}
 
@@ -211,8 +213,8 @@ func TestRIDLMessages(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
+		assert.Equal(t, "struct", string(s.Types[0].Kind))
 		assert.Equal(t, "Simple", string(s.Types[0].Name))
-		assert.Equal(t, "struct", string(s.Types[0].Type))
 
 		assert.Equal(t, "ID", string(s.Types[0].Fields[0].Name))
 		assert.Equal(t, "uint32", string(s.Types[0].Fields[0].Type.String()))
@@ -245,11 +247,11 @@ func TestRIDLMessages(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
+		assert.Equal(t, "struct", string(s.Types[0].Kind))
 		assert.Equal(t, "Simple", string(s.Types[0].Name))
-		assert.Equal(t, "struct", string(s.Types[0].Type))
 
+		assert.Equal(t, "struct", string(s.Types[1].Kind))
 		assert.Equal(t, "Simple2", string(s.Types[1].Name))
-		assert.Equal(t, "struct", string(s.Types[1].Type))
 
 		assert.Equal(t, "ID", string(s.Types[0].Fields[0].Name))
 		assert.Equal(t, "Field2", string(s.Types[0].Fields[1].Name))
@@ -441,5 +443,13 @@ func TestRIDLImports(t *testing.T) {
 	golden, err := ioutil.ReadFile("example1-golden.json")
 	assert.NoError(t, err)
 
-	assert.JSONEq(t, compactJSON(golden), compactJSON([]byte(jout)))
+	a := compactJSON(golden)
+	b := compactJSON([]byte(jout))
+
+	ioutil.WriteFile("example1-golden.json", []byte(jout), 0644)
+
+	// fmt.Println("==> GOLDEN:", a)
+	// fmt.Println("==> PARSED:", b)
+
+	assert.JSONEq(t, a, b)
 }

@@ -147,7 +147,7 @@ Base webrpc types can be nested (ie. `map<string,map<string,User>>`), so you wil
     map[{{mapKeyType .Type}}]{{template "type" dict "Type" (mapValueType .Type) "TypeMap" $typeMap}}
 {{- else if isArrayType .Type -}}
     []{{template "type" dict "Type" (arrayItemType .Type) "TypeMap" $typeMap}}
-{{- else if isBaseType .Type -}}
+{{- else if isCoreType .Type -}}
     {{ get $typeMap .Type }}
 {{- else -}}
     *{{.Type}}
@@ -192,14 +192,14 @@ will pass `{{.Opts.name}}`, `{{.Opts.description}}` and `{{.Opts.enableFeature}}
 | `{{.SchemaVersion}}`                           | schema version                 | `"v0.0.1"`                  |
 | `{{.SchemaHash}}`                              | `sha1` schema hash             | `483889fb084764e3a256`      |
 | `{{.Imports}}`                                 | schema imports                 | array of imports            |
-| `{{.Messages}}`                                | schema messages                | array of messages           |
-| `{{.Messages[0].Name}}`                        | messages name                  | `"User"`                    |
-| `{{.Messages[0].Type}}`                        | messages type                  | `"struct"`                  |
-| `{{.Messages[0].Fields}}`                      | messages fields                | array                       |
-| `{{.Messages[0].Fields[0].Name}}`              | message name                   | `"ID"`                      |
-| `{{.Messages[0].Fields[0].Type}}`              | message type                   | `"int"`                     |
-| `{{.Messages[0].Fields[0].Optional}}`          | messages fields                | `false`                     |
-| `{{.Messages[0].Fields[0].Meta}}`              | messages fields                | array of `{"key": "value"}` |
+| `{{.Types}}`                                   | types                          | array of messages           |
+| `{{.Types[0].Name}}`                           | type name                      | `"User"`                    |
+| `{{.Types[0].Type}}`                           | type                           | `"struct"`                  |
+| `{{.Types[0].Fields}}`                         | type fields                    | array                       |
+| `{{.Types[0].Fields[0].Name}}`                 | field name                     | `"ID"`                      |
+| `{{.Types[0].Fields[0].Type}}`                 | field type                     | `"int"`                     |
+| `{{.Types[0].Fields[0].Optional}}`             | field optional?                | `false`                     |
+| `{{.Types[0].Fields[0].Meta}}`                 | field metadata                 | array of `{"key": "value"}` |
 | `{{.Services}}`                                | schema services                | array of services           |
 | `{{.Services[0].Name}}`                        | service name                   | `"ExampleService"`          |
 | `{{.Services[0].Methods}}`                     | service methods                | array of methods            |
@@ -214,7 +214,7 @@ See the [example schema JSON file](https://github.com/webrpc/webrpc/blob/master/
 
 For example, you can iterate over the schema methods and print their names:
 ```go
-{{- range $_, $msg := .Messages -}}
+{{- range $_, $msg := .Services -}}
   {{- range $_, $method := .Methods -}}
     method {{.Name}}()
   {{- end -}}
@@ -255,8 +255,6 @@ See https://pkg.go.dev/text/template#hdr-Functions
 |------------------------------------------------|-------------------------------------------------|-------------|
 | `isBasicType .Type`                            | Returns `true` if `.Type` is [core type](https://github.com/webrpc/webrpc/tree/master/schema#core-types) | v0.7.0 (deprecated) |
 | `isCoreType .Type`                            | Returns `true` if `.Type` is [core type](https://github.com/webrpc/webrpc/tree/master/schema#core-types) | v0.9.0 |
-| `isStructType .Type`                           | Returns `true` if `.Type` is [struct](https://github.com/webrpc/webrpc/tree/master/schema#struct) | v0.7.0 |
-| `isEnumType .Type`                             | Returns `true` if `.Type` is [enum](https://github.com/webrpc/webrpc/tree/master/schema#enum) | v0.7.0 |
 | `isMapType .Type`                              | Returns `true` if `.Type` is [map](https://github.com/webrpc/webrpc/tree/master/schema#map) (`map<T1,T2>`) | v0.7.0 |
 | `isListType .Type`                             | Returns `true` if `.Type` is [list](https://github.com/webrpc/webrpc/tree/master/schema#list-array) (`[]T`) | v0.7.0 |
 | `mapKeyType .MapType`                          | Returns map's key type (ie. `T1` from `map<T1,T2>`) | v0.7.0 |

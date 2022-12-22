@@ -173,7 +173,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		var enumType schema.VarType
 		err := schema.ParseVarTypeExpr(s, line.TypeName().String(), &enumType)
 		if err != nil {
-			return nil, fmt.Errorf("unknown data type: %v", line.TypeName())
+			return nil, fmt.Errorf("enum %q: unknown type: %v", name, line.TypeName())
 		}
 		enumDef.Type = &enumType
 
@@ -208,7 +208,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			var varType schema.VarType
 			err := schema.ParseVarTypeExpr(s, fieldType, &varType)
 			if err != nil {
-				return nil, fmt.Errorf("unknown data type: %v", fieldType)
+				return nil, fmt.Errorf("struct %q: unknown type of field %q: %v", name, fieldName, fieldType)
 			}
 
 			field := &schema.TypeField{
@@ -293,7 +293,7 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 		var varType schema.VarType
 		err := schema.ParseVarTypeExpr(s, arg.TypeName().String(), &varType)
 		if err != nil {
-			return nil, fmt.Errorf("unknown data type: %v", arg.TypeName().String())
+			return nil, fmt.Errorf("unknown argument data type: %v", arg.TypeName().String())
 		}
 
 		methodArgument := &schema.MethodArgument{

@@ -7,7 +7,7 @@ import (
 
 type VarType struct {
 	Expr string   // Type, ie. map<string,map<string,uint32>> or []User
-	Type CoreType // Kind, ie. map or struct
+	Type CoreType // Kind, ie. int, map or struct
 
 	List   *VarListType
 	Map    *VarMapType
@@ -63,13 +63,13 @@ type VarListType struct {
 }
 
 type VarMapType struct {
-	Key   CoreType // see, VarMapKeyDataTypes -- only T_String or T_XintX supported
+	Key   CoreType // see, VarMapKeyCoreTypes -- only T_String or T_XintX supported
 	Value *VarType
 }
 
 type VarStructType struct {
-	Name    string
-	Message *Type
+	Name string
+	Type *Type
 }
 
 func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
@@ -80,7 +80,6 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 
 	// parse data type from string
 	dataType, ok := CoreTypeFromString[expr]
-
 	if !ok {
 		// test for complex datatype
 		if isListExpr(expr) {
@@ -129,15 +128,23 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 		}
 
 	case T_Unknown:
+		// struct or enum
 
-		structExpr := expr
-		msg, ok := getStructType(schema, structExpr)
-		if !ok || msg == nil {
-			return fmt.Errorf("schema error: invalid struct type '%s'", structExpr)
+		typ, ok := getType(schema, expr)
+		if !ok || typ == nil {
+			return fmt.Errorf("schema error: invalid type '%s'", expr)
 		}
 
-		vt.Type = T_Struct
-		vt.Struct = &VarStructType{Name: structExpr, Message: msg}
+		switch typ.Kind {
+		case TypeKind_Struct:
+			vt.Type = T_Struct
+			vt.Struct = &VarStructType{Name: expr, Type: typ}
+		case TypeKind_Enum:
+			vt.Type = T_Struct // TODO: T_Enum, see https://github.com/webrpc/webrpc/issues/44
+			vt.Struct = &VarStructType{Name: expr, Type: typ}
+		default:
+			return fmt.Errorf("schema error: unexpected type '%s'", expr)
+		}
 
 	default:
 		// core type, we're done here
@@ -211,10 +218,10 @@ func isMapExpr(expr string) bool {
 	return strings.HasPrefix(expr, mapTest)
 }
 
-func getStructType(schema *WebRPCSchema, structExpr string) (*Type, bool) {
-	for _, msg := range schema.Types {
-		if structExpr == string(msg.Name) {
-			return msg, true
+func getType(schema *WebRPCSchema, structExpr string) (*Type, bool) {
+	for _, typ := range schema.Types {
+		if structExpr == string(typ.Name) {
+			return typ, true
 		}
 	}
 	return nil, false

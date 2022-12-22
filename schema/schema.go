@@ -24,7 +24,7 @@ type WebRPCSchema struct {
 
 	// Deprecated. Renamed to Types. Keep this field for now, so we can
 	// error out & advise users to migrate to v0.9.0+ schema format.
-	Deprecated_Messages []interface{} `json:"messages"`
+	Deprecated_Messages []interface{} `json:"messages,omitempty"`
 }
 
 // Validate validates the schema through the AST, intended to be called after

@@ -557,8 +557,8 @@ func TestParserStruct(t *testing.T) {
 		err = p.run()
 		assert.NoError(t, err)
 
-		assert.Equal(t, "name", p.root.Messages()[0].Fields()[0].Left().String())
-		assert.Equal(t, "string", p.root.Messages()[0].Fields()[0].Right().String())
+		assert.Equal(t, "name", p.root.Structs()[0].Fields()[0].Left().String())
+		assert.Equal(t, "string", p.root.Structs()[0].Fields()[0].Right().String())
 	}
 
 	{
@@ -581,14 +581,14 @@ func TestParserStruct(t *testing.T) {
 		err = p.run()
 		assert.NoError(t, err)
 
-		assert.Equal(t, "[]string", p.root.Messages()[0].Fields()[0].Right().String())
-		assert.Equal(t, "[][]string", p.root.Messages()[0].Fields()[1].Right().String())
-		assert.Equal(t, "[][][]string", p.root.Messages()[0].Fields()[2].Right().String())
-		assert.Equal(t, "map<string,string>", p.root.Messages()[0].Fields()[3].Right().String())
-		assert.Equal(t, "map<string,uint64>", p.root.Messages()[0].Fields()[4].Right().String())
-		assert.Equal(t, "map<string,[]uint64>", p.root.Messages()[0].Fields()[5].Right().String())
-		assert.Equal(t, "map<string,[]map<string,uint64>>", p.root.Messages()[0].Fields()[6].Right().String())
-		assert.Equal(t, "map<string,[]map<map<string,string>,uint64>>", p.root.Messages()[0].Fields()[7].Right().String())
+		assert.Equal(t, "[]string", p.root.Structs()[0].Fields()[0].Right().String())
+		assert.Equal(t, "[][]string", p.root.Structs()[0].Fields()[1].Right().String())
+		assert.Equal(t, "[][][]string", p.root.Structs()[0].Fields()[2].Right().String())
+		assert.Equal(t, "map<string,string>", p.root.Structs()[0].Fields()[3].Right().String())
+		assert.Equal(t, "map<string,uint64>", p.root.Structs()[0].Fields()[4].Right().String())
+		assert.Equal(t, "map<string,[]uint64>", p.root.Structs()[0].Fields()[5].Right().String())
+		assert.Equal(t, "map<string,[]map<string,uint64>>", p.root.Structs()[0].Fields()[6].Right().String())
+		assert.Equal(t, "map<string,[]map<map<string,string>,uint64>>", p.root.Structs()[0].Fields()[7].Right().String())
 	}
 
 	{
@@ -603,11 +603,11 @@ func TestParserStruct(t *testing.T) {
 		err = p.run()
 		assert.NoError(t, err)
 
-		assert.Equal(t, "name", p.root.Messages()[0].Fields()[0].Left().String())
-		assert.Equal(t, "string", p.root.Messages()[0].Fields()[0].Right().String())
+		assert.Equal(t, "name", p.root.Structs()[0].Fields()[0].Left().String())
+		assert.Equal(t, "string", p.root.Structs()[0].Fields()[0].Right().String())
 
-		assert.Equal(t, "age", p.root.Messages()[0].Fields()[1].Left().String())
-		assert.Equal(t, "uint32", p.root.Messages()[0].Fields()[1].Right().String())
+		assert.Equal(t, "age", p.root.Structs()[0].Fields()[1].Left().String())
+		assert.Equal(t, "uint32", p.root.Structs()[0].Fields()[1].Right().String())
 	}
 
 	{
@@ -626,17 +626,17 @@ func TestParserStruct(t *testing.T) {
 		err = p.run()
 		assert.NoError(t, err)
 
-		assert.Equal(t, "name", p.root.Messages()[0].Fields()[0].Left().String())
-		assert.Equal(t, "string", p.root.Messages()[0].Fields()[0].Right().String())
+		assert.Equal(t, "name", p.root.Structs()[0].Fields()[0].Left().String())
+		assert.Equal(t, "string", p.root.Structs()[0].Fields()[0].Right().String())
 
-		assert.Equal(t, "go.tag.db", p.root.Messages()[0].Fields()[0].Meta()[0].Left().String())
-		assert.Equal(t, "id", p.root.Messages()[0].Fields()[0].Meta()[0].Right().String())
+		assert.Equal(t, "go.tag.db", p.root.Structs()[0].Fields()[0].Meta()[0].Left().String())
+		assert.Equal(t, "id", p.root.Structs()[0].Fields()[0].Meta()[0].Right().String())
 
-		assert.Equal(t, "json", p.root.Messages()[0].Fields()[0].Meta()[1].Left().String())
-		assert.Equal(t, "id", p.root.Messages()[0].Fields()[0].Meta()[1].Right().String())
+		assert.Equal(t, "json", p.root.Structs()[0].Fields()[0].Meta()[1].Left().String())
+		assert.Equal(t, "id", p.root.Structs()[0].Fields()[0].Meta()[1].Right().String())
 
-		assert.Equal(t, "go.tag.json", p.root.Messages()[0].Fields()[0].Meta()[2].Left().String())
-		assert.Equal(t, "created_at,omitempty", p.root.Messages()[0].Fields()[0].Meta()[2].Right().String())
+		assert.Equal(t, "go.tag.json", p.root.Structs()[0].Fields()[0].Meta()[2].Left().String())
+		assert.Equal(t, "created_at,omitempty", p.root.Structs()[0].Fields()[0].Meta()[2].Right().String())
 	}
 
 	{
@@ -669,44 +669,44 @@ func TestParserStruct(t *testing.T) {
 		err = p.run()
 		assert.NoError(t, err)
 
-		assert.Equal(t, "ID", p.root.Messages()[0].Fields()[0].Left().String())
-		assert.Equal(t, "uint64", p.root.Messages()[0].Fields()[0].Right().String())
+		assert.Equal(t, "ID", p.root.Structs()[0].Fields()[0].Left().String())
+		assert.Equal(t, "uint64", p.root.Structs()[0].Fields()[0].Right().String())
 
-		assert.Equal(t, "json", p.root.Messages()[0].Fields()[0].Meta()[0].Left().String())
-		assert.Equal(t, "id", p.root.Messages()[0].Fields()[0].Meta()[0].Right().String())
+		assert.Equal(t, "json", p.root.Structs()[0].Fields()[0].Meta()[0].Left().String())
+		assert.Equal(t, "id", p.root.Structs()[0].Fields()[0].Meta()[0].Right().String())
 
-		assert.Equal(t, "go.tag.db", p.root.Messages()[0].Fields()[0].Meta()[1].Left().String())
-		assert.Equal(t, "id", p.root.Messages()[0].Fields()[0].Meta()[1].Right().String())
+		assert.Equal(t, "go.tag.db", p.root.Structs()[0].Fields()[0].Meta()[1].Left().String())
+		assert.Equal(t, "id", p.root.Structs()[0].Fields()[0].Meta()[1].Right().String())
 
-		assert.Equal(t, "username", p.root.Messages()[0].Fields()[1].Left().String())
-		assert.Equal(t, "string", p.root.Messages()[0].Fields()[1].Right().String())
+		assert.Equal(t, "username", p.root.Structs()[0].Fields()[1].Left().String())
+		assert.Equal(t, "string", p.root.Structs()[0].Fields()[1].Right().String())
 
-		assert.Equal(t, "json", p.root.Messages()[0].Fields()[1].Meta()[0].Left().String())
-		assert.Equal(t, "USERNAME", p.root.Messages()[0].Fields()[1].Meta()[0].Right().String())
+		assert.Equal(t, "json", p.root.Structs()[0].Fields()[1].Meta()[0].Left().String())
+		assert.Equal(t, "USERNAME", p.root.Structs()[0].Fields()[1].Meta()[0].Right().String())
 
-		assert.Equal(t, "go.tag.db", p.root.Messages()[0].Fields()[1].Meta()[1].Left().String())
-		assert.Equal(t, "username", p.root.Messages()[0].Fields()[1].Meta()[1].Right().String())
+		assert.Equal(t, "go.tag.db", p.root.Structs()[0].Fields()[1].Meta()[1].Left().String())
+		assert.Equal(t, "username", p.root.Structs()[0].Fields()[1].Meta()[1].Right().String())
 
-		assert.Equal(t, "role", p.root.Messages()[0].Fields()[2].Left().String())
-		assert.Equal(t, "string", p.root.Messages()[0].Fields()[2].Right().String())
+		assert.Equal(t, "role", p.root.Structs()[0].Fields()[2].Left().String())
+		assert.Equal(t, "string", p.root.Structs()[0].Fields()[2].Right().String())
 
-		assert.Equal(t, "go.tag.db", p.root.Messages()[0].Fields()[2].Meta()[0].Left().String())
-		assert.Equal(t, "-", p.root.Messages()[0].Fields()[2].Meta()[0].Right().String())
+		assert.Equal(t, "go.tag.db", p.root.Structs()[0].Fields()[2].Meta()[0].Left().String())
+		assert.Equal(t, "-", p.root.Structs()[0].Fields()[2].Meta()[0].Right().String())
 
-		assert.Equal(t, "createdAt", p.root.Messages()[0].Fields()[3].Left().String())
-		assert.Equal(t, "timestamp", p.root.Messages()[0].Fields()[3].Right().String())
+		assert.Equal(t, "createdAt", p.root.Structs()[0].Fields()[3].Left().String())
+		assert.Equal(t, "timestamp", p.root.Structs()[0].Fields()[3].Right().String())
 
-		assert.Equal(t, "json", p.root.Messages()[0].Fields()[3].Meta()[0].Left().String())
-		assert.Equal(t, "created_at", p.root.Messages()[0].Fields()[3].Meta()[0].Right().String())
+		assert.Equal(t, "json", p.root.Structs()[0].Fields()[3].Meta()[0].Left().String())
+		assert.Equal(t, "created_at", p.root.Structs()[0].Fields()[3].Meta()[0].Right().String())
 
-		assert.Equal(t, "go.tag.json", p.root.Messages()[0].Fields()[3].Meta()[1].Left().String())
-		assert.Equal(t, "created_at,omitempty", p.root.Messages()[0].Fields()[3].Meta()[1].Right().String())
+		assert.Equal(t, "go.tag.json", p.root.Structs()[0].Fields()[3].Meta()[1].Left().String())
+		assert.Equal(t, "created_at,omitempty", p.root.Structs()[0].Fields()[3].Meta()[1].Right().String())
 
-		assert.Equal(t, "go.tag.db", p.root.Messages()[0].Fields()[3].Meta()[2].Left().String())
-		assert.Equal(t, "created_at", p.root.Messages()[0].Fields()[3].Meta()[2].Right().String())
+		assert.Equal(t, "go.tag.db", p.root.Structs()[0].Fields()[3].Meta()[2].Left().String())
+		assert.Equal(t, "created_at", p.root.Structs()[0].Fields()[3].Meta()[2].Right().String())
 
-		assert.Equal(t, "go.tag.other", p.root.Messages()[0].Fields()[3].Meta()[3].Left().String())
-		assert.Equal(t, "created_at,omitempty", p.root.Messages()[0].Fields()[3].Meta()[3].Right().String())
+		assert.Equal(t, "go.tag.other", p.root.Structs()[0].Fields()[3].Meta()[3].Left().String())
+		assert.Equal(t, "created_at,omitempty", p.root.Structs()[0].Fields()[3].Meta()[3].Right().String())
 	}
 }
 

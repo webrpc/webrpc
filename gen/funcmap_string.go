@@ -14,7 +14,10 @@ func toString(v interface{}) string {
 	case schema.VarType:
 		return t.String()
 	case *schema.VarType:
-		return t.String()
+		if t != nil {
+			return t.String()
+		}
+		return ""
 	case schema.Type:
 		return t.Kind
 	case string:
