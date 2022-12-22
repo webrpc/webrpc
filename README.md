@@ -56,12 +56,12 @@ webrpc = v1
 name = your-app
 version = v0.1.0
 
-message User
+struct User
   - id: uint64
   - username: string
   - createdAt?: timestamp
 
-message UsersQueryFilter
+struct UsersQueryFilter
   - page?: uint32
   - name?: string
   - location?: string
@@ -132,7 +132,7 @@ of cases that this would be a bottleneck or costly tradeoff.
 
 webrpc is heavily inspired by gRPC and Twirp. It is architecturally the same and has a similar
 workflow, but simpler. In fact, the webrpc schema is similar in design to protobuf, as
-in we have messages and rpc methods, but the type system is arguably more flexible and
+in we have structs (messages) and rpc methods, but the type system is arguably more flexible and
 code-gen tooling is simpler. The [webrpc schema](./schema/README.md) is a documentation-like
 language for describing a server's api interface and the type system within is inspired by Go,
 Typescript and WASM.

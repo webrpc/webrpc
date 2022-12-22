@@ -69,7 +69,7 @@ type VarMapType struct {
 
 type VarStructType struct {
 	Name    string
-	Message *Message
+	Message *Struct
 }
 
 func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
@@ -211,7 +211,7 @@ func isMapExpr(expr string) bool {
 	return strings.HasPrefix(expr, mapTest)
 }
 
-func getMessageType(schema *WebRPCSchema, structExpr string) (*Message, bool) {
+func getMessageType(schema *WebRPCSchema, structExpr string) (*Struct, bool) {
 	for _, msg := range schema.Messages {
 		if structExpr == string(msg.Name) {
 			return msg, true

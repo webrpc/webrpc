@@ -526,20 +526,20 @@ func TestParserEnum(t *testing.T) {
 	}
 }
 
-func TestParserMessage(t *testing.T) {
+func TestParserStruct(t *testing.T) {
 	{
 		p, err := newStringParser(`
-			message
+			struct
 		`)
 		assert.NoError(t, err)
 
 		err = p.run()
-		assert.Error(t, err, "expecting message name")
+		assert.Error(t, err, "expecting struct name")
 	}
 
 	{
 		p, err := newStringParser(`
-			message Empty
+			struct Empty
 		`)
 		assert.NoError(t, err)
 
@@ -549,7 +549,7 @@ func TestParserMessage(t *testing.T) {
 
 	{
 		p, err := newStringParser(`
-		message Role
+		struct Role
 			- name: string
 		`)
 		assert.NoError(t, err)
@@ -563,7 +563,7 @@ func TestParserMessage(t *testing.T) {
 
 	{
 		p, err := newStringParser(`
-		message ComplexTypes
+		struct ComplexTypes
 			- arrayOfStrings: []string
 			- arrayOfArrayOfStrings: [][]string
 			- arrayOfArrayOfArrayOfStrings: [][][]string
@@ -593,7 +593,7 @@ func TestParserMessage(t *testing.T) {
 
 	{
 		p, err := newStringParser(`
-		message Role # comment
+		struct Role # comment
 		# comment
 			- name: string # comment
 			- age: uint32 # comment
@@ -612,7 +612,7 @@ func TestParserMessage(t *testing.T) {
 
 	{
 		p, err := newStringParser(`
-		message Role
+		struct Role
 			- name: string
 				# comment
 				+ go.tag.db = id # comment
@@ -641,7 +641,7 @@ func TestParserMessage(t *testing.T) {
 
 	{
 		p, err := newStringParser(`
-		message User
+		struct User
 			- ID: uint64
 				+json = id
 				+go.tag.db = id
@@ -661,7 +661,7 @@ func TestParserMessage(t *testing.T) {
 				+ go.tag.other = created_at,omitempty
 
 
-		message Notice
+		struct Notice
 			- msg:string
 		`)
 		assert.NoError(t, err)
@@ -775,11 +775,11 @@ func TestParserExamples(t *testing.T) {
 			# contacts.ridl
 			webrpc = v1
 
-			message Contact
+			struct Contact
 				- id: int
 				- name: string
 
-			message Counter
+			struct Counter
 				- counter: int
 
 			service ContactsService
@@ -799,7 +799,7 @@ func TestParserExamples(t *testing.T) {
 
 			import "../contacts/proto/contacts.ridl"
 
-			message PingResponse
+			struct PingResponse
 				- pong: string
 				- counter: Counter # Counter is available here from the import
 

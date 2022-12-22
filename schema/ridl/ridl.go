@@ -137,16 +137,16 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 	// pushing enums (1st pass)
 	for _, line := range q.root.Enums() {
-		s.Messages = append(s.Messages, &schema.Message{
+		s.Messages = append(s.Messages, &schema.Struct{
 			Name:   schema.VarName(line.Name().String()),
 			Type:   schemaMessageTypeEnum,
 			Fields: []*schema.MessageField{},
 		})
 	}
 
-	// pushing messages (1st pass)
+	// pushing structs (1st pass)
 	for _, line := range q.root.Messages() {
-		s.Messages = append(s.Messages, &schema.Message{
+		s.Messages = append(s.Messages, &schema.Struct{
 			Name: schema.VarName(line.Name().String()),
 			Type: schemaMessageTypeStruct,
 		})

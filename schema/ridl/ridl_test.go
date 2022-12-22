@@ -173,7 +173,7 @@ func TestRIDLMessages(t *testing.T) {
     version = v0.1.1
   name = hello-webrpc
 
-  message Empty
+  struct Empty
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
@@ -188,7 +188,7 @@ func TestRIDLMessages(t *testing.T) {
     version = v0.1.1
   name = hello-webrpc
 
-  message Empty # with a, comment
+  struct Empty # with a, comment
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
@@ -204,7 +204,7 @@ func TestRIDLMessages(t *testing.T) {
     version = v0.1.1
   name = hello-webrpc
 
-  message Simple # with a, comment
+  struct Simple # with a, comment
     - ID: uint32
     - Value?: uint32
   `
@@ -229,7 +229,7 @@ func TestRIDLMessages(t *testing.T) {
     version = v0.1.1
   name = hello-webrpc
 
-  message Simple # with a-comment an,d meta fields
+  struct Simple # with a-comment an,d meta fields
     - ID: uint32
   - Field2: uint64 # one two #t
       + json = field_2 # a comment
@@ -240,7 +240,7 @@ func TestRIDLMessages(t *testing.T) {
     + go.tag.db = - # omits the field from db
 
 
-  message Simple2 # with a-comment an,d meta fields
+  struct Simple2 # with a-comment an,d meta fields
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
@@ -267,7 +267,7 @@ func TestRIDLMessages(t *testing.T) {
     version = v0.1.1
   name = hello-webrpc
 
-  message Simple # with a-comment an,d meta fields
+  struct Simple # with a-comment an,d meta fields
     - ID: uint32
   - Field2: map<string, string> # one two #t
       + json = field_2 # a comment
@@ -279,7 +279,7 @@ func TestRIDLMessages(t *testing.T) {
       + json = field_2 # a comment
         + go.tag.db = field_2
 
-  message Simple2 # with a-comment an,d meta fields
+  struct Simple2 # with a-comment an,d meta fields
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
@@ -295,7 +295,7 @@ func TestRIDLMessages(t *testing.T) {
     version = v0.1.1
   name = hello-webrpc
 
-  message Simple # with a-comment an,d meta fields
+  struct Simple # with a-comment an,d meta fields
     - ID: uint32
   - Field2: map<string, string> # one two #t
       + json = field_2 # a comment

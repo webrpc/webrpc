@@ -80,7 +80,7 @@ func (s *WebRPCSchema) ToJSON(optIndent ...bool) (string, error) {
 	return string(buf.Bytes()), nil
 }
 
-func (s *WebRPCSchema) GetMessageByName(name string) *Message {
+func (s *WebRPCSchema) GetMessageByName(name string) *Struct {
 	name = strings.ToLower(name)
 	for _, message := range s.Messages {
 		if strings.ToLower(string(message.Name)) == name {

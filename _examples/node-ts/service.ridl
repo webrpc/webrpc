@@ -9,7 +9,7 @@ enum Kind: uint32
   - ADMIN
 
 
-message User
+struct User
   - ID: uint64
     + json = id
 
@@ -26,7 +26,7 @@ message User
   - createdAt?: timestamp
 
 
-message Page
+struct Page
   - num: uint32
 
 

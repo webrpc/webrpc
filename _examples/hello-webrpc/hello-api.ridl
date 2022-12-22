@@ -7,9 +7,9 @@ enum Kind: uint32
   - USER = 1
   - ADMIN = 2
 
-message Empty
+struct Empty
 
-message User
+struct User
   - ID: uint64
     + json = id
     + go.tag.db = id

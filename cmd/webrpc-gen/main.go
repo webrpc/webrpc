@@ -33,7 +33,7 @@ func main() {
 	}
 
 	flags.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: %s -schema=<file.[ridl|json]> -target=<target> -out=<file> [...targetOpts]\n", flags.Name())
+		fmt.Fprintf(os.Stderr, "Usage: %s -schema=<file.(ridl|json)> -target=<target> -out=<file> [...targetOpts]\n", flags.Name())
 		flags.PrintDefaults()
 		fmt.Fprintf(os.Stderr, "See https://github.com/webrpc/webrpc for more info.\n")
 
@@ -64,7 +64,7 @@ func main() {
 	// Parse+validate the webrpc schema file
 	schema, err := webrpc.ParseSchemaFile(*schemaFlag)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to parse schema file: %v\n", err)
+		fmt.Fprintf(os.Stderr, "failed to parse %s:%v\n", *schemaFlag, err)
 		os.Exit(1)
 	}
 

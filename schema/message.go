@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-type Message struct {
+type Struct struct {
 	Name   VarName         `json:"name"`
 	Type   MessageType     `json:"type"`
 	Fields []*MessageField `json:"fields"`
@@ -29,7 +29,7 @@ type MessageField struct {
 
 type MessageFieldMeta map[string]interface{}
 
-func (m *Message) Parse(schema *WebRPCSchema) error {
+func (m *Struct) Parse(schema *WebRPCSchema) error {
 	// Message name
 	msgName := string(m.Name)
 	if msgName == "" {

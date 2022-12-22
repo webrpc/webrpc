@@ -7,7 +7,7 @@ version = v0.0.1
 import
   - ./lib/types.ridl
 
-message Role
+struct Role
   - name: string
 
   - users: map<uint64,User>
@@ -17,7 +17,7 @@ message Role
   - other: map<uint64,map<string,string>> # comment
 
 
-message User
+struct User
   - ID: uint64
     + json = id
     + go.tag.db = id
@@ -35,7 +35,7 @@ message User
     + go.tag.db = created_at
     
 
-message Notice
+struct Notice
   - msg: string
 
 

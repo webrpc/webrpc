@@ -1,5 +1,5 @@
 webrpc = v1
 
-message User
+struct User
   - username: string
   - age: uint32

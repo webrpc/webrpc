@@ -7,7 +7,7 @@ enum Kind: uint32
   - USER = 1
   - ADMIN = 2
 
-message User
+struct User
   - ID: uint64
     + json = id
     + go.tag.db = id
@@ -27,7 +27,7 @@ message User
     + json = created_at,omitempty
     + go.tag.db = created_at
 
-message Page
+struct Page
   - num: uint32
 
 service ExampleService
