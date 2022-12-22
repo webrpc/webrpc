@@ -9,4 +9,4 @@ package webrpc
 // Available as {{.WebrpcGenVersion}} in generator templates. Templates can
 // check against {{.WebrpcGenVersion}} to require minimal major/minor version
 // to guarantees certain Template functions API.
-var VERSION = "v0.8.x-dev"
+var VERSION = "v0.9.x-dev"

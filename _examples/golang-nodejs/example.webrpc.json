@@ -2,7 +2,7 @@
   "webrpc": "v1",
   "name": "example",
   "version":" v0.0.1",
-  "structs": [
+  "types": [
     {
       "name": "Kind",
       "type": "enum",

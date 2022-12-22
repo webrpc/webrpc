@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	VERSION = "v1" // todo rename to schema_version
+	SCHEMA_VERSION = "v1"
 )
 
 // schema of webrpc json file, and validations
@@ -19,18 +19,22 @@ type WebRPCSchema struct {
 	SchemaName    string `json:"name"`
 	SchemaVersion string `json:"version"`
 
-	Messages []*Message `json:"messages"`
+	Types    []*Type    `json:"types"`
 	Services []*Service `json:"services"`
+
+	// Deprecated. Renamed to Types. Keep this field for now, so we can
+	// error out & advise users to migrate to v0.9.0+ schema format.
+	Deprecated_Messages []interface{} `json:"messages"`
 }
 
 // Validate validates the schema through the AST, intended to be called after
 // the json has been unmarshalled
 func (s *WebRPCSchema) Validate() error {
-	if s.WebrpcVersion != VERSION {
-		return fmt.Errorf("webrpc schema version, '%s' is invalid, try '%s'", s.WebrpcVersion, VERSION)
+	if s.WebrpcVersion != SCHEMA_VERSION {
+		return fmt.Errorf("webrpc schema version, '%s' is invalid, try '%s'", s.WebrpcVersion, SCHEMA_VERSION)
 	}
 
-	for _, msg := range s.Messages {
+	for _, msg := range s.Types {
 		err := msg.Parse(s)
 		if err != nil {
 			return err
@@ -41,6 +45,10 @@ func (s *WebRPCSchema) Validate() error {
 		if err != nil {
 			return err
 		}
+	}
+
+	if len(s.Deprecated_Messages) > 0 {
+		return fmt.Errorf(" field \"messages\" was renamed to \"types\", see https://github.com/webrpc/webrpc/tree/master/CHANGELOG.md#JSON+schema+v0.9.0+migration+guide")
 	}
 
 	return nil
@@ -80,9 +88,9 @@ func (s *WebRPCSchema) ToJSON(optIndent ...bool) (string, error) {
 	return string(buf.Bytes()), nil
 }
 
-func (s *WebRPCSchema) GetMessageByName(name string) *Struct {
+func (s *WebRPCSchema) GetTypeByName(name string) *Type {
 	name = strings.ToLower(name)
-	for _, message := range s.Messages {
+	for _, message := range s.Types {
 		if strings.ToLower(string(message.Name)) == name {
 			return message
 		}
@@ -107,7 +115,7 @@ func (s *WebRPCSchema) HasFieldType(fieldType string) (bool, error) {
 		return false, fmt.Errorf("webrpc: invalid data type '%s'", fieldType)
 	}
 
-	for _, m := range s.Messages {
+	for _, m := range s.Types {
 		for _, f := range m.Fields {
 			if CoreTypeToString[f.Type.Type] == fieldType {
 				return true, nil

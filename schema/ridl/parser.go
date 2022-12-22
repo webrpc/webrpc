@@ -396,7 +396,7 @@ func parserStateDeclaration(p *parser) parserState {
 		return parserStateEnum
 	case "message":
 		// Deprecated in v0.9.0.
-		return p.stateError(fmt.Errorf("keyword \"message\" was replaced by \"struct\", see https://github.com/webrpc/webrpc/tree/master/CHANGELOG.md#RIDL+v0.9.0+migration+guide"))
+		return p.stateError(fmt.Errorf("keyword \"message\" was renamed to \"struct\", see https://github.com/webrpc/webrpc/tree/master/CHANGELOG.md#RIDL+v0.9.0+migration+guide"))
 	case wordStruct:
 		// struct <name>
 		//   - <name>: <type>

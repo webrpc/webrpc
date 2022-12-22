@@ -69,7 +69,7 @@ type VarMapType struct {
 
 type VarStructType struct {
 	Name    string
-	Message *Struct
+	Message *Type
 }
 
 func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
@@ -131,9 +131,9 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 	case T_Unknown:
 
 		structExpr := expr
-		msg, ok := getMessageType(schema, structExpr)
+		msg, ok := getStructType(schema, structExpr)
 		if !ok || msg == nil {
-			return fmt.Errorf("schema error: invalid struct/message type '%s'", structExpr)
+			return fmt.Errorf("schema error: invalid struct type '%s'", structExpr)
 		}
 
 		vt.Type = T_Struct
@@ -211,8 +211,8 @@ func isMapExpr(expr string) bool {
 	return strings.HasPrefix(expr, mapTest)
 }
 
-func getMessageType(schema *WebRPCSchema, structExpr string) (*Struct, bool) {
-	for _, msg := range schema.Messages {
+func getStructType(schema *WebRPCSchema, structExpr string) (*Type, bool) {
+	for _, msg := range schema.Types {
 		if structExpr == string(msg.Name) {
 			return msg, true
 		}
@@ -220,16 +220,16 @@ func getMessageType(schema *WebRPCSchema, structExpr string) (*Struct, bool) {
 	return nil, false
 }
 
-var VarKeyDataTypes = []CoreType{
+var VarKeyCoreTypes = []CoreType{
 	T_String, T_Uint, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
-var VarIntegerDataTypes = []CoreType{
+var VarIntegerCoreTypes = []CoreType{
 	T_Uint, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
 func isValidVarKeyType(s string) bool {
-	return isValidVarType(s, VarKeyDataTypes)
+	return isValidVarType(s, VarKeyCoreTypes)
 }
 
 func isValidVarType(s string, allowedList []CoreType) bool {

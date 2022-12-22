@@ -81,15 +81,15 @@ func (rn RootNode) Imports() []*ImportNode {
 	return importNodes
 }
 
-func (rn RootNode) Messages() []*StructNode {
+func (rn RootNode) Structs() []*StructNode {
 	nodes := rn.Filter(StructNodeType)
 
-	messageNodes := make([]*StructNode, 0, len(nodes))
+	structNodes := make([]*StructNode, 0, len(nodes))
 	for i := range nodes {
-		messageNodes = append(messageNodes, nodes[i].(*StructNode))
+		structNodes = append(structNodes, nodes[i].(*StructNode))
 	}
 
-	return messageNodes
+	return structNodes
 }
 
 func (rn RootNode) Enums() []*EnumNode {

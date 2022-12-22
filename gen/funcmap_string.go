@@ -15,8 +15,8 @@ func toString(v interface{}) string {
 		return t.String()
 	case *schema.VarType:
 		return t.String()
-	case schema.MessageType:
-		return string(t)
+	case schema.Type:
+		return t.Kind
 	case string:
 		return t
 	case map[string]interface{}:
