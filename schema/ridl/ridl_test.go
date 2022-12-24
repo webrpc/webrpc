@@ -94,8 +94,6 @@ func TestRIDLImport(t *testing.T) {
 		assert.Equal(t, "hello-webrpc", s.SchemaName)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
-		assert.Equal(t, "foo", s.Imports[0].Path)
-		assert.Equal(t, "bar", s.Imports[1].Path)
 	}
 
 	{
@@ -114,9 +112,6 @@ func TestRIDLImport(t *testing.T) {
 		assert.Equal(t, "v1", s.WebrpcVersion)
 		assert.Equal(t, "hello-webrpc", s.SchemaName)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
-
-		assert.Equal(t, "foo1", s.Imports[0].Path)
-		assert.Equal(t, "bar2", s.Imports[1].Path)
 	}
 }
 
@@ -424,85 +419,6 @@ func TestRIDLParse(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.NotZero(t, jout)
-}
-
-func TestRIDLTables(t *testing.T) {
-	enableMockImport()
-	defer disableMockImport()
-
-	table := []struct {
-		Input  string
-		Output []byte
-	}{
-		{
-			// Whitespace bug
-			"webrpc = v1\n \nname = test\n   \nversion=v1.1\n",
-			[]byte(`
-        {
-         "webrpc": "v1",
-         "name": "test",
-         "version": "v1.1",
-         "imports": [],
-         "messages": [],
-         "services": []
-        }
-    `),
-		},
-		{
-			"webrpc = v1\n \nname = test\n",
-			[]byte(`
-        {
-         "webrpc": "v1",
-         "name": "test",
-         "version": "",
-         "imports": [],
-         "messages": [],
-         "services": []
-        }
-    `),
-		},
-		{
-			`
-        webrpc = v1
-
-        name = hello-webrpc
-        version = v0.0.1
-
-        import
-          - ./blah.ridl
-          - ./abc.json
-      `,
-			[]byte(`
-				{
-				 "webrpc": "v1",
-				 "name": "hello-webrpc",
-				 "version": "v0.0.1",
-				 "imports": [
-					{
-					 "path": "blah.ridl",
-					 "members": []
-					},
-					{
-					 "path": "abc.json",
-					 "members": []
-					}
-				 ],
-				 "messages": [],
-				 "services": []
-				}
-      `),
-		},
-	}
-
-	for i := range table {
-		s, err := parseString(table[i].Input)
-		assert.NoError(t, err)
-
-		jout, err := s.ToJSON(true)
-		assert.NoError(t, err)
-
-		assert.JSONEq(t, compactJSON(table[i].Output), compactJSON([]byte(jout)), fmt.Sprintf("GOT:\n\n%s\n\nEXPECTING:\n\n%s\n\n", jout, string(table[i].Output)))
-	}
 }
 
 func TestRIDLImports(t *testing.T) {

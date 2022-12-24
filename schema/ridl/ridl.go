@@ -80,7 +80,6 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	}
 
 	s := &schema.WebRPCSchema{
-		Imports:  []*schema.Import{},
 		Messages: []*schema.Message{},
 		Services: []*schema.Service{},
 	}
@@ -114,31 +113,26 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, line := range q.root.Imports() {
 		importPath := filepath.Join(filepath.Dir(p.reader.File), line.Path().String())
 
-		importDef := &schema.Import{
-			Path:    importPath,
-			Members: []string{},
-		}
-		for _, member := range line.Members() {
-			importDef.Members = append(importDef.Members, member.String())
-		}
-
-		imported, err := p.importRIDLFile(importDef.Path)
+		imported, err := p.importRIDLFile(importPath)
 		if err != nil {
 			return nil, p.trace(err, line.Path())
 		}
 
+		members := []string{}
+		for _, member := range line.Members() {
+			members = append(members, member.String())
+		}
+
 		for i := range imported.Messages {
-			if isImportAllowed(string(imported.Messages[i].Name), importDef.Members) {
+			if isImportAllowed(string(imported.Messages[i].Name), members) {
 				s.Messages = append(s.Messages, imported.Messages[i])
 			}
 		}
 		for i := range imported.Services {
-			if isImportAllowed(string(imported.Services[i].Name), importDef.Members) {
+			if isImportAllowed(string(imported.Services[i].Name), members) {
 				s.Services = append(s.Services, imported.Services[i])
 			}
 		}
-
-		s.Imports = append(s.Imports, importDef)
 	}
 
 	// pushing enums (1st pass)

@@ -19,14 +19,8 @@ type WebRPCSchema struct {
 	SchemaName    string `json:"name"`
 	SchemaVersion string `json:"version"`
 
-	Imports  []*Import  `json:"-"`
 	Messages []*Message `json:"messages"`
 	Services []*Service `json:"services"`
-}
-
-type Import struct {
-	Path    string   `json:"path"`
-	Members []string `json:"members"`
 }
 
 // Validate validates the schema through the AST, intended to be called after
