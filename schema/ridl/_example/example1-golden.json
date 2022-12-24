@@ -1,17 +1,4 @@
 {
-    "imports": [
-        {
-            "members": [],
-            "path": "example1-definitions.ridl"
-        },
-        {
-            "members": [
-                "Empty",
-                "GetUserRequest"
-            ],
-            "path": "example1-partials.ridl"
-        }
-    ],
     "messages": [
         {
             "fields": [
