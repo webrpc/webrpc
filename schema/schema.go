@@ -19,7 +19,7 @@ type WebRPCSchema struct {
 	SchemaName    string `json:"name"`
 	SchemaVersion string `json:"version"`
 
-	Imports  []*Import  `json:"imports"`
+	Imports  []*Import  `json:"-"`
 	Messages []*Message `json:"messages"`
 	Services []*Service `json:"services"`
 }
