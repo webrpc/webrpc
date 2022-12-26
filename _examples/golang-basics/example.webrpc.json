@@ -1,159 +1,172 @@
 {
-  "webrpc": "v1",
-  "name": "example",
-  "version": "v0.0.1",
-  "types": [
-    {
-      "name": "Kind",
-      "type": "enum",
-      "fields": [
-        {
-          "name": "USER",
-          "type": "uint32",
-          "value": "0"
-        },
-        {
-          "name": "ADMIN",
-          "type": "uint32",
-          "value": "1"
-        }
-      ]
-    },
-    {
-      "name": "Empty",
-      "type": "struct",
-      "fields": [
-      ]
-    },
-    {
-      "name": "User",
-      "type": "struct",
-      "fields": [
-        {
-          "name": "ID",
-          "type": "uint64",
-          "optional": false,
-          "meta": [
-            { "json": "id" },
-            { "go.tag.db": "id" }
-          ]
-        },
-        {
-          "name": "username",
-          "type": "string",
-          "optional": false,
-          "meta": [
-            { "json": "USERNAME" },
-            { "go.tag.db": "username" }
-          ]
-        },
-        {
-          "name": "role",
-          "type": "string",
-          "optional": false,
-          "meta": [
-            { "go.tag.db": "-" }
-          ]
-        },
-        {
-          "name": "createdAt",
-          "type": "timestamp",
-          "optional": true,
-          "meta": [
-            { "json": "created_at" },
-            { "go.tag.json": "created_at,omitempty" },
-            { "go.tag.db": "created_at" }
-          ]
-        }
-
-      ]
-    },
-    {
-      "name": "ComplexType",
-      "type": "struct",
-      "fields": [
-        {
-          "name": "meta",
-          "type": "map<string,any>"
-        },
-        {
-          "name": "metaNestedExample",
-          "type": "map<string,map<string,uint32>>"
-        },
-        {
-          "name": "namesList",
-          "type": "[]string"
-        },
-        {
-          "name": "numsList",
-          "type": "[]int64"
-        },
-        {
-          "name": "doubleArray",
-          "type": "[][]string"
-        },
-        {
-          "name": "listOfMaps",
-          "type": "[]map<string,uint32>"
-        },
-        {
-          "name": "listOfUsers",
-          "type": "[]User"
-        },
-        {
-          "name": "mapOfUsers",
-          "type": "map<string,User>"
-        },
-        {
-          "name": "user",
-          "type": "User"
-        }
-      ]
-    }
-  ],
-  "services": [
-    {
-      "name": "ExampleService",
-      "methods": [
-        {
-          "name": "Ping",
-          "inputs": [],
-          "outputs": []
-        },
-        {
-          "name": "Status",
-          "inputs": [],
-          "outputs": [
-            {
-              "name": "status",
-              "type": "bool"
-            }
-          ]
-        },
-        {
-          "name": "GetUser",
-          "inputs": [
-            {
-              "name": "header",
-              "type": "map<string,string>"
-            },
-            {
-              "name": "userID",
-              "type": "uint64"
-            }
-          ],
-          "outputs": [
-            {
-              "name": "code",
-              "type": "uint32"
-            },
-            {
-              "name": "user",
-              "type": "User"
-            }
-          ]
-        }
-      ]
-    }
-  ]
+	"webrpc": "v1",
+	"name": "example",
+	"version": "v0.0.1",
+	"types": [
+		{
+			"name": "Kind",
+			"kind": "enum",
+			"type": "uint32",
+			"fields": [
+				{
+					"name": "USER",
+					"value": "0"
+				},
+				{
+					"name": "ADMIN",
+					"value": "1"
+				}
+			]
+		},
+		{
+			"name": "Empty",
+			"kind": "struct",
+			"fields": []
+		},
+		{
+			"name": "User",
+			"kind": "struct",
+			"fields": [
+				{
+					"name": "ID",
+					"type": "uint64",
+					"optional": false,
+					"meta": [
+						{
+							"json": "id"
+						},
+						{
+							"go.tag.db": "id"
+						}
+					]
+				},
+				{
+					"name": "username",
+					"type": "string",
+					"optional": false,
+					"meta": [
+						{
+							"json": "USERNAME"
+						},
+						{
+							"go.tag.db": "username"
+						}
+					]
+				},
+				{
+					"name": "role",
+					"type": "string",
+					"optional": false,
+					"meta": [
+						{
+							"go.tag.db": "-"
+						}
+					]
+				},
+				{
+					"name": "createdAt",
+					"type": "timestamp",
+					"optional": true,
+					"meta": [
+						{
+							"json": "created_at"
+						},
+						{
+							"go.tag.json": "created_at,omitempty"
+						},
+						{
+							"go.tag.db": "created_at"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "ComplexType",
+			"kind": "struct",
+			"fields": [
+				{
+					"name": "meta",
+					"type": "map<string,any>"
+				},
+				{
+					"name": "metaNestedExample",
+					"type": "map<string,map<string,uint32>>"
+				},
+				{
+					"name": "namesList",
+					"type": "[]string"
+				},
+				{
+					"name": "numsList",
+					"type": "[]int64"
+				},
+				{
+					"name": "doubleArray",
+					"type": "[][]string"
+				},
+				{
+					"name": "listOfMaps",
+					"type": "[]map<string,uint32>"
+				},
+				{
+					"name": "listOfUsers",
+					"type": "[]User"
+				},
+				{
+					"name": "mapOfUsers",
+					"type": "map<string,User>"
+				},
+				{
+					"name": "user",
+					"type": "User"
+				}
+			]
+		}
+	],
+	"services": [
+		{
+			"name": "ExampleService",
+			"methods": [
+				{
+					"name": "Ping",
+					"inputs": [],
+					"outputs": []
+				},
+				{
+					"name": "Status",
+					"inputs": [],
+					"outputs": [
+						{
+							"name": "status",
+							"type": "bool"
+						}
+					]
+				},
+				{
+					"name": "GetUser",
+					"inputs": [
+						{
+							"name": "header",
+							"type": "map<string,string>"
+						},
+						{
+							"name": "userID",
+							"type": "uint64"
+						}
+					],
+					"outputs": [
+						{
+							"name": "code",
+							"type": "uint32"
+						},
+						{
+							"name": "user",
+							"type": "User"
+						}
+					]
+				}
+			]
+		}
+	]
 }

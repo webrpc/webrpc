@@ -71,7 +71,7 @@ You might see the following error when running your webrpc generator templates a
 template: main.go.tmpl:88:57: executing "main" at <.Messages>: can't evaluate field Messages in type struct { *schema.WebRPCSchema; SchemaHash string; WebrpcGenVersion string; WebrpcGenCommand string; WebrpcTarget string; Opts map[string]interface {} }
 ```
 
-You will want to rename `{{.Messages}}` variable to `{{.Types}}` in your `*.go.tmpl` template files.
+To fix this, rename `{{.Messages}}` variable to `{{.Types}}` in your `*.go.tmpl` template files.
 
 ## Migration guide
 
@@ -87,12 +87,65 @@ find . -name '*.ridl' -exec sed -i -e 's/^message /struct /g' {} \;
 
 ### JSON schema v0.9.0 migration guide
 
-Run this command to migrate your `.json` schema files to webrpc@v0.9.0+:
+Run this Node.js script to migrate your `*webrpc.json` schema files to webrpc@v0.9.0+:
 
-```bash
-#!/bin/bash
+`node migrate.js schema.webrpc.json`
 
-find . -name '*.json' -exec sed -i -e 's/"messages":/\"types\":/g' {} \;
+Contents of `migrate.js` file:
+```javascript
+const fs = require("fs");
+
+if (process.argv.length != 3) {
+  throw Error(`Usage: node ${process.argv[1]} <webrpc-schema.json>`);
+}
+
+const filePath = process.argv[2];
+
+console.log(filePath);
+
+fs.readFile(filePath, "utf8", (e, data) => {
+  if (e) {
+    throw e;
+  }
+
+  let schema = JSON.parse(data);
+  schema = {
+    webrpc: schema.webrpc,
+    name: schema.name,
+    version: schema.version,
+    types: schema.messages.map((orig) => {
+      let type = {
+        name: orig.name,
+        kind: orig.type,
+        fields: orig.fields,
+      };
+
+      if (type.kind == "enum") {
+        type = {
+          name: orig.name,
+          kind: orig.type,
+          type: orig.fields[0].type,
+          fields: orig.fields.map((field) => {
+            return { name: field.name, value: field.value };
+          }),
+        };
+      }
+      return type;
+    }),
+    services: schema.services,
+  };
+
+  schema.types = fs.writeFile(
+    filePath,
+    JSON.stringify(schema, null, "\t"),
+    (err) => {
+      if (err) {
+        console.error(err);
+        console.log(schema);
+      }
+    }
+  );
+});
 ```
 
 ### Generator templates v0.9.0 migration guide
@@ -104,6 +157,5 @@ Run this command to migrate your `.go.tmpl` templates to webrpc@v0.9.0+:
 
 find . -name '*.go.tmpl' -exec sed -i -e 's/\.Messages/.Types/g' {} \;
 find . -name '*.go.tmpl' -exec sed -i -e 's/"Messages"/"Types"/g' {} \;
-
 ```
 
