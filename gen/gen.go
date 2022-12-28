@@ -22,7 +22,13 @@ type GenOutput struct {
 	*TemplateSource
 }
 
-func Generate(proto *schema.WebRPCSchema, target string, config *Config) (*GenOutput, error) {
+func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *GenOutput, err error) {
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("%v\n\tcommand failed: %w", getWebrpcGenCommand(), err)
+		}
+	}()
+
 	genOutput := &GenOutput{}
 
 	target = getOldTarget(target)

@@ -2,8 +2,6 @@ package gen
 
 import (
 	"fmt"
-
-	"github.com/webrpc/webrpc/schema"
 )
 
 // Create new dictionary.
@@ -24,19 +22,15 @@ func dict(pairs ...interface{}) map[string]interface{} {
 	return m
 }
 
-func get(m map[string]interface{}, key interface{}) interface{} {
-	switch t := key.(type) {
-	case string:
-		return m[t]
-	case schema.VarName:
-		return m[string(t)]
-	case schema.VarType:
-		return m[t.Type.String()]
-	case *schema.VarType:
-		return m[t.Type.String()]
-	default:
-		panic(fmt.Sprintf("get: unknown type %T", key))
+func get(m map[string]interface{}, key interface{}) (interface{}, error) {
+	keyStr := toString(key)
+
+	val, ok := m[keyStr]
+	if !ok {
+		return nil, fmt.Errorf("get(): key %q doesn't exist", keyStr)
 	}
+
+	return val, nil
 }
 
 func set(m map[string]interface{}, key string, value interface{}) string {

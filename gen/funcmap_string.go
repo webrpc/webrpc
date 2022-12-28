@@ -17,8 +17,10 @@ func toString(v interface{}) string {
 		if t != nil {
 			return t.String()
 		}
-		return ""
+		panic(fmt.Sprintf("toString(): nil %T", v))
 	case schema.Type:
+		return t.Kind
+	case *schema.Type:
 		return t.Kind
 	case string:
 		return t
@@ -29,7 +31,7 @@ func toString(v interface{}) string {
 		}
 		return b.String()
 	default:
-		panic(fmt.Sprintf("str: unknown arg type %T", v))
+		panic(fmt.Sprintf("toString(): unknown arg type %T", v))
 	}
 }
 

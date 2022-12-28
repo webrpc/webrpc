@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	// TODO: type Kind (struct | enum | coreType | ...)
 	TypeKind_Struct = "struct"
 	TypeKind_Enum   = "enum"
 )
@@ -35,9 +36,9 @@ type TypeExtra struct {
 
 type TypeFieldMeta map[string]interface{}
 
-func (m *Type) Parse(schema *WebRPCSchema) error {
+func (t *Type) Parse(schema *WebRPCSchema) error {
 	// Type name
-	typName := string(m.Name)
+	typName := string(t.Name)
 	if typName == "" {
 		return fmt.Errorf("schema error: type name cannot be empty")
 	}
@@ -48,13 +49,13 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 	// Ensure we don't have dupe types (w/ normalization)
 	name := strings.ToLower(typName)
 	for _, msg := range schema.Types {
-		if msg != m && name == strings.ToLower(string(msg.Name)) {
+		if msg != t && name == strings.ToLower(string(msg.Name)) {
 			return fmt.Errorf("schema error: duplicate type detected, '%s'", typName)
 		}
 	}
 
 	// Ensure we have a valid kind
-	if m.Kind != TypeKind_Enum && m.Kind != TypeKind_Struct {
+	if t.Kind != TypeKind_Enum && t.Kind != TypeKind_Struct {
 		return fmt.Errorf("schema error: type must be one of 'enum', or 'struct' for '%s'", typName)
 	}
 
@@ -62,7 +63,7 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 
 	// Verify field names and ensure we don't have any duplicate field names
 	fieldList := map[string]string{}
-	for _, field := range m.Fields {
+	for _, field := range t.Fields {
 		if string(field.Name) == "" {
 			return fmt.Errorf("schema error: detected empty field name in type '%s", typName)
 		}
@@ -83,27 +84,27 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 	}
 
 	// For enums only, ensure all field types are the same
-	if m.Kind == TypeKind_Enum {
+	if t.Kind == TypeKind_Enum {
 		// ensure enum fields have value key set
-		for _, field := range m.Fields {
+		for _, field := range t.Fields {
 			if field.Value == "" {
-				return fmt.Errorf("schema error: enum '%s' with field '%s' is missing value", m.Name, field.Name)
+				return fmt.Errorf("schema error: enum '%s' with field '%s' is missing value", t.Name, field.Name)
 			}
 			if field.Type != nil {
-				return fmt.Errorf("schema error: enum '%s' with field '%s', must omit 'type'", m.Name, field.Name)
+				return fmt.Errorf("schema error: enum '%s' with field '%s', must omit 'type'", t.Name, field.Name)
 			}
 		}
 
 		// ensure enum type is one of the allowed types.. aka integer
-		fieldType := m.Type
+		fieldType := t.Type
 		if !isValidVarType(fieldType.String(), VarIntegerCoreTypes) {
-			return fmt.Errorf("schema error: enum '%s' field '%s' is invalid. must be an integer type.", m.Name, fieldType.String())
+			return fmt.Errorf("schema error: enum '%s' field '%s' is invalid. must be an integer type.", t.Name, fieldType.String())
 		}
 	}
 
 	// For structs only
-	if m.Kind == TypeKind_Struct {
-		for _, field := range m.Fields {
+	if t.Kind == TypeKind_Struct {
+		for _, field := range t.Fields {
 			// Parse+validate type fields
 			err := field.Type.Parse(schema)
 			if err != nil {
@@ -112,7 +113,7 @@ func (m *Type) Parse(schema *WebRPCSchema) error {
 
 			// Ensure value isn't set
 			if field.Value != "" {
-				return fmt.Errorf("schema error: struct '%s' with field '%s' cannot contain value field - please remove it", m.Name, field.Name)
+				return fmt.Errorf("schema error: struct '%s' with field '%s' cannot contain value field - please remove it", t.Name, field.Name)
 			}
 		}
 

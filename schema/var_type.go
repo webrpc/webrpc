@@ -15,6 +15,9 @@ type VarType struct {
 }
 
 func (t *VarType) String() string {
+	if t == nil {
+		return ""
+	}
 	return t.Expr
 }
 
