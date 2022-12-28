@@ -255,6 +255,8 @@ See https://pkg.go.dev/text/template#hdr-Functions
 |------------------------------------------------|-------------------------------------------------|-------------|
 | `isBasicType .Type`                            | Returns `true` if `.Type` is [core type](https://github.com/webrpc/webrpc/tree/master/schema#core-types) | v0.7.0 (deprecated) |
 | `isCoreType .Type`                            | Returns `true` if `.Type` is [core type](https://github.com/webrpc/webrpc/tree/master/schema#core-types) | v0.9.0 |
+| `isStructType .Type`                           | Returns `true` if `.Type` is [struct](https://github.com/webrpc/webrpc/tree/master/schema#struct) | v0.7.0 |
+| `isEnumType .Type`                             | Returns `true` if `.Type` is [enum](https://github.com/webrpc/webrpc/tree/master/schema#enum) | v0.7.0 |
 | `isMapType .Type`                              | Returns `true` if `.Type` is [map](https://github.com/webrpc/webrpc/tree/master/schema#map) (`map<T1,T2>`) | v0.7.0 |
 | `isListType .Type`                             | Returns `true` if `.Type` is [list](https://github.com/webrpc/webrpc/tree/master/schema#list-array) (`[]T`) | v0.7.0 |
 | `mapKeyType .MapType`                          | Returns map's key type (ie. `T1` from `map<T1,T2>`) | v0.7.0 |
