@@ -59,6 +59,6 @@ test: generate build-test
 	go test -v ./...
 	echo "Running interoperability test"; \
 		./bin/webrpc-test -server -port=9988 -timeout=2s & \
-		sleep 0.5; \
+		until nc -z localhost 9988; do sleep 0.2; done; \
 		./bin/webrpc-test -client -url=http://localhost:9988; \
 		wait
