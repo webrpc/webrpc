@@ -16,10 +16,10 @@ Some example webrpc schemas:
     - [Floats](#floats)
     - [Strings](#strings)
     - [Timestamps (date/time)](#timestamps-datetime)
-  - [List (Array)](#list-array)
+  - [List](#list)
   - [Map](#map)
   - [Enum](#enum)
-  - [Struct (Message)](#struct-message)
+  - [Struct](#struct)
 
 # Type system
 
@@ -60,8 +60,9 @@ Some example webrpc schemas:
 - `timestamp` - for date/time
 
 
-## List (Array)
+## List
 
+- List represents a JSON array over the wire
 - form: `[]<type>`
 - ie.
   * `[]string`
@@ -72,6 +73,7 @@ Some example webrpc schemas:
 
 ## Map
 
+- Map represents a JSON object with 0..N properties (key:value pairs) over the wire
 - form: `map<key,value>`
 - ie.
   * `map<string,any>`
@@ -86,9 +88,9 @@ Some example webrpc schemas:
 - enum, see examples
 
 
-## Struct (Message)
+## Struct
 
-- think of a struct as a JavaScript or JSON object
+- struct represents a JSON object over the wire
 - struct has 0..N fields
   - field can be `optional`
   - fields are by default required, unless made optional

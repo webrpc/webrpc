@@ -7,7 +7,7 @@ import (
 
 type VarType struct {
 	Expr string   // Type, ie. map<string,map<string,uint32>> or []User
-	Type CoreType // Kind, ie. map or struct
+	Type CoreType // Kind, ie. int, map or struct
 
 	List   *VarListType
 	Map    *VarMapType
@@ -15,6 +15,9 @@ type VarType struct {
 }
 
 func (t *VarType) String() string {
+	if t == nil {
+		return ""
+	}
 	return t.Expr
 }
 
@@ -63,13 +66,13 @@ type VarListType struct {
 }
 
 type VarMapType struct {
-	Key   CoreType // see, VarMapKeyDataTypes -- only T_String or T_XintX supported
+	Key   CoreType // see, VarMapKeyCoreTypes -- only T_String or T_XintX supported
 	Value *VarType
 }
 
 type VarStructType struct {
-	Name    string
-	Message *Message
+	Name string
+	Type *Type
 }
 
 func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
@@ -80,7 +83,6 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 
 	// parse data type from string
 	dataType, ok := CoreTypeFromString[expr]
-
 	if !ok {
 		// test for complex datatype
 		if isListExpr(expr) {
@@ -129,15 +131,23 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 		}
 
 	case T_Unknown:
+		// struct or enum
 
-		structExpr := expr
-		msg, ok := getMessageType(schema, structExpr)
-		if !ok || msg == nil {
-			return fmt.Errorf("schema error: invalid struct/message type '%s'", structExpr)
+		typ, ok := getType(schema, expr)
+		if !ok || typ == nil {
+			return fmt.Errorf("schema error: invalid type '%s'", expr)
 		}
 
-		vt.Type = T_Struct
-		vt.Struct = &VarStructType{Name: structExpr, Message: msg}
+		switch typ.Kind {
+		case TypeKind_Struct:
+			vt.Type = T_Struct
+			vt.Struct = &VarStructType{Name: expr, Type: typ}
+		case TypeKind_Enum:
+			vt.Type = T_Struct // TODO: T_Enum, see https://github.com/webrpc/webrpc/issues/44
+			vt.Struct = &VarStructType{Name: expr, Type: typ}
+		default:
+			return fmt.Errorf("schema error: unexpected type '%s'", expr)
+		}
 
 	default:
 		// core type, we're done here
@@ -211,25 +221,25 @@ func isMapExpr(expr string) bool {
 	return strings.HasPrefix(expr, mapTest)
 }
 
-func getMessageType(schema *WebRPCSchema, structExpr string) (*Message, bool) {
-	for _, msg := range schema.Messages {
-		if structExpr == string(msg.Name) {
-			return msg, true
+func getType(schema *WebRPCSchema, structExpr string) (*Type, bool) {
+	for _, typ := range schema.Types {
+		if structExpr == string(typ.Name) {
+			return typ, true
 		}
 	}
 	return nil, false
 }
 
-var VarKeyDataTypes = []CoreType{
+var VarKeyCoreTypes = []CoreType{
 	T_String, T_Uint, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
-var VarIntegerDataTypes = []CoreType{
+var VarIntegerCoreTypes = []CoreType{
 	T_Uint, T_Uint8, T_Uint16, T_Uint32, T_Uint64, T_Int, T_Int8, T_Int16, T_Int32, T_Int64,
 }
 
 func isValidVarKeyType(s string) bool {
-	return isValidVarType(s, VarKeyDataTypes)
+	return isValidVarType(s, VarKeyCoreTypes)
 }
 
 func isValidVarType(s string, allowedList []CoreType) bool {

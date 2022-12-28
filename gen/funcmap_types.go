@@ -14,13 +14,41 @@ func isCoreType(v interface{}) bool {
 }
 
 // Returns true if given type is struct.
-func isStructType(v interface{}) bool {
-	return !isCoreType(v) && !isListType(v) && !isMapType(v) && !isEnumType(v)
+func isStructType(v interface{}) (bool, error) {
+	switch t := v.(type) {
+	case schema.Type:
+		return t.Kind == "struct", nil
+	case *schema.Type:
+		return t.Kind == "struct", nil
+	case schema.VarType:
+		return t.Type == schema.T_Struct, nil
+	case *schema.VarType:
+		if t != nil {
+			return t.Type == schema.T_Struct, nil
+		}
+		return false, nil
+	default:
+		return false, fmt.Errorf("isStructType(): unexpected type %T: %+v", v, v)
+	}
 }
 
 // Returns true if given type is enum.
-func isEnumType(v interface{}) bool {
-	return toString(v) == "enum"
+func isEnumType(v interface{}) (bool, error) {
+	switch t := v.(type) {
+	case schema.Type:
+		return t.Kind == "enum", nil
+	case *schema.Type:
+		return t.Kind == "enum", nil
+	case schema.VarType:
+		return t.Struct.Type.Kind == "enum", nil
+	case *schema.VarType:
+		if t != nil {
+			return t.Struct.Type.Kind == "enum", nil
+		}
+		return false, nil
+	default:
+		return false, fmt.Errorf("isEnumType(): unexpected type %T: %+v", v, v)
+	}
 }
 
 // Returns true if given type is list (ie. `[]T`).

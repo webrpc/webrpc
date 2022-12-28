@@ -14,9 +14,14 @@ func toString(v interface{}) string {
 	case schema.VarType:
 		return t.String()
 	case *schema.VarType:
-		return t.String()
-	case schema.MessageType:
-		return string(t)
+		if t != nil {
+			return t.String()
+		}
+		panic(fmt.Sprintf("toString(): nil %T", v))
+	case schema.Type:
+		return t.Kind
+	case *schema.Type:
+		return t.Kind
 	case string:
 		return t
 	case map[string]interface{}:
@@ -26,7 +31,7 @@ func toString(v interface{}) string {
 		}
 		return b.String()
 	default:
-		panic(fmt.Sprintf("str: unknown arg type %T", v))
+		panic(fmt.Sprintf("toString(): unknown arg type %T", v))
 	}
 }
 

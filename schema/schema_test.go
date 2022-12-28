@@ -12,32 +12,31 @@ func TestSchema(t *testing.T) {
 		"webrpc": "v1",
 		"name": "example",
 		"version": "v0.0.1",
-		"messages": [
+		"types": [
 			{
+				"kind": "enum",
 				"name": "Kind",
-				"type": "enum",
+				"type": "uint32",
 				"fields": [
 					{
 						"name": "USER",
-						"type": "uint32",
 						"value": "1"
 					},
 					{
 						"name": "ADMIN",
-						"type": "uint32",
 						"value": "2"
 					}
 				]
 			},
 			{
+				"kind": "struct",
 				"name": "Empty",
-				"type": "struct",
 				"fields": [
 				]
 			},
 			{
+				"kind": "struct",
 				"name": "GetUserRequest",
-				"type": "struct",
 				"fields": [
 					{
 						"name": "userID",
@@ -47,8 +46,8 @@ func TestSchema(t *testing.T) {
 				]
 			},
 			{
+				"kind": "struct",
 				"name": "RandomStuff",
-				"type": "struct",
 				"fields": [
 					{
 						"name": "meta",
@@ -89,8 +88,8 @@ func TestSchema(t *testing.T) {
 				]
 			},
 			{
+				"kind": "struct",
 				"name": "User",
-				"type": "struct",
 				"fields": [
 					{
 						"name": "ID",
@@ -125,7 +124,7 @@ func TestSchema(t *testing.T) {
 		],
 		"services": [
 			{
-				"name": "ExampleService",
+				"name": "Example",
 				"methods": [
 					{
 						"name": "Ping",

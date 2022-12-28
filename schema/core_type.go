@@ -37,7 +37,7 @@ const (
 	T_List
 	T_Map
 
-	T_Struct // aka, a reference to our own webrpc proto struct/message
+	T_Struct // aka, a reference to our own webrpc struct type
 )
 
 var CoreTypeToString = map[CoreType]string{

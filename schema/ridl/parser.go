@@ -14,7 +14,7 @@ const (
 	wordEnum    = "enum"
 	wordImport  = "import"
 	wordMap     = "map"
-	wordMessage = "message"
+	wordStruct  = "struct"
 	wordName    = "name"
 	wordProxy   = "proxy"
 	wordService = "service"
@@ -148,7 +148,7 @@ func (p *parser) expectOptionalCommentOrEOL() error {
 
 func (p *parser) stateError(err error) parserState {
 	cur := p.cursor()
-	err = fmt.Errorf("parse error: %q near %q (line: %d, col: %d)", err, cur.val, cur.line, cur.col)
+	err = fmt.Errorf("%d:%d: error near %q: %v", cur.line, cur.col, cur.val, err)
 	p.emit(err)
 	return nil
 }
@@ -394,11 +394,14 @@ func parserStateDeclaration(p *parser) parserState {
 		// enum <name>: <type>
 		//   - <name>[<space>=<space><value>][<#comment>]
 		return parserStateEnum
-	case wordMessage:
-		// message <name>
+	case "message":
+		// Deprecated in v0.9.0.
+		return p.stateError(fmt.Errorf("keyword \"message\" was renamed to \"struct\", see https://github.com/webrpc/webrpc/tree/master/CHANGELOG.md#RIDL+v0.9.0+migration+guide"))
+	case wordStruct:
+		// struct <name>
 		//   - <name>: <type>
 		//     + <tag.name> = <VALUE>
-		return parserStateMessage
+		return parserStateStruct
 	case wordService:
 		// service <name>
 		//   - <name>([arguments]) [=> ([arguments])]

@@ -1,15 +1,9 @@
 webrpc = v1
-
-
-
-
-
 name = types
-
 version = v0.1
 
 import
-  - messages.ridl
+  - structs.ridl
 
 enum TypeA: uint32
   - FOO = 1

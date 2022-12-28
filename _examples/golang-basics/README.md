@@ -13,7 +13,7 @@ you can also write your schema in JSON format like so, [./example.webrpc.json](.
 2. Design your schema file and think about the methods calls clients will need to make
 to your service
 3. Write the "services" section of the schema file
-4. From the inputs and outputs for the function definitions, start writing the "messages"
+4. From the inputs and outputs for the function definitions, start writing the "structs"
 section of the data types needed in your program.
 5. Run the code generator to build the server and client:
   * `webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -out=./example.gen.go`

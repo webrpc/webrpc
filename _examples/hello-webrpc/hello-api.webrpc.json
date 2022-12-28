@@ -1,106 +1,115 @@
 {
-  "webrpc": "v1",
-  "name": "hello-api",
-  "version": "v0.0.1",
-  "messages": [
-    {
-      "name": "Kind",
-      "type": "enum",
-      "fields": [
-        {
-          "name": "USER",
-          "type": "uint32",
-          "value": "1"
-        },
-        {
-          "name": "ADMIN",
-          "type": "uint32",
-          "value": "2"
-        }
-      ]
-    },
-    {
-      "name": "Empty",
-      "type": "struct",
-      "fields": [
-      ]
-    },
-    {
-      "name": "GetUserRequest",
-      "type": "struct",
-      "fields": [
-        {
-          "name": "userID",
-          "type": "uint64",
-          "optional": false
-        }
-      ]
-    },
-    {
-      "name": "User",
-      "type": "struct",
-      "fields": [
-        {
-          "name": "ID",
-          "type": "uint64",
-          "optional": false,
-          "meta": [
-            { "json": "id" },
-            { "go.tag.db": "id" }
-          ]
-        },
-        {
-          "name": "username",
-          "type": "string",
-          "optional": false,
-          "meta": [
-            { "json": "USERNAME" },
-            { "go.tag.db": "username" }
-          ]
-        },
-        {
-          "name": "createdAt",
-          "type": "timestamp",
-          "optional": true,
-          "meta": [
-            { "json": "created_at,omitempty" },
-            { "go.tag.db": "created_at" }
-          ]
-        }
-
-      ]
-    }
-  ],
-  "services": [
-    {
-      "name": "ExampleService",
-      "methods": [
-        {
-          "name": "Ping",
-          "inputs": [],
-          "outputs": [
-            {
-              "name": "",
-              "type": "bool"
-            }
-          ]
-        },
-        {
-          "name": "GetUser",
-          "inputs": [
-            {
-              "name": "req",
-              "type": "GetUserRequest"
-            }
-          ],
-          "outputs": [
-            {
-              "name": "",
-              "type": "User"
-            }
-          ]
-        }
-      ]
-    }
-  ]
+	"webrpc": "v1",
+	"name": "hello-api",
+	"version": "v0.0.1",
+	"types": [
+		{
+			"name": "Kind",
+			"kind": "enum",
+			"type": "uint32",
+			"fields": [
+				{
+					"name": "USER",
+					"value": "1"
+				},
+				{
+					"name": "ADMIN",
+					"value": "2"
+				}
+			]
+		},
+		{
+			"name": "Empty",
+			"kind": "struct",
+			"fields": []
+		},
+		{
+			"name": "GetUserRequest",
+			"kind": "struct",
+			"fields": [
+				{
+					"name": "userID",
+					"type": "uint64",
+					"optional": false
+				}
+			]
+		},
+		{
+			"name": "User",
+			"kind": "struct",
+			"fields": [
+				{
+					"name": "ID",
+					"type": "uint64",
+					"optional": false,
+					"meta": [
+						{
+							"json": "id"
+						},
+						{
+							"go.tag.db": "id"
+						}
+					]
+				},
+				{
+					"name": "username",
+					"type": "string",
+					"optional": false,
+					"meta": [
+						{
+							"json": "USERNAME"
+						},
+						{
+							"go.tag.db": "username"
+						}
+					]
+				},
+				{
+					"name": "createdAt",
+					"type": "timestamp",
+					"optional": true,
+					"meta": [
+						{
+							"json": "created_at,omitempty"
+						},
+						{
+							"go.tag.db": "created_at"
+						}
+					]
+				}
+			]
+		}
+	],
+	"services": [
+		{
+			"name": "ExampleService",
+			"methods": [
+				{
+					"name": "Ping",
+					"inputs": [],
+					"outputs": [
+						{
+							"name": "",
+							"type": "bool"
+						}
+					]
+				},
+				{
+					"name": "GetUser",
+					"inputs": [
+						{
+							"name": "req",
+							"type": "GetUserRequest"
+						}
+					],
+					"outputs": [
+						{
+							"name": "",
+							"type": "User"
+						}
+					]
+				}
+			]
+		}
+	]
 }

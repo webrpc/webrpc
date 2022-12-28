@@ -9,7 +9,7 @@ const (
 	DefinitionNodeType
 	ImportNodeType
 	EnumNodeType
-	MessageNodeType
+	StructNodeType
 	ArgumentNodeType
 	MethodNodeType
 	ServiceNodeType
@@ -81,15 +81,15 @@ func (rn RootNode) Imports() []*ImportNode {
 	return importNodes
 }
 
-func (rn RootNode) Messages() []*MessageNode {
-	nodes := rn.Filter(MessageNodeType)
+func (rn RootNode) Structs() []*StructNode {
+	nodes := rn.Filter(StructNodeType)
 
-	messageNodes := make([]*MessageNode, 0, len(nodes))
+	structNodes := make([]*StructNode, 0, len(nodes))
 	for i := range nodes {
-		messageNodes = append(messageNodes, nodes[i].(*MessageNode))
+		structNodes = append(structNodes, nodes[i].(*StructNode))
 	}
 
-	return messageNodes
+	return structNodes
 }
 
 func (rn RootNode) Enums() []*EnumNode {
@@ -232,22 +232,22 @@ func (en EnumNode) Values() []*DefinitionNode {
 	return en.values
 }
 
-type MessageNode struct {
+type StructNode struct {
 	node
 
 	name   *TokenNode
 	fields []*DefinitionNode
 }
 
-func (mn MessageNode) Name() *TokenNode {
+func (mn StructNode) Name() *TokenNode {
 	return mn.name
 }
 
-func (mn *MessageNode) Type() NodeType {
-	return MessageNodeType
+func (mn *StructNode) Type() NodeType {
+	return StructNodeType
 }
 
-func (mn *MessageNode) Fields() []*DefinitionNode {
+func (mn *StructNode) Fields() []*DefinitionNode {
 	return mn.fields
 }
 

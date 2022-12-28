@@ -141,45 +141,47 @@ func TestRIDLEnum(t *testing.T) {
 		assert.Equal(t, "hello-webrpc", s.SchemaName)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
-		assert.Equal(t, "Kind", string(s.Messages[0].Name))
-		assert.Equal(t, "enum", string(s.Messages[0].Type))
+		assert.Equal(t, "Kind", string(s.Types[0].Name))
+		assert.Equal(t, "enum", string(s.Types[0].Kind))
+		assert.Equal(t, "uint32", string(s.Types[0].Type.String()))
 
-		assert.Equal(t, "USER", string(s.Messages[0].Fields[0].Name))
-		assert.Equal(t, "ADMIN", string(s.Messages[0].Fields[1].Name))
+		assert.Equal(t, "USER", string(s.Types[0].Fields[0].Name))
+		assert.Equal(t, "ADMIN", string(s.Types[0].Fields[1].Name))
 
-		assert.Equal(t, "33", string(s.Messages[0].Fields[0].Value))
-		assert.Equal(t, "44", string(s.Messages[0].Fields[1].Value))
+		assert.Equal(t, "33", string(s.Types[0].Fields[0].Value))
+		assert.Equal(t, "44", string(s.Types[0].Fields[1].Value))
 
-		assert.Equal(t, "uint32", string(s.Messages[0].Fields[0].Type.String()))
-		assert.Equal(t, "uint32", string(s.Messages[0].Fields[1].Type.String()))
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[0].Fields[0].Type)
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[0].Fields[1].Type)
 
-		assert.Equal(t, "KindTwo", string(s.Messages[1].Name))
-		assert.Equal(t, "enum", string(s.Messages[1].Type))
+		assert.Equal(t, "KindTwo", string(s.Types[1].Name))
+		assert.Equal(t, "enum", string(s.Types[1].Kind))
+		assert.Equal(t, "uint32", string(s.Types[1].Type.String()))
 
-		assert.Equal(t, "uint32", string(s.Messages[1].Fields[0].Type.String()))
-		assert.Equal(t, "uint32", string(s.Messages[1].Fields[1].Type.String()))
-		assert.Equal(t, "uint32", string(s.Messages[1].Fields[2].Type.String()))
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[1].Fields[0].Type)
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[1].Fields[1].Type)
+		assert.Equal(t, (*schema.VarType)(nil), s.Types[1].Fields[2].Type)
 
-		assert.Equal(t, "0", string(s.Messages[1].Fields[0].Value))
-		assert.Equal(t, "1", string(s.Messages[1].Fields[1].Value))
-		assert.Equal(t, "2", string(s.Messages[1].Fields[2].Value))
+		assert.Equal(t, "0", string(s.Types[1].Fields[0].Value))
+		assert.Equal(t, "1", string(s.Types[1].Fields[1].Value))
+		assert.Equal(t, "2", string(s.Types[1].Fields[2].Value))
 	}
 }
 
-func TestRIDLMessages(t *testing.T) {
+func TestRIDLTypes(t *testing.T) {
 	{
 		input := `
     webrpc = v1
     version = v0.1.1
   name = hello-webrpc
 
-  message Empty
+  struct Empty
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "Empty", string(s.Messages[0].Name))
-		assert.Equal(t, "struct", string(s.Messages[0].Type))
+		assert.Equal(t, "struct", string(s.Types[0].Kind))
+		assert.Equal(t, "Empty", string(s.Types[0].Name))
 	}
 
 	{
@@ -188,13 +190,13 @@ func TestRIDLMessages(t *testing.T) {
     version = v0.1.1
   name = hello-webrpc
 
-  message Empty # with a, comment
+  struct Empty # with a, comment
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "Empty", string(s.Messages[0].Name))
-		assert.Equal(t, "struct", string(s.Messages[0].Type))
+		assert.Equal(t, "struct", string(s.Types[0].Kind))
+		assert.Equal(t, "Empty", string(s.Types[0].Name))
 
 	}
 
@@ -204,23 +206,23 @@ func TestRIDLMessages(t *testing.T) {
     version = v0.1.1
   name = hello-webrpc
 
-  message Simple # with a, comment
+  struct Simple # with a, comment
     - ID: uint32
     - Value?: uint32
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "Simple", string(s.Messages[0].Name))
-		assert.Equal(t, "struct", string(s.Messages[0].Type))
+		assert.Equal(t, "struct", string(s.Types[0].Kind))
+		assert.Equal(t, "Simple", string(s.Types[0].Name))
 
-		assert.Equal(t, "ID", string(s.Messages[0].Fields[0].Name))
-		assert.Equal(t, "uint32", string(s.Messages[0].Fields[0].Type.String()))
-		assert.Equal(t, false, s.Messages[0].Fields[0].Optional)
+		assert.Equal(t, "ID", string(s.Types[0].Fields[0].Name))
+		assert.Equal(t, "uint32", string(s.Types[0].Fields[0].Type.String()))
+		assert.Equal(t, false, s.Types[0].Fields[0].Optional)
 
-		assert.Equal(t, "Value", string(s.Messages[0].Fields[1].Name))
-		assert.Equal(t, "uint32", string(s.Messages[0].Fields[1].Type.String()))
-		assert.Equal(t, true, s.Messages[0].Fields[1].Optional)
+		assert.Equal(t, "Value", string(s.Types[0].Fields[1].Name))
+		assert.Equal(t, "uint32", string(s.Types[0].Fields[1].Type.String()))
+		assert.Equal(t, true, s.Types[0].Fields[1].Optional)
 	}
 
 	{
@@ -229,7 +231,7 @@ func TestRIDLMessages(t *testing.T) {
     version = v0.1.1
   name = hello-webrpc
 
-  message Simple # with a-comment an,d meta fields
+  struct Simple # with a-comment an,d meta fields
     - ID: uint32
   - Field2: uint64 # one two #t
       + json = field_2 # a comment
@@ -240,25 +242,25 @@ func TestRIDLMessages(t *testing.T) {
     + go.tag.db = - # omits the field from db
 
 
-  message Simple2 # with a-comment an,d meta fields
+  struct Simple2 # with a-comment an,d meta fields
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "Simple", string(s.Messages[0].Name))
-		assert.Equal(t, "struct", string(s.Messages[0].Type))
+		assert.Equal(t, "struct", string(s.Types[0].Kind))
+		assert.Equal(t, "Simple", string(s.Types[0].Name))
 
-		assert.Equal(t, "Simple2", string(s.Messages[1].Name))
-		assert.Equal(t, "struct", string(s.Messages[1].Type))
+		assert.Equal(t, "struct", string(s.Types[1].Kind))
+		assert.Equal(t, "Simple2", string(s.Types[1].Name))
 
-		assert.Equal(t, "ID", string(s.Messages[0].Fields[0].Name))
-		assert.Equal(t, "Field2", string(s.Messages[0].Fields[1].Name))
-		assert.Equal(t, "Field3", string(s.Messages[0].Fields[2].Name))
+		assert.Equal(t, "ID", string(s.Types[0].Fields[0].Name))
+		assert.Equal(t, "Field2", string(s.Types[0].Fields[1].Name))
+		assert.Equal(t, "Field3", string(s.Types[0].Fields[2].Name))
 
-		assert.Equal(t, "field_2", s.Messages[0].Fields[1].Meta[0]["json"])
-		assert.Equal(t, "field_3", s.Messages[0].Fields[1].Meta[1]["go.tag.db"])
+		assert.Equal(t, "field_2", s.Types[0].Fields[1].Meta[0]["json"])
+		assert.Equal(t, "field_3", s.Types[0].Fields[1].Meta[1]["go.tag.db"])
 
-		assert.Equal(t, "-", s.Messages[0].Fields[2].Meta[0]["go.tag.db"])
+		assert.Equal(t, "-", s.Types[0].Fields[2].Meta[0]["go.tag.db"])
 	}
 
 	{
@@ -267,7 +269,7 @@ func TestRIDLMessages(t *testing.T) {
     version = v0.1.1
   name = hello-webrpc
 
-  message Simple # with a-comment an,d meta fields
+  struct Simple # with a-comment an,d meta fields
     - ID: uint32
   - Field2: map<string, string> # one two #t
       + json = field_2 # a comment
@@ -279,14 +281,14 @@ func TestRIDLMessages(t *testing.T) {
       + json = field_2 # a comment
         + go.tag.db = field_2
 
-  message Simple2 # with a-comment an,d meta fields
+  struct Simple2 # with a-comment an,d meta fields
   `
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "map<string,string>", string(s.Messages[0].Fields[1].Type.String()))
-		assert.Equal(t, "[]bool", string(s.Messages[0].Fields[2].Type.String()))
-		assert.Equal(t, "[][][]bool", string(s.Messages[0].Fields[3].Type.String()))
+		assert.Equal(t, "map<string,string>", string(s.Types[0].Fields[1].Type.String()))
+		assert.Equal(t, "[]bool", string(s.Types[0].Fields[2].Type.String()))
+		assert.Equal(t, "[][][]bool", string(s.Types[0].Fields[3].Type.String()))
 	}
 
 	{
@@ -295,7 +297,7 @@ func TestRIDLMessages(t *testing.T) {
     version = v0.1.1
   name = hello-webrpc
 
-  message Simple # with a-comment an,d meta fields
+  struct Simple # with a-comment an,d meta fields
     - ID: uint32
   - Field2: map<string, string> # one two #t
       + json = field_2 # a comment
@@ -308,12 +310,12 @@ func TestRIDLMessages(t *testing.T) {
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		assert.Equal(t, "map<string,string>", string(s.Messages[0].Fields[1].Type.String()))
-		assert.Equal(t, "field_2", s.Messages[0].Fields[1].Meta[1]["go.tag.db"])
-		assert.Equal(t, "default**:**now**()**,use_zero#000", s.Messages[0].Fields[1].Meta[2]["go.tag.db.1"])
-		assert.Equal(t, `default**:**now**()**,use_zero,"//`, s.Messages[0].Fields[1].Meta[3]["go.tag.db.2"])
-		assert.Equal(t, "default**:**now**()**,use_zero,// # not a comment", s.Messages[0].Fields[1].Meta[4]["go.tag.db.3"])
-		assert.Equal(t, "default**:**now**()**,use_zero", s.Messages[0].Fields[1].Meta[5]["go.tag.db.4"])
+		assert.Equal(t, "map<string,string>", string(s.Types[0].Fields[1].Type.String()))
+		assert.Equal(t, "field_2", s.Types[0].Fields[1].Meta[1]["go.tag.db"])
+		assert.Equal(t, "default**:**now**()**,use_zero#000", s.Types[0].Fields[1].Meta[2]["go.tag.db.1"])
+		assert.Equal(t, `default**:**now**()**,use_zero,"//`, s.Types[0].Fields[1].Meta[3]["go.tag.db.2"])
+		assert.Equal(t, "default**:**now**()**,use_zero,// # not a comment", s.Types[0].Fields[1].Meta[4]["go.tag.db.3"])
+		assert.Equal(t, "default**:**now**()**,use_zero", s.Types[0].Fields[1].Meta[5]["go.tag.db.4"])
 	}
 }
 
@@ -441,5 +443,13 @@ func TestRIDLImports(t *testing.T) {
 	golden, err := ioutil.ReadFile("example1-golden.json")
 	assert.NoError(t, err)
 
-	assert.JSONEq(t, compactJSON(golden), compactJSON([]byte(jout)))
+	a := compactJSON(golden)
+	b := compactJSON([]byte(jout))
+
+	ioutil.WriteFile("example1-golden.json", []byte(jout), 0644)
+
+	// fmt.Println("==> GOLDEN:", a)
+	// fmt.Println("==> PARSED:", b)
+
+	assert.JSONEq(t, a, b)
 }
