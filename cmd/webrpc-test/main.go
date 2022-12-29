@@ -8,10 +8,12 @@ import (
 	"net/http"
 	"os"
 	"time"
+	_ "embed"
 
 	"github.com/webrpc/webrpc"
 	"github.com/webrpc/webrpc/tests/client"
 	"github.com/webrpc/webrpc/tests/server"
+	"github.com/webrpc/webrpc/tests"
 )
 
 var (
@@ -19,6 +21,7 @@ var (
 	clientFlag  = flags.Bool("client", false, "client mode")
 	serverFlag  = flags.Bool("server", false, "server mode")
 	versionFlag = flags.Bool("version", false, "print version and exit")
+	printSchema = flags.Bool("print-schema", false, "print RIDL schema used for testing client/server communication")
 
 	// -client
 	clientFlags = flag.NewFlagSet("webrpc-test -client", flag.ExitOnError)
@@ -40,6 +43,11 @@ func main() {
 
 	if *versionFlag {
 		fmt.Println("webrpc-test", webrpc.VERSION)
+		os.Exit(0)
+	}
+
+	if *printSchema {
+		fmt.Println(tests.GetSchema())
 		os.Exit(0)
 	}
 
