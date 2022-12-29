@@ -448,7 +448,7 @@ func TestRIDLImports(t *testing.T) {
 	a := compactJSON(golden)
 	b := compactJSON([]byte(jout))
 
-	ioutil.WriteFile("example1-golden.json", []byte(jout), 0644)
+	//ioutil.WriteFile("example1-golden.json", []byte(jout), 0644)
 
 	// fmt.Println("==> GOLDEN:", a)
 	// fmt.Println("==> PARSED:", b)
