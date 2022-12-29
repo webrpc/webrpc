@@ -77,9 +77,8 @@ func TestRIDLImports(t *testing.T) {
 			version = v0.1.1
 			name = ImportService
 	
-			import            # comment
-			- types.ridl      # comment with spaces
-			                  # # # comment
+			import
+			- types.ridl
 			`)},
 		"schema/types.ridl": {Data: []byte(`
 			webrpc = v1
@@ -87,11 +86,20 @@ func TestRIDLImports(t *testing.T) {
 			name = types
 
 			import
+			  - foo.ridl        # import from current directory
 			  - subdir/bar.ridl # import from subdirectory
 			  - ../common.ridl  # import from parent directory
 
-			struct Foo
+			struct ExtraType
 			  - name: string
+		`)},
+		"schema/foo.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.8.0
+			name = foo
+
+			struct Foo
+			- name: string	
 		`)},
 		"schema/subdir/bar.ridl": {Data: []byte(`
 			webrpc = v1
@@ -100,7 +108,10 @@ func TestRIDLImports(t *testing.T) {
 
 			struct Bar
 			- name: string	
-		`)},
+
+			struct Baz
+			- name: string	
+			`)},
 		"common.ridl": {Data: []byte(`
 		webrpc = v1
 		version = v1.0.0
@@ -117,6 +128,14 @@ func TestRIDLImports(t *testing.T) {
 	assert.Equal(t, "v1", s.WebrpcVersion)
 	assert.Equal(t, "ImportService", s.SchemaName)
 	assert.Equal(t, "v0.1.1", s.SchemaVersion)
+
+	if assert.Equal(t, 5, len(s.Types)) {
+		assert.Equal(t, "Foo", string(s.Types[0].Name))
+		assert.Equal(t, "Bar", string(s.Types[1].Name))
+		assert.Equal(t, "Baz", string(s.Types[2].Name))
+		assert.Equal(t, "Common", string(s.Types[3].Name))
+		assert.Equal(t, "ExtraType", string(s.Types[4].Name))
+	}
 }
 
 func TestRIDLEnum(t *testing.T) {
