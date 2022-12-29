@@ -25,6 +25,7 @@ Keyword "message" was renamed to "struct".
 
 - Field "messages" was renamed to "types"
 - Field "type" was renamed to "kind"
+- Enum type was moved from enum.fields[] to enum object
 
 ```diff
  {
@@ -38,6 +39,7 @@ Keyword "message" was renamed to "struct".
      "name": "Status",
 -    "type": "enum",
 +    "kind": "enum",
++    "type": "uint32",
      "fields": [
      {
        "name": "AVAILABLE",
