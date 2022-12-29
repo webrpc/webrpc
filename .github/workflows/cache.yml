@@ -1,0 +1,16 @@
+name: Clean cache
+on:
+  schedule:
+    - cron: "0 0 * * *" # every day (min hour dayOfMonth month dayOfWeek)
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cleanup
+        run: |
+          gh extension install actions/gh-actions-cache
+          gh actions-cache list
+          gh actions-cache delete webrpc-cache --confirm || true
+        env:
+          GH_TOKEN: $
