@@ -6,19 +6,24 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/webrpc/webrpc/schema"
 )
 
-func newStringParser(s string) (*parser, error) {
-	return newParser(strings.NewReader(s))
+func newStringParser(src string) (*parser, error) {
+	return newParser([]byte(src))
 }
 
-func parseString(s string) (*schema.WebRPCSchema, error) {
-	return NewParser(schema.NewReader(strings.NewReader(s), "./main.ridl")).Parse()
+func parseString(src string) (*schema.WebRPCSchema, error) {
+	fsys := fstest.MapFS{
+		"main.ridl": {
+			Data: []byte(src),
+		},
+	}
+	return NewParser(fsys, "main.ridl").Parse()
 }
 
 func compactJSON(src []byte) string {
@@ -70,9 +75,6 @@ func TestRIDLHeader(t *testing.T) {
 }
 
 func TestRIDLImport(t *testing.T) {
-	enableMockImport()
-	defer disableMockImport()
-
 	{
 		input := `
     webrpc = v1
