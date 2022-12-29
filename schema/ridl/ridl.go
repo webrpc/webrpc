@@ -2,7 +2,8 @@ package ridl
 
 import (
 	"fmt"
-	"os"
+	"io"
+	"io/fs"
 	"path/filepath"
 	"strconv"
 
@@ -19,15 +20,18 @@ type Parser struct {
 	parent  *Parser
 	imports map[string]struct{}
 
-	reader *schema.Reader
+	reader io.Reader
+	path   string
+	fsys   fs.FS
 }
 
-func NewParser(r *schema.Reader) *Parser {
+func NewParser(fsys fs.FS, path string) *Parser {
 	return &Parser{
-		reader: r,
+		fsys: fsys,
+		path: path,
 		imports: map[string]struct{}{
 			// this file imports itself
-			r.File: {},
+			path: {},
 		},
 	}
 }
@@ -54,24 +58,27 @@ func (p *Parser) importRIDLFile(path string) (*schema.WebRPCSchema, error) {
 
 	for node := p; node != nil; node = node.parent {
 		if _, imported := node.imports[path]; imported {
-			return nil, fmt.Errorf("circular import %q in file %q", filepath.Base(path), p.reader.File)
+			return nil, fmt.Errorf("circular import %q in file %q", filepath.Base(path), p.path)
 		}
 		node.imports[path] = struct{}{}
 	}
 
-	fp, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer fp.Close()
-
-	m := NewParser(schema.NewReader(fp, path))
+	m := NewParser(p.fsys, path)
 	m.parent = p
 	return m.Parse()
 }
 
 func (p *Parser) parse() (*schema.WebRPCSchema, error) {
-	q, err := newParser(p.reader)
+	if !fs.ValidPath(p.path) {
+		return nil, fmt.Errorf("invalid fs.FS path %q, see https://pkg.go.dev/io/fs#ValidPath", p.path)
+	}
+
+	src, err := fs.ReadFile(p.fsys, p.path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+
+	q, err := newParser(src)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +119,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 	// imports
 	for _, line := range q.root.Imports() {
-		importPath := filepath.Join(filepath.Dir(p.reader.File), line.Path().String())
+		importPath := filepath.Join(filepath.Dir(p.path), line.Path().String())
 
 		imported, err := p.importRIDLFile(importPath)
 		if err != nil {
@@ -266,7 +273,7 @@ func (p *Parser) trace(err error, tok *TokenNode) error {
 		"%v\nnear string %q\n\tfrom %v:%d:%d",
 		err,
 		tok.tok.val,
-		p.reader.File,
+		p.path,
 		tok.tok.line,
 		tok.tok.col,
 	)
