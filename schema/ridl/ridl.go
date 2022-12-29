@@ -52,10 +52,6 @@ func (p *Parser) Parse() (*schema.WebRPCSchema, error) {
 }
 
 func (p *Parser) importRIDLFile(path string) (*schema.WebRPCSchema, error) {
-	if mockImport {
-		return &schema.WebRPCSchema{}, nil
-	}
-
 	for node := p; node != nil; node = node.parent {
 		if _, imported := node.imports[path]; imported {
 			return nil, fmt.Errorf("circular import %q in file %q", filepath.Base(path), p.path)
