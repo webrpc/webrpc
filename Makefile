@@ -37,7 +37,8 @@ install:
 	go install ./cmd/webrpc-gen
 
 generate: build
-	go generate ./...
+	go generate -x ./...
+	cd _examples/ && go generate -x ./...
 	@for i in _examples/*/Makefile; do           \
 		echo; echo $$ cd $$(dirname $$i) \&\& make generate; \
 		cd $$(dirname $$i);                      \
