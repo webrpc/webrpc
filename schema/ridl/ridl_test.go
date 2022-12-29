@@ -70,47 +70,53 @@ func TestRIDLHeader(t *testing.T) {
 	}
 }
 
-func TestRIDLImport(t *testing.T) {
-	{
-		input := `
-    webrpc = v1
-      version = v0.1.1
-  name = hello-webrpc
+func TestRIDLImports(t *testing.T) {
+	fsys := fstest.MapFS{
+		"schema/import-service.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.1.1
+			name = ImportService
+	
+			import            # comment
+			- types.ridl      # comment with spaces
+			                  # # # comment
+			`)},
+		"schema/types.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v1.0.0
+			name = types
 
-    import
-    - foo # ko ment
-    # ko ment
+			import
+			  - subdir/bar.ridl # import from subdirectory
+			  - ../common.ridl  # import from parent directory
 
-      - bar
-      # comment
-    `
+			struct Foo
+			  - name: string
+		`)},
+		"schema/subdir/bar.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.8.0
+			name = bar
 
-		s, err := parseString(input)
-		assert.NoError(t, err)
+			struct Bar
+			- name: string	
+		`)},
+		"common.ridl": {Data: []byte(`
+		webrpc = v1
+		version = v1.0.0
+		name = common
 
-		assert.Equal(t, "v1", s.WebrpcVersion)
-		assert.Equal(t, "hello-webrpc", s.SchemaName)
-		assert.Equal(t, "v0.1.1", s.SchemaVersion)
-
+		struct Common
+		- name: string	
+		`)},
 	}
 
-	{
-		input := `
-    webrpc = v1
-    version = v0.1.1 # version number
-  name     = hello-webrpc
+	s, err := NewParser(fsys, "schema/import-service.ridl").Parse()
+	assert.NoError(t, err)
 
-  import # import line
-  - foo1 # foo-comment with spaces
-    - bar2 # # # bar-comment
-  `
-		s, err := parseString(input)
-		assert.NoError(t, err)
-
-		assert.Equal(t, "v1", s.WebrpcVersion)
-		assert.Equal(t, "hello-webrpc", s.SchemaName)
-		assert.Equal(t, "v0.1.1", s.SchemaVersion)
-	}
+	assert.Equal(t, "v1", s.WebrpcVersion)
+	assert.Equal(t, "ImportService", s.SchemaName)
+	assert.Equal(t, "v0.1.1", s.SchemaVersion)
 }
 
 func TestRIDLEnum(t *testing.T) {
