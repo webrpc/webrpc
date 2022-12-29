@@ -427,16 +427,11 @@ func TestRIDLParse(t *testing.T) {
 	assert.NotZero(t, jout)
 }
 
-func TestRIDLImports(t *testing.T) {
-	os.Chdir("_example")
+func TestRIDLImportsExampleDir(t *testing.T) {
+	exampleDirFS := os.DirFS("./_example")
 
-	fp, err := os.Open("example1.ridl")
-	assert.NoError(t, err)
-
-	buf, err := ioutil.ReadAll(fp)
-	assert.NoError(t, err)
-
-	s, err := parseString(string(buf))
+	r := NewParser(exampleDirFS, "example1.ridl")
+	s, err := r.Parse()
 	assert.NoError(t, err)
 
 	jout, err := s.ToJSON(true)
@@ -444,7 +439,7 @@ func TestRIDLImports(t *testing.T) {
 
 	assert.NotZero(t, jout)
 
-	golden, err := ioutil.ReadFile("example1-golden.json")
+	golden, err := ioutil.ReadFile("./_example/example1-golden.json")
 	assert.NoError(t, err)
 
 	a := compactJSON(golden)
