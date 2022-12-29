@@ -30,10 +30,10 @@ func ParseSchemaFile(path string) (*schema.WebRPCSchema, error) {
 		// ie. import ../../common.ridl.
 		rootFS := os.DirFS("/")
 
-		parser := ridl.NewParser(rootFS, absolutePath[1:])
-		return parser.Parse()
+		r := ridl.NewParser(rootFS, absolutePath[1:])
+		return r.Parse()
 
 	default:
-		return nil, fmt.Errorf("error! invalid extension, %s: %w", ext, err)
+		return nil, fmt.Errorf("invalid schema file extension %q", ext)
 	}
 }
