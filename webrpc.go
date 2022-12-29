@@ -2,7 +2,6 @@ package webrpc
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -17,40 +16,24 @@ func ParseSchemaFile(path string) (*schema.WebRPCSchema, error) {
 	}
 
 	ext := filepath.Ext(absolutePath)
-	if ext == ".json" {
-		// ensure schema file exists
-		if _, err := os.Stat(absolutePath); os.IsNotExist(err) {
-			return nil, err
-		}
-
-		// open file
-		fp, err := os.Open(absolutePath)
+	switch ext {
+	case ".json":
+		json, err := os.ReadFile(absolutePath)
 		if err != nil {
-			return nil, err
-		}
-		defer fp.Close()
-
-		// TODO: implement ParseSchemaJSON with io.Reader or read contents
-		// before passing them.
-		contents, err := ioutil.ReadAll(fp)
-		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to read %q: %w", path, err)
 		}
 
-		return schema.ParseSchemaJSON(contents)
-	} else if ext == ".ridl" {
-		// We need root to allow RIDL imports from parent directories (import ../file.ridl)
+		return schema.ParseSchemaJSON(json)
+
+	case ".ridl":
+		// Use root FS to allow RIDL file imports from parent directories,
+		// ie. import ../../common.ridl.
 		rootFS := os.DirFS("/")
 
 		parser := ridl.NewParser(rootFS, absolutePath[1:])
+		return parser.Parse()
 
-		s, err := parser.Parse()
-		if err != nil {
-			return nil, err
-		}
-
-		return s, nil
-	} else {
+	default:
 		return nil, fmt.Errorf("error! invalid extension, %s: %w", ext, err)
 	}
 }
