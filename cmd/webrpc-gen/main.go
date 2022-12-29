@@ -68,8 +68,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// spew.Dump(schema)
-
 	// Test the schema file (useful for ridl files)
 	if *testFlag {
 		out, err := schema.ToJSON(true)

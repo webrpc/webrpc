@@ -1,17 +1,7 @@
 package ridl
 
-import (
-	"io"
-	"io/ioutil"
-)
-
-func tokenize(r io.Reader) ([]token, error) {
-	in, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil, err
-	}
-
-	lx := newLexer(string(in))
+func tokenize(src []byte) ([]token, error) {
+	lx := newLexer(string(src))
 
 	tokens := []token{}
 	for tok := range lx.tokens {

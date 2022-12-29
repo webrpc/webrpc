@@ -20,7 +20,7 @@ import (
 )
 
 func loadTemplates(proto *schema.WebRPCSchema, target string, config *Config) (*template.Template, *TemplateSource, error) {
-	s, err := NewTemplateSource(proto, target, config)
+	s, err := NewTemplateSource(target, config)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -41,7 +41,6 @@ const (
 
 type TemplateSource struct {
 	tmpl   *template.Template
-	proto  *schema.WebRPCSchema
 	target string
 	config *Config
 
@@ -52,11 +51,10 @@ type TemplateSource struct {
 	CacheRefreshErr error
 }
 
-func NewTemplateSource(proto *schema.WebRPCSchema, target string, config *Config) (*TemplateSource, error) {
-	tmpl := template.New(target).Funcs(templateFuncMap(proto, config.TemplateOptions))
+func NewTemplateSource(target string, config *Config) (*TemplateSource, error) {
+	tmpl := template.New(target).Funcs(templateFuncMap(config.TemplateOptions))
 	return &TemplateSource{
 		tmpl:   tmpl,
-		proto:  proto,
 		target: target,
 		config: config,
 	}, nil

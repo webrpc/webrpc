@@ -4,11 +4,10 @@ import (
 	"strings"
 
 	"github.com/golang-cz/textcase"
-	"github.com/webrpc/webrpc/schema"
 )
 
 // Template functions are part of webrpc-gen API. Keep backward-compatible.
-func templateFuncMap(proto *schema.WebRPCSchema, opts map[string]interface{}) map[string]interface{} {
+func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		// Template flow.
 		"stderrPrintf": stderrPrintf, // v0.7.0

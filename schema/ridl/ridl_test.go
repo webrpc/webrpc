@@ -6,19 +6,20 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/webrpc/webrpc/schema"
 )
 
-func newStringParser(s string) (*parser, error) {
-	return newParser(strings.NewReader(s))
-}
-
-func parseString(s string) (*schema.WebRPCSchema, error) {
-	return NewParser(schema.NewReader(strings.NewReader(s), "./main.ridl")).Parse()
+func parseString(src string) (*schema.WebRPCSchema, error) {
+	fsys := fstest.MapFS{
+		"main.ridl": {
+			Data: []byte(src),
+		},
+	}
+	return NewParser(fsys, "main.ridl").Parse()
 }
 
 func compactJSON(src []byte) string {
@@ -69,49 +70,71 @@ func TestRIDLHeader(t *testing.T) {
 	}
 }
 
-func TestRIDLImport(t *testing.T) {
-	enableMockImport()
-	defer disableMockImport()
+func TestRIDLImports(t *testing.T) {
+	fsys := fstest.MapFS{
+		"schema/import-service.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.1.1
+			name = ImportService
+	
+			import
+			- types.ridl
+			`)},
+		"schema/types.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v1.0.0
+			name = types
 
-	{
-		input := `
-    webrpc = v1
-      version = v0.1.1
-  name = hello-webrpc
+			import
+			  - foo.ridl        # import from current directory
+			  - subdir/bar.ridl # import from subdirectory
+			  - ../common.ridl  # import from parent directory
 
-    import
-    - foo # ko ment
-    # ko ment
+			struct ExtraType
+			  - name: string
+		`)},
+		"schema/foo.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.8.0
+			name = foo
 
-      - bar
-      # comment
-    `
+			struct Foo
+			- name: string	
+		`)},
+		"schema/subdir/bar.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.8.0
+			name = bar
 
-		s, err := parseString(input)
-		assert.NoError(t, err)
+			struct Bar
+			- name: string	
 
-		assert.Equal(t, "v1", s.WebrpcVersion)
-		assert.Equal(t, "hello-webrpc", s.SchemaName)
-		assert.Equal(t, "v0.1.1", s.SchemaVersion)
+			struct Baz
+			- name: string	
+			`)},
+		"common.ridl": {Data: []byte(`
+		webrpc = v1
+		version = v1.0.0
+		name = common
 
+		struct Common
+		- name: string	
+		`)},
 	}
 
-	{
-		input := `
-    webrpc = v1
-    version = v0.1.1 # version number
-  name     = hello-webrpc
+	s, err := NewParser(fsys, "schema/import-service.ridl").Parse()
+	assert.NoError(t, err)
 
-  import # import line
-  - foo1 # foo-comment with spaces
-    - bar2 # # # bar-comment
-  `
-		s, err := parseString(input)
-		assert.NoError(t, err)
+	assert.Equal(t, "v1", s.WebrpcVersion)
+	assert.Equal(t, "ImportService", s.SchemaName)
+	assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
-		assert.Equal(t, "v1", s.WebrpcVersion)
-		assert.Equal(t, "hello-webrpc", s.SchemaName)
-		assert.Equal(t, "v0.1.1", s.SchemaVersion)
+	if assert.Equal(t, 5, len(s.Types)) {
+		assert.Equal(t, "Foo", string(s.Types[0].Name))
+		assert.Equal(t, "Bar", string(s.Types[1].Name))
+		assert.Equal(t, "Baz", string(s.Types[2].Name))
+		assert.Equal(t, "Common", string(s.Types[3].Name))
+		assert.Equal(t, "ExtraType", string(s.Types[4].Name))
 	}
 }
 
@@ -423,16 +446,11 @@ func TestRIDLParse(t *testing.T) {
 	assert.NotZero(t, jout)
 }
 
-func TestRIDLImports(t *testing.T) {
-	os.Chdir("_example")
+func TestRIDLImportsExampleDir(t *testing.T) {
+	exampleDirFS := os.DirFS("./_example")
 
-	fp, err := os.Open("example1.ridl")
-	assert.NoError(t, err)
-
-	buf, err := ioutil.ReadAll(fp)
-	assert.NoError(t, err)
-
-	s, err := parseString(string(buf))
+	r := NewParser(exampleDirFS, "example1.ridl")
+	s, err := r.Parse()
 	assert.NoError(t, err)
 
 	jout, err := s.ToJSON(true)
@@ -440,13 +458,13 @@ func TestRIDLImports(t *testing.T) {
 
 	assert.NotZero(t, jout)
 
-	golden, err := ioutil.ReadFile("example1-golden.json")
+	golden, err := ioutil.ReadFile("./_example/example1-golden.json")
 	assert.NoError(t, err)
 
 	a := compactJSON(golden)
 	b := compactJSON([]byte(jout))
 
-	ioutil.WriteFile("example1-golden.json", []byte(jout), 0644)
+	//ioutil.WriteFile("example1-golden.json", []byte(jout), 0644)
 
 	// fmt.Println("==> GOLDEN:", a)
 	// fmt.Println("==> PARSED:", b)
