@@ -13,10 +13,6 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-func newStringParser(src string) (*parser, error) {
-	return newParser([]byte(src))
-}
-
 func parseString(src string) (*schema.WebRPCSchema, error) {
 	fsys := fstest.MapFS{
 		"main.ridl": {
