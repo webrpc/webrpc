@@ -6,6 +6,8 @@ import (
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 type TestServer struct{}
@@ -19,157 +21,59 @@ func (c *TestServer) GetError(ctx context.Context) error {
 }
 
 func (c *TestServer) GetOne(ctx context.Context) (*Simple, error) {
-	return &one, nil
+	return &fixtureOne, nil
 }
 
 func (c *TestServer) SendOne(ctx context.Context, one *Simple) error {
-	if one == nil {
-		return ErrorRequiredArgument("one")
+	if !cmp.Equal(one, &fixtureOne) {
+		return Errorf(ErrInvalidArgument, "%q:\n%s", "one", cmp.Diff(one, &fixtureOne))
 	}
 
 	return nil
 }
 
 func (c *TestServer) GetMulti(ctx context.Context) (*Simple, *Simple, *Simple, error) {
-	return &one, &two, &three, nil
+	return &fixtureOne, &fixtureTwo, &fixtureThree, nil
 }
 
 func (c *TestServer) SendMulti(ctx context.Context, one, two, three *Simple) error {
-	if one == nil {
-		return ErrorRequiredArgument("one")
+	if !cmp.Equal(one, &fixtureOne) {
+		return Errorf(ErrInvalidArgument, "%q:\n%s", "one", cmp.Diff(one, &fixtureOne))
 	}
-	if one == nil {
-		return ErrorRequiredArgument("two")
+	if !cmp.Equal(two, &fixtureTwo) {
+		return Errorf(ErrInvalidArgument, "%q:\n%s", "two", cmp.Diff(two, &fixtureTwo))
 	}
-	if one == nil {
-		return ErrorRequiredArgument("three")
+	if !cmp.Equal(three, &fixtureThree) {
+		return Errorf(ErrInvalidArgument, "%q:\n%s", "three", cmp.Diff(three, &fixtureThree))
 	}
 
 	return nil
 }
 
 func (c *TestServer) GetComplex(ctx context.Context) (*Complex, error) {
-	return &complex, nil
+	return &fixtureComplex, nil
 }
 
 func (c *TestServer) SendComplex(ctx context.Context, complex *Complex) error {
-	if complex == nil {
-		return ErrorRequiredArgument("complex")
+	if !cmp.Equal(complex, &fixtureComplex) {
+		return Errorf(ErrInvalidArgument, "%q:\n%s", "complex", cmp.Diff(complex, &fixtureComplex))
 	}
 
 	return nil
-
-	// if _, ok := complexType.Meta["1"]; !ok {
-	// 	return Errorf(ErrInvalidArgument, "meta: key %q does not exist", 1)
-	// }
-	// if complexType.Meta["1"] != "23" {
-	// 	return Errorf(ErrInvalidArgument, "meta: value in key '1' is not equal to '23'")
-	// }
-
-	// if _, ok := complexType.Meta["2"]; !ok {
-	// 	return Errorf(ErrInvalidArgument, "meta: key %q does not exist", 2)
-	// }
-	// if complexType.Meta["2"] != float64(24) {
-	// 	return Errorf(ErrInvalidArgument, "meta: value in key '2' is not equal to '24'")
-	// }
-
-	// metaNestedExample := metaNes()
-	// if _, ok := metaNestedExample["1"]; !ok {
-	// 	return Errorf(ErrInvalidArgument, "meta nested: key [%q] does not exist in meta nested structure", 1)
-	// }
-	// if _, ok := metaNestedExample["1"]["2"]; !ok {
-	// 	return Errorf(ErrInvalidArgument, "meta nested: key [1][%q] does not exist", 2)
-	// }
-	// if metaNestedExample["1"]["2"] != 1 {
-	// 	return Errorf(ErrInvalidArgument, "meta nested: expected value 1, actual: %v", metaNestedExample["1"]["2"])
-	// }
-
-	// namesList := c.getNamesList()
-	// for index, val := range complexType.NamesList {
-	// 	if val != namesList[index] {
-	// 		return Errorf(ErrInvalidArgument, "names list: expected value %q, given %q", val, namesList[index])
-	// 	}
-	// }
-
-	// numsList := c.getNumsList()
-	// for index, val := range complexType.NumsList {
-	// 	if val != numsList[index] {
-	// 		return Errorf(ErrInvalidArgument, "nums list: expected value %q, given %q", val, numsList[index])
-	// 	}
-	// }
-
-	// doubleArray := c.getDoubleArray()
-	// for i, arr := range complexType.DoubleArray {
-	// 	if arr[0] != doubleArray[i][0] {
-	// 		return Errorf(ErrInvalidArgument, "double array: expected value %q, given %q", arr[0], doubleArray[i][0])
-	// 	}
-	// }
-
-	// listOfMaps := c.listOfMaps()
-	// for i, m := range complexType.ListOfMaps {
-	// 	if m["john"] != listOfMaps[i]["john"] {
-	// 		return Errorf(ErrInvalidArgument, "list of maps: expected value %q, given %q", m["john"], listOfMaps[i]["john"])
-	// 	}
-	// 	if m["alice"] != listOfMaps[i]["alice"] {
-	// 		return Errorf(ErrInvalidArgument, "list of maps: expected value %q, given %q", m["alice"], listOfMaps[i]["alice"])
-	// 	}
-	// 	if m["Jakob"] != listOfMaps[i]["Jakob"] {
-	// 		return Errorf(ErrInvalidArgument, "list of maps: expected value %q, given %q", m["Jakob"], listOfMaps[i]["Jakob"])
-	// 	}
-	// }
-
-	// listOfUsers := c.listOfUsers()
-	// if complexType.ListOfUsers[0].ID != listOfUsers[0].ID {
-	// 	return Errorf(ErrInvalidArgument, "list of users: expected value %q, given %q", listOfUsers[0].ID, complexType.ListOfUsers[0].ID)
-	// }
-	// if complexType.ListOfUsers[0].Role != listOfUsers[0].Role {
-	// 	return Errorf(ErrInvalidArgument, "list of users: expected value %q, given %q", listOfUsers[0].Role, complexType.ListOfUsers[0].Role)
-	// }
-	// if complexType.ListOfUsers[0].Username != listOfUsers[0].Username {
-	// 	return Errorf(ErrInvalidArgument, "list of users: expected value %q, given %q", listOfUsers[0].Username, complexType.ListOfUsers[0].Username)
-	// }
-
-	// mapOfUsers := c.mapOfUsers()
-	// if _, ok := complexType.MapOfUsers["admin"]; !ok {
-	// 	return Errorf(ErrInvalidArgument, "map of users: expected 'admin' key to exist in map")
-	// }
-	// if complexType.MapOfUsers["admin"].ID != mapOfUsers["admin"].ID {
-	// 	return Errorf(ErrInvalidArgument, "map of users: expected value %q, given %q", mapOfUsers["admin"].ID, complexType.MapOfUsers["admin"].ID)
-	// }
-	// if complexType.MapOfUsers["admin"].Role != mapOfUsers["admin"].Role {
-	// 	return Errorf(ErrInvalidArgument, "map of users: expected value %q, given %q", mapOfUsers["admin"].Role, complexType.MapOfUsers["admin"].Role)
-	// }
-	// if complexType.MapOfUsers["admin"].Username != mapOfUsers["admin"].Username {
-	// 	return Errorf(ErrInvalidArgument, "map of users: expected value %q, given %q", mapOfUsers["admin"].Username, complexType.MapOfUsers["admin"].Username)
-	// }
-
-	// user := c.getUser()
-	// if complexType.User.ID != user.ID {
-	// 	return Errorf(ErrInvalidArgument, "user: expected value %q, given %q", complexType.User.ID, user.ID)
-	// }
-	// if complexType.User.Role != user.Role {
-	// 	return Errorf(ErrInvalidArgument, "user: expected value %q, given %q", complexType.User.Role, user.Role)
-	// }
-	// if complexType.User.Username != user.Username {
-	// 	return Errorf(ErrInvalidArgument, "user: expected value %q, given %q", complexType.User.Username, user.Username)
-	// }
-
-	// if complexType.Enum.String() != Status_AVAILABLE.String() {
-	// 	return Errorf(ErrInvalidArgument, "enum: expected value %q, given %q", Status_AVAILABLE, complexType.Enum.String())
-	// }
-
-	// return nil
 }
 
 // Fixtures
 var (
-	one = Simple{
+	fixtureOne = Simple{
+		Id:   1,
 		Name: "one",
 	}
-	two = Simple{
+	fixtureTwo = Simple{
+		Id:   2,
 		Name: "two",
 	}
-	three = Simple{
+	fixtureThree = Simple{
+		Id:   3,
 		Name: "three",
 	}
 
@@ -213,7 +117,7 @@ var (
 	}
 	available = Status_AVAILABLE
 
-	complex = Complex{
+	fixtureComplex = Complex{
 		Meta:              meta,
 		MetaNestedExample: metaNested,
 		NamesList:         namesList,

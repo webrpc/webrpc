@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 func RunTests(ctx context.Context, serverURL string) error {
@@ -49,11 +47,11 @@ func RunTests(ctx context.Context, serverURL string) error {
 
 	if len(errs) > 0 {
 		var b strings.Builder
-		fmt.Fprintf(&b, "%v test errors:\n", len(errs))
+		fmt.Fprintf(&b, "Failed tests:\n")
 		for _, err := range errs {
-			fmt.Fprintf(&b, "- %v\n", err)
+			fmt.Fprintf(&b, "%v\n", err)
 		}
-		return errors.Errorf(b.String())
+		return fmt.Errorf(b.String())
 	}
 
 	return nil
