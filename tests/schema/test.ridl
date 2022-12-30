@@ -1,9 +1,24 @@
-webrpc = v1             # version of webrpc schema format (ridl or json)
+webrpc = v1
 
-name = Test             # name of your backend app
-version = v0.0.1        # version of your schema
+name = Test
+version = v0.10.0
 
-struct Empty
+service TestApi
+  - GetEmpty()
+  - GetError()
+  
+  - GetOne() => (one: Simple)
+  - SendOne(one: Simple)
+
+  - GetMulti() => (one: Simple, two: Simple, three: Simple)
+  - SendMulti(one: Simple, two: Simple, three: Simple)
+  
+  - GetComplex() => (complex: Complex)
+  - SendComplex(complex: Complex)
+
+struct Simple
+  - id: int
+  - name: string
 
 struct User
   - id: uint64
@@ -22,7 +37,7 @@ enum Status: uint32
   - AVAILABLE
   - NOT_AVAILABLE
 
-struct ComplexType
+struct Complex
   - meta: map<string,any>
   - metaNestedExample: map<string,map<string,uint32>>
   - namesList: []string
@@ -33,10 +48,3 @@ struct ComplexType
   - mapOfUsers: map<string,User>
   - user: User
   - enum: Status
-
-service ComplexApi
-  - GetComplex() => (complex: ComplexType)
-  - SendComplex(complex: ComplexType) => ()
-
-service ErrorApi
-  - GetError() => (empty: Empty)
