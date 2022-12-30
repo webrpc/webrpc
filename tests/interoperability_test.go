@@ -13,7 +13,7 @@ import (
 )
 
 func TestGetComplexStructure(t *testing.T) {
-	srv := httptest.NewServer(server.NewComplexApiServer(&server.ComplexServer{}))
+	srv := httptest.NewServer(server.NewTestApiServer(&server.TestServer{}))
 	defer srv.Close()
 
 	err := client.TestComplexData(srv.URL)

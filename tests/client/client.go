@@ -15,7 +15,7 @@ func RunTests(serverURL string) error {
 }
 
 func TestComplexData(serverURL string) error {
-	httpClient := NewComplexApiClient(serverURL, &http.Client{})
+	httpClient := NewTestApiClient(serverURL, &http.Client{})
 
 	// get complex data from server
 	resp, err := httpClient.GetComplex(context.Background())

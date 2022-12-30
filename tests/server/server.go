@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-type ComplexServer struct{}
+type TestServer struct{}
 
-func (c *ComplexServer) GetComplex(ctx context.Context) (*ComplexType, error) {
+func (c *TestServer) GetComplex(ctx context.Context) (*ComplexType, error) {
 	status := Status_AVAILABLE
 
 	return &ComplexType{
@@ -27,14 +27,14 @@ func (c *ComplexServer) GetComplex(ctx context.Context) (*ComplexType, error) {
 	}, nil
 }
 
-func (*ComplexServer) GetMeta() map[string]interface{} {
+func (*TestServer) GetMeta() map[string]interface{} {
 	return map[string]interface{}{
 		"1": "23",
 		"2": 24,
 	}
 }
 
-func (*ComplexServer) GetMetaNestedExample() map[string]map[string]uint32 {
+func (*TestServer) GetMetaNestedExample() map[string]map[string]uint32 {
 	return map[string]map[string]uint32{
 		"1": {
 			"2": 1,
@@ -42,19 +42,19 @@ func (*ComplexServer) GetMetaNestedExample() map[string]map[string]uint32 {
 	}
 }
 
-func (*ComplexServer) GetNamesList() []string {
+func (*TestServer) GetNamesList() []string {
 	return []string{"John", "Alice", "Jakob"}
 }
 
-func (*ComplexServer) GetNumsList() []int64 {
+func (*TestServer) GetNumsList() []int64 {
 	return []int64{1, 2, 3, 4534643543}
 }
 
-func (*ComplexServer) GetDoubleArray() [][]string {
+func (*TestServer) GetDoubleArray() [][]string {
 	return [][]string{{"testing"}, {"api"}}
 }
 
-func (*ComplexServer) ListOfMaps() []map[string]uint32 {
+func (*TestServer) ListOfMaps() []map[string]uint32 {
 	return []map[string]uint32{
 		{
 			"john":  1,
@@ -64,7 +64,7 @@ func (*ComplexServer) ListOfMaps() []map[string]uint32 {
 	}
 }
 
-func (*ComplexServer) ListOfUsers() []*User {
+func (*TestServer) ListOfUsers() []*User {
 	return []*User{
 		{
 			ID:       1,
@@ -74,7 +74,7 @@ func (*ComplexServer) ListOfUsers() []*User {
 	}
 }
 
-func (*ComplexServer) MapOfUsers() map[string]*User {
+func (*TestServer) MapOfUsers() map[string]*User {
 	return map[string]*User{
 		"admin": {
 			ID:       1,
@@ -84,7 +84,7 @@ func (*ComplexServer) MapOfUsers() map[string]*User {
 	}
 }
 
-func (*ComplexServer) GetUser() *User {
+func (*TestServer) GetUser() *User {
 	return &User{
 		ID:       1,
 		Username: "John-Doe",
@@ -92,7 +92,7 @@ func (*ComplexServer) GetUser() *User {
 	}
 }
 
-func (c *ComplexServer) SendComplex(ctx context.Context, complexType *ComplexType) error {
+func (c *TestServer) SendComplex(ctx context.Context, complexType *ComplexType) error {
 	if _, ok := complexType.Meta["1"]; !ok {
 		return Errorf(ErrInvalidArgument, "meta: key %q does not exist", 1)
 	}
@@ -199,7 +199,7 @@ func RunTestServer(addr string, timeout time.Duration) (*testServer, error) {
 	srv := &testServer{
 		Server: &http.Server{
 			Addr:    addr,
-			Handler: NewComplexApiServer(&ComplexServer{}),
+			Handler: NewTestApiServer(&TestServer{}),
 		},
 		closed: make(chan struct{}),
 	}
