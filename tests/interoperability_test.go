@@ -4,6 +4,7 @@ package tests
 //go:generate webrpc-gen -schema=./schema/test.ridl -target=golang -pkg=server -server -out=./server/server.gen.go
 
 import (
+	"context"
 	"net/http/httptest"
 	"testing"
 
@@ -12,10 +13,10 @@ import (
 	"github.com/webrpc/webrpc/tests/server"
 )
 
-func TestGetComplexStructure(t *testing.T) {
+func TestInteroperability(t *testing.T) {
 	srv := httptest.NewServer(server.NewTestApiServer(&server.TestServer{}))
 	defer srv.Close()
 
-	err := client.TestComplexData(srv.URL)
+	err := client.RunTests(context.Background(), srv.URL)
 	assert.NoError(t, err)
 }
