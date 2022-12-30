@@ -25,8 +25,8 @@ func (c *TestServer) GetOne(ctx context.Context) (*Simple, error) {
 }
 
 func (c *TestServer) SendOne(ctx context.Context, one *Simple) error {
-	if !cmp.Equal(one, &fixtureOne) {
-		return Errorf(ErrInvalidArgument, "%q:\n%s", "one", cmp.Diff(one, &fixtureOne))
+	if !cmp.Equal(&fixtureOne, one) {
+		return Errorf(ErrInvalidArgument, "%q:\n%s", "one", cmp.Diff(&fixtureOne, one))
 	}
 
 	return nil
@@ -37,14 +37,14 @@ func (c *TestServer) GetMulti(ctx context.Context) (*Simple, *Simple, *Simple, e
 }
 
 func (c *TestServer) SendMulti(ctx context.Context, one, two, three *Simple) error {
-	if !cmp.Equal(one, &fixtureOne) {
-		return Errorf(ErrInvalidArgument, "%q:\n%s", "one", cmp.Diff(one, &fixtureOne))
+	if !cmp.Equal(&fixtureOne, one) {
+		return Errorf(ErrInvalidArgument, "%q:\n%s", "one", cmp.Diff(&fixtureOne, one))
 	}
-	if !cmp.Equal(two, &fixtureTwo) {
-		return Errorf(ErrInvalidArgument, "%q:\n%s", "two", cmp.Diff(two, &fixtureTwo))
+	if !cmp.Equal(&fixtureTwo, two) {
+		return Errorf(ErrInvalidArgument, "%q:\n%s", "two", cmp.Diff(&fixtureTwo, two))
 	}
-	if !cmp.Equal(three, &fixtureThree) {
-		return Errorf(ErrInvalidArgument, "%q:\n%s", "three", cmp.Diff(three, &fixtureThree))
+	if !cmp.Equal(&fixtureThree, three) {
+		return Errorf(ErrInvalidArgument, "%q:\n%s", "three", cmp.Diff(&fixtureThree, three))
 	}
 
 	return nil
@@ -55,8 +55,8 @@ func (c *TestServer) GetComplex(ctx context.Context) (*Complex, error) {
 }
 
 func (c *TestServer) SendComplex(ctx context.Context, complex *Complex) error {
-	if !cmp.Equal(complex, &fixtureComplex) {
-		return Errorf(ErrInvalidArgument, "%q:\n%s", "complex", cmp.Diff(complex, &fixtureComplex))
+	if !cmp.Equal(&fixtureComplex, complex) {
+		return Errorf(ErrInvalidArgument, "%q:\n%s", "complex", cmp.Diff(&fixtureComplex, complex))
 	}
 
 	return nil
