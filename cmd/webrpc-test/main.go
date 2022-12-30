@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	_ "embed"
 	"flag"
 	"fmt"
@@ -59,7 +60,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		err := client.RunTests(*urlFlag)
+		err := client.RunTests(context.Background(), *urlFlag)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%v", err)
 			os.Exit(1)
