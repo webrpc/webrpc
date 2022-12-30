@@ -1,3 +1,58 @@
+- [webrpc v0.10.0](#webrpc-v0100)
+  - [Interoperability tests](#interoperability-tests)
+  - [Breaking changes in webrpc-gen Go API](#breaking-changes-in-webrpc-gen-go-api)
+- [webrpc v0.9.0](#webrpc-v090)
+  - [Breaking changes](#breaking-changes)
+    - [RIDL v0.9.0 changes](#ridl-v090-changes)
+    - [JSON schema v0.9.0 changes](#json-schema-v090-changes)
+    - [Template changes](#template-changes)
+  - [Migration guide](#migration-guide)
+    - [RIDL v0.9.0 migration guide](#ridl-v090-migration-guide)
+    - [JSON schema v0.9.0 migration guide](#json-schema-v090-migration-guide)
+    - [Generator templates v0.9.0 migration guide](#generator-templates-v090-migration-guide)
+
+# webrpc v0.10.0
+
+## Interoperability tests
+
+We have defined a new interoperability test suite implementing the following schema:
+
+```
+webrpc = v1
+
+name = Test
+version = v0.10.0
+
+service TestApi
+  - GetEmpty()
+  - GetError()
+  
+  - GetOne() => (one: Simple)
+  - SendOne(one: Simple)
+
+  - GetMulti() => (one: Simple, two: Simple, three: Simple)
+  - SendMulti(one: Simple, two: Simple, three: Simple)
+  
+  - GetComplex() => (complex: Complex)
+  - SendComplex(complex: Complex)
+```
+
+All generators are expected to implement [TestApi schema](./tests/schema/test.ridl) and run client/server interoperability tests against a reference [webrpc-test binaries)](https://github.com/webrpc/webrpc/releases).
+
+For more info, see [typescript](https://github.com/webrpc/gen-typescript/tree/master/tests) or [golang](https://github.com/webrpc/gen-golang/tree/master/tests) tests.
+
+## Breaking changes in webrpc-gen Go API
+
+```diff
+-func NewParser(r *schema.Reader) *Parser
++func NewParser(fsys fs.FS, path string) *Parser
+```
+
+```diff
+- func NewTemplateSource(proto *schema.WebRPCSchema, target string, config *Config) (*TemplateSource, error)
++ func NewTemplateSource(target string, config *Config) (*TemplateSource, error)
+```
+
 # webrpc v0.9.0
 
 Towards reaching webrpc@v1.0.0, we have decided to make some breaking changes to webrpc schema and RIDL file format.
