@@ -1,3 +1,16 @@
+- [webrpc v0.10.0](#webrpc-v0100)
+  - [Interoperability tests](#interoperability-tests)
+  - [Breaking changes in webrpc-gen Go API](#breaking-changes-in-webrpc-gen-go-api)
+- [webrpc v0.9.0](#webrpc-v090)
+  - [Breaking changes](#breaking-changes)
+    - [RIDL v0.9.0 changes](#ridl-v090-changes)
+    - [JSON schema v0.9.0 changes](#json-schema-v090-changes)
+    - [Template changes](#template-changes)
+  - [Migration guide](#migration-guide)
+    - [RIDL v0.9.0 migration guide](#ridl-v090-migration-guide)
+    - [JSON schema v0.9.0 migration guide](#json-schema-v090-migration-guide)
+    - [Generator templates v0.9.0 migration guide](#generator-templates-v090-migration-guide)
+
 # webrpc v0.10.0
 
 ## Interoperability tests
