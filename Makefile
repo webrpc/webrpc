@@ -56,10 +56,14 @@ dep-upgrade-all:
 diff:
 	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
 
-test: generate build-test
+test: test-go test-interoperability
+
+test-go: generate
 	go test -v ./...
-	echo "Running interoperability test"; \
+
+test-interoperability: build-test
+	echo "Running interoperability test suite"; \
 		./bin/webrpc-test -server -port=9988 -timeout=2s & \
-		until nc -z localhost 9988; do sleep 0.2; done; \
+		until nc -z localhost 9988; do sleep 0.1; done; \
 		./bin/webrpc-test -client -url=http://localhost:9988; \
 		wait
