@@ -79,7 +79,7 @@ var (
 
 	meta = map[string]interface{}{
 		"1": "23",
-		"2": 24,
+		"2": float64(24), // Go JSON unmarshaler uses float64 for numbers by default.
 	}
 	metaNested = map[string]map[string]uint32{
 		"1": {
