@@ -1,3 +1,45 @@
+# webrpc v0.10.0
+
+## Interoperability tests
+
+We have defined a new interoperability test suite implementing the following schema:
+
+```
+webrpc = v1
+
+name = Test
+version = v0.10.0
+
+service TestApi
+  - GetEmpty()
+  - GetError()
+  
+  - GetOne() => (one: Simple)
+  - SendOne(one: Simple)
+
+  - GetMulti() => (one: Simple, two: Simple, three: Simple)
+  - SendMulti(one: Simple, two: Simple, three: Simple)
+  
+  - GetComplex() => (complex: Complex)
+  - SendComplex(complex: Complex)
+```
+
+All generators are expected to implement [TestApi schema](./tests/schema/test.ridl) and run client/server interoperability tests against a reference [webrpc-test binaries)](https://github.com/webrpc/webrpc/releases).
+
+For more info, see [typescript](https://github.com/webrpc/gen-typescript/tree/master/tests) or [golang](https://github.com/webrpc/gen-golang/tree/master/tests) tests.
+
+## Breaking changes in webrpc-gen Go API
+
+```diff
+-func NewParser(r *schema.Reader) *Parser
++func NewParser(fsys fs.FS, path string) *Parser
+```
+
+```diff
+- func NewTemplateSource(proto *schema.WebRPCSchema, target string, config *Config) (*TemplateSource, error)
++ func NewTemplateSource(target string, config *Config) (*TemplateSource, error)
+```
+
 # webrpc v0.9.0
 
 Towards reaching webrpc@v1.0.0, we have decided to make some breaking changes to webrpc schema and RIDL file format.
