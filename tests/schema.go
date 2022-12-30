@@ -4,7 +4,7 @@ import (
 	_ "embed"
 )
 
-//go:embed schema/api.ridl
+//go:embed schema/test.ridl
 var schema string
 
 func GetSchema() string {
