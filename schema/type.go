@@ -14,14 +14,14 @@ const (
 
 type Type struct {
 	Kind      string       `json:"kind"`
-	Name      VarName      `json:"name"`
+	Name      string       `json:"name"`
 	Type      *VarType     `json:"type,omitempty"`
 	Fields    []*TypeField `json:"fields,omitempty"`
 	TypeExtra `json:",omitempty"`
 }
 
 type TypeField struct {
-	Name      VarName  `json:"name"`
+	Name      string   `json:"name"`
 	Type      *VarType `json:"type,omitempty"`
 	TypeExtra `json:",omitempty"`
 }
