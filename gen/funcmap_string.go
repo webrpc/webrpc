@@ -9,8 +9,6 @@ import (
 
 func toString(v interface{}) string {
 	switch t := v.(type) {
-	case schema.VarName:
-		return string(t)
 	case schema.VarType:
 		return t.String()
 	case *schema.VarType:
@@ -38,8 +36,6 @@ func toString(v interface{}) string {
 func applyStringFunction(fnName string, fn func(string) string) func(v interface{}) string {
 	return func(v interface{}) string {
 		switch t := v.(type) {
-		case schema.VarName:
-			return fn(string(t))
 		case string:
 			return fn(t)
 		default:

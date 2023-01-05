@@ -143,7 +143,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, line := range q.root.Enums() {
 		s.Types = append(s.Types, &schema.Type{
 			Kind:   schemaTypeKindEnum,
-			Name:   schema.VarName(line.Name().String()),
+			Name:   line.Name().String(),
 			Fields: []*schema.TypeField{},
 		})
 	}
@@ -152,7 +152,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, line := range q.root.Structs() {
 		s.Types = append(s.Types, &schema.Type{
 			Kind: schemaTypeKindStruct,
-			Name: schema.VarName(line.Name().String()),
+			Name: line.Name().String(),
 		})
 	}
 
@@ -160,13 +160,13 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, service := range q.root.Services() {
 		// push service
 		s.Services = append(s.Services, &schema.Service{
-			Name: schema.VarName(service.Name().String()),
+			Name: service.Name().String(),
 		})
 	}
 
 	// enum fields
 	for _, line := range q.root.Enums() {
-		name := schema.VarName(line.Name().String())
+		name := line.Name().String()
 		enumDef := s.GetTypeByName(string(name))
 
 		if enumDef == nil {
@@ -188,7 +188,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			}
 
 			enumDef.Fields = append(enumDef.Fields, &schema.TypeField{
-				Name: schema.VarName(key),
+				Name: key,
 				TypeExtra: schema.TypeExtra{
 					Value: val,
 				},
@@ -198,7 +198,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 	// struct fields
 	for _, line := range q.root.Structs() {
-		name := schema.VarName(line.Name().String())
+		name := line.Name().String()
 		structDef := s.GetTypeByName(string(name))
 
 		if structDef == nil {
@@ -215,7 +215,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			}
 
 			field := &schema.TypeField{
-				Name: schema.VarName(fieldName),
+				Name: fieldName,
 				Type: &varType,
 				TypeExtra: schema.TypeExtra{
 					Optional: def.Optional(),
@@ -249,7 +249,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 			// push method
 			methods = append(methods, &schema.Method{
-				Name:         schema.VarName(method.Name().String()),
+				Name:         method.Name().String(),
 				StreamInput:  method.StreamInput(),
 				StreamOutput: method.StreamOutput(),
 				Inputs:       inputs,
@@ -300,7 +300,7 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 		}
 
 		methodArgument := &schema.MethodArgument{
-			Name:     schema.VarName(arg.Name().String()),
+			Name:     arg.Name().String(),
 			Type:     &varType,
 			Optional: arg.Optional(),
 		}
