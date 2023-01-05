@@ -277,7 +277,7 @@ dev/strings#Join)) | v0.7.0 |
 | `array [ELEMENTS]...`                          | Create a new string array | v0.8.0 |
 | `append ARRAY [ELEMENTS]...`                   | Append elements to existing string array | v0.8.0 |
 | `first ARRAY`                                  | Return first element from the given array | v0.7.0 |
-| `join ARRAY SEPARATOR`                         | Join array items with a separator (see [strings.Join()](https://pkg.go.
+| `join ARRAY SEPARATOR`                         | Join array items with a separator (see [strings.Join()](https://pkg.go.dev/strings#Join)) | v0.7.0 |
 | `last ARRAY`                                   | Return last element from the given array | v0.7.0 |
 | `sort ARRAY`                                   | Return sorted copy of the given array (ascending order) | v0.8.0 |
 | `split SEPARATOR STRING`                       | Split string by a separator into array `[]string` | v0.7.0 |
