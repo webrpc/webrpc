@@ -70,7 +70,7 @@ func main() {
 
 	// Test the schema file (useful for ridl files)
 	if *testFlag {
-		out, err := schema.ToJSON(true)
+		out, err := schema.ToJSON()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)

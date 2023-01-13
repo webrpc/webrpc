@@ -19,7 +19,7 @@ func TestRIDLSchemaAgainstJSON(t *testing.T) {
 	schema, err := ridl.NewParser(exampleDirFS, "test.ridl").Parse()
 	assert.NoError(t, err)
 
-	jsonSchema, err := schema.ToJSON(true)
+	jsonSchema, err := schema.ToJSON()
 	assert.NoError(t, err)
 
 	current := []byte(jsonSchema)

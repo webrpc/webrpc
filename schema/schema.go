@@ -66,7 +66,8 @@ func (s *WebRPCSchema) Validate() error {
 func (s *WebRPCSchema) SchemaHash() (string, error) {
 	// TODO: lets later make this even more deterministic in face of re-ordering
 	// definitions within the ridl file
-	jsonString, err := s.ToJSON(false)
+
+	jsonString, err := s.ToJSON()
 	if err != nil {
 		return "", err
 	}
@@ -76,25 +77,18 @@ func (s *WebRPCSchema) SchemaHash() (string, error) {
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
-func (s *WebRPCSchema) ToJSON(optIndent ...bool) (string, error) {
-	indent := false
-	if len(optIndent) > 0 {
-		indent = optIndent[0]
-	}
+func (s *WebRPCSchema) ToJSON() (string, error) {
+	var buf bytes.Buffer
 
-	buf := &bytes.Buffer{}
-	enc := json.NewEncoder(buf)
+	enc := json.NewEncoder(&buf)
 	enc.SetEscapeHTML(false)
-	if indent {
-		enc.SetIndent("", " ")
-	}
+	enc.SetIndent("", " ")
 
-	err := enc.Encode(s)
-	if err != nil {
+	if err := enc.Encode(s); err != nil {
 		return "", err
 	}
 
-	return string(buf.Bytes()), nil
+	return buf.String(), nil
 }
 
 func (s *WebRPCSchema) GetTypeByName(name string) *Type {

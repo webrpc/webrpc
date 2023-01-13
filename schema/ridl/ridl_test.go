@@ -430,7 +430,7 @@ func TestRIDLParse(t *testing.T) {
 	s, err := parseString(string(buf))
 	assert.NoError(t, err)
 
-	jout, err := s.ToJSON(true)
+	jout, err := s.ToJSON()
 	assert.NoError(t, err)
 
 	assert.NotZero(t, jout)
@@ -443,7 +443,7 @@ func TestRIDLImportsExampleDir(t *testing.T) {
 	s, err := r.Parse()
 	assert.NoError(t, err)
 
-	jout, err := s.ToJSON(true)
+	jout, err := s.ToJSON()
 	assert.NoError(t, err)
 
 	current := []byte(jout)
