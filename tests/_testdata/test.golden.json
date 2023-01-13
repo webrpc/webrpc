@@ -1,0 +1,228 @@
+{
+ "webrpc": "v1",
+ "name": "Test",
+ "version": "v0.10.0",
+ "types": [
+  {
+   "kind": "enum",
+   "name": "Status",
+   "type": "uint32",
+   "fields": [
+    {
+     "name": "AVAILABLE",
+     "value": "0"
+    },
+    {
+     "name": "NOT_AVAILABLE",
+     "value": "1"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "Simple",
+   "fields": [
+    {
+     "name": "id",
+     "type": "int"
+    },
+    {
+     "name": "name",
+     "type": "string"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "User",
+   "fields": [
+    {
+     "name": "id",
+     "type": "uint64",
+     "meta": [
+      {
+       "json": "id"
+      },
+      {
+       "go.field.name": "ID"
+      },
+      {
+       "go.tag.db": "id"
+      }
+     ]
+    },
+    {
+     "name": "username",
+     "type": "string",
+     "meta": [
+      {
+       "json": "USERNAME"
+      },
+      {
+       "go.tag.db": "username"
+      }
+     ]
+    },
+    {
+     "name": "role",
+     "type": "string",
+     "meta": [
+      {
+       "go.tag.db": "-"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "Complex",
+   "fields": [
+    {
+     "name": "meta",
+     "type": "map<string,any>"
+    },
+    {
+     "name": "metaNestedExample",
+     "type": "map<string,map<string,uint32>>"
+    },
+    {
+     "name": "namesList",
+     "type": "[]string"
+    },
+    {
+     "name": "numsList",
+     "type": "[]int64"
+    },
+    {
+     "name": "doubleArray",
+     "type": "[][]string"
+    },
+    {
+     "name": "listOfMaps",
+     "type": "[]map<string,uint32>"
+    },
+    {
+     "name": "listOfUsers",
+     "type": "[]User"
+    },
+    {
+     "name": "mapOfUsers",
+     "type": "map<string,User>"
+    },
+    {
+     "name": "user",
+     "type": "User"
+    },
+    {
+     "name": "enum",
+     "type": "Status"
+    }
+   ]
+  }
+ ],
+ "errors": [],
+ "services": [
+  {
+   "name": "TestApi",
+   "methods": [
+    {
+     "name": "GetEmpty",
+     "inputs": [],
+     "outputs": []
+    },
+    {
+     "name": "GetError",
+     "inputs": [],
+     "outputs": []
+    },
+    {
+     "name": "GetOne",
+     "inputs": [],
+     "outputs": [
+      {
+       "name": "one",
+       "type": "Simple",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "SendOne",
+     "inputs": [
+      {
+       "name": "one",
+       "type": "Simple",
+       "optional": false
+      }
+     ],
+     "outputs": []
+    },
+    {
+     "name": "GetMulti",
+     "inputs": [],
+     "outputs": [
+      {
+       "name": "one",
+       "type": "Simple",
+       "optional": false
+      },
+      {
+       "name": "two",
+       "type": "Simple",
+       "optional": false
+      },
+      {
+       "name": "three",
+       "type": "Simple",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "SendMulti",
+     "inputs": [
+      {
+       "name": "one",
+       "type": "Simple",
+       "optional": false
+      },
+      {
+       "name": "two",
+       "type": "Simple",
+       "optional": false
+      },
+      {
+       "name": "three",
+       "type": "Simple",
+       "optional": false
+      }
+     ],
+     "outputs": []
+    },
+    {
+     "name": "GetComplex",
+     "inputs": [],
+     "outputs": [
+      {
+       "name": "complex",
+       "type": "Complex",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "SendComplex",
+     "inputs": [
+      {
+       "name": "complex",
+       "type": "Complex",
+       "optional": false
+      }
+     ],
+     "outputs": []
+    }
+   ]
+  }
+ ]
+}
