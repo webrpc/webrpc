@@ -110,36 +110,3 @@ func (s *WebRPCSchema) GetServiceByName(name string) *Service {
 	}
 	return nil
 }
-
-func (s *WebRPCSchema) HasFieldType(fieldType string) (bool, error) {
-	fieldType = strings.ToLower(fieldType)
-	_, ok := CoreTypeFromString[fieldType]
-	if !ok {
-		return false, fmt.Errorf("webrpc: invalid data type '%s'", fieldType)
-	}
-
-	for _, m := range s.Types {
-		for _, f := range m.Fields {
-			if CoreTypeToString[f.Type.Type] == fieldType {
-				return true, nil
-			}
-		}
-	}
-
-	for _, s := range s.Services {
-		for _, m := range s.Methods {
-			for _, i := range m.Inputs {
-				if CoreTypeToString[i.Type.Type] == fieldType {
-					return true, nil
-				}
-			}
-			for _, o := range m.Outputs {
-				if CoreTypeToString[o.Type.Type] == fieldType {
-					return true, nil
-				}
-			}
-		}
-	}
-
-	return false, nil
-}
