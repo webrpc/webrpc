@@ -5,8 +5,8 @@ import (
 )
 
 //go:embed schema/test.ridl
-var schema string
+var testSchema string
 
 func GetSchema() string {
-	return schema
+	return testSchema
 }
