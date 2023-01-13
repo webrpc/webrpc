@@ -8,8 +8,9 @@ const (
 	TokenNodeType
 	DefinitionNodeType
 	ImportNodeType
-	EnumNodeType
 	StructNodeType
+	ErrorNodeType
+	EnumNodeType
 	ArgumentNodeType
 	MethodNodeType
 	ServiceNodeType
@@ -90,6 +91,17 @@ func (rn RootNode) Structs() []*StructNode {
 	}
 
 	return structNodes
+}
+
+func (rn RootNode) Errors() []*ErrorNode {
+	nodes := rn.Filter(ErrorNodeType)
+
+	errorNodes := make([]*ErrorNode, 0, len(nodes))
+	for i := range nodes {
+		errorNodes = append(errorNodes, nodes[i].(*ErrorNode))
+	}
+
+	return errorNodes
 }
 
 func (rn RootNode) Enums() []*EnumNode {
@@ -249,6 +261,23 @@ func (mn *StructNode) Type() NodeType {
 
 func (mn *StructNode) Fields() []*DefinitionNode {
 	return mn.fields
+}
+
+type ErrorNode struct {
+	node
+
+	code       *TokenNode
+	name       *TokenNode
+	message    *TokenNode
+	httpStatus *TokenNode
+}
+
+func (en ErrorNode) Type() NodeType {
+	return ErrorNodeType
+}
+
+func (en ErrorNode) Name() *TokenNode {
+	return en.name
 }
 
 type ArgumentNode struct {

@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	wordError   = "error"
 	wordEnum    = "enum"
 	wordImport  = "import"
 	wordMap     = "map"
@@ -389,6 +390,9 @@ func parserStateDeclaration(p *parser) parserState {
 		// import
 		//   - <value> [<# comment>]
 		return parserStateImport
+	case wordError:
+		// error <code> <name> <message>
+		return parserStateError
 	case wordEnum:
 		// enum <name>: <type>
 		//   - <name>[<space>=<space><value>][<#comment>]

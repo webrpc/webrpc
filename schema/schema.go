@@ -20,6 +20,7 @@ type WebRPCSchema struct {
 	SchemaVersion string `json:"version"`
 
 	Types    []*Type    `json:"types"`
+	Errors   []*Error   `json:"errors"`
 	Services []*Service `json:"services"`
 
 	// Deprecated. Renamed to Types. Keep this field for now, so we can
@@ -40,6 +41,14 @@ func (s *WebRPCSchema) Validate() error {
 			return err
 		}
 	}
+
+	for _, e := range s.Errors {
+		err := e.Parse(s)
+		if err != nil {
+			return err
+		}
+	}
+
 	for _, svc := range s.Services {
 		err := svc.Parse(s)
 		if err != nil {

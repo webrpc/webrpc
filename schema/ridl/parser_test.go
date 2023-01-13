@@ -108,6 +108,18 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 
 }
 
+func TestParserError(t *testing.T) {
+	p, err := newStringParser(`
+		error 12345 InvalidUsername "username is invalid" -- 401
+		error 45678 Unauthorized    "unauthorized access"
+	`)
+	assert.NoError(t, err)
+
+	err = p.run()
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(p.root.Errors()))
+}
+
 func TestParserImport(t *testing.T) {
 	{
 		p, err := newStringParser(`import`)
