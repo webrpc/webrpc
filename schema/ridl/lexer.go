@@ -11,6 +11,7 @@ var (
 var (
 	wordBeginning = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_")
 	wordBreak     = []rune("\x00 \t\r\n[]()<>{}=:¿?¡!,\"")
+	wordNumber    = []rune("0123456789")
 )
 
 type tokenType uint8
@@ -103,25 +104,25 @@ var tokenTypeName = map[tokenType]string{
 }
 
 var tokenTypeValue = map[tokenType][]rune{
-	tokenWhitespace:        []rune{' ', '\t', '\r'},
-	tokenNewLine:           []rune{'\n'},
-	tokenEqual:             []rune{'='},
-	tokenOpenParen:         []rune{'('},
-	tokenCloseParen:        []rune{')'},
-	tokenOpenBracket:       []rune{'['},
-	tokenCloseBracket:      []rune{']'},
-	tokenOpenAngleBracket:  []rune{'<'},
-	tokenCloseAngleBracket: []rune{'>'},
-	tokenPlusSign:          []rune{'+'},
-	tokenMinusSign:         []rune{'-'},
-	tokenHash:              []rune{'#'},
-	tokenColon:             []rune{':'},
-	tokenQuote:             []rune{'"'},
-	tokenBackslash:         []rune{'\\'},
-	tokenSlash:             []rune{'/'},
-	tokenComma:             []rune{','},
-	tokenDot:               []rune{'.'},
-	tokenQuestionMark:      []rune{'?'},
+	tokenWhitespace:        {' ', '\t', '\r'},
+	tokenNewLine:           {'\n'},
+	tokenEqual:             {'='},
+	tokenOpenParen:         {'('},
+	tokenCloseParen:        {')'},
+	tokenOpenBracket:       {'['},
+	tokenCloseBracket:      {']'},
+	tokenOpenAngleBracket:  {'<'},
+	tokenCloseAngleBracket: {'>'},
+	tokenPlusSign:          {'+'},
+	tokenMinusSign:         {'-'},
+	tokenHash:              {'#'},
+	tokenColon:             {':'},
+	tokenQuote:             {'"'},
+	tokenBackslash:         {'\\'},
+	tokenSlash:             {'/'},
+	tokenComma:             {','},
+	tokenDot:               {'.'},
+	tokenQuestionMark:      {'?'},
 }
 
 var (
@@ -307,7 +308,6 @@ func lexDefaultState(lx *lexer) lexState {
 	r := lx.peek()
 
 	switch {
-
 	case isEmpty(r):
 		return nil
 
@@ -373,10 +373,7 @@ func lexDefaultState(lx *lexer) lexState {
 
 	default:
 		return lexStateExtra
-
 	}
-
-	panic("unreachable")
 }
 
 type lexer struct {

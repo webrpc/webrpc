@@ -1,17 +1,18 @@
 package ridl
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
+	"flag"
 	"io/ioutil"
 	"os"
 	"testing"
 	"testing/fstest"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
 	"github.com/webrpc/webrpc/schema"
 )
+
+var updateFlag = flag.String("update", "", "update golden file to match tests' current behavior")
 
 func parseString(src string) (*schema.WebRPCSchema, error) {
 	fsys := fstest.MapFS{
@@ -20,17 +21,6 @@ func parseString(src string) (*schema.WebRPCSchema, error) {
 		},
 	}
 	return NewParser(fsys, "main.ridl").Parse()
-}
-
-func compactJSON(src []byte) string {
-	buf := bytes.NewBuffer(nil)
-
-	err := json.Compact(buf, src)
-	if err != nil {
-		panic(fmt.Sprintf("json.Compact: %v", err))
-	}
-
-	return buf.String()
 }
 
 func TestRIDLHeader(t *testing.T) {
@@ -456,18 +446,18 @@ func TestRIDLImportsExampleDir(t *testing.T) {
 	jout, err := s.ToJSON(true)
 	assert.NoError(t, err)
 
-	assert.NotZero(t, jout)
+	current := []byte(jout)
 
 	golden, err := ioutil.ReadFile("./_example/example1-golden.json")
 	assert.NoError(t, err)
 
-	a := compactJSON(golden)
-	b := compactJSON([]byte(jout))
+	if *updateFlag == "./_example/example1-golden.json" {
+		assert.NoError(t, os.WriteFile("./_example/example1-golden.json", current, 0644))
+		return
+	}
 
-	//ioutil.WriteFile("example1-golden.json", []byte(jout), 0644)
-
-	// fmt.Println("==> GOLDEN:", a)
-	// fmt.Println("==> PARSED:", b)
-
-	assert.JSONEq(t, a, b)
+	if !cmp.Equal(golden, current) {
+		t.Error(cmp.Diff(golden, current))
+		t.Log("To update the golden file, run go test -update=./_example/example1-golden.json")
+	}
 }
