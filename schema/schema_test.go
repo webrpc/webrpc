@@ -170,7 +170,7 @@ func TestSchema(t *testing.T) {
 
 	// spew.Dump(schema)
 
-	jout, err := schema.ToJSON(true)
+	jout, err := schema.ToJSON()
 	assert.NoError(t, err)
 	fmt.Println("schema JSON:", jout)
 }
