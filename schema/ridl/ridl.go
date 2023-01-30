@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"path/filepath"
+	"path"
 	"strconv"
 
 	"github.com/webrpc/webrpc/schema"
@@ -51,15 +51,15 @@ func (p *Parser) Parse() (*schema.WebRPCSchema, error) {
 	return s, nil
 }
 
-func (p *Parser) importRIDLFile(path string) (*schema.WebRPCSchema, error) {
+func (p *Parser) importRIDLFile(filename string) (*schema.WebRPCSchema, error) {
 	for node := p; node != nil; node = node.parent {
-		if _, imported := node.imports[path]; imported {
-			return nil, fmt.Errorf("circular import %q in file %q", filepath.Base(path), p.path)
+		if _, imported := node.imports[filename]; imported {
+			return nil, fmt.Errorf("circular import %q in file %q", path.Base(filename), p.path)
 		}
-		node.imports[path] = struct{}{}
+		node.imports[filename] = struct{}{}
 	}
 
-	m := NewParser(p.fsys, path)
+	m := NewParser(p.fsys, filename)
 	m.parent = p
 	return m.Parse()
 }
@@ -116,7 +116,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 	// imports
 	for _, line := range q.root.Imports() {
-		importPath := filepath.Join(filepath.Dir(p.path), line.Path().String())
+		importPath := path.Join(path.Dir(p.path), line.Path().String())
 
 		imported, err := p.importRIDLFile(importPath)
 		if err != nil {
