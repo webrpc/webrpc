@@ -207,6 +207,8 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		if line.httpStatus != nil {
 			httpStatus, _ := strconv.ParseInt(line.httpStatus.String(), 10, 32)
 			errorType.HTTPStatus = int(httpStatus)
+		} else {
+			errorType.HTTPStatus = 400 // Default HTTP status code
 		}
 		s.Errors = append(s.Errors, &errorType)
 	}
