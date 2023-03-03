@@ -391,7 +391,7 @@ func parserStateDeclaration(p *parser) parserState {
 		//   - <value> [<# comment>]
 		return parserStateImport
 	case wordError:
-		// error <code> <name> <message>
+		// error <code> <name> <message> [HTTP <status code>]
 		return parserStateError
 	case wordEnum:
 		// enum <name>: <type>

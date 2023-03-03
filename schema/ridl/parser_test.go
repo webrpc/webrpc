@@ -110,14 +110,52 @@ func TestParserTopLevelDefinitions(t *testing.T) {
 
 func TestParserError(t *testing.T) {
 	p, err := newStringParser(`
-		error 12345 InvalidUsername "username is invalid" -- 401
-		error 45678 Unauthorized    "unauthorized access"
+		error 12345 InvalidUsername "username is invalid" HTTP 401
+		error 12345 InvalidUsername "username is invalid" HTTP 1 # comment
+		error 12345 InvalidUsername InvalidUsername
+		error 12345 InvalidUsername InvalidUsername # comment
+		error 45678 Unauthorized "unauthorized access" HTTP 401
+		error 45678 Unauthorized "unauthorized access" HTTP 401 # comment
+		error 45678 Unauthorized Unauthorized HTTP 401
+		error 45678 Unauthorized Unauthorized HTTP 401 # comment
 	`)
 	assert.NoError(t, err)
 
 	err = p.run()
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(p.root.Errors()))
+
+	if !assert.Equal(t, 8, len(p.root.Errors())) {
+		for _, e := range p.root.Errors() {
+			t.Logf("%v", e.message)
+		}
+	}
+}
+
+func TestParserErrorInvalid(t *testing.T) {
+	tt := []string{
+		`error`,
+		`error WRONG`,
+		`error 12345`,
+		`error 12345 Unauthorized`, // missing <message>
+		`error 12345 Unauthorized unauthorized access`, // missing quotes for multi-word <message>
+		`error 12345 Unauthorized "unauthorized access" WRONG 401`,
+		`error 12345 Unauthorized "unauthorized access" HTTP STATUS`,
+		`error 12345 Unauthorized "unauthorized access" HTTP 401 EXTRA`,
+	}
+
+	for _, str := range tt {
+		p, err := newStringParser(str)
+		assert.NoError(t, err)
+
+		err = p.run()
+		assert.Error(t, err)
+
+		if !assert.Equal(t, 0, len(p.root.Errors())) {
+			for _, e := range p.root.Errors() {
+				t.Logf("%v", e.message)
+			}
+		}
+	}
 }
 
 func TestParserImport(t *testing.T) {
