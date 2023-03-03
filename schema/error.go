@@ -6,10 +6,10 @@ import (
 )
 
 type Error struct {
-	Code       uint64 `json:"code"`
+	Code       int    `json:"code"`
 	Name       string `json:"name"`
 	Message    string `json:"message"`
-	HTTPStatus uint64 `json:"httpStatus,omitempty"`
+	HTTPStatus int    `json:"httpStatus,omitempty"`
 
 	// Schema *WebRPCSchema `json:"-"` // denormalize/back-reference
 }
@@ -41,7 +41,7 @@ func (s *Error) Parse(schema *WebRPCSchema) error {
 
 	// check for duplicate codes or names
 	nameList := map[string]struct{}{}
-	codeList := map[uint64]struct{}{}
+	codeList := map[int]struct{}{}
 	for _, e := range schema.Errors {
 		name := strings.ToLower(e.Name)
 		if _, ok := nameList[name]; ok {

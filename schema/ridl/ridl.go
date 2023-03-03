@@ -200,13 +200,13 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	// error types
 	for _, line := range q.root.Errors() {
 		var errorType schema.Error
-		code, _ := strconv.ParseInt(line.code.String(), 10, 64)
-		errorType.Code = uint64(code)
+		code, _ := strconv.ParseInt(line.code.String(), 10, 32)
+		errorType.Code = int(code)
 		errorType.Name = line.name.String()
 		errorType.Message = line.message.String()
 		if line.httpStatus != nil {
-			httpStatus, _ := strconv.ParseInt(line.httpStatus.String(), 10, 64)
-			errorType.HTTPStatus = uint64(httpStatus)
+			httpStatus, _ := strconv.ParseInt(line.httpStatus.String(), 10, 32)
+			errorType.HTTPStatus = int(httpStatus)
 		}
 		s.Errors = append(s.Errors, &errorType)
 	}
