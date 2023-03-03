@@ -181,6 +181,78 @@ func TestRIDLEnum(t *testing.T) {
 	}
 }
 
+func TestRIDLErrors(t *testing.T) {
+	{
+		input := `
+			webrpc = v1
+			version = v0.1.1
+			name = webrpc-errors
+
+			error 500100 MissingArgument "missing argument"
+			error 500101 InvalidUsername "invalid username"
+			error 400100 MemoryFull      "system memory is full"
+			error 400200 Unauthorized    "Unauthorized" HTTP 401
+			error 400300 UserNotFound    "user not found"
+		`
+		s, err := parseString(input)
+		assert.NoError(t, err)
+
+		if assert.NotNil(t, s) && assert.Equal(t, 5, len(s.Errors)) {
+			assert.Equal(t, 500100, s.Errors[0].Code)
+			assert.Equal(t, 500101, s.Errors[1].Code)
+			assert.Equal(t, 400100, s.Errors[2].Code)
+			assert.Equal(t, 400200, s.Errors[3].Code)
+			assert.Equal(t, 400300, s.Errors[4].Code)
+
+			assert.Equal(t, "MissingArgument", s.Errors[0].Name)
+			assert.Equal(t, "InvalidUsername", s.Errors[1].Name)
+			assert.Equal(t, "MemoryFull", s.Errors[2].Name)
+			assert.Equal(t, "Unauthorized", s.Errors[3].Name)
+			assert.Equal(t, "UserNotFound", s.Errors[4].Name)
+
+			assert.Equal(t, "missing argument", s.Errors[0].Message)
+			assert.Equal(t, "invalid username", s.Errors[1].Message)
+			assert.Equal(t, "system memory is full", s.Errors[2].Message)
+			assert.Equal(t, "Unauthorized", s.Errors[3].Message)
+			assert.Equal(t, "user not found", s.Errors[4].Message)
+
+			assert.Equal(t, 400, s.Errors[0].HTTPStatus)
+			assert.Equal(t, 400, s.Errors[1].HTTPStatus)
+			assert.Equal(t, 400, s.Errors[2].HTTPStatus)
+			assert.Equal(t, 401, s.Errors[3].HTTPStatus)
+			assert.Equal(t, 400, s.Errors[4].HTTPStatus)
+		}
+	}
+
+	{
+		input := `
+			webrpc = v1
+			version = v0.1.1
+			name = webrpc-errors
+
+			error 500100 MissingArgument "missing argument"
+			error 500100 InvalidUsername "invalid username" # duplicated error code
+		`
+		s, err := parseString(input)
+		assert.Error(t, err)
+		assert.Nil(t, s)
+	}
+
+	{
+		input := `
+			webrpc = v1
+			version = v0.1.1
+			name = webrpc-errors
+
+			error 500100 MissingArgument "missing argument 1"
+			error 500101 MissingArgument "missing argument 2" # duplicated error name
+		`
+		s, err := parseString(input)
+		assert.Error(t, err)
+		assert.Nil(t, s)
+	}
+}
+
 func TestRIDLTypes(t *testing.T) {
 	{
 		input := `

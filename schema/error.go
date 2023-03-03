@@ -6,10 +6,10 @@ import (
 )
 
 type Error struct {
-	Code       uint64 `json:"code"`
+	Code       int    `json:"code"`
 	Name       string `json:"name"`
 	Message    string `json:"message"`
-	HTTPStatus uint64 `json:"httpStatus,omitempty"`
+	HTTPStatus int    `json:"httpStatus,omitempty"`
 
 	// Schema *WebRPCSchema `json:"-"` // denormalize/back-reference
 }
@@ -35,13 +35,13 @@ func (s *Error) Parse(schema *WebRPCSchema) error {
 	if s.Message == "" {
 		return fmt.Errorf("schema error: message cannot be empty")
 	}
-	if s.HTTPStatus > 0 && s.HTTPStatus < 400 || s.HTTPStatus >= 600 {
-		return fmt.Errorf("schema error: httpStatus number is invalid for error type '%s'", s.Name)
+	if s.HTTPStatus < 100 || s.HTTPStatus >= 600 {
+		return fmt.Errorf("schema error: invalid HTTP status code '%v' for error type '%s' (must be number between 100-599)", s.HTTPStatus, s.Name)
 	}
 
 	// check for duplicate codes or names
 	nameList := map[string]struct{}{}
-	codeList := map[uint64]struct{}{}
+	codeList := map[int]struct{}{}
 	for _, e := range schema.Errors {
 		name := strings.ToLower(e.Name)
 		if _, ok := nameList[name]; ok {
