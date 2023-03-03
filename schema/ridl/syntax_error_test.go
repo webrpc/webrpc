@@ -44,6 +44,5 @@ func TestSyntaxError(t *testing.T) {
 	for i := range syntaxErrors {
 		_, err := parseString(syntaxErrors[i])
 		assert.Error(t, err)
-		t.Logf("%v", err)
 	}
 }
