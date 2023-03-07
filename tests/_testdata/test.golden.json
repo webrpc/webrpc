@@ -121,7 +121,104 @@
    ]
   }
  ],
- "errors": [],
+ "errors": [
+  {
+   "code": 1,
+   "name": "Unauthorized",
+   "message": "unauthorized",
+   "httpStatus": 401
+  },
+  {
+   "code": 2,
+   "name": "InvalidToken",
+   "message": "invalid token",
+   "httpStatus": 401
+  },
+  {
+   "code": 3,
+   "name": "Deactivated",
+   "message": "account deactivated",
+   "httpStatus": 403
+  },
+  {
+   "code": 4,
+   "name": "ConfirmAccount",
+   "message": "confirm your email",
+   "httpStatus": 403
+  },
+  {
+   "code": 5,
+   "name": "AccessDenied",
+   "message": "access denied",
+   "httpStatus": 403
+  },
+  {
+   "code": 6,
+   "name": "InvalidArgument",
+   "message": "invalid argument",
+   "httpStatus": 400
+  },
+  {
+   "code": 7,
+   "name": "NotImplemented",
+   "message": "not implemented",
+   "httpStatus": 501
+  },
+  {
+   "code": 100,
+   "name": "RateLimited",
+   "message": "too many requests",
+   "httpStatus": 429
+  },
+  {
+   "code": 101,
+   "name": "DatabaseDown",
+   "message": "service outage",
+   "httpStatus": 503
+  },
+  {
+   "code": 102,
+   "name": "ElasticDown",
+   "message": "search is degraded",
+   "httpStatus": 503
+  },
+  {
+   "code": 200,
+   "name": "UserNotFound",
+   "message": "user not found",
+   "httpStatus": 400
+  },
+  {
+   "code": 201,
+   "name": "UserBusy",
+   "message": "user busy",
+   "httpStatus": 400
+  },
+  {
+   "code": 202,
+   "name": "InvalidUsername",
+   "message": "invalid username",
+   "httpStatus": 400
+  },
+  {
+   "code": 300,
+   "name": "FileTooBig",
+   "message": "file is too big (max 1GB)",
+   "httpStatus": 400
+  },
+  {
+   "code": 301,
+   "name": "FileInfected",
+   "message": "file is infected",
+   "httpStatus": 400
+  },
+  {
+   "code": 302,
+   "name": "FileUnsupported",
+   "message": "unsupported file type",
+   "httpStatus": 400
+  }
+ ],
  "services": [
   {
    "name": "TestApi",
@@ -217,6 +314,17 @@
       {
        "name": "complex",
        "type": "Complex",
+       "optional": false
+      }
+     ],
+     "outputs": []
+    },
+    {
+     "name": "GetSchemaError",
+     "inputs": [
+      {
+       "name": "code",
+       "type": "int",
        "optional": false
       }
      ],
