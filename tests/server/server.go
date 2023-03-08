@@ -27,7 +27,7 @@ func (c *TestServer) GetOne(ctx context.Context) (*Simple, error) {
 
 func (c *TestServer) SendOne(ctx context.Context, one *Simple) error {
 	if !cmp.Equal(&fixtureOne, one) {
-		return ErrorWithCause(ErrInvalidArgument, fmt.Errorf("%q:\n%s", "one", cmp.Diff(&fixtureOne, one)))
+		return ErrorWithCause(ErrUnexpectedValue, fmt.Errorf("%q:\n%s", "one", cmp.Diff(&fixtureOne, one)))
 	}
 
 	return nil
@@ -39,13 +39,13 @@ func (c *TestServer) GetMulti(ctx context.Context) (*Simple, *Simple, *Simple, e
 
 func (c *TestServer) SendMulti(ctx context.Context, one, two, three *Simple) error {
 	if !cmp.Equal(&fixtureOne, one) {
-		return ErrorWithCause(ErrInvalidArgument, fmt.Errorf("%q:\n%s", "one", cmp.Diff(&fixtureOne, one)))
+		return ErrorWithCause(ErrUnexpectedValue, fmt.Errorf("%q:\n%s", "one", cmp.Diff(&fixtureOne, one)))
 	}
 	if !cmp.Equal(&fixtureTwo, two) {
-		return ErrorWithCause(ErrInvalidArgument, fmt.Errorf("%q:\n%s", "two", cmp.Diff(&fixtureTwo, two)))
+		return ErrorWithCause(ErrUnexpectedValue, fmt.Errorf("%q:\n%s", "two", cmp.Diff(&fixtureTwo, two)))
 	}
 	if !cmp.Equal(&fixtureThree, three) {
-		return ErrorWithCause(ErrInvalidArgument, fmt.Errorf("%q:\n%s", "three", cmp.Diff(&fixtureThree, three)))
+		return ErrorWithCause(ErrUnexpectedValue, fmt.Errorf("%q:\n%s", "three", cmp.Diff(&fixtureThree, three)))
 	}
 
 	return nil
@@ -57,7 +57,7 @@ func (c *TestServer) GetComplex(ctx context.Context) (*Complex, error) {
 
 func (c *TestServer) SendComplex(ctx context.Context, complex *Complex) error {
 	if !cmp.Equal(&fixtureComplex, complex) {
-		return ErrorWithCause(ErrInvalidArgument, fmt.Errorf("%q:\n%s", "complex", cmp.Diff(&fixtureComplex, complex)))
+		return ErrorWithCause(ErrUnexpectedValue, fmt.Errorf("%q:\n%s", "complex", cmp.Diff(&fixtureComplex, complex)))
 	}
 
 	return nil
@@ -70,23 +70,27 @@ func (c *TestServer) GetSchemaError(ctx context.Context, code int) error {
 	case 1:
 		return ErrorWithCause(ErrUnauthorized, fmt.Errorf("failed to verify JWT token"))
 	case 2:
-		return ErrInvalidToken
+		return ErrExpiredToken
 	case 3:
-		return ErrDeactivated
+		return ErrInvalidToken
 	case 4:
-		return ErrConfirmAccount
+		return ErrDeactivated
 	case 5:
-		return ErrAccessDenied
+		return ErrConfirmAccount
 	case 6:
-		return ErrInvalidArgument
+		return ErrAccessDenied
 	case 7:
-		return ErrNotImplemented
+		return ErrMissingArgument
+	case 8:
+		return ErrUnexpectedValue
 	case 100:
 		return ErrorWithCause(ErrRateLimited, fmt.Errorf("1000 req/min exceeded"))
 	case 101:
 		return ErrDatabaseDown
 	case 102:
 		return ErrElasticDown
+	case 103:
+		return ErrNotImplemented
 	case 200:
 		return ErrUserNotFound
 	case 201:
@@ -98,7 +102,7 @@ func (c *TestServer) GetSchemaError(ctx context.Context, code int) error {
 	case 301:
 		return ErrFileInfected
 	case 302:
-		return ErrFileUnsupported
+		return ErrorWithCause(ErrFileType, fmt.Errorf(".wav is not supported"))
 	}
 
 	return nil

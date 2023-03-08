@@ -130,39 +130,45 @@
   },
   {
    "code": 2,
+   "name": "ExpiredToken",
+   "message": "expired token",
+   "httpStatus": 401
+  },
+  {
+   "code": 3,
    "name": "InvalidToken",
    "message": "invalid token",
    "httpStatus": 401
   },
   {
-   "code": 3,
+   "code": 4,
    "name": "Deactivated",
    "message": "account deactivated",
    "httpStatus": 403
   },
   {
-   "code": 4,
+   "code": 5,
    "name": "ConfirmAccount",
    "message": "confirm your email",
    "httpStatus": 403
   },
   {
-   "code": 5,
+   "code": 6,
    "name": "AccessDenied",
    "message": "access denied",
    "httpStatus": 403
   },
   {
-   "code": 6,
-   "name": "InvalidArgument",
-   "message": "invalid argument",
+   "code": 7,
+   "name": "MissingArgument",
+   "message": "missing argument",
    "httpStatus": 400
   },
   {
-   "code": 7,
-   "name": "NotImplemented",
-   "message": "not implemented",
-   "httpStatus": 501
+   "code": 8,
+   "name": "UnexpectedValue",
+   "message": "unexpected value",
+   "httpStatus": 400
   },
   {
    "code": 100,
@@ -181,6 +187,12 @@
    "name": "ElasticDown",
    "message": "search is degraded",
    "httpStatus": 503
+  },
+  {
+   "code": 103,
+   "name": "NotImplemented",
+   "message": "not implemented",
+   "httpStatus": 501
   },
   {
    "code": 200,
@@ -214,7 +226,7 @@
   },
   {
    "code": 302,
-   "name": "FileUnsupported",
+   "name": "FileType",
    "message": "unsupported file type",
    "httpStatus": 400
   }
