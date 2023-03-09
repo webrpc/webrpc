@@ -5,6 +5,7 @@
 The Go templates are used in many popular projects including [Hugo](https://gohugo.io/) and [Helm](https://helm.sh). Hugo has a [nice introduction to Go templates](https://gohugo.io/templates/introduction/).
 
 - [Developing a new generator](#developing-a-new-generator)
+- [Interoperability tests](#interoperability-tests)
 - [Template structure](#template-structure)
   - [Create "main" template](#create-main-template)
   - [Require specific webrpc protocol version](#require-specific-webrpc-protocol-version)
@@ -21,7 +22,6 @@ The Go templates are used in many popular projects including [Hugo](https://gohu
 - [Template functions](#template-functions)
   - [Go text/template functions](#go-texttemplate-functions)
   - [webrpc-gen functions](#webrpc-gen-functions)
-- [Interoperability tests](#interoperability-tests)
 
 
 # Developing a new generator
@@ -30,6 +30,12 @@ The Go templates are used in many popular projects including [Hugo](https://gohu
 ```
 webrpc-gen -schema=api.ridl -target=./local/directory
 ```
+
+# Interoperability tests
+
+All webrpc generators are expected to implement reference [TestApi schema](../tests/schema/test.ridl) and run client/server interoperability tests against the official [webrpc-test binaries](https://github.com/webrpc/webrpc/releases).
+
+For more info, see [typescript](https://github.com/webrpc/gen-typescript/tree/master/tests) or [golang](https://github.com/webrpc/gen-golang/tree/master/tests) tests.
 
 # Template structure
 
@@ -184,19 +190,22 @@ Example:
 
 will pass `{{.Opts.name}}`, `{{.Opts.description}}` and `{{.Opts.enableFeature}}` variables into your template.
 
-
-## Schema variables 
+## Schema variables
 
 | Variable                                       | Description                    | Example value               |
 |------------------------------------------------|--------------------------------|-----------------------------|
 | `{{.SchemaName}}`                              | schema name                    | `"example schema"`          |
 | `{{.SchemaVersion}}`                           | schema version                 | `"v0.0.1"`                  |
 | `{{.SchemaHash}}`                              | `sha1` schema hash             | `483889fb084764e3a256`      |
-| `{{.Imports}}`                                 | schema imports                 | array of imports            |
-| `{{.Types}}`                                   | types                          | array of messages           |
+| `{{.Errors}}`                                  | schema errors                  | array of schema errors      |
+| `{{.Errors[0].Code}}`                          | unique error code              | `1001"` (positive number)   |
+| `{{.Errors[0].Name}}`                          | unique error name              | `"RateLimited"`             |
+| `{{.Errors[0].Message}}`                       | error description              | `"rate limited, slow down"` |
+| `{{.Errors[0].HTTPStatus}}`                    | HTTP response status code      | `429` (number `100`-`599`)  |
+| `{{.Types}}`                                   | types                          | array of types              |
 | `{{.Types[0].Name}}`                           | type name                      | `"User"`                    |
 | `{{.Types[0].Type}}`                           | type                           | `"struct"`                  |
-| `{{.Types[0].Fields}}`                         | type fields                    | array                       |
+| `{{.Types[0].Fields}}`                         | type fields                    | array of fields             |
 | `{{.Types[0].Fields[0].Name}}`                 | field name                     | `"ID"`                      |
 | `{{.Types[0].Fields[0].Type}}`                 | field type                     | `"int"`                     |
 | `{{.Types[0].Fields[0].Optional}}`             | field optional?                | `false`                     |
@@ -304,8 +313,3 @@ dev/strings#Join)) | v0.7.0 |
 | `in FIRST VALUES...`                           | Returns `true` if any of the given VALUES match the `first` value | v0.7.0 |
 | `ternary BOOL FIRST SECOND`                    | Ternary if-else. Returns first value if `true`, second value if `false` | v0.7.0 |
 
-# Interoperability tests
-
-All generators are expected to implement [TestApi schema](./tests/schema/test.ridl) and run client/server interoperability tests against a reference [webrpc-test binaries)](https://github.com/webrpc/webrpc/releases).
-
-For more info, see [typescript](https://github.com/webrpc/gen-typescript/tree/master/tests) or [golang](https://github.com/webrpc/gen-golang/tree/master/tests) tests.
