@@ -9,7 +9,7 @@ type Error struct {
 	Code       int    `json:"code"`
 	Name       string `json:"name"`
 	Message    string `json:"message"`
-	HTTPStatus int    `json:"httpStatus,omitempty"`
+	HTTPStatus int    `json:"httpStatus"`
 
 	// Schema *WebRPCSchema `json:"-"` // denormalize/back-reference
 }
@@ -19,11 +19,8 @@ func (s *Error) Parse(schema *WebRPCSchema) error {
 	if s.Name == "" {
 		return fmt.Errorf("schema error: name cannot be empty")
 	}
-	if s.Code == 0 {
-		return fmt.Errorf("schema error: error code cannot be 0")
-	}
-	if s.Code < 100 {
-		return fmt.Errorf("schema error: error code must 100 or greater, '%s'", s.Name)
+	if s.Code <= 0 {
+		return fmt.Errorf("schema error: error code must be positive number")
 	}
 	n := strings.Fields(s.Name)
 	if len(n) > 1 {

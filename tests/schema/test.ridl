@@ -16,6 +16,9 @@ service TestApi
   - GetComplex() => (complex: Complex)
   - SendComplex(complex: Complex)
 
+  # added in v0.11.0
+  - GetSchemaError(code: int)
+
 struct Simple
   - id: int
   - name: string
@@ -48,3 +51,22 @@ struct Complex
   - mapOfUsers: map<string,User>
   - user: User
   - enum: Status
+
+error   1 Unauthorized    "unauthorized"        HTTP 401
+error   2 ExpiredToken    "expired token"       HTTP 401
+error   3 InvalidToken    "invalid token"       HTTP 401
+error   4 Deactivated     "account deactivated" HTTP 403
+error   5 ConfirmAccount  "confirm your email"  HTTP 403
+error   6 AccessDenied    "access denied"       HTTP 403
+error   7 MissingArgument "missing argument"    HTTP 400
+error   8 UnexpectedValue "unexpected value"    HTTP 400
+error 100 RateLimited     "too many requests"   HTTP 429
+error 101 DatabaseDown    "service outage"      HTTP 503
+error 102 ElasticDown     "search is degraded"  HTTP 503
+error 103 NotImplemented  "not implemented"     HTTP 501
+error 200 UserNotFound    "user not found"
+error 201 UserBusy        "user busy"
+error 202 InvalidUsername "invalid username"
+error 300 FileTooBig      "file is too big (max 1GB)"
+error 301 FileInfected    "file is infected"
+error 302 FileType        "unsupported file type"

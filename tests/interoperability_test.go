@@ -1,7 +1,7 @@
 package tests
 
-//go:generate webrpc-gen -schema=./schema/test.ridl -target=golang -pkg=client -client -out=./client/client.gen.go
-//go:generate webrpc-gen -schema=./schema/test.ridl -target=golang -pkg=server -server -out=./server/server.gen.go
+//go:generate webrpc-gen -schema=./schema/test.ridl -target=github.com/webrpc/gen-golang@tags/errors -pkg=client -client -out=./client/client.gen.go
+//go:generate webrpc-gen -schema=./schema/test.ridl -target=github.com/webrpc/gen-golang@tags/errors -pkg=server -server -out=./server/server.gen.go
 
 import (
 	"context"
