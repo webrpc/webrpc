@@ -9,7 +9,7 @@ type Error struct {
 	Code       int    `json:"code"`
 	Name       string `json:"name"`
 	Message    string `json:"message"`
-	HTTPStatus int    `json:"httpStatus,omitempty"`
+	HTTPStatus int    `json:"httpStatus"`
 
 	// Schema *WebRPCSchema `json:"-"` // denormalize/back-reference
 }
