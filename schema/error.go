@@ -17,17 +17,16 @@ type Error struct {
 func (s *Error) Parse(schema *WebRPCSchema) error {
 	s.Name = strings.TrimSpace(s.Name)
 	if s.Name == "" {
-		return fmt.Errorf("schema error: name cannot be empty")
+		return fmt.Errorf("schema error name cannot be empty")
 	}
 	if s.Code <= 0 {
-		return fmt.Errorf("schema error: error code must be positive number")
-	}
-	n := strings.Fields(s.Name)
-	if len(n) > 1 {
-		return fmt.Errorf("schema error: name must be a single word")
+		return fmt.Errorf("schema error code must be positive number")
 	}
 	if !startsWithUpper(s.Name) {
-		return fmt.Errorf("schema error: error name must start with upper case for '%s'", s.Name)
+		return fmt.Errorf("schema error name must start with upper case: '%s'", s.Name)
+	}
+	if strings.HasPrefix(strings.ToLower(s.Name), "webrpc") {
+		return fmt.Errorf("schema error name cannot start with 'Webrpc': '%s'", s.Name)
 	}
 	if s.Message == "" {
 		return fmt.Errorf("schema error: message cannot be empty")
