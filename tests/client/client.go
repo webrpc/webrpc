@@ -64,12 +64,12 @@ func RunTests(ctx context.Context, serverURL string) error {
 func testSchemaErrors(ctx context.Context, testApi TestApi) error {
 	tt := []struct {
 		code           int
-		err            RPCError
+		err            WebRPCError
 		name           string
 		msg            string
 		httpStatusCode int
 	}{
-		{code: 0, err: RPCError{Code: 0, HTTPStatus: 400}, name: "WebrpcServerError", msg: "server error", httpStatusCode: 400},
+		{code: 0, err: ErrWebrpcEndpoint, name: "WebrpcEndpoint", msg: "endpoint error", httpStatusCode: 400},
 		{code: 1, err: ErrUnauthorized, name: "Unauthorized", msg: "unauthorized", httpStatusCode: 401},
 		{code: 2, err: ErrExpiredToken, name: "ExpiredToken", msg: "expired token", httpStatusCode: 401},
 		{code: 3, err: ErrInvalidToken, name: "InvalidToken", msg: "invalid token", httpStatusCode: 401},
@@ -96,7 +96,7 @@ func testSchemaErrors(ctx context.Context, testApi TestApi) error {
 			return fmt.Errorf("unexpected error for code=%v:\nexpected: %#v,\ngot:      %#v", tc.code, tc.err, err)
 		}
 
-		rpcErr, _ := err.(RPCError)
+		rpcErr, _ := err.(WebRPCError)
 		if rpcErr.Code != tc.code {
 			return fmt.Errorf("unexpected error code: expected: %v, got: %v", tc.code, rpcErr.Code)
 		}
