@@ -277,72 +277,61 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) error {
 	reqBody, err := json.Marshal(in)
 	if err != nil {
-		return rpcClientError(err, "failed to marshal json request")
+		return ErrorWithCause(ErrWebrpcRequestFailed, fmt.Errorf("failed to marshal JSON body: %w", err))
 	}
 	if err = ctx.Err(); err != nil {
-		return rpcClientError(err, "aborted because context was done")
+		return ErrorWithCause(ErrWebrpcRequestFailed, fmt.Errorf("aborted because context was done: %w", err))
 	}
 
 	req, err := newRequest(ctx, url, bytes.NewBuffer(reqBody), "application/json")
 	if err != nil {
-		return rpcClientError(err, "could not build request")
+		return ErrorWithCause(ErrWebrpcRequestFailed, fmt.Errorf("could not build request: %w", err))
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return rpcClientError(err, "request failed")
+		return ErrorWithCause(ErrWebrpcRequestFailed, err)
 	}
 
 	defer func() {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = rpcClientError(cerr, "failed to close response body")
+			err = ErrorWithCause(ErrWebrpcRequestFailed, fmt.Errorf("failed to close response body: %w", cerr))
 		}
 	}()
 
 	if err = ctx.Err(); err != nil {
-		return rpcClientError(err, "aborted because context was done")
+		return ErrorWithCause(ErrWebrpcRequestFailed, fmt.Errorf("aborted because context was done: %w", err))
 	}
 
 	if resp.StatusCode != 200 {
-		return rpcErrorFromResponse(resp)
+		respBody, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to read server error response body: %w", err))
+		}
+
+		var rpcErr WebRPCError
+		if err := json.Unmarshal(respBody, &rpcErr); err != nil {
+			return ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to unmarshal server error: %w", err))
+		}
+		if rpcErr.Cause != "" {
+			rpcErr.cause = errors.New(rpcErr.Cause)
+		}
+		return rpcErr
 	}
 
 	if out != nil {
 		respBody, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return rpcClientError(err, "failed to read response body")
+			return ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to read response body: %w", err))
 		}
 
 		err = json.Unmarshal(respBody, &out)
 		if err != nil {
-			return rpcClientError(err, "failed to unmarshal json response body")
-		}
-		if err = ctx.Err(); err != nil {
-			return rpcClientError(err, "aborted because context was done")
+			return ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to unmarshal JSON response body: %w", err))
 		}
 	}
 
 	return nil
-}
-
-func rpcErrorFromResponse(resp *http.Response) RPCError {
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return rpcClientError(err, "failed to read server error response body")
-	}
-
-	var rpcErr RPCError
-	if err := json.Unmarshal(respBody, &rpcErr); err != nil {
-		return rpcClientError(err, "failed unmarshal error response")
-	}
-	if rpcErr.Cause != "" {
-		rpcErr.cause = errors.New(rpcErr.Cause)
-	}
-	return rpcErr
-}
-
-func rpcClientError(cause error, message string) RPCError {
-	return ErrorWithCause(RPCError{Code: 0, Name: "WebrpcClientError", Message: "client error"}, fmt.Errorf("%v: %w", message, cause))
 }
 
 func WithHTTPRequestHeaders(ctx context.Context, h http.Header) (context.Context, error) {
@@ -401,7 +390,7 @@ var (
 // Errors
 //
 
-type RPCError struct {
+type WebRPCError struct {
 	Name       string `json:"error"`
 	Code       int    `json:"code"`
 	Message    string `json:"msg"`
@@ -410,24 +399,24 @@ type RPCError struct {
 	cause      error
 }
 
-var _ error = RPCError{}
+var _ error = WebRPCError{}
 
-func (e RPCError) Error() string {
+func (e WebRPCError) Error() string {
 	return fmt.Sprintf("Error %d %s: %s", e.Code, e.Name, e.Message)
 }
 
-func (e RPCError) Is(target error) bool {
-	if rpcErr, ok := target.(RPCError); ok {
+func (e WebRPCError) Is(target error) bool {
+	if rpcErr, ok := target.(WebRPCError); ok {
 		return rpcErr.Code == e.Code
 	}
 	return errors.Is(e.cause, target)
 }
 
-func (e RPCError) Unwrap() error {
+func (e WebRPCError) Unwrap() error {
 	return e.cause
 }
 
-func ErrorWithCause(rpcErr RPCError, cause error) RPCError {
+func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
 	err := rpcErr
 	err.cause = cause
 	err.Cause = cause.Error()
@@ -436,31 +425,33 @@ func ErrorWithCause(rpcErr RPCError, cause error) RPCError {
 
 // Webrpc errors
 var (
-	ErrWebrpcPanic       = RPCError{Code: -1, Name: "WebrpcServerPanic", Message: "server panic", HTTPStatus: 500}
-	ErrWebrpcBadRoute    = RPCError{Code: -2, Name: "WebrpcBadRoute", Message: "bad route", HTTPStatus: 404}
-	ErrWebrpcBadMethod   = RPCError{Code: -3, Name: "WebrpcBadMethod", Message: "bad method", HTTPStatus: 405}
-	ErrWebrpcBadRequest  = RPCError{Code: -4, Name: "WebrpcBadRequest", Message: "bad request", HTTPStatus: 400}
-	ErrWebrpcBadResponse = RPCError{Code: -5, Name: "WebrpcBadResponse", Message: "bad response", HTTPStatus: 500}
+	ErrWebrpcEndpoint      = WebRPCError{Code: 0, Name: "WebrpcEndpoint", Message: "endpoint error", HTTPStatus: 400}
+	ErrWebrpcRequestFailed = WebRPCError{Code: -1, Name: "WebrpcRequestFailed", Message: "request failed", HTTPStatus: 0}
+	ErrWebrpcBadRoute      = WebRPCError{Code: -2, Name: "WebrpcBadRoute", Message: "bad route", HTTPStatus: 404}
+	ErrWebrpcBadMethod     = WebRPCError{Code: -3, Name: "WebrpcBadMethod", Message: "bad method", HTTPStatus: 405}
+	ErrWebrpcBadRequest    = WebRPCError{Code: -4, Name: "WebrpcBadRequest", Message: "bad request", HTTPStatus: 400}
+	ErrWebrpcBadResponse   = WebRPCError{Code: -5, Name: "WebrpcBadResponse", Message: "bad response", HTTPStatus: 500}
+	ErrWebrpcServerPanic   = WebRPCError{Code: -6, Name: "WebrpcServerPanic", Message: "server panic", HTTPStatus: 500}
 )
 
 // Schema errors
 var (
-	ErrUnauthorized    = RPCError{Code: 1, Name: "Unauthorized", Message: "unauthorized", HTTPStatus: 401}
-	ErrExpiredToken    = RPCError{Code: 2, Name: "ExpiredToken", Message: "expired token", HTTPStatus: 401}
-	ErrInvalidToken    = RPCError{Code: 3, Name: "InvalidToken", Message: "invalid token", HTTPStatus: 401}
-	ErrDeactivated     = RPCError{Code: 4, Name: "Deactivated", Message: "account deactivated", HTTPStatus: 403}
-	ErrConfirmAccount  = RPCError{Code: 5, Name: "ConfirmAccount", Message: "confirm your email", HTTPStatus: 403}
-	ErrAccessDenied    = RPCError{Code: 6, Name: "AccessDenied", Message: "access denied", HTTPStatus: 403}
-	ErrMissingArgument = RPCError{Code: 7, Name: "MissingArgument", Message: "missing argument", HTTPStatus: 400}
-	ErrUnexpectedValue = RPCError{Code: 8, Name: "UnexpectedValue", Message: "unexpected value", HTTPStatus: 400}
-	ErrRateLimited     = RPCError{Code: 100, Name: "RateLimited", Message: "too many requests", HTTPStatus: 429}
-	ErrDatabaseDown    = RPCError{Code: 101, Name: "DatabaseDown", Message: "service outage", HTTPStatus: 503}
-	ErrElasticDown     = RPCError{Code: 102, Name: "ElasticDown", Message: "search is degraded", HTTPStatus: 503}
-	ErrNotImplemented  = RPCError{Code: 103, Name: "NotImplemented", Message: "not implemented", HTTPStatus: 501}
-	ErrUserNotFound    = RPCError{Code: 200, Name: "UserNotFound", Message: "user not found", HTTPStatus: 400}
-	ErrUserBusy        = RPCError{Code: 201, Name: "UserBusy", Message: "user busy", HTTPStatus: 400}
-	ErrInvalidUsername = RPCError{Code: 202, Name: "InvalidUsername", Message: "invalid username", HTTPStatus: 400}
-	ErrFileTooBig      = RPCError{Code: 300, Name: "FileTooBig", Message: "file is too big (max 1GB)", HTTPStatus: 400}
-	ErrFileInfected    = RPCError{Code: 301, Name: "FileInfected", Message: "file is infected", HTTPStatus: 400}
-	ErrFileType        = RPCError{Code: 302, Name: "FileType", Message: "unsupported file type", HTTPStatus: 400}
+	ErrUnauthorized    = WebRPCError{Code: 1, Name: "Unauthorized", Message: "unauthorized", HTTPStatus: 401}
+	ErrExpiredToken    = WebRPCError{Code: 2, Name: "ExpiredToken", Message: "expired token", HTTPStatus: 401}
+	ErrInvalidToken    = WebRPCError{Code: 3, Name: "InvalidToken", Message: "invalid token", HTTPStatus: 401}
+	ErrDeactivated     = WebRPCError{Code: 4, Name: "Deactivated", Message: "account deactivated", HTTPStatus: 403}
+	ErrConfirmAccount  = WebRPCError{Code: 5, Name: "ConfirmAccount", Message: "confirm your email", HTTPStatus: 403}
+	ErrAccessDenied    = WebRPCError{Code: 6, Name: "AccessDenied", Message: "access denied", HTTPStatus: 403}
+	ErrMissingArgument = WebRPCError{Code: 7, Name: "MissingArgument", Message: "missing argument", HTTPStatus: 400}
+	ErrUnexpectedValue = WebRPCError{Code: 8, Name: "UnexpectedValue", Message: "unexpected value", HTTPStatus: 400}
+	ErrRateLimited     = WebRPCError{Code: 100, Name: "RateLimited", Message: "too many requests", HTTPStatus: 429}
+	ErrDatabaseDown    = WebRPCError{Code: 101, Name: "DatabaseDown", Message: "service outage", HTTPStatus: 503}
+	ErrElasticDown     = WebRPCError{Code: 102, Name: "ElasticDown", Message: "search is degraded", HTTPStatus: 503}
+	ErrNotImplemented  = WebRPCError{Code: 103, Name: "NotImplemented", Message: "not implemented", HTTPStatus: 501}
+	ErrUserNotFound    = WebRPCError{Code: 200, Name: "UserNotFound", Message: "user not found", HTTPStatus: 400}
+	ErrUserBusy        = WebRPCError{Code: 201, Name: "UserBusy", Message: "user busy", HTTPStatus: 400}
+	ErrInvalidUsername = WebRPCError{Code: 202, Name: "InvalidUsername", Message: "invalid username", HTTPStatus: 400}
+	ErrFileTooBig      = WebRPCError{Code: 300, Name: "FileTooBig", Message: "file is too big (max 1GB)", HTTPStatus: 400}
+	ErrFileInfected    = WebRPCError{Code: 301, Name: "FileInfected", Message: "file is infected", HTTPStatus: 400}
+	ErrFileType        = WebRPCError{Code: 302, Name: "FileType", Message: "unsupported file type", HTTPStatus: 400}
 )

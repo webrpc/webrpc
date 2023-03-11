@@ -213,7 +213,7 @@ func (s *testApiServer) serveGetEmptyJSON(ctx context.Context, w http.ResponseWr
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcPanic, fmt.Errorf("%v", rr)))
+				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
 				panic(rr)
 			}
 		}()
@@ -255,7 +255,7 @@ func (s *testApiServer) serveGetErrorJSON(ctx context.Context, w http.ResponseWr
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcPanic, fmt.Errorf("%v", rr)))
+				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
 				panic(rr)
 			}
 		}()
@@ -298,7 +298,7 @@ func (s *testApiServer) serveGetOneJSON(ctx context.Context, w http.ResponseWrit
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcPanic, fmt.Errorf("%v", rr)))
+				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
 				panic(rr)
 			}
 		}()
@@ -367,7 +367,7 @@ func (s *testApiServer) serveSendOneJSON(ctx context.Context, w http.ResponseWri
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcPanic, fmt.Errorf("%v", rr)))
+				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
 				panic(rr)
 			}
 		}()
@@ -412,7 +412,7 @@ func (s *testApiServer) serveGetMultiJSON(ctx context.Context, w http.ResponseWr
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcPanic, fmt.Errorf("%v", rr)))
+				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
 				panic(rr)
 			}
 		}()
@@ -485,7 +485,7 @@ func (s *testApiServer) serveSendMultiJSON(ctx context.Context, w http.ResponseW
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcPanic, fmt.Errorf("%v", rr)))
+				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
 				panic(rr)
 			}
 		}()
@@ -528,7 +528,7 @@ func (s *testApiServer) serveGetComplexJSON(ctx context.Context, w http.Response
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcPanic, fmt.Errorf("%v", rr)))
+				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
 				panic(rr)
 			}
 		}()
@@ -597,7 +597,7 @@ func (s *testApiServer) serveSendComplexJSON(ctx context.Context, w http.Respons
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcPanic, fmt.Errorf("%v", rr)))
+				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
 				panic(rr)
 			}
 		}()
@@ -657,7 +657,7 @@ func (s *testApiServer) serveGetSchemaErrorJSON(ctx context.Context, w http.Resp
 		defer func() {
 			// In case of a panic, serve a 500 error and then panic.
 			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcPanic, fmt.Errorf("%v", rr)))
+				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
 				panic(rr)
 			}
 		}()
@@ -675,9 +675,9 @@ func (s *testApiServer) serveGetSchemaErrorJSON(ctx context.Context, w http.Resp
 }
 
 func RespondWithError(w http.ResponseWriter, err error) {
-	rpcErr, ok := err.(RPCError)
+	rpcErr, ok := err.(WebRPCError)
 	if !ok {
-		rpcErr = ErrorWithCause(RPCError{Code: 0, Name: "WebrpcServerError", Message: "server error", Cause: err.Error(), HTTPStatus: 400}, err)
+		rpcErr = ErrorWithCause(ErrWebrpcEndpoint, err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -717,7 +717,7 @@ var (
 // Errors
 //
 
-type RPCError struct {
+type WebRPCError struct {
 	Name       string `json:"error"`
 	Code       int    `json:"code"`
 	Message    string `json:"msg"`
@@ -726,24 +726,24 @@ type RPCError struct {
 	cause      error
 }
 
-var _ error = RPCError{}
+var _ error = WebRPCError{}
 
-func (e RPCError) Error() string {
+func (e WebRPCError) Error() string {
 	return fmt.Sprintf("Error %d %s: %s", e.Code, e.Name, e.Message)
 }
 
-func (e RPCError) Is(target error) bool {
-	if rpcErr, ok := target.(RPCError); ok {
+func (e WebRPCError) Is(target error) bool {
+	if rpcErr, ok := target.(WebRPCError); ok {
 		return rpcErr.Code == e.Code
 	}
 	return errors.Is(e.cause, target)
 }
 
-func (e RPCError) Unwrap() error {
+func (e WebRPCError) Unwrap() error {
 	return e.cause
 }
 
-func ErrorWithCause(rpcErr RPCError, cause error) RPCError {
+func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
 	err := rpcErr
 	err.cause = cause
 	err.Cause = cause.Error()
@@ -752,31 +752,33 @@ func ErrorWithCause(rpcErr RPCError, cause error) RPCError {
 
 // Webrpc errors
 var (
-	ErrWebrpcPanic       = RPCError{Code: -1, Name: "WebrpcServerPanic", Message: "server panic", HTTPStatus: 500}
-	ErrWebrpcBadRoute    = RPCError{Code: -2, Name: "WebrpcBadRoute", Message: "bad route", HTTPStatus: 404}
-	ErrWebrpcBadMethod   = RPCError{Code: -3, Name: "WebrpcBadMethod", Message: "bad method", HTTPStatus: 405}
-	ErrWebrpcBadRequest  = RPCError{Code: -4, Name: "WebrpcBadRequest", Message: "bad request", HTTPStatus: 400}
-	ErrWebrpcBadResponse = RPCError{Code: -5, Name: "WebrpcBadResponse", Message: "bad response", HTTPStatus: 500}
+	ErrWebrpcEndpoint      = WebRPCError{Code: 0, Name: "WebrpcEndpoint", Message: "endpoint error", HTTPStatus: 400}
+	ErrWebrpcRequestFailed = WebRPCError{Code: -1, Name: "WebrpcRequestFailed", Message: "request failed", HTTPStatus: 0}
+	ErrWebrpcBadRoute      = WebRPCError{Code: -2, Name: "WebrpcBadRoute", Message: "bad route", HTTPStatus: 404}
+	ErrWebrpcBadMethod     = WebRPCError{Code: -3, Name: "WebrpcBadMethod", Message: "bad method", HTTPStatus: 405}
+	ErrWebrpcBadRequest    = WebRPCError{Code: -4, Name: "WebrpcBadRequest", Message: "bad request", HTTPStatus: 400}
+	ErrWebrpcBadResponse   = WebRPCError{Code: -5, Name: "WebrpcBadResponse", Message: "bad response", HTTPStatus: 500}
+	ErrWebrpcServerPanic   = WebRPCError{Code: -6, Name: "WebrpcServerPanic", Message: "server panic", HTTPStatus: 500}
 )
 
 // Schema errors
 var (
-	ErrUnauthorized    = RPCError{Code: 1, Name: "Unauthorized", Message: "unauthorized", HTTPStatus: 401}
-	ErrExpiredToken    = RPCError{Code: 2, Name: "ExpiredToken", Message: "expired token", HTTPStatus: 401}
-	ErrInvalidToken    = RPCError{Code: 3, Name: "InvalidToken", Message: "invalid token", HTTPStatus: 401}
-	ErrDeactivated     = RPCError{Code: 4, Name: "Deactivated", Message: "account deactivated", HTTPStatus: 403}
-	ErrConfirmAccount  = RPCError{Code: 5, Name: "ConfirmAccount", Message: "confirm your email", HTTPStatus: 403}
-	ErrAccessDenied    = RPCError{Code: 6, Name: "AccessDenied", Message: "access denied", HTTPStatus: 403}
-	ErrMissingArgument = RPCError{Code: 7, Name: "MissingArgument", Message: "missing argument", HTTPStatus: 400}
-	ErrUnexpectedValue = RPCError{Code: 8, Name: "UnexpectedValue", Message: "unexpected value", HTTPStatus: 400}
-	ErrRateLimited     = RPCError{Code: 100, Name: "RateLimited", Message: "too many requests", HTTPStatus: 429}
-	ErrDatabaseDown    = RPCError{Code: 101, Name: "DatabaseDown", Message: "service outage", HTTPStatus: 503}
-	ErrElasticDown     = RPCError{Code: 102, Name: "ElasticDown", Message: "search is degraded", HTTPStatus: 503}
-	ErrNotImplemented  = RPCError{Code: 103, Name: "NotImplemented", Message: "not implemented", HTTPStatus: 501}
-	ErrUserNotFound    = RPCError{Code: 200, Name: "UserNotFound", Message: "user not found", HTTPStatus: 400}
-	ErrUserBusy        = RPCError{Code: 201, Name: "UserBusy", Message: "user busy", HTTPStatus: 400}
-	ErrInvalidUsername = RPCError{Code: 202, Name: "InvalidUsername", Message: "invalid username", HTTPStatus: 400}
-	ErrFileTooBig      = RPCError{Code: 300, Name: "FileTooBig", Message: "file is too big (max 1GB)", HTTPStatus: 400}
-	ErrFileInfected    = RPCError{Code: 301, Name: "FileInfected", Message: "file is infected", HTTPStatus: 400}
-	ErrFileType        = RPCError{Code: 302, Name: "FileType", Message: "unsupported file type", HTTPStatus: 400}
+	ErrUnauthorized    = WebRPCError{Code: 1, Name: "Unauthorized", Message: "unauthorized", HTTPStatus: 401}
+	ErrExpiredToken    = WebRPCError{Code: 2, Name: "ExpiredToken", Message: "expired token", HTTPStatus: 401}
+	ErrInvalidToken    = WebRPCError{Code: 3, Name: "InvalidToken", Message: "invalid token", HTTPStatus: 401}
+	ErrDeactivated     = WebRPCError{Code: 4, Name: "Deactivated", Message: "account deactivated", HTTPStatus: 403}
+	ErrConfirmAccount  = WebRPCError{Code: 5, Name: "ConfirmAccount", Message: "confirm your email", HTTPStatus: 403}
+	ErrAccessDenied    = WebRPCError{Code: 6, Name: "AccessDenied", Message: "access denied", HTTPStatus: 403}
+	ErrMissingArgument = WebRPCError{Code: 7, Name: "MissingArgument", Message: "missing argument", HTTPStatus: 400}
+	ErrUnexpectedValue = WebRPCError{Code: 8, Name: "UnexpectedValue", Message: "unexpected value", HTTPStatus: 400}
+	ErrRateLimited     = WebRPCError{Code: 100, Name: "RateLimited", Message: "too many requests", HTTPStatus: 429}
+	ErrDatabaseDown    = WebRPCError{Code: 101, Name: "DatabaseDown", Message: "service outage", HTTPStatus: 503}
+	ErrElasticDown     = WebRPCError{Code: 102, Name: "ElasticDown", Message: "search is degraded", HTTPStatus: 503}
+	ErrNotImplemented  = WebRPCError{Code: 103, Name: "NotImplemented", Message: "not implemented", HTTPStatus: 501}
+	ErrUserNotFound    = WebRPCError{Code: 200, Name: "UserNotFound", Message: "user not found", HTTPStatus: 400}
+	ErrUserBusy        = WebRPCError{Code: 201, Name: "UserBusy", Message: "user busy", HTTPStatus: 400}
+	ErrInvalidUsername = WebRPCError{Code: 202, Name: "InvalidUsername", Message: "invalid username", HTTPStatus: 400}
+	ErrFileTooBig      = WebRPCError{Code: 300, Name: "FileTooBig", Message: "file is too big (max 1GB)", HTTPStatus: 400}
+	ErrFileInfected    = WebRPCError{Code: 301, Name: "FileInfected", Message: "file is infected", HTTPStatus: 400}
+	ErrFileType        = WebRPCError{Code: 302, Name: "FileType", Message: "unsupported file type", HTTPStatus: 400}
 )

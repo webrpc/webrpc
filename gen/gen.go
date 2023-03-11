@@ -52,6 +52,7 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		WebrpcGenVersion string
 		WebrpcGenCommand string
 		WebrpcTarget     string
+		WebrpcErrors     []*schema.Error
 		Opts             map[string]interface{}
 	}{
 		proto,
@@ -59,6 +60,7 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		webrpc.VERSION,
 		getWebrpcGenCommand(),
 		target,
+		WebrpcErrors,
 		config.TemplateOptions,
 	}
 	if isLocalDir(target) {

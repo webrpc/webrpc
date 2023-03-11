@@ -196,9 +196,14 @@ will pass `{{.Opts.name}}`, `{{.Opts.description}}` and `{{.Opts.enableFeature}}
 |------------------------------------------------|--------------------------------|-----------------------------|
 | `{{.SchemaName}}`                              | schema name                    | `"example schema"`          |
 | `{{.SchemaVersion}}`                           | schema version                 | `"v0.0.1"`                  |
-| `{{.SchemaHash}}`                              | `sha1` schema hash             | `483889fb084764e3a256`      |
+| `{{.SchemaHash}}`                              | `sha1` schema hash             | `"483889fb084764e3a256"`    |
+| `{{.WebrpcErrors}}`                            | [webrpc errors](./errors.go)   | array of built-in errors    |
+| `{{.WebrpcErrors[0].Code}}`                    | unique error code              | `-4` (0 or negative number) |
+| `{{.WebrpcErrors[0].Name}}`                    | unique error name              | `"WebrpcBadRequest"`        |
+| `{{.WebrpcErrors[0].Message}}`                 | error description              | `"bad request"`             |
+| `{{.WebrpcErrors[0].HTTPStatus}}`              | HTTP response status code      | `400` (number `400`-`599`)  |
 | `{{.Errors}}`                                  | schema errors                  | array of schema errors      |
-| `{{.Errors[0].Code}}`                          | unique error code              | `1001"` (positive number)   |
+| `{{.Errors[0].Code}}`                          | unique error code              | `1001` (positive number)    |
 | `{{.Errors[0].Name}}`                          | unique error name              | `"RateLimited"`             |
 | `{{.Errors[0].Message}}`                       | error description              | `"rate limited, slow down"` |
 | `{{.Errors[0].HTTPStatus}}`                    | HTTP response status code      | `429` (number `100`-`599`)  |
