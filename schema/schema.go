@@ -57,7 +57,7 @@ func (s *WebRPCSchema) Validate() error {
 	}
 
 	if len(s.Deprecated_Messages) > 0 {
-		return fmt.Errorf(" field \"messages\" was renamed to \"types\", see https://github.com/webrpc/webrpc/tree/master/CHANGELOG.md#JSON+schema+v0.9.0+migration+guide")
+		return fmt.Errorf(" field \"messages\" was renamed to \"types\", see https://github.com/webrpc/webrpc/blob/master/CHANGELOG.md#json-schema-v090-migration-guide")
 	}
 
 	return nil
