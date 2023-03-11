@@ -31,8 +31,8 @@ func (s *Error) Parse(schema *WebRPCSchema) error {
 	if s.Message == "" {
 		return fmt.Errorf("schema error: message cannot be empty")
 	}
-	if s.HTTPStatus < 100 || s.HTTPStatus >= 600 {
-		return fmt.Errorf("schema error: invalid HTTP status code '%v' for error type '%s' (must be number between 100-599)", s.HTTPStatus, s.Name)
+	if s.HTTPStatus < 400 || s.HTTPStatus > 599 {
+		return fmt.Errorf("schema error: invalid HTTP status code '%v' for error type '%s' (must be number between 400-599)", s.HTTPStatus, s.Name)
 	}
 
 	// check for duplicate codes or names
