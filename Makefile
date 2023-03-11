@@ -35,6 +35,7 @@ clean:
 
 install:
 	go install ./cmd/webrpc-gen
+	go install ./cmd/webrpc-test
 
 generate: build
 	go generate -x ./...
