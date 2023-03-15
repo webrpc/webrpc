@@ -8,4 +8,4 @@ dev-generate:
 	../../bin/webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -out=./example.gen.go
 
 dev-generate-local-templates:
-	../../bin/webrpc-gen -schema=example.ridl -target=github.com/webrpc/gen-golang@tags/errors -pkg=main -server -client -out=./example.gen.go
+	../../bin/webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -out=./example.gen.go

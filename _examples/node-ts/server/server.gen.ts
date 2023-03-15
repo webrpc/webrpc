@@ -18,6 +18,7 @@ export const WebRPCSchemaHash = "2167bb6fb0a186ff099cd8a309c6ffbbd7d1b9c0"
 // Types
 //
 
+
 export enum Kind {
   USER = 'USER',
   ADMIN = 'ADMIN'
@@ -28,7 +29,6 @@ export interface User {
   USERNAME: string
   role: Kind
   meta: {[key: string]: any}
-  
   createdAt?: string
 }
 

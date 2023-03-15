@@ -18,6 +18,7 @@ export const WebRPCSchemaHash = "d2455234311d458338a90cbb43e55322600d642e"
 // Types
 //
 
+
 export enum Kind {
   USER = 'USER',
   ADMIN = 'ADMIN'
@@ -28,7 +29,6 @@ export interface User {
   USERNAME: string
   role: Kind
   meta: {[key: string]: any}
-  
   created_at?: string
 }
 
@@ -123,14 +123,7 @@ export class ExampleService implements ExampleService {
   
 }
 
-  
-export interface WebRPCError extends Error {
-  code: string
-  msg: string
-	status: number
-}
-
-const createHTTPRequest = (body: object = {}, headers: object = {}): object => {
+  const createHTTPRequest = (body: object = {}, headers: object = {}): object => {
   return {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
@@ -143,14 +136,166 @@ const buildResponse = (res: Response): Promise<any> => {
     let data
     try {
       data = JSON.parse(text)
-    } catch(err) {
-      throw { code: 'unknown', msg: `expecting JSON, got: ${text}`, status: res.status } as WebRPCError
+    } catch(e) {
+      WebrpcBadResponseError.throwError({
+        status: res.status,
+        cause: `JSON.parse(): ${e.message}: response text: ${text}`},
+      )
     }
     if (!res.ok) {
-      throw data // webrpc error response
+      const code: number = (typeof data.code === 'number') ? data.code : 0
+      const err = webrpcErrorByCode[code] || WebrpcError
+      err.throwError(data)
     }
     return data
   })
+}
+
+//
+// Errors
+//
+
+export class WebrpcError extends Error {
+  name: string
+  code: number
+  message: string
+  status: number
+  cause?: string
+
+  /** @deprecated Use message instead of msg. Deprecated in webrpc v0.11.0. */
+  msg: string
+
+  constructor(name: string, code: number, message: string, status: number, cause?: string) {
+    super(message)
+    this.name = name || 'WebrpcError'
+    this.code = typeof code === 'number' ? code : 0
+    this.message = message || `endpoint error ${this.code}`
+    this.msg = this.message
+    this.status = typeof status === 'number' ? status : 0
+    this.cause = cause
+    Object.setPrototypeOf(this, WebrpcError.prototype)
+  }
+
+  static throwError(payload: any) {
+    throw new this(payload.error, payload.code, payload.message || payload.msg, payload.status, payload.cause)
+  }
+}
+
+// Webrpc errors
+
+export class WebrpcEndpointError extends WebrpcError {
+  constructor(
+    name: string = 'WebrpcEndpoint',
+    code: number = 0,
+    message: string = 'endpoint error',
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause)
+    Object.setPrototypeOf(this, WebrpcEndpointError.prototype)
+  }
+}
+
+export class WebrpcRequestFailedError extends WebrpcError {
+  constructor(
+    name: string = 'WebrpcRequestFailed',
+    code: number = -1,
+    message: string = 'request failed',
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause)
+    Object.setPrototypeOf(this, WebrpcRequestFailedError.prototype)
+  }
+}
+
+export class WebrpcBadRouteError extends WebrpcError {
+  constructor(
+    name: string = 'WebrpcBadRoute',
+    code: number = -2,
+    message: string = 'bad route',
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause)
+    Object.setPrototypeOf(this, WebrpcBadRouteError.prototype)
+  }
+}
+
+export class WebrpcBadMethodError extends WebrpcError {
+  constructor(
+    name: string = 'WebrpcBadMethod',
+    code: number = -3,
+    message: string = 'bad method',
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause)
+    Object.setPrototypeOf(this, WebrpcBadMethodError.prototype)
+  }
+}
+
+export class WebrpcBadRequestError extends WebrpcError {
+  constructor(
+    name: string = 'WebrpcBadRequest',
+    code: number = -4,
+    message: string = 'bad request',
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause)
+    Object.setPrototypeOf(this, WebrpcBadRequestError.prototype)
+  }
+}
+
+export class WebrpcBadResponseError extends WebrpcError {
+  constructor(
+    name: string = 'WebrpcBadResponse',
+    code: number = -5,
+    message: string = 'bad response',
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause)
+    Object.setPrototypeOf(this, WebrpcBadResponseError.prototype)
+  }
+}
+
+export class WebrpcServerPanicError extends WebrpcError {
+  constructor(
+    name: string = 'WebrpcServerPanic',
+    code: number = -6,
+    message: string = 'server panic',
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause)
+    Object.setPrototypeOf(this, WebrpcServerPanicError.prototype)
+  }
+}
+
+
+// Schema errors
+
+
+export enum errors {
+  WebrpcEndpoint = 'WebrpcEndpoint',
+  WebrpcRequestFailed = 'WebrpcRequestFailed',
+  WebrpcBadRoute = 'WebrpcBadRoute',
+  WebrpcBadMethod = 'WebrpcBadMethod',
+  WebrpcBadRequest = 'WebrpcBadRequest',
+  WebrpcBadResponse = 'WebrpcBadResponse',
+  WebrpcServerPanic = 'WebrpcServerPanic',
+}
+
+const webrpcErrorByCode: { [code: number]: any } = {
+  [0]: WebrpcEndpointError,
+  [-1]: WebrpcRequestFailedError,
+  [-2]: WebrpcBadRouteError,
+  [-3]: WebrpcBadMethodError,
+  [-4]: WebrpcBadRequestError,
+  [-5]: WebrpcBadResponseError,
+  [-6]: WebrpcServerPanicError,
 }
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
