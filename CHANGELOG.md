@@ -1,3 +1,7 @@
+- [webrpc v0.11.0](#webrpc-v0110)
+  - [Feature: Define webrpc schema errors](#feature-define-webrpc-schema-errors)
+  - [typescript@v0.11.0 breaking changes](#typescriptv0110-breaking-changes)
+  - [golang@v0.11.0 breaking changes](#golangv0110-breaking-changes)
 - [webrpc v0.10.0](#webrpc-v0100)
   - [Interoperability tests](#interoperability-tests)
   - [Breaking changes in webrpc-gen Go API](#breaking-changes-in-webrpc-gen-go-api)
@@ -10,6 +14,141 @@
     - [RIDL v0.9.0 migration guide](#ridl-v090-migration-guide)
     - [JSON schema v0.9.0 migration guide](#json-schema-v090-migration-guide)
     - [Generator templates v0.9.0 migration guide](#generator-templates-v090-migration-guide)
+
+# webrpc v0.11.0
+
+## Feature: Define webrpc schema errors
+
+You can now define your own custom schema errors in RIDL file, for example:
+
+```ridl
+error   1 Unauthorized    "unauthorized"        HTTP 401
+error   2 ExpiredToken    "expired token"       HTTP 401
+error   3 InvalidToken    "invalid token"       HTTP 401
+error   4 Deactivated     "account deactivated" HTTP 403
+error   5 ConfirmAccount  "confirm your email"  HTTP 403
+error   6 AccessDenied    "access denied"       HTTP 403
+error   7 MissingArgument "missing argument"    HTTP 400
+error   8 UnexpectedValue "unexpected value"    HTTP 400
+error 100 RateLimited     "too many requests"   HTTP 429
+error 101 DatabaseDown    "service outage"      HTTP 503
+error 102 ElasticDown     "search is degraded"  HTTP 503
+error 103 NotImplemented  "not implemented"     HTTP 501
+error 200 UserNotFound    "user not found"
+error 201 UserBusy        "user busy"
+error 202 InvalidUsername "invalid username"
+error 300 FileTooBig      "file is too big (max 1GB)"
+error 301 FileInfected    "file is infected"
+error 302 FileType        "unsupported file type"
+```
+
+Note: Unless specified, the default HTTP status for webrpc errors is `HTTP 400`.
+
+## typescript@v0.11.0 breaking changes
+
+- All errors thrown by webrpc client are now instance of `WebrpcError`, which extends JavaScript `Error`. No need to re-throw errors anymore.
+- ~`error.msg`~ `error.message`
+- by default, the error messages are "human-friendly", they don't contain any details about the backend error cause
+- underlying backend error (for developers) is optionally available as `error.cause?`
+- `error.code` or `error.message` can be used as input for user-friendly error i18n translations
+
+You can now check for explicit error class instance (as defined in RIDL schema) or against a generic `WebrpcError` class.
+
+```js
+try {
+  const resp = await testApiClient.getUser();
+  // setUser(resp.user)
+} catch (error) {
+  if (error instanceof RateLimitedError) {
+    // retry with back-off time
+  }
+  
+  if (error instanceof UnauthorizedError) {
+    // render sign-in page
+  }
+  
+  if (error instanceof WebrpcError) {
+    console.log(error.status) // print response HTTP status code (ie. 4xx or 5xx)
+    console.log(error.code) // print unique schema error code; generic endpoint errors are 0
+    console.log(error.message) // print error message
+    console.log(error.cause) // print the underlying backend error -- ie. "DB error" - useful for debugging / reporting to Sentry
+  }
+  
+  // setError(error.message)
+}
+```
+
+## golang@v0.11.0 breaking changes
+
+Note: You can turn on `-legacyErrors=true` flag on golang generator (ie. `webrpc-gen -target=golang -legacyErrors=true -pkg=proto`) in order to preserve the deprecated functions and sentinel errors (see below). This will allow you to migrate your codebase to the new custom schema errors gradually.
+
+The following werbrpc error functions and sentinel errors are now deprecated or ~removed~:
+- `proto.WrapError() // Deprecated.`
+- `proto.Errorf() // Deprecated.`
+- ~`proto.HTTPStatusFromErrorCode()`~
+- ~`proto.IsErrorCode()`~
+- `proto.ErrCanceled // Deprecated.`
+- `proto.ErrUnknown // Deprecated.`
+- `proto.ErrFail // Deprecated.`
+- `proto.ErrInvalidArgument // Deprecated.`
+- `proto.ErrDeadlineExceeded // Deprecated.`
+- `proto.ErrNotFound // Deprecated.`
+- `proto.ErrBadRoute // Deprecated.`
+- `proto.ErrAlreadyExists // Deprecated.`
+- `proto.ErrPermissionDenied // Deprecated.`
+- `proto.ErrUnauthenticated // Deprecated.`
+- `proto.ErrResourceExhausted // Deprecated.`
+- `proto.ErrFailedPrecondition // Deprecated.`
+- `proto.ErrAborted // Deprecated.`
+- `proto.ErrOutOfRange // Deprecated.`
+- `proto.ErrUnimplemented // Deprecated.`
+- `proto.ErrInternal // Deprecated.`
+- `proto.ErrUnavailable // Deprecated.`
+- `proto.ErrDataLoss // Deprecated.`
+- `proto.ErrNone // Deprecated.`
+
+The schema errors can now be returned from the RPC endpoints via:
+
+```diff
+func (s *RPC) RemoveUser(ctx context.Context, userID int64) (bool, error) {
+  r, _ := ctx.Value(proto.HTTPRequestCtxKey).(*http.Request)
+  if s.IsRateLimited(r) {
+-    return false, proto.Errorf(proto.ErrUnavailable, "rate limited")
++    return false, proto.ErrRateLimited // HTTP 429 per RIDL schema
+  }
+
+  _, err := s.DB.RemoveUser(ctx, userID)
+  if err != nil {
+    if errors.Is(err, pgx.ErrNoRows) {
+-		  return false, proto.Errorf(proto.ErrNotFound, "no such user(%v)", userID)
++     return false, proto.ErrUserNotFound
+    }
+-		return false, proto.WrapError(proto.ErrInternal, err, "")
++		return false, proto.ErrorWithCause(proto.ErrDatabaseDown, err)
+ 	}
+ 
+  return true, nil
+}
+```
+
+You can also return any other Go error and webrpc will render generic `proto.ErrWebrpcEndpoint` error automatically along with `HTTP 400` status code.
+```go
+return fmt.Errorf("some error")
+```
+
+The RPC client(s) can now assert the schema error type by their unique error code:
+
+```go
+if err, ok := rpc.RemoveUser(ctx, userID); err != nil {
+	if errors.Is(proto.ErrRateLimited) {
+		// slow down; retry with back-off strategy
+	}
+	if errors.Is(proto.ErrUserNotFound) {
+		// handle 
+	}
+	// etc.
+}
+```
 
 # webrpc v0.10.0
 
