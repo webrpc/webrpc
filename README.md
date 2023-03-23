@@ -72,6 +72,9 @@ service ExampleService
   - GetUserByID(userID: uint64) => (user: User)
   - IsOnline(user: User) => (online: bool)
   - ListUsers(q?: UsersQueryFilter) => (page: uint32, users: []User)
+
+error 100 RateLimited     "too many requests"   HTTP 429
+error 101 DatabaseDown    "service outage"      HTTP 503
 ```
 
 Generate webrpc Go server+client code:
