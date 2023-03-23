@@ -332,7 +332,10 @@ type WebRPCError struct {
 var _ error = WebRPCError{}
 
 func (e WebRPCError) Error() string {
-	return fmt.Sprintf("Error %d %s: %s", e.Code, e.Name, e.Message)
+	if e.cause != nil {
+		return fmt.Sprintf("%s %d: %s: %v", e.Name, e.Code, e.Message, e.cause)
+	}
+	return fmt.Sprintf("%s %d: %s", e.Name, e.Code, e.Message)
 }
 
 func (e WebRPCError) Is(target error) bool {
