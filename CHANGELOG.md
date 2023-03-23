@@ -111,23 +111,23 @@ The schema errors can now be returned from the RPC endpoints via:
 
 ```diff
 func (s *RPC) RemoveUser(ctx context.Context, userID int64) (bool, error) {
-  r, _ := ctx.Value(proto.HTTPRequestCtxKey).(*http.Request)
-  if s.IsRateLimited(r) {
--    return false, proto.Errorf(proto.ErrUnavailable, "rate limited")
-+    return false, proto.ErrRateLimited // HTTP 429 per RIDL schema
-  }
-
-  _, err := s.DB.RemoveUser(ctx, userID)
-  if err != nil {
-    if errors.Is(err, pgx.ErrNoRows) {
--		  return false, proto.Errorf(proto.ErrNotFound, "no such user(%v)", userID)
-+     return false, proto.ErrUserNotFound
-    }
+ 	r, _ := ctx.Value(proto.HTTPRequestCtxKey).(*http.Request)
+ 	if s.IsRateLimited(r) {
+-		return false, proto.Errorf(proto.ErrUnavailable, "rate limited")
++		return false, proto.ErrRateLimited // HTTP 429 per RIDL schema
+ 	}
+ 
+ 	_, err := s.DB.RemoveUser(ctx, userID)
+ 	if err != nil {
+ 		if errors.Is(err, pgx.ErrNoRows) {
+-			return false, proto.Errorf(proto.ErrNotFound, "no such user(%v)", userID)
++			return false, proto.ErrUserNotFound
+ 		}
 -		return false, proto.WrapError(proto.ErrInternal, err, "")
 +		return false, proto.ErrorWithCause(proto.ErrDatabaseDown, err)
  	}
  
-  return true, nil
+ 	return true, nil
 }
 ```
 
