@@ -78,24 +78,28 @@ export class ExampleService implements ExampleService {
     return this.fetch(
       this.url('Ping'),
       createHTTPRequest({}, headers)
-      ).then((res) => {
+    ).then((res) => {
       return buildResponse(res).then(_data => {
-        return {
-        }
+        return {}
       })
+    }, (error) => {
+      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error.message || ''}` })
     })
   }
   
   getUser = (args: GetUserArgs, headers?: object): Promise<GetUserReturn> => {
     return this.fetch(
       this.url('GetUser'),
-      createHTTPRequest(args, headers)).then((res) => {
+      createHTTPRequest(args, headers)
+    ).then((res) => {
       return buildResponse(res).then(_data => {
         return {
-          code: <number>(_data.code), 
-          user: <User>(_data.user)
+          code: <number>(_data.code),
+          user: <User>(_data.user),
         }
       })
+    }, (error) => {
+      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error.message || ''}` })
     })
   }
   
@@ -114,16 +118,15 @@ const buildResponse = (res: Response): Promise<any> => {
     let data
     try {
       data = JSON.parse(text)
-    } catch(e) {
-      WebrpcBadResponseError.throwError({
+    } catch(error) {
+      throw WebrpcBadResponseError.new({
         status: res.status,
-        cause: `JSON.parse(): ${e.message}: response text: ${text}`},
+        cause: `JSON.parse(): ${error.message || ''}: response text: ${text}`},
       )
     }
     if (!res.ok) {
       const code: number = (typeof data.code === 'number') ? data.code : 0
-      const err = webrpcErrorByCode[code] || WebrpcError
-      err.throwError(data)
+      throw (webrpcErrorByCode[code] || WebrpcError).new(data)
     }
     return data
   })
@@ -154,8 +157,8 @@ export class WebrpcError extends Error {
     Object.setPrototypeOf(this, WebrpcError.prototype)
   }
 
-  static throwError(payload: any) {
-    throw new this(payload.error, payload.code, payload.message || payload.msg, payload.status, payload.cause)
+  static new(payload: any): WebrpcError {
+    return new this(payload.error, payload.code, payload.message || payload.msg, payload.status, payload.cause)
   }
 }
 
