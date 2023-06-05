@@ -6,7 +6,28 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
+
+func Wait(serverURL string, timeout time.Duration) error {
+	testApi := NewTestApiClient(serverURL, &http.Client{})
+
+	// if timeout == 0 {
+	// 	timeout = 24 * time.Hour // This is probably a misuse
+	// }
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	for {
+		if err := testApi.GetEmpty(ctx); err == nil {
+			return nil
+		}
+		if ctx.Err() != nil {
+			return fmt.Errorf("wait: test server still not ready at %v after %v", serverURL, timeout)
+		}
+	}
+}
 
 func RunTests(ctx context.Context, serverURL string) error {
 	var errs []error // Note: We can't use Go 1.20's errors.Join() until we drop support for older Go versions.

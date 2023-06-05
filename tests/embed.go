@@ -2,7 +2,6 @@ package tests
 
 import (
 	"embed"
-	_ "embed"
 
 	"github.com/webrpc/webrpc/schema/ridl"
 )
