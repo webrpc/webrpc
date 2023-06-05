@@ -16,16 +16,18 @@ import (
 
 var (
 	flags       = flag.NewFlagSet("webrpc-test", flag.ContinueOnError)
-	clientFlag  = flags.Bool("client", false, "client mode")
-	serverFlag  = flags.Bool("server", false, "server mode")
+	clientFlag  = flags.Bool("client", false, "run client tests")
+	serverFlag  = flags.Bool("server", false, "run test server")
 	versionFlag = flags.Bool("version", false, "print version and exit")
-	printSchema = flags.Bool("print-schema", false, "print RIDL schema used for testing client/server communication")
+	printSchema = flags.Bool("print-schema", false, "obsolete flag (use -printRIDL)") // Obsolete.
+	printRIDL   = flags.Bool("printRIDL", false, "print schema in RIDL")
+	printJSON   = flags.Bool("printJSON", false, "print schema in JSON")
 
-	// -client
+	// webrpc-test -client -url=http://localhost:9988
 	clientFlags = flag.NewFlagSet("webrpc-test -client", flag.ExitOnError)
 	urlFlag     = clientFlags.String("url", "http://localhost:9988", "run client against given server URL")
 
-	// -server
+	// webrpc-test -server -port=9988 -timeout=1m
 	serverFlags = flag.NewFlagSet("webrpc-test -server", flag.ExitOnError)
 	portFlag    = serverFlags.Int("port", 9988, "run server at given port")
 	timeoutFlag = serverFlags.Duration("timeout", time.Minute, "exit after given timeout")
@@ -44,8 +46,13 @@ func main() {
 		os.Exit(0)
 	}
 
-	if *printSchema {
-		fmt.Println(tests.GetSchema())
+	if *printRIDL || *printSchema {
+		fmt.Println(tests.GetRIDLSchema())
+		os.Exit(0)
+	}
+
+	if *printJSON {
+		fmt.Println(tests.GetJSONSchema())
 		os.Exit(0)
 	}
 
