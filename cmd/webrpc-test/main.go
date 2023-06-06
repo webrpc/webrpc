@@ -49,15 +49,12 @@ func main() {
 	switch {
 	case *versionFlag:
 		fmt.Println("webrpc-test", webrpc.VERSION)
-		os.Exit(0)
 
 	case *printRIDL, *printSchema:
 		fmt.Println(tests.GetRIDLSchema())
-		os.Exit(0)
 
 	case *printJSON:
 		fmt.Println(tests.GetJSONSchema())
-		os.Exit(0)
 
 	case *clientFlag:
 		if err := clientFlags.Parse(os.Args[2:]); err != nil {
@@ -69,8 +66,6 @@ func main() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-
-		os.Exit(0)
 
 	case *serverFlag:
 		if err := serverFlags.Parse(os.Args[2:]); err != nil {
@@ -89,8 +84,6 @@ func main() {
 			os.Exit(1)
 		}
 
-		os.Exit(0)
-
 	case *waitFlag:
 		if err := waitFlags.Parse(os.Args[2:]); err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -103,8 +96,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Fprintf(os.Stderr, "wait: test server ready in %v\n", time.Since(start).Round(time.Millisecond))
-		os.Exit(0)
+		fmt.Fprintf(os.Stdout, "wait: test server ready in %v\n", time.Since(start).Round(time.Millisecond))
 
 	default:
 		flags.Usage()
