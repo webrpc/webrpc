@@ -12,19 +12,21 @@ import (
 func Wait(serverURL string, timeout time.Duration) error {
 	testApi := NewTestApiClient(serverURL, &http.Client{})
 
-	// if timeout == 0 {
-	// 	timeout = 24 * time.Hour // This is probably a misuse
-	// }
-
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	for {
-		if err := testApi.GetEmpty(ctx); err == nil {
-			return nil
+		err := testApi.GetEmpty(ctx)
+		if err == nil {
+			return nil // Success.
 		}
-		if ctx.Err() != nil {
-			return fmt.Errorf("wait: test server still not ready at %v after %v", serverURL, timeout)
+
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("wait: test server (%v) still not ready after %v", serverURL, timeout)
+
+		case <-time.After(100 * time.Millisecond):
+			// Add a delay between retry attempts.
 		}
 	}
 }
