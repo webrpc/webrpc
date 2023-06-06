@@ -186,23 +186,22 @@ func RunTestServer(addr string, timeout time.Duration) (*testServer, error) {
 		closed: make(chan struct{}),
 	}
 
-	if timeout > 0 {
-		go func() {
-			timeoutCtx, cancel := context.WithTimeout(context.Background(), timeout)
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+
+		select {
+		case <-srv.closed:
+
+		case <-ctx.Done():
+			// 1s graceful shutdown
+			gracefulShutdownCtx, cancel := context.WithTimeout(context.Background(), time.Second)
 			defer cancel()
 
-			select {
-			case <-srv.closed:
-
-			case <-timeoutCtx.Done():
-				gracefulShutdownCtx, cancel := context.WithTimeout(context.Background(), time.Second)
-				defer cancel()
-
-				srv.err = srv.Shutdown(gracefulShutdownCtx)
-				close(srv.closed)
-			}
-		}()
-	}
+			srv.err = srv.Shutdown(gracefulShutdownCtx)
+			close(srv.closed)
+		}
+	}()
 
 	l, err := net.Listen("tcp", addr)
 	if err != nil {
