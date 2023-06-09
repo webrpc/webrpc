@@ -51,7 +51,7 @@ func TestGetUser(t *testing.T) {
 		// Error case, expecting to receive an error
 		code, user, err := client.GetUser(context.Background(), nil, 911)
 
-		assert.True(t, IsErrorCode(err, ErrNotFound))
+		assert.ErrorAs(t, err, &ErrUserNotFound)
 		assert.Nil(t, user)
 		assert.Equal(t, uint32(0), code)
 		assert.Error(t, err)
