@@ -1,12 +1,11 @@
 package main
 
 import (
-	"context"
-	"log"
 	"net/http"
-
-	"github.com/go-chi/chi"
+	"log"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi"
+	"github.com/webrpc/webrpc/_example/golang-nodejs/server/pkg/rpc"
 )
 
 func main() {
@@ -26,28 +25,10 @@ func startServer() error {
 		w.Write([]byte("."))
 	})
 
-	webrpcHandler := NewExampleServiceServer(&ExampleServiceRPC{})
+	webrpcHandler := rpc.NewExampleServiceServer(&rpc.ExampleServiceRPC{})
 	r.Handle("/*", webrpcHandler)
 
 	log.Printf("Starting webrpc server on localhost:4242")
 
 	return http.ListenAndServe(":4242", r)
-}
-
-type ExampleServiceRPC struct {
-}
-
-func (s *ExampleServiceRPC) Ping(ctx context.Context) (bool, error) {
-	return true, nil
-}
-
-func (s *ExampleServiceRPC) GetUser(ctx context.Context, req *GetUserRequest) (*User, error) {
-	if req.UserID == 911 {
-		return nil, ErrorNotFound("unknown userID %d", 911)
-	}
-
-	return &User{
-		ID:       req.UserID,
-		Username: "hihi",
-	}, nil
 }
