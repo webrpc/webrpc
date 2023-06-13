@@ -2,6 +2,14 @@
 	"webrpc": "v1",
 	"name": "example",
 	"version": " v0.0.1",
+	"errors": [
+		{
+			"code": 1000,
+			"name": "UserNotFound",
+			"message": "user not found",
+			"httpStatus": 404
+		}
+	],
 	"types": [
 		{
 			"name": "Kind",
