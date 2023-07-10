@@ -17,19 +17,39 @@ func appendFn(slice []interface{}, elems ...interface{}) []interface{} {
 }
 
 // Returns first element from given array.
-func first(elems []interface{}) (interface{}, error) {
-	if len(elems) == 0 {
-		return "", fmt.Errorf("first: no elements in the array")
+func first(elems interface{}) (interface{}, error) {
+	switch v := elems.(type) {
+	case []string:
+		if len(v) == 0 {
+			return "", fmt.Errorf("first(): no elements in the array")
+		}
+		return v[0], nil
+	case []interface{}:
+		if len(v) == 0 {
+			return "", fmt.Errorf("first(): no elements in the array")
+		}
+		return v[0], nil
+	default:
+		panic(fmt.Sprintf("first(): unknown arg type %T", v))
 	}
-	return elems[0], nil
 }
 
 // Returns last element from given array.
-func last(elems []interface{}) (interface{}, error) {
-	if len(elems) == 0 {
-		return "", fmt.Errorf("last: no elements in the array")
+func last(elems interface{}) (interface{}, error) {
+	switch v := elems.(type) {
+	case []string:
+		if len(v) == 0 {
+			return "", fmt.Errorf("last(): no elements in the array")
+		}
+		return v[len(v)-1], nil
+	case []interface{}:
+		if len(v) == 0 {
+			return "", fmt.Errorf("last(): no elements in the array")
+		}
+		return v[len(v)-1], nil
+	default:
+		panic(fmt.Sprintf("last(): unknown arg type %T", v))
 	}
-	return elems[len(elems)-1], nil
 }
 
 // Returns true if any of the given values match the first value.
@@ -93,8 +113,8 @@ func toBool(in interface{}) bool {
 		if in == "false" {
 			return false
 		}
-		panic(fmt.Sprintf("unexpected boolean %q", in))
+		panic(fmt.Sprintf("toBool(): unexpected boolean %q", in))
 	default:
-		panic(fmt.Sprintf("unexpected boolean %v", v))
+		panic(fmt.Sprintf("toBool(): unexpected boolean %v", v))
 	}
 }

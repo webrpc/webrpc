@@ -43,7 +43,7 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"ternary":  ternary,   // v0.7.0
 
 		// String utils.
-		"join":       strings.Join,                                    // v0.7.0
+		"join":       join,                                            // v0.7.0
 		"split":      split,                                           // v0.7.0
 		"hasPrefix":  strings.HasPrefix,                               // v0.7.0
 		"hasSuffix":  strings.HasSuffix,                               // v0.7.0
