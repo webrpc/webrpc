@@ -33,13 +33,32 @@ func toString(v interface{}) string {
 	}
 }
 
+func join(elems interface{}, sep string) string {
+	switch v := elems.(type) {
+	case []string:
+		return strings.Join(v, sep)
+	case []interface{}:
+		strElems := make([]string, len(v))
+		for i, elem := range v {
+			strElems[i] = toString(elem)
+		}
+		return strings.Join(strElems, sep)
+	default:
+		panic(fmt.Sprintf("join(): unknown arg type %T", v))
+	}
+}
+
+func split(sep string, str string) []string {
+	return strings.Split(str, sep)
+}
+
 func applyStringFunction(fnName string, fn func(string) string) func(v interface{}) string {
 	return func(v interface{}) string {
 		switch t := v.(type) {
 		case string:
 			return fn(t)
 		default:
-			panic(fmt.Errorf("%v: unknown arg type %T", fnName, v))
+			panic(fmt.Errorf("%v(): unknown arg type %T", fnName, v))
 		}
 	}
 }

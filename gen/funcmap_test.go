@@ -1,7 +1,7 @@
 package gen
 
 import (
-	"strings"
+	"fmt"
 	"testing"
 )
 
@@ -98,18 +98,20 @@ func TestParseMajorMinorVersion(t *testing.T) {
 }
 
 func TestArray(t *testing.T) {
-	arr := array("c", "d")
+	var a, b, c, d interface{} = "a", "b", "c", "d"
+
+	arr := array(c, d)
 	if got := len(arr); got != 2 {
 		t.Errorf("array: expected two elements, got %v", got)
 	}
 
-	arr = appendFn(arr, "a", "b")
+	arr = appendFn(arr, a, b)
 	if got := len(arr); got != 4 {
 		t.Errorf("append: expected four elements, got %v", got)
 	}
 
 	sorted := sortFn(arr)
-	if got := strings.Join(sorted, " "); got != "a b c d" {
+	if got := fmt.Sprintf("%v", sorted); got != "[a b c d]" {
 		t.Errorf("sort: expected sorted array, got %v", got)
 	}
 
@@ -121,11 +123,11 @@ func TestArray(t *testing.T) {
 		t.Errorf("last: expected d, got %v", got)
 	}
 
-	if got, err := first([]string{}); err == nil || got != "" {
+	if got, err := first([]interface{}{}); err == nil || got != "" {
 		t.Errorf("first(empty): expected error")
 	}
 
-	if got, err := last([]string{}); err == nil || got != "" {
+	if got, err := last([]interface{}{}); err == nil || got != "" {
 		t.Errorf("last(empty): expected error")
 	}
 }
