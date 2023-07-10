@@ -31,22 +31,20 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"set":    set,    // v0.7.0
 		"exists": exists, // v0.7.0
 
-		// String arrays.
-		"array":  array,        // v0.8.0
-		"append": appendFn,     // v0.8.0
-		"first":  first,        // v0.7.0
-		"join":   strings.Join, // v0.7.0
-		"last":   last,         // v0.7.0
-		"sort":   sortFn,       // v0.8.0
-		"split":  split,        // v0.7.0
-
 		// Generic utils.
+		"array":    array,     // v0.11.2 (string support v0.8.0)
+		"append":   appendFn,  // v0.11.2 (string support v0.7.0)
+		"first":    first,     // v0.11.2 (string support v0.7.0)
+		"last":     last,      // v0.11.2 (string support v0.7.0)
+		"sort":     sortFn,    // v0.11.2 (string support v0.8.0)
 		"coalesce": coalesce,  // v0.7.0
 		"default":  defaultFn, // v0.7.0
 		"in":       in,        // v0.7.0
 		"ternary":  ternary,   // v0.7.0
 
 		// String utils.
+		"join":       strings.Join,                                    // v0.7.0
+		"split":      split,                                           // v0.7.0
 		"hasPrefix":  strings.HasPrefix,                               // v0.7.0
 		"hasSuffix":  strings.HasSuffix,                               // v0.7.0
 		"trimPrefix": strings.TrimPrefix,                              // v0.8.0

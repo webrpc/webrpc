@@ -33,6 +33,10 @@ func toString(v interface{}) string {
 	}
 }
 
+func split(sep string, str string) []string {
+	return strings.Split(str, sep)
+}
+
 func applyStringFunction(fnName string, fn func(string) string) func(v interface{}) string {
 	return func(v interface{}) string {
 		switch t := v.(type) {
