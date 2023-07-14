@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -54,6 +55,9 @@ func (s *ExampleServiceRPC) Version(ctx context.Context) (*Version, error) {
 func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error) {
 	if userID == 911 {
 		return 0, nil, ErrUserNotFound
+	}
+	if userID == 31337 {
+		return 0, nil, ErrorWithCause(ErrUserNotFound, fmt.Errorf("unknown user id %d", userID))
 	}
 
 	return 200, &User{
