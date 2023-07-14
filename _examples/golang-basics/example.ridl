@@ -45,11 +45,12 @@ struct ComplexType
   - user: User
 
 
+error 1000 UserNotFound "user not found" HTTP 404
+
+
 service ExampleService
   - Ping()
   - Status() => (status: bool)
   - Version() => (version: Version)
   - GetUser(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
   - FindUser(s: SearchFilter) => (name: string, user: User)
-
-error 1000 UserNotFound "user not found" HTTP 404
