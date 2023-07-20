@@ -2,8 +2,6 @@ package ridl
 
 import (
 	"fmt"
-
-	"github.com/pkg/errors"
 )
 
 // error <code> <name> <message> [HTTP <status code>]
@@ -55,7 +53,7 @@ func parserStateErrorMessage(et *ErrorNode) parserState {
 			p.next()
 
 		default:
-			return p.stateError(errors.Errorf("expected <message> but got %v", tok))
+			return p.stateError(fmt.Errorf("expected <message> but got %v", tok))
 		}
 
 		return parserStateErrorExplicitStatusCode(et)
