@@ -92,6 +92,11 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 					return fmt.Errorf("schema error: invalid json type '%T' in field '%s' in type '%s': must be string", jsonMeta, fieldName, typName)
 				}
 
+				if jsonMetaString == "-" {
+					// Skip the special `json = -` value, which makes the field ignored in generated clients.
+					continue
+				}
+
 				if !IsValidArgName(jsonMetaString) {
 					return fmt.Errorf("schema error: invalid json name '%s' in field '%s' in type '%s'", jsonMetaString, fieldName, typName)
 				}
