@@ -24,7 +24,8 @@ struct User
     + json = -
 
   - createdAt?: timestamp
-    + json = created_at,omitempty
+    + json = created_at
+    + go.tag.json = created_at,omitempty
     + go.tag.db = created_at
 
 struct Page
