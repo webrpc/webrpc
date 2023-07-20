@@ -64,12 +64,12 @@ func (s *Service) Parse(schema *WebRPCSchema) error {
 		}
 
 		methodName := string(method.Name)
-		nMethodName := strings.ToLower(methodName)
+		methodNameLower := strings.ToLower(methodName)
 
-		if _, ok := methodList[nMethodName]; ok {
+		if _, ok := methodList[methodNameLower]; ok {
 			return fmt.Errorf("schema error: detected duplicate method name of '%s' in service '%s'", methodName, serviceName)
 		}
-		methodList[nMethodName] = methodName
+		methodList[methodNameLower] = methodName
 	}
 
 	// Parse+validate methods

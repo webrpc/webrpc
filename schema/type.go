@@ -59,17 +59,16 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 		return fmt.Errorf("schema error: type must be one of 'enum', or 'struct' for '%s'", typName)
 	}
 
-	// NOTE: Allow structs with no fields.
-
 	// Verify field names and ensure we don't have any duplicate field names
+	// NOTE: Allow structs with no fields.
 	fieldList := map[string]string{}
+	jsonFieldList := map[string]string{}
 	for _, field := range t.Fields {
 		if string(field.Name) == "" {
 			return fmt.Errorf("schema error: detected empty field name in type '%s", typName)
 		}
 
 		fieldName := string(field.Name)
-		nFieldName := strings.ToLower(fieldName)
 
 		// Verify name format
 		if !IsValidArgName(fieldName) {
@@ -77,10 +76,41 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 		}
 
 		// Ensure no dupes
-		if _, ok := fieldList[nFieldName]; ok {
+		fieldNameLower := strings.ToLower(fieldName)
+		if _, ok := fieldList[fieldNameLower]; ok {
 			return fmt.Errorf("schema error: detected duplicate field name of '%s' in type '%s'", fieldName, typName)
 		}
-		fieldList[nFieldName] = fieldName
+		fieldList[fieldNameLower] = fieldName
+
+		// Verify json meta format, as it overrides field name in JSON
+		// and in JavaScript/TypeScript generated code.
+		jsonFieldName := fieldName
+		for _, meta := range field.TypeExtra.Meta {
+			if jsonMeta, ok := meta["json"]; ok {
+				jsonMetaString, ok := jsonMeta.(string)
+				if !ok {
+					return fmt.Errorf("schema error: invalid json type '%T' in field '%s' in type '%s': must be string", jsonMeta, fieldName, typName)
+				}
+
+				if jsonMetaString == "-" {
+					// Skip the special `json = -` value, which makes the field ignored in generated clients.
+					continue
+				}
+
+				if !IsValidArgName(jsonMetaString) {
+					return fmt.Errorf("schema error: invalid json name '%s' in field '%s' in type '%s'", jsonMetaString, fieldName, typName)
+				}
+
+				jsonFieldName = jsonMetaString
+			}
+		}
+
+		// Ensure no dupes
+		jsonMetaStringLower := strings.ToLower(jsonFieldName)
+		if _, ok := jsonFieldList[jsonMetaStringLower]; ok {
+			return fmt.Errorf("schema error: detected duplicate json name '%s' in field '%s' in type '%s'", jsonFieldName, fieldName, typName)
+		}
+		jsonFieldList[jsonMetaStringLower] = fieldName
 	}
 
 	// For enums only, ensure all field types are the same

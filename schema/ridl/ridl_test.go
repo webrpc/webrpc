@@ -360,11 +360,11 @@ func TestRIDLTypes(t *testing.T) {
       + json = field_2 # a comment
         + go.tag.db = field_2
   - Field3: []bool # one two #t
-      + json = field_2 # a comment
-        + go.tag.db = field_2
+      + json = field_3 # a comment
+        + go.tag.db = field_3
   - Field4: [][][]bool # one two #t
-      + json = field_2 # a comment
-        + go.tag.db = field_2
+      + json = field_4 # a comment
+        + go.tag.db = field_4
 
   struct Simple2 # with a-comment an,d meta fields
   `
