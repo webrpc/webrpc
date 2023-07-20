@@ -27,7 +27,6 @@ class Empty {
   constructor(_data) {
     this._data = {}
     if (_data) {
-      
     }
   }
   
@@ -43,21 +42,23 @@ class User {
       this._data['id'] = _data['id']
       this._data['USERNAME'] = _data['USERNAME']
       this._data['created_at'] = _data['created_at']
-      
     }
   }
+  
   get id() {
     return this._data['id']
   }
   set id(value) {
     this._data['id'] = value
   }
+  
   get USERNAME() {
     return this._data['USERNAME']
   }
   set USERNAME(value) {
     this._data['USERNAME'] = value
   }
+  
   get created_at() {
     return this._data['created_at']
   }
