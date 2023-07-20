@@ -37,8 +37,8 @@ export interface Page {
 }
 
 export interface ExampleService {
-  ping(headers?: object): Promise<PingReturn>
-  getUser(args: GetUserArgs, headers?: object): Promise<GetUserReturn>
+  ping(headers?: object, signal?: AbortSignal): Promise<PingReturn>
+  getUser(args: GetUserArgs, headers?: object, signal?: AbortSignal): Promise<GetUserReturn>
 }
 
 export interface PingArgs {
@@ -74,11 +74,11 @@ export class ExampleService implements ExampleService {
     return this.hostname + this.path + name
   }
   
-  ping = (headers?: object): Promise<PingReturn> => {
+  ping = (headers?: object, signal?: AbortSignal): Promise<PingReturn> => {
     return this.fetch(
       this.url('Ping'),
-      createHTTPRequest({}, headers)
-    ).then((res) => {
+      createHTTPRequest({}, headers, signal)
+      ).then((res) => {
       return buildResponse(res).then(_data => {
         return {}
       })
@@ -87,11 +87,10 @@ export class ExampleService implements ExampleService {
     })
   }
   
-  getUser = (args: GetUserArgs, headers?: object): Promise<GetUserReturn> => {
+  getUser = (args: GetUserArgs, headers?: object, signal?: AbortSignal): Promise<GetUserReturn> => {
     return this.fetch(
       this.url('GetUser'),
-      createHTTPRequest(args, headers)
-    ).then((res) => {
+      createHTTPRequest(args, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return {
           code: <number>(_data.code),
@@ -105,11 +104,12 @@ export class ExampleService implements ExampleService {
   
 }
 
-  const createHTTPRequest = (body: object = {}, headers: object = {}): object => {
+  const createHTTPRequest = (body: object = {}, headers: object = {}, signal: AbortSignal | null = null): object => {
   return {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body || {})
+    body: JSON.stringify(body || {}),
+    signal
   }
 }
 
@@ -119,9 +119,13 @@ const buildResponse = (res: Response): Promise<any> => {
     try {
       data = JSON.parse(text)
     } catch(error) {
+      let message = ''
+      if (error instanceof Error)  {
+        message = error.message
+      }
       throw WebrpcBadResponseError.new({
         status: res.status,
-        cause: `JSON.parse(): ${error.message || ''}: response text: ${text}`},
+        cause: `JSON.parse(): ${message}: response text: ${text}`},
       )
     }
     if (!res.ok) {
