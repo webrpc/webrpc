@@ -37,9 +37,9 @@ export interface Page {
 }
 
 export interface ExampleService {
-  ping(headers?: object): Promise<PingReturn>
-  getUser(args: GetUserArgs, headers?: object): Promise<GetUserReturn>
-  findUsers(args: FindUsersArgs, headers?: object): Promise<FindUsersReturn>
+  ping(headers?: object, signal?: AbortSignal): Promise<PingReturn>
+  getUser(args: GetUserArgs, headers?: object, signal?: AbortSignal): Promise<GetUserReturn>
+  findUsers(args: FindUsersArgs, headers?: object, signal?: AbortSignal): Promise<FindUsersReturn>
 }
 
 export interface PingArgs {
@@ -83,11 +83,11 @@ export class ExampleService implements ExampleService {
     return this.hostname + this.path + name
   }
   
-  ping = (headers?: object): Promise<PingReturn> => {
+  ping = (headers?: object, signal?: AbortSignal): Promise<PingReturn> => {
     return this.fetch(
       this.url('Ping'),
-      createHTTPRequest({}, headers)
-    ).then((res) => {
+      createHTTPRequest({}, headers, signal)
+      ).then((res) => {
       return buildResponse(res).then(_data => {
         return {
           status: <boolean>(_data.status),
@@ -98,11 +98,10 @@ export class ExampleService implements ExampleService {
     })
   }
   
-  getUser = (args: GetUserArgs, headers?: object): Promise<GetUserReturn> => {
+  getUser = (args: GetUserArgs, headers?: object, signal?: AbortSignal): Promise<GetUserReturn> => {
     return this.fetch(
       this.url('GetUser'),
-      createHTTPRequest(args, headers)
-    ).then((res) => {
+      createHTTPRequest(args, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return {
           user: <User>(_data.user),
@@ -113,11 +112,10 @@ export class ExampleService implements ExampleService {
     })
   }
   
-  findUsers = (args: FindUsersArgs, headers?: object): Promise<FindUsersReturn> => {
+  findUsers = (args: FindUsersArgs, headers?: object, signal?: AbortSignal): Promise<FindUsersReturn> => {
     return this.fetch(
       this.url('FindUsers'),
-      createHTTPRequest(args, headers)
-    ).then((res) => {
+      createHTTPRequest(args, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return {
           page: <Page>(_data.page),
@@ -131,11 +129,12 @@ export class ExampleService implements ExampleService {
   
 }
 
-  const createHTTPRequest = (body: object = {}, headers: object = {}): object => {
+  const createHTTPRequest = (body: object = {}, headers: object = {}, signal: AbortSignal | null = null): object => {
   return {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body || {})
+    body: JSON.stringify(body || {}),
+    signal
   }
 }
 
@@ -145,9 +144,13 @@ const buildResponse = (res: Response): Promise<any> => {
     try {
       data = JSON.parse(text)
     } catch(error) {
+      let message = ''
+      if (error instanceof Error)  {
+        message = error.message
+      }
       throw WebrpcBadResponseError.new({
         status: res.status,
-        cause: `JSON.parse(): ${error.message || ''}: response text: ${text}`},
+        cause: `JSON.parse(): ${message}: response text: ${text}`},
       )
     }
     if (!res.ok) {
