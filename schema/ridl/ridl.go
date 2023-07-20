@@ -169,7 +169,6 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, line := range q.root.Enums() {
 		name := line.Name().String()
 		enumDef := s.GetTypeByName(string(name))
-
 		if enumDef == nil {
 			return nil, fmt.Errorf("unexpected error, could not find definition for: %v", name)
 		}
@@ -183,7 +182,6 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 		for i, def := range line.Values() {
 			key, val := def.Left().String(), def.Right().String()
-
 			if val == "" {
 				val = strconv.Itoa(i)
 			}
