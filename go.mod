@@ -4,10 +4,9 @@ go 1.16
 
 require (
 	github.com/Microsoft/go-winio v0.6.0 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/golang-cz/textcase v1.2.0
-	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/go-cmp v0.5.9
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
