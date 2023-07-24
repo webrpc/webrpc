@@ -284,6 +284,19 @@ export class WebrpcServerPanicError extends WebrpcError {
   }
 }
 
+export class WebrpcInternalErrorError extends WebrpcError {
+  constructor(
+    name: string = 'WebrpcInternalError',
+    code: number = -7,
+    message: string = 'internal error',
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause)
+    Object.setPrototypeOf(this, WebrpcInternalErrorError.prototype)
+  }
+}
+
 
 // Schema errors
 
@@ -296,6 +309,7 @@ export enum errors {
   WebrpcBadRequest = 'WebrpcBadRequest',
   WebrpcBadResponse = 'WebrpcBadResponse',
   WebrpcServerPanic = 'WebrpcServerPanic',
+  WebrpcInternalError = 'WebrpcInternalError',
 }
 
 const webrpcErrorByCode: { [code: number]: any } = {
@@ -306,6 +320,7 @@ const webrpcErrorByCode: { [code: number]: any } = {
   [-4]: WebrpcBadRequestError,
   [-5]: WebrpcBadResponseError,
   [-6]: WebrpcServerPanicError,
+  [-7]: WebrpcInternalErrorError,
 }
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
