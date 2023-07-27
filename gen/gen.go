@@ -19,7 +19,7 @@ type Config struct {
 
 type GenOutput struct {
 	Code string
-	*TemplateSource
+	TemplateSource
 }
 
 func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *GenOutput, err error) {
@@ -46,7 +46,7 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 	if err != nil {
 		return genOutput, err
 	}
-	genOutput.TemplateSource = tmplSource
+	genOutput.TemplateSource = *tmplSource
 
 	// Generate deterministic schema hash of the proto file
 	schemaHash, err := proto.SchemaHash()
