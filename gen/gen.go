@@ -31,6 +31,15 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 
 	genOutput := &GenOutput{}
 
+	if target == "json" {
+		genJSON, err := proto.ToJSON()
+		if err != nil {
+			return genOutput, err
+		}
+		genOutput.Code = genJSON
+		return genOutput, nil
+	}
+
 	target = getOldTarget(target)
 
 	tmpl, tmplSource, err := loadTemplates(proto, target, config)
