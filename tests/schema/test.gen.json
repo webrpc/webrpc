@@ -1,0 +1,348 @@
+{
+ "webrpc": "v1",
+ "name": "Test",
+ "version": "v0.10.0",
+ "types": [
+  {
+   "kind": "enum",
+   "name": "Status",
+   "type": "uint32",
+   "fields": [
+    {
+     "name": "AVAILABLE",
+     "value": "0"
+    },
+    {
+     "name": "NOT_AVAILABLE",
+     "value": "1"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "Simple",
+   "fields": [
+    {
+     "name": "id",
+     "type": "int"
+    },
+    {
+     "name": "name",
+     "type": "string"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "User",
+   "fields": [
+    {
+     "name": "id",
+     "type": "uint64",
+     "meta": [
+      {
+       "json": "id"
+      },
+      {
+       "go.field.name": "ID"
+      },
+      {
+       "go.tag.db": "id"
+      }
+     ]
+    },
+    {
+     "name": "username",
+     "type": "string",
+     "meta": [
+      {
+       "json": "USERNAME"
+      },
+      {
+       "go.tag.db": "username"
+      }
+     ]
+    },
+    {
+     "name": "role",
+     "type": "string",
+     "meta": [
+      {
+       "go.tag.db": "-"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "Complex",
+   "fields": [
+    {
+     "name": "meta",
+     "type": "map<string,any>"
+    },
+    {
+     "name": "metaNestedExample",
+     "type": "map<string,map<string,uint32>>"
+    },
+    {
+     "name": "namesList",
+     "type": "[]string"
+    },
+    {
+     "name": "numsList",
+     "type": "[]int64"
+    },
+    {
+     "name": "doubleArray",
+     "type": "[][]string"
+    },
+    {
+     "name": "listOfMaps",
+     "type": "[]map<string,uint32>"
+    },
+    {
+     "name": "listOfUsers",
+     "type": "[]User"
+    },
+    {
+     "name": "mapOfUsers",
+     "type": "map<string,User>"
+    },
+    {
+     "name": "user",
+     "type": "User"
+    },
+    {
+     "name": "enum",
+     "type": "Status"
+    }
+   ]
+  }
+ ],
+ "errors": [
+  {
+   "code": 1,
+   "name": "Unauthorized",
+   "message": "unauthorized",
+   "httpStatus": 401
+  },
+  {
+   "code": 2,
+   "name": "ExpiredToken",
+   "message": "expired token",
+   "httpStatus": 401
+  },
+  {
+   "code": 3,
+   "name": "InvalidToken",
+   "message": "invalid token",
+   "httpStatus": 401
+  },
+  {
+   "code": 4,
+   "name": "Deactivated",
+   "message": "account deactivated",
+   "httpStatus": 403
+  },
+  {
+   "code": 5,
+   "name": "ConfirmAccount",
+   "message": "confirm your email",
+   "httpStatus": 403
+  },
+  {
+   "code": 6,
+   "name": "AccessDenied",
+   "message": "access denied",
+   "httpStatus": 403
+  },
+  {
+   "code": 7,
+   "name": "MissingArgument",
+   "message": "missing argument",
+   "httpStatus": 400
+  },
+  {
+   "code": 8,
+   "name": "UnexpectedValue",
+   "message": "unexpected value",
+   "httpStatus": 400
+  },
+  {
+   "code": 100,
+   "name": "RateLimited",
+   "message": "too many requests",
+   "httpStatus": 429
+  },
+  {
+   "code": 101,
+   "name": "DatabaseDown",
+   "message": "service outage",
+   "httpStatus": 503
+  },
+  {
+   "code": 102,
+   "name": "ElasticDown",
+   "message": "search is degraded",
+   "httpStatus": 503
+  },
+  {
+   "code": 103,
+   "name": "NotImplemented",
+   "message": "not implemented",
+   "httpStatus": 501
+  },
+  {
+   "code": 200,
+   "name": "UserNotFound",
+   "message": "user not found",
+   "httpStatus": 400
+  },
+  {
+   "code": 201,
+   "name": "UserBusy",
+   "message": "user busy",
+   "httpStatus": 400
+  },
+  {
+   "code": 202,
+   "name": "InvalidUsername",
+   "message": "invalid username",
+   "httpStatus": 400
+  },
+  {
+   "code": 300,
+   "name": "FileTooBig",
+   "message": "file is too big (max 1GB)",
+   "httpStatus": 400
+  },
+  {
+   "code": 301,
+   "name": "FileInfected",
+   "message": "file is infected",
+   "httpStatus": 400
+  },
+  {
+   "code": 302,
+   "name": "FileType",
+   "message": "unsupported file type",
+   "httpStatus": 400
+  }
+ ],
+ "services": [
+  {
+   "name": "TestApi",
+   "methods": [
+    {
+     "name": "GetEmpty",
+     "inputs": [],
+     "outputs": []
+    },
+    {
+     "name": "GetError",
+     "inputs": [],
+     "outputs": []
+    },
+    {
+     "name": "GetOne",
+     "inputs": [],
+     "outputs": [
+      {
+       "name": "one",
+       "type": "Simple",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "SendOne",
+     "inputs": [
+      {
+       "name": "one",
+       "type": "Simple",
+       "optional": false
+      }
+     ],
+     "outputs": []
+    },
+    {
+     "name": "GetMulti",
+     "inputs": [],
+     "outputs": [
+      {
+       "name": "one",
+       "type": "Simple",
+       "optional": false
+      },
+      {
+       "name": "two",
+       "type": "Simple",
+       "optional": false
+      },
+      {
+       "name": "three",
+       "type": "Simple",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "SendMulti",
+     "inputs": [
+      {
+       "name": "one",
+       "type": "Simple",
+       "optional": false
+      },
+      {
+       "name": "two",
+       "type": "Simple",
+       "optional": false
+      },
+      {
+       "name": "three",
+       "type": "Simple",
+       "optional": false
+      }
+     ],
+     "outputs": []
+    },
+    {
+     "name": "GetComplex",
+     "inputs": [],
+     "outputs": [
+      {
+       "name": "complex",
+       "type": "Complex",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "SendComplex",
+     "inputs": [
+      {
+       "name": "complex",
+       "type": "Complex",
+       "optional": false
+      }
+     ],
+     "outputs": []
+    },
+    {
+     "name": "GetSchemaError",
+     "inputs": [
+      {
+       "name": "code",
+       "type": "int",
+       "optional": false
+      }
+     ],
+     "outputs": []
+    }
+   ]
+  }
+ ]
+}

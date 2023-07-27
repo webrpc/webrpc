@@ -1,5 +1,6 @@
 package tests
 
+//go:generate webrpc-gen -schema=./schema/test.ridl -target=json -out=./schema/test.gen.json
 //go:generate webrpc-gen -schema=./schema/test.ridl -target=golang -pkg=client -client -out=./client/client.gen.go
 //go:generate webrpc-gen -schema=./schema/test.ridl -target=golang -pkg=server -server -out=./server/server.gen.go
 
