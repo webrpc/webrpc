@@ -17,12 +17,11 @@ var flags = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
 
 func main() {
 	versionFlag := flags.Bool("version", false, "print version and exit")
-	schemaFlag := flags.String("schema", "", "webrpc schema file (required)")
-	targetFlag := flags.String("target", "", "target generator (required), ie. golang or golang@v0.7.0")
-	outFlag := flags.String("out", "", "generated output file, default: stdout")
+	schemaFlag := flags.String("schema", "", "webrpc input schema file, ie. proto.ridl or proto.json (required)")
+	targetFlag := flags.String("target", "", "target code generator (required), ie.\n-target=golang (see https://github.com/webrpc/gen-golang)\n-target=typescript (see https://github.com/webrpc/gen-typescript)\n-target=javascript (see https://github.com/webrpc/gen-javascript)\n-target=openapi (see https://github.com/webrpc/gen-openapi)\n-target=json (prints schema in JSON)\n-target=golang@v0.12.0 (custom tag)\n-target=github.com/webrpc/gen-golang@v0.12.0 (custom git repository + tag)\n-target=../local-go-templates-on-disk")
+	outFlag := flags.String("out", "", "generated output file (default stdout)")
 	fmtFlag := flags.Bool("fmt", true, "format generated code")
 	refreshCacheFlag := flags.Bool("refreshCache", false, "refresh webrpc cache")
-	testFlag := flags.Bool("test", false, "test schema parsing (skips code-gen)")
 	silentFlag := flags.Bool("silent", false, "silence gen summary")
 
 	// Collect CLI -flags and custom template -options.
@@ -66,17 +65,6 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to parse %s:%v\n", *schemaFlag, err)
 		os.Exit(1)
-	}
-
-	// Test the schema file (useful for ridl files)
-	if *testFlag {
-		out, err := schema.ToJSON()
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			os.Exit(1)
-		}
-		fmt.Println(out)
-		os.Exit(0)
 	}
 
 	// Code-gen targets
