@@ -1,3 +1,6 @@
+- [webrpc v0.12.0](#webrpc-v0120)
+  - [Breaking change](#breaking-change)
+  - [Stricter json fields](#stricter-json-fields)
 - [webrpc v0.11.0](#webrpc-v0110)
   - [Feature: Define webrpc schema errors](#feature-define-webrpc-schema-errors)
   - [typescript@v0.11.0 breaking changes](#typescriptv0110-breaking-changes)
@@ -14,6 +17,44 @@
     - [RIDL v0.9.0 migration guide](#ridl-v090-migration-guide)
     - [JSON schema v0.9.0 migration guide](#json-schema-v090-migration-guide)
     - [Generator templates v0.9.0 migration guide](#generator-templates-v090-migration-guide)
+
+# webrpc v0.12.0
+
+## Breaking change
+
+Go users are expected to use `go.tag.json` in RIDL instead of `json` for special tags like `,omitempty` or `,string`.
+```diff
+ - FieldName
+-    + json = field_name,omitempty
++    + json = field_name
++    + go.tag.json = field_name,omitempty
+```
+
+## Stricter json fields
+
+Fixes #66 duplicate or invalid json fields (#218).
+
+The following invalid/duplicate fields (in JSON) will now error out:
+```
+struct Simple
+  - Field1: string
+      + json = _invalid
+```
+
+```
+struct Simple
+  - Field1: string
+      + json = field_1
+  - Field2: string
+      + json = field_1
+```
+
+```
+struct Simple
+  - Field1: string
+  - Field2: string
+      + json = Field1
+```
 
 # webrpc v0.11.0
 
