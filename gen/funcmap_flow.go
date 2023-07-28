@@ -3,19 +3,21 @@ package gen
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 )
 
 // Similar to "printf" but instead of writing into the generated
 // output file, stderrPrintf writes to webrpc-gen CLI stderr.
-// Useful for printing template errors or for template debugging.
+// Useful for printing template errors / debugging.
 func stderrPrintf(format string, a ...interface{}) error {
 	_, err := fmt.Fprintf(os.Stderr, format, a...)
 	return err
 }
 
-// Terminate template execution. Useful for fatal errors.
+// Terminate template execution with a status code.
+// Useful for exiting early or for printing fatal errors from within templates.
 func exit(code int) error {
 	os.Exit(code)
 	return nil
@@ -60,4 +62,15 @@ func parseMajorMinorVersion(version string) (major int, minor int, err error) {
 	}
 
 	return
+}
+
+func hasField(v interface{}, name string) bool {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
+	if rv.Kind() != reflect.Struct {
+		return false
+	}
+	return rv.FieldByName(name).IsValid()
 }

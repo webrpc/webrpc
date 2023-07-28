@@ -14,7 +14,8 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"stderrPrintf": stderrPrintf, // v0.7.0
 		"exit":         exit,         // v0.7.0
 		"minVersion":   minVersion,   // v0.7.0
-		"dump":         spew.Sdump,   // v0.12.0
+		"dump":         spew.Sdump,   // v0.13.0
+		"hasField":     hasField,     // v0.13.0
 
 		// Schema type helpers.
 		"isBasicType":  isCoreType,   // v0.7.0 (deprecated in v0.9.0)
