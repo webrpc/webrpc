@@ -31,6 +31,8 @@ func TestMinVersion(t *testing.T) {
 		{"v2.5.8", "v2.6", false},
 		{"v2.5.8", "v2.6.0", false},
 		{"v2.5.8", "v2.6.6", false},
+
+		{"v0.13.0-dev", "v0.13.0", true},
 	}
 
 	for _, tc := range tt {

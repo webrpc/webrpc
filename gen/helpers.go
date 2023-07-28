@@ -40,7 +40,7 @@ func formatGoSource(source []byte) (string, error) {
 		AllErrors: true, Comments: true, TabIndent: true, TabWidth: 8,
 	})
 	if err != nil {
-		return "", fmt.Errorf("failed to format generated Go source: %w", err)
+		return string(source), fmt.Errorf("failed to format generated Go source: %w", err)
 	}
 	return string(formatted), nil
 }

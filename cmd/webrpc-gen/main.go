@@ -122,6 +122,10 @@ func main() {
 	}
 	fmt.Println(" schema file        :", *schemaFlag)
 	fmt.Println(" output file        :", *outFlag)
+	if genOutput.FormatErr != nil {
+		fmt.Println(" format error       :", genOutput.FormatErr)
+		os.Exit(1)
+	}
 }
 
 func collectCliArgs(flags *flag.FlagSet, args []string) (cliFlags []string, templateOpts map[string]interface{}, err error) {

@@ -20,6 +20,7 @@ type Config struct {
 type GenOutput struct {
 	Code string
 	TemplateSource
+	FormatErr error
 }
 
 func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *GenOutput, err error) {
@@ -84,15 +85,10 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 	}
 
 	if config.Format && isGolangTarget(target) {
-		genCode, err := formatGoSource(b.Bytes())
-		if err != nil {
-			return genOutput, err
-		}
-		genOutput.Code = genCode
-		return genOutput, nil
+		genOutput.Code, genOutput.FormatErr = formatGoSource(b.Bytes())
+	} else {
+		genOutput.Code = b.String()
 	}
-
-	genOutput.Code = b.String()
 
 	return genOutput, nil
 }
