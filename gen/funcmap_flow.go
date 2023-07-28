@@ -11,9 +11,17 @@ import (
 // Similar to "printf" but instead of writing into the generated
 // output file, stderrPrintf writes to webrpc-gen CLI stderr.
 // Useful for printing template errors / debugging.
-func stderrPrintf(format string, a ...interface{}) error {
-	_, err := fmt.Fprintf(os.Stderr, format, a...)
-	return err
+func stderrPrintf(format string, a ...interface{}) string {
+	_, _ = fmt.Fprintf(os.Stderr, format, a...)
+	return ""
+}
+
+// Similar to "print" but instead of writing into the generated
+// output file, stderrPrint writes to webrpc-gen CLI stderr.
+// Useful for printing template errors / debugging.
+func stderrPrint(a ...interface{}) string {
+	_, _ = fmt.Fprint(os.Stderr, a...)
+	return ""
 }
 
 // Terminate template execution with a status code.

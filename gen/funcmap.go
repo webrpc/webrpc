@@ -11,6 +11,7 @@ import (
 func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
 		// Template flow, errors, debugging.
+		"stderrPrint":  stderrPrint,  // v0.13.0
 		"stderrPrintf": stderrPrintf, // v0.7.0
 		"exit":         exit,         // v0.7.0
 		"minVersion":   minVersion,   // v0.7.0
