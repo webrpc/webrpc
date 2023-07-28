@@ -3,19 +3,21 @@ package gen
 import (
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/golang-cz/textcase"
 )
 
 // Template functions are part of webrpc-gen API. Keep backward-compatible.
 func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 	return map[string]interface{}{
-		// Template flow.
+		// Template flow, errors, debugging.
 		"stderrPrintf": stderrPrintf, // v0.7.0
 		"exit":         exit,         // v0.7.0
 		"minVersion":   minVersion,   // v0.7.0
+		"dump":         spew.Sdump,   // v0.12.0
 
 		// Schema type helpers.
-		"isBasicType":  isCoreType,   // v0.7.0 (deprecated)
+		"isBasicType":  isCoreType,   // v0.7.0 (deprecated in v0.9.0)
 		"isCoreType":   isCoreType,   // v0.9.0
 		"isStructType": isStructType, // v0.7.0
 		"isEnumType":   isEnumType,   // v0.7.0
@@ -32,11 +34,11 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"exists": exists, // v0.7.0
 
 		// Generic utils.
-		"array":    array,     // v0.11.2 (string support v0.8.0)
-		"append":   appendFn,  // v0.11.2 (string support v0.7.0)
-		"first":    first,     // v0.11.2 (string support v0.7.0)
-		"last":     last,      // v0.11.2 (string support v0.7.0)
-		"sort":     sortFn,    // v0.11.2 (string support v0.8.0)
+		"array":    array,     // v0.11.2 (string support since v0.8.0)
+		"append":   appendFn,  // v0.11.2 (string support since v0.7.0)
+		"first":    first,     // v0.11.2 (string support since v0.7.0)
+		"last":     last,      // v0.11.2 (string support since v0.7.0)
+		"sort":     sortFn,    // v0.11.2 (string support since v0.8.0)
 		"coalesce": coalesce,  // v0.7.0
 		"default":  defaultFn, // v0.7.0
 		"in":       in,        // v0.7.0
