@@ -263,7 +263,8 @@ See https://pkg.go.dev/text/template#hdr-Functions
 | Template flow                                  | Description                    | webrpc-gen |
 |------------------------------------------------|-------------------------------------------------|-------------|
 | `minVersion {{.WebrpcVersion}} v1.4`           | Returns `boolean` if the given major/minor semver is at least v1.4 | v0.7.0 |
-| `stderrPrintf "format %v" ARGS...`             | `printf` to `webrpc-gen` stderr | v0.7.0 |
+| `stderrPrint ARGS...`                          | `print` to `webrpc-gen` CLI stderr | v0.13.0 |
+| `stderrPrintf "format %v" ARGS...`             | `printf` to `webrpc-gen` CLI stderr | v0.7.0 |
 | `exit INT`                                     | Terminate template execution, useful for fatal errors | v0.7.0 |
 | `dump VAR`                                     | Dump variable | v0.13.0 |
 | `hasField OBJ FIELD`                           | Check if object has a given field | v0.13.0 |
