@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/webrpc/webrpc"
 	"github.com/webrpc/webrpc/schema"
 )
@@ -30,29 +31,10 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		}
 	}()
 
-	genOutput := &GenOutput{}
-
-	if target == "json" {
-		genJSON, err := proto.ToJSON()
-		if err != nil {
-			return genOutput, err
-		}
-		genOutput.Code = genJSON
-		return genOutput, nil
-	}
-
-	target = getOldTarget(target)
-
-	tmpl, tmplSource, err := loadTemplates(proto, target, config)
-	if err != nil {
-		return genOutput, err
-	}
-	genOutput.TemplateSource = *tmplSource
-
 	// Generate deterministic schema hash of the proto file
 	schemaHash, err := proto.SchemaHash()
 	if err != nil {
-		return genOutput, err
+		return nil, err
 	}
 
 	// Template vars
@@ -76,6 +58,32 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 	if isLocalDir(target) {
 		vars.WebrpcTarget = "custom"
 	}
+
+	genOutput := &GenOutput{}
+
+	// Built-in targets
+	switch target {
+	case "json":
+		genJSON, err := proto.ToJSON()
+		if err != nil {
+			return genOutput, err
+		}
+		genOutput.Code = genJSON
+		return genOutput, nil
+
+	case "debug":
+		genOutput.Code = spew.Sdump(vars)
+		return genOutput, nil
+	}
+
+	// webrpc-gen v0.6.0
+	target = getOldTarget(target)
+
+	tmpl, tmplSource, err := loadTemplates(proto, target, config)
+	if err != nil {
+		return genOutput, err
+	}
+	genOutput.TemplateSource = *tmplSource
 
 	// Generate the template
 	var b bytes.Buffer

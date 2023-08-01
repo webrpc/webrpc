@@ -13,17 +13,18 @@ import (
 	"github.com/webrpc/webrpc/schema"
 )
 
-var flags = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
+var (
+	flags            = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
+	versionFlag      = flags.Bool("version", false, "print version and exit")
+	schemaFlag       = flags.String("schema", "", "webrpc input schema file, ie. proto.ridl or proto.json (required)")
+	targetFlag       = flags.String("target", "", targetUsage)
+	outFlag          = flags.String("out", "", "generated output file (default stdout)")
+	fmtFlag          = flags.Bool("fmt", true, "format generated code")
+	refreshCacheFlag = flags.Bool("refreshCache", false, "refresh webrpc cache")
+	silentFlag       = flags.Bool("silent", false, "silence gen summary")
+)
 
 func main() {
-	versionFlag := flags.Bool("version", false, "print version and exit")
-	schemaFlag := flags.String("schema", "", "webrpc input schema file, ie. proto.ridl or proto.json (required)")
-	targetFlag := flags.String("target", "", "target code generator (required), ie.\n-target=golang (see https://github.com/webrpc/gen-golang)\n-target=typescript (see https://github.com/webrpc/gen-typescript)\n-target=javascript (see https://github.com/webrpc/gen-javascript)\n-target=openapi (see https://github.com/webrpc/gen-openapi)\n-target=json (prints schema in JSON)\n-target=golang@v0.12.0 (custom tag)\n-target=github.com/webrpc/gen-golang@v0.12.0 (custom git repository + tag)\n-target=../local-go-templates-on-disk")
-	outFlag := flags.String("out", "", "generated output file (default stdout)")
-	fmtFlag := flags.Bool("fmt", true, "format generated code")
-	refreshCacheFlag := flags.Bool("refreshCache", false, "refresh webrpc cache")
-	silentFlag := flags.Bool("silent", false, "silence gen summary")
-
 	// Collect CLI -flags and custom template -options.
 	cliFlags, templateOpts, err := collectCliArgs(flags, os.Args[1:])
 	if err != nil {
@@ -31,22 +32,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	flags.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: %s -schema=<file.(ridl|json)> -target=<target> -out=<file> [...targetOpts]\n", flags.Name())
-		flags.PrintDefaults()
-		fmt.Fprintf(os.Stderr, "See https://github.com/webrpc/webrpc for more info.\n")
-
-		if *targetFlag != "" {
-			fmt.Fprintf(os.Stderr, "\nTarget generator usage:\n")
-			templateHelp, err := gen.Generate(&schema.WebRPCSchema{}, *targetFlag, &gen.Config{TemplateOptions: templateOpts})
-			if err != nil {
-				fmt.Fprintln(os.Stderr, templateHelp.Code)
-			} else {
-				fmt.Fprintf(os.Stderr, "failed to render -help: %v\n", err)
-			}
-		}
-	}
-
+	setTargetFlagsUsage(templateOpts)
 	flags.Parse(cliFlags)
 
 	if *versionFlag {
@@ -188,4 +174,34 @@ func writeOutfile(outfile string, protoGen []byte) error {
 	}
 
 	return nil
+}
+
+var targetUsage = `target code generator (required), ie.
+-target=golang (see https://github.com/webrpc/gen-golang)
+-target=typescript (see https://github.com/webrpc/gen-typescript)
+-target=javascript (see https://github.com/webrpc/gen-javascript)
+-target=openapi (see https://github.com/webrpc/gen-openapi)
+-target=json (prints schema in JSON)
+-target=debug (prints schema and template variables incl. Go type information)
+-target=golang@v0.12.0 (custom tag)
+-target=github.com/webrpc/gen-golang@v0.12.0 (custom git repository + tag)
+-target=../local-go-templates-on-disk"
+`
+
+func setTargetFlagsUsage(templateOpts map[string]interface{}) {
+	flags.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: %s -schema=<file.(ridl|json)> -target=<target> -out=<file> [...targetOpts]\n", flags.Name())
+		flags.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "See https://github.com/webrpc/webrpc for more info.\n")
+
+		if *targetFlag != "" {
+			fmt.Fprintf(os.Stderr, "\nTarget generator usage:\n")
+			templateHelp, err := gen.Generate(&schema.WebRPCSchema{}, *targetFlag, &gen.Config{TemplateOptions: templateOpts})
+			if err != nil {
+				fmt.Fprintln(os.Stderr, templateHelp.Code)
+			} else {
+				fmt.Fprintf(os.Stderr, "failed to render -help: %v\n", err)
+			}
+		}
+	}
 }
