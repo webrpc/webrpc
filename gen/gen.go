@@ -75,6 +75,7 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		debug := spew.NewDefaultConfig()
 		debug.DisableMethods = true
 		debug.DisablePointerAddresses = true
+		debug.Indent = "\t"
 		debug.SortKeys = true
 		genOutput.Code = debug.Sdump(vars)
 		return genOutput, nil
