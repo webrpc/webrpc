@@ -888,6 +888,30 @@ func TestParserService(t *testing.T) {
 	}
 }
 
+func TestParserServiceSuccint(t *testing.T) {
+	p, err := newStringParser(`
+		struct FlattenRequest
+			- name: string
+				+ go.tag.db = name
+			- amount: Balance
+				+ go.tag.db = amount
+
+		struct FlattenResponse
+			- id: uint64
+				+ go.field.name = ID
+			- count: uint64
+				+ json = counter
+
+		service Demo
+			- DemoService(in: input) => (out: output)
+			- Flatten(FlattenRequest) => (FlattenResponse)
+	`)
+	assert.NoError(t, err)
+
+	err = p.run()
+	assert.NoError(t, err)
+}
+
 func TestParserExamples(t *testing.T) {
 	{
 		p, err := newStringParser(`

@@ -8,9 +8,10 @@ const (
 	TokenNodeType
 	DefinitionNodeType
 	ImportNodeType
+	AliasNodeType
+	EnumNodeType
 	StructNodeType
 	ErrorNodeType
-	EnumNodeType
 	ArgumentNodeType
 	MethodNodeType
 	ServiceNodeType
@@ -113,6 +114,17 @@ func (rn RootNode) Enums() []*EnumNode {
 	}
 
 	return enumNodes
+}
+
+func (rn RootNode) Aliases() []*AliasNode {
+	nodes := rn.Filter(AliasNodeType)
+
+	aliasNodes := make([]*AliasNode, 0, len(nodes))
+	for i := range nodes {
+		aliasNodes = append(aliasNodes, nodes[i].(*AliasNode))
+	}
+
+	return aliasNodes
 }
 
 func (rn RootNode) Services() []*ServiceNode {
@@ -220,6 +232,30 @@ func (in ImportNode) Type() NodeType {
 	return ImportNodeType
 }
 
+type AliasNode struct {
+	node
+
+	name      *TokenNode
+	aliasType *TokenNode
+	extra     *DefinitionNode
+}
+
+func (tn AliasNode) Type() NodeType {
+	return AliasNodeType
+}
+
+func (tn AliasNode) Name() *TokenNode {
+	return tn.name
+}
+
+func (tn AliasNode) TypeName() *TokenNode {
+	return tn.aliasType
+}
+
+func (tn AliasNode) Extra() *DefinitionNode {
+	return tn.extra
+}
+
 type EnumNode struct {
 	node
 
@@ -285,10 +321,9 @@ type ArgumentNode struct {
 
 	name         *TokenNode
 	argumentType *TokenNode
+	optional     bool
 
-	optional bool
-
-	stream bool //TODO: should be deprecated
+	inlineStruct *TokenNode
 }
 
 func (an *ArgumentNode) Name() *TokenNode {

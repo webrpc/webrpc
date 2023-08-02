@@ -29,6 +29,19 @@ func TestSchema(t *testing.T) {
 				]
 			},
 			{
+				"kind": "alias",
+				"name": "Sup",
+				"type": "string"
+			},
+			{
+				"kind": "alias",
+				"name": "Balance",
+				"type": "string",
+				"meta": [
+					{ "go.field.type": "BigInt" }
+				]
+			},
+			{
 				"kind": "struct",
 				"name": "Empty",
 				"fields": [

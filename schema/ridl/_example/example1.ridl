@@ -11,6 +11,13 @@ import example1-partials.ridl
   - Empty
   - GetUserRequest
 
+
+alias Balance: string
+  + go.field.type = BigInt
+  + go.tag.db = balance
+  + json = b_a_l_a_n_c_e
+
+
 struct Role
   - name: string
 
@@ -29,6 +36,8 @@ struct User
   - username: string
     + json = USERNAME
     + go.tag.db = username
+
+  - amount: Balance
 
   - role: string
     + go.tag.db = -
@@ -62,3 +71,20 @@ service ExampleService
   -	VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code: bool, ids: []bool)
 	
   - MoreTest(n: uint64, stuff: []map<uint64,string>, etc: string) => (code?: bool)
+
+
+struct FlattenRequest
+  - name: string
+    + go.tag.db = name
+  - amount?: Balance
+    + go.tag.db = amount
+
+struct FlattenResponse
+  - id: uint64
+    + go.field.name = ID
+  - count: uint64
+    + json = counter
+
+service Another
+  - Flatten(FlattenRequest) => (FlattenResponse)
+  - GetAccountBalance(name: string) => (balance: Balance)

@@ -144,7 +144,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, line := range q.root.Enums() {
 		s.Types = append(s.Types, &schema.Type{
 			Kind:   schemaTypeKindEnum,
-			Name:   line.Name().String(),
+			Name:   schema.VarName(line.Name().String()),
 			Fields: []*schema.TypeField{},
 		})
 	}
@@ -153,7 +153,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, line := range q.root.Structs() {
 		s.Types = append(s.Types, &schema.Type{
 			Kind: schemaTypeKindStruct,
-			Name: line.Name().String(),
+			Name: schema.VarName(line.Name().String()),
 		})
 	}
 
@@ -163,6 +163,32 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		s.Services = append(s.Services, &schema.Service{
 			Name: service.Name().String(),
 		})
+	}
+
+	// alias
+	for _, line := range q.root.Aliases() {
+		typeDef := &schema.Type{
+			Kind:      schemaTypeKindAlias,
+			Name:      schema.VarName(line.Name().String()),
+			TypeExtra: schema.TypeExtra{},
+		}
+
+		var typeType schema.VarType
+		err := schema.ParseVarTypeExpr(s, line.TypeName().String(), &typeType)
+		if err != nil {
+			return nil, fmt.Errorf("unknown data type: %v", line.TypeName())
+		}
+		typeDef.Type = &typeType
+
+		// typeDef.Meta
+		for _, meta := range line.Extra().Meta() {
+			key, val := meta.Left().String(), meta.Right().String()
+			typeDef.Meta = append(typeDef.Meta, schema.TypeFieldMeta{
+				key: val,
+			})
+		}
+
+		s.Types = append(s.Types, typeDef)
 	}
 
 	// enum fields
@@ -187,7 +213,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			}
 
 			enumDef.Fields = append(enumDef.Fields, &schema.TypeField{
-				Name: key,
+				Name: schema.VarName(key),
 				TypeExtra: schema.TypeExtra{
 					Value: val,
 				},
@@ -230,7 +256,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			}
 
 			field := &schema.TypeField{
-				Name: fieldName,
+				Name: schema.VarName(fieldName),
 				Type: &varType,
 				TypeExtra: schema.TypeExtra{
 					Optional: def.Optional(),

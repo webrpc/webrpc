@@ -7,21 +7,21 @@ import (
 )
 
 const (
-	// TODO: type Kind (struct | enum | coreType | ...)
 	TypeKind_Struct = "struct"
+	TypeKind_Alias  = "alias"
 	TypeKind_Enum   = "enum"
 )
 
 type Type struct {
 	Kind      string       `json:"kind"`
-	Name      string       `json:"name"`
+	Name      VarName      `json:"name"`
 	Type      *VarType     `json:"type,omitempty"`
 	Fields    []*TypeField `json:"fields,omitempty"`
 	TypeExtra `json:",omitempty"`
 }
 
 type TypeField struct {
-	Name      string   `json:"name"`
+	Name      VarName  `json:"name"`
 	Type      *VarType `json:"type,omitempty"`
 	TypeExtra `json:",omitempty"`
 }
@@ -55,8 +55,8 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 	}
 
 	// Ensure we have a valid kind
-	if t.Kind != TypeKind_Enum && t.Kind != TypeKind_Struct {
-		return fmt.Errorf("schema error: type must be one of 'enum', or 'struct' for '%s'", typName)
+	if t.Kind != TypeKind_Alias && t.Kind != TypeKind_Enum && t.Kind != TypeKind_Struct {
+		return fmt.Errorf("schema error: type must be one of 'alias', 'enum', or 'struct' for '%s'", typName)
 	}
 
 	// Verify field names and ensure we don't have any duplicate field names
@@ -111,6 +111,19 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 			return fmt.Errorf("schema error: detected duplicate json name '%s' in field '%s' in type '%s'", jsonFieldName, fieldName, typName)
 		}
 		jsonFieldList[jsonMetaStringLower] = fieldName
+	}
+
+	// For alias kind only
+	if t.Kind == TypeKind_Alias {
+		// ensure valid type expression
+		err := t.Type.Parse(schema)
+		if err != nil {
+			return err
+		}
+
+		if t.Type.Type == T_Struct {
+			return fmt.Errorf("schema error: alias '%s' must alias primitive types only.", t.Name)
+		}
 	}
 
 	// For enums only, ensure all field types are the same
