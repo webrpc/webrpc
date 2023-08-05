@@ -56,7 +56,7 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		config.TemplateOptions,
 	}
 	if isLocalDir(target) {
-		vars.WebrpcTarget = "custom"
+		vars.WebrpcTarget = target
 	}
 
 	genOutput := &GenOutput{}
@@ -68,6 +68,8 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		if err != nil {
 			return genOutput, err
 		}
+		genOutput.TmplVersion = target
+		genOutput.IsLocal = true
 		genOutput.Code = genJSON
 		return genOutput, nil
 
@@ -77,6 +79,8 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		debug.DisablePointerAddresses = true
 		debug.Indent = "\t"
 		debug.SortKeys = true
+		genOutput.TmplVersion = target
+		genOutput.IsLocal = true
 		genOutput.Code = debug.Sdump(vars)
 		return genOutput, nil
 	}
