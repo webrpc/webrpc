@@ -98,6 +98,10 @@
      ]
     },
     {
+     "name": "amount",
+     "type": "Balance"
+    },
+    {
      "name": "role",
      "type": "string",
      "meta": [
@@ -131,6 +135,71 @@
     {
      "name": "msg",
      "type": "string"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "FlattenRequest",
+   "fields": [
+    {
+     "name": "name",
+     "type": "string",
+     "meta": [
+      {
+       "go.tag.db": "name"
+      }
+     ]
+    },
+    {
+     "name": "amount",
+     "type": "Balance",
+     "optional": true,
+     "meta": [
+      {
+       "go.tag.db": "amount"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "FlattenResponse",
+   "fields": [
+    {
+     "name": "id",
+     "type": "uint64",
+     "meta": [
+      {
+       "go.field.name": "ID"
+      }
+     ]
+    },
+    {
+     "name": "count",
+     "type": "uint64",
+     "meta": [
+      {
+       "json": "counter"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "kind": "alias",
+   "name": "Balance",
+   "type": "string",
+   "meta": [
+    {
+     "go.field.type": "BigInt"
+    },
+    {
+     "go.tag.db": "balance"
+    },
+    {
+     "json": "b_a_l_a_n_c_e"
     }
    ]
   }
@@ -295,6 +364,75 @@
        "name": "code",
        "type": "bool",
        "optional": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Another",
+   "methods": [
+    {
+     "name": "Flatten",
+     "inputs": [
+      {
+       "name": "name",
+       "type": "string",
+       "optional": false,
+       "meta": [
+        {
+         "go.tag.db": "name"
+        }
+       ]
+      },
+      {
+       "name": "amount",
+       "type": "Balance",
+       "optional": true,
+       "meta": [
+        {
+         "go.tag.db": "amount"
+        }
+       ]
+      }
+     ],
+     "outputs": [
+      {
+       "name": "id",
+       "type": "uint64",
+       "optional": false,
+       "meta": [
+        {
+         "go.field.name": "ID"
+        }
+       ]
+      },
+      {
+       "name": "count",
+       "type": "uint64",
+       "optional": false,
+       "meta": [
+        {
+         "json": "counter"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "name": "GetAccountBalance",
+     "inputs": [
+      {
+       "name": "name",
+       "type": "string",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "balance",
+       "type": "Balance",
+       "optional": false
       }
      ]
     }
