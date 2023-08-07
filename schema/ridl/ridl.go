@@ -144,7 +144,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, line := range q.root.Enums() {
 		s.Types = append(s.Types, &schema.Type{
 			Kind:   schemaTypeKindEnum,
-			Name:   line.Name().String(),
+			Name:   schema.VarName(line.Name().String()),
 			Fields: []*schema.TypeField{},
 		})
 	}
@@ -153,7 +153,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, line := range q.root.Structs() {
 		s.Types = append(s.Types, &schema.Type{
 			Kind: schemaTypeKindStruct,
-			Name: line.Name().String(),
+			Name: schema.VarName(line.Name().String()),
 		})
 	}
 
@@ -161,14 +161,41 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, service := range q.root.Services() {
 		// push service
 		s.Services = append(s.Services, &schema.Service{
-			Name: service.Name().String(),
+			Name: schema.VarName(service.Name().String()),
 		})
+	}
+
+	// alias
+	for _, line := range q.root.Aliases() {
+		typeDef := &schema.Type{
+			Kind:      schemaTypeKindAlias,
+			Name:      schema.VarName(line.Name().String()),
+			TypeExtra: schema.TypeExtra{},
+		}
+
+		var typeType schema.VarType
+		err := schema.ParseVarTypeExpr(s, line.TypeName().String(), &typeType)
+		if err != nil {
+			return nil, fmt.Errorf("unknown data type: %v", line.TypeName())
+		}
+		typeDef.Type = &typeType
+
+		// typeDef.Meta
+		for _, meta := range line.Extra().Meta() {
+			key, val := meta.Left().String(), meta.Right().String()
+			typeDef.Meta = append(typeDef.Meta, schema.TypeFieldMeta{
+				key: val,
+			})
+		}
+
+		s.Types = append(s.Types, typeDef)
 	}
 
 	// enum fields
 	for _, line := range q.root.Enums() {
-		name := line.Name().String()
+		name := schema.VarName(line.Name().String())
 		enumDef := s.GetTypeByName(string(name))
+
 		if enumDef == nil {
 			return nil, fmt.Errorf("unexpected error, could not find definition for: %v", name)
 		}
@@ -187,7 +214,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			}
 
 			enumDef.Fields = append(enumDef.Fields, &schema.TypeField{
-				Name: key,
+				Name: schema.VarName(key),
 				TypeExtra: schema.TypeExtra{
 					Value: val,
 				},
@@ -213,7 +240,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 	// struct fields
 	for _, line := range q.root.Structs() {
-		name := line.Name().String()
+		name := schema.VarName(line.Name().String())
 		structDef := s.GetTypeByName(string(name))
 
 		if structDef == nil {
@@ -230,7 +257,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			}
 
 			field := &schema.TypeField{
-				Name: fieldName,
+				Name: schema.VarName(fieldName),
 				Type: &varType,
 				TypeExtra: schema.TypeExtra{
 					Optional: def.Optional(),
@@ -264,7 +291,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 			// push method
 			methods = append(methods, &schema.Method{
-				Name:         method.Name().String(),
+				Name:         schema.VarName(method.Name().String()),
 				StreamInput:  method.StreamInput(),
 				StreamOutput: method.StreamOutput(),
 				Inputs:       inputs,
@@ -305,6 +332,29 @@ func isImportAllowed(name string, whitelist []string) bool {
 func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema.MethodArgument, error) {
 	output := []*schema.MethodArgument{}
 
+	// succint form
+	if len(args) == 1 && args[0].inlineStruct != nil {
+		node := args[0].inlineStruct
+		structName := node.tok.val
+
+		typ := s.GetTypeByName(structName)
+		if typ.Kind != "struct" {
+			return nil, fmt.Errorf("expecting struct type for inline definition of '%s'", structName)
+		}
+
+		for _, arg := range typ.Fields {
+			methodArgument := &schema.MethodArgument{
+				Name:      arg.Name,
+				Type:      arg.Type,
+				Optional:  arg.Optional,
+				TypeExtra: arg.TypeExtra,
+			}
+			output = append(output, methodArgument)
+		}
+
+		return output, nil
+	}
+
 	// normal form
 	for _, arg := range args {
 
@@ -315,7 +365,7 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 		}
 
 		methodArgument := &schema.MethodArgument{
-			Name:     arg.Name().String(),
+			Name:     schema.VarName(arg.Name().String()),
 			Type:     &varType,
 			Optional: arg.Optional(),
 		}

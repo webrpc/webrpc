@@ -2,7 +2,6 @@ package tests
 
 import (
 	"flag"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -24,7 +23,7 @@ func TestRIDLSchemaAgainstJSON(t *testing.T) {
 
 	current := []byte(jsonSchema)
 
-	golden, err := ioutil.ReadFile("./_testdata/test.golden.json")
+	golden, err := os.ReadFile("./_testdata/test.golden.json")
 	assert.NoError(t, err)
 
 	if *updateFlag == "./_testdata/test.golden.json" {
