@@ -45,6 +45,22 @@ struct ComplexType
   - user: User
 
 
+struct SearchUsersRequest
+  - username?: string
+    + json = USERNAME
+    + go.tag.db = username
+  
+  - query: string
+    + go.field.name = QUERY
+    + go.field.type = QueryString
+
+struct SearchUsersResponse
+  - users: []User
+    + json = USERS
+    + go.tag.db = users
+    + go.field.type = []User
+
+
 error 1000 UserNotFound "User not found" HTTP 404
 error 2000 Unauthorized "Unauthorized access" HTTP 401
 error 3000 PermissionDenied "Permission denied" HTTP 403
@@ -56,3 +72,8 @@ service ExampleService
   - Version() => (version: Version)
   - GetUser(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
   - FindUser(s: SearchFilter) => (name: string, user: User)
+
+  # demonstrating succinct form, which expands and lines the input/output argument
+  # list. This is useful for large argument lists and if you pass `+` meta annotations
+  # on your fields.
+  - SearchUsers(SearchUsersRequest) => (SearchUsersResponse)

@@ -72,3 +72,16 @@ func (s *ExampleServiceRPC) FindUser(ctx context.Context, f *SearchFilter) (stri
 		ID: 123, Username: name,
 	}, nil
 }
+
+func (s *ExampleServiceRPC) SearchUsers(ctx context.Context, username *string, query string) ([]*User, error) {
+	return nil, nil
+}
+
+// NOTE: this is what we want the generator to produce, but it doesn't yet
+// func (s *ExampleServiceRPC) SearchUsers(ctx context.Context, username *string, query Query) ([]User, error) {
+// 	return nil, nil
+// }
+
+// QueryString is a special type override which we use in example.ridl with
+// + go.field.type = QueryString
+type QueryString string

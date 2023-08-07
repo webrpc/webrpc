@@ -9,3 +9,6 @@ dev-generate:
 
 dev-generate-local-templates:
 	../../bin/webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -out=./example.gen.go
+
+print-json-schema:
+	../../bin/webrpc-gen -schema=example.ridl -target=json -pkg=main -server -client
