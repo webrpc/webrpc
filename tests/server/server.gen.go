@@ -6,7 +6,6 @@
 package server
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -56,20 +55,12 @@ func (x Status) String() string {
 	return Status_name[uint32(x)]
 }
 
-func (x Status) MarshalJSON() ([]byte, error) {
-	buf := bytes.NewBufferString(`"`)
-	buf.WriteString(Status_name[uint32(x)])
-	buf.WriteString(`"`)
-	return buf.Bytes(), nil
+func (x Status) MarshalText() ([]byte, error) {
+	return []byte(Status_name[uint32(x)]), nil
 }
 
-func (x *Status) UnmarshalJSON(b []byte) error {
-	var j string
-	err := json.Unmarshal(b, &j)
-	if err != nil {
-		return err
-	}
-	*x = Status(Status_value[j])
+func (x *Status) UnmarshalText(b []byte) error {
+	*x = Status(Status_value[string(b)])
 	return nil
 }
 

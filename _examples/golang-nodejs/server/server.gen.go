@@ -6,7 +6,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -57,20 +56,12 @@ func (x Kind) String() string {
 	return Kind_name[uint32(x)]
 }
 
-func (x Kind) MarshalJSON() ([]byte, error) {
-	buf := bytes.NewBufferString(`"`)
-	buf.WriteString(Kind_name[uint32(x)])
-	buf.WriteString(`"`)
-	return buf.Bytes(), nil
+func (x Kind) MarshalText() ([]byte, error) {
+	return []byte(Kind_name[uint32(x)]), nil
 }
 
-func (x *Kind) UnmarshalJSON(b []byte) error {
-	var j string
-	err := json.Unmarshal(b, &j)
-	if err != nil {
-		return err
-	}
-	*x = Kind(Kind_value[j])
+func (x *Kind) UnmarshalText(b []byte) error {
+	*x = Kind(Kind_value[string(b)])
 	return nil
 }
 
