@@ -6,14 +6,14 @@ import (
 )
 
 type Service struct {
-	Name    VarName   `json:"name"`
+	Name    string    `json:"name"`
 	Methods []*Method `json:"methods"`
 
 	Schema *WebRPCSchema `json:"-"` // denormalize/back-reference
 }
 
 type Method struct {
-	Name VarName `json:"name"`
+	Name string `json:"name"`
 
 	StreamInput  bool `json:"streamInput,omitempty"`
 	StreamOutput bool `json:"streamOutput,omitempty"`
@@ -26,7 +26,7 @@ type Method struct {
 }
 
 type MethodArgument struct {
-	Name     VarName  `json:"name"`
+	Name     string   `json:"name"`
 	Type     *VarType `json:"type"`
 	Optional bool     `json:"optional"`
 

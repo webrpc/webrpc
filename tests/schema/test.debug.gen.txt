@@ -893,7 +893,12 @@
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) false,
-								OutputArg: (bool) true
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
 							})
 						},
 						Service: (*schema.Service)(<already shown>)
@@ -959,7 +964,12 @@
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) true,
-								OutputArg: (bool) false
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
 							})
 						},
 						Outputs: ([]*schema.MethodArgument) {
@@ -1029,7 +1039,12 @@
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) false,
-								OutputArg: (bool) true
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
 							}),
 							(*schema.MethodArgument)({
 								Name: (string) (len=3) "two",
@@ -1086,7 +1101,12 @@
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) false,
-								OutputArg: (bool) true
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
 							}),
 							(*schema.MethodArgument)({
 								Name: (string) (len=5) "three",
@@ -1143,7 +1163,12 @@
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) false,
-								OutputArg: (bool) true
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
 							})
 						},
 						Service: (*schema.Service)(<already shown>)
@@ -1209,7 +1234,12 @@
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) true,
-								OutputArg: (bool) false
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
 							}),
 							(*schema.MethodArgument)({
 								Name: (string) (len=3) "two",
@@ -1266,7 +1296,12 @@
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) true,
-								OutputArg: (bool) false
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
 							}),
 							(*schema.MethodArgument)({
 								Name: (string) (len=5) "three",
@@ -1323,7 +1358,12 @@
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) true,
-								OutputArg: (bool) false
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
 							})
 						},
 						Outputs: ([]*schema.MethodArgument) {
@@ -1884,7 +1924,12 @@
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) false,
-								OutputArg: (bool) true
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
 							})
 						},
 						Service: (*schema.Service)(<already shown>)
@@ -2441,7 +2486,12 @@
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) true,
-								OutputArg: (bool) false
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
 							})
 						},
 						Outputs: ([]*schema.MethodArgument) {
@@ -2465,7 +2515,12 @@
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) true,
-								OutputArg: (bool) false
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
 							})
 						},
 						Outputs: ([]*schema.MethodArgument) {

@@ -63,20 +63,12 @@ func (x Location) String() string {
 	return Location_name[uint32(x)]
 }
 
-func (x Location) MarshalJSON() ([]byte, error) {
-	buf := bytes.NewBufferString(`"`)
-	buf.WriteString(Location_name[uint32(x)])
-	buf.WriteString(`"`)
-	return buf.Bytes(), nil
+func (x Location) MarshalText() ([]byte, error) {
+	return []byte(Location_name[uint32(x)]), nil
 }
 
-func (x *Location) UnmarshalJSON(b []byte) error {
-	var j string
-	err := json.Unmarshal(b, &j)
-	if err != nil {
-		return err
-	}
-	*x = Location(Location_value[j])
+func (x *Location) UnmarshalText(b []byte) error {
+	*x = Location(Location_value[string(b)])
 	return nil
 }
 
