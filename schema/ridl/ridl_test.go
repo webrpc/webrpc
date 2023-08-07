@@ -404,39 +404,6 @@ func TestRIDLTypes(t *testing.T) {
 	}
 }
 
-func TestRIDLAlias(t *testing.T) {
-	{
-		input := `webrpc = v1
-    version = v0.1.1
-  name = hello-webrpc
-
-          # this is a comment
-            # yep
-					alias Balance: uint32
-					
-					# another
-					alias Another: string
-						+ go.tag.db = another
-						+ json = ANOTHER
-  `
-		s, err := parseString(input)
-		assert.NoError(t, err)
-
-		assert.Len(t, s.Types, 2)
-
-		assert.Equal(t, "alias", s.Types[0].Kind)
-		assert.Equal(t, "Balance", string(s.Types[0].Name))
-		assert.Equal(t, "uint32", string(s.Types[0].Type.String()))
-		assert.Equal(t, 0, len(s.Types[0].Meta))
-
-		assert.Equal(t, "alias", s.Types[1].Kind)
-		assert.Equal(t, "Another", string(s.Types[1].Name))
-		assert.Equal(t, "string", string(s.Types[1].Type.String()))
-		assert.Equal(t, "another", s.Types[1].Meta[0]["go.tag.db"])
-		assert.Equal(t, "ANOTHER", s.Types[1].Meta[1]["json"])
-	}
-}
-
 func TestRIDLService(t *testing.T) {
 	{
 		input := `

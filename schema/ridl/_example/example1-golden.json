@@ -99,7 +99,7 @@
     },
     {
      "name": "amount",
-     "type": "Balance"
+     "type": "uint64"
     },
     {
      "name": "role",
@@ -153,7 +153,7 @@
     },
     {
      "name": "amount",
-     "type": "Balance",
+     "type": "uint64",
      "optional": true,
      "meta": [
       {
@@ -184,22 +184,6 @@
        "json": "counter"
       }
      ]
-    }
-   ]
-  },
-  {
-   "kind": "alias",
-   "name": "Balance",
-   "type": "string",
-   "meta": [
-    {
-     "go.field.type": "BigInt"
-    },
-    {
-     "go.tag.db": "balance"
-    },
-    {
-     "json": "b_a_l_a_n_c_e"
     }
    ]
   }
@@ -387,7 +371,7 @@
       },
       {
        "name": "amount",
-       "type": "Balance",
+       "type": "uint64",
        "optional": true,
        "meta": [
         {
@@ -431,7 +415,7 @@
      "outputs": [
       {
        "name": "balance",
-       "type": "Balance",
+       "type": "uint64",
        "optional": false
       }
      ]

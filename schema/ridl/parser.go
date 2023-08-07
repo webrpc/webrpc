@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	wordAlias   = "alias"
 	wordError   = "error"
 	wordEnum    = "enum"
 	wordImport  = "import"
@@ -391,10 +390,6 @@ func parserStateDeclaration(p *parser) parserState {
 		// import
 		//   - <value> [<# comment>]
 		return parserStateImport
-	case wordAlias:
-		// alias <name>: <type>
-		//   + <tag.name> = <VALUE>
-		return parserStateType
 	case wordError:
 		// error <code> <name> <message> [HTTP <status code>]
 		return parserStateError

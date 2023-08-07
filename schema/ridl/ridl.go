@@ -11,7 +11,6 @@ import (
 )
 
 var (
-	schemaTypeKindAlias  = "alias"
 	schemaTypeKindEnum   = "enum"
 	schemaTypeKindStruct = "struct"
 )
@@ -163,32 +162,6 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		s.Services = append(s.Services, &schema.Service{
 			Name: schema.VarName(service.Name().String()),
 		})
-	}
-
-	// alias
-	for _, line := range q.root.Aliases() {
-		typeDef := &schema.Type{
-			Kind:      schemaTypeKindAlias,
-			Name:      schema.VarName(line.Name().String()),
-			TypeExtra: schema.TypeExtra{},
-		}
-
-		var typeType schema.VarType
-		err := schema.ParseVarTypeExpr(s, line.TypeName().String(), &typeType)
-		if err != nil {
-			return nil, fmt.Errorf("unknown data type: %v", line.TypeName())
-		}
-		typeDef.Type = &typeType
-
-		// typeDef.Meta
-		for _, meta := range line.Extra().Meta() {
-			key, val := meta.Left().String(), meta.Right().String()
-			typeDef.Meta = append(typeDef.Meta, schema.TypeFieldMeta{
-				key: val,
-			})
-		}
-
-		s.Types = append(s.Types, typeDef)
 	}
 
 	// enum fields

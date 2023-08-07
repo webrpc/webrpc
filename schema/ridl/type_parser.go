@@ -131,38 +131,6 @@ loop:
 				tokens = append(tokens, append(argument, varType)...)
 			}
 
-			// var argument []*token
-			// var name *token
-
-			// optional := false
-
-			// matches, err := p.match(tokenWord, tokenQuestionMark, tokenColon, tokenWhitespace)
-			// if err == nil {
-			// 	argument = []*token{matches[0], matches[1], matches[2]}
-			// 	name = matches[0]
-			// 	optional = true
-			// } else {
-			// 	matches, err = p.match(tokenWord, tokenColon, tokenWhitespace)
-			// 	if err != nil {
-			// 		return nil, err
-			// 	}
-			// 	argument = []*token{matches[0], matches[1]}
-			// 	name = matches[0]
-			// }
-
-			// varType, err := p.expectType()
-			// if err != nil {
-			// 	return nil, err
-			// }
-
-			// values = append(values, &ArgumentNode{
-			// 	name:         newTokenNode(name),
-			// 	argumentType: newTokenNode(varType),
-			// 	optional:     optional,
-			// })
-
-			// tokens = append(tokens, append(argument, varType)...)
-
 		default:
 			return nil, errUnexpectedToken
 

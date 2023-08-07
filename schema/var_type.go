@@ -12,8 +12,6 @@ type VarType struct {
 	List   *VarListType
 	Map    *VarMapType
 	Struct *VarStructType
-
-	Alias *Type
 }
 
 func (t *VarType) String() string {
@@ -144,9 +142,6 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 		case TypeKind_Struct:
 			vt.Type = T_Struct
 			vt.Struct = &VarStructType{Name: expr, Type: typ}
-		case TypeKind_Alias:
-			vt.Type = T_Alias
-			vt.Alias = typ
 		case TypeKind_Enum:
 			vt.Type = T_Struct // TODO: T_Enum, see https://github.com/webrpc/webrpc/issues/44
 			vt.Struct = &VarStructType{Name: expr, Type: typ}
@@ -207,10 +202,6 @@ func buildVarTypeExpr(vt *VarType, expr string) string {
 
 	case T_Struct:
 		expr += vt.Struct.Name
-		return expr
-
-	case T_Alias:
-		expr += string(vt.Alias.Name)
 		return expr
 
 	default:

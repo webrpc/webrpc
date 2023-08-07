@@ -12,12 +12,6 @@ import example1-partials.ridl
   - GetUserRequest
 
 
-alias Balance: string
-  + go.field.type = BigInt
-  + go.tag.db = balance
-  + json = b_a_l_a_n_c_e
-
-
 struct Role
   - name: string
 
@@ -37,7 +31,7 @@ struct User
     + json = USERNAME
     + go.tag.db = username
 
-  - amount: Balance
+  - amount: uint64
 
   - role: string
     + go.tag.db = -
@@ -76,7 +70,7 @@ service ExampleService
 struct FlattenRequest
   - name: string
     + go.tag.db = name
-  - amount?: Balance
+  - amount?: uint64
     + go.tag.db = amount
 
 struct FlattenResponse
@@ -87,4 +81,4 @@ struct FlattenResponse
 
 service Another
   - Flatten(FlattenRequest) => (FlattenResponse)
-  - GetAccountBalance(name: string) => (balance: Balance)
+  - GetAccountBalance(name: string) => (balance: uint64)

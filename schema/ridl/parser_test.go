@@ -893,7 +893,7 @@ func TestParserServiceSuccint(t *testing.T) {
 		struct FlattenRequest
 			- name: string
 				+ go.tag.db = name
-			- amount: Balance
+			- amount: uint64
 				+ go.tag.db = amount
 
 		struct FlattenResponse
