@@ -520,7 +520,7 @@ func TestRIDLImportsExampleDir(t *testing.T) {
 
 	current := []byte(jout)
 
-	golden, err := ioutil.ReadFile("./_example/example1-golden.json")
+	golden, err := os.ReadFile("./_example/example1-golden.json")
 	assert.NoError(t, err)
 
 	if *updateFlag == "./_example/example1-golden.json" {

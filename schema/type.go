@@ -7,7 +7,6 @@ import (
 )
 
 const (
-	// TODO: type Kind (struct | enum | coreType | ...)
 	TypeKind_Struct = "struct"
 	TypeKind_Enum   = "enum"
 )
