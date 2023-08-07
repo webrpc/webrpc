@@ -166,7 +166,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 	// enum fields
 	for _, line := range q.root.Enums() {
-		name := schema.VarName(line.Name().String())
+		name := line.Name().String()
 		enumDef := s.GetTypeByName(string(name))
 
 		if enumDef == nil {
@@ -213,7 +213,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 	// struct fields
 	for _, line := range q.root.Structs() {
-		name := schema.VarName(line.Name().String())
+		name := line.Name().String()
 		structDef := s.GetTypeByName(string(name))
 
 		if structDef == nil {
