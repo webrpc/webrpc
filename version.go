@@ -2,11 +2,9 @@ package webrpc
 
 // VERSION defines version of webrpc tools, such as webrpc-gen.
 //
-// Please update major/minor version by hand when changing webrpc-gen
-// Template Functions API or when making any backward-incompatible changes.
+// Please update major/minor version when making any incompatible changes
+// to the webrpc schema or webrpc-gen Template Functions API.
 // The patch value is automatically updated with the latest git tag in CI.
 //
-// Available as {{.WebrpcGenVersion}} in generator templates. Templates can
-// check against {{.WebrpcGenVersion}} to require minimal major/minor version
-// to guarantees certain Template functions API.
+// Version is available as {{.WebrpcGenVersion}} in generator templates.
 var VERSION = "v0.14.0-dev"
