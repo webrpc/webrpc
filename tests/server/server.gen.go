@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -133,62 +133,61 @@ func NewTestApiServer(svc TestApi) WebRPCServer {
 }
 
 func (s *testApiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		// In case of a panic, serve a HTTP 500 error and then panic.
+		if rr := recover(); rr != nil {
+			RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
+			panic(rr)
+		}
+	}()
+
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
 	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
 	ctx = context.WithValue(ctx, ServiceNameCtxKey, "TestApi")
 
-	if r.Method != "POST" {
-		err := ErrorWithCause(ErrWebrpcBadMethod, fmt.Errorf("unsupported method %q (only POST is allowed)", r.Method))
-		RespondWithError(w, err)
-		return
-	}
-
+	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	switch r.URL.Path {
 	case "/rpc/TestApi/GetEmpty":
-		s.serveGetEmpty(ctx, w, r)
-		return
+		handler = s.serveGetEmptyJSON
 	case "/rpc/TestApi/GetError":
-		s.serveGetError(ctx, w, r)
-		return
+		handler = s.serveGetErrorJSON
 	case "/rpc/TestApi/GetOne":
-		s.serveGetOne(ctx, w, r)
-		return
+		handler = s.serveGetOneJSON
 	case "/rpc/TestApi/SendOne":
-		s.serveSendOne(ctx, w, r)
-		return
+		handler = s.serveSendOneJSON
 	case "/rpc/TestApi/GetMulti":
-		s.serveGetMulti(ctx, w, r)
-		return
+		handler = s.serveGetMultiJSON
 	case "/rpc/TestApi/SendMulti":
-		s.serveSendMulti(ctx, w, r)
-		return
+		handler = s.serveSendMultiJSON
 	case "/rpc/TestApi/GetComplex":
-		s.serveGetComplex(ctx, w, r)
-		return
+		handler = s.serveGetComplexJSON
 	case "/rpc/TestApi/SendComplex":
-		s.serveSendComplex(ctx, w, r)
-		return
+		handler = s.serveSendComplexJSON
 	case "/rpc/TestApi/GetSchemaError":
-		s.serveGetSchemaError(ctx, w, r)
-		return
+		handler = s.serveGetSchemaErrorJSON
 	default:
 		err := ErrorWithCause(ErrWebrpcBadRoute, fmt.Errorf("no handler for path %q", r.URL.Path))
 		RespondWithError(w, err)
 		return
 	}
-}
 
-func (s *testApiServer) serveGetEmpty(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Content-Type")
-	i := strings.Index(header, ";")
-	if i == -1 {
-		i = len(header)
+	if r.Method != "POST" {
+		w.Header().Add("Allow", "POST") // RFC 9110.
+		err := ErrorWithCause(ErrWebrpcBadMethod, fmt.Errorf("unsupported method %q (only POST is allowed)", r.Method))
+		RespondWithError(w, err)
+		return
 	}
 
-	switch strings.TrimSpace(strings.ToLower(header[:i])) {
+	contentType := r.Header.Get("Content-Type")
+	if i := strings.Index(contentType, ";"); i >= 0 {
+		contentType = contentType[:i]
+	}
+	contentType = strings.TrimSpace(strings.ToLower(contentType))
+
+	switch contentType {
 	case "application/json":
-		s.serveGetEmptyJSON(ctx, w, r)
+		handler(ctx, w, r)
 	default:
 		err := ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
 		RespondWithError(w, err)
@@ -196,21 +195,11 @@ func (s *testApiServer) serveGetEmpty(ctx context.Context, w http.ResponseWriter
 }
 
 func (s *testApiServer) serveGetEmptyJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	var err error
+
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetEmpty")
 
-	// Call service method
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
-				panic(rr)
-			}
-		}()
-		err = s.TestApi.GetEmpty(ctx)
-	}()
-
+	// Call service method implementation.
+	err := s.TestApi.GetEmpty(ctx)
 	if err != nil {
 		RespondWithError(w, err)
 		return
@@ -219,40 +208,14 @@ func (s *testApiServer) serveGetEmptyJSON(ctx context.Context, w http.ResponseWr
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
-}
-
-func (s *testApiServer) serveGetError(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Content-Type")
-	i := strings.Index(header, ";")
-	if i == -1 {
-		i = len(header)
-	}
-
-	switch strings.TrimSpace(strings.ToLower(header[:i])) {
-	case "application/json":
-		s.serveGetErrorJSON(ctx, w, r)
-	default:
-		err := ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
-		RespondWithError(w, err)
-	}
 }
 
 func (s *testApiServer) serveGetErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	var err error
+
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetError")
 
-	// Call service method
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
-				panic(rr)
-			}
-		}()
-		err = s.TestApi.GetError(ctx)
-	}()
-
+	// Call service method implementation.
+	err := s.TestApi.GetError(ctx)
 	if err != nil {
 		RespondWithError(w, err)
 		return
@@ -263,50 +226,23 @@ func (s *testApiServer) serveGetErrorJSON(ctx context.Context, w http.ResponseWr
 	w.Write([]byte("{}"))
 }
 
-func (s *testApiServer) serveGetOne(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Content-Type")
-	i := strings.Index(header, ";")
-	if i == -1 {
-		i = len(header)
-	}
-
-	switch strings.TrimSpace(strings.ToLower(header[:i])) {
-	case "application/json":
-		s.serveGetOneJSON(ctx, w, r)
-	default:
-		err := ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
-		RespondWithError(w, err)
-	}
-}
-
 func (s *testApiServer) serveGetOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	var err error
+
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetOne")
 
-	// Call service method
-	var ret0 *Simple
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
-				panic(rr)
-			}
-		}()
-		ret0, err = s.TestApi.GetOne(ctx)
-	}()
-	respContent := struct {
-		Ret0 *Simple `json:"one"`
-	}{ret0}
-
+	// Call service method implementation.
+	ret0, err := s.TestApi.GetOne(ctx)
 	if err != nil {
 		RespondWithError(w, err)
 		return
 	}
-	respBody, err := json.Marshal(respContent)
+
+	respPayload := struct {
+		Ret0 *Simple `json:"one"`
+	}{ret0}
+	respBody, err := json.Marshal(respPayload)
 	if err != nil {
-		err = ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to marshal json response: %w", err))
-		RespondWithError(w, err)
+		RespondWithError(w, ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to marshal json response: %w", err)))
 		return
 	}
 
@@ -315,56 +251,26 @@ func (s *testApiServer) serveGetOneJSON(ctx context.Context, w http.ResponseWrit
 	w.Write(respBody)
 }
 
-func (s *testApiServer) serveSendOne(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Content-Type")
-	i := strings.Index(header, ";")
-	if i == -1 {
-		i = len(header)
-	}
-
-	switch strings.TrimSpace(strings.ToLower(header[:i])) {
-	case "application/json":
-		s.serveSendOneJSON(ctx, w, r)
-	default:
-		err := ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
-		RespondWithError(w, err)
-	}
-}
-
 func (s *testApiServer) serveSendOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	var err error
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendOne")
-	reqContent := struct {
-		Arg0 *Simple `json:"one"`
-	}{}
-
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		err = ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to read request data: %w", err))
-		RespondWithError(w, err)
+		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to read request data: %w", err)))
 		return
 	}
 	defer r.Body.Close()
 
-	err = json.Unmarshal(reqBody, &reqContent)
-	if err != nil {
-		err = ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to unmarshal request data: %w", err))
-		RespondWithError(w, err)
+	reqPayload := struct {
+		Arg0 *Simple `json:"one"`
+	}{}
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
+		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to unmarshal request data: %w", err)))
 		return
 	}
 
-	// Call service method
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
-				panic(rr)
-			}
-		}()
-		err = s.TestApi.SendOne(ctx, reqContent.Arg0)
-	}()
+	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendOne")
 
+	// Call service method implementation.
+	err = s.TestApi.SendOne(ctx, reqPayload.Arg0)
 	if err != nil {
 		RespondWithError(w, err)
 		return
@@ -375,54 +281,25 @@ func (s *testApiServer) serveSendOneJSON(ctx context.Context, w http.ResponseWri
 	w.Write([]byte("{}"))
 }
 
-func (s *testApiServer) serveGetMulti(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Content-Type")
-	i := strings.Index(header, ";")
-	if i == -1 {
-		i = len(header)
-	}
-
-	switch strings.TrimSpace(strings.ToLower(header[:i])) {
-	case "application/json":
-		s.serveGetMultiJSON(ctx, w, r)
-	default:
-		err := ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
-		RespondWithError(w, err)
-	}
-}
-
 func (s *testApiServer) serveGetMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	var err error
+
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetMulti")
 
-	// Call service method
-	var ret0 *Simple
-	var ret1 *Simple
-	var ret2 *Simple
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
-				panic(rr)
-			}
-		}()
-		ret0, ret1, ret2, err = s.TestApi.GetMulti(ctx)
-	}()
-	respContent := struct {
+	// Call service method implementation.
+	ret0, ret1, ret2, err := s.TestApi.GetMulti(ctx)
+	if err != nil {
+		RespondWithError(w, err)
+		return
+	}
+
+	respPayload := struct {
 		Ret0 *Simple `json:"one"`
 		Ret1 *Simple `json:"two"`
 		Ret2 *Simple `json:"three"`
 	}{ret0, ret1, ret2}
-
+	respBody, err := json.Marshal(respPayload)
 	if err != nil {
-		RespondWithError(w, err)
-		return
-	}
-	respBody, err := json.Marshal(respContent)
-	if err != nil {
-		err = ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to marshal json response: %w", err))
-		RespondWithError(w, err)
+		RespondWithError(w, ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to marshal json response: %w", err)))
 		return
 	}
 
@@ -431,58 +308,28 @@ func (s *testApiServer) serveGetMultiJSON(ctx context.Context, w http.ResponseWr
 	w.Write(respBody)
 }
 
-func (s *testApiServer) serveSendMulti(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Content-Type")
-	i := strings.Index(header, ";")
-	if i == -1 {
-		i = len(header)
-	}
-
-	switch strings.TrimSpace(strings.ToLower(header[:i])) {
-	case "application/json":
-		s.serveSendMultiJSON(ctx, w, r)
-	default:
-		err := ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
-		RespondWithError(w, err)
-	}
-}
-
 func (s *testApiServer) serveSendMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	var err error
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendMulti")
-	reqContent := struct {
+	reqBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to read request data: %w", err)))
+		return
+	}
+	defer r.Body.Close()
+
+	reqPayload := struct {
 		Arg0 *Simple `json:"one"`
 		Arg1 *Simple `json:"two"`
 		Arg2 *Simple `json:"three"`
 	}{}
-
-	reqBody, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		err = ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to read request data: %w", err))
-		RespondWithError(w, err)
-		return
-	}
-	defer r.Body.Close()
-
-	err = json.Unmarshal(reqBody, &reqContent)
-	if err != nil {
-		err = ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to unmarshal request data: %w", err))
-		RespondWithError(w, err)
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
+		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to unmarshal request data: %w", err)))
 		return
 	}
 
-	// Call service method
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
-				panic(rr)
-			}
-		}()
-		err = s.TestApi.SendMulti(ctx, reqContent.Arg0, reqContent.Arg1, reqContent.Arg2)
-	}()
+	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendMulti")
 
+	// Call service method implementation.
+	err = s.TestApi.SendMulti(ctx, reqPayload.Arg0, reqPayload.Arg1, reqPayload.Arg2)
 	if err != nil {
 		RespondWithError(w, err)
 		return
@@ -493,50 +340,23 @@ func (s *testApiServer) serveSendMultiJSON(ctx context.Context, w http.ResponseW
 	w.Write([]byte("{}"))
 }
 
-func (s *testApiServer) serveGetComplex(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Content-Type")
-	i := strings.Index(header, ";")
-	if i == -1 {
-		i = len(header)
-	}
-
-	switch strings.TrimSpace(strings.ToLower(header[:i])) {
-	case "application/json":
-		s.serveGetComplexJSON(ctx, w, r)
-	default:
-		err := ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
-		RespondWithError(w, err)
-	}
-}
-
 func (s *testApiServer) serveGetComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	var err error
+
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetComplex")
 
-	// Call service method
-	var ret0 *Complex
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
-				panic(rr)
-			}
-		}()
-		ret0, err = s.TestApi.GetComplex(ctx)
-	}()
-	respContent := struct {
-		Ret0 *Complex `json:"complex"`
-	}{ret0}
-
+	// Call service method implementation.
+	ret0, err := s.TestApi.GetComplex(ctx)
 	if err != nil {
 		RespondWithError(w, err)
 		return
 	}
-	respBody, err := json.Marshal(respContent)
+
+	respPayload := struct {
+		Ret0 *Complex `json:"complex"`
+	}{ret0}
+	respBody, err := json.Marshal(respPayload)
 	if err != nil {
-		err = ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to marshal json response: %w", err))
-		RespondWithError(w, err)
+		RespondWithError(w, ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to marshal json response: %w", err)))
 		return
 	}
 
@@ -545,56 +365,26 @@ func (s *testApiServer) serveGetComplexJSON(ctx context.Context, w http.Response
 	w.Write(respBody)
 }
 
-func (s *testApiServer) serveSendComplex(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Content-Type")
-	i := strings.Index(header, ";")
-	if i == -1 {
-		i = len(header)
-	}
-
-	switch strings.TrimSpace(strings.ToLower(header[:i])) {
-	case "application/json":
-		s.serveSendComplexJSON(ctx, w, r)
-	default:
-		err := ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
-		RespondWithError(w, err)
-	}
-}
-
 func (s *testApiServer) serveSendComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	var err error
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendComplex")
-	reqContent := struct {
-		Arg0 *Complex `json:"complex"`
-	}{}
-
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		err = ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to read request data: %w", err))
-		RespondWithError(w, err)
+		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to read request data: %w", err)))
 		return
 	}
 	defer r.Body.Close()
 
-	err = json.Unmarshal(reqBody, &reqContent)
-	if err != nil {
-		err = ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to unmarshal request data: %w", err))
-		RespondWithError(w, err)
+	reqPayload := struct {
+		Arg0 *Complex `json:"complex"`
+	}{}
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
+		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to unmarshal request data: %w", err)))
 		return
 	}
 
-	// Call service method
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
-				panic(rr)
-			}
-		}()
-		err = s.TestApi.SendComplex(ctx, reqContent.Arg0)
-	}()
+	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendComplex")
 
+	// Call service method implementation.
+	err = s.TestApi.SendComplex(ctx, reqPayload.Arg0)
 	if err != nil {
 		RespondWithError(w, err)
 		return
@@ -605,56 +395,26 @@ func (s *testApiServer) serveSendComplexJSON(ctx context.Context, w http.Respons
 	w.Write([]byte("{}"))
 }
 
-func (s *testApiServer) serveGetSchemaError(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	header := r.Header.Get("Content-Type")
-	i := strings.Index(header, ";")
-	if i == -1 {
-		i = len(header)
-	}
-
-	switch strings.TrimSpace(strings.ToLower(header[:i])) {
-	case "application/json":
-		s.serveGetSchemaErrorJSON(ctx, w, r)
-	default:
-		err := ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
-		RespondWithError(w, err)
-	}
-}
-
 func (s *testApiServer) serveGetSchemaErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	var err error
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetSchemaError")
-	reqContent := struct {
-		Arg0 int `json:"code"`
-	}{}
-
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		err = ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to read request data: %w", err))
-		RespondWithError(w, err)
+		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to read request data: %w", err)))
 		return
 	}
 	defer r.Body.Close()
 
-	err = json.Unmarshal(reqBody, &reqContent)
-	if err != nil {
-		err = ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to unmarshal request data: %w", err))
-		RespondWithError(w, err)
+	reqPayload := struct {
+		Arg0 int `json:"code"`
+	}{}
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
+		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to unmarshal request data: %w", err)))
 		return
 	}
 
-	// Call service method
-	func() {
-		defer func() {
-			// In case of a panic, serve a 500 error and then panic.
-			if rr := recover(); rr != nil {
-				RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
-				panic(rr)
-			}
-		}()
-		err = s.TestApi.GetSchemaError(ctx, reqContent.Arg0)
-	}()
+	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetSchemaError")
 
+	// Call service method implementation.
+	err = s.TestApi.GetSchemaError(ctx, reqPayload.Arg0)
 	if err != nil {
 		RespondWithError(w, err)
 		return
@@ -691,10 +451,6 @@ func (k *contextKey) String() string {
 }
 
 var (
-	// For Client
-	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"}
-
-	// For Server
 	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"}
 
 	HTTPRequestCtxKey = &contextKey{"HTTPRequest"}

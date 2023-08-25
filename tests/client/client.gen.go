@@ -12,7 +12,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 )
@@ -296,7 +295,7 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out i
 	}
 
 	if resp.StatusCode != 200 {
-		respBody, err := ioutil.ReadAll(resp.Body)
+		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to read server error response body: %w", err))
 		}
@@ -312,7 +311,7 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out i
 	}
 
 	if out != nil {
-		respBody, err := ioutil.ReadAll(resp.Body)
+		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to read response body: %w", err))
 		}
@@ -365,11 +364,7 @@ func (k *contextKey) String() string {
 }
 
 var (
-	// For Client
 	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"}
-
-	// For Server
-	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"}
 
 	HTTPRequestCtxKey = &contextKey{"HTTPRequest"}
 
