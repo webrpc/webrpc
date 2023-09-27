@@ -124,7 +124,7 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	defer func() {
 		// In case of a panic, serve a HTTP 500 error and then panic.
 		if rr := recover(); rr != nil {
-			RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
+			RespondWithError(w, ErrWebrpcServerPanic.WithCause(fmt.Errorf("%v", rr)))
 			panic(rr)
 		}
 	}()
@@ -141,14 +141,14 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	case "/rpc/ExampleService/GetUser":
 		handler = s.serveGetUserJSON
 	default:
-		err := ErrorWithCause(ErrWebrpcBadRoute, fmt.Errorf("no handler for path %q", r.URL.Path))
+		err := ErrWebrpcBadRoute.WithCause(fmt.Errorf("no handler for path %q", r.URL.Path))
 		RespondWithError(w, err)
 		return
 	}
 
 	if r.Method != "POST" {
 		w.Header().Add("Allow", "POST") // RFC 9110.
-		err := ErrorWithCause(ErrWebrpcBadMethod, fmt.Errorf("unsupported method %q (only POST is allowed)", r.Method))
+		err := ErrWebrpcBadMethod.WithCause(fmt.Errorf("unsupported method %q (only POST is allowed)", r.Method))
 		RespondWithError(w, err)
 		return
 	}
@@ -163,13 +163,12 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	case "application/json":
 		handler(ctx, w, r)
 	default:
-		err := ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
+		err := ErrWebrpcBadRequest.WithCause(fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
 		RespondWithError(w, err)
 	}
 }
 
 func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Ping")
 
 	// Call service method implementation.
@@ -184,7 +183,7 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 	}{ret0}
 	respBody, err := json.Marshal(respPayload)
 	if err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to marshal json response: %w", err)))
+		RespondWithError(w, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to marshal json response: %w", err)))
 		return
 	}
 
@@ -194,9 +193,11 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 }
 
 func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetUser")
+
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to read request data: %w", err)))
+		RespondWithError(w, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to read request data: %w", err)))
 		return
 	}
 	defer r.Body.Close()
@@ -205,11 +206,9 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 		Arg0 *GetUserRequest `json:"req"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to unmarshal request data: %w", err)))
+		RespondWithError(w, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to unmarshal request data: %w", err)))
 		return
 	}
-
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetUser")
 
 	// Call service method implementation.
 	ret0, err := s.ExampleService.GetUser(ctx, reqPayload.Arg0)
@@ -223,7 +222,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	}{ret0}
 	respBody, err := json.Marshal(respPayload)
 	if err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to marshal json response: %w", err)))
+		RespondWithError(w, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to marshal json response: %w", err)))
 		return
 	}
 
@@ -235,7 +234,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 func RespondWithError(w http.ResponseWriter, err error) {
 	rpcErr, ok := err.(WebRPCError)
 	if !ok {
-		rpcErr = ErrorWithCause(ErrWebrpcEndpoint, err)
+		rpcErr = ErrWebrpcEndpoint.WithCause(err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -266,6 +265,25 @@ var (
 
 	MethodNameCtxKey = &contextKey{"MethodName"}
 )
+
+func ServiceNameFromContext(ctx context.Context) string {
+	service, _ := ctx.Value(ServiceNameCtxKey).(string)
+	return service
+}
+
+func MethodNameFromContext(ctx context.Context) string {
+	method, _ := ctx.Value(MethodNameCtxKey).(string)
+	return method
+}
+
+func RequestFromContext(ctx context.Context) *http.Request {
+	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
+	return r
+}
+func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
+	w, _ := ctx.Value(HTTPResponseWriterCtxKey).(http.ResponseWriter)
+	return w
+}
 
 //
 // Errors
@@ -300,11 +318,16 @@ func (e WebRPCError) Unwrap() error {
 	return e.cause
 }
 
-func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
-	err := rpcErr
+func (e WebRPCError) WithCause(cause error) WebRPCError {
+	err := e
 	err.cause = cause
 	err.Cause = cause.Error()
 	return err
+}
+
+// Deprecated: Use .WithCause() method on WebRPCError.
+func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
+	return rpcErr.WithCause(cause)
 }
 
 // Webrpc errors

@@ -146,13 +146,11 @@ func NewTestApiClient(addr string, client HTTPClient) TestApi {
 }
 
 func (c *testApiClient) GetEmpty(ctx context.Context) error {
-
 	err := doJSONRequest(ctx, c.client, c.urls[0], nil, nil)
 	return err
 }
 
 func (c *testApiClient) GetError(ctx context.Context) error {
-
 	err := doJSONRequest(ctx, c.client, c.urls[1], nil, nil)
 	return err
 }
@@ -170,7 +168,6 @@ func (c *testApiClient) SendOne(ctx context.Context, one *Simple) error {
 	in := struct {
 		Arg0 *Simple `json:"one"`
 	}{one}
-
 	err := doJSONRequest(ctx, c.client, c.urls[3], in, nil)
 	return err
 }
@@ -192,7 +189,6 @@ func (c *testApiClient) SendMulti(ctx context.Context, one *Simple, two *Simple,
 		Arg1 *Simple `json:"two"`
 		Arg2 *Simple `json:"three"`
 	}{one, two, three}
-
 	err := doJSONRequest(ctx, c.client, c.urls[5], in, nil)
 	return err
 }
@@ -210,7 +206,6 @@ func (c *testApiClient) SendComplex(ctx context.Context, complex *Complex) error
 	in := struct {
 		Arg0 *Complex `json:"complex"`
 	}{complex}
-
 	err := doJSONRequest(ctx, c.client, c.urls[7], in, nil)
 	return err
 }
@@ -219,7 +214,6 @@ func (c *testApiClient) GetSchemaError(ctx context.Context, code int) error {
 	in := struct {
 		Arg0 int `json:"code"`
 	}{code}
-
 	err := doJSONRequest(ctx, c.client, c.urls[8], in, nil)
 	return err
 }
@@ -268,41 +262,41 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) error {
 	reqBody, err := json.Marshal(in)
 	if err != nil {
-		return ErrorWithCause(ErrWebrpcRequestFailed, fmt.Errorf("failed to marshal JSON body: %w", err))
+		return ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to marshal JSON body: %w", err))
 	}
 	if err = ctx.Err(); err != nil {
-		return ErrorWithCause(ErrWebrpcRequestFailed, fmt.Errorf("aborted because context was done: %w", err))
+		return ErrWebrpcRequestFailed.WithCause(fmt.Errorf("aborted because context was done: %w", err))
 	}
 
 	req, err := newRequest(ctx, url, bytes.NewBuffer(reqBody), "application/json")
 	if err != nil {
-		return ErrorWithCause(ErrWebrpcRequestFailed, fmt.Errorf("could not build request: %w", err))
+		return ErrWebrpcRequestFailed.WithCause(fmt.Errorf("could not build request: %w", err))
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return ErrorWithCause(ErrWebrpcRequestFailed, err)
+		return ErrWebrpcRequestFailed.WithCause(err)
 	}
 
 	defer func() {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = ErrorWithCause(ErrWebrpcRequestFailed, fmt.Errorf("failed to close response body: %w", cerr))
+			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
 		}
 	}()
 
 	if err = ctx.Err(); err != nil {
-		return ErrorWithCause(ErrWebrpcRequestFailed, fmt.Errorf("aborted because context was done: %w", err))
+		return ErrWebrpcRequestFailed.WithCause(fmt.Errorf("aborted because context was done: %w", err))
 	}
 
 	if resp.StatusCode != 200 {
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to read server error response body: %w", err))
+			return ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to read server error response body: %w", err))
 		}
 
 		var rpcErr WebRPCError
 		if err := json.Unmarshal(respBody, &rpcErr); err != nil {
-			return ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to unmarshal server error: %w", err))
+			return ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to unmarshal server error: %w", err))
 		}
 		if rpcErr.Cause != "" {
 			rpcErr.cause = errors.New(rpcErr.Cause)
@@ -313,12 +307,12 @@ func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out i
 	if out != nil {
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to read response body: %w", err))
+			return ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to read response body: %w", err))
 		}
 
 		err = json.Unmarshal(respBody, &out)
 		if err != nil {
-			return ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to unmarshal JSON response body: %w", err))
+			return ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to unmarshal JSON response body: %w", err))
 		}
 	}
 
@@ -365,13 +359,27 @@ func (k *contextKey) String() string {
 
 var (
 	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"}
-
-	HTTPRequestCtxKey = &contextKey{"HTTPRequest"}
+	HTTPRequestCtxKey              = &contextKey{"HTTPRequest"}
 
 	ServiceNameCtxKey = &contextKey{"ServiceName"}
 
 	MethodNameCtxKey = &contextKey{"MethodName"}
 )
+
+func ServiceNameFromContext(ctx context.Context) string {
+	service, _ := ctx.Value(ServiceNameCtxKey).(string)
+	return service
+}
+
+func MethodNameFromContext(ctx context.Context) string {
+	method, _ := ctx.Value(MethodNameCtxKey).(string)
+	return method
+}
+
+func RequestFromContext(ctx context.Context) *http.Request {
+	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
+	return r
+}
 
 //
 // Errors
@@ -406,11 +414,16 @@ func (e WebRPCError) Unwrap() error {
 	return e.cause
 }
 
-func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
-	err := rpcErr
+func (e WebRPCError) WithCause(cause error) WebRPCError {
+	err := e
 	err.cause = cause
 	err.Cause = cause.Error()
 	return err
+}
+
+// Deprecated: Use .WithCause() method on WebRPCError.
+func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
+	return rpcErr.WithCause(cause)
 }
 
 // Webrpc errors
