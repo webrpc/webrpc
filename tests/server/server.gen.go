@@ -136,7 +136,7 @@ func (s *testApiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		// In case of a panic, serve a HTTP 500 error and then panic.
 		if rr := recover(); rr != nil {
-			RespondWithError(w, ErrorWithCause(ErrWebrpcServerPanic, fmt.Errorf("%v", rr)))
+			RespondWithError(w, ErrWebrpcServerPanic.WithCause(fmt.Errorf("%v", rr)))
 			panic(rr)
 		}
 	}()
@@ -167,14 +167,14 @@ func (s *testApiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/rpc/TestApi/GetSchemaError":
 		handler = s.serveGetSchemaErrorJSON
 	default:
-		err := ErrorWithCause(ErrWebrpcBadRoute, fmt.Errorf("no handler for path %q", r.URL.Path))
+		err := ErrWebrpcBadRoute.WithCause(fmt.Errorf("no handler for path %q", r.URL.Path))
 		RespondWithError(w, err)
 		return
 	}
 
 	if r.Method != "POST" {
 		w.Header().Add("Allow", "POST") // RFC 9110.
-		err := ErrorWithCause(ErrWebrpcBadMethod, fmt.Errorf("unsupported method %q (only POST is allowed)", r.Method))
+		err := ErrWebrpcBadMethod.WithCause(fmt.Errorf("unsupported method %q (only POST is allowed)", r.Method))
 		RespondWithError(w, err)
 		return
 	}
@@ -189,13 +189,12 @@ func (s *testApiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "application/json":
 		handler(ctx, w, r)
 	default:
-		err := ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
+		err := ErrWebrpcBadRequest.WithCause(fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
 		RespondWithError(w, err)
 	}
 }
 
 func (s *testApiServer) serveGetEmptyJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetEmpty")
 
 	// Call service method implementation.
@@ -211,7 +210,6 @@ func (s *testApiServer) serveGetEmptyJSON(ctx context.Context, w http.ResponseWr
 }
 
 func (s *testApiServer) serveGetErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetError")
 
 	// Call service method implementation.
@@ -227,7 +225,6 @@ func (s *testApiServer) serveGetErrorJSON(ctx context.Context, w http.ResponseWr
 }
 
 func (s *testApiServer) serveGetOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetOne")
 
 	// Call service method implementation.
@@ -242,7 +239,7 @@ func (s *testApiServer) serveGetOneJSON(ctx context.Context, w http.ResponseWrit
 	}{ret0}
 	respBody, err := json.Marshal(respPayload)
 	if err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to marshal json response: %w", err)))
+		RespondWithError(w, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to marshal json response: %w", err)))
 		return
 	}
 
@@ -252,9 +249,11 @@ func (s *testApiServer) serveGetOneJSON(ctx context.Context, w http.ResponseWrit
 }
 
 func (s *testApiServer) serveSendOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendOne")
+
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to read request data: %w", err)))
+		RespondWithError(w, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to read request data: %w", err)))
 		return
 	}
 	defer r.Body.Close()
@@ -263,11 +262,9 @@ func (s *testApiServer) serveSendOneJSON(ctx context.Context, w http.ResponseWri
 		Arg0 *Simple `json:"one"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to unmarshal request data: %w", err)))
+		RespondWithError(w, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to unmarshal request data: %w", err)))
 		return
 	}
-
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendOne")
 
 	// Call service method implementation.
 	err = s.TestApi.SendOne(ctx, reqPayload.Arg0)
@@ -282,7 +279,6 @@ func (s *testApiServer) serveSendOneJSON(ctx context.Context, w http.ResponseWri
 }
 
 func (s *testApiServer) serveGetMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetMulti")
 
 	// Call service method implementation.
@@ -299,7 +295,7 @@ func (s *testApiServer) serveGetMultiJSON(ctx context.Context, w http.ResponseWr
 	}{ret0, ret1, ret2}
 	respBody, err := json.Marshal(respPayload)
 	if err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to marshal json response: %w", err)))
+		RespondWithError(w, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to marshal json response: %w", err)))
 		return
 	}
 
@@ -309,9 +305,11 @@ func (s *testApiServer) serveGetMultiJSON(ctx context.Context, w http.ResponseWr
 }
 
 func (s *testApiServer) serveSendMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendMulti")
+
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to read request data: %w", err)))
+		RespondWithError(w, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to read request data: %w", err)))
 		return
 	}
 	defer r.Body.Close()
@@ -322,11 +320,9 @@ func (s *testApiServer) serveSendMultiJSON(ctx context.Context, w http.ResponseW
 		Arg2 *Simple `json:"three"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to unmarshal request data: %w", err)))
+		RespondWithError(w, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to unmarshal request data: %w", err)))
 		return
 	}
-
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendMulti")
 
 	// Call service method implementation.
 	err = s.TestApi.SendMulti(ctx, reqPayload.Arg0, reqPayload.Arg1, reqPayload.Arg2)
@@ -341,7 +337,6 @@ func (s *testApiServer) serveSendMultiJSON(ctx context.Context, w http.ResponseW
 }
 
 func (s *testApiServer) serveGetComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetComplex")
 
 	// Call service method implementation.
@@ -356,7 +351,7 @@ func (s *testApiServer) serveGetComplexJSON(ctx context.Context, w http.Response
 	}{ret0}
 	respBody, err := json.Marshal(respPayload)
 	if err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadResponse, fmt.Errorf("failed to marshal json response: %w", err)))
+		RespondWithError(w, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to marshal json response: %w", err)))
 		return
 	}
 
@@ -366,9 +361,11 @@ func (s *testApiServer) serveGetComplexJSON(ctx context.Context, w http.Response
 }
 
 func (s *testApiServer) serveSendComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendComplex")
+
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to read request data: %w", err)))
+		RespondWithError(w, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to read request data: %w", err)))
 		return
 	}
 	defer r.Body.Close()
@@ -377,11 +374,9 @@ func (s *testApiServer) serveSendComplexJSON(ctx context.Context, w http.Respons
 		Arg0 *Complex `json:"complex"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to unmarshal request data: %w", err)))
+		RespondWithError(w, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to unmarshal request data: %w", err)))
 		return
 	}
-
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendComplex")
 
 	// Call service method implementation.
 	err = s.TestApi.SendComplex(ctx, reqPayload.Arg0)
@@ -396,9 +391,11 @@ func (s *testApiServer) serveSendComplexJSON(ctx context.Context, w http.Respons
 }
 
 func (s *testApiServer) serveGetSchemaErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetSchemaError")
+
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to read request data: %w", err)))
+		RespondWithError(w, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to read request data: %w", err)))
 		return
 	}
 	defer r.Body.Close()
@@ -407,11 +404,9 @@ func (s *testApiServer) serveGetSchemaErrorJSON(ctx context.Context, w http.Resp
 		Arg0 int `json:"code"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		RespondWithError(w, ErrorWithCause(ErrWebrpcBadRequest, fmt.Errorf("failed to unmarshal request data: %w", err)))
+		RespondWithError(w, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to unmarshal request data: %w", err)))
 		return
 	}
-
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetSchemaError")
 
 	// Call service method implementation.
 	err = s.TestApi.GetSchemaError(ctx, reqPayload.Arg0)
@@ -428,7 +423,7 @@ func (s *testApiServer) serveGetSchemaErrorJSON(ctx context.Context, w http.Resp
 func RespondWithError(w http.ResponseWriter, err error) {
 	rpcErr, ok := err.(WebRPCError)
 	if !ok {
-		rpcErr = ErrorWithCause(ErrWebrpcEndpoint, err)
+		rpcErr = ErrWebrpcEndpoint.WithCause(err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -459,6 +454,25 @@ var (
 
 	MethodNameCtxKey = &contextKey{"MethodName"}
 )
+
+func ServiceNameFromContext(ctx context.Context) string {
+	service, _ := ctx.Value(ServiceNameCtxKey).(string)
+	return service
+}
+
+func MethodNameFromContext(ctx context.Context) string {
+	method, _ := ctx.Value(MethodNameCtxKey).(string)
+	return method
+}
+
+func RequestFromContext(ctx context.Context) *http.Request {
+	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
+	return r
+}
+func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
+	w, _ := ctx.Value(HTTPResponseWriterCtxKey).(http.ResponseWriter)
+	return w
+}
 
 //
 // Errors
@@ -493,11 +507,16 @@ func (e WebRPCError) Unwrap() error {
 	return e.cause
 }
 
-func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
-	err := rpcErr
+func (e WebRPCError) WithCause(cause error) WebRPCError {
+	err := e
 	err.cause = cause
 	err.Cause = cause.Error()
 	return err
+}
+
+// Deprecated: Use .WithCause() method on WebRPCError.
+func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
+	return rpcErr.WithCause(cause)
 }
 
 // Webrpc errors
