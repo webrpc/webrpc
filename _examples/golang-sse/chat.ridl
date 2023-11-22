@@ -1,0 +1,14 @@
+webrpc = v1
+
+name = webrpc-sse-chat
+version = v1.0.0
+
+struct Message
+  - id: uint64
+  - text: string
+  - authorName: string
+  - createdAt: timestamp
+
+service Chat
+  - SendMessage(authorName: string, text: string)
+  - GetNewMessages() => stream (messages: Message)
