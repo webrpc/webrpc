@@ -133,11 +133,8 @@ loop:
 
 		default:
 			return nil, errUnexpectedToken
-
 		}
 	}
-
-	//return composedValue(tokens)
 
 	return values, nil
 }
@@ -218,7 +215,7 @@ loop:
 
 			switch tok.val {
 
-			case "map":
+			case wordMap:
 				var err error
 
 				tok, err = p.expectMapDefinition()
@@ -228,6 +225,9 @@ loop:
 
 				tokens = append(tokens, tok)
 				continue loop
+
+			case wordStream, wordStruct:
+				return nil, errUnexpectedToken
 			}
 
 			tokens = append(tokens, tok)
@@ -237,8 +237,6 @@ loop:
 		default:
 			return nil, errUnexpectedToken
 		}
-
-		p.next()
 	}
 
 	return composedValue(tokens)
