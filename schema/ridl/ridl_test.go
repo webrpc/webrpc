@@ -2,7 +2,7 @@ package ridl
 
 import (
 	"flag"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 	"testing/fstest"
@@ -496,7 +496,7 @@ func TestRIDLParse(t *testing.T) {
 	fp, err := os.Open("_example/example0.ridl")
 	assert.NoError(t, err)
 
-	buf, err := ioutil.ReadAll(fp)
+	buf, err := io.ReadAll(fp)
 	assert.NoError(t, err)
 
 	s, err := parseString(string(buf))
