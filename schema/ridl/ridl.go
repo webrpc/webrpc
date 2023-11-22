@@ -330,11 +330,10 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 
 	// normal form
 	for _, arg := range args {
-
 		var varType schema.VarType
 		err := schema.ParseVarTypeExpr(s, arg.TypeName().String(), &varType)
 		if err != nil {
-			return nil, fmt.Errorf("unknown argument data type: %v", arg.TypeName().String())
+			return nil, fmt.Errorf("parsing argument %v: %w", arg.TypeName(), err)
 		}
 
 		methodArgument := &schema.MethodArgument{
