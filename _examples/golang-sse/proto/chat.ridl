@@ -11,4 +11,6 @@ struct Message
 
 service Chat
   - SendMessage(authorName: string, text: string)
-  - GetNewMessages() => stream (messages: Message)
+  - SubscribeMessages(serverTimeoutSec: int) => stream (messages: Message)
+
+error 100 ConnectionTerminated "connection terminated after 2mins" HTTP 400
