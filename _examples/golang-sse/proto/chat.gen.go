@@ -34,85 +34,6 @@ func WebRPCSchemaHash() string {
 	return "953d06522a6cff72ecf9fa27f76fa21992e5c527"
 }
 
-// Streaming
-
-// TODO: What if we didn't change the RPC client interface and instead we provided the below helper?
-// var SSE = struct{
-// 	SubscribeMessages: func(ctx context.Context) (SubscribeMessagesStreamReader, error)
-// }
-//
-// var WS = struct {}
-//
-// var NATS = struct {}
-
-// SSE streaming in NDJSON (Newline Delimited JSON format).
-// Similar, but not compatible with browser's EventStream.
-type sseStreamWriter struct {
-	mu sync.Mutex // Guards concurrent writes.
-	w  http.ResponseWriter
-	f  http.Flusher
-	e  *json.Encoder
-	cancel func()
-
-	sendError func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
-}
-
-const StreamKeepAliveInterval = 10*time.Second
-
-func (w *sseStreamWriter) keepAlive(ctx context.Context) {
-	for {
-		select {
-		case <-time.After(StreamKeepAliveInterval):
-			err := w.ping()
-			if err != nil {
-				return
-			}
-		case <-ctx.Done():
-			return
-		}
-	}
-}
-
-func (w *sseStreamWriter) ping() error {
-	defer w.f.Flush()
-
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	_, err := w.w.Write([]byte("\n"))
-	return err
-}
-
-func (w *sseStreamWriter) write(respPayload interface{}) error {
-	defer w.f.Flush()
-
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	return w.e.Encode(respPayload)
-}
-
-// Stream reader
-
-type streamReader struct {
-	r             io.ReadCloser
-}
-
-
-
-// Stream types
-
-type subscribeMessageStreamWriter struct {
-	*sseStreamWriter
-}
-
-func (w *sseStreamWriter) Write(message *Message) error {
-	respPayload := struct {
-		Arg0 *Message `json:"message"`
-	}{message}
-
-	return w.write(respPayload)
-}
 
 //
 // Types
@@ -133,27 +54,43 @@ type SubscribeMessagesStreamReader interface {
 	Read() (message *Message, err error)
 }
 
-type chatRPC interface {
-	SendMessage(ctx context.Context, authorName string, text string) error
-}
-
-type Chat interface {
-	chatRPC
-	SubscribeMessages(ctx context.Context, serverTimeoutSec int, stream SubscribeMessagesStreamWriter) error
-}
-
-type ChatClient interface {
-	chatRPC
-	SubscribeMessages(ctx context.Context, serverTimeoutSec int) (SubscribeMessagesStreamReader, error)
-}
-
-
 var WebRPCServices = map[string][]string{
 	"Chat": {
 		"SendMessage",
 		"SubscribeMessages",
 	},
 }
+
+//
+// Server types
+//
+
+type Chat interface {
+	SendMessage(ctx context.Context, authorName string, text string) error
+	SubscribeMessages(ctx context.Context, serverTimeoutSec int, stream SubscribeMessagesStreamWriter) error
+}
+
+type subscribeMessageStreamWriter struct {
+	streamWriter
+}
+
+func (w *streamWriter) Write(message *Message) error {
+	respPayload := struct {
+		Arg0 *Message `json:"message"`
+	}{message}
+
+	return w.write(respPayload)
+}
+
+//
+// Client types
+//
+
+type ChatClient interface {
+	SendMessage(ctx context.Context, authorName string, text string) error
+	SubscribeMessages(ctx context.Context, serverTimeoutSec int) (SubscribeMessagesStreamReader, error)
+}
+
 
 //
 // Server
@@ -290,13 +227,11 @@ func (s *chatServer) serveSubscribeMessagesJSON(ctx context.Context, w http.Resp
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	streamWriter := &sseStreamWriter{w: w, f: f, e: json.NewEncoder(w), sendError: s.sendErrorJSON}//onError: s.OnError}
-	go streamWriter.keepAlive(r.Context())
-
-	typedStreamWriter := &subscribeMessageStreamWriter{sseStreamWriter: streamWriter}
+	streamWriter := &subscribeMessageStreamWriter{streamWriter{w: w, f: f, e: json.NewEncoder(w), sendError: s.sendErrorJSON}}
+	go streamWriter.keepAlive(ctx)
 
 	// Call service method implementation.
-	if err := s.Chat.SubscribeMessages(ctx, reqPayload.Arg0, typedStreamWriter); err != nil {
+	if err := s.Chat.SubscribeMessages(ctx, reqPayload.Arg0, streamWriter); err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
@@ -340,6 +275,8 @@ func RespondWithError(w http.ResponseWriter, err error) {
 	w.Write(respBody)
 }
 
+
+
 //
 // Client
 //
@@ -374,8 +311,7 @@ func (c *chatClient) SendMessage(ctx context.Context, authorName string, text st
 }
 
 type subscribeMessagesStreamReader struct {
-	d *json.Decoder
-	ctx context.Context
+	streamReader
 }
 
 func (r *subscribeMessagesStreamReader) Read() (*Message, error) {
@@ -420,7 +356,7 @@ func (c *chatClient) SubscribeMessages(ctx context.Context, serverTimeoutSec int
 		return nil, err
 	}
 
-	return &subscribeMessagesStreamReader{d: json.NewDecoder(resp.Body), ctx: ctx}, nil
+	return &subscribeMessagesStreamReader{streamReader{d: json.NewDecoder(resp.Body), ctx: ctx}}, nil
 }
 
 // HTTPClient is the interface used by generated clients to send HTTP requests.
@@ -643,6 +579,57 @@ func RequestFromContext(ctx context.Context) *http.Request {
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
 	w, _ := ctx.Value(HTTPResponseWriterCtxKey).(http.ResponseWriter)
 	return w
+}
+
+type streamWriter struct {
+	mu sync.Mutex // Guards concurrent writes to w.
+	w  http.ResponseWriter
+	f  http.Flusher
+	e  *json.Encoder
+	
+	sendError func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
+}
+
+const StreamKeepAliveInterval = 10*time.Second
+
+func (w *streamWriter) keepAlive(ctx context.Context) {
+	for {
+		select {
+		case <-time.After(StreamKeepAliveInterval):
+			err := w.ping()
+			if err != nil {
+				return
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (w *streamWriter) ping() error {
+	defer w.f.Flush()
+
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	_, err := w.w.Write([]byte("\n"))
+	return err
+}
+
+func (w *streamWriter) write(respPayload interface{}) error {
+	defer w.f.Flush()
+
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	return w.e.Encode(respPayload)
+}
+
+// Stream reader
+
+type streamReader struct {
+	d   *json.Decoder
+	ctx context.Context
 }
 
 //

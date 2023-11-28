@@ -65,6 +65,18 @@ func (x *Status) UnmarshalText(b []byte) error {
 	return nil
 }
 
+func (x *Status) Is(values ...Status) bool {
+	if x == nil {
+		return false
+	}
+	for _, v := range values {
+		if *x == v {
+			return true
+		}
+	}
+	return false
+}
+
 type Simple struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
