@@ -107,37 +107,41 @@ export class Chat implements Chat {
     return this.fetch(
       this.url("SubscribeMessages"),
       createHTTPRequest(args, headers, signal)
-    ).then(
-      async (res) => {
-        if (!res.ok || !res.body) {
-          hooks.onError(`HTTP error! status: ${res.status}`);
-          return;
-        }
-        hooks.onOpen && hooks.onOpen();
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = "";
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value);
-          let lines = buffer.split("\n");
-          for (let i = 0; i < lines.length - 1; i++) {
-            try {
-              let json = JSON.parse(lines[i]);
-              hooks.onMessage && hooks.onMessage(json.message);
-            } catch (e) {
-              //@ts-ignore
-              hooks.onError(`Error parsing JSON: ${e.message}`);
-            }
+    )
+      .then(
+        async (res) => {
+          if (!res.ok || !res.body) {
+            hooks.onError(`HTTP error! status: ${res.status}`);
+            return;
           }
-          buffer = lines[lines.length - 1];
+          hooks.onOpen && hooks.onOpen();
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value);
+            let lines = buffer.split("\n");
+            for (let i = 0; i < lines.length - 1; i++) {
+              try {
+                let json = JSON.parse(lines[i]);
+                hooks.onMessage && hooks.onMessage(json.message);
+              } catch (e) {
+                //@ts-ignore
+                hooks.onError(`Error parsing JSON: ${e.message}`);
+              }
+            }
+            buffer = lines[lines.length - 1];
+          }
+        },
+        (error) => {
+          hooks.onError(error.message || "");
         }
-      },
-      (error) => {
-        hooks.onError(error.message || "");
-      }
-    );
+      )
+      .then(() => {
+        hooks.onClose && hooks.onClose();
+      });
   };
 }
 

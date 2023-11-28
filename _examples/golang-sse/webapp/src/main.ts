@@ -20,7 +20,14 @@ const onOpen = () => {
   console.log("Connected");
 };
 
-api.subscribeMessages({ serverTimeoutSec: 10 }, { onMessage, onError, onOpen });
+const onClose = () => {
+  console.log("Conection closed");
+};
+
+api.subscribeMessages(
+  { serverTimeoutSec: 10 },
+  { onMessage, onError, onOpen, onClose }
+);
 
 const chatbox = document.querySelector("#chatbox");
 
