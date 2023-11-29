@@ -18,6 +18,27 @@ export const WebRPCSchemaHash = "a63a64964867e7edb412b0400e36220b6057c41c";
 // Types
 //
 
+//Global types
+
+export type Fetch = (
+  input: RequestInfo,
+  init?: RequestInit
+) => Promise<Response>;
+
+export interface WebRpcOptions {
+  headers?: object;
+  signal?: AbortSignal;
+}
+
+export interface WebRpcSSEOptions extends WebRpcOptions {
+  onMessage: (message: Message) => void;
+  onError: (error: string) => void;
+  onOpen?: () => void;
+  onClose?: () => void;
+}
+
+//
+
 export interface Message {
   id: number;
   text: string;
@@ -28,19 +49,11 @@ export interface Message {
 export interface Chat {
   sendMessage(
     args: SendMessageArgs,
-    headers?: object,
-    signal?: AbortSignal
+    options?: WebRpcOptions
   ): Promise<SendMessageReturn>;
   subscribeMessages(
     args: SubscribeMessagesArgs,
-    hooks: {
-      onMessage: (message: Message) => void;
-      onOpen?: () => void;
-      onClose?: () => void;
-      onError: (error: string) => void;
-    },
-    headers?: object,
-    signal?: AbortSignal
+    options: WebRpcSSEOptions
   ): Promise<void>;
 }
 
@@ -73,12 +86,11 @@ export class Chat implements Chat {
 
   sendMessage = (
     args: SendMessageArgs,
-    headers?: object,
-    signal?: AbortSignal
+    options?: WebRpcOptions
   ): Promise<SendMessageReturn> => {
     return this.fetch(
       this.url("SendMessage"),
-      createHTTPRequest(args, headers, signal)
+      createHTTPRequest(args, options)
     ).then(
       (res) => {
         return buildResponse(res).then((_data) => {
@@ -95,26 +107,20 @@ export class Chat implements Chat {
 
   subscribeMessages = (
     args: SubscribeMessagesArgs,
-    hooks: {
-      onMessage: (message: Message) => void;
-      onOpen?: () => void;
-      onClose?: () => void;
-      onError: (error: string) => void;
-    },
-    headers?: object,
-    signal?: AbortSignal
+    options: WebRpcSSEOptions
   ): Promise<void> => {
     return this.fetch(
       this.url("SubscribeMessages"),
-      createHTTPRequest(args, headers, signal)
+      createHTTPRequest(args, options)
     )
       .then(
         async (res) => {
+          const { onMessage, onError, onOpen } = options;
           if (!res.ok || !res.body) {
-            hooks.onError(`HTTP error! status: ${res.status}`);
+            onError(`HTTP error! status: ${res.status}`);
             return;
           }
-          hooks.onOpen && hooks.onOpen();
+          onOpen && onOpen();
           const reader = res.body.getReader();
           const decoder = new TextDecoder();
           let buffer = "";
@@ -126,35 +132,34 @@ export class Chat implements Chat {
             for (let i = 0; i < lines.length - 1; i++) {
               try {
                 let json = JSON.parse(lines[i]);
-                hooks.onMessage && hooks.onMessage(json.message);
+                onMessage(json.message);
               } catch (e) {
                 //@ts-ignore
-                hooks.onError(`Error parsing JSON: ${e.message}`);
+                onError(`Error parsing JSON: ${e.message}`);
               }
             }
             buffer = lines[lines.length - 1];
           }
         },
         (error) => {
-          hooks.onError(error.message || "");
+          options.onError(error.message || "");
         }
       )
       .then(() => {
-        hooks.onClose && hooks.onClose();
+        options.onClose && options.onClose();
       });
   };
 }
 
 const createHTTPRequest = (
   body: object = {},
-  headers: object = {},
-  signal: AbortSignal | null = null
+  options?: WebRpcOptions
 ): object => {
   return {
     method: "POST",
-    headers: { ...headers, "Content-Type": "application/json" },
+    headers: { ...options?.headers, "Content-Type": "application/json" },
     body: JSON.stringify(body || {}),
-    signal,
+    signal: options?.signal,
   };
 };
 
@@ -367,8 +372,3 @@ const webrpcErrorByCode: { [code: number]: any } = {
   [-7]: WebrpcInternalErrorError,
   [100]: ConnectionTerminatedError,
 };
-
-export type Fetch = (
-  input: RequestInfo,
-  init?: RequestInit
-) => Promise<Response>;
