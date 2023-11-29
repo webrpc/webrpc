@@ -30,8 +30,8 @@ export interface WebRpcOptions {
   signal?: AbortSignal;
 }
 
-export interface WebRpcSSEOptions extends WebRpcOptions {
-  onMessage: (message: Message) => void;
+export interface WebRpcSSEOptions<T> extends WebRpcOptions {
+  onMessage: (message: T) => void;
   onError: (error: Error | WebrpcError) => void;
   onOpen?: () => void;
   onClose?: () => void;
@@ -53,7 +53,7 @@ export interface Chat {
   ): Promise<SendMessageReturn>;
   subscribeMessages(
     args: SubscribeMessagesArgs,
-    options: WebRpcSSEOptions
+    options: WebRpcSSEOptions<Message>
   ): Promise<void>;
 }
 
@@ -107,7 +107,7 @@ export class Chat implements Chat {
 
   subscribeMessages = (
     args: SubscribeMessagesArgs,
-    options: WebRpcSSEOptions
+    options: WebRpcSSEOptions<Message>
   ): Promise<void> => {
     return this.fetch(
       this.url("SubscribeMessages"),
@@ -162,7 +162,7 @@ const buildResponse = (res: Response): Promise<any> => {
   });
 };
 
-const sseResponse = async (res: Response, options: WebRpcSSEOptions) => {
+const sseResponse = async (res: Response, options: WebRpcSSEOptions<any>) => {
   const { onMessage, onOpen } = options;
 
   if (!res.ok) {
@@ -188,7 +188,7 @@ const sseResponse = async (res: Response, options: WebRpcSSEOptions) => {
     for (let i = 0; i < lines.length - 1; i++) {
       try {
         let json = JSON.parse(lines[i]);
-        onMessage(json.message);
+        onMessage(json);
       } catch (error) {
         let message = "";
         if (error instanceof Error) {
