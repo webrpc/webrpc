@@ -115,31 +115,7 @@ export class Chat implements Chat {
     )
       .then(
         async (res) => {
-          const { onMessage, onError, onOpen } = options;
-          if (!res.ok || !res.body) {
-            onError(`HTTP error! status: ${res.status}`);
-            return;
-          }
-          onOpen && onOpen();
-          const reader = res.body.getReader();
-          const decoder = new TextDecoder();
-          let buffer = "";
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value);
-            let lines = buffer.split("\n");
-            for (let i = 0; i < lines.length - 1; i++) {
-              try {
-                let json = JSON.parse(lines[i]);
-                onMessage(json.message);
-              } catch (e) {
-                //@ts-ignore
-                onError(`Error parsing JSON: ${e.message}`);
-              }
-            }
-            buffer = lines[lines.length - 1];
-          }
+          await sseResponse(res, options);
         },
         (error) => {
           options.onError(error.message || "");
@@ -184,6 +160,48 @@ const buildResponse = (res: Response): Promise<any> => {
     }
     return data;
   });
+};
+
+const sseResponse = async (res: Response, options: WebRpcSSEOptions) => {
+  const { onMessage, onOpen } = options;
+
+  if (!res.ok) {
+    res.json().then((json) => {
+      const code: number = typeof json.code === "number" ? json.code : 0;
+      throw (webrpcErrorByCode[code] || WebrpcError).new(json);
+    });
+  }
+  if (!res.body) {
+    throw new Error(`HTTP error, status: ${res.status}`);
+  }
+
+  onOpen && onOpen();
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value);
+    let lines = buffer.split("\n");
+    for (let i = 0; i < lines.length - 1; i++) {
+      try {
+        let json = JSON.parse(lines[i]);
+        onMessage(json.message);
+      } catch (error) {
+        let message = "";
+        if (error instanceof Error) {
+          message = error.message;
+        }
+        throw WebrpcBadResponseError.new({
+          status: res.status,
+          cause: `JSON.parse(): ${message}`,
+        });
+      }
+    }
+    buffer = lines[lines.length - 1];
+  }
 };
 
 //
