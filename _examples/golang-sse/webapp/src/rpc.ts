@@ -26,7 +26,7 @@ export type Fetch = (
 ) => Promise<Response>;
 
 export interface WebRpcOptions {
-  headers?: object;
+  headers?: HeadersInit;
   signal?: AbortSignal;
 }
 
