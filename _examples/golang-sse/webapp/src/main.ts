@@ -1,5 +1,5 @@
 import { effect, signal } from "@preact/signals-core";
-import { Chat, Message } from "./rpc";
+import { Chat, Message, SubscribeMessagesReturn } from "./rpc";
 import "./style.css";
 
 //Create client
@@ -9,8 +9,8 @@ const api = new Chat("http://localhost:5173", fetch);
 const messages = signal<Message[]>([]);
 
 //Create message handlers
-const onMessage = (message: Message) => {
-  messages.value = [...messages.value, message];
+const onMessage = (message: SubscribeMessagesReturn) => {
+  messages.value = [...messages.value, message.message];
 };
 
 const onError = (error: unknown) => {

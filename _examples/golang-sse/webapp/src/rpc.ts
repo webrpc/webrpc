@@ -53,7 +53,7 @@ export interface Chat {
   ): Promise<SendMessageReturn>;
   subscribeMessages(
     args: SubscribeMessagesArgs,
-    options: WebRpcSSEOptions<Message>
+    options: WebRpcSSEOptions<SubscribeMessagesReturn>
   ): Promise<void>;
 }
 
@@ -63,8 +63,13 @@ export interface SendMessageArgs {
 }
 
 export interface SendMessageReturn {}
+
 export interface SubscribeMessagesArgs {
   serverTimeoutSec: number;
+}
+
+export interface SubscribeMessagesReturn {
+  message: Message;
 }
 
 //
@@ -107,7 +112,7 @@ export class Chat implements Chat {
 
   subscribeMessages = (
     args: SubscribeMessagesArgs,
-    options: WebRpcSSEOptions<Message>
+    options: WebRpcSSEOptions<SubscribeMessagesReturn>
   ): Promise<void> => {
     return this.fetch(
       this.url("SubscribeMessages"),
