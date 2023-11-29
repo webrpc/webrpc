@@ -32,7 +32,7 @@ export interface WebRpcOptions {
 
 export interface WebRpcSSEOptions extends WebRpcOptions {
   onMessage: (message: Message) => void;
-  onError: (error: string) => void;
+  onError: (error: Error | WebrpcError) => void;
   onOpen?: () => void;
   onClose?: () => void;
 }
@@ -118,7 +118,7 @@ export class Chat implements Chat {
           await sseResponse(res, options);
         },
         (error) => {
-          options.onError(error.message || "");
+          options.onError(error);
         }
       )
       .then(() => {

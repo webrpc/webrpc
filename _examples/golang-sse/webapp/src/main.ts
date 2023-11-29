@@ -13,7 +13,7 @@ const onMessage = (message: Message) => {
   messages.value = [...messages.value, message];
 };
 
-const onError = (error: string) => {
+const onError = (error: unknown) => {
   console.error(error);
 };
 
