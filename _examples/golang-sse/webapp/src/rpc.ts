@@ -191,6 +191,9 @@ const sseResponse = async (res: Response, options: WebRpcSSEOptions<any>) => {
     buffer += decoder.decode(value);
     let lines = buffer.split("\n");
     for (let i = 0; i < lines.length - 1; i++) {
+      if (!lines[i]) {
+        continue;
+      }
       try {
         let json = JSON.parse(lines[i]);
         onMessage(json);
