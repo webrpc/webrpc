@@ -128,9 +128,6 @@ export class Chat implements Chat {
       ).catch((error) => {
         options.onError(error)
       })
-      .then(() => {
-        options.onClose && options.onClose();
-      });
   };
 }
 
@@ -170,7 +167,7 @@ const buildResponse = (res: Response): Promise<any> => {
 };
 
 const sseResponse = async (res: Response, options: WebRpcStreamOptions<any>) => {
-  const { onMessage, onOpen } = options;
+  const { onMessage, onOpen, onClose } = options;
 
   if (!res.ok) {
     res.json().then((json) => {
@@ -189,7 +186,10 @@ const sseResponse = async (res: Response, options: WebRpcStreamOptions<any>) => 
   let buffer = "";
   while (true) {
     const { value, done } = await reader.read();
-    if (done) break;
+    if (done) {
+      onClose && onClose()
+      return;
+    }
     buffer += decoder.decode(value);
     let lines = buffer.split("\n");
     for (let i = 0; i < lines.length - 1; i++) {
