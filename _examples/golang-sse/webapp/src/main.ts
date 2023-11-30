@@ -25,10 +25,17 @@ const onClose = () => {
   console.log("Conection closed");
 };
 
+const controller = new AbortController();
+const abortSignal = controller.signal
+
+const abort = () => {
+  controller.abort()
+}
+
 //Subscribe to messages
 api.subscribeMessages(
   { serverTimeoutSec: 10 },
-  { onMessage, onError, onOpen, onClose }
+  { onMessage, onError, onOpen, onClose, signal: abortSignal }
 );
 
 // Update chatbox
@@ -84,3 +91,7 @@ function randomUserName() {
   const randomIndex = Math.floor(Math.random() * names.length);
   return names[randomIndex];
 }
+
+// Abort on disconnect
+const disconnectButton = document.getElementById("disconnect") as HTMLButtonElement;
+disconnectButton.addEventListener("click", abort)
