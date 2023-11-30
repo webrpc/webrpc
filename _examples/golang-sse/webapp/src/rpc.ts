@@ -126,7 +126,10 @@ export class Chat implements Chat {
           options.onError(error);
         }
       ).catch((error) => {
-        options.onError(error)
+        options.onError(
+         WebrpcRequestFailedError.new({
+          cause: `fetch(): ${error.message || ""}`,
+        }))
       })
   };
 }
