@@ -125,7 +125,9 @@ export class Chat implements Chat {
         (error) => {
           options.onError(error);
         }
-      )
+      ).catch((error) => {
+        options.onError(error)
+      })
       .then(() => {
         options.onClose && options.onClose();
       });
