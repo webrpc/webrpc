@@ -30,7 +30,7 @@ export interface WebRpcOptions {
   signal?: AbortSignal;
 }
 
-export interface WebRpcSSEOptions<T> extends WebRpcOptions {
+export interface WebRpcStreamOptions<T> extends WebRpcOptions {
   onMessage: (message: T) => void;
   onError: (error: Error | WebrpcError) => void;
   onOpen?: () => void;
@@ -53,7 +53,7 @@ export interface Chat {
   ): Promise<SendMessageReturn>;
   subscribeMessages(
     args: SubscribeMessagesArgs,
-    options: WebRpcSSEOptions<SubscribeMessagesReturn>
+    options: WebRpcStreamOptions<SubscribeMessagesReturn>
   ): Promise<void>;
 }
 
@@ -112,7 +112,7 @@ export class Chat implements Chat {
 
   subscribeMessages = (
     args: SubscribeMessagesArgs,
-    options: WebRpcSSEOptions<SubscribeMessagesReturn>
+    options: WebRpcStreamOptions<SubscribeMessagesReturn>
   ): Promise<void> => {
     return this.fetch(
       this.url("SubscribeMessages"),
@@ -169,7 +169,7 @@ const buildResponse = (res: Response): Promise<any> => {
   });
 };
 
-const sseResponse = async (res: Response, options: WebRpcSSEOptions<any>) => {
+const sseResponse = async (res: Response, options: WebRpcStreamOptions<any>) => {
   const { onMessage, onOpen } = options;
 
   if (!res.ok) {
