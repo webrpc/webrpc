@@ -59,7 +59,8 @@ func router() http.Handler {
 		w.Write([]byte("."))
 	})
 
-	webrpcHandler := proto.NewChatServer(&ChatServer{})
+	rpc := NewChatServer()
+	webrpcHandler := proto.NewChatServer(rpc)
 	r.Handle("/*", webrpcHandler)
 
 	return r
