@@ -32,7 +32,7 @@ export interface WebRpcOptions {
 
 export interface WebRpcStreamOptions<T> extends WebRpcOptions {
   onMessage: (message: T) => void;
-  onError: (error: Error | WebrpcError) => void;
+  onError: (error: WebrpcError) => void;
   onOpen?: () => void;
   onClose?: () => void;
 }
@@ -125,12 +125,7 @@ export class Chat implements Chat {
         (error) => {
           options.onError(error);
         }
-      ).catch((error) => {
-        options.onError(
-         WebrpcRequestFailedError.new({
-          cause: `fetch(): ${error.message || ""}`,
-        }))
-      })
+      )
   };
 }
 
@@ -170,16 +165,22 @@ const buildResponse = (res: Response): Promise<any> => {
 };
 
 const sseResponse = async (res: Response, options: WebRpcStreamOptions<any>) => {
-  const { onMessage, onOpen, onClose } = options;
-
+  const { onMessage, onOpen, onClose, onError } = options;
+  
   if (!res.ok) {
     res.json().then((json) => {
       const code: number = typeof json.code === "number" ? json.code : 0;
-      throw (webrpcErrorByCode[code] || WebrpcError).new(json);
+      
+      onError((webrpcErrorByCode[code] || WebrpcError).new(json));
+      return;
     });
   }
   if (!res.body) {
-    throw new Error(`HTTP error, status: ${res.status}`);
+    onError(WebrpcBadResponseError.new({
+      status: res.status,
+      cause: "Invalid response, missing body",
+    }));
+    return;
   }
 
   onOpen && onOpen();
@@ -187,8 +188,23 @@ const sseResponse = async (res: Response, options: WebRpcStreamOptions<any>) => 
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+
   while (true) {
-    const { value, done } = await reader.read();
+    let value;
+    let done;
+    try {
+      ({ value, done } = await reader.read());
+    } catch (error) {
+      let message = "";
+      if (error instanceof Error) {
+        message = error.message;
+      }
+      options.onError(
+        WebrpcRequestFailedError.new({
+         cause: `fetch(): ${message}`,
+       }))
+      return;
+    }
     if (done) {
       onClose && onClose()
       return;
