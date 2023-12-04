@@ -25,12 +25,12 @@ export type Fetch = (
   init?: RequestInit
 ) => Promise<Response>;
 
-export interface WebRpcOptions {
+export interface WebrpcOptions {
   headers?: HeadersInit;
   signal?: AbortSignal;
 }
 
-export interface WebRpcStreamOptions<T> extends WebRpcOptions {
+export interface WebrpcStreamOptions<T> extends WebrpcOptions {
   onMessage: (message: T) => void;
   onError: (error: WebrpcError) => void;
   onOpen?: () => void;
@@ -49,11 +49,11 @@ export interface Message {
 export interface Chat {
   sendMessage(
     args: SendMessageArgs,
-    options?: WebRpcOptions
+    options?: WebrpcOptions
   ): Promise<SendMessageReturn>;
   subscribeMessages(
     args: SubscribeMessagesArgs,
-    options: WebRpcStreamOptions<SubscribeMessagesReturn>
+    options: WebrpcStreamOptions<SubscribeMessagesReturn>
   ): Promise<void>;
 }
 
@@ -91,7 +91,7 @@ export class Chat implements Chat {
 
   sendMessage = (
     args: SendMessageArgs,
-    options?: WebRpcOptions
+    options?: WebrpcOptions
   ): Promise<SendMessageReturn> => {
     return this.fetch(
       this.url("SendMessage"),
@@ -112,7 +112,7 @@ export class Chat implements Chat {
 
   subscribeMessages = (
     args: SubscribeMessagesArgs,
-    options: WebRpcStreamOptions<SubscribeMessagesReturn>
+    options: WebrpcStreamOptions<SubscribeMessagesReturn>
   ): Promise<void> => {
     return this.fetch(
       this.url("SubscribeMessages"),
@@ -131,7 +131,7 @@ export class Chat implements Chat {
 
 const createHTTPRequest = (
   body: object = {},
-  options?: WebRpcOptions
+  options?: WebrpcOptions
 ): object => {
   return {
     method: "POST",
@@ -164,7 +164,7 @@ const buildResponse = (res: Response): Promise<any> => {
   });
 };
 
-const sseResponse = async (res: Response, options: WebRpcStreamOptions<any>) => {
+const sseResponse = async (res: Response, options: WebrpcStreamOptions<any>) => {
   const { onMessage, onOpen, onClose, onError } = options;
   
   if (!res.ok) {
