@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"math/rand"
 	"sync"
+	"time"
 
 	"github.com/webrpc/webrpc/_example/golang-sse/proto"
 )
@@ -45,6 +46,10 @@ func (s *ChatServer) SendMessage(ctx context.Context, authorName string, text st
 }
 
 func (s *ChatServer) SubscribeMessages(ctx context.Context, serverTimeoutSec int, stream proto.SubscribeMessagesStreamWriter) error {
+	if serverTimeoutSec > 0 {
+		ctx, _ = context.WithTimeout(ctx, time.Duration(serverTimeoutSec)*time.Second)
+	}
+
 	msgs := make(chan *proto.Message, 10)
 	defer s.unsubscribe(s.subscribe(msgs))
 
