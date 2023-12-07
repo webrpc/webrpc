@@ -228,6 +228,10 @@ func (s *chatServer) serveSubscribeMessagesJSON(ctx context.Context, w http.Resp
 	defer cancel()
 
 	streamWriter := &subscribeMessageStreamWriter{streamWriter{w: w, f: f, e: json.NewEncoder(w), sendError: s.sendErrorJSON}}
+	if err := streamWriter.ping(); err != nil {
+		s.sendErrorJSON(w, r, ErrWebrpcStreamLost.WithCause(fmt.Errorf("failed to establish SSE stream: %w", err)))
+		return
+	}
 	go streamWriter.keepAlive(ctx)
 
 	// Call service method implementation.
