@@ -35,7 +35,7 @@ const abort = () => {
 
 // Subscribe to messages
 api.subscribeMessages(
-  { serverTimeoutSec: 10 },
+  { serverTimeoutSec: 1 },
   { onMessage, onError, onOpen, onClose, signal: abortSignal }
 );
 

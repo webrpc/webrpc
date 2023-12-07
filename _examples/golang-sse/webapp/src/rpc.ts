@@ -177,6 +177,7 @@ const sseResponse = async (
     }
     return;
   }
+
   if (!res.body) {
     onError(
       WebrpcBadResponseError.new({
@@ -197,44 +198,60 @@ const sseResponse = async (
     let value;
     let done;
     try {
+      console.log("going to read...");
+
       ({ value, done } = await reader.read());
+      buffer += decoder.decode(value, { stream: true });
+      console.log("finished reading...", buffer, done);
     } catch (error) {
       let message = "";
       if (error instanceof Error) {
         message = error.message;
       }
-      options.onError(
+      onError(
         WebrpcRequestFailedError.new({
           cause: `fetch(): ${message}`,
         })
       );
       return;
     }
-    if (done) {
-      onClose && onClose();
-      return;
-    }
-    buffer += decoder.decode(value);
+
     let lines = buffer.split("\n");
     for (let i = 0; i < lines.length - 1; i++) {
-      if (!lines[i]) {
+      if (lines[i].length == 0) {
         continue;
       }
       try {
-        let json = JSON.parse(lines[i]);
-        onMessage(json);
+        let data = JSON.parse(lines[i]);
+        if (data.hasOwnProperty("webrpcError")) {
+          const error = data.webrpcError;
+          const code: number = typeof error.code === "number" ? error.code : 0;
+          onError((webrpcErrorByCode[code] || WebrpcError).new(error));
+        } else {
+          onMessage(data);
+        }
       } catch (error) {
         let message = "";
         if (error instanceof Error) {
           message = error.message;
         }
-        throw WebrpcBadResponseError.new({
-          status: res.status,
-          cause: `JSON.parse(): ${message}`,
-        });
+        onError(
+          WebrpcBadResponseError.new({
+            status: res.status,
+            cause: `JSON.parse(): ${message}`,
+          })
+        );
       }
     }
-    buffer = lines[lines.length - 1];
+    console.log("read something..", done);
+
+    if (!done) {
+      buffer = lines[lines.length - 1];
+      continue;
+    }
+
+    onClose && onClose();
+    return;
   }
 };
 
@@ -386,6 +403,19 @@ export class WebrpcInternalErrorError extends WebrpcError {
   }
 }
 
+export class WebrpcStreamLostError extends WebrpcError {
+  constructor(
+    name: string = "WebrpcStreamLostError",
+    code: number = -8,
+    message: string = "stream lost",
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcStreamLostError.prototype);
+  }
+}
+
 // Schema errors
 
 export class ConnectionTerminatedError extends WebrpcError {
@@ -410,6 +440,7 @@ export enum errors {
   WebrpcBadResponse = "WebrpcBadResponse",
   WebrpcServerPanic = "WebrpcServerPanic",
   WebrpcInternalError = "WebrpcInternalError",
+  WebrpcStreamLostError = "WebrpcStreamLostError",
   ConnectionTerminated = "ConnectionTerminated",
 }
 
@@ -422,5 +453,6 @@ const webrpcErrorByCode: { [code: number]: any } = {
   [-5]: WebrpcBadResponseError,
   [-6]: WebrpcServerPanicError,
   [-7]: WebrpcInternalErrorError,
+  [-8]: WebrpcStreamLostError,
   [100]: ConnectionTerminatedError,
 };
