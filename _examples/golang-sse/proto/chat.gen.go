@@ -254,8 +254,7 @@ func (s *chatServer) sendErrorJSON(w http.ResponseWriter, r *http.Request, rpcEr
 		out := struct {
 			WebRPCError WebRPCError `json:"webrpcError"`
 		}{ WebRPCError: rpcErr }
-		respBody, _ := json.Marshal(out)
-		w.Write(respBody)
+		json.NewEncoder(w).Encode(out)
 		return	
 	}
 
