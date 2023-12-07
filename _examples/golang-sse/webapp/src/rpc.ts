@@ -175,6 +175,7 @@ const sseResponse = async (
     } catch (error) {
       onError(error as WebrpcError);
     }
+    return;
   }
   if (!res.body) {
     onError(
