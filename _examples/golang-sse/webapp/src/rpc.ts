@@ -117,15 +117,14 @@ export class Chat implements Chat {
     return this.fetch(
       this.url("SubscribeMessages"),
       createHTTPRequest(args, options)
-    )
-      .then(
-        async (res) => {
-          await sseResponse(res, options);
-        },
-        (error) => {
-          options.onError(error);
-        }
-      )
+    ).then(
+      async (res) => {
+        await sseResponse(res, options);
+      },
+      (error) => {
+        options.onError(error);
+      }
+    );
   };
 }
 
@@ -164,22 +163,26 @@ const buildResponse = (res: Response): Promise<any> => {
   });
 };
 
-const sseResponse = async (res: Response, options: WebrpcStreamOptions<any>) => {
+const sseResponse = async (
+  res: Response,
+  options: WebrpcStreamOptions<any>
+) => {
   const { onMessage, onOpen, onClose, onError } = options;
-  
+
   if (!res.ok) {
-    res.json().then((json) => {
-      const code: number = typeof json.code === "number" ? json.code : 0;
-      
-      onError((webrpcErrorByCode[code] || WebrpcError).new(json));
-      return;
-    });
+    try {
+      await buildResponse(res);
+    } catch (error) {
+      onError(error as WebrpcError);
+    }
   }
   if (!res.body) {
-    onError(WebrpcBadResponseError.new({
-      status: res.status,
-      cause: "Invalid response, missing body",
-    }));
+    onError(
+      WebrpcBadResponseError.new({
+        status: res.status,
+        cause: "Invalid response, missing body",
+      })
+    );
     return;
   }
 
@@ -201,12 +204,13 @@ const sseResponse = async (res: Response, options: WebrpcStreamOptions<any>) => 
       }
       options.onError(
         WebrpcRequestFailedError.new({
-         cause: `fetch(): ${message}`,
-       }))
+          cause: `fetch(): ${message}`,
+        })
+      );
       return;
     }
     if (done) {
-      onClose && onClose()
+      onClose && onClose();
       return;
     }
     buffer += decoder.decode(value);
