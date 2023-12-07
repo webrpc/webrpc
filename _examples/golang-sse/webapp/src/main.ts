@@ -10,29 +10,30 @@ const messages = signal<Message[]>([]);
 
 //Create message handlers
 const onMessage = (message: SubscribeMessagesReturn) => {
+  console.log("onMessage()", message);
   messages.value = [...messages.value, message.message];
 };
 
 const onError = (error: unknown) => {
-  console.error(error);
+  console.error("onError()", error);
 };
 
 const onOpen = () => {
-  console.log("Connected");
+  console.log("onOpen()");
 };
 
 const onClose = () => {
-  console.log("Conection closed");
+  console.log("onClose()");
 };
 
 const controller = new AbortController();
-const abortSignal = controller.signal
+const abortSignal = controller.signal;
 
 const abort = () => {
-  controller.abort()
-}
+  controller.abort();
+};
 
-//Subscribe to messages
+// Subscribe to messages
 api.subscribeMessages(
   { serverTimeoutSec: 10 },
   { onMessage, onError, onOpen, onClose, signal: abortSignal }
@@ -93,5 +94,7 @@ function randomUserName() {
 }
 
 // Abort on disconnect
-const disconnectButton = document.getElementById("disconnect") as HTMLButtonElement;
-disconnectButton.addEventListener("click", abort)
+const disconnectButton = document.getElementById(
+  "disconnect"
+) as HTMLButtonElement;
+disconnectButton.addEventListener("click", abort);
