@@ -41,8 +41,8 @@ export interface WebrpcStreamOptions<T> extends WebrpcOptions {
 
 export interface Message {
   id: number;
+  username: string;
   text: string;
-  authorName: string;
   createdAt: string;
 }
 
@@ -58,14 +58,14 @@ export interface Chat {
 }
 
 export interface SendMessageArgs {
-  authorName: string;
+  username: string;
   text: string;
 }
 
 export interface SendMessageReturn {}
 
 export interface SubscribeMessagesArgs {
-  serverTimeoutSec: number;
+  username: string;
 }
 
 export interface SubscribeMessagesReturn {
@@ -221,7 +221,7 @@ const sseResponse = async (
         onError(error);
       } else if (error instanceof DOMException && error.name === "AbortError") {
         onError(
-          WebrpcStreamLostError.new({
+          WebrpcRequestFailedError.new({
             cause: `AbortError: ${message}`,
           })
         );
@@ -262,7 +262,6 @@ const sseResponse = async (
         );
       }
     }
-    console.log("read something..", done);
 
     if (!done) {
       buffer = lines[lines.length - 1];
