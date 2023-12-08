@@ -162,16 +162,24 @@ test("call onError with WebrpcStreamLostError on stream error", async () => {
   expect(error).toEqual(new WebrpcStreamLostError());
 });
 
-test("call onError with WebrpcStreamLostError on stream timeout", async () => {
-  const mockFetch = createMockFetch({ closeStream: false });
-  const api = new Chat("", mockFetch);
-  let error: WebrpcError | undefined;
+test(
+  "call onError with WebrpcStreamLostError on stream timeout",
+  async () => {
+    const mockFetch = createMockFetch({ closeStream: false });
+    const api = new Chat("", mockFetch);
+    let error: WebrpcError | undefined;
 
-  const onError = (err: WebrpcError) => {
-    error = err;
-  };
+    const onError = (err: WebrpcError) => {
+      console.log("onError()", err);
+      error = err;
+    };
 
-  await api.subscribeMessages({ serverTimeoutSec: 10 }, { onMessage, onError });
+    await api.subscribeMessages(
+      { serverTimeoutSec: 10 },
+      { onMessage, onError }
+    );
 
-  expect(error).toEqual(new WebrpcStreamLostError());
-});
+    expect(error).toEqual(new WebrpcStreamLostError());
+  },
+  20 * 1000
+);

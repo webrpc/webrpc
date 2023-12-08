@@ -193,7 +193,7 @@ const sseResponse = async (
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
-  const timeout = 10 + 1 * 1000;
+  const timeout = (10 + 1) * 1000;
 
   while (true) {
     let value;
