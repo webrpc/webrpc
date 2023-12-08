@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"math/rand"
 	"sync"
@@ -24,15 +23,15 @@ func NewChatServer() *ChatServer {
 	}
 }
 
-func (s *ChatServer) SendMessage(ctx context.Context, authorName string, text string) error {
+func (s *ChatServer) SendMessage(ctx context.Context, username string, text string) error {
 	msg := &proto.Message{
-		Id:         uint64(rand.Uint64()),
-		AuthorName: authorName,
-		Text:       text,
+		Id:       uint64(rand.Uint64()),
+		Username: username,
+		Text:     text,
 	}
 
 	slog.Info("broadcasting message",
-		"author", msg.AuthorName,
+		"author", msg.Username,
 		"text", msg.Text,
 		"subscribers", len(s.subscriptions),
 	)
@@ -46,10 +45,9 @@ func (s *ChatServer) SendMessage(ctx context.Context, authorName string, text st
 	return nil
 }
 
-func (s *ChatServer) SubscribeMessages(ctx context.Context, serverTimeoutSec int, stream proto.SubscribeMessagesStreamWriter) error {
-	if serverTimeoutSec > 0 {
-		ctx, _ = context.WithTimeout(ctx, time.Duration(serverTimeoutSec)*time.Second)
-	}
+func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, stream proto.SubscribeMessagesStreamWriter) error {
+	maxConnectionDuration := 30 * time.Minute
+	ctx, _ = context.WithTimeout(ctx, maxConnectionDuration)
 
 	msgs := make(chan *proto.Message, 10)
 	defer s.unsubscribe(s.subscribe(msgs))
@@ -61,13 +59,7 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, serverTimeoutSec int
 			case context.Canceled:
 				return fmt.Errorf("client disconnected")
 			default:
-				stream.Write(&proto.Message{
-					Id:         uint64(rand.Uint64()),
-					AuthorName: "SERVER",
-					Text:       "shutting down",
-				})
-				log.Fatal("FATAL")
-				return proto.ErrConnectionTooLong.WithCause(fmt.Errorf("timed out after %vs", serverTimeoutSec))
+				return proto.ErrConnectionTooLong.WithCause(fmt.Errorf("timed out after %vs", maxConnectionDuration))
 			}
 
 		case msg := <-msgs:

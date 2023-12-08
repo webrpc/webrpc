@@ -41,8 +41,8 @@ func WebRPCSchemaHash() string {
 
 type Message struct {
 	Id         uint64    `json:"id"`
+	Username   string    `json:"username"`
 	Text       string    `json:"text"`
-	AuthorName string    `json:"authorName"`
 	CreatedAt  time.Time `json:"createdAt"`
 }
 
@@ -66,8 +66,8 @@ var WebRPCServices = map[string][]string{
 //
 
 type Chat interface {
-	SendMessage(ctx context.Context, authorName string, text string) error
-	SubscribeMessages(ctx context.Context, serverTimeoutSec int, stream SubscribeMessagesStreamWriter) error
+	SendMessage(ctx context.Context, username string, text string) error
+	SubscribeMessages(ctx context.Context, username string, stream SubscribeMessagesStreamWriter) error
 }
 
 type subscribeMessageStreamWriter struct {
@@ -87,8 +87,8 @@ func (w *streamWriter) Write(message *Message) error {
 //
 
 type ChatClient interface {
-	SendMessage(ctx context.Context, authorName string, text string) error
-	SubscribeMessages(ctx context.Context, serverTimeoutSec int) (SubscribeMessagesStreamReader, error)
+	SendMessage(ctx context.Context, username string, text string) error
+	SubscribeMessages(ctx context.Context, username string) (SubscribeMessagesStreamReader, error)
 }
 
 
@@ -205,7 +205,7 @@ func (s *chatServer) serveSubscribeMessagesJSON(ctx context.Context, w http.Resp
 	defer r.Body.Close()
 
 	reqPayload := struct {
-		Arg0 int `json:"serverTimeoutSec"`
+		Arg0 string `json:"username"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to unmarshal request data: %w", err)))
@@ -303,11 +303,11 @@ func NewChatClient(addr string, client HTTPClient) ChatClient {
 	}
 }
 
-func (c *chatClient) SendMessage(ctx context.Context, authorName string, text string) error {
+func (c *chatClient) SendMessage(ctx context.Context, username string, text string) error {
 	in := struct {
-		Arg0 string `json:"authorName"`
+		Arg0 string `json:"username"`
 		Arg1 string `json:"text"`
-	}{authorName, text}
+	}{username, text}
 	
 	err := doJSONRequest(ctx, c.client, c.urls[0], in, nil)
 	return err
@@ -349,10 +349,10 @@ func (r *subscribeMessagesStreamReader) Read() (*Message, error) {
 }
 
 
-func (c *chatClient) SubscribeMessages(ctx context.Context, serverTimeoutSec int) (SubscribeMessagesStreamReader, error) {
+func (c *chatClient) SubscribeMessages(ctx context.Context, username string) (SubscribeMessagesStreamReader, error) {
 	in := struct {
-		Arg0 int `json:"serverTimeoutSec"`
-	}{serverTimeoutSec}
+		Arg0 string `json:"username"`
+	}{username}
 
 	resp, err := doHTTPRequest(ctx, c.client, c.urls[1], in, nil)
 	if err != nil {
