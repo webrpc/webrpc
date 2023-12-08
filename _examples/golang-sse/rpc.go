@@ -52,6 +52,9 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, str
 	msgs := make(chan *proto.Message, 10)
 	defer s.unsubscribe(s.subscribe(msgs))
 
+	s.SendMessage(ctx, "SYSTEM", fmt.Sprintf("%v joined", username))
+	defer s.SendMessage(ctx, "SYSTEM", fmt.Sprintf("%v left", username))
+
 	for {
 		select {
 		case <-ctx.Done():
