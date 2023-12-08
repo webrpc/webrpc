@@ -70,7 +70,7 @@ type Chat interface {
 	SubscribeMessages(ctx context.Context, username string, stream SubscribeMessagesStreamWriter) error
 }
 
-type subscribeMessageStreamWriter struct {
+type subscribeMessagesStreamWriter struct {
 	streamWriter
 }
 
@@ -227,7 +227,7 @@ func (s *chatServer) serveSubscribeMessagesJSON(ctx context.Context, w http.Resp
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	streamWriter := &subscribeMessageStreamWriter{streamWriter{w: w, f: f, e: json.NewEncoder(w), sendError: s.sendErrorJSON}}
+	streamWriter := &subscribeMessagesStreamWriter{streamWriter{w: w, f: f, e: json.NewEncoder(w), sendError: s.sendErrorJSON}}
 	if err := streamWriter.ping(); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcStreamLost.WithCause(fmt.Errorf("failed to establish SSE stream: %w", err)))
 		return
