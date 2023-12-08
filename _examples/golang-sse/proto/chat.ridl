@@ -5,12 +5,12 @@ version = v1.0.0
 
 struct Message
   - id: uint64
+  - username: string
   - text: string
-  - authorName: string
   - createdAt: timestamp
 
 service Chat
-  - SendMessage(authorName: string, text: string)
-  - SubscribeMessages(serverTimeoutSec: int) => stream (messages: Message)
+  - SendMessage(username: string, text: string)
+  - SubscribeMessages(username: string) => stream (messages: Message)
 
-error 100 ConnectionTerminated "connection terminated after 2mins" HTTP 400
+error 100 ConnectionTerminated "connection terminated from server" HTTP 400
