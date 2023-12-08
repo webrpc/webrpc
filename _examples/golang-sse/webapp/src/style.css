@@ -3,7 +3,6 @@
 }
 
 body {
-  height: 100vh;
   margin: 0;
   padding: 0;
   font-family: "Open Sans", sans-serif;
@@ -43,6 +42,7 @@ header {
   background: #e4eaee;
   position: relative;
 }
+
 #log {
   padding: 10px;
 }
@@ -117,4 +117,19 @@ button {
   border-radius: 4px;
   padding: 10px;
   cursor: pointer;
+}
+
+#log > div {
+  padding-block: 7px;
+  border-bottom: 1px solid #cfdae1;
+}
+
+.error {
+  color: red;
+}
+.info {
+  color: green;
+}
+.warn {
+  color: orange;
 }

@@ -5,10 +5,11 @@ import "./style.css";
 //Create client
 const api = new Chat("http://localhost:4848", fetch);
 
-//Create signal for messages
+//Create signal for messages and log
 const messages = signal<Message[]>([]);
 
-const log = signal<string[]>([]);
+type Log = { type: "error" | "info" | "warn"; log: string };
+const log = signal<Log[]>([]);
 
 //Create message handlers
 const onMessage = (message: SubscribeMessagesReturn) => {
@@ -18,15 +19,17 @@ const onMessage = (message: SubscribeMessagesReturn) => {
 
 const onError = (error: WebrpcError) => {
   console.error("onError()", error);
+  log.value = [...log.value, { type: "error", log: String(error) }];
 };
 
 const onOpen = () => {
   console.log("onOpen()");
-  log.value = [...log.value, "Connected"];
+  log.value = [...log.value, { type: "info", log: "Connected" }];
 };
 
 const onClose = () => {
   console.log("onClose()");
+  log.value = [...log.value, { type: "warn", log: "Disconnected" }];
 };
 
 const username = randomUserName();
@@ -94,7 +97,9 @@ const logEl = document.querySelector("#log");
 effect(() => {
   if (logEl) {
     logEl.innerHTML = `
-      ${log.value.map((log) => `<div>${log}</div>`).join("")}
+      ${log.value
+        .map((log) => `<div class=${log.type}>${log.log}</div>`)
+        .join("")}
   `;
     logEl.scrollTo(0, logEl.scrollHeight);
   }
