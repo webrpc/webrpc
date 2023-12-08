@@ -6,16 +6,24 @@
     <title>Chat</title>
   </head>
   <body>
-    <div id="wrapper">
-      <div id="chatbox"></div>
-      <form id="message" action="">
-        <label
-          >Send Message:
-          <input name="text" />
-        </label>
-        <button type="submit">Send</button>
-      </form>
-      <button type="button" id="disconnect">Disconnect</button>
+    <div class="container">
+      <div class="chat-container">
+        <header>Chat</header>
+        <ul id="chat"></ul>
+        <footer>
+          <form id="message">
+            <input name="text" />
+            <button type="submit">Send</button>
+          </form>
+        </footer>
+      </div>
+      <div class="side-bar">
+        <header>Log</header>
+        <div id="log"></div>
+        <footer>
+          <button id="disconnect">Disconnect</button>
+        </footer>
+      </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

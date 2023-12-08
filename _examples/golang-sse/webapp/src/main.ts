@@ -8,6 +8,8 @@ const api = new Chat("http://localhost:5173", fetch);
 //Create signal for messages
 const messages = signal<Message[]>([]);
 
+const log = signal<string[]>([]);
+
 //Create message handlers
 const onMessage = (message: SubscribeMessagesReturn) => {
   console.log("onMessage()", message);
@@ -15,16 +17,19 @@ const onMessage = (message: SubscribeMessagesReturn) => {
 };
 
 const onError = (error: unknown) => {
-  console.error("onError()", error);
+  log.value = [...log.value, `Error: ${error}`];
 };
 
 const onOpen = () => {
+  log.value = [...log.value, "Connected"];
   console.log("onOpen()");
 };
 
 const onClose = () => {
   console.log("onClose()");
 };
+
+const username = randomUserName();
 
 const controller = new AbortController();
 const abortSignal = controller.signal;
@@ -35,12 +40,12 @@ const abort = () => {
 
 // Subscribe to messages
 api.subscribeMessages(
-  { serverTimeoutSec: 1 },
+  { username },
   { onMessage, onError, onOpen, onClose, signal: abortSignal }
 );
 
 // Update chatbox
-const chatbox = document.querySelector("#chatbox");
+const chatbox = document.querySelector("#chat");
 
 effect(() => {
   if (chatbox) {
@@ -48,7 +53,15 @@ effect(() => {
       ${messages.value
         .map(
           (message) => `
-          <p class="speechbubble">${message.text}<span class="username">${message.authorName}</span</p>`
+          <li>
+          <div class="name">
+            <span>${message.username}</span>
+					</div>
+          <div class="message">
+            ${message.text}
+          </div>
+          <div class="msg-time">${formatTime(message.createdAt)}</div>
+          </li>`
         )
         .join("")}
   `;
@@ -58,13 +71,12 @@ effect(() => {
 
 // Send new message on submit
 const form = document.querySelector("form") as HTMLFormElement;
-const authorName = randomUserName();
 
 function sendMessage(event: Event) {
   const textField = form.elements.namedItem("text") as HTMLInputElement;
   try {
     api.sendMessage({
-      authorName,
+      username,
       text: textField.value,
     });
   } catch (e) {
@@ -75,6 +87,24 @@ function sendMessage(event: Event) {
 }
 
 form.addEventListener("submit", sendMessage);
+
+// Update log
+const logEl = document.querySelector("#log");
+
+effect(() => {
+  if (logEl) {
+    logEl.innerHTML = `
+      ${log.value.map((log) => `<div>${log}</div>`).join("")}
+  `;
+    logEl.scrollTo(0, logEl.scrollHeight);
+  }
+});
+
+// Abort when disconnect button is clicked
+const disconnectButton = document.getElementById(
+  "disconnect"
+) as HTMLButtonElement;
+disconnectButton.addEventListener("click", abort);
 
 function randomUserName() {
   const names = [
@@ -93,8 +123,12 @@ function randomUserName() {
   return names[randomIndex];
 }
 
-// Abort on disconnect
-const disconnectButton = document.getElementById(
-  "disconnect"
-) as HTMLButtonElement;
-disconnectButton.addEventListener("click", abort);
+function formatTime(dateString: string) {
+  const date = new Date(dateString);
+  console.log(dateString);
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const seconds = date.getSeconds();
+
+  return `${hours}:${minutes}:${seconds}`;
+}
