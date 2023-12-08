@@ -19,7 +19,14 @@ const onMessage = (message: SubscribeMessagesReturn) => {
 
 const onError = (error: WebrpcError) => {
   console.error("onError()", error);
-  log.value = [...log.value, { type: "error", log: String(error) }];
+  if (error.message == "AbortError") {
+    log.value = [
+      ...log.value,
+      { type: "warn", log: "Connection closed by abort signal" },
+    ];
+  } else {
+    log.value = [...log.value, { type: "error", log: String(error) }];
+  }
 };
 
 const onOpen = () => {
