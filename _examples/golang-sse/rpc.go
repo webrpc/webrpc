@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"log/slog"
 	"math/rand"
 	"sync"
@@ -60,6 +61,12 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, serverTimeoutSec int
 			case context.Canceled:
 				return fmt.Errorf("client disconnected")
 			default:
+				stream.Write(&proto.Message{
+					Id:         uint64(rand.Uint64()),
+					AuthorName: "SERVER",
+					Text:       "shutting down",
+				})
+				log.Fatal("FATAL")
 				return proto.ErrConnectionTooLong.WithCause(fmt.Errorf("timed out after %vs", serverTimeoutSec))
 			}
 
