@@ -1,5 +1,5 @@
 import { effect, signal } from "@preact/signals-core";
-import { Chat, Message, SubscribeMessagesReturn } from "./rpc";
+import { Chat, Message, SubscribeMessagesReturn, WebrpcError } from "./rpc";
 import "./style.css";
 
 //Create client
@@ -16,13 +16,13 @@ const onMessage = (message: SubscribeMessagesReturn) => {
   messages.value = [...messages.value, message.message];
 };
 
-const onError = (error: unknown) => {
-  log.value = [...log.value, `Error: ${error}`];
+const onError = (error: WebrpcError) => {
+  console.error("onError()", error);
 };
 
 const onOpen = () => {
-  log.value = [...log.value, "Connected"];
   console.log("onOpen()");
+  log.value = [...log.value, "Connected"];
 };
 
 const onClose = () => {
@@ -125,7 +125,6 @@ function randomUserName() {
 
 function formatTime(dateString: string) {
   const date = new Date(dateString);
-  console.log(dateString);
   const hours = date.getHours();
   const minutes = date.getMinutes();
   const seconds = date.getSeconds();
