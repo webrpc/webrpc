@@ -28,9 +28,16 @@ header {
   font-weight: bold;
   font-size: 20px;
 }
+
 .chat-container {
   position: relative;
 }
+
+#chat {
+  height: 435px;
+  overflow: auto;
+}
+
 .side-bar {
   border-left: 1px solid #cfdae1;
   background: #e4eaee;
