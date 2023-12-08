@@ -170,7 +170,7 @@ func (s *chatServer) serveSendMessageJSON(ctx context.Context, w http.ResponseWr
 	defer r.Body.Close()
 
 	reqPayload := struct {
-		Arg0 string `json:"authorName"`
+		Arg0 string `json:"username"`
 		Arg1 string `json:"text"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
