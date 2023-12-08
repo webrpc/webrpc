@@ -193,26 +193,45 @@ const sseResponse = async (
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+  const timeout = 10 + 1 * 1000;
 
   while (true) {
     let value;
     let done;
     try {
-      console.log("going to read...");
-
-      ({ value, done } = await reader.read());
+      //@ts-ignore
+      ({ value, done } = await Promise.race([
+        reader.read(),
+        new Promise((_, reject) =>
+          setTimeout(
+            () =>
+              reject(WebrpcStreamLostError.new({ cause: "Stream timed out" })),
+            timeout
+          )
+        ),
+      ]));
       buffer += decoder.decode(value, { stream: true });
-      console.log("finished reading...", buffer, done);
     } catch (error) {
       let message = "";
       if (error instanceof Error) {
         message = error.message;
       }
-      onError(
-        WebrpcRequestFailedError.new({
-          cause: `fetch(): ${message}`,
-        })
-      );
+
+      if (error instanceof WebrpcStreamLostError) {
+        onError(error);
+      } else if (error instanceof DOMException && error.name === "AbortError") {
+        onError(
+          WebrpcStreamLostError.new({
+            cause: `AbortError: ${message}`,
+          })
+        );
+      } else {
+        onError(
+          WebrpcStreamLostError.new({
+            cause: `reader.read(): ${message}`,
+          })
+        );
+      }
       return;
     }
 

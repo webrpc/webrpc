@@ -6,6 +6,8 @@ import {
   SubscribeMessagesReturn,
   Message,
   WebrpcServerPanicError,
+  WebrpcRequestFailedError,
+  WebrpcStreamLostError,
 } from "../src/rpc";
 
 const data = [
@@ -29,11 +31,22 @@ const data = [
   },
 ] satisfies Message[];
 
-
 function createMockFetch(
-  { status, body }: { status?: number; body?: any } = {
+  {
+    status,
+    body,
+    errorAfter,
+    closeStream,
+  }: {
+    status?: number;
+    body?: any;
+    errorAfter?: number;
+    closeStream?: boolean;
+  } = {
     status: 200,
     body: undefined,
+    errorAfter: undefined,
+    closeStream: true,
   }
 ) {
   return function mockFetch(input: RequestInfo | URL, init?: RequestInit) {
@@ -46,7 +59,13 @@ function createMockFetch(
           controller.enqueue(buffer);
         });
 
-        controller.close();
+        if (errorAfter) {
+          setTimeout(() => {
+            controller.error();
+          }, errorAfter);
+        } else if (closeStream) {
+          controller.close();
+        }
       },
     });
 
@@ -63,8 +82,6 @@ function createMockFetch(
   };
 }
 
-
-
 let onMessage = (msg: any) => {};
 let onError = (err: WebrpcError) => {};
 
@@ -72,8 +89,6 @@ beforeEach(() => {
   onMessage = (msg: any) => {};
   onError = (err: WebrpcError) => {};
 });
-
-
 
 test("call onOpen right before opening stream", async () => {
   const mockFetch = createMockFetch();
@@ -131,4 +146,32 @@ test("call onError with WebrpcServerPanicError on server panic", async () => {
   await api.subscribeMessages({ serverTimeoutSec: 10 }, { onMessage, onError });
 
   expect(error).toEqual(new WebrpcServerPanicError());
+});
+
+test("call onError with WebrpcStreamLostError on stream error", async () => {
+  const mockFetch = createMockFetch({ errorAfter: 100 });
+  const api = new Chat("", mockFetch);
+  let error: WebrpcError | undefined;
+
+  const onError = (err: WebrpcError) => {
+    error = err;
+  };
+
+  await api.subscribeMessages({ serverTimeoutSec: 10 }, { onMessage, onError });
+
+  expect(error).toEqual(new WebrpcStreamLostError());
+});
+
+test("call onError with WebrpcStreamLostError on stream timeout", async () => {
+  const mockFetch = createMockFetch({ closeStream: false });
+  const api = new Chat("", mockFetch);
+  let error: WebrpcError | undefined;
+
+  const onError = (err: WebrpcError) => {
+    error = err;
+  };
+
+  await api.subscribeMessages({ serverTimeoutSec: 10 }, { onMessage, onError });
+
+  expect(error).toEqual(new WebrpcStreamLostError());
 });
