@@ -25,9 +25,10 @@ func NewChatServer() *ChatServer {
 
 func (s *ChatServer) SendMessage(ctx context.Context, username string, text string) error {
 	msg := &proto.Message{
-		Id:       uint64(rand.Uint64()),
-		Username: username,
-		Text:     text,
+		Id:        uint64(rand.Uint64()),
+		Username:  username,
+		Text:      text,
+		CreatedAt: time.Now(),
 	}
 
 	slog.Info("broadcasting message",

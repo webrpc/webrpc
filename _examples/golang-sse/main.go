@@ -30,30 +30,7 @@ func main() {
 func router() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
-	r.Use(func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			var reqBody bytes.Buffer
-			r.Body = io.NopCloser(io.TeeReader(r.Body, &reqBody))
-
-			var respBody bytes.Buffer
-			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
-			ww.Tee(&respBody)
-
-			slog.Info(fmt.Sprintf("req started"),
-				slog.String("url", fmt.Sprintf("%v %v", r.Method, r.URL.String())))
-
-			defer func() {
-				slog.Info(fmt.Sprintf("req finished HTTP %v", ww.Status()),
-					slog.String("url", fmt.Sprintf("%v %v", r.Method, r.URL.String())),
-					slog.String("reqBody", reqBody.String()),
-					slog.String("respBody", respBody.String()),
-				)
-			}()
-
-			next.ServeHTTP(ww, r)
-		}
-		return http.HandlerFunc(fn)
-	})
+	r.Use(requestDebugger)
 	r.Use(middleware.Recoverer)
 
 	cors := cors.New(cors.Options{
@@ -77,4 +54,29 @@ func router() http.Handler {
 	})
 
 	return r
+}
+
+func requestDebugger(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		var reqBody bytes.Buffer
+		r.Body = io.NopCloser(io.TeeReader(r.Body, &reqBody))
+
+		var respBody bytes.Buffer
+		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+		ww.Tee(&respBody)
+
+		slog.Info(fmt.Sprintf("req started"),
+			slog.String("url", fmt.Sprintf("%v %v", r.Method, r.URL.String())))
+
+		defer func() {
+			slog.Info(fmt.Sprintf("req finished HTTP %v", ww.Status()),
+				slog.String("url", fmt.Sprintf("%v %v", r.Method, r.URL.String())),
+				slog.String("reqBody", reqBody.String()),
+				slog.String("respBody", respBody.String()),
+			)
+		}()
+
+		next.ServeHTTP(ww, r)
+	}
+	return http.HandlerFunc(fn)
 }
