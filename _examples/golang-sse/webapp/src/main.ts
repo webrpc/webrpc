@@ -3,7 +3,7 @@ import { Chat, Message, SubscribeMessagesReturn } from "./rpc";
 import "./style.css";
 
 //Create client
-const api = new Chat("http://localhost:5173", fetch);
+const api = new Chat("http://localhost:4848", fetch);
 
 //Create signal for messages
 const messages = signal<Message[]>([]);
