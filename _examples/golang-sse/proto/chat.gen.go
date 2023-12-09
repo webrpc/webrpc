@@ -352,7 +352,13 @@ func (c *chatClient) SendMessage(ctx context.Context, username string, text stri
 		Arg1 string `json:"text"`
 	}{username, text}
 	
-	_, err := doHTTPRequest(ctx, c.client, c.urls[0], in, nil)
+	resp, err := doHTTPRequest(ctx, c.client, c.urls[0], in, nil)
+	defer func() {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
+		}
+	}()
 	return err
 }
 
