@@ -313,6 +313,19 @@ func (c *chatClient) SendMessage(ctx context.Context, username string, text stri
 	return err
 }
 
+func (c *chatClient) SubscribeMessages(ctx context.Context, username string) (SubscribeMessagesStreamReader, error) {
+	in := struct {
+		Arg0 string `json:"username"`
+	}{username}
+
+	resp, err := doHTTPRequest(ctx, c.client, c.urls[1], in, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &subscribeMessagesStreamReader{streamReader{d: json.NewDecoder(resp.Body), ctx: ctx}}, nil
+}
+
 type subscribeMessagesStreamReader struct {
 	streamReader
 }
@@ -346,20 +359,6 @@ func (r *subscribeMessagesStreamReader) Read() (*Message, error) {
 
 		return out.Ret0, nil
 	}
-}
-
-
-func (c *chatClient) SubscribeMessages(ctx context.Context, username string) (SubscribeMessagesStreamReader, error) {
-	in := struct {
-		Arg0 string `json:"username"`
-	}{username}
-
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[1], in, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &subscribeMessagesStreamReader{streamReader{d: json.NewDecoder(resp.Body), ctx: ctx}}, nil
 }
 
 // HTTPClient is the interface used by generated clients to send HTTP requests.
