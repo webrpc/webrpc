@@ -46,14 +46,6 @@ type Message struct {
 	CreatedAt  time.Time `json:"createdAt"`
 }
 
-type SubscribeMessagesStreamWriter interface {
-	Write(message *Message) error
-}
-
-type SubscribeMessagesStreamReader interface {
-	Read() (message *Message, err error)
-}
-
 var WebRPCServices = map[string][]string{
 	"Chat": {
 		"SendMessage",
@@ -70,8 +62,56 @@ type Chat interface {
 	SubscribeMessages(ctx context.Context, username string, stream SubscribeMessagesStreamWriter) error
 }
 
+type SubscribeMessagesStreamWriter interface {
+	Write(message *Message) error
+}
+
 type subscribeMessagesStreamWriter struct {
 	streamWriter
+}
+
+type streamWriter struct {
+	mu sync.Mutex // Guards concurrent writes to w.
+	w  http.ResponseWriter
+	f  http.Flusher
+	e  *json.Encoder
+
+	sendError func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
+}
+
+const StreamKeepAliveInterval = 10*time.Second
+
+func (w *streamWriter) keepAlive(ctx context.Context) {
+	for {
+		select {
+		case <-time.After(StreamKeepAliveInterval):
+			err := w.ping()
+			if err != nil {
+				return
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (w *streamWriter) ping() error {
+	defer w.f.Flush()
+
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	_, err := w.w.Write([]byte("\n"))
+	return err
+}
+
+func (w *streamWriter) write(respPayload interface{}) error {
+	defer w.f.Flush()
+
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	return w.e.Encode(respPayload)
 }
 
 func (w *streamWriter) Write(message *Message) error {
@@ -91,6 +131,9 @@ type ChatClient interface {
 	SubscribeMessages(ctx context.Context, username string) (SubscribeMessagesStreamReader, error)
 }
 
+type SubscribeMessagesStreamReader interface {
+	Read() (message *Message, err error)
+}
 
 //
 // Server
@@ -130,7 +173,7 @@ func (s *chatServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/rpc/Chat/SendMessage":
 		handler = s.serveSendMessageJSON
 	case "/rpc/Chat/SubscribeMessages":
-		handler = s.serveSubscribeMessagesJSON
+		handler = s.serveSubscribeMessagesNDJSON
 	default:
 		err := ErrWebrpcBadRoute.WithCause(fmt.Errorf("no handler for path %q", r.URL.Path))
 		s.sendErrorJSON(w, r, err)
@@ -194,7 +237,7 @@ func (s *chatServer) serveSendMessageJSON(ctx context.Context, w http.ResponseWr
 	w.Write([]byte("{}"))
 }
 
-func (s *chatServer) serveSubscribeMessagesJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *chatServer) serveSubscribeMessagesNDJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SubscribeMessages")
 
 	reqBody, err := io.ReadAll(r.Body)
@@ -361,6 +404,11 @@ func (r *subscribeMessagesStreamReader) Read() (*Message, error) {
 	}
 }
 
+type streamReader struct {
+	d   *json.Decoder
+	ctx context.Context
+}
+
 // HTTPClient is the interface used by generated clients to send HTTP requests.
 // It is fulfilled by *(net/http).Client, which is sufficient for most users.
 // Users can provide their own implementation for special retry policies.
@@ -518,57 +566,6 @@ func RequestFromContext(ctx context.Context) *http.Request {
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
 	w, _ := ctx.Value(HTTPResponseWriterCtxKey).(http.ResponseWriter)
 	return w
-}
-
-type streamWriter struct {
-	mu sync.Mutex // Guards concurrent writes to w.
-	w  http.ResponseWriter
-	f  http.Flusher
-	e  *json.Encoder
-	
-	sendError func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
-}
-
-const StreamKeepAliveInterval = 10*time.Second
-
-func (w *streamWriter) keepAlive(ctx context.Context) {
-	for {
-		select {
-		case <-time.After(StreamKeepAliveInterval):
-			err := w.ping()
-			if err != nil {
-				return
-			}
-		case <-ctx.Done():
-			return
-		}
-	}
-}
-
-func (w *streamWriter) ping() error {
-	defer w.f.Flush()
-
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	_, err := w.w.Write([]byte("\n"))
-	return err
-}
-
-func (w *streamWriter) write(respPayload interface{}) error {
-	defer w.f.Flush()
-
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	return w.e.Encode(respPayload)
-}
-
-// Stream reader
-
-type streamReader struct {
-	d   *json.Decoder
-	ctx context.Context
 }
 
 //
