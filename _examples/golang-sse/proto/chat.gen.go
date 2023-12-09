@@ -309,7 +309,7 @@ func (c *chatClient) SendMessage(ctx context.Context, username string, text stri
 		Arg1 string `json:"text"`
 	}{username, text}
 	
-	err := doJSONRequest(ctx, c.client, c.urls[0], in, nil)
+	_, err := doHTTPRequest(ctx, c.client, c.urls[0], in, nil)
 	return err
 }
 
@@ -401,7 +401,6 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 	return req, nil
 }
 
-
 // doHTTPRequest is common code to make a request to the remote service.
 func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
 	reqBody, err := json.Marshal(in)
@@ -451,68 +450,6 @@ func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out i
 	}
 
 	return resp, nil
-}
-
-// TODO: Remove in favor of doHTTPRequest
-// doJSONRequest is common code to make a request to the remote service.
-func doJSONRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) error {
-	reqBody, err := json.Marshal(in)
-	if err != nil {
-		return ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to marshal JSON body: %w", err))
-	}
-	if err = ctx.Err(); err != nil {
-		return ErrWebrpcRequestFailed.WithCause(fmt.Errorf("aborted because context was done: %w", err))
-	}
-
-	req, err := newRequest(ctx, url, bytes.NewBuffer(reqBody), "application/json")
-	if err != nil {
-		return ErrWebrpcRequestFailed.WithCause(fmt.Errorf("could not build request: %w", err))
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return ErrWebrpcRequestFailed.WithCause(err)
-	}
-
-	defer func() {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
-		}
-	}()
-
-	if err = ctx.Err(); err != nil {
-		return ErrWebrpcRequestFailed.WithCause(fmt.Errorf("aborted because context was done: %w", err))
-	}
-
-	if resp.StatusCode != 200 {
-		respBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to read server error response body: %w", err))
-		}
-
-		var rpcErr WebRPCError
-		if err := json.Unmarshal(respBody, &rpcErr); err != nil {
-			return ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to unmarshal server error: %w", err))
-		}
-		if rpcErr.Cause != "" {
-			rpcErr.cause = errors.New(rpcErr.Cause)
-		}
-		return rpcErr
-	}
-
-	if out != nil {
-		respBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to read response body: %w", err))
-		}
-
-		err = json.Unmarshal(respBody, &out)
-		if err != nil {
-			return ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to unmarshal JSON response body: %w", err))
-		}
-	}
-
-	return nil
 }
 
 func WithHTTPRequestHeaders(ctx context.Context, h http.Header) (context.Context, error) {
