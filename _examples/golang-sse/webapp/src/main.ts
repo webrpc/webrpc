@@ -1,17 +1,17 @@
 import { effect, signal } from "@preact/signals-core";
-import { Chat, Message, SubscribeMessagesReturn, WebrpcError } from "./rpc";
+import { Chat, Message, SubscribeMessagesReturn, WebrpcError } from "./rpc.gen";
 import "./style.css";
 
-//Create client
+// Create client
 const api = new Chat("http://localhost:4848", fetch);
 
-//Create signal for messages and log
+// Create signal for messages and log
 const messages = signal<Message[]>([]);
 
 type Log = { type: "error" | "info" | "warn"; log: string };
 const log = signal<Log[]>([]);
 
-//Create message handlers
+// Create message handlers
 const onMessage = (message: SubscribeMessagesReturn) => {
   console.log("onMessage()", message);
   messages.value = [...messages.value, message.message];
