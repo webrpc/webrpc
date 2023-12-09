@@ -372,7 +372,7 @@ func (c *chatClient) SubscribeMessages(ctx context.Context, username string) (Su
 		return nil, err
 	}
 
-	return &subscribeMessagesStreamReader{streamReader{d: json.NewDecoder(resp.Body), ctx: ctx}}, nil
+	return &subscribeMessagesStreamReader{streamReader{ctx: ctx, c: resp.Body, d: json.NewDecoder(resp.Body)}}, nil
 }
 
 type subscribeMessagesStreamReader struct {
@@ -380,39 +380,39 @@ type subscribeMessagesStreamReader struct {
 }
 
 func (r *subscribeMessagesStreamReader) Read() (*Message, error) {
-	for {
-		select {
-		case <-r.ctx.Done():
-			return nil, ErrWebrpcRequestFailed.WithCause(r.ctx.Err())
-		default:
-		}
-
-		var out struct{
-			Ret0 *Message `json:"message"`
-			WebRPCError *WebRPCError `json:"webrpcError"`
-		}
-
-		if err := r.d.Decode(&out); err != nil {
-			if errors.Is(err, io.EOF) {
-				return nil, ErrWebrpcStreamFinished.WithCause(err)
-			}
-			if errors.Is(err, io.ErrUnexpectedEOF) {
-				return nil, ErrWebrpcStreamLost.WithCause(err)	
-			}
-			return nil, ErrWebrpcBadResponse.WithCause(fmt.Errorf("decoding stream value: %w", err))
-		}
-
-		if out.WebRPCError != nil {
-			return nil, out.WebRPCError
-		}
-
-		return out.Ret0, nil
+	select {
+	case <-r.ctx.Done():
+		return nil, ErrWebrpcRequestFailed.WithCause(r.ctx.Err())
+	default:
 	}
+
+	var out struct{
+		Ret0 *Message `json:"message"`
+		WebRPCError *WebRPCError `json:"webrpcError"`
+	}
+
+	if err := r.d.Decode(&out); err != nil {
+		defer r.c.Close()
+		if errors.Is(err, io.EOF) {
+			return nil, ErrWebrpcStreamFinished.WithCause(err)
+		}
+		if errors.Is(err, io.ErrUnexpectedEOF) {
+			return nil, ErrWebrpcStreamLost.WithCause(err)	
+		}
+		return nil, ErrWebrpcBadResponse.WithCause(fmt.Errorf("decoding stream value: %w", err))
+	}
+
+	if out.WebRPCError != nil {
+		return nil, out.WebRPCError
+	}
+
+	return out.Ret0, nil
 }
 
 type streamReader struct {
-	d   *json.Decoder
 	ctx context.Context
+	c   io.Closer
+	d   *json.Decoder
 }
 
 // HTTPClient is the interface used by generated clients to send HTTP requests.
