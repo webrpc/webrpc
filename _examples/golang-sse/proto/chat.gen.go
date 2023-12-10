@@ -71,6 +71,16 @@ type subscribeMessagesStreamWriter struct {
 	streamWriter
 }
 
+func (w *subscribeMessagesStreamWriter) Write(message *Message) error {
+	out := struct {
+		Ret0 *Message `json:"message"`
+	}{
+		Ret0: message,
+	}
+
+	return w.streamWriter.write(out)
+}
+
 type streamWriter struct {
 	mu sync.Mutex // Guards concurrent writes to w.
 	w  http.ResponseWriter
@@ -115,14 +125,6 @@ func (w *streamWriter) write(respPayload interface{}) error {
 	return w.e.Encode(respPayload)
 }
 
-func (w *streamWriter) Write(message *Message) error {
-	respPayload := struct {
-		Arg0 *Message `json:"message"`
-	}{message}
-
-	return w.write(respPayload)
-}
-
 //
 // Client types
 //
@@ -135,6 +137,7 @@ type ChatClient interface {
 type SubscribeMessagesStreamReader interface {
 	Read() (message *Message, err error)
 }
+
 
 //
 // Server
@@ -174,7 +177,7 @@ func (s *chatServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/rpc/Chat/SendMessage":
 		handler = s.serveSendMessageJSON
 	case "/rpc/Chat/SubscribeMessages":
-		handler = s.serveSubscribeMessagesNDJSON
+		handler = s.serveSubscribeMessagesJSONStream
 	default:
 		err := ErrWebrpcBadRoute.WithCause(fmt.Errorf("no handler for path %q", r.URL.Path))
 		s.sendErrorJSON(w, r, err)
@@ -238,7 +241,7 @@ func (s *chatServer) serveSendMessageJSON(ctx context.Context, w http.ResponseWr
 	w.Write([]byte("{}"))
 }
 
-func (s *chatServer) serveSubscribeMessagesNDJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *chatServer) serveSubscribeMessagesJSONStream(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SubscribeMessages")
 
 	reqBody, err := io.ReadAll(r.Body)
@@ -353,17 +356,15 @@ func (c *chatClient) SendMessage(ctx context.Context, username string, text stri
 		Arg0 string `json:"username"`
 		Arg1 string `json:"text"`
 	}{username, text}
-	
+
 	resp, err := doHTTPRequest(ctx, c.client, c.urls[0], in, nil)
-	defer func() {
-		if resp != nil {
-			cerr := resp.Body.Close()
-			if err == nil && cerr != nil {
-				err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
-			}
+	if resp != nil {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
 		}
-	}()
-	
+	}
+
 	return err
 }
 
@@ -389,18 +390,18 @@ type subscribeMessagesStreamReader struct {
 }
 
 func (r *subscribeMessagesStreamReader) Read() (*Message, error) {
-	var out struct{
+	out := struct {
 		Ret0 *Message `json:"message"`
 		WebRPCError *WebRPCError `json:"webrpcError"`
-	}
+	}{}
 
 	err := r.streamReader.read(&out)
 	if err != nil {
-		return nil, err
+		return out.Ret0, err
 	}
 
 	if out.WebRPCError != nil {
-		return nil, out.WebRPCError
+		return out.Ret0, out.WebRPCError
 	}
 
 	return out.Ret0, nil
@@ -665,9 +666,9 @@ var (
 	ErrWebrpcBadResponse        = WebRPCError{Code: -5, Name: "WebrpcBadResponse", Message: "bad response", HTTPStatus: 500}
 	ErrWebrpcServerPanic        = WebRPCError{Code: -6, Name: "WebrpcServerPanic", Message: "server panic", HTTPStatus: 500}
 	ErrWebrpcInternalError      = WebRPCError{Code: -7, Name: "WebrpcInternalError", Message: "internal error", HTTPStatus: 500}
-	ErrWebrpcClientDisconnected = WebRPCError{Code: -8, Name: "WebrpcClientDisconnected", Message: "client disconnected", HTTPStatus: 400, cause: http.ErrAbortHandler}
+	ErrWebrpcClientDisconnected = WebRPCError{Code: -8, Name: "WebrpcClientDisconnected", Message: "client disconnected", HTTPStatus: 400}
 	ErrWebrpcStreamLost         = WebRPCError{Code: -9, Name: "WebrpcStreamLost", Message: "stream lost", HTTPStatus: 400}
-	ErrWebrpcStreamFinished     = WebRPCError{Code: -10, Name: "WebrpcStreamFinished", Message: "stream finished", HTTPStatus: 200, cause: io.EOF}
+	ErrWebrpcStreamFinished     = WebRPCError{Code: -10, Name: "WebrpcStreamFinished", Message: "stream finished", HTTPStatus: 200}
 )
 
 // Schema errors

@@ -13,4 +13,4 @@ service Chat
   - SendMessage(username: string, text: string)
   - SubscribeMessages(username: string) => stream (messages: Message)
 
-error 100 ErrEmptyUsername "Username can't be empty." HTTP 400
+error 100 EmptyUsername "Username can't be empty." HTTP 400
