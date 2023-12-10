@@ -422,11 +422,37 @@ export class WebrpcInternalErrorError extends WebrpcError {
   }
 }
 
+export class WebrpcClientDisconnectedError extends WebrpcError {
+  constructor(
+    name: string = "WebrpcClientDisconnected",
+    code: number = -8,
+    message: string = "client disconnected",
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcClientDisconnectedError.prototype);
+  }
+}
+
 export class WebrpcStreamLostError extends WebrpcError {
   constructor(
     name: string = "WebrpcStreamLostError",
-    code: number = -8,
+    code: number = -9,
     message: string = "stream lost",
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcStreamLostError.prototype);
+  }
+}
+
+export class WebrpcStreamFinishedError extends WebrpcError {
+  constructor(
+    name: string = "WebrpcStreamFinishedError",
+    code: number = -10,
+    message: string = "stream finished",
     status: number = 0,
     cause?: string
   ) {
@@ -437,16 +463,16 @@ export class WebrpcStreamLostError extends WebrpcError {
 
 // Schema errors
 
-export class ConnectionTerminatedError extends WebrpcError {
+export class EmptyUsernameError extends WebrpcError {
   constructor(
-    name: string = "ConnectionTerminated",
+    name: string = "EmptyUsername",
     code: number = 100,
     message: string = "connection terminated after 2mins",
     status: number = 0,
     cause?: string
   ) {
     super(name, code, message, status, cause);
-    Object.setPrototypeOf(this, ConnectionTerminatedError.prototype);
+    Object.setPrototypeOf(this, EmptyUsernameError.prototype);
   }
 }
 
@@ -459,8 +485,10 @@ export enum errors {
   WebrpcBadResponse = "WebrpcBadResponse",
   WebrpcServerPanic = "WebrpcServerPanic",
   WebrpcInternalError = "WebrpcInternalError",
+  WebrpcClientDisconnected = "WebrpcClientDisconnected",
   WebrpcStreamLostError = "WebrpcStreamLostError",
-  ConnectionTerminated = "ConnectionTerminated",
+  WebrpcStreamFinishedError = "WebrpcStreamFinishedError",
+  EmptyUsername = "EmptyUsername",
 }
 
 const webrpcErrorByCode: { [code: number]: any } = {
@@ -472,6 +500,8 @@ const webrpcErrorByCode: { [code: number]: any } = {
   [-5]: WebrpcBadResponseError,
   [-6]: WebrpcServerPanicError,
   [-7]: WebrpcInternalErrorError,
-  [-8]: WebrpcStreamLostError,
-  [100]: ConnectionTerminatedError,
+  [-8]: WebrpcClientDisconnectedError,
+  [-9]: WebrpcStreamLostError,
+  [-10]: WebrpcStreamFinishedError,
+  [100]: EmptyUsernameError,
 };
