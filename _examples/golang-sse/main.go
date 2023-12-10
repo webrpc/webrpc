@@ -18,16 +18,17 @@ import (
 
 func main() {
 	port := 4848
-
 	slog.Info(fmt.Sprintf("serving at http://localhost:%v", port))
 
-	err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%v", port), router())
+	rpc := NewChatServer()
+
+	err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%v", port), rpc.Router())
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func router() http.Handler {
+func (s *ChatServer) Router() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(requestDebugger)
@@ -45,8 +46,7 @@ func router() http.Handler {
 	})
 	r.Use(cors.Handler)
 
-	rpc := NewChatServer()
-	webrpcHandler := proto.NewChatServer(rpc)
+	webrpcHandler := proto.NewChatServer(s)
 	r.Handle("/*", webrpcHandler)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {

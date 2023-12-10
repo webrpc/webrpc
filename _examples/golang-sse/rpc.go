@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"math/rand"
 	"sync"
 	"time"
 
@@ -12,31 +10,31 @@ import (
 )
 
 type ChatServer struct {
-	mu            sync.Mutex
-	lastId        uint64
-	subscriptions map[uint64]chan *proto.Message
+	mu        sync.Mutex
+	msgId     uint64
+	lastSubId uint64
+	subs      map[uint64]chan *proto.Message
 }
 
 func NewChatServer() *ChatServer {
 	return &ChatServer{
-		subscriptions: map[uint64]chan *proto.Message{},
+		subs: map[uint64]chan *proto.Message{},
 	}
 }
 
 func (s *ChatServer) SendMessage(ctx context.Context, username string, text string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	msg := &proto.Message{
-		Id:        uint64(rand.Uint64()),
+		Id:        s.msgId,
 		Username:  username,
 		Text:      text,
 		CreatedAt: time.Now(),
 	}
+	s.msgId++
 
-	slog.Info("broadcasting message",
-		"author", msg.Username,
-		"text", msg.Text,
-		"subscribers", len(s.subscriptions),
-	)
-	for _, sub := range s.subscriptions {
+	for _, sub := range s.subs {
 		sub := sub
 		go func() {
 			sub <- msg
@@ -47,23 +45,24 @@ func (s *ChatServer) SendMessage(ctx context.Context, username string, text stri
 }
 
 func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, stream proto.SubscribeMessagesStreamWriter) error {
-	maxConnectionDuration := 30 * time.Minute
-	ctx, _ = context.WithTimeout(ctx, maxConnectionDuration)
-
-	msgs := make(chan *proto.Message, 10)
-	defer s.unsubscribe(s.subscribe(msgs))
+	if username == "" {
+		return proto.ErrEmptyUsername
+	}
 
 	s.SendMessage(ctx, "SYSTEM", fmt.Sprintf("%v joined", username))
 	defer s.SendMessage(ctx, "SYSTEM", fmt.Sprintf("%v left", username))
+
+	msgs := make(chan *proto.Message, 10)
+	defer s.unsubscribe(s.subscribe(msgs))
 
 	for {
 		select {
 		case <-ctx.Done():
 			switch err := ctx.Err(); err {
 			case context.Canceled:
-				return fmt.Errorf("client disconnected")
+				return proto.ErrWebrpcClientDisconnected
 			default:
-				return proto.ErrConnectionTooLong.WithCause(fmt.Errorf("timed out after %vs", maxConnectionDuration))
+				return proto.ErrWebrpcInternalError
 			}
 
 		case msg := <-msgs:
@@ -72,15 +71,17 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, str
 			}
 		}
 	}
+
+	return nil
 }
 
 func (s *ChatServer) subscribe(c chan *proto.Message) uint64 {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	id := s.lastId
-	s.subscriptions[id] = c
-	s.lastId++
+	id := s.lastSubId
+	s.subs[id] = c
+	s.lastSubId++
 
 	return id
 }
@@ -89,5 +90,5 @@ func (s *ChatServer) unsubscribe(subscriptionId uint64) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	delete(s.subscriptions, subscriptionId)
+	delete(s.subs, subscriptionId)
 }

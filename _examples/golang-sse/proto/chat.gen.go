@@ -16,8 +16,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 	"sync"
+	"time"
 )
 
 // WebRPC description and code-gen version
@@ -363,6 +363,7 @@ func (c *chatClient) SendMessage(ctx context.Context, username string, text stri
 			}
 		}
 	}()
+	
 	return err
 }
 
