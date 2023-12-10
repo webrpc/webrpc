@@ -11,6 +11,9 @@ var WebrpcErrors = []*schema.Error{
 	{Code: -5, Name: "WebrpcBadResponse", Message: "bad response", HTTPStatus: 500},
 	{Code: -6, Name: "WebrpcServerPanic", Message: "server panic", HTTPStatus: 500},
 	{Code: -7, Name: "WebrpcInternalError", Message: "internal error", HTTPStatus: 500},
+	{Code: -8, Name: "WebrpcClientDisconnected", Message: "client disconnected", HTTPStatus: 400},
+	{Code: -9, Name: "WebrpcStreamLost", Message: "stream lost", HTTPStatus: 400},
+	{Code: -10, Name: "WebrpcStreamFinished", Message: "stream finished", HTTPStatus: 200},
 	// Note: Do not change existing values. Append only.
 	// Keep the list short. Code and Name must be unique.
 }
