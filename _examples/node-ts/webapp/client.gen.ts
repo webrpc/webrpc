@@ -272,6 +272,45 @@ export class WebrpcInternalErrorError extends WebrpcError {
   }
 }
 
+export class WebrpcClientDisconnectedError extends WebrpcError {
+  constructor(
+    name: string = 'WebrpcClientDisconnected',
+    code: number = -8,
+    message: string = 'client disconnected',
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause)
+    Object.setPrototypeOf(this, WebrpcClientDisconnectedError.prototype)
+  }
+}
+
+export class WebrpcStreamLostError extends WebrpcError {
+  constructor(
+    name: string = 'WebrpcStreamLost',
+    code: number = -9,
+    message: string = 'stream lost',
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause)
+    Object.setPrototypeOf(this, WebrpcStreamLostError.prototype)
+  }
+}
+
+export class WebrpcStreamFinishedError extends WebrpcError {
+  constructor(
+    name: string = 'WebrpcStreamFinished',
+    code: number = -10,
+    message: string = 'stream finished',
+    status: number = 0,
+    cause?: string
+  ) {
+    super(name, code, message, status, cause)
+    Object.setPrototypeOf(this, WebrpcStreamFinishedError.prototype)
+  }
+}
+
 
 // Schema errors
 
@@ -285,6 +324,9 @@ export enum errors {
   WebrpcBadResponse = 'WebrpcBadResponse',
   WebrpcServerPanic = 'WebrpcServerPanic',
   WebrpcInternalError = 'WebrpcInternalError',
+  WebrpcClientDisconnected = 'WebrpcClientDisconnected',
+  WebrpcStreamLost = 'WebrpcStreamLost',
+  WebrpcStreamFinished = 'WebrpcStreamFinished',
 }
 
 const webrpcErrorByCode: { [code: number]: any } = {
@@ -296,6 +338,9 @@ const webrpcErrorByCode: { [code: number]: any } = {
   [-5]: WebrpcBadResponseError,
   [-6]: WebrpcServerPanicError,
   [-7]: WebrpcInternalErrorError,
+  [-8]: WebrpcClientDisconnectedError,
+  [-9]: WebrpcStreamLostError,
+  [-10]: WebrpcStreamFinishedError,
 }
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>

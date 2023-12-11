@@ -2537,7 +2537,7 @@
 	WebrpcGenVersion: (string) (len=11) "v0.14.0-dev",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcTarget: (string) (len=5) "debug",
-	WebrpcErrors: ([]*schema.Error) (len=8 cap=8) {
+	WebrpcErrors: ([]*schema.Error) (len=11 cap=11) {
 		(*schema.Error)({
 			Code: (int) 0,
 			Name: (string) (len=14) "WebrpcEndpoint",
@@ -2585,6 +2585,24 @@
 			Name: (string) (len=19) "WebrpcInternalError",
 			Message: (string) (len=14) "internal error",
 			HTTPStatus: (int) 500
+		}),
+		(*schema.Error)({
+			Code: (int) -8,
+			Name: (string) (len=24) "WebrpcClientDisconnected",
+			Message: (string) (len=19) "client disconnected",
+			HTTPStatus: (int) 400
+		}),
+		(*schema.Error)({
+			Code: (int) -9,
+			Name: (string) (len=16) "WebrpcStreamLost",
+			Message: (string) (len=11) "stream lost",
+			HTTPStatus: (int) 400
+		}),
+		(*schema.Error)({
+			Code: (int) -10,
+			Name: (string) (len=20) "WebrpcStreamFinished",
+			Message: (string) (len=15) "stream finished",
+			HTTPStatus: (int) 200
 		})
 	},
 	Opts: (map[string]interface {}) {
