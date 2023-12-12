@@ -7,6 +7,9 @@ const api = new Chat("http://localhost:4848", fetch);
 
 // Create signal for messages and log
 const messages = signal<Message[]>([]);
+const connectionStatus = signal<
+  "connected" | "error" | "aborted" | "disconnected"
+>("disconnected");
 
 type Log = { type: "error" | "info" | "warn"; log: string };
 const log = signal<Log[]>([]);
@@ -113,10 +116,28 @@ effect(() => {
 });
 
 // Abort when disconnect button is clicked
-const disconnectButton = document.getElementById(
-  "disconnect"
+const toggleConnectButton = document.getElementById(
+  "toggle-connect"
 ) as HTMLButtonElement;
-disconnectButton.addEventListener("click", abort);
+toggleConnectButton.addEventListener("click", toggleConnectHandler);
+
+effect(() => {
+  switch (connectionStatus.value) {
+    case "connected":
+      toggleConnectButton.innerText = "Disconnect";
+      toggleConnectButton.disabled = false;
+      break;
+    case "disconnected":
+    case "aborted":
+      toggleConnectButton.innerText = "Connect";
+      toggleConnectButton.disabled = false;
+      break;
+    case "error":
+      toggleConnectButton.innerText = "Connection error";
+      toggleConnectButton.disabled = true;
+      break;
+  }
+});
 
 function randomUserName() {
   const names = [
