@@ -10,6 +10,9 @@ const messages = signal<Message[]>([]);
 
 type Log = { type: "error" | "info" | "warn"; log: string };
 const log = signal<Log[]>([]);
+const appendLog = (logValue: Log) => {
+  log.value = [...log.value, logValue];
+};
 
 // Create message handlers
 const onMessage = (message: SubscribeMessagesReturn) => {
@@ -20,23 +23,20 @@ const onMessage = (message: SubscribeMessagesReturn) => {
 const onError = (error: WebrpcError) => {
   console.error("onError()", error);
   if (error.message == "AbortError") {
-    log.value = [
-      ...log.value,
-      { type: "warn", log: "Connection closed by abort signal" },
-    ];
+    appendLog({ type: "warn", log: "Connection closed by abort signal" });
   } else {
-    log.value = [...log.value, { type: "error", log: String(error) }];
+    appendLog({ type: "error", log: String(error) });
   }
 };
 
 const onOpen = () => {
   console.log("onOpen()");
-  log.value = [...log.value, { type: "info", log: "Connected" }];
+  appendLog({ type: "info", log: "Connected" });
 };
 
 const onClose = () => {
   console.log("onClose()");
-  log.value = [...log.value, { type: "warn", log: "Disconnected" }];
+  appendLog({ type: "info", log: "Disconnected" });
 };
 
 const username = randomUserName();
