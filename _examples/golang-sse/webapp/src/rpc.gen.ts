@@ -6,259 +6,294 @@
 // webrpc-gen -schema=_examples/golang-sse/proto/chat.ridl -target=../gen-typescript -client -out=_examples/golang-sse/webapp/src/rpc.gen.ts
 
 // WebRPC description and code-gen version
-export const WebRPCVersion = "v1"
+export const WebRPCVersion = "v1";
 
 // Schema version of your RIDL schema
-export const WebRPCSchemaVersion = "v1.0.0"
+export const WebRPCSchemaVersion = "v1.0.0";
 
 // Schema hash generated from your RIDL schema
-export const WebRPCSchemaHash = "288e70db8020a39e18ccc343a5be7c754b525a01"
+export const WebRPCSchemaHash = "288e70db8020a39e18ccc343a5be7c754b525a01";
 
 //
 // Types
 //
 
-
 export interface Message {
-  id: number
-  username: string
-  text: string
-  createdAt: string
+  id: number;
+  username: string;
+  text: string;
+  createdAt: string;
 }
 
 export interface Chat {
-  sendMessage(args: SendMessageArgs, headers?: object, signal?: AbortSignal): Promise<SendMessageReturn>
-  subscribeMessages(args: SubscribeMessagesArgs, options: WebrpcStreamOptions<SubscribeMessagesReturn>): Promise<void>
+  sendMessage(
+    args: SendMessageArgs,
+    headers?: object,
+    signal?: AbortSignal
+  ): Promise<SendMessageReturn>;
+  subscribeMessages(
+    args: SubscribeMessagesArgs,
+    options: WebrpcStreamOptions<SubscribeMessagesReturn>
+  ): Promise<void>;
 }
 
 export interface SendMessageArgs {
-  username: string
-  text: string
+  username: string;
+  text: string;
 }
 
-export interface SendMessageReturn {  
-}
+export interface SendMessageReturn {}
 export interface SubscribeMessagesArgs {
-  username: string
+  username: string;
 }
 
 export interface SubscribeMessagesReturn {
-  message: Message  
+  message: Message;
 }
 
-
-  
 //
 // Client
 //
 export class Chat implements Chat {
-  protected hostname: string
-  protected fetch: Fetch
-  protected path = '/rpc/Chat/'
+  protected hostname: string;
+  protected fetch: Fetch;
+  protected path = "/rpc/Chat/";
 
   constructor(hostname: string, fetch: Fetch) {
-    this.hostname = hostname
-    this.fetch = (input: RequestInfo, init?: RequestInit) => fetch(input, init)
+    this.hostname = hostname;
+    this.fetch = (input: RequestInfo, init?: RequestInit) => fetch(input, init);
   }
 
   private url(name: string): string {
-    return this.hostname + this.path + name
+    return this.hostname + this.path + name;
   }
-  
-    sendMessage = (args: SendMessageArgs, headers?: object, signal?: AbortSignal): Promise<SendMessageReturn> => {
-      return this.fetch(this.url('SendMessage'),
-        createHTTPRequest(args, headers, signal)
-      ).then((res) => {
-        return buildResponse(res).then(_data => {
-          return {}
-        })}, (error) => {throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error.message || ''}` })})
-    }
-  
-    subscribeMessages = (args: SubscribeMessagesArgs, options: WebrpcStreamOptions<SubscribeMessagesReturn>): Promise<void> => {
-      return this.fetch(this.url('SubscribeMessages'),createHTTPRequest(args, options.headers, options.signal)
-      ).then(
-      async(res) => {
-        await sseResponse(res, options)
+
+  sendMessage = (
+    args: SendMessageArgs,
+    headers?: object,
+    signal?: AbortSignal
+  ): Promise<SendMessageReturn> => {
+    return this.fetch(
+      this.url("SendMessage"),
+      createHTTPRequest(args, headers, signal)
+    ).then(
+      (res) => {
+        return buildResponse(res).then((_data) => {
+          return {};
+        });
       },
       (error) => {
-        options.onError(error)
-      })
-    }
-  
+        throw WebrpcRequestFailedError.new({
+          cause: `fetch(): ${error.message || ""}`,
+        });
+      }
+    );
+  };
+
+  subscribeMessages = (
+    args: SubscribeMessagesArgs,
+    options: WebrpcStreamOptions<SubscribeMessagesReturn>
+  ): Promise<void> => {
+    return this.fetch(
+      this.url("SubscribeMessages"),
+      createHTTPRequest(args, options.headers, options.signal)
+    ).then(
+      async (res) => {
+        await sseResponse(res, options);
+      },
+      (error) => {
+        options.onError(error);
+      }
+    );
+  };
 }
 
-    
 const sseResponse = async (
-    res: Response,
-    options: WebrpcStreamOptions<any>
+  res: Response,
+  options: WebrpcStreamOptions<any>
 ) => {
-    const {onMessage, onOpen, onClose, onError} = options;
+  const { onMessage, onOpen, onClose, onError } = options;
 
-    if (!res.ok) {
-        try {
-            await buildResponse(res);
-        } catch (error) {
-            onError(error as WebrpcError);
-        }
-        return;
+  if (!res.ok) {
+    try {
+      await buildResponse(res);
+    } catch (error) {
+      onError(error as WebrpcError);
     }
+    return;
+  }
 
-    if (!res.body) {
+  if (!res.body) {
+    onError(
+      WebrpcBadResponseError.new({
+        status: res.status,
+        cause: "Invalid response, missing body",
+      })
+    );
+    return;
+  }
+
+  onOpen && onOpen();
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  const timeout = (10 + 1) * 1000;
+
+  while (true) {
+    let value;
+    let done;
+    try {
+      //@ts-ignore
+      ({ value, done } = await Promise.race([
+        reader.read(),
+        new Promise((_, reject) =>
+          setTimeout(
+            () =>
+              reject(WebrpcStreamLostError.new({ cause: "Stream timed out" })),
+            timeout
+          )
+        ),
+      ]));
+      buffer += decoder.decode(value, { stream: true });
+    } catch (error) {
+      let message = "";
+      if (error instanceof Error) {
+        message = error.message;
+      }
+
+      if (error instanceof WebrpcStreamLostError) {
+        onError(error);
+      } else if (error instanceof DOMException && error.name === "AbortError") {
         onError(
-            WebrpcBadResponseError.new({
-                status: res.status,
-                cause: "Invalid response, missing body",
-            })
+          WebrpcRequestFailedError.new({
+            message: "AbortError",
+            cause: `AbortError: ${message}`,
+          })
         );
-        return;
+      } else {
+        onError(
+          WebrpcStreamLostError.new({
+            cause: `reader.read(): ${message}`,
+          })
+        );
+      }
+      return;
     }
 
-    onOpen && onOpen();
-
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    const timeout = (10 + 1) * 1000;
-
-    while (true) {
-        let value;
-        let done;
-        try {
-            //@ts-ignore
-            ({value, done} = await Promise.race([
-                reader.read(),
-                new Promise((_, reject) =>
-                    setTimeout(
-                        () =>
-                            reject(WebrpcStreamLostError.new({cause: "Stream timed out"})),
-                        timeout
-                    )
-                ),
-            ]));
-            buffer += decoder.decode(value, {stream: true});
-        } catch (error) {
-            let message = "";
-            if (error instanceof Error) {
-                message = error.message;
-            }
-
-            if (error instanceof WebrpcStreamLostError) {
-                onError(error);
-            } else if (error instanceof DOMException && error.name === "AbortError") {
-                onError(
-                    WebrpcRequestFailedError.new({
-                        message: "AbortError",
-                        cause: `AbortError: ${message}`,
-                    })
-                );
-            } else {
-                onError(
-                    WebrpcStreamLostError.new({
-                        cause: `reader.read(): ${message}`,
-                    })
-                );
-            }
-            return;
+    let lines = buffer.split("\n");
+    for (let i = 0; i < lines.length - 1; i++) {
+      if (lines[i].length == 0) {
+        continue;
+      }
+      try {
+        let data = JSON.parse(lines[i]);
+        if (data.hasOwnProperty("webrpcError")) {
+          const error = data.webrpcError;
+          const code: number = typeof error.code === "number" ? error.code : 0;
+          onError((webrpcErrorByCode[code] || WebrpcError).new(error));
+        } else {
+          onMessage(data);
         }
-
-        let lines = buffer.split("\n");
-        for (let i = 0; i < lines.length - 1; i++) {
-            if (lines[i].length == 0) {
-                continue;
-            }
-            try {
-                let data = JSON.parse(lines[i]);
-                if (data.hasOwnProperty("webrpcError")) {
-                    const error = data.webrpcError;
-                    const code: number = typeof error.code === "number" ? error.code : 0;
-                    onError((webrpcErrorByCode[code] || WebrpcError).new(error));
-                } else {
-                    onMessage(data);
-                }
-            } catch (error) {
-                let message = "";
-                if (error instanceof Error) {
-                    message = error.message;
-                }
-                onError(
-                    WebrpcBadResponseError.new({
-                        status: res.status,
-                        cause: `JSON.parse(): ${message}`,
-                    })
-                );
-            }
+      } catch (error) {
+        let message = "";
+        if (error instanceof Error) {
+          message = error.message;
         }
-
-        if (!done) {
-            buffer = lines[lines.length - 1];
-            continue;
-        }
-
-        onClose && onClose();
-        return;
+        onError(
+          WebrpcBadResponseError.new({
+            status: res.status,
+            cause: `JSON.parse(): ${message}`,
+          })
+        );
+      }
     }
+
+    if (!done) {
+      buffer = lines[lines.length - 1];
+      continue;
+    }
+
+    onClose && onClose();
+    return;
+  }
 };
 
-  
-  const createHTTPRequest = (body: object = {}, headers?: object, signal?: AbortSignal): object => {
+const createHTTPRequest = (
+  body: object = {},
+  headers?: object,
+  signal?: AbortSignal
+): object => {
   return {
-    method: 'POST',
-    headers: { ...headers, 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
     body: JSON.stringify(body || {}),
-    signal
-  }
-}
+    signal,
+  };
+};
 
 const buildResponse = (res: Response): Promise<any> => {
-  return res.text().then(text => {
-    let data
+  return res.text().then((text) => {
+    let data;
     try {
-      data = JSON.parse(text)
-    } catch(error) {
-      let message = ''
-      if (error instanceof Error)  {
-        message = error.message
+      data = JSON.parse(text);
+    } catch (error) {
+      let message = "";
+      if (error instanceof Error) {
+        message = error.message;
       }
       throw WebrpcBadResponseError.new({
         status: res.status,
-        cause: `JSON.parse(): ${message}: response text: ${text}`},
-      )
+        cause: `JSON.parse(): ${message}: response text: ${text}`,
+      });
     }
     if (!res.ok) {
-      const code: number = (typeof data.code === 'number') ? data.code : 0
-      throw (webrpcErrorByCode[code] || WebrpcError).new(data)
+      const code: number = typeof data.code === "number" ? data.code : 0;
+      throw (webrpcErrorByCode[code] || WebrpcError).new(data);
     }
-    return data
-  })
-}
+    return data;
+  });
+};
 
 //
 // Errors
 //
 
 export class WebrpcError extends Error {
-  name: string
-  code: number
-  message: string
-  status: number
-  cause?: string
+  name: string;
+  code: number;
+  message: string;
+  status: number;
+  cause?: string;
 
   /** @deprecated Use message instead of msg. Deprecated in webrpc v0.11.0. */
-  msg: string
+  msg: string;
 
-  constructor(name: string, code: number, message: string, status: number, cause?: string) {
-    super(message)
-    this.name = name || 'WebrpcError'
-    this.code = typeof code === 'number' ? code : 0
-    this.message = message || `endpoint error ${this.code}`
-    this.msg = this.message
-    this.status = typeof status === 'number' ? status : 0
-    this.cause = cause
-    Object.setPrototypeOf(this, WebrpcError.prototype)
+  constructor(
+    name: string,
+    code: number,
+    message: string,
+    status: number,
+    cause?: string
+  ) {
+    super(message);
+    this.name = name || "WebrpcError";
+    this.code = typeof code === "number" ? code : 0;
+    this.message = message || `endpoint error ${this.code}`;
+    this.msg = this.message;
+    this.status = typeof status === "number" ? status : 0;
+    this.cause = cause;
+    Object.setPrototypeOf(this, WebrpcError.prototype);
   }
 
   static new(payload: any): WebrpcError {
-    return new this(payload.error, payload.code, payload.message || payload.msg, payload.status, payload.cause)
+    return new this(
+      payload.error,
+      payload.code,
+      payload.message || payload.msg,
+      payload.status,
+      payload.cause
+    );
   }
 }
 
@@ -266,177 +301,175 @@ export class WebrpcError extends Error {
 
 export class WebrpcEndpointError extends WebrpcError {
   constructor(
-    name: string = 'WebrpcEndpoint',
+    name: string = "WebrpcEndpoint",
     code: number = 0,
     message: string = `endpoint error`,
     status: number = 0,
     cause?: string
   ) {
-    super(name, code, message, status, cause)
-    Object.setPrototypeOf(this, WebrpcEndpointError.prototype)
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcEndpointError.prototype);
   }
 }
 
 export class WebrpcRequestFailedError extends WebrpcError {
   constructor(
-    name: string = 'WebrpcRequestFailed',
+    name: string = "WebrpcRequestFailed",
     code: number = -1,
     message: string = `request failed`,
     status: number = 0,
     cause?: string
   ) {
-    super(name, code, message, status, cause)
-    Object.setPrototypeOf(this, WebrpcRequestFailedError.prototype)
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcRequestFailedError.prototype);
   }
 }
 
 export class WebrpcBadRouteError extends WebrpcError {
   constructor(
-    name: string = 'WebrpcBadRoute',
+    name: string = "WebrpcBadRoute",
     code: number = -2,
     message: string = `bad route`,
     status: number = 0,
     cause?: string
   ) {
-    super(name, code, message, status, cause)
-    Object.setPrototypeOf(this, WebrpcBadRouteError.prototype)
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcBadRouteError.prototype);
   }
 }
 
 export class WebrpcBadMethodError extends WebrpcError {
   constructor(
-    name: string = 'WebrpcBadMethod',
+    name: string = "WebrpcBadMethod",
     code: number = -3,
     message: string = `bad method`,
     status: number = 0,
     cause?: string
   ) {
-    super(name, code, message, status, cause)
-    Object.setPrototypeOf(this, WebrpcBadMethodError.prototype)
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcBadMethodError.prototype);
   }
 }
 
 export class WebrpcBadRequestError extends WebrpcError {
   constructor(
-    name: string = 'WebrpcBadRequest',
+    name: string = "WebrpcBadRequest",
     code: number = -4,
     message: string = `bad request`,
     status: number = 0,
     cause?: string
   ) {
-    super(name, code, message, status, cause)
-    Object.setPrototypeOf(this, WebrpcBadRequestError.prototype)
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcBadRequestError.prototype);
   }
 }
 
 export class WebrpcBadResponseError extends WebrpcError {
   constructor(
-    name: string = 'WebrpcBadResponse',
+    name: string = "WebrpcBadResponse",
     code: number = -5,
     message: string = `bad response`,
     status: number = 0,
     cause?: string
   ) {
-    super(name, code, message, status, cause)
-    Object.setPrototypeOf(this, WebrpcBadResponseError.prototype)
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcBadResponseError.prototype);
   }
 }
 
 export class WebrpcServerPanicError extends WebrpcError {
   constructor(
-    name: string = 'WebrpcServerPanic',
+    name: string = "WebrpcServerPanic",
     code: number = -6,
     message: string = `server panic`,
     status: number = 0,
     cause?: string
   ) {
-    super(name, code, message, status, cause)
-    Object.setPrototypeOf(this, WebrpcServerPanicError.prototype)
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcServerPanicError.prototype);
   }
 }
 
 export class WebrpcInternalErrorError extends WebrpcError {
   constructor(
-    name: string = 'WebrpcInternalError',
+    name: string = "WebrpcInternalError",
     code: number = -7,
     message: string = `internal error`,
     status: number = 0,
     cause?: string
   ) {
-    super(name, code, message, status, cause)
-    Object.setPrototypeOf(this, WebrpcInternalErrorError.prototype)
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcInternalErrorError.prototype);
   }
 }
 
 export class WebrpcClientDisconnectedError extends WebrpcError {
   constructor(
-    name: string = 'WebrpcClientDisconnected',
+    name: string = "WebrpcClientDisconnected",
     code: number = -8,
     message: string = `client disconnected`,
     status: number = 0,
     cause?: string
   ) {
-    super(name, code, message, status, cause)
-    Object.setPrototypeOf(this, WebrpcClientDisconnectedError.prototype)
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcClientDisconnectedError.prototype);
   }
 }
 
 export class WebrpcStreamLostError extends WebrpcError {
   constructor(
-    name: string = 'WebrpcStreamLost',
+    name: string = "WebrpcStreamLost",
     code: number = -9,
     message: string = `stream lost`,
     status: number = 0,
     cause?: string
   ) {
-    super(name, code, message, status, cause)
-    Object.setPrototypeOf(this, WebrpcStreamLostError.prototype)
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcStreamLostError.prototype);
   }
 }
 
 export class WebrpcStreamFinishedError extends WebrpcError {
   constructor(
-    name: string = 'WebrpcStreamFinished',
+    name: string = "WebrpcStreamFinished",
     code: number = -10,
     message: string = `stream finished`,
     status: number = 0,
     cause?: string
   ) {
-    super(name, code, message, status, cause)
-    Object.setPrototypeOf(this, WebrpcStreamFinishedError.prototype)
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, WebrpcStreamFinishedError.prototype);
   }
 }
-
 
 // Schema errors
 
 export class EmptyUsernameError extends WebrpcError {
   constructor(
-    name: string = 'EmptyUsername',
+    name: string = "EmptyUsername",
     code: number = 100,
     message: string = `Username must be provided.`,
     status: number = 0,
     cause?: string
   ) {
-    super(name, code, message, status, cause)
-    Object.setPrototypeOf(this, EmptyUsernameError.prototype)
+    super(name, code, message, status, cause);
+    Object.setPrototypeOf(this, EmptyUsernameError.prototype);
   }
 }
 
-
 export enum errors {
-  WebrpcEndpoint = 'WebrpcEndpoint',
-  WebrpcRequestFailed = 'WebrpcRequestFailed',
-  WebrpcBadRoute = 'WebrpcBadRoute',
-  WebrpcBadMethod = 'WebrpcBadMethod',
-  WebrpcBadRequest = 'WebrpcBadRequest',
-  WebrpcBadResponse = 'WebrpcBadResponse',
-  WebrpcServerPanic = 'WebrpcServerPanic',
-  WebrpcInternalError = 'WebrpcInternalError',
-  WebrpcClientDisconnected = 'WebrpcClientDisconnected',
-  WebrpcStreamLost = 'WebrpcStreamLost',
-  WebrpcStreamFinished = 'WebrpcStreamFinished',
-  EmptyUsername = 'EmptyUsername',
+  WebrpcEndpoint = "WebrpcEndpoint",
+  WebrpcRequestFailed = "WebrpcRequestFailed",
+  WebrpcBadRoute = "WebrpcBadRoute",
+  WebrpcBadMethod = "WebrpcBadMethod",
+  WebrpcBadRequest = "WebrpcBadRequest",
+  WebrpcBadResponse = "WebrpcBadResponse",
+  WebrpcServerPanic = "WebrpcServerPanic",
+  WebrpcInternalError = "WebrpcInternalError",
+  WebrpcClientDisconnected = "WebrpcClientDisconnected",
+  WebrpcStreamLost = "WebrpcStreamLost",
+  WebrpcStreamFinished = "WebrpcStreamFinished",
+  EmptyUsername = "EmptyUsername",
 }
 
 const webrpcErrorByCode: { [code: number]: any } = {
@@ -452,15 +485,17 @@ const webrpcErrorByCode: { [code: number]: any } = {
   [-9]: WebrpcStreamLostError,
   [-10]: WebrpcStreamFinishedError,
   [100]: EmptyUsernameError,
-}
+};
 
-export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
+export type Fetch = (
+  input: RequestInfo,
+  init?: RequestInit
+) => Promise<Response>;
 
 export interface WebrpcOptions {
   headers?: HeadersInit;
   signal?: AbortSignal;
 }
-
 
 export interface WebrpcStreamOptions<T> extends WebrpcOptions {
   onMessage: (message: T) => void;
@@ -468,4 +503,3 @@ export interface WebrpcStreamOptions<T> extends WebrpcOptions {
   onOpen?: () => void;
   onClose?: () => void;
 }
-
