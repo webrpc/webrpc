@@ -45,7 +45,10 @@ header {
 
 #log {
   padding: 10px;
+  height: 435px;
+  overflow: auto;
 }
+
 #toggle-connect {
   margin-left: auto;
 }
