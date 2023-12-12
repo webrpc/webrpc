@@ -141,87 +141,91 @@ const sseResponse = async (
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+  let lastReadTime = Date.now();
   const timeout = (10 + 1) * 1000;
+  let intervalId: any;
 
-  while (true) {
-    let value;
-    let done;
-    try {
-      //@ts-ignore
-      ({ value, done } = await Promise.race([
-        reader.read(),
-        new Promise((_, reject) =>
-          setTimeout(
-            () =>
-              reject(WebrpcStreamLostError.new({ cause: "Stream timed out" })),
-            timeout
-          )
-        ),
-      ]));
-      buffer += decoder.decode(value, { stream: true });
-    } catch (error) {
-      let message = "";
-      if (error instanceof Error) {
-        message = error.message;
+  try {
+    intervalId = setInterval(() => {
+      if (Date.now() - lastReadTime > timeout) {
+        throw WebrpcStreamLostError.new({ cause: "Stream timed out" });
       }
+    }, timeout);
 
-      if (error instanceof WebrpcStreamLostError) {
-        onError(error);
-      } else if (error instanceof DOMException && error.name === "AbortError") {
-        onError(
-          WebrpcRequestFailedError.new({
-            message: "AbortError",
-            cause: `AbortError: ${message}`,
-          }),
-          retryFetch
-        );
-      } else {
-        onError(
-          WebrpcStreamLostError.new({
-            cause: `reader.read(): ${message}`,
-          }),
-          retryFetch
-        );
-      }
-      return;
-    }
-
-    let lines = buffer.split("\n");
-    for (let i = 0; i < lines.length - 1; i++) {
-      if (lines[i].length == 0) {
-        continue;
-      }
+    while (true) {
+      let value;
+      let done;
       try {
-        let data = JSON.parse(lines[i]);
-        if (data.hasOwnProperty("webrpcError")) {
-          const error = data.webrpcError;
-          const code: number = typeof error.code === "number" ? error.code : 0;
-          onError((webrpcErrorByCode[code] || WebrpcError).new(error));
-        } else {
-          onMessage(data);
-        }
+        ({ value, done } = await reader.read());
+        buffer += decoder.decode(value, { stream: true });
       } catch (error) {
         let message = "";
         if (error instanceof Error) {
           message = error.message;
         }
-        onError(
-          WebrpcBadResponseError.new({
-            status: res.status,
-            cause: `JSON.parse(): ${message}`,
-          }),
-          retryFetch
-        );
+
+        if (error instanceof DOMException && error.name === "AbortError") {
+          onError(
+            WebrpcRequestFailedError.new({
+              message: "AbortError",
+              cause: `AbortError: ${message}`,
+            }),
+            retryFetch
+          );
+        } else {
+          onError(
+            WebrpcStreamLostError.new({
+              cause: `reader.read(): ${message}`,
+            }),
+            retryFetch
+          );
+        }
+        return;
       }
-    }
 
-    if (!done) {
-      buffer = lines[lines.length - 1];
-      continue;
-    }
+      let lines = buffer.split("\n");
+      for (let i = 0; i < lines.length - 1; i++) {
+        if (lines[i].length == 0) {
+          continue;
+        }
+        try {
+          let data = JSON.parse(lines[i]);
+          if (data.hasOwnProperty("webrpcError")) {
+            const error = data.webrpcError;
+            const code: number =
+              typeof error.code === "number" ? error.code : 0;
+            onError((webrpcErrorByCode[code] || WebrpcError).new(error));
+          } else {
+            onMessage(data);
+          }
+        } catch (error) {
+          let message = "";
+          if (error instanceof Error) {
+            message = error.message;
+          }
+          onError(
+            WebrpcBadResponseError.new({
+              status: res.status,
+              cause: `JSON.parse(): ${message}`,
+            }),
+            retryFetch
+          );
+        }
+      }
 
-    onClose && onClose();
-    return;
+      if (!done) {
+        buffer = lines[lines.length - 1];
+        continue;
+      }
+
+      onClose && onClose();
+      return;
+    }
+  } catch (error) {
+    clearInterval(intervalId);
+    // WebrpcStreamLostError is thrown when the stream is lost
+    // @ts-ignore
+    onError(error, retryFetch);
   }
 };
 
