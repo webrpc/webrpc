@@ -222,10 +222,11 @@ const sseResponse = async (
       return;
     }
   } catch (error) {
-    clearInterval(intervalId);
     // WebrpcStreamLostError is thrown when the stream is lost
     // @ts-ignore
     onError(error, retryFetch);
+  } finally {
+    clearInterval(intervalId);
   }
 };
 
