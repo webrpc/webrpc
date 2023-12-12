@@ -157,6 +157,7 @@ const sseResponse = async (
       let done;
       try {
         ({ value, done } = await reader.read());
+        lastReadTime = Date.now();
         buffer += decoder.decode(value, { stream: true });
       } catch (error) {
         let message = "";
