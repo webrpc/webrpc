@@ -23,7 +23,7 @@ const onMessage = (message: SubscribeMessagesReturn) => {
   messages.value = [...messages.value, message.message];
 };
 
-const onError = (error: WebrpcError) => {
+  connectionStatus.value = "error";
   console.error("onError()", error);
   if (error.message == "AbortError") {
     appendLog({ type: "warn", log: "Connection closed by abort signal" });
@@ -34,11 +34,13 @@ const onError = (error: WebrpcError) => {
 
 const onOpen = () => {
   console.log("onOpen()");
+  connectionStatus.value = "connected";
   appendLog({ type: "info", log: "Connected" });
 };
 
 const onClose = () => {
   console.log("onClose()");
+  connectionStatus.value = "disconnected";
   appendLog({ type: "info", log: "Disconnected" });
 };
 
