@@ -23,12 +23,28 @@ const onMessage = (message: SubscribeMessagesReturn) => {
   messages.value = [...messages.value, message.message];
 };
 
+let retryCount = 0;
+const maxDelay = 30; // seconds
+
+const onError = (error: WebrpcError, reconnect?: () => void) => {
   connectionStatus.value = "error";
   console.error("onError()", error);
   if (error.message == "AbortError") {
+    connectionStatus.value = "aborted";
     appendLog({ type: "warn", log: "Connection closed by abort signal" });
+    // TODO: Reconnect
   } else {
+    appendLog({ type: "error", log: "Lost connection" });
     appendLog({ type: "error", log: String(error) });
+    if (reconnect) {
+      appendLog({
+        type: "warn",
+        log: `Attempting reconnect ${retryCount + 1}`,
+      });
+      retryCount++;
+      const backoffTime = Math.min(maxDelay, Math.pow(2, retryCount)) * 1000;
+      setTimeout(reconnect, backoffTime);
+    }
   }
 };
 
@@ -49,8 +65,13 @@ const username = randomUserName();
 const controller = new AbortController();
 const abortSignal = controller.signal;
 
-const abort = () => {
-  controller.abort();
+const toggleConnectHandler = () => {
+  if (connectionStatus.value == "connected") {
+    controller.abort();
+    connectionStatus.value = "aborted";
+  } else if (connectionStatus.value == "aborted") {
+    // reconnect();
+  }
 };
 
 // Subscribe to messages
