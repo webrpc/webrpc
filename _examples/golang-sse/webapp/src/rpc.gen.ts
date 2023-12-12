@@ -94,23 +94,26 @@ export class Chat implements Chat {
     args: SubscribeMessagesArgs,
     options: WebrpcStreamOptions<SubscribeMessagesReturn>
   ): Promise<void> => {
-    return this.fetch(
-      this.url("SubscribeMessages"),
-      createHTTPRequest(args, options.headers, options.signal)
-    ).then(
-      async (res) => {
-        await sseResponse(res, options);
-      },
-      (error) => {
-        options.onError(error);
-      }
-    );
+    const _fetch = () =>
+      this.fetch(
+        this.url("SubscribeMessages"),
+        createHTTPRequest(args, options.headers, options.signal)
+      ).then(
+        async (res) => {
+          await sseResponse(res, options, _fetch);
+        },
+        (error) => {
+          options.onError(error, _fetch);
+        }
+      );
+    return _fetch();
   };
 }
 
 const sseResponse = async (
   res: Response,
-  options: WebrpcStreamOptions<any>
+  options: WebrpcStreamOptions<any>,
+  retryFetch: () => Promise<void>
 ) => {
   const { onMessage, onOpen, onClose, onError } = options;
 
@@ -118,7 +121,7 @@ const sseResponse = async (
     try {
       await buildResponse(res);
     } catch (error) {
-      onError(error as WebrpcError);
+      onError(error as WebrpcError, retryFetch);
     }
     return;
   }
@@ -169,13 +172,15 @@ const sseResponse = async (
           WebrpcRequestFailedError.new({
             message: "AbortError",
             cause: `AbortError: ${message}`,
-          })
+          }),
+          retryFetch
         );
       } else {
         onError(
           WebrpcStreamLostError.new({
             cause: `reader.read(): ${message}`,
-          })
+          }),
+          retryFetch
         );
       }
       return;
@@ -204,7 +209,8 @@ const sseResponse = async (
           WebrpcBadResponseError.new({
             status: res.status,
             cause: `JSON.parse(): ${message}`,
-          })
+          }),
+          retryFetch
         );
       }
     }
@@ -499,7 +505,7 @@ export interface WebrpcOptions {
 
 export interface WebrpcStreamOptions<T> extends WebrpcOptions {
   onMessage: (message: T) => void;
-  onError: (error: WebrpcError) => void;
+  onError: (error: WebrpcError, reconnect?: () => void) => void;
   onOpen?: () => void;
   onClose?: () => void;
 }
