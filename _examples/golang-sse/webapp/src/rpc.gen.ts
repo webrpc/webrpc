@@ -522,9 +522,7 @@ export interface WebrpcOptions {
 
 export interface WebrpcStreamOptions<T> extends WebrpcOptions {
   onMessage: (message: T) => void;
-  onError:
-    | ((error: WebrpcError) => void)
-    | ((error: WebrpcError, reconnect: () => void) => void);
+  onError: (error: WebrpcError, reconnect: () => void) => void;
   onOpen?: () => void;
   onClose?: () => void;
 }
