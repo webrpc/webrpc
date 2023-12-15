@@ -201,18 +201,16 @@ const sseResponse = async (
               (webrpcErrorByCode[code] || WebrpcError).new(error),
               retryFetch
             );
+            return;
           } else {
             onMessage(data);
           }
         } catch (error) {
-          let message = "";
-          if (error instanceof Error) {
-            message = error.message;
-          }
           onError(
             WebrpcBadResponseError.new({
               status: res.status,
-              cause: `JSON.parse(): ${message}`,
+              // @ts-ignore
+              cause: `JSON.parse(): ${error.message}`,
             }),
             retryFetch
           );
