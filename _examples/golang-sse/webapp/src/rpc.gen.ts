@@ -121,7 +121,8 @@ const sseResponse = async (
     try {
       await buildResponse(res);
     } catch (error) {
-      onError(error as WebrpcError, retryFetch);
+      // @ts-ignore
+      onError(error, retryFetch);
     }
     return;
   }
@@ -131,7 +132,8 @@ const sseResponse = async (
       WebrpcBadResponseError.new({
         status: res.status,
         cause: "Invalid response, missing body",
-      })
+      }),
+      retryFetch
     );
     return;
   }
@@ -171,7 +173,7 @@ const sseResponse = async (
               message: "AbortError",
               cause: `AbortError: ${message}`,
             }),
-            retryFetch
+            () => {} // this cant be retried, what do we do?
           );
         } else {
           onError(
@@ -195,7 +197,10 @@ const sseResponse = async (
             const error = data.webrpcError;
             const code: number =
               typeof error.code === "number" ? error.code : 0;
-            onError((webrpcErrorByCode[code] || WebrpcError).new(error));
+            onError(
+              (webrpcErrorByCode[code] || WebrpcError).new(error),
+              retryFetch
+            );
           } else {
             onMessage(data);
           }
@@ -511,7 +516,9 @@ export interface WebrpcOptions {
 
 export interface WebrpcStreamOptions<T> extends WebrpcOptions {
   onMessage: (message: T) => void;
-  onError: (error: WebrpcError, reconnect?: () => void) => void;
+  onError:
+    | ((error: WebrpcError) => void)
+    | ((error: WebrpcError, reconnect: () => void) => void);
   onOpen?: () => void;
   onClose?: () => void;
 }
