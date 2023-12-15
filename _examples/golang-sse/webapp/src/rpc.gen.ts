@@ -173,7 +173,9 @@ const sseResponse = async (
               message: "AbortError",
               cause: `AbortError: ${message}`,
             }),
-            () => {} // this cant be retried, what do we do?
+            () => {
+              throw new Error("Abort signal cannot be used to reconnect");
+            }
           );
         } else {
           onError(
@@ -206,6 +208,12 @@ const sseResponse = async (
             onMessage(data);
           }
         } catch (error) {
+          if (
+            error instanceof Error &&
+            error.message === "Abort signal cannot be used to reconnect"
+          ) {
+            throw error;
+          }
           onError(
             WebrpcBadResponseError.new({
               status: res.status,
