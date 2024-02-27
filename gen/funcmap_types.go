@@ -33,21 +33,21 @@ func isStructType(v interface{}) (bool, error) {
 }
 
 // Returns true if given type is enum.
-func isEnumType(v interface{}) (bool, error) {
+func isEnumType(v interface{}) bool {
 	switch t := v.(type) {
 	case schema.Type:
-		return t.Kind == "enum", nil
+		return t.Kind == "enum"
 	case *schema.Type:
-		return t.Kind == "enum", nil
+		return t.Kind == "enum"
 	case schema.VarType:
-		return t.Struct.Type.Kind == "enum", nil
+		return t.Struct.Type.Kind == "enum"
 	case *schema.VarType:
 		if t != nil {
-			return t.Struct.Type.Kind == "enum", nil
+			return t.Struct.Type.Kind == "enum"
 		}
-		return false, nil
+		return false
 	default:
-		return false, fmt.Errorf("isEnumType(): unexpected type %T: %+v", v, v)
+		return false
 	}
 }
 
