@@ -8,6 +8,10 @@ enum Kind: uint32
   - USER
   - ADMIN
 
+enum Intent: string
+  - openSession
+  - closeSession
+  - validateSession
 
 struct Empty
 
@@ -24,6 +28,12 @@ struct User
 
   - role: string
     + go.tag.db = -
+
+  - kind: Kind
+    + json = kind
+
+  - intent: Intent
+    + json = intent
 
 struct SearchFilter
   - q: string

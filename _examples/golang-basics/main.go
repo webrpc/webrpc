@@ -60,9 +60,14 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]strin
 		return 0, nil, ErrorWithCause(ErrUserNotFound, fmt.Errorf("unknown user id %d", userID))
 	}
 
+	kind := Kind_ADMIN
+	intent := Intent_openSession
+
 	return 200, &User{
 		ID:       userID,
 		Username: "hihi",
+		Kind:     &kind,
+		Intent:   &intent,
 	}, nil
 }
 

@@ -126,8 +126,9 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 
 		// ensure enum type is one of the allowed types.. aka integer
 		fieldType := t.Type
-		if !isValidVarType(fieldType.String(), VarIntegerCoreTypes) {
-			return fmt.Errorf("schema error: enum '%s' field '%s' is invalid. must be an integer type.", t.Name, fieldType.String())
+		validCoreTypes := append(VarIntegerCoreTypes, T_String)
+		if !isValidVarType(fieldType.String(), validCoreTypes) {
+			return fmt.Errorf("schema error: enum '%s' field '%s' is invalid. must be an integer type", t.Name, fieldType.String())
 		}
 	}
 
