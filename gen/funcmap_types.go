@@ -14,21 +14,21 @@ func isCoreType(v interface{}) bool {
 }
 
 // Returns true if given type is struct.
-func isStructType(v interface{}) (bool, error) {
+func isStructType(v interface{}) bool {
 	switch t := v.(type) {
 	case schema.Type:
-		return t.Kind == "struct", nil
+		return t.Kind == "struct"
 	case *schema.Type:
-		return t.Kind == "struct", nil
+		return t.Kind == "struct"
 	case schema.VarType:
-		return t.Type == schema.T_Struct, nil
+		return t.Type == schema.T_Struct
 	case *schema.VarType:
 		if t != nil {
-			return t.Type == schema.T_Struct, nil
+			return t.Type == schema.T_Struct
 		}
-		return false, nil
+		return false
 	default:
-		return false, fmt.Errorf("isStructType(): unexpected type %T: %+v", v, v)
+		return false
 	}
 }
 

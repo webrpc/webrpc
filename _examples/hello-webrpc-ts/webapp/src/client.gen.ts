@@ -369,3 +369,4 @@ const webrpcErrorByCode: { [code: number]: any } = {
 }
 
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
+
