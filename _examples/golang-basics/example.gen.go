@@ -81,33 +81,17 @@ func (x *Kind) Is(values ...Kind) bool {
 type Intent string
 
 const (
-	Intent_openSession     Intent = 0
-	Intent_closeSession    Intent = 1
-	Intent_validateSession Intent = 2
+	Intent_openSession     Intent = "openSession"
+	Intent_closeSession    Intent = "closeSession"
+	Intent_validateSession Intent = "validateSession"
 )
 
-var Intent_name = map[string]string{
-	0: "openSession",
-	1: "closeSession",
-	2: "validateSession",
-}
-
-var Intent_value = map[string]string{
-	"openSession":     0,
-	"closeSession":    1,
-	"validateSession": 2,
-}
-
-func (x Intent) String() string {
-	return Intent_name[string(x)]
-}
-
 func (x Intent) MarshalText() ([]byte, error) {
-	return []byte(Intent_name[string(x)]), nil
+	return []byte(x), nil
 }
 
 func (x *Intent) UnmarshalText(b []byte) error {
-	*x = Intent(Intent_value[string(b)])
+	*x = Intent(string(b))
 	return nil
 }
 
@@ -127,11 +111,11 @@ type Empty struct {
 }
 
 type User struct {
-	ID       uint64  `json:"id" db:"id"`
-	Username string  `json:"USERNAME" db:"username"`
-	Role     string  `json:"role" db:"-"`
-	Kind     *Kind   `json:"kind"`
-	Intent   *Intent `json:"intent"`
+	ID       uint64 `json:"id" db:"id"`
+	Username string `json:"USERNAME" db:"username"`
+	Role     string `json:"role" db:"-"`
+	Kind     Kind   `json:"kind"`
+	Intent   Intent `json:"intent"`
 }
 
 type SearchFilter struct {

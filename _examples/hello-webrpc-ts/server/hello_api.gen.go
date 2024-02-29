@@ -80,7 +80,7 @@ func (x *Kind) Is(values ...Kind) bool {
 type User struct {
 	ID         uint64                 `json:"id" db:"id"`
 	Username   string                 `json:"USERNAME" db:"username"`
-	Role       *Kind                  `json:"role"`
+	Role       Kind                   `json:"role"`
 	Meta       map[string]interface{} `json:"meta"`
 	InternalID uint64                 `json:"-"`
 	CreatedAt  *time.Time             `json:"created_at,omitempty" db:"created_at"`
