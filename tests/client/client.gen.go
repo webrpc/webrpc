@@ -98,7 +98,7 @@ type Complex struct {
 	ListOfUsers       []*User                      `json:"listOfUsers"`
 	MapOfUsers        map[string]*User             `json:"mapOfUsers"`
 	User              *User                        `json:"user"`
-	Enum              *Status                      `json:"enum"`
+	Enum              Status                       `json:"enum"`
 }
 
 type TestApi interface {
