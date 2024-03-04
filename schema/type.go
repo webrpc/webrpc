@@ -152,6 +152,17 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 	return nil
 }
 
+func (t *Type) RequiredFields() []*TypeField {
+	requiredFields := make([]*TypeField, 0)
+	for _, field := range t.Fields {
+		if !field.Optional {
+			requiredFields = append(requiredFields, field)
+		}
+	}
+
+	return requiredFields
+}
+
 func startsWithUpper(s string) bool {
 	if len(s) == 0 {
 		return false
