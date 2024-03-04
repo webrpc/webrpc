@@ -6,14 +6,16 @@ import (
 )
 
 type Service struct {
-	Name    string    `json:"name"`
-	Methods []*Method `json:"methods"`
+	Name     string     `json:"name"`
+	Methods  []*Method  `json:"methods"`
+	Comments []*Comment `json:"comments"`
 
 	Schema *WebRPCSchema `json:"-"` // denormalize/back-reference
 }
 
 type Method struct {
-	Name string `json:"name"`
+	Name     string     `json:"name"`
+	Comments []*Comment `json:"comments"`
 
 	StreamInput  bool `json:"streamInput,omitempty"`
 	StreamOutput bool `json:"streamOutput,omitempty"`

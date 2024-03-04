@@ -237,16 +237,19 @@
    "methods": [
     {
      "name": "GetEmpty",
+     "comments": [],
      "inputs": [],
      "outputs": []
     },
     {
      "name": "GetError",
+     "comments": [],
      "inputs": [],
      "outputs": []
     },
     {
      "name": "GetOne",
+     "comments": [],
      "inputs": [],
      "outputs": [
       {
@@ -258,6 +261,7 @@
     },
     {
      "name": "SendOne",
+     "comments": [],
      "inputs": [
       {
        "name": "one",
@@ -269,6 +273,7 @@
     },
     {
      "name": "GetMulti",
+     "comments": [],
      "inputs": [],
      "outputs": [
       {
@@ -290,6 +295,7 @@
     },
     {
      "name": "SendMulti",
+     "comments": [],
      "inputs": [
       {
        "name": "one",
@@ -311,6 +317,7 @@
     },
     {
      "name": "GetComplex",
+     "comments": [],
      "inputs": [],
      "outputs": [
       {
@@ -322,6 +329,7 @@
     },
     {
      "name": "SendComplex",
+     "comments": [],
      "inputs": [
       {
        "name": "complex",
@@ -333,6 +341,11 @@
     },
     {
      "name": "GetSchemaError",
+     "comments": [
+      {
+       "Value": "added in v0.11.0"
+      }
+     ],
      "inputs": [
       {
        "name": "code",
@@ -342,7 +355,8 @@
      ],
      "outputs": []
     }
-   ]
+   ],
+   "comments": []
   }
  ]
 }

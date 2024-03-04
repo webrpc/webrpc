@@ -9,10 +9,20 @@
    "type": "uint32",
    "fields": [
     {
+     "comments": [
+      {
+       "Value": "comment"
+      }
+     ],
      "name": "USER",
      "value": "1"
     },
     {
+     "comments": [
+      {
+       "Value": "comment.."
+      }
+     ],
      "name": "ADMIN",
      "value": "2"
     }
@@ -24,10 +34,20 @@
    "type": "uint32",
    "fields": [
     {
+     "comments": [
+      {
+       "Value": "aka , = 0"
+      }
+     ],
      "name": "USER",
      "value": "0"
     },
     {
+     "comments": [
+      {
+       "Value": "aka , = 1"
+      }
+     ],
      "name": "ADMIN",
      "value": "1"
     }
@@ -195,6 +215,14 @@
    "methods": [
     {
      "name": "Ping",
+     "comments": [
+      {
+       "Value": "comment can go here"
+      },
+      {
+       "Value": "too . . : )"
+      }
+     ],
      "inputs": [],
      "outputs": [
       {
@@ -204,13 +232,22 @@
       }
      ]
     }
-   ]
+   ],
+   "comments": []
   },
   {
    "name": "ExampleService",
    "methods": [
     {
      "name": "Ping",
+     "comments": [
+      {
+       "Value": "comment can go here"
+      },
+      {
+       "Value": "too . . : )"
+      }
+     ],
      "inputs": [],
      "outputs": [
       {
@@ -222,6 +259,7 @@
     },
     {
      "name": "GetUser",
+     "comments": [],
      "inputs": [
       {
        "name": "req",
@@ -239,6 +277,7 @@
     },
     {
      "name": "Recv",
+     "comments": [],
      "streamInput": true,
      "inputs": [
       {
@@ -251,6 +290,7 @@
     },
     {
      "name": "Send",
+     "comments": [],
      "streamInput": true,
      "inputs": [],
      "outputs": [
@@ -263,6 +303,7 @@
     },
     {
      "name": "SendAndRecv",
+     "comments": [],
      "streamInput": true,
      "streamOutput": true,
      "inputs": [
@@ -282,6 +323,7 @@
     },
     {
      "name": "Broadcast",
+     "comments": [],
      "streamOutput": true,
      "inputs": [],
      "outputs": [
@@ -294,6 +336,7 @@
     },
     {
      "name": "VerifyUsers",
+     "comments": [],
      "inputs": [
       {
        "name": "seq",
@@ -326,6 +369,7 @@
     },
     {
      "name": "MoreTest",
+     "comments": [],
      "inputs": [
       {
        "name": "n",
@@ -351,13 +395,15 @@
       }
      ]
     }
-   ]
+   ],
+   "comments": []
   },
   {
    "name": "Another",
    "methods": [
     {
      "name": "Flatten",
+     "comments": [],
      "inputs": [
       {
        "name": "name",
@@ -405,6 +451,7 @@
     },
     {
      "name": "GetAccountBalance",
+     "comments": [],
      "inputs": [
       {
        "name": "name",
@@ -420,7 +467,8 @@
       }
      ]
     }
-   ]
+   ],
+   "comments": []
   }
  ]
 }

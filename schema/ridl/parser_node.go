@@ -14,6 +14,7 @@ const (
 	ArgumentNodeType
 	MethodNodeType
 	ServiceNodeType
+	CommentNodeType
 )
 
 // Node represents a parser tree node
@@ -138,7 +139,8 @@ type DefinitionNode struct {
 
 	optional bool
 
-	meta []*DefinitionNode
+	meta     []*DefinitionNode
+	comments []*CommentNode
 }
 
 func (dn DefinitionNode) Meta() []*DefinitionNode {
@@ -166,6 +168,8 @@ func (dn DefinitionNode) Right() *TokenNode {
 func (dn DefinitionNode) Optional() bool {
 	return dn.optional
 }
+
+func (dn DefinitionNode) Comments() []*CommentNode { return dn.comments }
 
 type TokenNode struct {
 	node
@@ -226,6 +230,7 @@ type EnumNode struct {
 	name     *TokenNode
 	enumType *TokenNode
 	values   []*DefinitionNode
+	comments []*CommentNode
 }
 
 func (en EnumNode) Type() NodeType {
@@ -244,11 +249,14 @@ func (en EnumNode) Values() []*DefinitionNode {
 	return en.values
 }
 
+func (en EnumNode) Comments() []*CommentNode { return en.comments }
+
 type StructNode struct {
 	node
 
-	name   *TokenNode
-	fields []*DefinitionNode
+	name     *TokenNode
+	fields   []*DefinitionNode
+	comments []*CommentNode
 }
 
 func (mn StructNode) Name() *TokenNode {
@@ -262,6 +270,8 @@ func (mn *StructNode) Type() NodeType {
 func (mn *StructNode) Fields() []*DefinitionNode {
 	return mn.fields
 }
+
+func (mn *StructNode) Comments() []*CommentNode { return mn.comments }
 
 type ErrorNode struct {
 	node
@@ -317,8 +327,9 @@ type MethodNode struct {
 
 	proxy bool
 
-	inputs  argumentList
-	outputs argumentList
+	comments []*CommentNode
+	inputs   argumentList
+	outputs  argumentList
 }
 
 func (mn *MethodNode) Name() *TokenNode {
@@ -345,12 +356,14 @@ func (mn *MethodNode) Outputs() []*ArgumentNode {
 	return mn.outputs.arguments
 }
 
+func (mn *MethodNode) GetComments() []*CommentNode { return mn.comments }
+
 type ServiceNode struct {
 	node
 
-	name *TokenNode
-
-	methods []*MethodNode
+	name     *TokenNode
+	methods  []*MethodNode
+	comments []*CommentNode
 }
 
 func (sn ServiceNode) Type() NodeType {
@@ -365,8 +378,21 @@ func (sn ServiceNode) Methods() []*MethodNode {
 	return sn.methods
 }
 
+func (sn ServiceNode) Comments() []*CommentNode { return sn.comments }
+
 type argumentList struct {
 	stream bool
 
 	arguments []*ArgumentNode
 }
+
+type CommentNode struct {
+	value string
+}
+
+func (en CommentNode) Type() NodeType {
+
+	return CommentNodeType
+}
+
+func (en CommentNode) Value() string { return en.value }

@@ -128,12 +128,12 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		}
 
 		for i := range imported.Types {
-			if isImportAllowed(string(imported.Types[i].Name), members) {
+			if isImportAllowed(imported.Types[i].Name, members) {
 				s.Types = append(s.Types, imported.Types[i])
 			}
 		}
 		for i := range imported.Services {
-			if isImportAllowed(string(imported.Services[i].Name), members) {
+			if isImportAllowed(imported.Services[i].Name, members) {
 				s.Services = append(s.Services, imported.Services[i])
 			}
 		}
@@ -158,16 +158,21 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 	// pushing services (1st pass)
 	for _, service := range q.root.Services() {
-		// push service
-		s.Services = append(s.Services, &schema.Service{
-			Name: service.Name().String(),
-		})
+		srv := &schema.Service{
+			Name:     service.Name().String(),
+			Comments: make([]*schema.Comment, len(service.comments)),
+		}
+		for i, comment := range service.Comments() {
+			srv.Comments[i] = &schema.Comment{Value: comment.Value()}
+		}
+
+		s.Services = append(s.Services, srv)
 	}
 
 	// enum fields
 	for _, line := range q.root.Enums() {
 		name := line.Name().String()
-		enumDef := s.GetTypeByName(string(name))
+		enumDef := s.GetTypeByName(name)
 
 		if enumDef == nil {
 			return nil, fmt.Errorf("unexpected error, could not find definition for: %v", name)
@@ -186,12 +191,19 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				val = strconv.Itoa(i)
 			}
 
-			enumDef.Fields = append(enumDef.Fields, &schema.TypeField{
+			elems := &schema.TypeField{
 				Name: key,
 				TypeExtra: schema.TypeExtra{
 					Value: val,
 				},
-			})
+				Comments: make([]*schema.Comment, len(def.Comments())),
+			}
+
+			for j, comment := range def.Comments() {
+				elems.Comments[j] = &schema.Comment{Value: comment.Value()}
+			}
+
+			enumDef.Fields = append(enumDef.Fields, elems)
 		}
 	}
 
@@ -251,7 +263,6 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		methods := []*schema.Method{}
 
 		for _, method := range service.Methods() {
-
 			inputs, err := buildArgumentsList(s, method.Inputs())
 			if err != nil {
 				return nil, err
@@ -262,14 +273,21 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				return nil, err
 			}
 
-			// push method
-			methods = append(methods, &schema.Method{
+			// push m
+			m := &schema.Method{
 				Name:         method.Name().String(),
 				StreamInput:  method.StreamInput(),
 				StreamOutput: method.StreamOutput(),
 				Inputs:       inputs,
 				Outputs:      outputs,
-			})
+				Comments:     make([]*schema.Comment, len(method.GetComments())),
+			}
+
+			for i, comment := range method.GetComments() {
+				m.Comments[i] = &schema.Comment{Value: comment.Value()}
+			}
+
+			methods = append(methods, m)
 		}
 
 		serviceDef := s.GetServiceByName(service.Name().String())

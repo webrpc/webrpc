@@ -20,7 +20,9 @@ type Type struct {
 }
 
 type TypeField struct {
-	Name      string   `json:"name"`
+	Comments []*Comment `json:"comments,omitempty"`
+	Name     string     `json:"name"`
+
 	Type      *VarType `json:"type,omitempty"`
 	TypeExtra `json:",omitempty"`
 }
@@ -31,6 +33,10 @@ type TypeExtra struct {
 
 	// Meta store extra metadata on a field for plugins
 	Meta []TypeFieldMeta `json:"meta,omitempty"`
+}
+
+type Comment struct {
+	Value string
 }
 
 type TypeFieldMeta map[string]interface{}
