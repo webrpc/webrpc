@@ -105,7 +105,7 @@ func (s *TemplateSource) loadRemote() (*template.Template, error) {
 			}
 		} else {
 			// cache remote git
-			if err := s.cacheTemplates(s.target, sourceFS, cacheFS, cacheDir); err != nil {
+			if err := s.cacheTemplates(s.target, sourceFS, cacheDir); err != nil {
 				s.CacheRefreshErr = err
 			}
 		}
@@ -130,20 +130,25 @@ func (s *TemplateSource) loadRemote() (*template.Template, error) {
 	return tmpl, nil
 }
 
-func (s *TemplateSource) cacheTemplates(target string, remoteFS, cacheFS http.FileSystem, cacheDir string) error {
+func (s *TemplateSource) cacheTemplates(target string, remoteFS http.FileSystem, cacheDir string) error {
 	// create empty cache directory
 	if _, err := os.Stat(cacheDir); os.IsExist(err) {
 		if err := os.RemoveAll(cacheDir); err != nil {
 			return err
 		}
 	}
-	if err := os.MkdirAll(cacheDir, 0755); err != nil {
-		return fmt.Errorf("unable to create directory for template cache at %s: %w", cacheDir, err)
-	}
 
 	filenames, err := vfspath.Glob(remoteFS, "/*.go.tmpl")
 	if err != nil {
 		return err
+	}
+
+	if len(filenames) == 0 {
+		return fmt.Errorf("no template files were found in target %s", target)
+	}
+
+	if err := os.MkdirAll(cacheDir, 0755); err != nil {
+		return fmt.Errorf("unable to create directory for template cache at %s: %w", cacheDir, err)
 	}
 
 	for _, filename := range filenames {
