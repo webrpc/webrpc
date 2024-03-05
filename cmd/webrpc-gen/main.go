@@ -139,6 +139,22 @@ func collectCliArgs(flags *flag.FlagSet, args []string) (cliFlags []string, temp
 			cliFlags = append(cliFlags, arg)
 			templateOpts["help"] = ""
 		} else {
+			// special gen-openapi template option to support multiple servers with description
+			// "http://localhost:8080;description,http://localhost:8081;more description" =>
+			// [0] => ["http://localhost:8080", "description"], [1] => ["http://localhost:8081", "more"]
+			if name == "servers" {
+				srvs := strings.Split(value, ",")
+				servers := make([][]string, len(srvs))
+				for i, s := range srvs {
+					url, serverDescription, found := strings.Cut(s, ";")
+					if !found {
+						return nil, nil, fmt.Errorf("invalid format of servers: %s", value)
+					}
+					servers[i] = []string{url, serverDescription}
+				}
+				templateOpts[name] = servers
+				continue
+			}
 			templateOpts[name] = value
 		}
 
