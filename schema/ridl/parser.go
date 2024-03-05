@@ -512,18 +512,16 @@ func composedValue(tokens []*token) (*token, error) {
 	}, nil
 }
 
-func parseComments(comments map[int][]string, currentLine int) []*CommentNode {
+func parseComments(comments map[int][]string, currentLine int) string {
 	found := false
 	iteration := 0
-	commentNodes := []*CommentNode{}
+	c := []string{}
 
 	for ; currentLine >= 0; currentLine-- {
 		val, ok := comments[currentLine]
 		if ok {
 			found = true
-			commentNodes = append(commentNodes, &CommentNode{
-				value: strings.Join(val, " "),
-			})
+			c = append(c, strings.Join(val, " "))
 
 			delete(comments, currentLine)
 		}
@@ -539,12 +537,12 @@ func parseComments(comments map[int][]string, currentLine int) []*CommentNode {
 		iteration++
 	}
 
-	if len(commentNodes) > 0 {
+	if len(c) > 0 {
 		// slices.Reverse is introduced with go 1.22
-		for i, j := 0, len(commentNodes)-1; i < j; i, j = i+1, j-1 {
-			commentNodes[i], commentNodes[j] = commentNodes[j], commentNodes[i]
+		for i, j := 0, len(c)-1; i < j; i, j = i+1, j-1 {
+			c[i], c[j] = c[j], c[i]
 		}
 	}
 
-	return commentNodes
+	return strings.Join(c, "\n")
 }

@@ -342,9 +342,7 @@
     {
      "name": "GetSchemaError",
      "comments": [
-      {
-       "Value": "added in v0.11.0"
-      }
+      "added in v0.11.0"
      ],
      "inputs": [
       {

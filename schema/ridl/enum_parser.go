@@ -11,7 +11,7 @@ func parserStateEnumExplicitValue(en *EnumNode, dn *DefinitionNode) parserState 
 				return p.stateError(err)
 			}
 			dn.rightNode = newTokenNode(explicitValue)
-			en.comments = parseComments(p.comments, explicitValue.line)
+			en.comment = parseComments(p.comments, explicitValue.line)
 		}
 
 		en.values = append(en.values, dn)
@@ -36,7 +36,7 @@ func parserStateEnumDefinition(et *EnumNode) parserState {
 
 			return parserStateEnumExplicitValue(et, &DefinitionNode{
 				leftNode: newTokenNode(matches[2]),
-				comments: parseComments(p.comments, matches[0].line),
+				comment:  parseComments(p.comments, matches[0].line),
 			})
 
 		case tokenNewLine, tokenWhitespace:
@@ -70,6 +70,6 @@ func parserStateEnum(p *parser) parserState {
 		name:     newTokenNode(matches[2]),
 		enumType: newTokenNode(matches[5]),
 		values:   []*DefinitionNode{},
-		comments: parseComments(p.comments, matches[0].line),
+		comment:  parseComments(p.comments, matches[0].line),
 	})
 }

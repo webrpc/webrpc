@@ -24,6 +24,6 @@ func parserStateDefinition(p *parser) parserState {
 
 	return parserStateDefinitionValue(&DefinitionNode{
 		leftNode: newTokenNode(tokens[0]),
-		comments: parseComments(p.comments, tokens[0].line),
+		comment:  parseComments(p.comments, tokens[0].line),
 	})
 }

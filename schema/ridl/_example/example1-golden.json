@@ -10,18 +10,14 @@
    "fields": [
     {
      "comments": [
-      {
-       "Value": "comment"
-      }
+      "comment"
      ],
      "name": "USER",
      "value": "1"
     },
     {
      "comments": [
-      {
-       "Value": "comment.."
-      }
+      "comment.."
      ],
      "name": "ADMIN",
      "value": "2"
@@ -35,18 +31,14 @@
    "fields": [
     {
      "comments": [
-      {
-       "Value": "aka , = 0"
-      }
+      "aka , = 0"
      ],
      "name": "USER",
      "value": "0"
     },
     {
      "comments": [
-      {
-       "Value": "aka , = 1"
-      }
+      "aka , = 1"
      ],
      "name": "ADMIN",
      "value": "1"
@@ -216,12 +208,8 @@
     {
      "name": "Ping",
      "comments": [
-      {
-       "Value": "comment can go here"
-      },
-      {
-       "Value": "too . . : )"
-      }
+      "comment can go here",
+      "too . . : )"
      ],
      "inputs": [],
      "outputs": [
@@ -241,12 +229,8 @@
     {
      "name": "Ping",
      "comments": [
-      {
-       "Value": "comment can go here"
-      },
-      {
-       "Value": "too . . : )"
-      }
+      "comment can go here",
+      "too . . : )"
      ],
      "inputs": [],
      "outputs": [

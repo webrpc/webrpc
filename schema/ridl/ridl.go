@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/webrpc/webrpc/schema"
 )
@@ -160,10 +161,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, service := range q.root.Services() {
 		srv := &schema.Service{
 			Name:     service.Name().String(),
-			Comments: make([]*schema.Comment, len(service.comments)),
-		}
-		for i, comment := range service.Comments() {
-			srv.Comments[i] = &schema.Comment{Value: comment.Value()}
+			Comments: strings.FieldsFunc(service.Comment(), func(r rune) bool { return r == '\n' }),
 		}
 
 		s.Services = append(s.Services, srv)
@@ -196,11 +194,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				TypeExtra: schema.TypeExtra{
 					Value: val,
 				},
-				Comments: make([]*schema.Comment, len(def.Comments())),
-			}
-
-			for j, comment := range def.Comments() {
-				elems.Comments[j] = &schema.Comment{Value: comment.Value()}
+				Comments: strings.FieldsFunc(def.Comment(), func(r rune) bool { return r == '\n' }),
 			}
 
 			enumDef.Fields = append(enumDef.Fields, elems)
@@ -280,11 +274,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				StreamOutput: method.StreamOutput(),
 				Inputs:       inputs,
 				Outputs:      outputs,
-				Comments:     make([]*schema.Comment, len(method.GetComments())),
-			}
-
-			for i, comment := range method.GetComments() {
-				m.Comments[i] = &schema.Comment{Value: comment.Value()}
+				Comments:     strings.FieldsFunc(method.Comment(), func(r rune) bool { return r == '\n' }),
 			}
 
 			methods = append(methods, m)

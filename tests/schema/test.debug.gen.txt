@@ -16,7 +16,7 @@
 				}),
 				Fields: ([]*schema.TypeField) (len=2 cap=2) {
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) {
+						Comments: ([]string) {
 						},
 						Name: (string) (len=9) "AVAILABLE",
 						Type: (*schema.VarType)(<nil>),
@@ -27,7 +27,7 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) {
+						Comments: ([]string) {
 						},
 						Name: (string) (len=13) "NOT_AVAILABLE",
 						Type: (*schema.VarType)(<nil>),
@@ -50,7 +50,7 @@
 				Type: (*schema.VarType)(<nil>),
 				Fields: ([]*schema.TypeField) (len=2 cap=2) {
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=2) "id",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=3) "int",
@@ -66,7 +66,7 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=4) "name",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "string",
@@ -94,7 +94,7 @@
 				Type: (*schema.VarType)(<nil>),
 				Fields: ([]*schema.TypeField) (len=3 cap=4) {
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=2) "id",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "uint64",
@@ -120,7 +120,7 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=8) "username",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "string",
@@ -143,7 +143,7 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=4) "role",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "string",
@@ -175,7 +175,7 @@
 				Type: (*schema.VarType)(<nil>),
 				Fields: ([]*schema.TypeField) (len=10 cap=16) {
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=4) "meta",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=15) "map<string,any>",
@@ -200,7 +200,7 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=17) "metaNestedExample",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=30) "map<string,map<string,uint32>>",
@@ -234,7 +234,7 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=9) "namesList",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=8) "[]string",
@@ -258,7 +258,7 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=8) "numsList",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=7) "[]int64",
@@ -282,7 +282,7 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=11) "doubleArray",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=10) "[][]string",
@@ -314,7 +314,7 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=10) "listOfMaps",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=20) "[]map<string,uint32>",
@@ -347,7 +347,7 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=11) "listOfUsers",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "[]User",
@@ -366,7 +366,7 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=3 cap=4) {
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "uint64",
@@ -392,7 +392,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=8) "username",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
@@ -415,7 +415,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "role",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
@@ -454,7 +454,7 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=10) "mapOfUsers",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=16) "map<string,User>",
@@ -475,7 +475,7 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=3 cap=4) {
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "uint64",
@@ -501,7 +501,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=8) "username",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
@@ -524,7 +524,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "role",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
@@ -562,7 +562,7 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=4) "user",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=4) "User",
@@ -577,7 +577,7 @@
 									Type: (*schema.VarType)(<nil>),
 									Fields: ([]*schema.TypeField) (len=3 cap=4) {
 										(*schema.TypeField)({
-											Comments: ([]*schema.Comment) <nil>,
+											Comments: ([]string) <nil>,
 											Name: (string) (len=2) "id",
 											Type: (*schema.VarType)({
 												Expr: (string) (len=6) "uint64",
@@ -603,7 +603,7 @@
 											}
 										}),
 										(*schema.TypeField)({
-											Comments: ([]*schema.Comment) <nil>,
+											Comments: ([]string) <nil>,
 											Name: (string) (len=8) "username",
 											Type: (*schema.VarType)({
 												Expr: (string) (len=6) "string",
@@ -626,7 +626,7 @@
 											}
 										}),
 										(*schema.TypeField)({
-											Comments: ([]*schema.Comment) <nil>,
+											Comments: ([]string) <nil>,
 											Name: (string) (len=4) "role",
 											Type: (*schema.VarType)({
 												Expr: (string) (len=6) "string",
@@ -661,7 +661,7 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]*schema.Comment) <nil>,
+						Comments: ([]string) <nil>,
 						Name: (string) (len=4) "enum",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "Status",
@@ -682,7 +682,7 @@
 									}),
 									Fields: ([]*schema.TypeField) (len=2 cap=2) {
 										(*schema.TypeField)({
-											Comments: ([]*schema.Comment) {
+											Comments: ([]string) {
 											},
 											Name: (string) (len=9) "AVAILABLE",
 											Type: (*schema.VarType)(<nil>),
@@ -693,7 +693,7 @@
 											}
 										}),
 										(*schema.TypeField)({
-											Comments: ([]*schema.Comment) {
+											Comments: ([]string) {
 											},
 											Name: (string) (len=13) "NOT_AVAILABLE",
 											Type: (*schema.VarType)(<nil>),
@@ -842,7 +842,7 @@
 				Methods: ([]*schema.Method) (len=9 cap=16) {
 					(*schema.Method)({
 						Name: (string) (len=8) "GetEmpty",
-						Comments: ([]*schema.Comment) {
+						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
@@ -855,7 +855,7 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=8) "GetError",
-						Comments: ([]*schema.Comment) {
+						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
@@ -868,7 +868,7 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=6) "GetOne",
-						Comments: ([]*schema.Comment) {
+						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
@@ -891,7 +891,7 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
@@ -907,7 +907,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
@@ -945,7 +945,7 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=7) "SendOne",
-						Comments: ([]*schema.Comment) {
+						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
@@ -966,7 +966,7 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
@@ -982,7 +982,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
@@ -1022,7 +1022,7 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=8) "GetMulti",
-						Comments: ([]*schema.Comment) {
+						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
@@ -1045,7 +1045,7 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
@@ -1061,7 +1061,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
@@ -1109,7 +1109,7 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
@@ -1125,7 +1125,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
@@ -1173,7 +1173,7 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
@@ -1189,7 +1189,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
@@ -1227,7 +1227,7 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=9) "SendMulti",
-						Comments: ([]*schema.Comment) {
+						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
@@ -1248,7 +1248,7 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
@@ -1264,7 +1264,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
@@ -1312,7 +1312,7 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
@@ -1328,7 +1328,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
@@ -1376,7 +1376,7 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
@@ -1392,7 +1392,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
@@ -1432,7 +1432,7 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=10) "GetComplex",
-						Comments: ([]*schema.Comment) {
+						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
@@ -1455,7 +1455,7 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=10 cap=16) {
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "meta",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=15) "map<string,any>",
@@ -1480,7 +1480,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=17) "metaNestedExample",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=30) "map<string,map<string,uint32>>",
@@ -1514,7 +1514,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=9) "namesList",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=8) "[]string",
@@ -1538,7 +1538,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=8) "numsList",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=7) "[]int64",
@@ -1562,7 +1562,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=11) "doubleArray",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=10) "[][]string",
@@ -1594,7 +1594,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=10) "listOfMaps",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=20) "[]map<string,uint32>",
@@ -1627,7 +1627,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=11) "listOfUsers",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "[]User",
@@ -1646,7 +1646,7 @@
 																		Type: (*schema.VarType)(<nil>),
 																		Fields: ([]*schema.TypeField) (len=3 cap=4) {
 																			(*schema.TypeField)({
-																				Comments: ([]*schema.Comment) <nil>,
+																				Comments: ([]string) <nil>,
 																				Name: (string) (len=2) "id",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "uint64",
@@ -1672,7 +1672,7 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]*schema.Comment) <nil>,
+																				Comments: ([]string) <nil>,
 																				Name: (string) (len=8) "username",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
@@ -1695,7 +1695,7 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]*schema.Comment) <nil>,
+																				Comments: ([]string) <nil>,
 																				Name: (string) (len=4) "role",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
@@ -1734,7 +1734,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=10) "mapOfUsers",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=16) "map<string,User>",
@@ -1755,7 +1755,7 @@
 																		Type: (*schema.VarType)(<nil>),
 																		Fields: ([]*schema.TypeField) (len=3 cap=4) {
 																			(*schema.TypeField)({
-																				Comments: ([]*schema.Comment) <nil>,
+																				Comments: ([]string) <nil>,
 																				Name: (string) (len=2) "id",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "uint64",
@@ -1781,7 +1781,7 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]*schema.Comment) <nil>,
+																				Comments: ([]string) <nil>,
 																				Name: (string) (len=8) "username",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
@@ -1804,7 +1804,7 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]*schema.Comment) <nil>,
+																				Comments: ([]string) <nil>,
 																				Name: (string) (len=4) "role",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
@@ -1842,7 +1842,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "user",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=4) "User",
@@ -1857,7 +1857,7 @@
 																Type: (*schema.VarType)(<nil>),
 																Fields: ([]*schema.TypeField) (len=3 cap=4) {
 																	(*schema.TypeField)({
-																		Comments: ([]*schema.Comment) <nil>,
+																		Comments: ([]string) <nil>,
 																		Name: (string) (len=2) "id",
 																		Type: (*schema.VarType)({
 																			Expr: (string) (len=6) "uint64",
@@ -1883,7 +1883,7 @@
 																		}
 																	}),
 																	(*schema.TypeField)({
-																		Comments: ([]*schema.Comment) <nil>,
+																		Comments: ([]string) <nil>,
 																		Name: (string) (len=8) "username",
 																		Type: (*schema.VarType)({
 																			Expr: (string) (len=6) "string",
@@ -1906,7 +1906,7 @@
 																		}
 																	}),
 																	(*schema.TypeField)({
-																		Comments: ([]*schema.Comment) <nil>,
+																		Comments: ([]string) <nil>,
 																		Name: (string) (len=4) "role",
 																		Type: (*schema.VarType)({
 																			Expr: (string) (len=6) "string",
@@ -1941,7 +1941,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "enum",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "Status",
@@ -1962,7 +1962,7 @@
 																}),
 																Fields: ([]*schema.TypeField) (len=2 cap=2) {
 																	(*schema.TypeField)({
-																		Comments: ([]*schema.Comment) {
+																		Comments: ([]string) {
 																		},
 																		Name: (string) (len=9) "AVAILABLE",
 																		Type: (*schema.VarType)(<nil>),
@@ -1973,7 +1973,7 @@
 																		}
 																	}),
 																	(*schema.TypeField)({
-																		Comments: ([]*schema.Comment) {
+																		Comments: ([]string) {
 																		},
 																		Name: (string) (len=13) "NOT_AVAILABLE",
 																		Type: (*schema.VarType)(<nil>),
@@ -2021,7 +2021,7 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=11) "SendComplex",
-						Comments: ([]*schema.Comment) {
+						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
@@ -2042,7 +2042,7 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=10 cap=16) {
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "meta",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=15) "map<string,any>",
@@ -2067,7 +2067,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=17) "metaNestedExample",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=30) "map<string,map<string,uint32>>",
@@ -2101,7 +2101,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=9) "namesList",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=8) "[]string",
@@ -2125,7 +2125,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=8) "numsList",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=7) "[]int64",
@@ -2149,7 +2149,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=11) "doubleArray",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=10) "[][]string",
@@ -2181,7 +2181,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=10) "listOfMaps",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=20) "[]map<string,uint32>",
@@ -2214,7 +2214,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=11) "listOfUsers",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "[]User",
@@ -2233,7 +2233,7 @@
 																		Type: (*schema.VarType)(<nil>),
 																		Fields: ([]*schema.TypeField) (len=3 cap=4) {
 																			(*schema.TypeField)({
-																				Comments: ([]*schema.Comment) <nil>,
+																				Comments: ([]string) <nil>,
 																				Name: (string) (len=2) "id",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "uint64",
@@ -2259,7 +2259,7 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]*schema.Comment) <nil>,
+																				Comments: ([]string) <nil>,
 																				Name: (string) (len=8) "username",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
@@ -2282,7 +2282,7 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]*schema.Comment) <nil>,
+																				Comments: ([]string) <nil>,
 																				Name: (string) (len=4) "role",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
@@ -2321,7 +2321,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=10) "mapOfUsers",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=16) "map<string,User>",
@@ -2342,7 +2342,7 @@
 																		Type: (*schema.VarType)(<nil>),
 																		Fields: ([]*schema.TypeField) (len=3 cap=4) {
 																			(*schema.TypeField)({
-																				Comments: ([]*schema.Comment) <nil>,
+																				Comments: ([]string) <nil>,
 																				Name: (string) (len=2) "id",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "uint64",
@@ -2368,7 +2368,7 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]*schema.Comment) <nil>,
+																				Comments: ([]string) <nil>,
 																				Name: (string) (len=8) "username",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
@@ -2391,7 +2391,7 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]*schema.Comment) <nil>,
+																				Comments: ([]string) <nil>,
 																				Name: (string) (len=4) "role",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
@@ -2429,7 +2429,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "user",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=4) "User",
@@ -2444,7 +2444,7 @@
 																Type: (*schema.VarType)(<nil>),
 																Fields: ([]*schema.TypeField) (len=3 cap=4) {
 																	(*schema.TypeField)({
-																		Comments: ([]*schema.Comment) <nil>,
+																		Comments: ([]string) <nil>,
 																		Name: (string) (len=2) "id",
 																		Type: (*schema.VarType)({
 																			Expr: (string) (len=6) "uint64",
@@ -2470,7 +2470,7 @@
 																		}
 																	}),
 																	(*schema.TypeField)({
-																		Comments: ([]*schema.Comment) <nil>,
+																		Comments: ([]string) <nil>,
 																		Name: (string) (len=8) "username",
 																		Type: (*schema.VarType)({
 																			Expr: (string) (len=6) "string",
@@ -2493,7 +2493,7 @@
 																		}
 																	}),
 																	(*schema.TypeField)({
-																		Comments: ([]*schema.Comment) <nil>,
+																		Comments: ([]string) <nil>,
 																		Name: (string) (len=4) "role",
 																		Type: (*schema.VarType)({
 																			Expr: (string) (len=6) "string",
@@ -2528,7 +2528,7 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]*schema.Comment) <nil>,
+													Comments: ([]string) <nil>,
 													Name: (string) (len=4) "enum",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "Status",
@@ -2549,7 +2549,7 @@
 																}),
 																Fields: ([]*schema.TypeField) (len=2 cap=2) {
 																	(*schema.TypeField)({
-																		Comments: ([]*schema.Comment) {
+																		Comments: ([]string) {
 																		},
 																		Name: (string) (len=9) "AVAILABLE",
 																		Type: (*schema.VarType)(<nil>),
@@ -2560,7 +2560,7 @@
 																		}
 																	}),
 																	(*schema.TypeField)({
-																		Comments: ([]*schema.Comment) {
+																		Comments: ([]string) {
 																		},
 																		Name: (string) (len=13) "NOT_AVAILABLE",
 																		Type: (*schema.VarType)(<nil>),
@@ -2610,10 +2610,8 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=14) "GetSchemaError",
-						Comments: ([]*schema.Comment) (len=1 cap=1) {
-							(*schema.Comment)({
-								Value: (string) (len=16) "added in v0.11.0"
-							})
+						Comments: ([]string) (len=1 cap=1) {
+							(string) (len=16) "added in v0.11.0"
 						},
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
@@ -2643,14 +2641,14 @@
 						Service: (*schema.Service)(<already shown>)
 					})
 				},
-				Comments: ([]*schema.Comment) {
+				Comments: ([]string) {
 				},
 				Schema: (*schema.WebRPCSchema)(<already shown>)
 			})
 		},
 		Deprecated_Messages: ([]interface {}) <nil>
 	}),
-	SchemaHash: (string) (len=40) "5efdc690b4f92ee94480182935258236ced25ee8",
+	SchemaHash: (string) (len=40) "1e00d2fe909b6626e4156ac2a40ff08223d75224",
 	WebrpcGenVersion: (string) (len=11) "v0.14.0-dev",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcTarget: (string) (len=5) "debug",

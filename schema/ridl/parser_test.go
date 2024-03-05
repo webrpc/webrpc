@@ -975,17 +975,10 @@ func TestParseStructComments(t *testing.T) {
 		t.Errorf("expected type StructNode")
 	}
 
-	assert.Equal(t, []*CommentNode{
-		{
-			value: "Defines role in our application",
-		},
-		{
-			value: "=> role",
-		},
-	}, structNode.comments)
+	assert.Equal(t, "Defines role in our application\n=> role", structNode.comment)
 
-	assert.Equal(t, []*CommentNode{{value: "role name line first"}, {value: "role name"}}, structNode.fields[0].comments)
-	assert.Equal(t, []*CommentNode{{value: "permissions"}}, structNode.fields[1].comments)
+	assert.Equal(t, "role name line first\nrole name", structNode.fields[0].comment)
+	assert.Equal(t, "permissions", structNode.fields[1].comment)
 }
 
 func TestParseServiceComments(t *testing.T) {
@@ -1008,31 +1001,7 @@ func TestParseServiceComments(t *testing.T) {
 		t.Errorf("expected type ServiceNode")
 	}
 
-	expectedServiceNodeComments := []*CommentNode{
-		{
-			value: "Contacts service line 1",
-		},
-		{
-			value: "Contacts service line 2",
-		},
-		{
-			value: "Contacts service line 3",
-		},
-	}
-
-	assert.Equal(t, expectedServiceNodeComments, serviceNode.comments)
-	assert.Equal(t, []*CommentNode{
-		{
-			value: "GetContact gives you contact for specific id",
-		},
-	},
-		serviceNode.methods[0].comments,
-	)
-	assert.Equal(t, []*CommentNode{
-		{
-			value: "Version returns you current deployed version",
-		},
-	},
-		serviceNode.methods[1].comments,
-	)
+	assert.Equal(t, "Contacts service line 1\nContacts service line 2\nContacts service line 3", serviceNode.comment)
+	assert.Equal(t, "GetContact gives you contact for specific id", serviceNode.methods[0].comment)
+	assert.Equal(t, "Version returns you current deployed version", serviceNode.methods[1].comment)
 }

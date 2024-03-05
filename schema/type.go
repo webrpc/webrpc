@@ -20,8 +20,8 @@ type Type struct {
 }
 
 type TypeField struct {
-	Comments []*Comment `json:"comments,omitempty"`
-	Name     string     `json:"name"`
+	Comments []string `json:"comments,omitempty"`
+	Name     string   `json:"name"`
 
 	Type      *VarType `json:"type,omitempty"`
 	TypeExtra `json:",omitempty"`
