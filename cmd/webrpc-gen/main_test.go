@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func Test_collectCliArgs(t *testing.T) {
+func TestCollectCliArgs(t *testing.T) {
 	type args struct {
 		flags *flag.FlagSet
 		args  []string
@@ -24,7 +24,7 @@ func Test_collectCliArgs(t *testing.T) {
 			name: "Collect servers cli arguments",
 			args: args{
 				flags: &flags,
-				args:  []string{"-servers=http://localhost:8080;description,http://localhost:8081;more description"},
+				args:  []string{"-servers=http://localhost:8080;description,http://localhost:8081;more description,http://localhost:8082;"},
 			},
 			wantCliFlags: nil,
 			wantTemplateOpts: map[string]interface{}{
@@ -36,6 +36,10 @@ func Test_collectCliArgs(t *testing.T) {
 					{
 						"http://localhost:8081",
 						"more description",
+					},
+					{
+						"http://localhost:8082",
+						"",
 					},
 				},
 			},
