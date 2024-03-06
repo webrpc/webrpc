@@ -39,7 +39,7 @@ type parser struct {
 	pos    int
 
 	words    chan interface{}
-	comments map[int][]string
+	comments map[int]string
 
 	root RootNode
 }
@@ -512,17 +512,14 @@ func composedValue(tokens []*token) (*token, error) {
 	}, nil
 }
 
-func parseComments(comments map[int][]string, currentLine int) string {
-	found := false
+func parseComments(comments map[int]string, currentLine int) string {
 	iteration := 0
 	c := []string{}
 
 	for ; currentLine >= 0; currentLine-- {
-		val, ok := comments[currentLine]
+		comment, ok := comments[currentLine]
 		if ok {
-			found = true
-			c = append(c, strings.Join(val, " "))
-
+			c = append(c, comment)
 			delete(comments, currentLine)
 		}
 
@@ -530,7 +527,7 @@ func parseComments(comments map[int][]string, currentLine int) string {
 			break
 		}
 
-		if iteration > 1 && !found {
+		if iteration > 1 {
 			break
 		}
 
