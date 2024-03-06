@@ -35,10 +35,6 @@ type TypeExtra struct {
 	Meta []TypeFieldMeta `json:"meta,omitempty"`
 }
 
-type Comment struct {
-	Value string
-}
-
 type TypeFieldMeta map[string]interface{}
 
 func (t *Type) Parse(schema *WebRPCSchema) error {

@@ -14,7 +14,6 @@ const (
 	ArgumentNodeType
 	MethodNodeType
 	ServiceNodeType
-	CommentNodeType
 )
 
 // Node represents a parser tree node
