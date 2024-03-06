@@ -7,4 +7,4 @@ package webrpc
 // The patch value is automatically updated with the latest git tag in CI.
 //
 // Version is available as {{.WebrpcGenVersion}} in generator templates.
-var VERSION = "v0.14.0-dev"
+var VERSION = "v0.14.2-dev"
