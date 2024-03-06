@@ -138,7 +138,8 @@ type DefinitionNode struct {
 
 	optional bool
 
-	meta []*DefinitionNode
+	meta    []*DefinitionNode
+	comment string
 }
 
 func (dn DefinitionNode) Meta() []*DefinitionNode {
@@ -166,6 +167,8 @@ func (dn DefinitionNode) Right() *TokenNode {
 func (dn DefinitionNode) Optional() bool {
 	return dn.optional
 }
+
+func (dn DefinitionNode) Comment() string { return dn.comment }
 
 type TokenNode struct {
 	node
@@ -226,6 +229,7 @@ type EnumNode struct {
 	name     *TokenNode
 	enumType *TokenNode
 	values   []*DefinitionNode
+	comment  string
 }
 
 func (en EnumNode) Type() NodeType {
@@ -244,11 +248,14 @@ func (en EnumNode) Values() []*DefinitionNode {
 	return en.values
 }
 
+func (en EnumNode) Comments() string { return en.comment }
+
 type StructNode struct {
 	node
 
-	name   *TokenNode
-	fields []*DefinitionNode
+	name    *TokenNode
+	fields  []*DefinitionNode
+	comment string
 }
 
 func (mn StructNode) Name() *TokenNode {
@@ -262,6 +269,8 @@ func (mn *StructNode) Type() NodeType {
 func (mn *StructNode) Fields() []*DefinitionNode {
 	return mn.fields
 }
+
+func (mn *StructNode) Comment() string { return mn.comment }
 
 type ErrorNode struct {
 	node
@@ -317,6 +326,7 @@ type MethodNode struct {
 
 	proxy bool
 
+	comment string
 	inputs  argumentList
 	outputs argumentList
 }
@@ -345,12 +355,14 @@ func (mn *MethodNode) Outputs() []*ArgumentNode {
 	return mn.outputs.arguments
 }
 
+func (mn *MethodNode) Comment() string { return mn.comment }
+
 type ServiceNode struct {
 	node
 
-	name *TokenNode
-
+	name    *TokenNode
 	methods []*MethodNode
+	comment string
 }
 
 func (sn ServiceNode) Type() NodeType {
@@ -364,6 +376,8 @@ func (sn ServiceNode) Name() *TokenNode {
 func (sn ServiceNode) Methods() []*MethodNode {
 	return sn.methods
 }
+
+func (sn ServiceNode) Comment() string { return sn.comment }
 
 type argumentList struct {
 	stream bool

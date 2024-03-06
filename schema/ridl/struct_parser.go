@@ -73,6 +73,7 @@ func parserStateStructFieldDefinition(mn *StructNode) parserState {
 
 		field := &DefinitionNode{
 			leftNode: newTokenNode(matches[2]),
+			comment:  parseComments(p.comments, matches[0].line),
 		}
 
 		// ?
@@ -137,7 +138,8 @@ func parserStateStruct(p *parser) parserState {
 	}
 
 	return parserStateStructField(&StructNode{
-		name:   newTokenNode(matches[2]),
-		fields: []*DefinitionNode{},
+		name:    newTokenNode(matches[2]),
+		fields:  []*DefinitionNode{},
+		comment: parseComments(p.comments, matches[0].line),
 	})
 }

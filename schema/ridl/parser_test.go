@@ -956,3 +956,52 @@ func TestParserExamples(t *testing.T) {
 		assert.NoError(t, err)
 	}
 }
+
+func TestParseStructComments(t *testing.T) {
+	p, err := newStringParser(`
+		# Defines role in our application
+		struct Role # => role
+		  # role name line first
+		  - name: string # role name
+		  - perms: []string # permissions
+		`)
+	assert.NoError(t, err)
+
+	err = p.run()
+	assert.NoError(t, err)
+
+	structNode, ok := p.root.node.children[0].(*StructNode)
+	if !ok {
+		t.Errorf("expected type StructNode")
+	}
+
+	assert.Equal(t, "Defines role in our application\n=> role", structNode.comment)
+
+	assert.Equal(t, "role name line first\nrole name", structNode.fields[0].comment)
+	assert.Equal(t, "permissions", structNode.fields[1].comment)
+}
+
+func TestParseServiceComments(t *testing.T) {
+	p, err := newStringParser(`
+		# Contacts service line 1
+		# Contacts service line 2
+		service ContactsService  # Contacts service line 3
+			# GetContact gives you contact for specific id
+			- GetContact(id: int) => (contact: Contact)
+			# Version returns you current deployed version
+			- Version() => (details: any)
+		`)
+	assert.NoError(t, err)
+
+	err = p.run()
+	assert.NoError(t, err)
+
+	serviceNode, ok := p.root.node.children[0].(*ServiceNode)
+	if !ok {
+		t.Errorf("expected type ServiceNode")
+	}
+
+	assert.Equal(t, "Contacts service line 1\nContacts service line 2\nContacts service line 3", serviceNode.comment)
+	assert.Equal(t, "GetContact gives you contact for specific id", serviceNode.methods[0].comment)
+	assert.Equal(t, "Version returns you current deployed version", serviceNode.methods[1].comment)
+}

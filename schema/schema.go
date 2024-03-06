@@ -94,7 +94,7 @@ func (s *WebRPCSchema) ToJSON() (string, error) {
 func (s *WebRPCSchema) GetTypeByName(name string) *Type {
 	name = strings.ToLower(name)
 	for _, message := range s.Types {
-		if strings.ToLower(string(message.Name)) == name {
+		if strings.ToLower(message.Name) == name {
 			return message
 		}
 	}
@@ -104,7 +104,7 @@ func (s *WebRPCSchema) GetTypeByName(name string) *Type {
 func (s *WebRPCSchema) GetServiceByName(name string) *Service {
 	name = strings.ToLower(name)
 	for _, service := range s.Services {
-		if strings.ToLower(string(service.Name)) == name {
+		if strings.ToLower(service.Name) == name {
 			return service
 		}
 	}
