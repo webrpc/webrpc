@@ -2649,7 +2649,7 @@
 		Deprecated_Messages: ([]interface {}) <nil>
 	}),
 	SchemaHash: (string) (len=40) "1e00d2fe909b6626e4156ac2a40ff08223d75224",
-	WebrpcGenVersion: (string) (len=11) "v0.14.0-dev",
+	WebrpcGenVersion: (string) (len=11) "v0.15.0-dev",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcTarget: (string) (len=5) "debug",
 	WebrpcErrors: ([]*schema.Error) (len=11 cap=11) {
