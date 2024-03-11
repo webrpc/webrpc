@@ -72,10 +72,16 @@
      "type": "map<uint64,User>"
     },
     {
+     "comments": [
+      "comment"
+     ],
      "name": "perms",
      "type": "[]string"
     },
     {
+     "comments": [
+      "comment"
+     ],
      "name": "other",
      "type": "map<uint64,map<string,string>>"
     }

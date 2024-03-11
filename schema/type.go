@@ -17,6 +17,7 @@ type Type struct {
 	Type      *VarType     `json:"type,omitempty"`
 	Fields    []*TypeField `json:"fields,omitempty"`
 	TypeExtra `json:",omitempty"`
+	Comments  []string `json:"comments,omitempty"`
 }
 
 type TypeField struct {

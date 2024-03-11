@@ -516,17 +516,23 @@ func parseComments(comments map[int]string, currentLine int) string {
 	iteration := 0
 	c := []string{}
 
+	if len(comments) == 0 {
+		return ""
+	}
+
 	for ; currentLine >= 0; currentLine-- {
 		comment, ok := comments[currentLine]
 		if ok {
 			c = append(c, comment)
 			delete(comments, currentLine)
+			iteration = 0
+
+			if len(comments) == 0 {
+				break
+			}
 		}
 
-		if !ok && iteration > 1 {
-			break
-		}
-
+		// if there are 2 lines of empty space => no comment we don't read more
 		if iteration > 1 {
 			break
 		}
