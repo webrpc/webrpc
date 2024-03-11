@@ -10,6 +10,7 @@
 				Type: (*schema.VarType)({
 					Expr: (string) (len=6) "uint32",
 					Type: (schema.CoreType) 8,
+					Comments: ([]string) <nil>,
 					List: (*schema.VarListType)(<nil>),
 					Map: (*schema.VarMapType)(<nil>),
 					Struct: (*schema.VarStructType)(<nil>)
@@ -42,7 +43,8 @@
 					Optional: (bool) false,
 					Value: (string) "",
 					Meta: ([]schema.TypeFieldMeta) <nil>
-				}
+				},
+				Comments: ([]string) <nil>
 			}),
 			(*schema.Type)({
 				Kind: (string) (len=6) "struct",
@@ -50,11 +52,13 @@
 				Type: (*schema.VarType)(<nil>),
 				Fields: ([]*schema.TypeField) (len=2 cap=2) {
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=2) "id",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=3) "int",
 							Type: (schema.CoreType) 10,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)(<nil>),
 							Struct: (*schema.VarStructType)(<nil>)
@@ -66,11 +70,13 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=4) "name",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "string",
 							Type: (schema.CoreType) 17,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)(<nil>),
 							Struct: (*schema.VarStructType)(<nil>)
@@ -86,6 +92,8 @@
 					Optional: (bool) false,
 					Value: (string) "",
 					Meta: ([]schema.TypeFieldMeta) <nil>
+				},
+				Comments: ([]string) {
 				}
 			}),
 			(*schema.Type)({
@@ -94,11 +102,13 @@
 				Type: (*schema.VarType)(<nil>),
 				Fields: ([]*schema.TypeField) (len=3 cap=4) {
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=2) "id",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "uint64",
 							Type: (schema.CoreType) 9,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)(<nil>),
 							Struct: (*schema.VarStructType)(<nil>)
@@ -120,11 +130,13 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=8) "username",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "string",
 							Type: (schema.CoreType) 17,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)(<nil>),
 							Struct: (*schema.VarStructType)(<nil>)
@@ -143,11 +155,13 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=4) "role",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "string",
 							Type: (schema.CoreType) 17,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)(<nil>),
 							Struct: (*schema.VarStructType)(<nil>)
@@ -167,6 +181,8 @@
 					Optional: (bool) false,
 					Value: (string) "",
 					Meta: ([]schema.TypeFieldMeta) <nil>
+				},
+				Comments: ([]string) {
 				}
 			}),
 			(*schema.Type)({
@@ -175,17 +191,20 @@
 				Type: (*schema.VarType)(<nil>),
 				Fields: ([]*schema.TypeField) (len=10 cap=16) {
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=4) "meta",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=15) "map<string,any>",
 							Type: (schema.CoreType) 20,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)({
 								Key: (schema.CoreType) 17,
 								Value: (*schema.VarType)({
 									Expr: (string) (len=3) "any",
 									Type: (schema.CoreType) 2,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)(<nil>)
@@ -200,23 +219,27 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=17) "metaNestedExample",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=30) "map<string,map<string,uint32>>",
 							Type: (schema.CoreType) 20,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)({
 								Key: (schema.CoreType) 17,
 								Value: (*schema.VarType)({
 									Expr: (string) (len=18) "map<string,uint32>",
 									Type: (schema.CoreType) 20,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)({
 										Key: (schema.CoreType) 17,
 										Value: (*schema.VarType)({
 											Expr: (string) (len=6) "uint32",
 											Type: (schema.CoreType) 8,
+											Comments: ([]string) <nil>,
 											List: (*schema.VarListType)(<nil>),
 											Map: (*schema.VarMapType)(<nil>),
 											Struct: (*schema.VarStructType)(<nil>)
@@ -234,15 +257,18 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=9) "namesList",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=8) "[]string",
 							Type: (schema.CoreType) 19,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)({
 								Elem: (*schema.VarType)({
 									Expr: (string) (len=6) "string",
 									Type: (schema.CoreType) 17,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)(<nil>)
@@ -258,15 +284,18 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=8) "numsList",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=7) "[]int64",
 							Type: (schema.CoreType) 19,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)({
 								Elem: (*schema.VarType)({
 									Expr: (string) (len=5) "int64",
 									Type: (schema.CoreType) 14,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)(<nil>)
@@ -282,19 +311,23 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=11) "doubleArray",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=10) "[][]string",
 							Type: (schema.CoreType) 19,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)({
 								Elem: (*schema.VarType)({
 									Expr: (string) (len=8) "[]string",
 									Type: (schema.CoreType) 19,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)({
 										Elem: (*schema.VarType)({
 											Expr: (string) (len=6) "string",
 											Type: (schema.CoreType) 17,
+											Comments: ([]string) <nil>,
 											List: (*schema.VarListType)(<nil>),
 											Map: (*schema.VarMapType)(<nil>),
 											Struct: (*schema.VarStructType)(<nil>)
@@ -314,21 +347,25 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=10) "listOfMaps",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=20) "[]map<string,uint32>",
 							Type: (schema.CoreType) 19,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)({
 								Elem: (*schema.VarType)({
 									Expr: (string) (len=18) "map<string,uint32>",
 									Type: (schema.CoreType) 20,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)({
 										Key: (schema.CoreType) 17,
 										Value: (*schema.VarType)({
 											Expr: (string) (len=6) "uint32",
 											Type: (schema.CoreType) 8,
+											Comments: ([]string) <nil>,
 											List: (*schema.VarListType)(<nil>),
 											Map: (*schema.VarMapType)(<nil>),
 											Struct: (*schema.VarStructType)(<nil>)
@@ -347,15 +384,18 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=11) "listOfUsers",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "[]User",
 							Type: (schema.CoreType) 19,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)({
 								Elem: (*schema.VarType)({
 									Expr: (string) (len=4) "User",
 									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)({
@@ -366,11 +406,13 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=3 cap=4) {
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "uint64",
 														Type: (schema.CoreType) 9,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -392,11 +434,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=8) "username",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
 														Type: (schema.CoreType) 17,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -415,11 +459,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "role",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
 														Type: (schema.CoreType) 17,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -439,6 +485,8 @@
 												Optional: (bool) false,
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
 											}
 										})
 									})
@@ -454,17 +502,20 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=10) "mapOfUsers",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=16) "map<string,User>",
 							Type: (schema.CoreType) 20,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)({
 								Key: (schema.CoreType) 17,
 								Value: (*schema.VarType)({
 									Expr: (string) (len=4) "User",
 									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)({
@@ -475,11 +526,13 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=3 cap=4) {
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "uint64",
 														Type: (schema.CoreType) 9,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -501,11 +554,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=8) "username",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
 														Type: (schema.CoreType) 17,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -524,11 +579,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "role",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
 														Type: (schema.CoreType) 17,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -548,6 +605,8 @@
 												Optional: (bool) false,
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
 											}
 										})
 									})
@@ -562,11 +621,13 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=4) "user",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=4) "User",
 							Type: (schema.CoreType) 21,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)(<nil>),
 							Struct: (*schema.VarStructType)({
@@ -577,11 +638,13 @@
 									Type: (*schema.VarType)(<nil>),
 									Fields: ([]*schema.TypeField) (len=3 cap=4) {
 										(*schema.TypeField)({
-											Comments: ([]string) <nil>,
+											Comments: ([]string) {
+											},
 											Name: (string) (len=2) "id",
 											Type: (*schema.VarType)({
 												Expr: (string) (len=6) "uint64",
 												Type: (schema.CoreType) 9,
+												Comments: ([]string) <nil>,
 												List: (*schema.VarListType)(<nil>),
 												Map: (*schema.VarMapType)(<nil>),
 												Struct: (*schema.VarStructType)(<nil>)
@@ -603,11 +666,13 @@
 											}
 										}),
 										(*schema.TypeField)({
-											Comments: ([]string) <nil>,
+											Comments: ([]string) {
+											},
 											Name: (string) (len=8) "username",
 											Type: (*schema.VarType)({
 												Expr: (string) (len=6) "string",
 												Type: (schema.CoreType) 17,
+												Comments: ([]string) <nil>,
 												List: (*schema.VarListType)(<nil>),
 												Map: (*schema.VarMapType)(<nil>),
 												Struct: (*schema.VarStructType)(<nil>)
@@ -626,11 +691,13 @@
 											}
 										}),
 										(*schema.TypeField)({
-											Comments: ([]string) <nil>,
+											Comments: ([]string) {
+											},
 											Name: (string) (len=4) "role",
 											Type: (*schema.VarType)({
 												Expr: (string) (len=6) "string",
 												Type: (schema.CoreType) 17,
+												Comments: ([]string) <nil>,
 												List: (*schema.VarListType)(<nil>),
 												Map: (*schema.VarMapType)(<nil>),
 												Struct: (*schema.VarStructType)(<nil>)
@@ -650,6 +717,8 @@
 										Optional: (bool) false,
 										Value: (string) "",
 										Meta: ([]schema.TypeFieldMeta) <nil>
+									},
+									Comments: ([]string) {
 									}
 								})
 							})
@@ -661,11 +730,13 @@
 						}
 					}),
 					(*schema.TypeField)({
-						Comments: ([]string) <nil>,
+						Comments: ([]string) {
+						},
 						Name: (string) (len=4) "enum",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "Status",
 							Type: (schema.CoreType) 21,
+							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)(<nil>),
 							Struct: (*schema.VarStructType)({
@@ -676,6 +747,7 @@
 									Type: (*schema.VarType)({
 										Expr: (string) (len=6) "uint32",
 										Type: (schema.CoreType) 8,
+										Comments: ([]string) <nil>,
 										List: (*schema.VarListType)(<nil>),
 										Map: (*schema.VarMapType)(<nil>),
 										Struct: (*schema.VarStructType)(<nil>)
@@ -708,7 +780,8 @@
 										Optional: (bool) false,
 										Value: (string) "",
 										Meta: ([]schema.TypeFieldMeta) <nil>
-									}
+									},
+									Comments: ([]string) <nil>
 								})
 							})
 						}),
@@ -723,6 +796,8 @@
 					Optional: (bool) false,
 					Value: (string) "",
 					Meta: ([]schema.TypeFieldMeta) <nil>
+				},
+				Comments: ([]string) {
 				}
 			})
 		},
@@ -881,6 +956,7 @@
 								Type: (*schema.VarType)({
 									Expr: (string) (len=6) "Simple",
 									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)({
@@ -891,11 +967,13 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
 														Type: (schema.CoreType) 10,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -907,11 +985,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
 														Type: (schema.CoreType) 17,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -927,6 +1007,8 @@
 												Optional: (bool) false,
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
 											}
 										})
 									})
@@ -956,6 +1038,7 @@
 								Type: (*schema.VarType)({
 									Expr: (string) (len=6) "Simple",
 									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)({
@@ -966,11 +1049,13 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
 														Type: (schema.CoreType) 10,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -982,11 +1067,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
 														Type: (schema.CoreType) 17,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -1002,6 +1089,8 @@
 												Optional: (bool) false,
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
 											}
 										})
 									})
@@ -1035,6 +1124,7 @@
 								Type: (*schema.VarType)({
 									Expr: (string) (len=6) "Simple",
 									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)({
@@ -1045,11 +1135,13 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
 														Type: (schema.CoreType) 10,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -1061,11 +1153,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
 														Type: (schema.CoreType) 17,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -1081,6 +1175,8 @@
 												Optional: (bool) false,
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
 											}
 										})
 									})
@@ -1099,6 +1195,7 @@
 								Type: (*schema.VarType)({
 									Expr: (string) (len=6) "Simple",
 									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)({
@@ -1109,11 +1206,13 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
 														Type: (schema.CoreType) 10,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -1125,11 +1224,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
 														Type: (schema.CoreType) 17,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -1145,6 +1246,8 @@
 												Optional: (bool) false,
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
 											}
 										})
 									})
@@ -1163,6 +1266,7 @@
 								Type: (*schema.VarType)({
 									Expr: (string) (len=6) "Simple",
 									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)({
@@ -1173,11 +1277,13 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
 														Type: (schema.CoreType) 10,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -1189,11 +1295,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
 														Type: (schema.CoreType) 17,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -1209,6 +1317,8 @@
 												Optional: (bool) false,
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
 											}
 										})
 									})
@@ -1238,6 +1348,7 @@
 								Type: (*schema.VarType)({
 									Expr: (string) (len=6) "Simple",
 									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)({
@@ -1248,11 +1359,13 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
 														Type: (schema.CoreType) 10,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -1264,11 +1377,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
 														Type: (schema.CoreType) 17,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -1284,6 +1399,8 @@
 												Optional: (bool) false,
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
 											}
 										})
 									})
@@ -1302,6 +1419,7 @@
 								Type: (*schema.VarType)({
 									Expr: (string) (len=6) "Simple",
 									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)({
@@ -1312,11 +1430,13 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
 														Type: (schema.CoreType) 10,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -1328,11 +1448,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
 														Type: (schema.CoreType) 17,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -1348,6 +1470,8 @@
 												Optional: (bool) false,
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
 											}
 										})
 									})
@@ -1366,6 +1490,7 @@
 								Type: (*schema.VarType)({
 									Expr: (string) (len=6) "Simple",
 									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)({
@@ -1376,11 +1501,13 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=2 cap=2) {
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=2) "id",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=3) "int",
 														Type: (schema.CoreType) 10,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -1392,11 +1519,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "name",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "string",
 														Type: (schema.CoreType) 17,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>)
@@ -1412,6 +1541,8 @@
 												Optional: (bool) false,
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
 											}
 										})
 									})
@@ -1445,6 +1576,7 @@
 								Type: (*schema.VarType)({
 									Expr: (string) (len=7) "Complex",
 									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)({
@@ -1455,17 +1587,20 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=10 cap=16) {
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "meta",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=15) "map<string,any>",
 														Type: (schema.CoreType) 20,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)({
 															Key: (schema.CoreType) 17,
 															Value: (*schema.VarType)({
 																Expr: (string) (len=3) "any",
 																Type: (schema.CoreType) 2,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
 																Struct: (*schema.VarStructType)(<nil>)
@@ -1480,23 +1615,27 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=17) "metaNestedExample",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=30) "map<string,map<string,uint32>>",
 														Type: (schema.CoreType) 20,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)({
 															Key: (schema.CoreType) 17,
 															Value: (*schema.VarType)({
 																Expr: (string) (len=18) "map<string,uint32>",
 																Type: (schema.CoreType) 20,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)({
 																	Key: (schema.CoreType) 17,
 																	Value: (*schema.VarType)({
 																		Expr: (string) (len=6) "uint32",
 																		Type: (schema.CoreType) 8,
+																		Comments: ([]string) <nil>,
 																		List: (*schema.VarListType)(<nil>),
 																		Map: (*schema.VarMapType)(<nil>),
 																		Struct: (*schema.VarStructType)(<nil>)
@@ -1514,15 +1653,18 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=9) "namesList",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=8) "[]string",
 														Type: (schema.CoreType) 19,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)({
 															Elem: (*schema.VarType)({
 																Expr: (string) (len=6) "string",
 																Type: (schema.CoreType) 17,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
 																Struct: (*schema.VarStructType)(<nil>)
@@ -1538,15 +1680,18 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=8) "numsList",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=7) "[]int64",
 														Type: (schema.CoreType) 19,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)({
 															Elem: (*schema.VarType)({
 																Expr: (string) (len=5) "int64",
 																Type: (schema.CoreType) 14,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
 																Struct: (*schema.VarStructType)(<nil>)
@@ -1562,19 +1707,23 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=11) "doubleArray",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=10) "[][]string",
 														Type: (schema.CoreType) 19,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)({
 															Elem: (*schema.VarType)({
 																Expr: (string) (len=8) "[]string",
 																Type: (schema.CoreType) 19,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)({
 																	Elem: (*schema.VarType)({
 																		Expr: (string) (len=6) "string",
 																		Type: (schema.CoreType) 17,
+																		Comments: ([]string) <nil>,
 																		List: (*schema.VarListType)(<nil>),
 																		Map: (*schema.VarMapType)(<nil>),
 																		Struct: (*schema.VarStructType)(<nil>)
@@ -1594,21 +1743,25 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=10) "listOfMaps",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=20) "[]map<string,uint32>",
 														Type: (schema.CoreType) 19,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)({
 															Elem: (*schema.VarType)({
 																Expr: (string) (len=18) "map<string,uint32>",
 																Type: (schema.CoreType) 20,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)({
 																	Key: (schema.CoreType) 17,
 																	Value: (*schema.VarType)({
 																		Expr: (string) (len=6) "uint32",
 																		Type: (schema.CoreType) 8,
+																		Comments: ([]string) <nil>,
 																		List: (*schema.VarListType)(<nil>),
 																		Map: (*schema.VarMapType)(<nil>),
 																		Struct: (*schema.VarStructType)(<nil>)
@@ -1627,15 +1780,18 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=11) "listOfUsers",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "[]User",
 														Type: (schema.CoreType) 19,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)({
 															Elem: (*schema.VarType)({
 																Expr: (string) (len=4) "User",
 																Type: (schema.CoreType) 21,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
 																Struct: (*schema.VarStructType)({
@@ -1646,11 +1802,13 @@
 																		Type: (*schema.VarType)(<nil>),
 																		Fields: ([]*schema.TypeField) (len=3 cap=4) {
 																			(*schema.TypeField)({
-																				Comments: ([]string) <nil>,
+																				Comments: ([]string) {
+																				},
 																				Name: (string) (len=2) "id",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "uint64",
 																					Type: (schema.CoreType) 9,
+																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
 																					Struct: (*schema.VarStructType)(<nil>)
@@ -1672,11 +1830,13 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]string) <nil>,
+																				Comments: ([]string) {
+																				},
 																				Name: (string) (len=8) "username",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
 																					Type: (schema.CoreType) 17,
+																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
 																					Struct: (*schema.VarStructType)(<nil>)
@@ -1695,11 +1855,13 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]string) <nil>,
+																				Comments: ([]string) {
+																				},
 																				Name: (string) (len=4) "role",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
 																					Type: (schema.CoreType) 17,
+																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
 																					Struct: (*schema.VarStructType)(<nil>)
@@ -1719,6 +1881,8 @@
 																			Optional: (bool) false,
 																			Value: (string) "",
 																			Meta: ([]schema.TypeFieldMeta) <nil>
+																		},
+																		Comments: ([]string) {
 																		}
 																	})
 																})
@@ -1734,17 +1898,20 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=10) "mapOfUsers",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=16) "map<string,User>",
 														Type: (schema.CoreType) 20,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)({
 															Key: (schema.CoreType) 17,
 															Value: (*schema.VarType)({
 																Expr: (string) (len=4) "User",
 																Type: (schema.CoreType) 21,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
 																Struct: (*schema.VarStructType)({
@@ -1755,11 +1922,13 @@
 																		Type: (*schema.VarType)(<nil>),
 																		Fields: ([]*schema.TypeField) (len=3 cap=4) {
 																			(*schema.TypeField)({
-																				Comments: ([]string) <nil>,
+																				Comments: ([]string) {
+																				},
 																				Name: (string) (len=2) "id",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "uint64",
 																					Type: (schema.CoreType) 9,
+																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
 																					Struct: (*schema.VarStructType)(<nil>)
@@ -1781,11 +1950,13 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]string) <nil>,
+																				Comments: ([]string) {
+																				},
 																				Name: (string) (len=8) "username",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
 																					Type: (schema.CoreType) 17,
+																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
 																					Struct: (*schema.VarStructType)(<nil>)
@@ -1804,11 +1975,13 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]string) <nil>,
+																				Comments: ([]string) {
+																				},
 																				Name: (string) (len=4) "role",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
 																					Type: (schema.CoreType) 17,
+																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
 																					Struct: (*schema.VarStructType)(<nil>)
@@ -1828,6 +2001,8 @@
 																			Optional: (bool) false,
 																			Value: (string) "",
 																			Meta: ([]schema.TypeFieldMeta) <nil>
+																		},
+																		Comments: ([]string) {
 																		}
 																	})
 																})
@@ -1842,11 +2017,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "user",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=4) "User",
 														Type: (schema.CoreType) 21,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)({
@@ -1857,11 +2034,13 @@
 																Type: (*schema.VarType)(<nil>),
 																Fields: ([]*schema.TypeField) (len=3 cap=4) {
 																	(*schema.TypeField)({
-																		Comments: ([]string) <nil>,
+																		Comments: ([]string) {
+																		},
 																		Name: (string) (len=2) "id",
 																		Type: (*schema.VarType)({
 																			Expr: (string) (len=6) "uint64",
 																			Type: (schema.CoreType) 9,
+																			Comments: ([]string) <nil>,
 																			List: (*schema.VarListType)(<nil>),
 																			Map: (*schema.VarMapType)(<nil>),
 																			Struct: (*schema.VarStructType)(<nil>)
@@ -1883,11 +2062,13 @@
 																		}
 																	}),
 																	(*schema.TypeField)({
-																		Comments: ([]string) <nil>,
+																		Comments: ([]string) {
+																		},
 																		Name: (string) (len=8) "username",
 																		Type: (*schema.VarType)({
 																			Expr: (string) (len=6) "string",
 																			Type: (schema.CoreType) 17,
+																			Comments: ([]string) <nil>,
 																			List: (*schema.VarListType)(<nil>),
 																			Map: (*schema.VarMapType)(<nil>),
 																			Struct: (*schema.VarStructType)(<nil>)
@@ -1906,11 +2087,13 @@
 																		}
 																	}),
 																	(*schema.TypeField)({
-																		Comments: ([]string) <nil>,
+																		Comments: ([]string) {
+																		},
 																		Name: (string) (len=4) "role",
 																		Type: (*schema.VarType)({
 																			Expr: (string) (len=6) "string",
 																			Type: (schema.CoreType) 17,
+																			Comments: ([]string) <nil>,
 																			List: (*schema.VarListType)(<nil>),
 																			Map: (*schema.VarMapType)(<nil>),
 																			Struct: (*schema.VarStructType)(<nil>)
@@ -1930,6 +2113,8 @@
 																	Optional: (bool) false,
 																	Value: (string) "",
 																	Meta: ([]schema.TypeFieldMeta) <nil>
+																},
+																Comments: ([]string) {
 																}
 															})
 														})
@@ -1941,11 +2126,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "enum",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "Status",
 														Type: (schema.CoreType) 21,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)({
@@ -1956,6 +2143,7 @@
 																Type: (*schema.VarType)({
 																	Expr: (string) (len=6) "uint32",
 																	Type: (schema.CoreType) 8,
+																	Comments: ([]string) <nil>,
 																	List: (*schema.VarListType)(<nil>),
 																	Map: (*schema.VarMapType)(<nil>),
 																	Struct: (*schema.VarStructType)(<nil>)
@@ -1988,7 +2176,8 @@
 																	Optional: (bool) false,
 																	Value: (string) "",
 																	Meta: ([]schema.TypeFieldMeta) <nil>
-																}
+																},
+																Comments: ([]string) <nil>
 															})
 														})
 													}),
@@ -2003,6 +2192,8 @@
 												Optional: (bool) false,
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
 											}
 										})
 									})
@@ -2032,6 +2223,7 @@
 								Type: (*schema.VarType)({
 									Expr: (string) (len=7) "Complex",
 									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)({
@@ -2042,17 +2234,20 @@
 											Type: (*schema.VarType)(<nil>),
 											Fields: ([]*schema.TypeField) (len=10 cap=16) {
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "meta",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=15) "map<string,any>",
 														Type: (schema.CoreType) 20,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)({
 															Key: (schema.CoreType) 17,
 															Value: (*schema.VarType)({
 																Expr: (string) (len=3) "any",
 																Type: (schema.CoreType) 2,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
 																Struct: (*schema.VarStructType)(<nil>)
@@ -2067,23 +2262,27 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=17) "metaNestedExample",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=30) "map<string,map<string,uint32>>",
 														Type: (schema.CoreType) 20,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)({
 															Key: (schema.CoreType) 17,
 															Value: (*schema.VarType)({
 																Expr: (string) (len=18) "map<string,uint32>",
 																Type: (schema.CoreType) 20,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)({
 																	Key: (schema.CoreType) 17,
 																	Value: (*schema.VarType)({
 																		Expr: (string) (len=6) "uint32",
 																		Type: (schema.CoreType) 8,
+																		Comments: ([]string) <nil>,
 																		List: (*schema.VarListType)(<nil>),
 																		Map: (*schema.VarMapType)(<nil>),
 																		Struct: (*schema.VarStructType)(<nil>)
@@ -2101,15 +2300,18 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=9) "namesList",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=8) "[]string",
 														Type: (schema.CoreType) 19,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)({
 															Elem: (*schema.VarType)({
 																Expr: (string) (len=6) "string",
 																Type: (schema.CoreType) 17,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
 																Struct: (*schema.VarStructType)(<nil>)
@@ -2125,15 +2327,18 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=8) "numsList",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=7) "[]int64",
 														Type: (schema.CoreType) 19,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)({
 															Elem: (*schema.VarType)({
 																Expr: (string) (len=5) "int64",
 																Type: (schema.CoreType) 14,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
 																Struct: (*schema.VarStructType)(<nil>)
@@ -2149,19 +2354,23 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=11) "doubleArray",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=10) "[][]string",
 														Type: (schema.CoreType) 19,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)({
 															Elem: (*schema.VarType)({
 																Expr: (string) (len=8) "[]string",
 																Type: (schema.CoreType) 19,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)({
 																	Elem: (*schema.VarType)({
 																		Expr: (string) (len=6) "string",
 																		Type: (schema.CoreType) 17,
+																		Comments: ([]string) <nil>,
 																		List: (*schema.VarListType)(<nil>),
 																		Map: (*schema.VarMapType)(<nil>),
 																		Struct: (*schema.VarStructType)(<nil>)
@@ -2181,21 +2390,25 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=10) "listOfMaps",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=20) "[]map<string,uint32>",
 														Type: (schema.CoreType) 19,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)({
 															Elem: (*schema.VarType)({
 																Expr: (string) (len=18) "map<string,uint32>",
 																Type: (schema.CoreType) 20,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)({
 																	Key: (schema.CoreType) 17,
 																	Value: (*schema.VarType)({
 																		Expr: (string) (len=6) "uint32",
 																		Type: (schema.CoreType) 8,
+																		Comments: ([]string) <nil>,
 																		List: (*schema.VarListType)(<nil>),
 																		Map: (*schema.VarMapType)(<nil>),
 																		Struct: (*schema.VarStructType)(<nil>)
@@ -2214,15 +2427,18 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=11) "listOfUsers",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "[]User",
 														Type: (schema.CoreType) 19,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)({
 															Elem: (*schema.VarType)({
 																Expr: (string) (len=4) "User",
 																Type: (schema.CoreType) 21,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
 																Struct: (*schema.VarStructType)({
@@ -2233,11 +2449,13 @@
 																		Type: (*schema.VarType)(<nil>),
 																		Fields: ([]*schema.TypeField) (len=3 cap=4) {
 																			(*schema.TypeField)({
-																				Comments: ([]string) <nil>,
+																				Comments: ([]string) {
+																				},
 																				Name: (string) (len=2) "id",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "uint64",
 																					Type: (schema.CoreType) 9,
+																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
 																					Struct: (*schema.VarStructType)(<nil>)
@@ -2259,11 +2477,13 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]string) <nil>,
+																				Comments: ([]string) {
+																				},
 																				Name: (string) (len=8) "username",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
 																					Type: (schema.CoreType) 17,
+																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
 																					Struct: (*schema.VarStructType)(<nil>)
@@ -2282,11 +2502,13 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]string) <nil>,
+																				Comments: ([]string) {
+																				},
 																				Name: (string) (len=4) "role",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
 																					Type: (schema.CoreType) 17,
+																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
 																					Struct: (*schema.VarStructType)(<nil>)
@@ -2306,6 +2528,8 @@
 																			Optional: (bool) false,
 																			Value: (string) "",
 																			Meta: ([]schema.TypeFieldMeta) <nil>
+																		},
+																		Comments: ([]string) {
 																		}
 																	})
 																})
@@ -2321,17 +2545,20 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=10) "mapOfUsers",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=16) "map<string,User>",
 														Type: (schema.CoreType) 20,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)({
 															Key: (schema.CoreType) 17,
 															Value: (*schema.VarType)({
 																Expr: (string) (len=4) "User",
 																Type: (schema.CoreType) 21,
+																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
 																Struct: (*schema.VarStructType)({
@@ -2342,11 +2569,13 @@
 																		Type: (*schema.VarType)(<nil>),
 																		Fields: ([]*schema.TypeField) (len=3 cap=4) {
 																			(*schema.TypeField)({
-																				Comments: ([]string) <nil>,
+																				Comments: ([]string) {
+																				},
 																				Name: (string) (len=2) "id",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "uint64",
 																					Type: (schema.CoreType) 9,
+																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
 																					Struct: (*schema.VarStructType)(<nil>)
@@ -2368,11 +2597,13 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]string) <nil>,
+																				Comments: ([]string) {
+																				},
 																				Name: (string) (len=8) "username",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
 																					Type: (schema.CoreType) 17,
+																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
 																					Struct: (*schema.VarStructType)(<nil>)
@@ -2391,11 +2622,13 @@
 																				}
 																			}),
 																			(*schema.TypeField)({
-																				Comments: ([]string) <nil>,
+																				Comments: ([]string) {
+																				},
 																				Name: (string) (len=4) "role",
 																				Type: (*schema.VarType)({
 																					Expr: (string) (len=6) "string",
 																					Type: (schema.CoreType) 17,
+																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
 																					Struct: (*schema.VarStructType)(<nil>)
@@ -2415,6 +2648,8 @@
 																			Optional: (bool) false,
 																			Value: (string) "",
 																			Meta: ([]schema.TypeFieldMeta) <nil>
+																		},
+																		Comments: ([]string) {
 																		}
 																	})
 																})
@@ -2429,11 +2664,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "user",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=4) "User",
 														Type: (schema.CoreType) 21,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)({
@@ -2444,11 +2681,13 @@
 																Type: (*schema.VarType)(<nil>),
 																Fields: ([]*schema.TypeField) (len=3 cap=4) {
 																	(*schema.TypeField)({
-																		Comments: ([]string) <nil>,
+																		Comments: ([]string) {
+																		},
 																		Name: (string) (len=2) "id",
 																		Type: (*schema.VarType)({
 																			Expr: (string) (len=6) "uint64",
 																			Type: (schema.CoreType) 9,
+																			Comments: ([]string) <nil>,
 																			List: (*schema.VarListType)(<nil>),
 																			Map: (*schema.VarMapType)(<nil>),
 																			Struct: (*schema.VarStructType)(<nil>)
@@ -2470,11 +2709,13 @@
 																		}
 																	}),
 																	(*schema.TypeField)({
-																		Comments: ([]string) <nil>,
+																		Comments: ([]string) {
+																		},
 																		Name: (string) (len=8) "username",
 																		Type: (*schema.VarType)({
 																			Expr: (string) (len=6) "string",
 																			Type: (schema.CoreType) 17,
+																			Comments: ([]string) <nil>,
 																			List: (*schema.VarListType)(<nil>),
 																			Map: (*schema.VarMapType)(<nil>),
 																			Struct: (*schema.VarStructType)(<nil>)
@@ -2493,11 +2734,13 @@
 																		}
 																	}),
 																	(*schema.TypeField)({
-																		Comments: ([]string) <nil>,
+																		Comments: ([]string) {
+																		},
 																		Name: (string) (len=4) "role",
 																		Type: (*schema.VarType)({
 																			Expr: (string) (len=6) "string",
 																			Type: (schema.CoreType) 17,
+																			Comments: ([]string) <nil>,
 																			List: (*schema.VarListType)(<nil>),
 																			Map: (*schema.VarMapType)(<nil>),
 																			Struct: (*schema.VarStructType)(<nil>)
@@ -2517,6 +2760,8 @@
 																	Optional: (bool) false,
 																	Value: (string) "",
 																	Meta: ([]schema.TypeFieldMeta) <nil>
+																},
+																Comments: ([]string) {
 																}
 															})
 														})
@@ -2528,11 +2773,13 @@
 													}
 												}),
 												(*schema.TypeField)({
-													Comments: ([]string) <nil>,
+													Comments: ([]string) {
+													},
 													Name: (string) (len=4) "enum",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "Status",
 														Type: (schema.CoreType) 21,
+														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)({
@@ -2543,6 +2790,7 @@
 																Type: (*schema.VarType)({
 																	Expr: (string) (len=6) "uint32",
 																	Type: (schema.CoreType) 8,
+																	Comments: ([]string) <nil>,
 																	List: (*schema.VarListType)(<nil>),
 																	Map: (*schema.VarMapType)(<nil>),
 																	Struct: (*schema.VarStructType)(<nil>)
@@ -2575,7 +2823,8 @@
 																	Optional: (bool) false,
 																	Value: (string) "",
 																	Meta: ([]schema.TypeFieldMeta) <nil>
-																}
+																},
+																Comments: ([]string) <nil>
 															})
 														})
 													}),
@@ -2590,6 +2839,8 @@
 												Optional: (bool) false,
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
 											}
 										})
 									})
@@ -2622,6 +2873,7 @@
 								Type: (*schema.VarType)({
 									Expr: (string) (len=3) "int",
 									Type: (schema.CoreType) 10,
+									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
 									Struct: (*schema.VarStructType)(<nil>)

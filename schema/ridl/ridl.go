@@ -152,8 +152,9 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	// pushing types (1st pass)
 	for _, line := range q.root.Structs() {
 		s.Types = append(s.Types, &schema.Type{
-			Kind: schemaTypeKindStruct,
-			Name: line.Name().String(),
+			Kind:     schemaTypeKindStruct,
+			Name:     line.Name().String(),
+			Comments: parseComment(line.Comment()),
 		})
 	}
 
@@ -161,7 +162,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, service := range q.root.Services() {
 		srv := &schema.Service{
 			Name:     service.Name().String(),
-			Comments: strings.FieldsFunc(service.Comment(), func(r rune) bool { return r == '\n' }),
+			Comments: parseComment(service.Comment()),
 		}
 
 		s.Services = append(s.Services, srv)
@@ -194,7 +195,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				TypeExtra: schema.TypeExtra{
 					Value: val,
 				},
-				Comments: strings.FieldsFunc(def.Comment(), func(r rune) bool { return r == '\n' }),
+				Comments: parseComment(def.Comment()),
 			}
 
 			enumDef.Fields = append(enumDef.Fields, elems)
@@ -241,6 +242,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				TypeExtra: schema.TypeExtra{
 					Optional: def.Optional(),
 				},
+				Comments: parseComment(def.Comment()),
 			}
 			for _, meta := range def.Meta() {
 				key, val := meta.Left().String(), meta.Right().String()
@@ -353,4 +355,8 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 	}
 
 	return output, nil
+}
+
+func parseComment(comment string) []string {
+	return strings.FieldsFunc(comment, func(r rune) bool { return r == '\n' })
 }

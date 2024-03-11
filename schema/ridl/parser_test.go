@@ -961,9 +961,16 @@ func TestParseStructComments(t *testing.T) {
 	p, err := newStringParser(`
 		# Defines role in our application
 		struct Role # => role
-		  # role name line first
+          # role name line first
+          # role name line second
+		  # role name line third
 		  - name: string # role name
 		  - perms: []string # permissions
+		  #- codesSubmitted: bool
+		  #  + go.tag.db = codes_submitted
+
+		  - countryCode: string # ie. US
+			+ go.tag.db = country_code
 		`)
 	assert.NoError(t, err)
 
@@ -977,8 +984,9 @@ func TestParseStructComments(t *testing.T) {
 
 	assert.Equal(t, "Defines role in our application\n=> role", structNode.comment)
 
-	assert.Equal(t, "role name line first\nrole name", structNode.fields[0].comment)
+	assert.Equal(t, "role name line first\nrole name line second\nrole name line third\nrole name", structNode.fields[0].comment)
 	assert.Equal(t, "permissions", structNode.fields[1].comment)
+	assert.Equal(t, "ie. US", structNode.fields[2].comment)
 }
 
 func TestParseServiceComments(t *testing.T) {
