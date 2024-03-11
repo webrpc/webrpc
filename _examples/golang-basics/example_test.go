@@ -46,7 +46,7 @@ func TestGetUser(t *testing.T) {
 		kind := Kind_ADMIN
 
 		assert.Equal(t, uint32(200), code)
-		assert.Equal(t, &User{ID: 12, Username: "hihi", Intent: &intent, Kind: &kind}, user)
+		assert.Equal(t, &User{ID: 12, Username: "hihi", Intent: intent, Kind: kind}, user)
 		assert.NoError(t, err)
 	}
 
