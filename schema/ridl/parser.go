@@ -532,7 +532,12 @@ func parseComments(comments map[int]string, currentLine int) string {
 			}
 		}
 
-		// if there are 2 lines of empty space => no comment we don't read more
+		// if we already found a comment and there is one empty line we don't read more lines
+		if !ok && len(c) > 0 {
+			break
+		}
+
+		// if there are 2 lines of empty space => no comment we don't read more lines
 		if iteration > 1 {
 			break
 		}

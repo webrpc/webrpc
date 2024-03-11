@@ -6,8 +6,9 @@ import (
 )
 
 type VarType struct {
-	Expr string   // Type, ie. map<string,map<string,uint32>> or []User
-	Type CoreType // Kind, ie. int, map or struct
+	Expr     string   // Type, ie. map<string,map<string,uint32>> or []User
+	Type     CoreType // Kind, ie. int, map or struct
+	Comments []string `json:"comments,omitempty"`
 
 	List   *VarListType
 	Map    *VarMapType
