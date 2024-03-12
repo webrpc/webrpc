@@ -25,10 +25,10 @@ all:
 	@echo ""
 
 build:
-	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen
+	go build -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe)" -o ./bin/webrpc-gen ./cmd/webrpc-gen
 
 build-test:
-	go build -o ./bin/webrpc-test ./cmd/webrpc-test
+	go build -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe)" -o ./bin/webrpc-test ./cmd/webrpc-test
 
 clean:
 	rm -rf ./bin
