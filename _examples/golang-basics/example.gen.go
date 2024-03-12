@@ -572,7 +572,7 @@ func urlBase(addr string) string {
 
 // newRequest makes an http.Request from a client, adding common headers.
 func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType string) (*http.Request, error) {
-	req, err := http.NewRequest("POST", url, reqBody)
+	req, err := http.NewRequestWithContext(ctx, "POST", url, reqBody)
 	if err != nil {
 		return nil, err
 	}
