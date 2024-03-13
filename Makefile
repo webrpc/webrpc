@@ -34,8 +34,8 @@ clean:
 	rm -rf ./bin
 
 install:
-	go install ./cmd/webrpc-gen
-	go install ./cmd/webrpc-test
+	go install -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe)" ./cmd/webrpc-gen
+	go install -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe)" ./cmd/webrpc-test
 
 generate: build
 	go generate -v -x ./...
