@@ -46,6 +46,8 @@ generate: build
 		make generate || exit 1;                 \
 		cd ../../;                               \
 	done
+	# Replace webrpc version in all generated files to avoid git conflicts.
+	git grep -l "$$(git describe)" | xargs sed -i -e "s#$$(git describe)#VERSION#g"
 
 dep:
 	go mod tidy
