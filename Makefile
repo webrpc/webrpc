@@ -47,7 +47,8 @@ generate: build
 		cd ../../;                               \
 	done
 	# Replace webrpc version in all generated files to avoid git conflicts.
-	git grep -l "$$(git describe)" | xargs sed -i -e "s#$$(git describe)#VERSION#g"
+	git grep -l "$$(git describe)" | xargs sed -i -e "s/@$$(git describe)//g"
+	sed -i "/$$(git describe)/d" tests/schema/test.debug.gen.txt
 
 dep:
 	go mod tidy
