@@ -201,10 +201,9 @@ For more information please see the [schema readme](./schema/README.md).
 ## Building from source
 
 1. Install Go 1.16+
-2. $ `go get -u github.com/webrpc/webrpc/...`
-3. $ `make build`
-4. $ `make test`
-5. $ `go install ./cmd/webrpc-gen`
+2. $ `make build`
+3. $ `make test`
+4. $ `make install`
 
 
 ## Writing your own code-generator
