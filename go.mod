@@ -15,6 +15,7 @@ require (
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/stretchr/testify v1.8.1
+	github.com/webrpc/gen-golang v0.14.2-0.20240403143420-ef59c2ac29bc // indirect
 	github.com/xanzy/ssh-agent v0.3.2 // indirect
 	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab // indirect; v0.0.0-20220811171246-fbc7d0a398ab is the last version working with Go 1.16
 	golang.org/x/tools v0.1.12
