@@ -31,9 +31,9 @@ func getRuntimeVersion() string {
 		}
 	}
 
-	// $ git describe
+	// $ git describe --tags
 	// v0.15.1-6-g550333d\n
-	if out, _ := exec.Command("git", "describe").Output(); len(out) > 0 {
+	if out, _ := exec.Command("git", "describe", "--tags").Output(); len(out) > 0 {
 		return strings.TrimSpace(string(out))
 	}
 

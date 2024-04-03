@@ -32,7 +32,7 @@ func WebRPCSchemaHash() string {
 }
 
 //
-// Types
+// Common types
 //
 
 type Kind uint32

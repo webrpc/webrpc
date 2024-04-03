@@ -31,7 +31,7 @@ func WebRPCSchemaHash() string {
 }
 
 //
-// Types
+// Common types
 //
 
 type Status uint32
