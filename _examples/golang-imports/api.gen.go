@@ -33,7 +33,7 @@ func WebRPCSchemaHash() string {
 }
 
 //
-// Types
+// Common types
 //
 
 type User struct {
