@@ -61,7 +61,7 @@ func NewTemplateSource(target string, config *Config) (*TemplateSource, error) {
 }
 
 func (s *TemplateSource) loadTemplates() (*template.Template, error) {
-	if fs, ok := DefaultTemplates[s.target]; ok {
+	if fs, ok := DefaultEmbeddedTemplates[s.target]; ok {
 		// from go:embed
 		s.IsLocal = true
 		tmpl, err := s.tmpl.ParseFS(fs, "*.go.tmpl")
