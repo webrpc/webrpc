@@ -61,6 +61,16 @@ func NewTemplateSource(target string, config *Config) (*TemplateSource, error) {
 }
 
 func (s *TemplateSource) loadTemplates() (*template.Template, error) {
+	if fs, ok := DefaultEmbeddedTemplates[s.target]; ok {
+		// from go:embed
+		s.IsLocal = true
+		tmpl, err := s.tmpl.ParseFS(fs, "*.go.tmpl")
+		if err != nil {
+			return nil, fmt.Errorf("failed to load embedded templates: %w", err)
+		}
+		return tmpl, nil
+	}
+
 	if isLocalDir(s.target) {
 		// from local directory
 		s.IsLocal = true
@@ -70,17 +80,17 @@ func (s *TemplateSource) loadTemplates() (*template.Template, error) {
 		}
 		s.TmplDir = s.target
 		s.TmplVersion = s.target
-		return tmpl, err
-	} else {
-		// from remote git or cache source
-		s.IsLocal = false
-		s.target = s.inferRemoteTarget(s.target)
-		tmpl, err := s.loadRemote()
-		if err != nil {
-			return nil, fmt.Errorf("failed to load templates from %s: %w", s.target, err)
-		}
-		return tmpl, err
+		return tmpl, nil
 	}
+
+	// from remote git or cache source
+	s.IsLocal = false
+	s.target = s.inferRemoteTarget(s.target)
+	tmpl, err := s.loadRemote()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load templates from %s: %w", s.target, err)
+	}
+	return tmpl, nil
 }
 
 func (s *TemplateSource) loadRemote() (*template.Template, error) {
