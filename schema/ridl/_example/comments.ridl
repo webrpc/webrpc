@@ -10,7 +10,7 @@ enum Kind: uint32
   - USER = 1             # user
   - ADMIN = 2            # comment..
 
-# or.. just..
+#! or.. just..
 enum Kind2: uint32
   - USER                 # aka, = 0
   - ADMIN                # aka, = 1

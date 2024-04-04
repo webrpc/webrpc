@@ -997,6 +997,7 @@ func TestParseServiceComments(t *testing.T) {
 			# GetContact gives you contact for specific id
 			- GetContact(id: int) => (contact: Contact)
 			# Version returns you current deployed version
+			#! skip this line as its internal comment
 			- Version() => (details: any)
 		`)
 	assert.NoError(t, err)

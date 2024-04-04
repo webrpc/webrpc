@@ -63,6 +63,7 @@ const (
 	tokenDot                         // "."
 	tokenQuestionMark                // "?"
 	tokenRocket                      // "=>"
+	tokenBang                        // "!"
 	tokenWord                        // ..wordCharset..
 
 	tokenExtra // other
@@ -97,6 +98,7 @@ var tokenTypeName = map[tokenType]string{
 	tokenSlash:             "[slash]",
 	tokenQuestionMark:      "[question mark]",
 	tokenRocket:            "[rocket]",
+	tokenBang:              "[bang]",
 	tokenWord:              "[word]",
 	tokenExtra:             "[extra]",
 	tokenComposed:          "[composed]",
@@ -123,6 +125,7 @@ var tokenTypeValue = map[tokenType][]rune{
 	tokenComma:             {','},
 	tokenDot:               {'.'},
 	tokenQuestionMark:      {'?'},
+	tokenBang:              {'!'},
 }
 
 var (
@@ -145,6 +148,7 @@ var (
 	isBackslash         = isTokenType(tokenBackslash)
 	isSlash             = isTokenType(tokenSlash)
 	isDot               = isTokenType(tokenDot)
+	isBang              = isTokenType(tokenBang)
 )
 
 func isTokenType(tt tokenType) func(r rune) bool {
