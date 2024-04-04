@@ -17,7 +17,7 @@ var (
 	flags            = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
 	versionFlag      = flags.Bool("version", false, "print version and exit")
 	schemaFlag       = flags.String("schema", "", "webrpc input schema file, ie. proto.ridl or proto.json (required)")
-	targetFlag       = flags.String("target", "", targetUsage)
+	targetFlag       = flags.String("target", "", targetUsage())
 	outFlag          = flags.String("out", "", "generated output file (default stdout)")
 	fmtFlag          = flags.Bool("fmt", true, "format generated code")
 	refreshCacheFlag = flags.Bool("refreshCache", false, "refresh webrpc cache")
@@ -176,17 +176,25 @@ func writeOutfile(outfile string, protoGen []byte) error {
 	return nil
 }
 
-var targetUsage = `target code generator (required), ie.
--target=golang (see https://github.com/webrpc/gen-golang)
--target=typescript (see https://github.com/webrpc/gen-typescript)
--target=javascript (see https://github.com/webrpc/gen-javascript)
--target=openapi (see https://github.com/webrpc/gen-openapi)
--target=json (prints schema in JSON)
--target=debug (prints schema and template variables incl. Go type information)
--target=golang@v0.12.0 (custom tag)
--target=github.com/webrpc/gen-golang@v0.12.0 (custom git repository + tag)
--target=../local-go-templates-on-disk"
-`
+func targetUsage() string {
+	var b strings.Builder
+	fmt.Fprintln(&b, "target code generator (required)")
+	fmt.Fprintln(&b, "built-in targets:")
+	for _, tmpl := range gen.EmbeddedTargets {
+		fmt.Fprintf(&b, "  -target=%s\n", tmpl)
+	}
+	fmt.Fprintln(&b, "  -target=json (prints schema in JSON)")
+	fmt.Fprintln(&b, "  -target=debug (prints schema and template variables incl. Go type information)")
+	fmt.Fprintln(&b, "remote git repo:")
+	for _, tmpl := range gen.EmbeddedTargets {
+		fmt.Fprintf(&b, "  -target=github.com/webrpc/gen-%s@%s\n", tmpl, gen.EmbeddedTargetVersions[tmpl])
+	}
+	fmt.Fprintln(&b, "local folder:")
+	fmt.Fprintln(&b, "  -target=../local-go-templates-on-disk")
+	fmt.Fprintln(&b, "  (see https://github.com/webrpc/webrpc/tree/master/gen)")
+
+	return b.String()
+}
 
 func setTargetFlagsUsage(templateOpts map[string]interface{}) {
 	flags.Usage = func() {

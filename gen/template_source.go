@@ -61,8 +61,8 @@ func NewTemplateSource(target string, config *Config) (*TemplateSource, error) {
 }
 
 func (s *TemplateSource) loadTemplates() (*template.Template, error) {
-	if fs, ok := DefaultEmbeddedTemplates[s.target]; ok {
-		// from go:embed
+	// from go:embed
+	if fs, ok := EmbeddedTargetFS[s.target]; ok {
 		s.IsLocal = true
 		tmpl, err := s.tmpl.ParseFS(fs, "*.go.tmpl")
 		if err != nil {
@@ -71,8 +71,8 @@ func (s *TemplateSource) loadTemplates() (*template.Template, error) {
 		return tmpl, nil
 	}
 
+	// from local directory
 	if isLocalDir(s.target) {
-		// from local directory
 		s.IsLocal = true
 		tmpl, err := s.tmpl.ParseGlob(filepath.Join(s.target, "/*.go.tmpl"))
 		if err != nil {

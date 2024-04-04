@@ -1,15 +1,19 @@
 package webrpc
 
 import (
+	_ "embed"
 	"os/exec"
 	"strings"
 )
 
-// VERSION of webrpc tooling and webrpc-gen Template Functions API.
+// Version of webrpc-gen tooling & Template Functions API.
 // Available as {{.WebrpcGenVersion}} variable in Go templates.
 //
 // The value is injected during `go build' in the release CI step.
 var VERSION = ""
+
+//go:embed go.mod
+var GoModFile string
 
 func init() {
 	if VERSION == "" {
