@@ -35,6 +35,9 @@ simplifying the development of backend services for modern Web applications.
 
 another option is to copy the [hello-webrpc](./_examples/hello-webrpc) example, and adapt for your own webapp and server.
 
+Btw, check out https://marketplace.visualstudio.com/items?itemName=XanderAppWorks.vscode-webrpc-ridl-syntax for VSCode
+plugin for RIDL synx highlighting.
+
 # Code generators
 
 | Generator                                              | Description                       | Schema | Client | Server |
