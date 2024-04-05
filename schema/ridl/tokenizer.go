@@ -16,6 +16,7 @@ func tokenize(src []byte) ([]token, map[int]string, error) {
 
 	commentLine := false
 	commentTokens := []string{}
+
 	for tok := range lx.tokens {
 		if tok.tt == tokenEOF {
 			break
