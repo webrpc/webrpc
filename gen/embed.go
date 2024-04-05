@@ -41,11 +41,13 @@ func init() {
 	scanner := bufio.NewScanner(strings.NewReader(webrpc.GoModFile))
 	for scanner.Scan() {
 		//	github.com/webrpc/gen-golang v0.14.2 // comment
-		after, ok := strings.CutPrefix(scanner.Text(), "\tgithub.com/webrpc/gen-")
-		if !ok {
+		line := scanner.Text()
+		prefix := "\tgithub.com/webrpc/gen-"
+		if !strings.HasPrefix(line, prefix) {
+			// NOTE: Use strings.CutPrefix() once we decide to bump go.mod to Go 1.20.
 			continue
 		}
-		parts := strings.Split(after, " ")
+		parts := strings.Split(line[len(prefix):], " ")
 		if len(parts) < 2 {
 			continue
 		}
