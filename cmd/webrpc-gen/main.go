@@ -180,14 +180,14 @@ func targetUsage() string {
 	var b strings.Builder
 	fmt.Fprintln(&b, "target code generator (required)")
 	fmt.Fprintln(&b, "built-in targets:")
-	for _, tmpl := range gen.EmbeddedTargets {
-		fmt.Fprintf(&b, "  -target=%s\n", tmpl)
+	for _, target := range gen.EmbeddedTargetNames {
+		fmt.Fprintf(&b, "  -target=%s\n", target)
 	}
 	fmt.Fprintln(&b, "  -target=json (prints schema in JSON)")
 	fmt.Fprintln(&b, "  -target=debug (prints schema and template variables incl. Go type information)")
 	fmt.Fprintln(&b, "remote git repo:")
-	for _, tmpl := range gen.EmbeddedTargets {
-		fmt.Fprintf(&b, "  -target=github.com/webrpc/gen-%s@%s\n", tmpl, gen.EmbeddedTargetVersions[tmpl])
+	for _, target := range gen.EmbeddedTargetNames {
+		fmt.Fprintf(&b, "  -target=%s\n", gen.EmbeddedTargets[target].ImportTag)
 	}
 	fmt.Fprintln(&b, "local folder:")
 	fmt.Fprintln(&b, "  -target=../local-go-templates-on-disk")

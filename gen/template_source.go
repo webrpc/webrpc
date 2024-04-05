@@ -62,9 +62,10 @@ func NewTemplateSource(target string, config *Config) (*TemplateSource, error) {
 
 func (s *TemplateSource) loadTemplates() (*template.Template, error) {
 	// from go:embed
-	if fs, ok := EmbeddedTargetFS[s.target]; ok {
+	if target, ok := EmbeddedTargets[s.target]; ok {
 		s.IsLocal = true
-		tmpl, err := s.tmpl.ParseFS(fs, "*.go.tmpl")
+		s.TmplVersion = target.ImportTag
+		tmpl, err := s.tmpl.ParseFS(target.FS, "*.go.tmpl")
 		if err != nil {
 			return nil, fmt.Errorf("failed to load embedded templates: %w", err)
 		}

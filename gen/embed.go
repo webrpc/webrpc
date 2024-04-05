@@ -31,10 +31,16 @@ var embeddedTargetFS = map[string]embed.FS{
 
 // The values are computed in init() function based on go.mod file.
 var (
-	EmbeddedTargets        = []string{}
-	EmbeddedTargetFS       = map[string]embed.FS{}
-	EmbeddedTargetVersions = map[string]string{}
+	EmbeddedTargetNames = []string{}
+	EmbeddedTargets     = map[string]EmbeddedTarget{}
 )
+
+type EmbeddedTarget struct {
+	Name      string
+	Version   string
+	ImportTag string
+	FS        embed.FS
+}
 
 func init() {
 	// Parse target versions from go.mod file
@@ -51,19 +57,26 @@ func init() {
 		if len(parts) < 2 {
 			continue
 		}
-		gen, version := parts[0], parts[1]
-		fs, ok := embeddedTargetFS[gen]
+		name, version := parts[0], parts[1]
+		fs, ok := embeddedTargetFS[name]
 		if !ok {
-			fmt.Fprintf(os.Stderr, "%s embed FS not found", gen)
+			fmt.Fprintf(os.Stderr, "%s embed FS not found", name)
 			continue
 		}
-		EmbeddedTargets = append(EmbeddedTargets, gen)
-		EmbeddedTargetVersions[gen] = version
+		EmbeddedTargetNames = append(EmbeddedTargetNames, name)
 
-		// Cache embedded template for golang, golang@v0.14.2, github.com/webrpc/gen-golang, github.com/webrpc/gen-golang@v0.14.2
-		EmbeddedTargetFS[gen] = fs
-		EmbeddedTargetFS[fmt.Sprintf("%s@%s", gen, version)] = fs
-		EmbeddedTargetFS[fmt.Sprintf("github.com/webrpc/gen-%s", gen)] = fs
-		EmbeddedTargetFS[fmt.Sprintf("github.com/webrpc/gen-%s@%s", gen, version)] = fs
+		for _, gen := range []string{
+			name,                                // golang
+			fmt.Sprintf("%s@%s", name, version), // golang@v0.14.2
+			fmt.Sprintf("github.com/webrpc/gen-%s", name),             // github.com/webrpc/gen-golang
+			fmt.Sprintf("github.com/webrpc/gen-%s@%s", name, version), // github.com/webrpc/gen-golang@v0.14.2
+		} {
+			EmbeddedTargets[gen] = EmbeddedTarget{
+				Name:      name,
+				ImportTag: fmt.Sprintf("github.com/webrpc/gen-%s@%s", name, version),
+				Version:   version,
+				FS:        fs,
+			}
+		}
 	}
 }
