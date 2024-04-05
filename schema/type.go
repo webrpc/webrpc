@@ -17,10 +17,13 @@ type Type struct {
 	Type      *VarType     `json:"type,omitempty"`
 	Fields    []*TypeField `json:"fields,omitempty"`
 	TypeExtra `json:",omitempty"`
+	Comments  []string `json:"comments,omitempty"`
 }
 
 type TypeField struct {
-	Name      string   `json:"name"`
+	Comments []string `json:"comments,omitempty"`
+	Name     string   `json:"name"`
+
 	Type      *VarType `json:"type,omitempty"`
 	TypeExtra `json:",omitempty"`
 }
@@ -126,8 +129,9 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 
 		// ensure enum type is one of the allowed types.. aka integer
 		fieldType := t.Type
-		if !isValidVarType(fieldType.String(), VarIntegerCoreTypes) {
-			return fmt.Errorf("schema error: enum '%s' field '%s' is invalid. must be an integer type.", t.Name, fieldType.String())
+		validCoreTypes := append(VarIntegerCoreTypes, T_String)
+		if !isValidVarType(fieldType.String(), validCoreTypes) {
+			return fmt.Errorf("schema error: enum '%s' field '%s' is invalid. must be an integer type", t.Name, fieldType.String())
 		}
 	}
 
@@ -149,6 +153,17 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 	}
 
 	return nil
+}
+
+func (t *Type) RequiredFields() []*TypeField {
+	requiredFields := make([]*TypeField, 0)
+	for _, field := range t.Fields {
+		if !field.Optional {
+			requiredFields = append(requiredFields, field)
+		}
+	}
+
+	return requiredFields
 }
 
 func startsWithUpper(s string) bool {

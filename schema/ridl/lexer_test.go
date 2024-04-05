@@ -532,7 +532,7 @@ func TestLexerSimpleTokens(t *testing.T) {
 	}
 
 	for _, input := range inputs {
-		tokens, err := tokenize([]byte(input.in))
+		tokens, _, err := tokenize([]byte(input.in))
 		assert.NoError(t, err)
 
 		assert.Equal(t, len(input.out), len(tokens))
@@ -615,7 +615,7 @@ func TestLexerRIDLTokens(t *testing.T) {
 	}
 
 	for _, input := range inputs {
-		tokens, err := tokenize([]byte(input.in))
+		tokens, _, err := tokenize([]byte(input.in))
 		assert.NoError(t, err)
 
 		for i, tok := range tokens {

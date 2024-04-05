@@ -38,21 +38,23 @@ type parser struct {
 	length int
 	pos    int
 
-	words chan interface{}
+	words    chan interface{}
+	comments map[int]string
 
 	root RootNode
 }
 
 func newParser(src []byte) (*parser, error) {
-	tokens, err := tokenize(src)
+	tokens, comments, err := tokenize(src)
 	if err != nil {
 		return nil, err
 	}
 
 	p := &parser{
-		words:  make(chan interface{}),
-		tokens: tokens,
-		length: len(tokens),
+		words:    make(chan interface{}),
+		tokens:   tokens,
+		length:   len(tokens),
+		comments: comments,
 	}
 	return p, nil
 }
@@ -104,12 +106,16 @@ func (p *parser) run() error {
 }
 
 func (p *parser) continueUntilEOL() error {
+	words := []string{}
+
 	for {
 		tok := p.cursor()
 
 		switch tok.tt {
 		case tokenNewLine, tokenEOF:
 			return nil
+		case tokenWord:
+			words = append(words, tok.String())
 		}
 
 		p.next()
@@ -504,4 +510,49 @@ func composedValue(tokens []*token) (*token, error) {
 		line: baseToken.line,
 		col:  baseToken.col,
 	}, nil
+}
+
+func parseComments(comments map[int]string, currentLine int) string {
+	iteration := 0
+	c := []string{}
+
+	if len(comments) == 0 {
+		return ""
+	}
+
+	for ; currentLine >= 0; currentLine-- {
+		comment, ok := comments[currentLine]
+		if ok {
+			if !strings.HasPrefix(comment, "!") {
+				c = append(c, comment)
+			}
+			delete(comments, currentLine)
+			iteration = 0
+
+			if len(comments) == 0 {
+				break
+			}
+		}
+
+		// if we already found a comment and there is one empty line we don't read more lines
+		if !ok && len(c) > 0 {
+			break
+		}
+
+		// if there are 2 lines of empty space => no comment we don't read more lines
+		if iteration > 1 {
+			break
+		}
+
+		iteration++
+	}
+
+	if len(c) > 0 {
+		// slices.Reverse is introduced with go 1.22
+		for i, j := 0, len(c)-1; i < j; i, j = i+1, j-1 {
+			c[i], c[j] = c[j], c[i]
+		}
+	}
+
+	return strings.Join(c, "\n")
 }

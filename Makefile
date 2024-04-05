@@ -25,17 +25,17 @@ all:
 	@echo ""
 
 build:
-	go build -o ./bin/webrpc-gen ./cmd/webrpc-gen
+	go build -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe)" -o ./bin/webrpc-gen ./cmd/webrpc-gen
 
 build-test:
-	go build -o ./bin/webrpc-test ./cmd/webrpc-test
+	go build -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe)" -o ./bin/webrpc-test ./cmd/webrpc-test
 
 clean:
 	rm -rf ./bin
 
 install:
-	go install ./cmd/webrpc-gen
-	go install ./cmd/webrpc-test
+	go install -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe)" ./cmd/webrpc-gen
+	go install -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe)" ./cmd/webrpc-test
 
 generate: build
 	go generate -v -x ./...
@@ -46,6 +46,9 @@ generate: build
 		make generate || exit 1;                 \
 		cd ../../;                               \
 	done
+	# Replace webrpc version in all generated files to avoid git conflicts.
+	git grep -l "$$(git describe)" | xargs sed -i -e "s/@$$(git describe)//g"
+	sed -i "/$$(git describe)/d" tests/schema/test.debug.gen.txt
 
 dep:
 	go mod tidy

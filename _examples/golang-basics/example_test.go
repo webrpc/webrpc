@@ -42,8 +42,11 @@ func TestGetUser(t *testing.T) {
 	{
 		arg1 := map[string]string{"a": "1"}
 		code, user, err := client.GetUser(context.Background(), arg1, 12)
+		intent := Intent_openSession
+		kind := Kind_ADMIN
+
 		assert.Equal(t, uint32(200), code)
-		assert.Equal(t, &User{ID: 12, Username: "hihi"}, user)
+		assert.Equal(t, &User{ID: 12, Username: "hihi", Intent: intent, Kind: kind}, user)
 		assert.NoError(t, err)
 	}
 

@@ -35,8 +35,9 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 		}
 
 		mn := &MethodNode{
-			name:  newTokenNode(methodName),
-			proxy: proxy,
+			name:    newTokenNode(methodName),
+			proxy:   proxy,
+			comment: parseComments(p.comments, matches[0].line),
 			inputs: argumentList{
 				stream:    streamInput,
 				arguments: []*ArgumentNode{},
@@ -112,7 +113,6 @@ func parserStateServiceMethod(s *ServiceNode) parserState {
 }
 
 func parserStateService(p *parser) parserState {
-
 	matches, err := p.match(tokenWord, tokenWhitespace, tokenWord, tokenEOL)
 	if err != nil {
 		return p.stateError(err)
@@ -125,5 +125,6 @@ func parserStateService(p *parser) parserState {
 	return parserStateServiceMethod(&ServiceNode{
 		name:    newTokenNode(matches[2]),
 		methods: []*MethodNode{},
+		comment: parseComments(p.comments, matches[0].line),
 	})
 }

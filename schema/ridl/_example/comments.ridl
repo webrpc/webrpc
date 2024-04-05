@@ -1,0 +1,30 @@
+webrpc = v1
+
+name = hello-webrpc
+version = v0.0.1
+
+# this is a comment
+# yep
+enum Kind: uint32
+  # user more
+  - USER = 1             # user
+  - ADMIN = 2            # comment..
+
+#! or.. just..
+enum Kind2: uint32
+  - USER                 # aka, = 0
+  - ADMIN                # aka, = 1
+
+struct Role
+  # role name line first
+  - name: string # role name
+  - perms: []string # permissions
+
+# ExampleService first line
+# ExampleService second line
+# ExampleService third line
+service ExampleService
+
+  # comment can go here
+  # too .. :)
+  - Ping() => (status: bool)

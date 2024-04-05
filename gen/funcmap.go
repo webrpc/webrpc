@@ -71,5 +71,6 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"pascalCase": applyStringFunction("pascalCase", textcase.PascalCase), // v0.7.0
 		"snakeCase":  applyStringFunction("snakeCase", textcase.SnakeCase),   // v0.7.0
 		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),   // v0.7.0
+		"replaceAll": strings.ReplaceAll,
 	}
 }

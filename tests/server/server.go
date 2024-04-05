@@ -161,7 +161,6 @@ var (
 		Username: "John-Doe",
 		Role:     "admin",
 	}
-	available = Status_AVAILABLE
 
 	fixtureComplex = Complex{
 		Meta:              meta,
@@ -173,7 +172,7 @@ var (
 		ListOfUsers:       listOfUsers,
 		MapOfUsers:        mapOfUsers,
 		User:              user,
-		Enum:              &available,
+		Enum:              Status_AVAILABLE,
 	}
 )
 
