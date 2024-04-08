@@ -15,7 +15,9 @@ enum Intent: string
 
 struct Empty
 
-
+# User struct
+#
+# More information about user struct
 struct User
   - id: uint64
     + json = id
