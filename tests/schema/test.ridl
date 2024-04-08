@@ -50,7 +50,7 @@ struct Complex
   - listOfUsers: []User
   - mapOfUsers: map<string,User>
   - user: User
-  - enum: Status
+  - status: Status
 
 error   1 Unauthorized    "unauthorized"        HTTP 401
 error   2 ExpiredToken    "expired token"       HTTP 401
