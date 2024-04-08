@@ -31,14 +31,14 @@
    "fields": [
     {
      "comments": [
-      "aka , = 0"
+      "aka, = 0"
      ],
      "name": "USER",
      "value": "0"
     },
     {
      "comments": [
-      "aka , = 1"
+      "aka, = 1"
      ],
      "name": "ADMIN",
      "value": "1"
@@ -215,7 +215,7 @@
      "name": "Ping",
      "comments": [
       "comment can go here",
-      "too . . : )"
+      "too .. :)"
      ],
      "inputs": [],
      "outputs": [
@@ -236,7 +236,7 @@
      "name": "Ping",
      "comments": [
       "comment can go here",
-      "too . . : )"
+      "too .. :)"
      ],
      "inputs": [],
      "outputs": [

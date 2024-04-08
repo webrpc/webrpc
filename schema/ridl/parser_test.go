@@ -996,6 +996,7 @@ func TestParseServiceComments(t *testing.T) {
 		service ContactsService  # Contacts service line 3
 			#! skip this line
 			# GetContact gives you contact for specific id
+			# see https://docs.opensea.io/docs/metadata-standards
 			- GetContact(id: int) => (contact: Contact)
 			# Version returns you current deployed version
 			# 
@@ -1015,6 +1016,6 @@ func TestParseServiceComments(t *testing.T) {
 	}
 
 	assert.Equal(t, "Contacts service line 1\nContacts service line 2\nContacts service line 3", serviceNode.comment)
-	assert.Equal(t, "GetContact gives you contact for specific id", serviceNode.methods[0].comment)
+	assert.Equal(t, "GetContact gives you contact for specific id\nsee https://docs.opensea.io/docs/metadata-standards", serviceNode.methods[0].comment)
 	assert.Equal(t, "Version returns you current deployed version\n", serviceNode.methods[1].comment)
 }
