@@ -1,10 +1,11 @@
 package main
 
 import (
-	"net/http"
 	"log"
-	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/chi"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/webrpc/webrpc/_example/golang-nodejs/server/pkg/rpc"
 )
 
