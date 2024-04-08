@@ -14,7 +14,7 @@ func tokenize(src []byte) ([]token, map[int]string, error) {
 	tokens := []token{}
 	lineComments := make(map[int]string)
 
-	commentLine := false
+	parsingComment := false
 	commentTokens := []string{}
 
 	for tok := range lx.tokens {
@@ -22,26 +22,51 @@ func tokenize(src []byte) ([]token, map[int]string, error) {
 			break
 		}
 
-		if commentLine {
-			if tok.tt != tokenNewLine && tok.tt != tokenWhitespace {
-				commentTokens = append(commentTokens, tok.String())
-			}
-		}
-
+		// start parsing comment tokens until new line
 		if tok.tt == tokenHash {
-			commentLine = true
+			parsingComment = true
+			tokens = append(tokens, tok)
+			continue
 		}
 
-		if tok.tt == tokenNewLine {
-			if commentLine {
-				lineComments[tok.line] = strings.Join(commentTokens, " ")
-				commentTokens = []string{}
-			}
-			commentLine = false
+		if parsingComment && tok.tt != tokenNewLine && tok.tt != tokenWhitespace {
+			commentTokens = parseCommentToken(tok, tokens, commentTokens)
+		}
+
+		if tok.tt == tokenNewLine && parsingComment {
+			lineComments[tok.line] = strings.Join(commentTokens, " ")
+			commentTokens = []string{}
+			parsingComment = false
 		}
 
 		tokens = append(tokens, tok)
 	}
 
 	return tokens, lineComments, nil
+}
+
+func parseCommentToken(curToken token, tokens []token, commentTokens []string) []string {
+	tokenLen := len(tokens)
+
+	if tokenLen == 0 {
+		commentTokens = append(commentTokens, curToken.String())
+		return commentTokens
+	}
+
+	// previous token was whitespace that means new word
+	if tokens[tokenLen-1].tt == tokenWhitespace {
+		commentTokens = append(commentTokens, curToken.String())
+		return commentTokens
+	}
+
+	commentLen := len(commentTokens)
+	if commentLen > 0 {
+		// previous token was not whitespace that could be slash or any character
+		// need to append current char to previous comment token
+		// for instance https://www.google.com has `:`, `/`, `/` ....
+		commentTokens[commentLen-1] += curToken.String()
+	} else {
+		commentTokens = append(commentTokens, curToken.String())
+	}
+	return commentTokens
 }
