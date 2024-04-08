@@ -61,6 +61,7 @@ type Chat interface {
 	SendMessage(ctx context.Context, username string, text string) error
 	SubscribeMessages(ctx context.Context, username string, stream SubscribeMessagesStreamWriter) error
 }
+
 type SubscribeMessagesStreamWriter interface {
 	Write(message *Message) error
 }
