@@ -276,7 +276,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				StreamOutput: method.StreamOutput(),
 				Inputs:       inputs,
 				Outputs:      outputs,
-				Comments:     strings.FieldsFunc(method.Comment(), func(r rune) bool { return r == '\n' }),
+				Comments:     parseComment(method.Comment()),
 			}
 
 			methods = append(methods, m)
@@ -358,5 +358,9 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 }
 
 func parseComment(comment string) []string {
-	return strings.FieldsFunc(comment, func(r rune) bool { return r == '\n' })
+	if comment == "" {
+		return []string{}
+	}
+
+	return strings.Split(comment, "\n")
 }
