@@ -172,7 +172,7 @@ var (
 		ListOfUsers:       listOfUsers,
 		MapOfUsers:        mapOfUsers,
 		User:              user,
-		Enum:              Status_AVAILABLE,
+		Status:            Status_AVAILABLE,
 	}
 )
 

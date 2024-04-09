@@ -115,7 +115,7 @@
      "type": "User"
     },
     {
-     "name": "enum",
+     "name": "status",
      "type": "Status"
     }
    ]

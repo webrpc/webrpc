@@ -732,7 +732,7 @@
 					(*schema.TypeField)({
 						Comments: ([]string) {
 						},
-						Name: (string) (len=4) "enum",
+						Name: (string) (len=6) "status",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "Status",
 							Type: (schema.CoreType) 21,
@@ -2128,7 +2128,7 @@
 												(*schema.TypeField)({
 													Comments: ([]string) {
 													},
-													Name: (string) (len=4) "enum",
+													Name: (string) (len=6) "status",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "Status",
 														Type: (schema.CoreType) 21,
@@ -2775,7 +2775,7 @@
 												(*schema.TypeField)({
 													Comments: ([]string) {
 													},
-													Name: (string) (len=4) "enum",
+													Name: (string) (len=6) "status",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "Status",
 														Type: (schema.CoreType) 21,
@@ -2900,7 +2900,7 @@
 		},
 		Deprecated_Messages: ([]interface {}) <nil>
 	}),
-	SchemaHash: (string) (len=40) "1e00d2fe909b6626e4156ac2a40ff08223d75224",
+	SchemaHash: (string) (len=40) "59843169c5648f7290858df111734e016be54102",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcTarget: (string) (len=5) "debug",
 	WebrpcErrors: ([]*schema.Error) (len=11 cap=11) {

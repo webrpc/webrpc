@@ -33,6 +33,6 @@ func TestRIDLSchemaAgainstJSON(t *testing.T) {
 
 	if !cmp.Equal(golden, current) {
 		t.Error(cmp.Diff(golden, current))
-		t.Log("To update the golden file, run go test -update=./_testdata/test.golden.json")
+		t.Log("To update the golden file, run `go test ./tests -update=./_testdata/test.golden.json'")
 	}
 }
