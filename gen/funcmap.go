@@ -36,15 +36,16 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"exists": exists, // v0.7.0
 
 		// Generic utils.
-		"array":    array,     // v0.11.2 (string support since v0.8.0)
-		"append":   appendFn,  // v0.11.2 (string support since v0.7.0)
-		"first":    first,     // v0.11.2 (string support since v0.7.0)
-		"last":     last,      // v0.11.2 (string support since v0.7.0)
-		"sort":     sortFn,    // v0.11.2 (string support since v0.8.0)
-		"coalesce": coalesce,  // v0.7.0
-		"default":  defaultFn, // v0.7.0
-		"in":       in,        // v0.7.0
-		"ternary":  ternary,   // v0.7.0
+		"lastIndex": lastIndex,
+		"array":     array,     // v0.11.2 (string support since v0.8.0)
+		"append":    appendFn,  // v0.11.2 (string support since v0.7.0)
+		"first":     first,     // v0.11.2 (string support since v0.7.0)
+		"last":      last,      // v0.11.2 (string support since v0.7.0)
+		"sort":      sortFn,    // v0.11.2 (string support since v0.8.0)
+		"coalesce":  coalesce,  // v0.7.0
+		"default":   defaultFn, // v0.7.0
+		"in":        in,        // v0.7.0
+		"ternary":   ternary,   // v0.7.0
 
 		// String utils.
 		"join":       join,                                            // v0.7.0
@@ -72,5 +73,13 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"snakeCase":  applyStringFunction("snakeCase", textcase.SnakeCase),   // v0.7.0
 		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),   // v0.7.0
 		"replaceAll": strings.ReplaceAll,
+		"strRepeat":  strRepeat,
+		"indent":     indent,
+
+		// Math utils.
+		"add":  add,
+		"sub":  sub,
+		"mult": mult,
+		"div":  div,
 	}
 }

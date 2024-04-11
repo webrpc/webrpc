@@ -62,3 +62,13 @@ func applyStringFunction(fnName string, fn func(string) string) func(v interface
 		}
 	}
 }
+
+// Inserts n whitespace blocks of length len
+func indent(n int, len int) string {
+	return strRepeat(strRepeat(" ", len), n)
+}
+
+// Inserts n repetitions of str
+func strRepeat(str string, n int) string {
+	return strings.Repeat(str, n)
+}
