@@ -118,3 +118,16 @@ func toBool(in interface{}) bool {
 		panic(fmt.Sprintf("toBool(): unexpected boolean %v", v))
 	}
 }
+
+// Returns the index value of the last element of the array-like input. Panics
+// if the argument is not an array-like object.
+func lastIndex(array interface{}) int {
+	switch reflect.TypeOf(array).Kind() {
+	case reflect.Slice:
+		return reflect.ValueOf(array).Len() - 1
+	case reflect.Array:
+		return reflect.ValueOf(array).Type().Len() - 1
+	default:
+		panic("lastIndex(): non array-like")
+	}
+}
