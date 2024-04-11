@@ -231,7 +231,7 @@ func TestStrRepeat(t *testing.T) {
 	}
 }
 
-func TestIdent(t *testing.T) {
+func TestIndent(t *testing.T) {
 	tt := []struct {
 		Count  int
 		Size   int
