@@ -3,13 +3,15 @@ package gen
 import (
 	"strings"
 
+	"github.com/Masterminds/sprig/v3"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/golang-cz/textcase"
 )
 
 // Template functions are part of webrpc-gen API. Keep backward-compatible.
 func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{
+	f := sprig.FuncMap()
+	extra := map[string]interface{}{
 		// Template flow, errors, debugging.
 		"stderrPrint":  stderrPrint,  // v0.13.0
 		"stderrPrintf": stderrPrintf, // v0.7.0
@@ -36,7 +38,7 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"exists": exists, // v0.7.0
 
 		// Generic utils.
-		"lastIndex": lastIndex,
+		"lastIndex": lastIndex, // v0.18.0
 		"array":     array,     // v0.11.2 (string support since v0.8.0)
 		"append":    appendFn,  // v0.11.2 (string support since v0.7.0)
 		"first":     first,     // v0.11.2 (string support since v0.7.0)
@@ -73,13 +75,11 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"snakeCase":  applyStringFunction("snakeCase", textcase.SnakeCase),   // v0.7.0
 		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),   // v0.7.0
 		"replaceAll": strings.ReplaceAll,
-		"strRepeat":  strRepeat,
-		"indent":     indent,
-
-		// Math utils.
-		"add":  add,
-		"sub":  sub,
-		"mult": mult,
-		"div":  div,
 	}
+
+	for k, v := range extra {
+		f[k] = v
+	}
+
+	return f
 }

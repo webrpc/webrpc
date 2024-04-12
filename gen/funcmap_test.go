@@ -134,55 +134,6 @@ func TestArray(t *testing.T) {
 	}
 }
 
-func TestMath(t *testing.T) {
-	tt := []struct {
-		Operator func(int, int) int
-		A        int
-		B        int
-		Result   int
-	}{
-		{add, 0, 0, 0},
-		{add, 0, 1, 1},
-		{add, 1, 0, 1},
-		{add, -1, 0, -1},
-		{add, 0, -1, -1},
-		{add, -1, -1, -2},
-		{add, -1, 1, 0},
-		{add, 1, -1, 0},
-		{add, 1, -1, 0},
-
-		{sub, 0, 0, 0},
-		{sub, 0, 1, -1},
-		{sub, 1, 0, 1},
-		{sub, -1, 0, -1},
-		{sub, 0, -1, 1},
-		{sub, -1, -1, 0},
-		{sub, -1, 1, -2},
-		{sub, 1, -1, 2},
-
-		{mult, 0, 0, 0},
-		{mult, 0, 1, 0},
-		{mult, 1, 0, 0},
-		{mult, -1, 0, 0},
-		{mult, 0, -1, 0},
-		{mult, -1, -1, 1},
-		{mult, -1, 1, -1},
-		{mult, 1, -1, -1},
-
-		{div, 0, 1, 0},
-		{div, 0, -1, 0},
-		{div, -1, -1, 1},
-		{div, -1, 1, -1},
-		{div, 1, -1, -1},
-	}
-
-	for _, tc := range tt {
-		if tc.Operator(tc.A, tc.B) != tc.Result {
-			t.Errorf("unexpected math result for operator %T with args %d, %d and expected result %d", tc.Operator, tc.A, tc.B, tc.Result)
-		}
-	}
-}
-
 func TestLastIndex(t *testing.T) {
 	big := [...]int{3, 4, 5, 6}
 	tt := []struct {
@@ -202,54 +153,6 @@ func TestLastIndex(t *testing.T) {
 		got := lastIndex(tc.Array)
 		if got != tc.Result {
 			t.Errorf("lastIndex of %v expected %d but got %d", tc.Array, tc.Result, got)
-		}
-	}
-}
-
-func TestStrRepeat(t *testing.T) {
-	tt := []struct {
-		String  string
-		Repeats int
-		Result  string
-	}{
-		{"hello", 0, ""},
-		{"hello", 1, "hello"},
-		{"hello", 2, "hellohello"},
-		{"hello", 3, "hellohellohello"},
-		{"hello", 4, "hellohellohellohello"},
-		{"", 2, ""},
-		{" ", 2, "  "},
-		{"\t", 2, "\t\t"},
-		{"\n", 2, "\n\n"},
-	}
-
-	for _, tc := range tt {
-		got := strRepeat(tc.String, tc.Repeats)
-		if got != tc.Result {
-			t.Errorf("expected \"%s\" but got \"%s\"", tc.Result, got)
-		}
-	}
-}
-
-func TestIndent(t *testing.T) {
-	tt := []struct {
-		Count  int
-		Size   int
-		Result string
-	}{
-		{0, 0, ""},
-		{0, 1, ""},
-		{1, 0, ""},
-		{1, 1, " "},
-		{2, 1, "  "},
-		{1, 2, "  "},
-		{2, 2, "    "},
-	}
-
-	for _, tc := range tt {
-		got := indent(tc.Count, tc.Size)
-		if got != tc.Result {
-			t.Errorf("expected \"%s\" but got \"%s\"", tc.Result, got)
 		}
 	}
 }
