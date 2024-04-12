@@ -57,7 +57,7 @@ Some example webrpc schemas:
 
 ### Timestamps (date/time)
 
-- `timestamp` - for date/time
+- `timestamp` - for date/time (serialized to [ECMA Script ISO 8601 format](https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format): `YYYY-MM-DDTHH:mm:ss.sssZ`)
 
 
 ## List

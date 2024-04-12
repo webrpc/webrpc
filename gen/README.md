@@ -126,6 +126,8 @@ Require specific `webrpc-gen` version to ensure the API of the template function
 {{- set $typeMap "[]" "array" -}}
 ```
 
+Timestamps must be serialized in JSON to [ECMA Script ISO 8601 format](https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format): `YYYY-MM-DDTHH:mm:ss.sssZ`
+
 Call `{{ get $typeMap .Type }}` to print your type.
 
 ## Split your template into sub-templates
