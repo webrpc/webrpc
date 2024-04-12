@@ -258,7 +258,15 @@ For example, you can iterate over the schema methods and print their names:
 
 See https://pkg.go.dev/text/template#hdr-Functions
 
+## sprig v3 functions
+
+You have access to all template functions in sprig v3 except for those overloaded below.
+
+See https://masterminds.github.io/sprig/
+
 ## webrpc-gen functions
+
+You have access to all template functions in [sprig v3](https://masterminds.github.io/sprig/) except for those overloaded below.
 
 | Template flow                                  | Description                    | webrpc-gen |
 |------------------------------------------------|-------------------------------------------------|-------------|
@@ -307,6 +315,7 @@ See https://pkg.go.dev/text/template#hdr-Functions
 
 | Generic utils                                  | Description                    | webrpc-gen |
 |------------------------------------------------|-------------------------------------------------|-------------|
+| `lastIndex ARRAY`                              | Return the index of the last element of the array | v0.18.0 |
 | `array [ELEMENTS]...`                          | Create a new string array | v0.11.2 (string support v0.8.0) |
 | `append ARRAY [ELEMENTS]...`                   | Append elements to existing string array | v0.11.2 (string support v0.8.0) |
 | `first ARRAY`                                  | Return first element from the given array | v0.11.2 (string support v0.7.0) |

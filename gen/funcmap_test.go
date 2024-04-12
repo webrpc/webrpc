@@ -133,3 +133,26 @@ func TestArray(t *testing.T) {
 		t.Errorf("last(empty): expected error")
 	}
 }
+
+func TestLastIndex(t *testing.T) {
+	big := [...]int{3, 4, 5, 6}
+	tt := []struct {
+		Array  interface{}
+		Result int
+	}{
+		{[...]int{3, 4, 5}, 2},
+		{[...]string{"a", "b", "c"}, 2},
+		{[...]int{}, -1},
+		{[...]int{1}, 0},
+		{big, 3},
+		{big[0:1], 0},
+		{big[1:], 2},
+	}
+
+	for _, tc := range tt {
+		got := lastIndex(tc.Array)
+		if got != tc.Result {
+			t.Errorf("lastIndex of %v expected %d but got %d", tc.Array, tc.Result, got)
+		}
+	}
+}
