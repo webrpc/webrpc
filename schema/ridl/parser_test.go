@@ -1004,6 +1004,9 @@ func TestParseServiceComments(t *testing.T) {
 			#! skip more lines
 			#! more
 			- Version() => (details: any)
+			# test comment two lines above
+			
+			- Version2() => (details: any)
 		`)
 	assert.NoError(t, err)
 
@@ -1018,4 +1021,5 @@ func TestParseServiceComments(t *testing.T) {
 	assert.Equal(t, "Contacts service line 1\nContacts service line 2\nContacts service line 3", serviceNode.comment)
 	assert.Equal(t, "GetContact gives you contact for specific id\nsee https://www.example.com/?first=1&second=12#help", serviceNode.methods[0].comment)
 	assert.Equal(t, "Version returns you current deployed version\n", serviceNode.methods[1].comment)
+	assert.Equal(t, "", serviceNode.methods[2].comment)
 }
