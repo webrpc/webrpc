@@ -2,6 +2,14 @@ module github.com/webrpc/webrpc
 
 go 1.19
 
+replace (
+// github.com/webrpc/gen-golang => ../gen-golang
+// github.com/webrpc/gen-typescript => ../gen-typescript
+// github.com/webrpc/gen-javascript => ../gen-javascript
+// github.com/webrpc/gen-openapi => ../gen-openapi
+// github.com/webrpc/gen-kotlin => ../gen-kotlin
+)
+
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/davecgh/go-spew v1.1.1
