@@ -17,4 +17,4 @@ test:
 	go test -v ./
 
 curl:
-	curl -v -X POST -H "Content-Type: application/json" -H "Accept: application/x-ndjson" --data '{"serverTimeoutSec": 2}' http://localhost:4848/rpc/Chat/SubscribeMessages
+	curl -v -X POST -H "Content-Type: application/json" -H "Accept: application/x-ndjson" --data '{"username": "'$(shell whoami)'", "serverTimeoutSec": 2}' http://localhost:4848/rpc/Chat/SubscribeMessages
