@@ -378,7 +378,7 @@ func (c *chatClient) SubscribeMessages(ctx context.Context, username string) (Su
 	}
 
 	buf := bufio.NewReader(resp.Body)
-	return &subscribeMessagesStreamReader{streamReader{ctx: ctx, c: resp.Body, r: buf, d: json.NewDecoder(buf)}}, nil
+	return &subscribeMessagesStreamReader{streamReader{ctx: ctx, c: resp.Body, r: buf}}, nil
 }
 
 type subscribeMessagesStreamReader struct {
@@ -407,12 +407,10 @@ type streamReader struct {
 	ctx context.Context
 	c   io.Closer
 	r   *bufio.Reader
-	d   *json.Decoder
 }
 
 func (r *streamReader) read(v interface{}) error {
 	for {
-		// Read newlines (keep-alive pings) and unblock decoder on ctx timeout.
 		select {
 		case <-r.ctx.Done():
 			r.c.Close()
@@ -420,21 +418,21 @@ func (r *streamReader) read(v interface{}) error {
 		default:
 		}
 
-		b, err := r.r.ReadByte()
+		line, err := r.r.ReadBytes('\n')
 		if err != nil {
 			return r.handleReadError(err)
 		}
-		if b != '\n' {
-			r.r.UnreadByte()
-			break
+
+		// Eat newlines (keep-alive pings).
+		if len(line) == 1 && line[0] == '\n' {
+			continue
 		}
-	}
 
-	if err := r.d.Decode(&v); err != nil {
-		return r.handleReadError(err)
+		if err := json.Unmarshal(line, &v); err != nil {
+			return r.handleReadError(err)
+		}
+		return nil
 	}
-
-	return nil
 }
 
 func (r *streamReader) handleReadError(err error) error {
@@ -444,6 +442,9 @@ func (r *streamReader) handleReadError(err error) error {
 	}
 	if errors.Is(err, io.ErrUnexpectedEOF) {
 		return ErrWebrpcStreamLost.WithCause(err)
+	}
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return ErrWebrpcClientDisconnected.WithCause(err)
 	}
 	return ErrWebrpcBadResponse.WithCause(fmt.Errorf("reading stream: %w", err))
 }

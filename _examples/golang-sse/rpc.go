@@ -71,8 +71,6 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, str
 			}
 		}
 	}
-
-	return nil
 }
 
 func (s *ChatServer) subscribe(c chan *proto.Message) uint64 {
