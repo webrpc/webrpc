@@ -14,8 +14,6 @@ import (
 	"github.com/webrpc/webrpc/_example/golang-sse/proto"
 )
 
-//go:generate go run ../../cmd/webrpc-gen -schema=proto/chat.ridl -target=../../gen-golang -pkg=proto -server -client -out=proto/chat.gen.go
-
 func main() {
 	port := 4848
 	slog.Info(fmt.Sprintf("serving at http://localhost:%v", port))

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -106,10 +105,10 @@ func TestStreamCustomError(t *testing.T) {
 
 	ctx := context.Background()
 
-	stream, err := client.SubscribeMessages(ctx, "")
-	require.Nil(t, err)
+	stream, err := client.SubscribeMessages(ctx, "") // empty username
+	require.Nil(t, err)                              // only network/connection errors should come back here
 
-	_, err = stream.Read()
+	_, err = stream.Read() // we should receive RPC handler errors (e.g. EmptyUsername) only when we start reading the data
 	require.Error(t, err)
 	require.ErrorIs(t, err, proto.ErrEmptyUsername)
 }
@@ -117,18 +116,28 @@ func TestStreamCustomError(t *testing.T) {
 func TestStreamClientTimeout(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-	ctx, _ = context.WithTimeout(ctx, time.Duration(rand.Int63n(15)+1)*time.Second)
+	t.Run("0.1s", testStreamClientTimeout(t, 100*time.Millisecond))
+	t.Run("6s", testStreamClientTimeout(t, 5*time.Second))
+	t.Run("12s", testStreamClientTimeout(t, 12*time.Second)) // over 10s (ping-alive)
+}
 
-	stream, err := client.SubscribeMessages(ctx, t.Name())
-	require.Nil(t, err)
+func testStreamClientTimeout(t *testing.T, timeout time.Duration) func(t *testing.T) {
+	return func(t *testing.T) {
+		t.Parallel()
 
-	for {
-		msg, err := stream.Read()
-		if err != nil {
-			assert.ErrorIs(t, err, proto.ErrWebrpcClientDisconnected)
-			break
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+
+		stream, err := client.SubscribeMessages(ctx, t.Name())
+		require.Nil(t, err)
+
+		for {
+			msg, err := stream.Read()
+			if err != nil {
+				assert.ErrorIs(t, err, proto.ErrWebrpcClientDisconnected)
+				break
+			}
+			t.Log(msg.Text)
 		}
-		t.Log(msg.Text)
 	}
 }
