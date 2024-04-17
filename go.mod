@@ -2,13 +2,11 @@ module github.com/webrpc/webrpc
 
 go 1.19
 
-replace (
-// github.com/webrpc/gen-golang => ../gen-golang
-// github.com/webrpc/gen-typescript => ../gen-typescript
-// github.com/webrpc/gen-javascript => ../gen-javascript
-// github.com/webrpc/gen-openapi => ../gen-openapi
-// github.com/webrpc/gen-kotlin => ../gen-kotlin
-)
+// replace github.com/webrpc/gen-golang => ../gen-golang
+// replace github.com/webrpc/gen-typescript => ../gen-typescript
+// replace github.com/webrpc/gen-javascript => ../gen-javascript
+// replace github.com/webrpc/gen-openapi => ../gen-openapi
+// replace github.com/webrpc/gen-kotlin => ../gen-kotlin
 
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
@@ -18,7 +16,7 @@ require (
 	github.com/posener/gitfs v1.2.1
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c
 	github.com/stretchr/testify v1.9.0
-	github.com/webrpc/gen-golang v0.14.3
+	github.com/webrpc/gen-golang v0.14.4
 	github.com/webrpc/gen-javascript v0.12.0
 	github.com/webrpc/gen-kotlin v0.1.0
 	github.com/webrpc/gen-openapi v0.13.0
