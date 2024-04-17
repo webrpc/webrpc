@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -48,25 +49,30 @@ func TestStream10k(t *testing.T) {
 
 	client := proto.NewChatClient(srv.URL, &http.Client{})
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	stream, err := client.SubscribeMessages(ctx, t.Name())
 	require.Nil(t, err)
 
+	msgCount := 10000
 	go func() {
-		for i := 0; i < 10000; i++ {
-			if err := client.SendMessage(ctx, t.Name(), "Hello"); err != nil {
+		for i := 0; i < msgCount; i++ {
+			if err := client.SendMessage(ctx, t.Name(), fmt.Sprintf("Hello %v", i)); err != nil {
 				t.Fatal(err)
 			}
 		}
 	}()
 
-	for i := 0; i < 10000; i++ {
+	for i := 0; i < msgCount; i++ {
 		_, err := stream.Read()
-		if err != nil {
-			assert.ErrorIs(t, err, proto.ErrWebrpcStreamFinished)
-			break
-		}
+		require.Nil(t, err)
+	}
+
+	cancel() // stop subscription
+
+	_, err = stream.Read()
+	if err != nil {
+		assert.ErrorIs(t, err, proto.ErrWebrpcClientDisconnected)
 	}
 }
 
