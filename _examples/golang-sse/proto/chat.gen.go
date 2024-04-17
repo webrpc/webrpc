@@ -378,7 +378,7 @@ func (c *chatClient) SubscribeMessages(ctx context.Context, username string) (Su
 	}
 
 	buf := bufio.NewReader(resp.Body)
-	return &subscribeMessagesStreamReader{streamReader{ctx: ctx, c: resp.Body, r: buf, d: json.NewDecoder(buf)}}, nil
+	return &subscribeMessagesStreamReader{streamReader{ctx: ctx, c: resp.Body, r: buf}}, nil
 }
 
 type subscribeMessagesStreamReader struct {
@@ -407,7 +407,6 @@ type streamReader struct {
 	ctx context.Context
 	c   io.Closer
 	r   *bufio.Reader
-	d   *json.Decoder
 }
 
 func (r *streamReader) read(v interface{}) error {
