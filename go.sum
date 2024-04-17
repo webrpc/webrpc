@@ -123,6 +123,8 @@ github.com/webrpc/gen-golang v0.14.3 h1:u09JwsDxV+7tDf8GXQWI2xI+uqrI5tyrV9QAGHcd
 github.com/webrpc/gen-golang v0.14.3/go.mod h1:qy1qEWMlTvrRzjSuQLy+176RqNaX1ymUULDtlo7Dapo=
 github.com/webrpc/gen-golang v0.14.4 h1:2H91MBdudc0IVbde6yB6SulK8qawMGj0gy6k587i8EE=
 github.com/webrpc/gen-golang v0.14.4/go.mod h1:qy1qEWMlTvrRzjSuQLy+176RqNaX1ymUULDtlo7Dapo=
+github.com/webrpc/gen-golang v0.14.5 h1:edh096uAPovkTIPSWRXt+SDWfqBV/cfQijGmR3NUCvg=
+github.com/webrpc/gen-golang v0.14.5/go.mod h1:qy1qEWMlTvrRzjSuQLy+176RqNaX1ymUULDtlo7Dapo=
 github.com/webrpc/gen-javascript v0.12.0 h1:yxcpLR7R4IVFGaK3Nqp1/KP1jz267J67MwRf+gNw/2Q=
 github.com/webrpc/gen-javascript v0.12.0/go.mod h1:5EhapSJgzbiWrIGlqzZN9Lg9mE9209wwX+Du2dgn4EU=
 github.com/webrpc/gen-kotlin v0.1.0 h1:tnlinqbDgowEoSy8E3VovTdP2OjyOIbgACCbahRjNcc=
