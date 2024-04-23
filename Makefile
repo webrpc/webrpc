@@ -50,12 +50,8 @@ generate: build
 	git grep -l "$$(git describe --tags)" | xargs sed -i -e "s/@$$(git describe --tags)//g"
 	sed -i "/$$(git describe --tags)/d" tests/schema/test.debug.gen.txt
 
-dep:
-	go mod tidy
-
 dep-upgrade-all:
-	go get -u ./...
-	@$(MAKE) dep
+	go get -u go@1.19 ./...
 
 diff:
 	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
