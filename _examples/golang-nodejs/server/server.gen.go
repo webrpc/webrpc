@@ -374,6 +374,14 @@ func (e WebRPCError) WithCause(cause error) WebRPCError {
 	return err
 }
 
+func (e WebRPCError) WithCausef(fmt string, args ...interface{}) WebRPCError {
+	cause := fmt.Errorf(fmt, args...)
+	err := e
+	err.cause = cause
+	err.Cause = cause.Error()
+	return err
+}
+
 // Deprecated: Use .WithCause() method on WebRPCError.
 func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
 	return rpcErr.WithCause(cause)
