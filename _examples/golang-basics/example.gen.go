@@ -753,8 +753,8 @@ func (e WebRPCError) WithCause(cause error) WebRPCError {
 	return err
 }
 
-func (e WebRPCError) WithCausef(fmt string, args ...interface{}) WebRPCError {
-	cause := fmt.Errorf(fmt, args...)
+func (e WebRPCError) WithCausef(format string, args ...interface{}) WebRPCError {
+	cause := fmt.Errorf(format, args...)
 	err := e
 	err.cause = cause
 	err.Cause = cause.Error()
