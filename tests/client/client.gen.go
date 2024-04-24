@@ -128,6 +128,7 @@ type TestApi interface {
 	SendMulti(ctx context.Context, one *Simple, two *Simple, three *Simple) error
 	GetComplex(ctx context.Context) (*Complex, error)
 	SendComplex(ctx context.Context, complex *Complex) error
+	// added in v0.11.0
 	GetSchemaError(ctx context.Context, code int) error
 }
 
@@ -144,6 +145,7 @@ type TestApiClient interface {
 	SendMulti(ctx context.Context, one *Simple, two *Simple, three *Simple) error
 	GetComplex(ctx context.Context) (*Complex, error)
 	SendComplex(ctx context.Context, complex *Complex) error
+	// added in v0.11.0
 	GetSchemaError(ctx context.Context, code int) error
 }
 
