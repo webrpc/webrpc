@@ -46,7 +46,8 @@ plugin for RIDL synx highlighting.
 | [typescript](https://github.com/webrpc/gen-typescript) | TypeScript                        | v1     | ✅     | ✅     |
 | [javascript](https://github.com/webrpc/gen-javascript) | JavaScript (ES6)                  | v1     | ✅     | ✅     |
 | [kotlin](https://github.com/webrpc/gen-kotlin)         | Kotlin (coroutines, moshi, ktor)  | v1     | ✅     |        |
-| [openapi](https://github.com/webrpc/gen-openapi)       | OpenAPI 3.x (Swagger)             | v1     | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview) | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview) |
+| [dart](https://github.com/webrpc/gen-dart)             | Dart 3.1+                         | v1     | ✅     |        |
+| [openapi](https://github.com/webrpc/gen-openapi)       | OpenAPI 3.x (Swagger)             | v1     | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview) | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview)  |
 
 ..contribute more! [webrpc generators](./gen/) are just Go templates (similar to [Hugo](https://gohugo.io/templates/) or [Helm](https://helm.sh/docs/chart_best_practices/templates/)).
 

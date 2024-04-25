@@ -9,6 +9,7 @@ import (
 
 	"github.com/webrpc/webrpc"
 
+	dart "github.com/webrpc/gen-dart"
 	golang "github.com/webrpc/gen-golang"
 	javascript "github.com/webrpc/gen-javascript"
 	kotlin "github.com/webrpc/gen-kotlin"
@@ -27,6 +28,7 @@ var embeddedTargetFS = map[string]embed.FS{
 	"javascript": javascript.FS,
 	"openapi":    openapi.FS,
 	"kotlin":     kotlin.FS,
+	"dart":       dart.FS,
 }
 
 // The values are computed in init() function based on go.mod file.
