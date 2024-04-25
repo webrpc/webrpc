@@ -119,6 +119,8 @@ github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKs
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
+github.com/webrpc/gen-dart v0.1.1 h1:PZh5oNNdA84Qxu8ixKDf1cT8Iv6t0g7x6q9aeX1bti4=
+github.com/webrpc/gen-dart v0.1.1/go.mod h1:yq0ThW3ANNulJLyR50jx1aZMEVBDp19VUHucK65ayPs=
 github.com/webrpc/gen-golang v0.14.3 h1:u09JwsDxV+7tDf8GXQWI2xI+uqrI5tyrV9QAGHcdbnc=
 github.com/webrpc/gen-golang v0.14.3/go.mod h1:qy1qEWMlTvrRzjSuQLy+176RqNaX1ymUULDtlo7Dapo=
 github.com/webrpc/gen-golang v0.14.4 h1:2H91MBdudc0IVbde6yB6SulK8qawMGj0gy6k587i8EE=
