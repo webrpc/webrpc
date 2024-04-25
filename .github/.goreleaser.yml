@@ -68,7 +68,7 @@ release:
     Windows: [amd64](https://github.com/webrpc/webrpc/releases/download/v{{.Version}}/webrpc-gen.windows-amd64.exe), [arm64](https://github.com/webrpc/webrpc/releases/download/v{{.Version}}/webrpc-gen.windows-arm64.exe)
 
 changelog:
-  use: github
+  use: github-native
   sort: asc
 
 brews:
