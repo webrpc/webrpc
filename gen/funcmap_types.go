@@ -83,10 +83,17 @@ func mapValueType(v interface{}) string {
 }
 
 // Returns list's element type (ie. `T` from `[]T`)
-func listElemType(v interface{}) string {
-	str := toString(v)
-	if !strings.HasPrefix(str, "[]") {
-		panic(fmt.Errorf("listElemType: expected []Type, got %v", str))
+func listElemType(v interface{}) any {
+	switch t := v.(type) {
+	case schema.VarType:
+		return t.List.Elem
+	case *schema.VarType:
+		return t.List.Elem
+	default:
+		str := toString(v)
+		if !strings.HasPrefix(str, "[]") {
+			panic(fmt.Errorf("listElemType: expected []Type, got %v", str))
+		}
+		return strings.TrimPrefix(str, "[]")
 	}
-	return strings.TrimPrefix(str, "[]")
 }
