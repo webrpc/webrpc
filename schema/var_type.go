@@ -68,7 +68,7 @@ type VarListType struct {
 }
 
 type VarMapType struct {
-	Key   CoreType // see, VarMapKeyCoreTypes -- only T_String or T_XintX supported
+	Key   *VarType // see, VarMapKeyCoreTypes -- only T_String or T_XintX supported
 	Value *VarType
 }
 
@@ -122,13 +122,26 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 			return err
 		}
 
-		keyDataType, ok := CoreTypeFromString[key]
-		if !ok {
-			return fmt.Errorf("schema error: invalid map key type '%s' for expr '%s'", key, expr)
+		if keyType, ok := CoreTypeFromString[key]; ok {
+			if !isValidVarKeyType(key) {
+				return fmt.Errorf("schema error: invalid map key '%s' for '%s'", key, expr)
+			}
+			// create sub-type object for map
+			vt.Map = &VarMapType{
+				Key:   &VarType{Expr: key, Type: keyType},
+				Value: &VarType{},
+			}
+		} else {
+			t := schema.GetTypeByName(key)
+			if t == nil || t.Kind != "enum" && t.Type.Type != T_Enum {
+				return fmt.Errorf("schema error: invalid map key '%s' for '%s'", key, expr)
+			}
+			vt.Map = &VarMapType{
+				Key:   &VarType{Expr: key, Type: T_Enum, Enum: &VarEnumType{Name: key, Type: t}},
+				Value: &VarType{},
+			}
+			vt.Map.Key.Expr = key
 		}
-
-		// create sub-type object for map
-		vt.Map = &VarMapType{Key: keyDataType, Value: &VarType{}}
 
 		// shift expr and keep parsing
 		expr = value
@@ -187,10 +200,6 @@ func parseMapExpr(expr string) (string, string, error) {
 
 	key := expr[0:p]
 	value := expr[p+1:]
-
-	if !isValidVarKeyType(key) {
-		return "", "", fmt.Errorf("schema error: invalid map key '%s' for '%s'", key, expr)
-	}
 
 	return key, value, nil
 }

@@ -67,12 +67,19 @@ func isMapType(v interface{}) bool {
 
 // Returns given map's key type (ie. `T1` from `map<T1,T2>`)
 func mapKeyType(v interface{}) string {
-	str := toString(v)
-	key, value, found := stringsCut(str, ",")
-	if !found || !strings.HasPrefix(key, "map<") || !strings.HasSuffix(value, ">") {
-		panic(fmt.Errorf("mapKeyValue: expected map<Type1,Type2>, got %v", str))
+	switch t := v.(type) {
+	case schema.VarType:
+		return toString(t.Map.Key)
+	case *schema.VarType:
+		return toString(t.Map.Key)
+	default:
+		str := toString(v)
+		key, value, found := stringsCut(str, ",")
+		if !found || !strings.HasPrefix(key, "map<") || !strings.HasSuffix(value, ">") {
+			panic(fmt.Errorf("mapKeyValue: expected map<Type1,Type2>, got %v", str))
+		}
+		return strings.TrimPrefix(key, "map<")
 	}
-	return strings.TrimPrefix(key, "map<")
 }
 
 // Returns given map's value type (ie. `T2` from `map<T1,T2>`)

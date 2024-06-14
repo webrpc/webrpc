@@ -206,7 +206,15 @@
 							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)({
-								Key: (schema.CoreType) 17,
+								Key: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 17,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>)
+								}),
 								Value: (*schema.VarType)({
 									Expr: (string) (len=3) "any",
 									Type: (schema.CoreType) 2,
@@ -236,14 +244,30 @@
 							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)({
-								Key: (schema.CoreType) 17,
+								Key: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 17,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>)
+								}),
 								Value: (*schema.VarType)({
 									Expr: (string) (len=18) "map<string,uint32>",
 									Type: (schema.CoreType) 20,
 									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)({
-										Key: (schema.CoreType) 17,
+										Key: (*schema.VarType)({
+											Expr: (string) (len=6) "string",
+											Type: (schema.CoreType) 17,
+											Comments: ([]string) <nil>,
+											List: (*schema.VarListType)(<nil>),
+											Map: (*schema.VarMapType)(<nil>),
+											Struct: (*schema.VarStructType)(<nil>),
+											Enum: (*schema.VarEnumType)(<nil>)
+										}),
 										Value: (*schema.VarType)({
 											Expr: (string) (len=6) "uint32",
 											Type: (schema.CoreType) 8,
@@ -379,7 +403,15 @@
 									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)({
-										Key: (schema.CoreType) 17,
+										Key: (*schema.VarType)({
+											Expr: (string) (len=6) "string",
+											Type: (schema.CoreType) 17,
+											Comments: ([]string) <nil>,
+											List: (*schema.VarListType)(<nil>),
+											Map: (*schema.VarMapType)(<nil>),
+											Struct: (*schema.VarStructType)(<nil>),
+											Enum: (*schema.VarEnumType)(<nil>)
+										}),
 										Value: (*schema.VarType)({
 											Expr: (string) (len=6) "uint32",
 											Type: (schema.CoreType) 8,
@@ -537,7 +569,15 @@
 							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)({
-								Key: (schema.CoreType) 17,
+								Key: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 17,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>)
+								}),
 								Value: (*schema.VarType)({
 									Expr: (string) (len=4) "User",
 									Type: (schema.CoreType) 21,
@@ -1657,7 +1697,15 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)({
-															Key: (schema.CoreType) 17,
+															Key: (*schema.VarType)({
+																Expr: (string) (len=6) "string",
+																Type: (schema.CoreType) 17,
+																Comments: ([]string) <nil>,
+																List: (*schema.VarListType)(<nil>),
+																Map: (*schema.VarMapType)(<nil>),
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
+															}),
 															Value: (*schema.VarType)({
 																Expr: (string) (len=3) "any",
 																Type: (schema.CoreType) 2,
@@ -1687,14 +1735,30 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)({
-															Key: (schema.CoreType) 17,
+															Key: (*schema.VarType)({
+																Expr: (string) (len=6) "string",
+																Type: (schema.CoreType) 17,
+																Comments: ([]string) <nil>,
+																List: (*schema.VarListType)(<nil>),
+																Map: (*schema.VarMapType)(<nil>),
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
+															}),
 															Value: (*schema.VarType)({
 																Expr: (string) (len=18) "map<string,uint32>",
 																Type: (schema.CoreType) 20,
 																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)({
-																	Key: (schema.CoreType) 17,
+																	Key: (*schema.VarType)({
+																		Expr: (string) (len=6) "string",
+																		Type: (schema.CoreType) 17,
+																		Comments: ([]string) <nil>,
+																		List: (*schema.VarListType)(<nil>),
+																		Map: (*schema.VarMapType)(<nil>),
+																		Struct: (*schema.VarStructType)(<nil>),
+																		Enum: (*schema.VarEnumType)(<nil>)
+																	}),
 																	Value: (*schema.VarType)({
 																		Expr: (string) (len=6) "uint32",
 																		Type: (schema.CoreType) 8,
@@ -1830,7 +1894,15 @@
 																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)({
-																	Key: (schema.CoreType) 17,
+																	Key: (*schema.VarType)({
+																		Expr: (string) (len=6) "string",
+																		Type: (schema.CoreType) 17,
+																		Comments: ([]string) <nil>,
+																		List: (*schema.VarListType)(<nil>),
+																		Map: (*schema.VarMapType)(<nil>),
+																		Struct: (*schema.VarStructType)(<nil>),
+																		Enum: (*schema.VarEnumType)(<nil>)
+																	}),
 																	Value: (*schema.VarType)({
 																		Expr: (string) (len=6) "uint32",
 																		Type: (schema.CoreType) 8,
@@ -1988,7 +2060,15 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)({
-															Key: (schema.CoreType) 17,
+															Key: (*schema.VarType)({
+																Expr: (string) (len=6) "string",
+																Type: (schema.CoreType) 17,
+																Comments: ([]string) <nil>,
+																List: (*schema.VarListType)(<nil>),
+																Map: (*schema.VarMapType)(<nil>),
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
+															}),
 															Value: (*schema.VarType)({
 																Expr: (string) (len=4) "User",
 																Type: (schema.CoreType) 21,
@@ -2336,7 +2416,15 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)({
-															Key: (schema.CoreType) 17,
+															Key: (*schema.VarType)({
+																Expr: (string) (len=6) "string",
+																Type: (schema.CoreType) 17,
+																Comments: ([]string) <nil>,
+																List: (*schema.VarListType)(<nil>),
+																Map: (*schema.VarMapType)(<nil>),
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
+															}),
 															Value: (*schema.VarType)({
 																Expr: (string) (len=3) "any",
 																Type: (schema.CoreType) 2,
@@ -2366,14 +2454,30 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)({
-															Key: (schema.CoreType) 17,
+															Key: (*schema.VarType)({
+																Expr: (string) (len=6) "string",
+																Type: (schema.CoreType) 17,
+																Comments: ([]string) <nil>,
+																List: (*schema.VarListType)(<nil>),
+																Map: (*schema.VarMapType)(<nil>),
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
+															}),
 															Value: (*schema.VarType)({
 																Expr: (string) (len=18) "map<string,uint32>",
 																Type: (schema.CoreType) 20,
 																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)({
-																	Key: (schema.CoreType) 17,
+																	Key: (*schema.VarType)({
+																		Expr: (string) (len=6) "string",
+																		Type: (schema.CoreType) 17,
+																		Comments: ([]string) <nil>,
+																		List: (*schema.VarListType)(<nil>),
+																		Map: (*schema.VarMapType)(<nil>),
+																		Struct: (*schema.VarStructType)(<nil>),
+																		Enum: (*schema.VarEnumType)(<nil>)
+																	}),
 																	Value: (*schema.VarType)({
 																		Expr: (string) (len=6) "uint32",
 																		Type: (schema.CoreType) 8,
@@ -2509,7 +2613,15 @@
 																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)({
-																	Key: (schema.CoreType) 17,
+																	Key: (*schema.VarType)({
+																		Expr: (string) (len=6) "string",
+																		Type: (schema.CoreType) 17,
+																		Comments: ([]string) <nil>,
+																		List: (*schema.VarListType)(<nil>),
+																		Map: (*schema.VarMapType)(<nil>),
+																		Struct: (*schema.VarStructType)(<nil>),
+																		Enum: (*schema.VarEnumType)(<nil>)
+																	}),
 																	Value: (*schema.VarType)({
 																		Expr: (string) (len=6) "uint32",
 																		Type: (schema.CoreType) 8,
@@ -2667,7 +2779,15 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)({
-															Key: (schema.CoreType) 17,
+															Key: (*schema.VarType)({
+																Expr: (string) (len=6) "string",
+																Type: (schema.CoreType) 17,
+																Comments: ([]string) <nil>,
+																List: (*schema.VarListType)(<nil>),
+																Map: (*schema.VarMapType)(<nil>),
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
+															}),
 															Value: (*schema.VarType)({
 																Expr: (string) (len=4) "User",
 																Type: (schema.CoreType) 21,
