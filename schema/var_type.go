@@ -13,6 +13,7 @@ type VarType struct {
 	List   *VarListType
 	Map    *VarMapType
 	Struct *VarStructType
+	Enum   *VarEnumType
 }
 
 func (t *VarType) String() string {
@@ -76,6 +77,11 @@ type VarStructType struct {
 	Type *Type
 }
 
+type VarEnumType struct {
+	Name string
+	Type *Type
+}
+
 func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 	if expr == "" {
 		return nil
@@ -126,12 +132,13 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 
 		// shift expr and keep parsing
 		expr = value
+
 		err = ParseVarTypeExpr(schema, expr, vt.Map.Value)
 		if err != nil {
 			return err
 		}
 
-	case T_Unknown:
+	case T_Enum, T_Unknown:
 		// struct or enum
 
 		typ, ok := getType(schema, expr)
@@ -144,8 +151,8 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 			vt.Type = T_Struct
 			vt.Struct = &VarStructType{Name: expr, Type: typ}
 		case TypeKind_Enum:
-			vt.Type = T_Struct // TODO: T_Enum, see https://github.com/webrpc/webrpc/issues/44
-			vt.Struct = &VarStructType{Name: expr, Type: typ}
+			vt.Type = T_Enum // TODO: T_Enum, see https://github.com/webrpc/webrpc/issues/44
+			vt.Enum = &VarEnumType{Name: expr, Type: typ}
 		default:
 			return fmt.Errorf("schema error: unexpected type '%s'", expr)
 		}
@@ -203,6 +210,10 @@ func buildVarTypeExpr(vt *VarType, expr string) string {
 
 	case T_Struct:
 		expr += vt.Struct.Name
+		return expr
+
+	case T_Enum:
+		expr += vt.Enum.Name
 		return expr
 
 	default:

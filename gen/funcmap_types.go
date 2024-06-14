@@ -40,12 +40,15 @@ func isEnumType(v interface{}) bool {
 	case *schema.Type:
 		return t.Kind == "enum"
 	case schema.VarType:
-		return t.Struct.Type.Kind == "enum"
-	case *schema.VarType:
-		if t != nil {
-			return t.Struct.Type.Kind == "enum"
+		if t.Enum == nil {
+			return t.Type == schema.T_Enum
 		}
-		return false
+		return t.Enum.Type.Kind == "enum"
+	case *schema.VarType:
+		if t.Enum == nil {
+			return t.Type == schema.T_Enum
+		}
+		return t.Enum.Type.Kind == "enum"
 	default:
 		return false
 	}

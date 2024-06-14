@@ -13,7 +13,8 @@
 					Comments: ([]string) <nil>,
 					List: (*schema.VarListType)(<nil>),
 					Map: (*schema.VarMapType)(<nil>),
-					Struct: (*schema.VarStructType)(<nil>)
+					Struct: (*schema.VarStructType)(<nil>),
+					Enum: (*schema.VarEnumType)(<nil>)
 				}),
 				Fields: ([]*schema.TypeField) (len=2 cap=2) {
 					(*schema.TypeField)({
@@ -61,7 +62,8 @@
 							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)(<nil>),
-							Struct: (*schema.VarStructType)(<nil>)
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -79,7 +81,8 @@
 							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)(<nil>),
-							Struct: (*schema.VarStructType)(<nil>)
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -111,7 +114,8 @@
 							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)(<nil>),
-							Struct: (*schema.VarStructType)(<nil>)
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -139,7 +143,8 @@
 							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)(<nil>),
-							Struct: (*schema.VarStructType)(<nil>)
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -164,7 +169,8 @@
 							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)(<nil>),
-							Struct: (*schema.VarStructType)(<nil>)
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -207,10 +213,12 @@
 									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
-									Struct: (*schema.VarStructType)(<nil>)
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>)
 								})
 							}),
-							Struct: (*schema.VarStructType)(<nil>)
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -242,13 +250,16 @@
 											Comments: ([]string) <nil>,
 											List: (*schema.VarListType)(<nil>),
 											Map: (*schema.VarMapType)(<nil>),
-											Struct: (*schema.VarStructType)(<nil>)
+											Struct: (*schema.VarStructType)(<nil>),
+											Enum: (*schema.VarEnumType)(<nil>)
 										})
 									}),
-									Struct: (*schema.VarStructType)(<nil>)
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>)
 								})
 							}),
-							Struct: (*schema.VarStructType)(<nil>)
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -271,11 +282,13 @@
 									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
-									Struct: (*schema.VarStructType)(<nil>)
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>)
 								})
 							}),
 							Map: (*schema.VarMapType)(<nil>),
-							Struct: (*schema.VarStructType)(<nil>)
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -298,11 +311,13 @@
 									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
-									Struct: (*schema.VarStructType)(<nil>)
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>)
 								})
 							}),
 							Map: (*schema.VarMapType)(<nil>),
-							Struct: (*schema.VarStructType)(<nil>)
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -330,15 +345,18 @@
 											Comments: ([]string) <nil>,
 											List: (*schema.VarListType)(<nil>),
 											Map: (*schema.VarMapType)(<nil>),
-											Struct: (*schema.VarStructType)(<nil>)
+											Struct: (*schema.VarStructType)(<nil>),
+											Enum: (*schema.VarEnumType)(<nil>)
 										})
 									}),
 									Map: (*schema.VarMapType)(<nil>),
-									Struct: (*schema.VarStructType)(<nil>)
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>)
 								})
 							}),
 							Map: (*schema.VarMapType)(<nil>),
-							Struct: (*schema.VarStructType)(<nil>)
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -368,14 +386,17 @@
 											Comments: ([]string) <nil>,
 											List: (*schema.VarListType)(<nil>),
 											Map: (*schema.VarMapType)(<nil>),
-											Struct: (*schema.VarStructType)(<nil>)
+											Struct: (*schema.VarStructType)(<nil>),
+											Enum: (*schema.VarEnumType)(<nil>)
 										})
 									}),
-									Struct: (*schema.VarStructType)(<nil>)
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>)
 								})
 							}),
 							Map: (*schema.VarMapType)(<nil>),
-							Struct: (*schema.VarStructType)(<nil>)
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -415,7 +436,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -443,7 +465,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -468,7 +491,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -489,11 +513,13 @@
 											Comments: ([]string) {
 											}
 										})
-									})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>)
 								})
 							}),
 							Map: (*schema.VarMapType)(<nil>),
-							Struct: (*schema.VarStructType)(<nil>)
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -535,7 +561,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -563,7 +590,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -588,7 +616,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -609,10 +638,12 @@
 											Comments: ([]string) {
 											}
 										})
-									})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>)
 								})
 							}),
-							Struct: (*schema.VarStructType)(<nil>)
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -647,7 +678,8 @@
 												Comments: ([]string) <nil>,
 												List: (*schema.VarListType)(<nil>),
 												Map: (*schema.VarMapType)(<nil>),
-												Struct: (*schema.VarStructType)(<nil>)
+												Struct: (*schema.VarStructType)(<nil>),
+												Enum: (*schema.VarEnumType)(<nil>)
 											}),
 											TypeExtra: (schema.TypeExtra) {
 												Optional: (bool) false,
@@ -675,7 +707,8 @@
 												Comments: ([]string) <nil>,
 												List: (*schema.VarListType)(<nil>),
 												Map: (*schema.VarMapType)(<nil>),
-												Struct: (*schema.VarStructType)(<nil>)
+												Struct: (*schema.VarStructType)(<nil>),
+												Enum: (*schema.VarEnumType)(<nil>)
 											}),
 											TypeExtra: (schema.TypeExtra) {
 												Optional: (bool) false,
@@ -700,7 +733,8 @@
 												Comments: ([]string) <nil>,
 												List: (*schema.VarListType)(<nil>),
 												Map: (*schema.VarMapType)(<nil>),
-												Struct: (*schema.VarStructType)(<nil>)
+												Struct: (*schema.VarStructType)(<nil>),
+												Enum: (*schema.VarEnumType)(<nil>)
 											}),
 											TypeExtra: (schema.TypeExtra) {
 												Optional: (bool) false,
@@ -721,7 +755,8 @@
 									Comments: ([]string) {
 									}
 								})
-							})
+							}),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -735,11 +770,12 @@
 						Name: (string) (len=6) "status",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=6) "Status",
-							Type: (schema.CoreType) 21,
+							Type: (schema.CoreType) 22,
 							Comments: ([]string) <nil>,
 							List: (*schema.VarListType)(<nil>),
 							Map: (*schema.VarMapType)(<nil>),
-							Struct: (*schema.VarStructType)({
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)({
 								Name: (string) (len=6) "Status",
 								Type: (*schema.Type)({
 									Kind: (string) (len=4) "enum",
@@ -750,7 +786,8 @@
 										Comments: ([]string) <nil>,
 										List: (*schema.VarListType)(<nil>),
 										Map: (*schema.VarMapType)(<nil>),
-										Struct: (*schema.VarStructType)(<nil>)
+										Struct: (*schema.VarStructType)(<nil>),
+										Enum: (*schema.VarEnumType)(<nil>)
 									}),
 									Fields: ([]*schema.TypeField) (len=2 cap=2) {
 										(*schema.TypeField)({
@@ -976,7 +1013,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -994,7 +1032,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1011,7 +1050,8 @@
 											Comments: ([]string) {
 											}
 										})
-									})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) false,
@@ -1058,7 +1098,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1076,7 +1117,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1093,7 +1135,8 @@
 											Comments: ([]string) {
 											}
 										})
-									})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) true,
@@ -1144,7 +1187,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1162,7 +1206,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1179,7 +1224,8 @@
 											Comments: ([]string) {
 											}
 										})
-									})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) false,
@@ -1215,7 +1261,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1233,7 +1280,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1250,7 +1298,8 @@
 											Comments: ([]string) {
 											}
 										})
-									})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) false,
@@ -1286,7 +1335,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1304,7 +1354,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1321,7 +1372,8 @@
 											Comments: ([]string) {
 											}
 										})
-									})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) false,
@@ -1368,7 +1420,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1386,7 +1439,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1403,7 +1457,8 @@
 											Comments: ([]string) {
 											}
 										})
-									})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) true,
@@ -1439,7 +1494,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1457,7 +1513,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1474,7 +1531,8 @@
 											Comments: ([]string) {
 											}
 										})
-									})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) true,
@@ -1510,7 +1568,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1528,7 +1587,8 @@
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1545,7 +1605,8 @@
 											Comments: ([]string) {
 											}
 										})
-									})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) true,
@@ -1603,10 +1664,12 @@
 																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>)
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1638,13 +1701,16 @@
 																		Comments: ([]string) <nil>,
 																		List: (*schema.VarListType)(<nil>),
 																		Map: (*schema.VarMapType)(<nil>),
-																		Struct: (*schema.VarStructType)(<nil>)
+																		Struct: (*schema.VarStructType)(<nil>),
+																		Enum: (*schema.VarEnumType)(<nil>)
 																	})
 																}),
-																Struct: (*schema.VarStructType)(<nil>)
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1667,11 +1733,13 @@
 																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>)
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1694,11 +1762,13 @@
 																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>)
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1726,15 +1796,18 @@
 																		Comments: ([]string) <nil>,
 																		List: (*schema.VarListType)(<nil>),
 																		Map: (*schema.VarMapType)(<nil>),
-																		Struct: (*schema.VarStructType)(<nil>)
+																		Struct: (*schema.VarStructType)(<nil>),
+																		Enum: (*schema.VarEnumType)(<nil>)
 																	})
 																}),
 																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>)
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1764,14 +1837,17 @@
 																		Comments: ([]string) <nil>,
 																		List: (*schema.VarListType)(<nil>),
 																		Map: (*schema.VarMapType)(<nil>),
-																		Struct: (*schema.VarStructType)(<nil>)
+																		Struct: (*schema.VarStructType)(<nil>),
+																		Enum: (*schema.VarEnumType)(<nil>)
 																	})
 																}),
-																Struct: (*schema.VarStructType)(<nil>)
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1811,7 +1887,8 @@
 																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
-																					Struct: (*schema.VarStructType)(<nil>)
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>)
 																				}),
 																				TypeExtra: (schema.TypeExtra) {
 																					Optional: (bool) false,
@@ -1839,7 +1916,8 @@
 																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
-																					Struct: (*schema.VarStructType)(<nil>)
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>)
 																				}),
 																				TypeExtra: (schema.TypeExtra) {
 																					Optional: (bool) false,
@@ -1864,7 +1942,8 @@
 																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
-																					Struct: (*schema.VarStructType)(<nil>)
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>)
 																				}),
 																				TypeExtra: (schema.TypeExtra) {
 																					Optional: (bool) false,
@@ -1885,11 +1964,13 @@
 																		Comments: ([]string) {
 																		}
 																	})
-																})
+																}),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -1931,7 +2012,8 @@
 																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
-																					Struct: (*schema.VarStructType)(<nil>)
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>)
 																				}),
 																				TypeExtra: (schema.TypeExtra) {
 																					Optional: (bool) false,
@@ -1959,7 +2041,8 @@
 																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
-																					Struct: (*schema.VarStructType)(<nil>)
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>)
 																				}),
 																				TypeExtra: (schema.TypeExtra) {
 																					Optional: (bool) false,
@@ -1984,7 +2067,8 @@
 																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
-																					Struct: (*schema.VarStructType)(<nil>)
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>)
 																				}),
 																				TypeExtra: (schema.TypeExtra) {
 																					Optional: (bool) false,
@@ -2005,10 +2089,12 @@
 																		Comments: ([]string) {
 																		}
 																	})
-																})
+																}),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -2043,7 +2129,8 @@
 																			Comments: ([]string) <nil>,
 																			List: (*schema.VarListType)(<nil>),
 																			Map: (*schema.VarMapType)(<nil>),
-																			Struct: (*schema.VarStructType)(<nil>)
+																			Struct: (*schema.VarStructType)(<nil>),
+																			Enum: (*schema.VarEnumType)(<nil>)
 																		}),
 																		TypeExtra: (schema.TypeExtra) {
 																			Optional: (bool) false,
@@ -2071,7 +2158,8 @@
 																			Comments: ([]string) <nil>,
 																			List: (*schema.VarListType)(<nil>),
 																			Map: (*schema.VarMapType)(<nil>),
-																			Struct: (*schema.VarStructType)(<nil>)
+																			Struct: (*schema.VarStructType)(<nil>),
+																			Enum: (*schema.VarEnumType)(<nil>)
 																		}),
 																		TypeExtra: (schema.TypeExtra) {
 																			Optional: (bool) false,
@@ -2096,7 +2184,8 @@
 																			Comments: ([]string) <nil>,
 																			List: (*schema.VarListType)(<nil>),
 																			Map: (*schema.VarMapType)(<nil>),
-																			Struct: (*schema.VarStructType)(<nil>)
+																			Struct: (*schema.VarStructType)(<nil>),
+																			Enum: (*schema.VarEnumType)(<nil>)
 																		}),
 																		TypeExtra: (schema.TypeExtra) {
 																			Optional: (bool) false,
@@ -2117,7 +2206,8 @@
 																Comments: ([]string) {
 																}
 															})
-														})
+														}),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -2131,11 +2221,12 @@
 													Name: (string) (len=6) "status",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "Status",
-														Type: (schema.CoreType) 21,
+														Type: (schema.CoreType) 22,
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)({
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)({
 															Name: (string) (len=6) "Status",
 															Type: (*schema.Type)({
 																Kind: (string) (len=4) "enum",
@@ -2146,7 +2237,8 @@
 																	Comments: ([]string) <nil>,
 																	List: (*schema.VarListType)(<nil>),
 																	Map: (*schema.VarMapType)(<nil>),
-																	Struct: (*schema.VarStructType)(<nil>)
+																	Struct: (*schema.VarStructType)(<nil>),
+																	Enum: (*schema.VarEnumType)(<nil>)
 																}),
 																Fields: ([]*schema.TypeField) (len=2 cap=2) {
 																	(*schema.TypeField)({
@@ -2196,7 +2288,8 @@
 											Comments: ([]string) {
 											}
 										})
-									})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) false,
@@ -2250,10 +2343,12 @@
 																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>)
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -2285,13 +2380,16 @@
 																		Comments: ([]string) <nil>,
 																		List: (*schema.VarListType)(<nil>),
 																		Map: (*schema.VarMapType)(<nil>),
-																		Struct: (*schema.VarStructType)(<nil>)
+																		Struct: (*schema.VarStructType)(<nil>),
+																		Enum: (*schema.VarEnumType)(<nil>)
 																	})
 																}),
-																Struct: (*schema.VarStructType)(<nil>)
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -2314,11 +2412,13 @@
 																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>)
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -2341,11 +2441,13 @@
 																Comments: ([]string) <nil>,
 																List: (*schema.VarListType)(<nil>),
 																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>)
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -2373,15 +2475,18 @@
 																		Comments: ([]string) <nil>,
 																		List: (*schema.VarListType)(<nil>),
 																		Map: (*schema.VarMapType)(<nil>),
-																		Struct: (*schema.VarStructType)(<nil>)
+																		Struct: (*schema.VarStructType)(<nil>),
+																		Enum: (*schema.VarEnumType)(<nil>)
 																	})
 																}),
 																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>)
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -2411,14 +2516,17 @@
 																		Comments: ([]string) <nil>,
 																		List: (*schema.VarListType)(<nil>),
 																		Map: (*schema.VarMapType)(<nil>),
-																		Struct: (*schema.VarStructType)(<nil>)
+																		Struct: (*schema.VarStructType)(<nil>),
+																		Enum: (*schema.VarEnumType)(<nil>)
 																	})
 																}),
-																Struct: (*schema.VarStructType)(<nil>)
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -2458,7 +2566,8 @@
 																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
-																					Struct: (*schema.VarStructType)(<nil>)
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>)
 																				}),
 																				TypeExtra: (schema.TypeExtra) {
 																					Optional: (bool) false,
@@ -2486,7 +2595,8 @@
 																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
-																					Struct: (*schema.VarStructType)(<nil>)
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>)
 																				}),
 																				TypeExtra: (schema.TypeExtra) {
 																					Optional: (bool) false,
@@ -2511,7 +2621,8 @@
 																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
-																					Struct: (*schema.VarStructType)(<nil>)
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>)
 																				}),
 																				TypeExtra: (schema.TypeExtra) {
 																					Optional: (bool) false,
@@ -2532,11 +2643,13 @@
 																		Comments: ([]string) {
 																		}
 																	})
-																})
+																}),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -2578,7 +2691,8 @@
 																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
-																					Struct: (*schema.VarStructType)(<nil>)
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>)
 																				}),
 																				TypeExtra: (schema.TypeExtra) {
 																					Optional: (bool) false,
@@ -2606,7 +2720,8 @@
 																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
-																					Struct: (*schema.VarStructType)(<nil>)
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>)
 																				}),
 																				TypeExtra: (schema.TypeExtra) {
 																					Optional: (bool) false,
@@ -2631,7 +2746,8 @@
 																					Comments: ([]string) <nil>,
 																					List: (*schema.VarListType)(<nil>),
 																					Map: (*schema.VarMapType)(<nil>),
-																					Struct: (*schema.VarStructType)(<nil>)
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>)
 																				}),
 																				TypeExtra: (schema.TypeExtra) {
 																					Optional: (bool) false,
@@ -2652,10 +2768,12 @@
 																		Comments: ([]string) {
 																		}
 																	})
-																})
+																}),
+																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
-														Struct: (*schema.VarStructType)(<nil>)
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -2690,7 +2808,8 @@
 																			Comments: ([]string) <nil>,
 																			List: (*schema.VarListType)(<nil>),
 																			Map: (*schema.VarMapType)(<nil>),
-																			Struct: (*schema.VarStructType)(<nil>)
+																			Struct: (*schema.VarStructType)(<nil>),
+																			Enum: (*schema.VarEnumType)(<nil>)
 																		}),
 																		TypeExtra: (schema.TypeExtra) {
 																			Optional: (bool) false,
@@ -2718,7 +2837,8 @@
 																			Comments: ([]string) <nil>,
 																			List: (*schema.VarListType)(<nil>),
 																			Map: (*schema.VarMapType)(<nil>),
-																			Struct: (*schema.VarStructType)(<nil>)
+																			Struct: (*schema.VarStructType)(<nil>),
+																			Enum: (*schema.VarEnumType)(<nil>)
 																		}),
 																		TypeExtra: (schema.TypeExtra) {
 																			Optional: (bool) false,
@@ -2743,7 +2863,8 @@
 																			Comments: ([]string) <nil>,
 																			List: (*schema.VarListType)(<nil>),
 																			Map: (*schema.VarMapType)(<nil>),
-																			Struct: (*schema.VarStructType)(<nil>)
+																			Struct: (*schema.VarStructType)(<nil>),
+																			Enum: (*schema.VarEnumType)(<nil>)
 																		}),
 																		TypeExtra: (schema.TypeExtra) {
 																			Optional: (bool) false,
@@ -2764,7 +2885,8 @@
 																Comments: ([]string) {
 																}
 															})
-														})
+														}),
+														Enum: (*schema.VarEnumType)(<nil>)
 													}),
 													TypeExtra: (schema.TypeExtra) {
 														Optional: (bool) false,
@@ -2778,11 +2900,12 @@
 													Name: (string) (len=6) "status",
 													Type: (*schema.VarType)({
 														Expr: (string) (len=6) "Status",
-														Type: (schema.CoreType) 21,
+														Type: (schema.CoreType) 22,
 														Comments: ([]string) <nil>,
 														List: (*schema.VarListType)(<nil>),
 														Map: (*schema.VarMapType)(<nil>),
-														Struct: (*schema.VarStructType)({
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)({
 															Name: (string) (len=6) "Status",
 															Type: (*schema.Type)({
 																Kind: (string) (len=4) "enum",
@@ -2793,7 +2916,8 @@
 																	Comments: ([]string) <nil>,
 																	List: (*schema.VarListType)(<nil>),
 																	Map: (*schema.VarMapType)(<nil>),
-																	Struct: (*schema.VarStructType)(<nil>)
+																	Struct: (*schema.VarStructType)(<nil>),
+																	Enum: (*schema.VarEnumType)(<nil>)
 																}),
 																Fields: ([]*schema.TypeField) (len=2 cap=2) {
 																	(*schema.TypeField)({
@@ -2843,7 +2967,8 @@
 											Comments: ([]string) {
 											}
 										})
-									})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) true,
@@ -2876,7 +3001,8 @@
 									Comments: ([]string) <nil>,
 									List: (*schema.VarListType)(<nil>),
 									Map: (*schema.VarMapType)(<nil>),
-									Struct: (*schema.VarStructType)(<nil>)
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
 								InputArg: (bool) true,
