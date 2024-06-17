@@ -16,6 +16,9 @@ service TestApi
   - GetComplex() => (complex: Complex)
   - SendComplex(complex: Complex)
 
+  - GetEnumList() => (list: []Status)
+  - GetEnumMap() => (map: map<Access, uint64>)
+
   # added in v0.11.0
   - GetSchemaError(code: int)
 
@@ -40,6 +43,13 @@ enum Status: uint32
   - AVAILABLE
   - NOT_AVAILABLE
 
+enum Access: uint32
+  - NONE
+  - READ
+  - WRITE
+  - ADMIN
+  - OWNER
+
 struct Complex
   - meta: map<string,any>
   - metaNestedExample: map<string,map<string,uint32>>
@@ -49,6 +59,8 @@ struct Complex
   - listOfMaps: []map<string,uint32>
   - listOfUsers: []User
   - mapOfUsers: map<string,User>
+  - enumMap: map<Access,uint64>
+  - enumList: []Status
   - user: User
   - status: Status
 
