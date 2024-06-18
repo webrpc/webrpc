@@ -1,4 +1,8 @@
 # See documentation at https://goreleaser.com/customization/build.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+
+version: 2
+
 project_name: webrpc
 
 builds:
@@ -75,7 +79,7 @@ brews:
   - name: webrpc-gen
     ids:
       - webrpc-gen
-    tap:
+    repository:
       owner: webrpc
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
@@ -89,7 +93,7 @@ brews:
   - name: webrpc-test
     ids:
       - webrpc-test
-    tap:
+    repository:
       owner: webrpc
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
