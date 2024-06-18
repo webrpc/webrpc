@@ -63,6 +63,14 @@ func (c *TestServer) SendComplex(ctx context.Context, complex *Complex) error {
 	return nil
 }
 
+func (c *TestServer) GetEnumList(ctx context.Context) ([]Status, error) {
+	return fixtureEnums.List, nil
+}
+
+func (c *TestServer) GetEnumMap(ctx context.Context) (map[Access]uint64, error) {
+	return fixtureEnums.Dict, nil
+}
+
 func (c *TestServer) GetSchemaError(ctx context.Context, code int) error {
 	switch code {
 	case 0:
@@ -173,6 +181,11 @@ var (
 		MapOfUsers:        mapOfUsers,
 		User:              user,
 		Status:            Status_AVAILABLE,
+	}
+
+	fixtureEnums = EnumData{
+		Dict: map[Access]uint64{Access_READ: 1, Access_WRITE: 2},
+		List: []Status{Status_AVAILABLE, Status_NOT_AVAILABLE},
 	}
 )
 

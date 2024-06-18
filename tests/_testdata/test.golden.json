@@ -19,6 +19,33 @@
    ]
   },
   {
+   "kind": "enum",
+   "name": "Access",
+   "type": "uint32",
+   "fields": [
+    {
+     "name": "NONE",
+     "value": "0"
+    },
+    {
+     "name": "READ",
+     "value": "1"
+    },
+    {
+     "name": "WRITE",
+     "value": "2"
+    },
+    {
+     "name": "ADMIN",
+     "value": "3"
+    },
+    {
+     "name": "OWNER",
+     "value": "4"
+    }
+   ]
+  },
+  {
    "kind": "struct",
    "name": "Simple",
    "fields": [
@@ -117,6 +144,20 @@
     {
      "name": "status",
      "type": "Status"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "EnumData",
+   "fields": [
+    {
+     "name": "dict",
+     "type": "map<Access,uint64>"
+    },
+    {
+     "name": "list",
+     "type": "[]Status"
     }
    ]
   }
@@ -338,6 +379,30 @@
       }
      ],
      "outputs": []
+    },
+    {
+     "name": "GetEnumList",
+     "comments": [],
+     "inputs": [],
+     "outputs": [
+      {
+       "name": "list",
+       "type": "[]Status",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "GetEnumMap",
+     "comments": [],
+     "inputs": [],
+     "outputs": [
+      {
+       "name": "map",
+       "type": "map<Access,uint64>",
+       "optional": false
+      }
+     ]
     },
     {
      "name": "GetSchemaError",

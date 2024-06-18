@@ -40,12 +40,15 @@ func isEnumType(v interface{}) bool {
 	case *schema.Type:
 		return t.Kind == "enum"
 	case schema.VarType:
-		return t.Struct.Type.Kind == "enum"
-	case *schema.VarType:
-		if t != nil {
-			return t.Struct.Type.Kind == "enum"
+		if t.Enum == nil {
+			return t.Type == schema.T_Enum
 		}
-		return false
+		return t.Enum.Type.Kind == "enum"
+	case *schema.VarType:
+		if t.Enum == nil {
+			return t.Type == schema.T_Enum
+		}
+		return t.Enum.Type.Kind == "enum"
 	default:
 		return false
 	}
@@ -64,12 +67,19 @@ func isMapType(v interface{}) bool {
 
 // Returns given map's key type (ie. `T1` from `map<T1,T2>`)
 func mapKeyType(v interface{}) string {
-	str := toString(v)
-	key, value, found := stringsCut(str, ",")
-	if !found || !strings.HasPrefix(key, "map<") || !strings.HasSuffix(value, ">") {
-		panic(fmt.Errorf("mapKeyValue: expected map<Type1,Type2>, got %v", str))
+	switch t := v.(type) {
+	case schema.VarType:
+		return toString(t.Map.Key)
+	case *schema.VarType:
+		return toString(t.Map.Key)
+	default:
+		str := toString(v)
+		key, value, found := stringsCut(str, ",")
+		if !found || !strings.HasPrefix(key, "map<") || !strings.HasSuffix(value, ">") {
+			panic(fmt.Errorf("mapKeyValue: expected map<Type1,Type2>, got %v", str))
+		}
+		return strings.TrimPrefix(key, "map<")
 	}
-	return strings.TrimPrefix(key, "map<")
 }
 
 // Returns given map's value type (ie. `T2` from `map<T1,T2>`)
@@ -83,10 +93,17 @@ func mapValueType(v interface{}) string {
 }
 
 // Returns list's element type (ie. `T` from `[]T`)
-func listElemType(v interface{}) string {
-	str := toString(v)
-	if !strings.HasPrefix(str, "[]") {
-		panic(fmt.Errorf("listElemType: expected []Type, got %v", str))
+func listElemType(v interface{}) any {
+	switch t := v.(type) {
+	case schema.VarType:
+		return t.List.Elem
+	case *schema.VarType:
+		return t.List.Elem
+	default:
+		str := toString(v)
+		if !strings.HasPrefix(str, "[]") {
+			panic(fmt.Errorf("listElemType: expected []Type, got %v", str))
+		}
+		return strings.TrimPrefix(str, "[]")
 	}
-	return strings.TrimPrefix(str, "[]")
 }

@@ -16,6 +16,9 @@ service TestApi
   - GetComplex() => (complex: Complex)
   - SendComplex(complex: Complex)
 
+  - GetEnumList() => (list: []Status)
+  - GetEnumMap() => (map: map<Access, uint64>)
+
   # added in v0.11.0
   - GetSchemaError(code: int)
 
@@ -40,6 +43,13 @@ enum Status: uint32
   - AVAILABLE
   - NOT_AVAILABLE
 
+enum Access: uint32
+  - NONE
+  - READ
+  - WRITE
+  - ADMIN
+  - OWNER
+
 struct Complex
   - meta: map<string,any>
   - metaNestedExample: map<string,map<string,uint32>>
@@ -51,6 +61,10 @@ struct Complex
   - mapOfUsers: map<string,User>
   - user: User
   - status: Status
+
+struct EnumData
+  - dict: map<Access,uint64>
+  - list: []Status
 
 error   1 Unauthorized    "unauthorized"        HTTP 401
 error   2 ExpiredToken    "expired token"       HTTP 401

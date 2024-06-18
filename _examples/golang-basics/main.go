@@ -66,8 +66,8 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]strin
 	return 200, &User{
 		ID:       userID,
 		Username: "hihi",
-		Kind:     &kind,
-		Intent:   &intent,
+		Kind:     kind,
+		Intent:   intent,
 	}, nil
 }
 
@@ -75,5 +75,17 @@ func (s *ExampleServiceRPC) FindUser(ctx context.Context, f *SearchFilter) (stri
 	name := f.Q
 	return f.Q, &User{
 		ID: 123, Username: name,
+	}, nil
+}
+
+func (s *ExampleServiceRPC) GetIntents(ctx context.Context) ([]Intent, error) {
+	return []Intent{Intent_openSession, Intent_closeSession, Intent_validateSession}, nil
+}
+
+func (s *ExampleServiceRPC) CountIntents(ctx context.Context, userID uint64) (map[Intent]uint32, error) {
+	return map[Intent]uint32{
+		Intent_openSession:     1,
+		Intent_closeSession:    2,
+		Intent_validateSession: 3,
 	}, nil
 }
