@@ -68,6 +68,22 @@ func RunTests(ctx context.Context, serverURL string) error {
 		errs = append(errs, fmt.Errorf("SendComplex(): %w", err))
 	}
 
+	enumList, err := testApi.GetEnumList(ctx)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("GetEnumList(): %w", err))
+	}
+	if len(enumList) != 2 {
+		errs = append(errs, fmt.Errorf("GetEnumList(): expected 2 items, got %v", len(enumList)))
+	}
+
+	enumMap, err := testApi.GetEnumMap(ctx)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("GetEnumMap(): %w", err))
+	}
+	if len(enumMap) != 2 {
+		errs = append(errs, fmt.Errorf("GetEnumMap(): expected 2 items, got %v", len(enumMap)))
+	}
+
 	schemaErrs := testSchemaErrors(ctx, testApi)
 	errs = append(errs, schemaErrs...)
 
