@@ -138,20 +138,26 @@
      "type": "map<string,User>"
     },
     {
-     "name": "enumMap",
-     "type": "map<Access,uint64>"
-    },
-    {
-     "name": "enumList",
-     "type": "[]Status"
-    },
-    {
      "name": "user",
      "type": "User"
     },
     {
      "name": "status",
      "type": "Status"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "EnumData",
+   "fields": [
+    {
+     "name": "dict",
+     "type": "map<Access,uint64>"
+    },
+    {
+     "name": "list",
+     "type": "[]Status"
     }
    ]
   }

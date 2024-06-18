@@ -59,10 +59,12 @@ struct Complex
   - listOfMaps: []map<string,uint32>
   - listOfUsers: []User
   - mapOfUsers: map<string,User>
-  - enumMap: map<Access,uint64>
-  - enumList: []Status
   - user: User
   - status: Status
+
+struct EnumData
+  - dict: map<Access,uint64>
+  - list: []Status
 
 error   1 Unauthorized    "unauthorized"        HTTP 401
 error   2 ExpiredToken    "expired token"       HTTP 401

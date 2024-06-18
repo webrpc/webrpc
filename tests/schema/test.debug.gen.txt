@@ -3,7 +3,7 @@
 		WebrpcVersion: (string) (len=2) "v1",
 		SchemaName: (string) (len=4) "Test",
 		SchemaVersion: (string) (len=7) "v0.10.0",
-		Types: ([]*schema.Type) (len=5 cap=8) {
+		Types: ([]*schema.Type) (len=6 cap=8) {
 			(*schema.Type)({
 				Kind: (string) (len=4) "enum",
 				Name: (string) (len=6) "Status",
@@ -271,7 +271,7 @@
 				Kind: (string) (len=6) "struct",
 				Name: (string) (len=7) "Complex",
 				Type: (*schema.VarType)(<nil>),
-				Fields: ([]*schema.TypeField) (len=12 cap=16) {
+				Fields: ([]*schema.TypeField) (len=10 cap=16) {
 					(*schema.TypeField)({
 						Comments: ([]string) {
 						},
@@ -770,196 +770,6 @@
 					(*schema.TypeField)({
 						Comments: ([]string) {
 						},
-						Name: (string) (len=7) "enumMap",
-						Type: (*schema.VarType)({
-							Expr: (string) (len=18) "map<Access,uint64>",
-							Type: (schema.CoreType) 20,
-							Comments: ([]string) <nil>,
-							List: (*schema.VarListType)(<nil>),
-							Map: (*schema.VarMapType)({
-								Key: (*schema.VarType)({
-									Expr: (string) (len=6) "Access",
-									Type: (schema.CoreType) 22,
-									Comments: ([]string) <nil>,
-									List: (*schema.VarListType)(<nil>),
-									Map: (*schema.VarMapType)(<nil>),
-									Struct: (*schema.VarStructType)(<nil>),
-									Enum: (*schema.VarEnumType)({
-										Name: (string) (len=6) "Access",
-										Type: (*schema.Type)({
-											Kind: (string) (len=4) "enum",
-											Name: (string) (len=6) "Access",
-											Type: (*schema.VarType)({
-												Expr: (string) (len=6) "uint32",
-												Type: (schema.CoreType) 8,
-												Comments: ([]string) <nil>,
-												List: (*schema.VarListType)(<nil>),
-												Map: (*schema.VarMapType)(<nil>),
-												Struct: (*schema.VarStructType)(<nil>),
-												Enum: (*schema.VarEnumType)(<nil>)
-											}),
-											Fields: ([]*schema.TypeField) (len=5 cap=8) {
-												(*schema.TypeField)({
-													Comments: ([]string) {
-													},
-													Name: (string) (len=4) "NONE",
-													Type: (*schema.VarType)(<nil>),
-													TypeExtra: (schema.TypeExtra) {
-														Optional: (bool) false,
-														Value: (string) (len=1) "0",
-														Meta: ([]schema.TypeFieldMeta) <nil>
-													}
-												}),
-												(*schema.TypeField)({
-													Comments: ([]string) {
-													},
-													Name: (string) (len=4) "READ",
-													Type: (*schema.VarType)(<nil>),
-													TypeExtra: (schema.TypeExtra) {
-														Optional: (bool) false,
-														Value: (string) (len=1) "1",
-														Meta: ([]schema.TypeFieldMeta) <nil>
-													}
-												}),
-												(*schema.TypeField)({
-													Comments: ([]string) {
-													},
-													Name: (string) (len=5) "WRITE",
-													Type: (*schema.VarType)(<nil>),
-													TypeExtra: (schema.TypeExtra) {
-														Optional: (bool) false,
-														Value: (string) (len=1) "2",
-														Meta: ([]schema.TypeFieldMeta) <nil>
-													}
-												}),
-												(*schema.TypeField)({
-													Comments: ([]string) {
-													},
-													Name: (string) (len=5) "ADMIN",
-													Type: (*schema.VarType)(<nil>),
-													TypeExtra: (schema.TypeExtra) {
-														Optional: (bool) false,
-														Value: (string) (len=1) "3",
-														Meta: ([]schema.TypeFieldMeta) <nil>
-													}
-												}),
-												(*schema.TypeField)({
-													Comments: ([]string) {
-													},
-													Name: (string) (len=5) "OWNER",
-													Type: (*schema.VarType)(<nil>),
-													TypeExtra: (schema.TypeExtra) {
-														Optional: (bool) false,
-														Value: (string) (len=1) "4",
-														Meta: ([]schema.TypeFieldMeta) <nil>
-													}
-												})
-											},
-											TypeExtra: (schema.TypeExtra) {
-												Optional: (bool) false,
-												Value: (string) "",
-												Meta: ([]schema.TypeFieldMeta) <nil>
-											},
-											Comments: ([]string) <nil>
-										})
-									})
-								}),
-								Value: (*schema.VarType)({
-									Expr: (string) (len=6) "uint64",
-									Type: (schema.CoreType) 9,
-									Comments: ([]string) <nil>,
-									List: (*schema.VarListType)(<nil>),
-									Map: (*schema.VarMapType)(<nil>),
-									Struct: (*schema.VarStructType)(<nil>),
-									Enum: (*schema.VarEnumType)(<nil>)
-								})
-							}),
-							Struct: (*schema.VarStructType)(<nil>),
-							Enum: (*schema.VarEnumType)(<nil>)
-						}),
-						TypeExtra: (schema.TypeExtra) {
-							Optional: (bool) false,
-							Value: (string) "",
-							Meta: ([]schema.TypeFieldMeta) <nil>
-						}
-					}),
-					(*schema.TypeField)({
-						Comments: ([]string) {
-						},
-						Name: (string) (len=8) "enumList",
-						Type: (*schema.VarType)({
-							Expr: (string) (len=8) "[]Status",
-							Type: (schema.CoreType) 19,
-							Comments: ([]string) <nil>,
-							List: (*schema.VarListType)({
-								Elem: (*schema.VarType)({
-									Expr: (string) (len=6) "Status",
-									Type: (schema.CoreType) 22,
-									Comments: ([]string) <nil>,
-									List: (*schema.VarListType)(<nil>),
-									Map: (*schema.VarMapType)(<nil>),
-									Struct: (*schema.VarStructType)(<nil>),
-									Enum: (*schema.VarEnumType)({
-										Name: (string) (len=6) "Status",
-										Type: (*schema.Type)({
-											Kind: (string) (len=4) "enum",
-											Name: (string) (len=6) "Status",
-											Type: (*schema.VarType)({
-												Expr: (string) (len=6) "uint32",
-												Type: (schema.CoreType) 8,
-												Comments: ([]string) <nil>,
-												List: (*schema.VarListType)(<nil>),
-												Map: (*schema.VarMapType)(<nil>),
-												Struct: (*schema.VarStructType)(<nil>),
-												Enum: (*schema.VarEnumType)(<nil>)
-											}),
-											Fields: ([]*schema.TypeField) (len=2 cap=2) {
-												(*schema.TypeField)({
-													Comments: ([]string) {
-													},
-													Name: (string) (len=9) "AVAILABLE",
-													Type: (*schema.VarType)(<nil>),
-													TypeExtra: (schema.TypeExtra) {
-														Optional: (bool) false,
-														Value: (string) (len=1) "0",
-														Meta: ([]schema.TypeFieldMeta) <nil>
-													}
-												}),
-												(*schema.TypeField)({
-													Comments: ([]string) {
-													},
-													Name: (string) (len=13) "NOT_AVAILABLE",
-													Type: (*schema.VarType)(<nil>),
-													TypeExtra: (schema.TypeExtra) {
-														Optional: (bool) false,
-														Value: (string) (len=1) "1",
-														Meta: ([]schema.TypeFieldMeta) <nil>
-													}
-												})
-											},
-											TypeExtra: (schema.TypeExtra) {
-												Optional: (bool) false,
-												Value: (string) "",
-												Meta: ([]schema.TypeFieldMeta) <nil>
-											},
-											Comments: ([]string) <nil>
-										})
-									})
-								})
-							}),
-							Map: (*schema.VarMapType)(<nil>),
-							Struct: (*schema.VarStructType)(<nil>),
-							Enum: (*schema.VarEnumType)(<nil>)
-						}),
-						TypeExtra: (schema.TypeExtra) {
-							Optional: (bool) false,
-							Value: (string) "",
-							Meta: ([]schema.TypeFieldMeta) <nil>
-						}
-					}),
-					(*schema.TypeField)({
-						Comments: ([]string) {
-						},
 						Name: (string) (len=4) "user",
 						Type: (*schema.VarType)({
 							Expr: (string) (len=4) "User",
@@ -1127,6 +937,210 @@
 									Comments: ([]string) <nil>
 								})
 							})
+						}),
+						TypeExtra: (schema.TypeExtra) {
+							Optional: (bool) false,
+							Value: (string) "",
+							Meta: ([]schema.TypeFieldMeta) <nil>
+						}
+					})
+				},
+				TypeExtra: (schema.TypeExtra) {
+					Optional: (bool) false,
+					Value: (string) "",
+					Meta: ([]schema.TypeFieldMeta) <nil>
+				},
+				Comments: ([]string) {
+				}
+			}),
+			(*schema.Type)({
+				Kind: (string) (len=6) "struct",
+				Name: (string) (len=8) "EnumData",
+				Type: (*schema.VarType)(<nil>),
+				Fields: ([]*schema.TypeField) (len=2 cap=2) {
+					(*schema.TypeField)({
+						Comments: ([]string) {
+						},
+						Name: (string) (len=4) "dict",
+						Type: (*schema.VarType)({
+							Expr: (string) (len=18) "map<Access,uint64>",
+							Type: (schema.CoreType) 20,
+							Comments: ([]string) <nil>,
+							List: (*schema.VarListType)(<nil>),
+							Map: (*schema.VarMapType)({
+								Key: (*schema.VarType)({
+									Expr: (string) (len=6) "Access",
+									Type: (schema.CoreType) 22,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)({
+										Name: (string) (len=6) "Access",
+										Type: (*schema.Type)({
+											Kind: (string) (len=4) "enum",
+											Name: (string) (len=6) "Access",
+											Type: (*schema.VarType)({
+												Expr: (string) (len=6) "uint32",
+												Type: (schema.CoreType) 8,
+												Comments: ([]string) <nil>,
+												List: (*schema.VarListType)(<nil>),
+												Map: (*schema.VarMapType)(<nil>),
+												Struct: (*schema.VarStructType)(<nil>),
+												Enum: (*schema.VarEnumType)(<nil>)
+											}),
+											Fields: ([]*schema.TypeField) (len=5 cap=8) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=4) "NONE",
+													Type: (*schema.VarType)(<nil>),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) (len=1) "0",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=4) "READ",
+													Type: (*schema.VarType)(<nil>),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) (len=1) "1",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=5) "WRITE",
+													Type: (*schema.VarType)(<nil>),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) (len=1) "2",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=5) "ADMIN",
+													Type: (*schema.VarType)(<nil>),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) (len=1) "3",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=5) "OWNER",
+													Type: (*schema.VarType)(<nil>),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) (len=1) "4",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) <nil>
+										})
+									})
+								}),
+								Value: (*schema.VarType)({
+									Expr: (string) (len=6) "uint64",
+									Type: (schema.CoreType) 9,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>)
+								})
+							}),
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
+						}),
+						TypeExtra: (schema.TypeExtra) {
+							Optional: (bool) false,
+							Value: (string) "",
+							Meta: ([]schema.TypeFieldMeta) <nil>
+						}
+					}),
+					(*schema.TypeField)({
+						Comments: ([]string) {
+						},
+						Name: (string) (len=4) "list",
+						Type: (*schema.VarType)({
+							Expr: (string) (len=8) "[]Status",
+							Type: (schema.CoreType) 19,
+							Comments: ([]string) <nil>,
+							List: (*schema.VarListType)({
+								Elem: (*schema.VarType)({
+									Expr: (string) (len=6) "Status",
+									Type: (schema.CoreType) 22,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)({
+										Name: (string) (len=6) "Status",
+										Type: (*schema.Type)({
+											Kind: (string) (len=4) "enum",
+											Name: (string) (len=6) "Status",
+											Type: (*schema.VarType)({
+												Expr: (string) (len=6) "uint32",
+												Type: (schema.CoreType) 8,
+												Comments: ([]string) <nil>,
+												List: (*schema.VarListType)(<nil>),
+												Map: (*schema.VarMapType)(<nil>),
+												Struct: (*schema.VarStructType)(<nil>),
+												Enum: (*schema.VarEnumType)(<nil>)
+											}),
+											Fields: ([]*schema.TypeField) (len=2 cap=2) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=9) "AVAILABLE",
+													Type: (*schema.VarType)(<nil>),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) (len=1) "0",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=13) "NOT_AVAILABLE",
+													Type: (*schema.VarType)(<nil>),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) (len=1) "1",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) <nil>
+										})
+									})
+								})
+							}),
+							Map: (*schema.VarMapType)(<nil>),
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>)
 						}),
 						TypeExtra: (schema.TypeExtra) {
 							Optional: (bool) false,
@@ -1952,7 +1966,7 @@
 											Kind: (string) (len=6) "struct",
 											Name: (string) (len=7) "Complex",
 											Type: (*schema.VarType)(<nil>),
-											Fields: ([]*schema.TypeField) (len=12 cap=16) {
+											Fields: ([]*schema.TypeField) (len=10 cap=16) {
 												(*schema.TypeField)({
 													Comments: ([]string) {
 													},
@@ -2439,196 +2453,6 @@
 																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
-														Struct: (*schema.VarStructType)(<nil>),
-														Enum: (*schema.VarEnumType)(<nil>)
-													}),
-													TypeExtra: (schema.TypeExtra) {
-														Optional: (bool) false,
-														Value: (string) "",
-														Meta: ([]schema.TypeFieldMeta) <nil>
-													}
-												}),
-												(*schema.TypeField)({
-													Comments: ([]string) {
-													},
-													Name: (string) (len=7) "enumMap",
-													Type: (*schema.VarType)({
-														Expr: (string) (len=18) "map<Access,uint64>",
-														Type: (schema.CoreType) 20,
-														Comments: ([]string) <nil>,
-														List: (*schema.VarListType)(<nil>),
-														Map: (*schema.VarMapType)({
-															Key: (*schema.VarType)({
-																Expr: (string) (len=6) "Access",
-																Type: (schema.CoreType) 22,
-																Comments: ([]string) <nil>,
-																List: (*schema.VarListType)(<nil>),
-																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>),
-																Enum: (*schema.VarEnumType)({
-																	Name: (string) (len=6) "Access",
-																	Type: (*schema.Type)({
-																		Kind: (string) (len=4) "enum",
-																		Name: (string) (len=6) "Access",
-																		Type: (*schema.VarType)({
-																			Expr: (string) (len=6) "uint32",
-																			Type: (schema.CoreType) 8,
-																			Comments: ([]string) <nil>,
-																			List: (*schema.VarListType)(<nil>),
-																			Map: (*schema.VarMapType)(<nil>),
-																			Struct: (*schema.VarStructType)(<nil>),
-																			Enum: (*schema.VarEnumType)(<nil>)
-																		}),
-																		Fields: ([]*schema.TypeField) (len=5 cap=8) {
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=4) "NONE",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "0",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			}),
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=4) "READ",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "1",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			}),
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=5) "WRITE",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "2",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			}),
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=5) "ADMIN",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "3",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			}),
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=5) "OWNER",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "4",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			})
-																		},
-																		TypeExtra: (schema.TypeExtra) {
-																			Optional: (bool) false,
-																			Value: (string) "",
-																			Meta: ([]schema.TypeFieldMeta) <nil>
-																		},
-																		Comments: ([]string) <nil>
-																	})
-																})
-															}),
-															Value: (*schema.VarType)({
-																Expr: (string) (len=6) "uint64",
-																Type: (schema.CoreType) 9,
-																Comments: ([]string) <nil>,
-																List: (*schema.VarListType)(<nil>),
-																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>),
-																Enum: (*schema.VarEnumType)(<nil>)
-															})
-														}),
-														Struct: (*schema.VarStructType)(<nil>),
-														Enum: (*schema.VarEnumType)(<nil>)
-													}),
-													TypeExtra: (schema.TypeExtra) {
-														Optional: (bool) false,
-														Value: (string) "",
-														Meta: ([]schema.TypeFieldMeta) <nil>
-													}
-												}),
-												(*schema.TypeField)({
-													Comments: ([]string) {
-													},
-													Name: (string) (len=8) "enumList",
-													Type: (*schema.VarType)({
-														Expr: (string) (len=8) "[]Status",
-														Type: (schema.CoreType) 19,
-														Comments: ([]string) <nil>,
-														List: (*schema.VarListType)({
-															Elem: (*schema.VarType)({
-																Expr: (string) (len=6) "Status",
-																Type: (schema.CoreType) 22,
-																Comments: ([]string) <nil>,
-																List: (*schema.VarListType)(<nil>),
-																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>),
-																Enum: (*schema.VarEnumType)({
-																	Name: (string) (len=6) "Status",
-																	Type: (*schema.Type)({
-																		Kind: (string) (len=4) "enum",
-																		Name: (string) (len=6) "Status",
-																		Type: (*schema.VarType)({
-																			Expr: (string) (len=6) "uint32",
-																			Type: (schema.CoreType) 8,
-																			Comments: ([]string) <nil>,
-																			List: (*schema.VarListType)(<nil>),
-																			Map: (*schema.VarMapType)(<nil>),
-																			Struct: (*schema.VarStructType)(<nil>),
-																			Enum: (*schema.VarEnumType)(<nil>)
-																		}),
-																		Fields: ([]*schema.TypeField) (len=2 cap=2) {
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=9) "AVAILABLE",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "0",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			}),
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=13) "NOT_AVAILABLE",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "1",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			})
-																		},
-																		TypeExtra: (schema.TypeExtra) {
-																			Optional: (bool) false,
-																			Value: (string) "",
-																			Meta: ([]schema.TypeFieldMeta) <nil>
-																		},
-																		Comments: ([]string) <nil>
-																	})
-																})
-															})
-														}),
-														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>),
 														Enum: (*schema.VarEnumType)(<nil>)
 													}),
@@ -2861,7 +2685,7 @@
 											Kind: (string) (len=6) "struct",
 											Name: (string) (len=7) "Complex",
 											Type: (*schema.VarType)(<nil>),
-											Fields: ([]*schema.TypeField) (len=12 cap=16) {
+											Fields: ([]*schema.TypeField) (len=10 cap=16) {
 												(*schema.TypeField)({
 													Comments: ([]string) {
 													},
@@ -3348,196 +3172,6 @@
 																Enum: (*schema.VarEnumType)(<nil>)
 															})
 														}),
-														Struct: (*schema.VarStructType)(<nil>),
-														Enum: (*schema.VarEnumType)(<nil>)
-													}),
-													TypeExtra: (schema.TypeExtra) {
-														Optional: (bool) false,
-														Value: (string) "",
-														Meta: ([]schema.TypeFieldMeta) <nil>
-													}
-												}),
-												(*schema.TypeField)({
-													Comments: ([]string) {
-													},
-													Name: (string) (len=7) "enumMap",
-													Type: (*schema.VarType)({
-														Expr: (string) (len=18) "map<Access,uint64>",
-														Type: (schema.CoreType) 20,
-														Comments: ([]string) <nil>,
-														List: (*schema.VarListType)(<nil>),
-														Map: (*schema.VarMapType)({
-															Key: (*schema.VarType)({
-																Expr: (string) (len=6) "Access",
-																Type: (schema.CoreType) 22,
-																Comments: ([]string) <nil>,
-																List: (*schema.VarListType)(<nil>),
-																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>),
-																Enum: (*schema.VarEnumType)({
-																	Name: (string) (len=6) "Access",
-																	Type: (*schema.Type)({
-																		Kind: (string) (len=4) "enum",
-																		Name: (string) (len=6) "Access",
-																		Type: (*schema.VarType)({
-																			Expr: (string) (len=6) "uint32",
-																			Type: (schema.CoreType) 8,
-																			Comments: ([]string) <nil>,
-																			List: (*schema.VarListType)(<nil>),
-																			Map: (*schema.VarMapType)(<nil>),
-																			Struct: (*schema.VarStructType)(<nil>),
-																			Enum: (*schema.VarEnumType)(<nil>)
-																		}),
-																		Fields: ([]*schema.TypeField) (len=5 cap=8) {
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=4) "NONE",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "0",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			}),
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=4) "READ",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "1",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			}),
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=5) "WRITE",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "2",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			}),
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=5) "ADMIN",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "3",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			}),
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=5) "OWNER",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "4",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			})
-																		},
-																		TypeExtra: (schema.TypeExtra) {
-																			Optional: (bool) false,
-																			Value: (string) "",
-																			Meta: ([]schema.TypeFieldMeta) <nil>
-																		},
-																		Comments: ([]string) <nil>
-																	})
-																})
-															}),
-															Value: (*schema.VarType)({
-																Expr: (string) (len=6) "uint64",
-																Type: (schema.CoreType) 9,
-																Comments: ([]string) <nil>,
-																List: (*schema.VarListType)(<nil>),
-																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>),
-																Enum: (*schema.VarEnumType)(<nil>)
-															})
-														}),
-														Struct: (*schema.VarStructType)(<nil>),
-														Enum: (*schema.VarEnumType)(<nil>)
-													}),
-													TypeExtra: (schema.TypeExtra) {
-														Optional: (bool) false,
-														Value: (string) "",
-														Meta: ([]schema.TypeFieldMeta) <nil>
-													}
-												}),
-												(*schema.TypeField)({
-													Comments: ([]string) {
-													},
-													Name: (string) (len=8) "enumList",
-													Type: (*schema.VarType)({
-														Expr: (string) (len=8) "[]Status",
-														Type: (schema.CoreType) 19,
-														Comments: ([]string) <nil>,
-														List: (*schema.VarListType)({
-															Elem: (*schema.VarType)({
-																Expr: (string) (len=6) "Status",
-																Type: (schema.CoreType) 22,
-																Comments: ([]string) <nil>,
-																List: (*schema.VarListType)(<nil>),
-																Map: (*schema.VarMapType)(<nil>),
-																Struct: (*schema.VarStructType)(<nil>),
-																Enum: (*schema.VarEnumType)({
-																	Name: (string) (len=6) "Status",
-																	Type: (*schema.Type)({
-																		Kind: (string) (len=4) "enum",
-																		Name: (string) (len=6) "Status",
-																		Type: (*schema.VarType)({
-																			Expr: (string) (len=6) "uint32",
-																			Type: (schema.CoreType) 8,
-																			Comments: ([]string) <nil>,
-																			List: (*schema.VarListType)(<nil>),
-																			Map: (*schema.VarMapType)(<nil>),
-																			Struct: (*schema.VarStructType)(<nil>),
-																			Enum: (*schema.VarEnumType)(<nil>)
-																		}),
-																		Fields: ([]*schema.TypeField) (len=2 cap=2) {
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=9) "AVAILABLE",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "0",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			}),
-																			(*schema.TypeField)({
-																				Comments: ([]string) {
-																				},
-																				Name: (string) (len=13) "NOT_AVAILABLE",
-																				Type: (*schema.VarType)(<nil>),
-																				TypeExtra: (schema.TypeExtra) {
-																					Optional: (bool) false,
-																					Value: (string) (len=1) "1",
-																					Meta: ([]schema.TypeFieldMeta) <nil>
-																				}
-																			})
-																		},
-																		TypeExtra: (schema.TypeExtra) {
-																			Optional: (bool) false,
-																			Value: (string) "",
-																			Meta: ([]schema.TypeFieldMeta) <nil>
-																		},
-																		Comments: ([]string) <nil>
-																	})
-																})
-															})
-														}),
-														Map: (*schema.VarMapType)(<nil>),
 														Struct: (*schema.VarStructType)(<nil>),
 														Enum: (*schema.VarEnumType)(<nil>)
 													}),
@@ -4010,7 +3644,7 @@
 		},
 		Deprecated_Messages: ([]interface {}) <nil>
 	}),
-	SchemaHash: (string) (len=40) "72b6953a09349a83db0dacf71c31183c29370557",
+	SchemaHash: (string) (len=40) "caa2122d991d977ab3cc5aa0df13a8a4cc5e4176",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcTarget: (string) (len=5) "debug",
 	WebrpcErrors: ([]*schema.Error) (len=11 cap=11) {
