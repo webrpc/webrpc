@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 )
 
@@ -24,9 +24,8 @@ func startServer() error {
 	r.Use(middleware.Recoverer)
 
 	cors := cors.New(cors.Options{
-		// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"*"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedOrigins: []string{"http://localhost:4444"},
+		//AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"POST", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
@@ -54,9 +53,7 @@ func (s *ExampleServiceRPC) Ping(ctx context.Context) (bool, error) {
 
 func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, error) {
 	if userID == 911 {
-		return nil, ErrorNotFound("unknown userID %d", 911)
-		// return nil, webrpc.Errorf(webrpc.ErrNotFound, "unknown userID %d", 911)
-		// return nil, webrpc.WrapError(webrpc.ErrNotFound, err, "unknown userID %d", 911)
+		return nil, ErrUserNotFound.WithCausef("unknown userID %d", 911)
 	}
 
 	return &User{

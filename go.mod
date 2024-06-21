@@ -18,7 +18,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/webrpc/gen-dart v0.1.1
 	github.com/webrpc/gen-golang v0.14.8
-	github.com/webrpc/gen-javascript v0.12.0
+	github.com/webrpc/gen-javascript v0.13.0
 	github.com/webrpc/gen-kotlin v0.1.0
 	github.com/webrpc/gen-openapi v0.13.0
 	github.com/webrpc/gen-typescript v0.13.0

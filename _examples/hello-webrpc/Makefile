@@ -16,5 +16,5 @@ run-server:
 	go run ./server
 
 run-client:
-	webify -port=4444 -dir=./webapp
+	go run github.com/goware/webify -host=localhost -port=4444 -dir=./webapp
 
