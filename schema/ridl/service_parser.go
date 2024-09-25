@@ -1,8 +1,15 @@
 package ridl
 
+import "fmt"
+
 func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 	return func(p *parser) parserState {
 		var streamInput, proxy bool
+
+		annotations, err := parseAnnotations(p)
+		if err != nil {
+			return p.stateError(err)
+		}
 
 		// - <name>([arguments]) [=> [([ return values ])]]
 		matches, err := p.match(tokenDash, tokenWhitespace, tokenWord)
@@ -34,10 +41,16 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 			methodName = matches[1]
 		}
 
+		commentLine := matches[0].line
+		// we have to start parsing comments from the line of last annotation
+		if len(annotations) > 0 {
+			commentLine = annotations[len(annotations)-1].AnnotationType().tok.line
+		}
+
 		mn := &MethodNode{
 			name:    newTokenNode(methodName),
 			proxy:   proxy,
-			comment: parseComments(p.comments, matches[0].line),
+			comment: parseComments(p.comments, commentLine),
 			inputs: argumentList{
 				stream:    streamInput,
 				arguments: []*ArgumentNode{},
@@ -45,6 +58,7 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 			outputs: argumentList{
 				arguments: []*ArgumentNode{},
 			},
+			annotations: annotations,
 		}
 
 		if proxy {
@@ -96,6 +110,9 @@ func parserStateServiceMethod(s *ServiceNode) parserState {
 		case tokenNewLine, tokenWhitespace:
 			p.next()
 
+		case tokenAt:
+			p.continueUntilEOL()
+
 		case tokenHash:
 			p.continueUntilEOL()
 
@@ -127,4 +144,51 @@ func parserStateService(p *parser) parserState {
 		methods: []*MethodNode{},
 		comment: parseComments(p.comments, matches[0].line),
 	})
+}
+
+func parseAnnotations(p *parser) ([]*AnnotationNode, error) {
+	annotations := []*AnnotationNode{}
+	currentPosition := p.pos
+
+	newline := 0
+	for {
+		prev := p.prev()
+		if !prev {
+			break
+		}
+
+		if p.cursor().tt == tokenNewLine {
+			newline++
+		}
+
+		if p.cursor().tt == tokenNewLine && newline > 1 {
+			newline++
+			lineStartPosition := p.pos
+			p.next()
+
+			annotationMatches, err := p.match(tokenWhitespace, tokenAt, tokenWord, tokenWhitespace, tokenWord)
+			// when we don't match annotation format
+			if err != nil {
+				break
+			}
+
+			annotations = append(annotations, &AnnotationNode{
+				annotationType: newTokenNode(annotationMatches[2]),
+				args:           []*TokenNode{newTokenNode(annotationMatches[4])},
+			})
+
+			err = p.goTo(lineStartPosition)
+			if err != nil {
+				return annotations, fmt.Errorf("goto: %w", err)
+			}
+		}
+	}
+
+	// rewind to position before we start parsing annotations
+	err := p.goTo(currentPosition)
+	if err != nil {
+		return annotations, fmt.Errorf("goto: %w", err)
+	}
+
+	return annotations, nil
 }

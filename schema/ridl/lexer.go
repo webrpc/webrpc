@@ -72,6 +72,7 @@ const (
 
 	tokenEOL
 	tokenEOF
+	tokenAt
 )
 
 const tokenDash = tokenMinusSign
@@ -103,6 +104,7 @@ var tokenTypeName = map[tokenType]string{
 	tokenExtra:             "[extra]",
 	tokenComposed:          "[composed]",
 	tokenEOF:               "[EOF]",
+	tokenAt:                "[at]",
 }
 
 var tokenTypeValue = map[tokenType][]rune{
@@ -126,6 +128,7 @@ var tokenTypeValue = map[tokenType][]rune{
 	tokenDot:               {'.'},
 	tokenQuestionMark:      {'?'},
 	tokenBang:              {'!'},
+	tokenAt:                {'@'},
 }
 
 var (
@@ -149,6 +152,7 @@ var (
 	isSlash             = isTokenType(tokenSlash)
 	isDot               = isTokenType(tokenDot)
 	isBang              = isTokenType(tokenBang)
+	isAt                = isTokenType(tokenAt)
 )
 
 func isTokenType(tt tokenType) func(r rune) bool {
@@ -218,6 +222,10 @@ func lexStateOpenBracket(lx *lexer) lexState {
 
 func lexStateRocket(lx *lexer) lexState {
 	return lexPushTokenState(tokenRocket)
+}
+
+func lexStateAt(lx *lexer) lexState {
+	return lexPushTokenState(tokenAt)
 }
 
 func lexStateHash(lx *lexer) lexState {
@@ -374,6 +382,9 @@ func lexDefaultState(lx *lexer) lexState {
 
 	case isWord(r):
 		return lexStateWord
+
+	case isAt(r):
+		return lexStateAt
 
 	default:
 		return lexStateExtra

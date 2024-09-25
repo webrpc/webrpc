@@ -14,6 +14,7 @@ const (
 	ArgumentNodeType
 	MethodNodeType
 	ServiceNodeType
+	AnnotationType
 )
 
 // Node represents a parser tree node
@@ -321,14 +322,28 @@ func (an *ArgumentNode) Type() NodeType {
 	return ArgumentNodeType
 }
 
+type AnnotationNode struct {
+	annotationType *TokenNode
+	args           []*TokenNode
+}
+
+func (a *AnnotationNode) AnnotationType() *TokenNode {
+	return a.annotationType
+}
+
+func (a *AnnotationNode) Args() []*TokenNode {
+	return a.args
+}
+
 type MethodNode struct {
 	name *TokenNode
 
 	proxy bool
 
-	comment string
-	inputs  argumentList
-	outputs argumentList
+	comment     string
+	annotations []*AnnotationNode
+	inputs      argumentList
+	outputs     argumentList
 }
 
 func (mn *MethodNode) Name() *TokenNode {
@@ -355,7 +370,13 @@ func (mn *MethodNode) Outputs() []*ArgumentNode {
 	return mn.outputs.arguments
 }
 
-func (mn *MethodNode) Comment() string { return mn.comment }
+func (mn *MethodNode) Comment() string {
+	return mn.comment
+}
+
+func (mn *MethodNode) Annotations() []*AnnotationNode {
+	return mn.annotations
+}
 
 type ServiceNode struct {
 	node

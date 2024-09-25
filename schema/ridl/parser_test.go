@@ -1,6 +1,7 @@
 package ridl
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -1003,6 +1004,7 @@ func TestParseServiceComments(t *testing.T) {
 			#! skip this line as its internal comment
 			#! skip more lines
 			#! more
+			@deprecated Version2
 			- Version() => (details: any)
 			# test comment two lines above
 			
@@ -1022,4 +1024,30 @@ func TestParseServiceComments(t *testing.T) {
 	assert.Equal(t, "GetContact gives you contact for specific id\nsee https://www.example.com/?first=1&second=12#help", serviceNode.methods[0].comment)
 	assert.Equal(t, "Version returns you current deployed version\n", serviceNode.methods[1].comment)
 	assert.Equal(t, "", serviceNode.methods[2].comment)
+}
+
+func TestParseAnnotations(t *testing.T) {
+	p, err := newStringParser(`
+		service ContactsService
+			# Version returns you current deployed version
+			@deprecated Version2
+			@deprecated Version2
+			- Version() => (details: any)
+			
+			- Version2() => (details: any)
+		`)
+	assert.NoError(t, err)
+
+	err = p.run()
+	assert.NoError(t, err)
+
+	serviceNode, ok := p.root.node.children[0].(*ServiceNode)
+	if !ok {
+		t.Errorf("expected type ServiceNode")
+	}
+
+	require.Equal(t, "deprecated", serviceNode.methods[0].annotations[0].AnnotationType().String())
+	require.Equal(t, "Version2", serviceNode.methods[0].annotations[0].Args()[0].String())
+	require.Equal(t, "deprecated", serviceNode.methods[0].annotations[1].AnnotationType().String())
+	require.Equal(t, "Version2", serviceNode.methods[0].annotations[1].Args()[0].String())
 }
