@@ -213,6 +213,7 @@
    "methods": [
     {
      "name": "Ping",
+     "annotations": [],
      "comments": [
       "comment can go here",
       "too .. :)"
@@ -234,6 +235,7 @@
    "methods": [
     {
      "name": "Ping",
+     "annotations": [],
      "comments": [
       "comment can go here",
       "too .. :)"
@@ -249,6 +251,7 @@
     },
     {
      "name": "GetUser",
+     "annotations": [],
      "comments": [],
      "inputs": [
       {
@@ -267,6 +270,7 @@
     },
     {
      "name": "Recv",
+     "annotations": [],
      "comments": [],
      "streamInput": true,
      "inputs": [
@@ -280,6 +284,7 @@
     },
     {
      "name": "Send",
+     "annotations": [],
      "comments": [],
      "streamInput": true,
      "inputs": [],
@@ -293,6 +298,7 @@
     },
     {
      "name": "SendAndRecv",
+     "annotations": [],
      "comments": [],
      "streamInput": true,
      "streamOutput": true,
@@ -313,6 +319,7 @@
     },
     {
      "name": "Broadcast",
+     "annotations": [],
      "comments": [],
      "streamOutput": true,
      "inputs": [],
@@ -326,6 +333,7 @@
     },
     {
      "name": "VerifyUsers",
+     "annotations": [],
      "comments": [],
      "inputs": [
       {
@@ -359,6 +367,7 @@
     },
     {
      "name": "MoreTest",
+     "annotations": [],
      "comments": [],
      "inputs": [
       {
@@ -393,6 +402,7 @@
    "methods": [
     {
      "name": "Flatten",
+     "annotations": [],
      "comments": [],
      "inputs": [
       {
@@ -441,6 +451,7 @@
     },
     {
      "name": "GetAccountBalance",
+     "annotations": [],
      "comments": [],
      "inputs": [
       {
