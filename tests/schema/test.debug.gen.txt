@@ -3667,7 +3667,6 @@
 		Deprecated_Messages: ([]interface {}) <nil>
 	}),
 	SchemaHash: (string) (len=40) "0b4a73c485f1afb161b333e716725e894486119a",
-	WebrpcGenVersion: (string) (len=18) "v0.19.3-2-g445341a",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcTarget: (string) (len=5) "debug",
 	WebrpcErrors: ([]*schema.Error) (len=11 cap=11) {
