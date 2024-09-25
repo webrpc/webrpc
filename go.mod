@@ -2,7 +2,8 @@ module github.com/webrpc/webrpc
 
 go 1.19
 
-// replace github.com/webrpc/gen-golang => ../gen-golang
+replace github.com/webrpc/gen-golang => ../gen-golang
+
 // replace github.com/webrpc/gen-typescript => ../gen-typescript
 // replace github.com/webrpc/gen-javascript => ../gen-javascript
 // replace github.com/webrpc/gen-openapi => ../gen-openapi

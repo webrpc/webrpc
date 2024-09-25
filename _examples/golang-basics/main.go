@@ -28,6 +28,9 @@ func startServer() error {
 	})
 
 	webrpcHandler := NewExampleServiceServer(&ExampleServiceRPC{})
+	webrpcHandler.OnDeprecate = func(endpoint string, newEndpoint string) {
+		fmt.Printf("endpoint %s has been deprecated in favor of endpoint %s\n", endpoint, newEndpoint)
+	}
 	r.Handle("/*", webrpcHandler)
 
 	return http.ListenAndServe(":4242", r)
@@ -54,6 +57,7 @@ func (s *ExampleServiceRPC) Version(ctx context.Context) (*Version, error) {
 
 func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error) {
 	if userID == 911 {
+
 		return 0, nil, ErrUserNotFound
 	}
 	if userID == 31337 {
@@ -69,6 +73,25 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]strin
 		Kind:     kind,
 		Intent:   intent,
 	}, nil
+}
+
+func (s *ExampleServiceRPC) GetUserV2(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, string, error) {
+	if userID == 911 {
+		return 0, nil, "", ErrUserNotFound
+	}
+	if userID == 31337 {
+		return 0, nil, "", ErrorWithCause(ErrUserNotFound, fmt.Errorf("unknown user id %d", userID))
+	}
+
+	kind := Kind_ADMIN
+	intent := Intent_openSession
+
+	return 200, &User{
+		ID:       userID,
+		Username: "hihi",
+		Kind:     kind,
+		Intent:   intent,
+	}, "https://www.google.com/images/john-doe.jpg", nil
 }
 
 func (s *ExampleServiceRPC) FindUser(ctx context.Context, f *SearchFilter) (string, *User, error) {
