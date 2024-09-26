@@ -553,6 +553,8 @@ var (
 	ServiceNameCtxKey = &contextKey{"ServiceName"}
 
 	MethodNameCtxKey = &contextKey{"MethodName"}
+
+	AnnotationsCtxKey = &contextKey{"Annotations"}
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -568,6 +570,11 @@ func MethodNameFromContext(ctx context.Context) string {
 func RequestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	return r
+}
+
+func AnnotationsFromContext(ctx context.Context) map[string]string {
+	annotations, _ := ctx.Value(AnnotationsCtxKey).(map[string]string)
+	return annotations
 }
 
 //

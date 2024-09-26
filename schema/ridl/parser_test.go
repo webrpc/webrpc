@@ -1030,10 +1030,10 @@ func TestParseAnnotations(t *testing.T) {
 	p, err := newStringParser(`
 		service ContactsService
 			# Version returns you current deployed version
-			@deprecated Version2
-			@deprecated Version2
+			@auth:x-access-key
+			@deprecated:Version2 @internal @acl:admin
 			- Version() => (details: any)
-			
+			@internal
 			- Version2() => (details: any)
 		`)
 	assert.NoError(t, err)
@@ -1046,8 +1046,18 @@ func TestParseAnnotations(t *testing.T) {
 		t.Errorf("expected type ServiceNode")
 	}
 
+	require.Len(t, serviceNode.methods[0].annotations, 4)
 	require.Equal(t, "deprecated", serviceNode.methods[0].annotations[0].AnnotationType().String())
-	require.Equal(t, "Version2", serviceNode.methods[0].annotations[0].Args()[0].String())
-	require.Equal(t, "deprecated", serviceNode.methods[0].annotations[1].AnnotationType().String())
-	require.Equal(t, "Version2", serviceNode.methods[0].annotations[1].Args()[0].String())
+	require.Equal(t, "Version2", serviceNode.methods[0].annotations[0].Value().String())
+
+	require.Equal(t, "internal", serviceNode.methods[0].annotations[1].AnnotationType().String())
+
+	require.Equal(t, "acl", serviceNode.methods[0].annotations[2].AnnotationType().String())
+	require.Equal(t, "admin", serviceNode.methods[0].annotations[2].Value().String())
+
+	require.Equal(t, "auth", serviceNode.methods[0].annotations[3].AnnotationType().String())
+	require.Equal(t, "x-access-key", serviceNode.methods[0].annotations[3].Value().String())
+
+	require.Len(t, serviceNode.methods[1].annotations, 1)
+	require.Equal(t, "internal", serviceNode.methods[1].annotations[0].AnnotationType().String())
 }

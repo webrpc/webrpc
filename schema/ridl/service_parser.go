@@ -150,7 +150,14 @@ func parseAnnotations(p *parser) ([]*AnnotationNode, error) {
 	annotations := []*AnnotationNode{}
 	currentPosition := p.pos
 
+	annotationMatchers := [][]tokenType{
+		{tokenWhitespace, tokenAt, tokenWord, tokenColon, tokenWord},
+		{tokenWhitespace, tokenAt, tokenWord},
+	}
+
 	newline := 0
+
+outerloop:
 	for {
 		prev := p.prev()
 		if !prev {
@@ -166,18 +173,42 @@ func parseAnnotations(p *parser) ([]*AnnotationNode, error) {
 			lineStartPosition := p.pos
 			p.next()
 
-			annotationMatches, err := p.match(tokenWhitespace, tokenAt, tokenWord, tokenWhitespace, tokenWord)
-			// when we don't match annotation format
-			if err != nil {
-				break
+			matches := 0
+
+		loop:
+			for {
+				for i, matcher := range annotationMatchers {
+					annotationMatches, err := p.match(matcher...)
+					// when we don't match annotation format
+					if err != nil {
+						if i == len(annotationMatchers)-1 {
+							// if parsing of the first combination on new line does not succeed
+							// we don't continue and stop annotation parsing
+							if matches == 0 {
+								break outerloop
+							}
+
+							break loop
+						}
+
+						continue
+					}
+
+					annotationNode := &AnnotationNode{
+						annotationType: newTokenNode(annotationMatches[2]),
+					}
+					if len(annotationMatches) == 5 {
+						annotationNode.value = newTokenNode(annotationMatches[4])
+					}
+
+					annotations = append(annotations, annotationNode)
+
+					matches++
+					break
+				}
 			}
 
-			annotations = append(annotations, &AnnotationNode{
-				annotationType: newTokenNode(annotationMatches[2]),
-				args:           []*TokenNode{newTokenNode(annotationMatches[4])},
-			})
-
-			err = p.goTo(lineStartPosition)
+			err := p.goTo(lineStartPosition)
 			if err != nil {
 				return annotations, fmt.Errorf("goto: %w", err)
 			}

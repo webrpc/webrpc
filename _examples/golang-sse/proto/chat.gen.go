@@ -145,10 +145,16 @@ type WebRPCServer interface {
 	http.Handler
 }
 
+var (
+	annotations = map[string]map[string]string{
+		"/rpc/Chat/SendMessage":       {},
+		"/rpc/Chat/SubscribeMessages": {}}
+)
+
 type chatServer struct {
 	Chat
-	OnError     func(r *http.Request, rpcErr *WebRPCError)
-	OnDeprecate func(r *http.Request, endpoint string, newEndpoint string)
+	OnError   func(r *http.Request, rpcErr *WebRPCError)
+	OnRequest func(w http.ResponseWriter, r *http.Request)
 }
 
 func NewChatServer(svc Chat) *chatServer {
@@ -170,6 +176,11 @@ func (s *chatServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
 	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
 	ctx = context.WithValue(ctx, ServiceNameCtxKey, "Chat")
+	ctx = context.WithValue(ctx, AnnotationsCtxKey, annotations[r.URL.Path])
+
+	if s.OnRequest != nil {
+		s.OnRequest(w, r)
+	}
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	switch r.URL.Path {
@@ -588,6 +599,8 @@ var (
 	ServiceNameCtxKey = &contextKey{"ServiceName"}
 
 	MethodNameCtxKey = &contextKey{"MethodName"}
+
+	AnnotationsCtxKey = &contextKey{"Annotations"}
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -603,6 +616,11 @@ func MethodNameFromContext(ctx context.Context) string {
 func RequestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	return r
+}
+
+func AnnotationsFromContext(ctx context.Context) map[string]string {
+	annotations, _ := ctx.Value(AnnotationsCtxKey).(map[string]string)
+	return annotations
 }
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
 	w, _ := ctx.Value(HTTPResponseWriterCtxKey).(http.ResponseWriter)

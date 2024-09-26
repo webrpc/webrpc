@@ -370,16 +370,15 @@ func buildAnnotations(method *MethodNode) schema.Annotations {
 	annotations := make([]*schema.Annotation, 0)
 
 	for _, a := range method.Annotations() {
-		args := make([]string, 0)
-
-		for _, arg := range a.Args() {
-			args = append(args, arg.String())
+		an := &schema.Annotation{
+			AnnotationType: a.AnnotationType().String(),
 		}
 
-		annotations = append(annotations, &schema.Annotation{
-			AnnotationType: a.AnnotationType().String(),
-			Args:           args,
-		})
+		if a.Value() != nil {
+			an.Value = a.Value().String()
+		}
+
+		annotations = append(annotations, an)
 	}
 
 	return schema.Annotations(annotations)

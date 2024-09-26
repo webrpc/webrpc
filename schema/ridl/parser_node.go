@@ -324,15 +324,15 @@ func (an *ArgumentNode) Type() NodeType {
 
 type AnnotationNode struct {
 	annotationType *TokenNode
-	args           []*TokenNode
+	value          *TokenNode
 }
 
 func (a *AnnotationNode) AnnotationType() *TokenNode {
 	return a.annotationType
 }
 
-func (a *AnnotationNode) Args() []*TokenNode {
-	return a.args
+func (a *AnnotationNode) Value() *TokenNode {
+	return a.value
 }
 
 type MethodNode struct {

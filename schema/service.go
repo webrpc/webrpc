@@ -42,8 +42,8 @@ type MethodArgument struct {
 type Annotations []*Annotation
 
 type Annotation struct {
-	AnnotationType string   `json:"annotationType"`
-	Args           []string `json:"args"`
+	AnnotationType string `json:"annotationType"`
+	Value          string `json:"value"`
 }
 
 func (a *Annotations) Deprecated() *Annotation {
