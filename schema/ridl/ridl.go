@@ -367,18 +367,23 @@ func parseComment(comment string) []string {
 }
 
 func buildAnnotations(method *MethodNode) schema.Annotations {
-	annotations := make([]*schema.Annotation, 0)
+	annotations := make(map[string]*schema.Annotation)
 
 	for _, a := range method.Annotations() {
-		an := &schema.Annotation{
-			AnnotationType: a.AnnotationType().String(),
+		an, ok := annotations[a.AnnotationType().String()]
+		if ok {
+			an.Value = fmt.Sprintf("%s,%s", an.Value, a.Value().String())
+			continue
 		}
 
+		an = &schema.Annotation{
+			AnnotationType: a.AnnotationType().String(),
+		}
 		if a.Value() != nil {
 			an.Value = a.Value().String()
 		}
 
-		annotations = append(annotations, an)
+		annotations[a.AnnotationType().String()] = an
 	}
 
 	return schema.Annotations(annotations)

@@ -39,20 +39,11 @@ type MethodArgument struct {
 	TypeExtra `json:",omitempty"`
 }
 
-type Annotations []*Annotation
+type Annotations map[string]*Annotation
 
 type Annotation struct {
 	AnnotationType string `json:"annotationType"`
 	Value          string `json:"value"`
-}
-
-func (a *Annotations) Deprecated() *Annotation {
-	for _, a := range *a {
-		if a.AnnotationType == "deprecated" {
-			return a
-		}
-	}
-	return nil
 }
 
 func (s *Service) Parse(schema *WebRPCSchema) error {

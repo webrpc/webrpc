@@ -278,21 +278,21 @@
    "methods": [
     {
      "name": "GetEmpty",
-     "annotations": [],
+     "annotations": {},
      "comments": [],
      "inputs": [],
      "outputs": []
     },
     {
      "name": "GetError",
-     "annotations": [],
+     "annotations": {},
      "comments": [],
      "inputs": [],
      "outputs": []
     },
     {
      "name": "GetOne",
-     "annotations": [],
+     "annotations": {},
      "comments": [],
      "inputs": [],
      "outputs": [
@@ -305,7 +305,7 @@
     },
     {
      "name": "SendOne",
-     "annotations": [],
+     "annotations": {},
      "comments": [],
      "inputs": [
       {
@@ -318,7 +318,7 @@
     },
     {
      "name": "GetMulti",
-     "annotations": [],
+     "annotations": {},
      "comments": [],
      "inputs": [],
      "outputs": [
@@ -341,7 +341,7 @@
     },
     {
      "name": "SendMulti",
-     "annotations": [],
+     "annotations": {},
      "comments": [],
      "inputs": [
       {
@@ -364,7 +364,7 @@
     },
     {
      "name": "GetComplex",
-     "annotations": [],
+     "annotations": {},
      "comments": [],
      "inputs": [],
      "outputs": [
@@ -377,7 +377,7 @@
     },
     {
      "name": "SendComplex",
-     "annotations": [],
+     "annotations": {},
      "comments": [],
      "inputs": [
       {
@@ -390,7 +390,7 @@
     },
     {
      "name": "GetEnumList",
-     "annotations": [],
+     "annotations": {},
      "comments": [],
      "inputs": [],
      "outputs": [
@@ -403,7 +403,7 @@
     },
     {
      "name": "GetEnumMap",
-     "annotations": [],
+     "annotations": {},
      "comments": [],
      "inputs": [],
      "outputs": [
@@ -416,7 +416,7 @@
     },
     {
      "name": "GetSchemaError",
-     "annotations": [],
+     "annotations": {},
      "comments": [
       "added in v0.11.0"
      ],
