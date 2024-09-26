@@ -28,12 +28,17 @@ func startServer() error {
 	})
 
 	webrpcHandler := NewExampleServiceServer(&ExampleServiceRPC{})
-	webrpcHandler.OnDeprecate = func(r *http.Request, endpoint string, newEndpoint string) {
-		fmt.Printf(
-			"endpoint %s has been deprecated in favor of endpoint %s\n",
-			endpoint,
-			newEndpoint,
-		)
+	webrpcHandler.OnRequest = func(w http.ResponseWriter, r *http.Request) {
+		annotations := AnnotationsFromContext(r.Context())
+		deprecated, ok := annotations["deprecated"]
+
+		if ok {
+			fmt.Printf(
+				"endpoint %s has been deprecated in favor of endpoint %s\n",
+				r.URL.Path,
+				deprecated,
+			)
+		}
 	}
 	r.Handle("/*", webrpcHandler)
 
