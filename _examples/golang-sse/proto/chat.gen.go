@@ -148,7 +148,7 @@ type WebRPCServer interface {
 type chatServer struct {
 	Chat
 	OnError     func(r *http.Request, rpcErr *WebRPCError)
-	OnDeprecate func(endpoint string, newEndpoint string)
+	OnDeprecate func(r *http.Request, endpoint string, newEndpoint string)
 }
 
 func NewChatServer(svc Chat) *chatServer {

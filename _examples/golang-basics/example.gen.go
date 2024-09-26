@@ -197,7 +197,7 @@ type WebRPCServer interface {
 type exampleServiceServer struct {
 	ExampleService
 	OnError     func(r *http.Request, rpcErr *WebRPCError)
-	OnDeprecate func(endpoint string, newEndpoint string)
+	OnDeprecate func(r *http.Request, endpoint string, newEndpoint string)
 }
 
 func NewExampleServiceServer(svc ExampleService) *exampleServiceServer {
@@ -229,7 +229,7 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	case "/rpc/ExampleService/Version":
 		handler = s.serveVersionJSON
 	case "/rpc/ExampleService/GetUser":
-		s.OnDeprecate("GetUser", "GetUserV2")
+		s.OnDeprecate(r, "GetUser", "GetUserV2")
 		handler = s.serveGetUserJSON
 	case "/rpc/ExampleService/GetUserV2":
 		handler = s.serveGetUserV2JSON

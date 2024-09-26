@@ -138,7 +138,7 @@ type WebRPCServer interface {
 type exampleServiceServer struct {
 	ExampleService
 	OnError     func(r *http.Request, rpcErr *WebRPCError)
-	OnDeprecate func(endpoint string, newEndpoint string)
+	OnDeprecate func(r *http.Request, endpoint string, newEndpoint string)
 }
 
 func NewExampleServiceServer(svc ExampleService) *exampleServiceServer {
