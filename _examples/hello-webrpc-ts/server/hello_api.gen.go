@@ -90,14 +90,6 @@ type Page struct {
 	Num uint32 `json:"num"`
 }
 
-var (
-	methodAnnotations = map[string]map[string]string{
-		"/rpc/ExampleService/Ping":      {},
-		"/rpc/ExampleService/GetUser":   {},
-		"/rpc/ExampleService/FindUsers": {},
-	}
-)
-
 var WebRPCServices = map[string][]string{
 	"ExampleService": {
 		"Ping",
@@ -136,8 +128,7 @@ type WebRPCServer interface {
 
 type exampleServiceServer struct {
 	ExampleService
-	OnError   func(r *http.Request, rpcErr *WebRPCError)
-	OnRequest func(w http.ResponseWriter, r *http.Request) error
+	OnError func(r *http.Request, rpcErr *WebRPCError)
 }
 
 func NewExampleServiceServer(svc ExampleService) *exampleServiceServer {
@@ -159,11 +150,6 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
 	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
 	ctx = context.WithValue(ctx, ServiceNameCtxKey, "ExampleService")
-	ctx = context.WithValue(ctx, MethodAnnotationsCtxKey, methodAnnotations[r.URL.Path])
-
-	if s.OnRequest != nil {
-		s.OnRequest(w, r)
-	}
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	switch r.URL.Path {
@@ -174,14 +160,14 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	case "/rpc/ExampleService/FindUsers":
 		handler = s.serveFindUsersJSON
 	default:
-		err := ErrWebrpcBadRoute.WithCause(fmt.Errorf("no WebRPC method defined for path %v", r.URL.Path))
+		err := ErrWebrpcBadRoute.WithCause(fmt.Errorf("no handler for path %q", r.URL.Path))
 		s.sendErrorJSON(w, r, err)
 		return
 	}
 
 	if r.Method != "POST" {
 		w.Header().Add("Allow", "POST") // RFC 9110.
-		err := ErrWebrpcBadMethod.WithCause(fmt.Errorf("unsupported method %v (only POST is allowed)", r.Method))
+		err := ErrWebrpcBadMethod.WithCause(fmt.Errorf("unsupported method %q (only POST is allowed)", r.Method))
 		s.sendErrorJSON(w, r, err)
 		return
 	}
@@ -196,7 +182,7 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	case "application/json":
 		handler(ctx, w, r)
 	default:
-		err := ErrWebrpcBadRequest.WithCause(fmt.Errorf("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type")))
+		err := ErrWebrpcBadRequest.WithCause(fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
 		s.sendErrorJSON(w, r, err)
 	}
 }
@@ -361,8 +347,6 @@ var (
 	ServiceNameCtxKey = &contextKey{"ServiceName"}
 
 	MethodNameCtxKey = &contextKey{"MethodName"}
-
-	MethodAnnotationsCtxKey = &contextKey{"MethodAnnotations"}
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -378,11 +362,6 @@ func MethodNameFromContext(ctx context.Context) string {
 func RequestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	return r
-}
-
-func MethodAnnotationsFromContext(ctx context.Context) map[string]string {
-	annotations, _ := ctx.Value(MethodAnnotationsCtxKey).(map[string]string)
-	return annotations
 }
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
 	w, _ := ctx.Value(HTTPResponseWriterCtxKey).(http.ResponseWriter)
