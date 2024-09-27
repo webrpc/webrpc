@@ -144,7 +144,7 @@ var (
 type exampleServiceServer struct {
 	ExampleService
 	OnError   func(r *http.Request, rpcErr *WebRPCError)
-	OnRequest func(w http.ResponseWriter, r *http.Request)
+	OnRequest func(w http.ResponseWriter, r *http.Request) error
 }
 
 func NewExampleServiceServer(svc ExampleService) *exampleServiceServer {
