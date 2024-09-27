@@ -215,7 +215,7 @@ outerloop:
 		}
 	}
 
-	// rewind to position before we start parsing annotations
+	// rewind to position before we started parsing annotations
 	err := p.goTo(currentPosition)
 	if err != nil {
 		return annotations, fmt.Errorf("goto: %w", err)
