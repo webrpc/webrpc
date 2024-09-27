@@ -143,6 +143,19 @@ type ComplexType struct {
 	User              *User                        `json:"user"`
 }
 
+var (
+	methodAnnotations = map[string]map[string]string{
+		"/rpc/ExampleService/Ping":         {"internal": ""},
+		"/rpc/ExampleService/Status":       {"internal": ""},
+		"/rpc/ExampleService/Version":      {"internal": ""},
+		"/rpc/ExampleService/GetUser":      {"deprecated": "GetUserV2", "internal": ""},
+		"/rpc/ExampleService/GetUserV2":    {"auth": "X-Access-Key,S2S,Cookies"},
+		"/rpc/ExampleService/FindUser":     {},
+		"/rpc/ExampleService/GetIntents":   {},
+		"/rpc/ExampleService/CountIntents": {},
+	}
+)
+
 var WebRPCServices = map[string][]string{
 	"ExampleService": {
 		"Ping",
@@ -194,18 +207,6 @@ type WebRPCServer interface {
 	http.Handler
 }
 
-var (
-	annotations = map[string]map[string]string{
-		"/rpc/ExampleService/Ping":         {"internal": ""},
-		"/rpc/ExampleService/Status":       {"internal": ""},
-		"/rpc/ExampleService/Version":      {"internal": ""},
-		"/rpc/ExampleService/GetUser":      {"deprecated": "GetUserV2", "internal": ""},
-		"/rpc/ExampleService/GetUserV2":    {"auth": "X-Access-Key,S2S,Cookies"},
-		"/rpc/ExampleService/FindUser":     {},
-		"/rpc/ExampleService/GetIntents":   {},
-		"/rpc/ExampleService/CountIntents": {}}
-)
-
 type exampleServiceServer struct {
 	ExampleService
 	OnError   func(r *http.Request, rpcErr *WebRPCError)
@@ -231,7 +232,7 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
 	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
 	ctx = context.WithValue(ctx, ServiceNameCtxKey, "ExampleService")
-	ctx = context.WithValue(ctx, AnnotationsCtxKey, annotations[r.URL.Path])
+	ctx = context.WithValue(ctx, MethodAnnotationsCtxKey, methodAnnotations[r.URL.Path])
 
 	if s.OnRequest != nil {
 		s.OnRequest(w, r)
@@ -900,7 +901,7 @@ var (
 
 	MethodNameCtxKey = &contextKey{"MethodName"}
 
-	AnnotationsCtxKey = &contextKey{"Annotations"}
+	MethodAnnotationsCtxKey = &contextKey{"MethodAnnotations"}
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -918,8 +919,8 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-func AnnotationsFromContext(ctx context.Context) map[string]string {
-	annotations, _ := ctx.Value(AnnotationsCtxKey).(map[string]string)
+func MethodAnnotationsFromContext(ctx context.Context) map[string]string {
+	annotations, _ := ctx.Value(MethodAnnotationsCtxKey).(map[string]string)
 	return annotations
 }
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {

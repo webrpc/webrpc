@@ -156,6 +156,22 @@ type EnumData struct {
 	List []Status          `json:"list"`
 }
 
+var (
+	methodAnnotations = map[string]map[string]string{
+		"/rpc/TestApi/GetEmpty":       {},
+		"/rpc/TestApi/GetError":       {},
+		"/rpc/TestApi/GetOne":         {},
+		"/rpc/TestApi/SendOne":        {},
+		"/rpc/TestApi/GetMulti":       {},
+		"/rpc/TestApi/SendMulti":      {},
+		"/rpc/TestApi/GetComplex":     {},
+		"/rpc/TestApi/SendComplex":    {},
+		"/rpc/TestApi/GetEnumList":    {},
+		"/rpc/TestApi/GetEnumMap":     {},
+		"/rpc/TestApi/GetSchemaError": {},
+	}
+)
+
 var WebRPCServices = map[string][]string{
 	"TestApi": {
 		"GetEmpty",
@@ -218,21 +234,6 @@ type WebRPCServer interface {
 	http.Handler
 }
 
-var (
-	annotations = map[string]map[string]string{
-		"/rpc/TestApi/GetEmpty":       {},
-		"/rpc/TestApi/GetError":       {},
-		"/rpc/TestApi/GetOne":         {},
-		"/rpc/TestApi/SendOne":        {},
-		"/rpc/TestApi/GetMulti":       {},
-		"/rpc/TestApi/SendMulti":      {},
-		"/rpc/TestApi/GetComplex":     {},
-		"/rpc/TestApi/SendComplex":    {},
-		"/rpc/TestApi/GetEnumList":    {},
-		"/rpc/TestApi/GetEnumMap":     {},
-		"/rpc/TestApi/GetSchemaError": {}}
-)
-
 type testApiServer struct {
 	TestApi
 	OnError   func(r *http.Request, rpcErr *WebRPCError)
@@ -258,7 +259,7 @@ func (s *testApiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
 	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
 	ctx = context.WithValue(ctx, ServiceNameCtxKey, "TestApi")
-	ctx = context.WithValue(ctx, AnnotationsCtxKey, annotations[r.URL.Path])
+	ctx = context.WithValue(ctx, MethodAnnotationsCtxKey, methodAnnotations[r.URL.Path])
 
 	if s.OnRequest != nil {
 		s.OnRequest(w, r)
@@ -680,7 +681,7 @@ var (
 
 	MethodNameCtxKey = &contextKey{"MethodName"}
 
-	AnnotationsCtxKey = &contextKey{"Annotations"}
+	MethodAnnotationsCtxKey = &contextKey{"MethodAnnotations"}
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -698,8 +699,8 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-func AnnotationsFromContext(ctx context.Context) map[string]string {
-	annotations, _ := ctx.Value(AnnotationsCtxKey).(map[string]string)
+func MethodAnnotationsFromContext(ctx context.Context) map[string]string {
+	annotations, _ := ctx.Value(MethodAnnotationsCtxKey).(map[string]string)
 	return annotations
 }
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {

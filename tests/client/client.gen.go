@@ -157,6 +157,22 @@ type EnumData struct {
 	List []Status          `json:"list"`
 }
 
+var (
+	methodAnnotations = map[string]map[string]string{
+		"/rpc/TestApi/GetEmpty":       {},
+		"/rpc/TestApi/GetError":       {},
+		"/rpc/TestApi/GetOne":         {},
+		"/rpc/TestApi/SendOne":        {},
+		"/rpc/TestApi/GetMulti":       {},
+		"/rpc/TestApi/SendMulti":      {},
+		"/rpc/TestApi/GetComplex":     {},
+		"/rpc/TestApi/SendComplex":    {},
+		"/rpc/TestApi/GetEnumList":    {},
+		"/rpc/TestApi/GetEnumMap":     {},
+		"/rpc/TestApi/GetSchemaError": {},
+	}
+)
+
 var WebRPCServices = map[string][]string{
 	"TestApi": {
 		"GetEmpty",
@@ -554,7 +570,7 @@ var (
 
 	MethodNameCtxKey = &contextKey{"MethodName"}
 
-	AnnotationsCtxKey = &contextKey{"Annotations"}
+	MethodAnnotationsCtxKey = &contextKey{"MethodAnnotations"}
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -572,8 +588,8 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-func AnnotationsFromContext(ctx context.Context) map[string]string {
-	annotations, _ := ctx.Value(AnnotationsCtxKey).(map[string]string)
+func MethodAnnotationsFromContext(ctx context.Context) map[string]string {
+	annotations, _ := ctx.Value(MethodAnnotationsCtxKey).(map[string]string)
 	return annotations
 }
 
