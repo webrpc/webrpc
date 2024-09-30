@@ -38,10 +38,18 @@ func TestStatus(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestDeprecatedUserEndpoint(t *testing.T) {
+	arg1 := map[string]string{"a": "1"}
+
+	_, _, err := client.GetUser(context.Background(), arg1, 12)
+
+	assert.Error(t, err)
+}
+
 func TestGetUser(t *testing.T) {
 	{
 		arg1 := map[string]string{"a": "1"}
-		code, user, err := client.GetUser(context.Background(), arg1, 12)
+		code, user, _, err := client.GetUserV2(context.Background(), arg1, 12)
 		intent := Intent_openSession
 		kind := Kind_ADMIN
 
@@ -52,7 +60,7 @@ func TestGetUser(t *testing.T) {
 
 	{
 		// Error case, expecting to receive an error
-		code, user, err := client.GetUser(context.Background(), nil, 911)
+		code, user, _, err := client.GetUserV2(context.Background(), nil, 911)
 
 		assert.ErrorAs(t, err, &ErrUserNotFound)
 		assert.Nil(t, user)

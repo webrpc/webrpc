@@ -158,7 +158,7 @@ type EnumData struct {
 }
 
 var (
-	methodAnnotations = map[string]MethodCtx{
+	methods = map[string]method{
 		"/rpc/TestApi/GetEmpty": {
 			Name:        "GetEmpty",
 			Service:     "TestApi",
@@ -598,7 +598,7 @@ func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 // Helpers
 //
 
-type MethodCtx struct {
+type method struct {
 	Name        string
 	Service     string
 	Annotations map[string]string
@@ -636,13 +636,15 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-func GetMethodCtx(r *http.Request) (MethodCtx, bool) {
-	ctx, ok := methodAnnotations[r.URL.Path]
+func MethodCtx(ctx context.Context) (method, bool) {
+	req := RequestFromContext(ctx)
+
+	m, ok := methods[req.URL.Path]
 	if !ok {
-		return MethodCtx{}, false
+		return method{}, false
 	}
 
-	return ctx, true
+	return m, true
 }
 
 //

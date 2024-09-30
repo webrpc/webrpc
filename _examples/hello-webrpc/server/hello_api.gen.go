@@ -89,7 +89,7 @@ type User struct {
 }
 
 var (
-	methodAnnotations = map[string]MethodCtx{
+	methods = map[string]method{
 		"/rpc/ExampleService/Ping": {
 			Name:        "Ping",
 			Service:     "ExampleService",
@@ -161,6 +161,8 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
 	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
 	ctx = context.WithValue(ctx, ServiceNameCtxKey, "ExampleService")
+
+	r = r.WithContext(ctx)
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	switch r.URL.Path {
@@ -307,7 +309,7 @@ func RespondWithError(w http.ResponseWriter, err error) {
 // Helpers
 //
 
-type MethodCtx struct {
+type method struct {
 	Name        string
 	Service     string
 	Annotations map[string]string
@@ -346,13 +348,15 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-func GetMethodCtx(r *http.Request) (MethodCtx, bool) {
-	ctx, ok := methodAnnotations[r.URL.Path]
+func MethodCtx(ctx context.Context) (method, bool) {
+	req := RequestFromContext(ctx)
+
+	m, ok := methods[req.URL.Path]
 	if !ok {
-		return MethodCtx{}, false
+		return method{}, false
 	}
 
-	return ctx, true
+	return m, true
 }
 
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {

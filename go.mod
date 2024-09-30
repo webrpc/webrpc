@@ -17,7 +17,7 @@ require (
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c
 	github.com/stretchr/testify v1.9.0
 	github.com/webrpc/gen-dart v0.1.1
-	github.com/webrpc/gen-golang v0.14.9-0.20240930142701-35a7e2801d91
+	github.com/webrpc/gen-golang v0.14.9-0.20241001132403-89a072e3252b
 	github.com/webrpc/gen-javascript v0.13.0
 	github.com/webrpc/gen-kotlin v0.1.0
 	github.com/webrpc/gen-openapi v0.13.0
