@@ -1,4 +1,4 @@
-(struct { *schema.WebRPCSchema; SchemaHash string; WebrpcGenVersion string; WebrpcGenCommand string; WebrpcTarget string; WebrpcErrors []*schema.Error; Opts map[string]interface {} }) {
+(struct { *schema.WebRPCSchema; SchemaHash string; WebrpcGenVersion string; WebrpcGenCommand string; WebrpcTarget string; WebrpcErrors []*schema.Error; Opts map[string]interface {}; TmplVersion string; TmplTarget string }) {
 	WebRPCSchema: (*schema.WebRPCSchema)({
 		WebrpcVersion: (string) (len=2) "v1",
 		SchemaName: (string) (len=4) "Test",
@@ -3738,5 +3738,7 @@
 		})
 	},
 	Opts: (map[string]interface {}) {
-	}
+	},
+	TmplVersion: (string) "",
+	TmplTarget: (string) ""
 }
