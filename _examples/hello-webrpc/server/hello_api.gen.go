@@ -88,6 +88,13 @@ type User struct {
 	DeletedAt *time.Time `json:"deletedAt"`
 }
 
+var (
+	methodAnnotations = map[string]map[string]string{
+		"/rpc/ExampleService/Ping":    {},
+		"/rpc/ExampleService/GetUser": {},
+	}
+)
+
 var WebRPCServices = map[string][]string{
 	"ExampleService": {
 		"Ping",
@@ -123,7 +130,8 @@ type WebRPCServer interface {
 
 type exampleServiceServer struct {
 	ExampleService
-	OnError func(r *http.Request, rpcErr *WebRPCError)
+	OnError   func(r *http.Request, rpcErr *WebRPCError)
+	OnRequest func(w http.ResponseWriter, r *http.Request) error
 }
 
 func NewExampleServiceServer(svc ExampleService) *exampleServiceServer {
@@ -145,6 +153,7 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
 	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
 	ctx = context.WithValue(ctx, ServiceNameCtxKey, "ExampleService")
+	ctx = context.WithValue(ctx, methodAnnotationsCtxKey, methodAnnotations[r.URL.Path])
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	switch r.URL.Path {
@@ -153,14 +162,14 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	case "/rpc/ExampleService/GetUser":
 		handler = s.serveGetUserJSON
 	default:
-		err := ErrWebrpcBadRoute.WithCause(fmt.Errorf("no handler for path %q", r.URL.Path))
+		err := ErrWebrpcBadRoute.WithCause(fmt.Errorf("no WebRPC method defined for path %v", r.URL.Path))
 		s.sendErrorJSON(w, r, err)
 		return
 	}
 
 	if r.Method != "POST" {
 		w.Header().Add("Allow", "POST") // RFC 9110.
-		err := ErrWebrpcBadMethod.WithCause(fmt.Errorf("unsupported method %q (only POST is allowed)", r.Method))
+		err := ErrWebrpcBadMethod.WithCause(fmt.Errorf("unsupported method %v (only POST is allowed)", r.Method))
 		s.sendErrorJSON(w, r, err)
 		return
 	}
@@ -173,9 +182,20 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	switch contentType {
 	case "application/json":
+		if s.OnRequest != nil {
+			if err := s.OnRequest(w, r); err != nil {
+				rpcErr, ok := err.(WebRPCError)
+				if !ok {
+					rpcErr = ErrWebrpcEndpoint.WithCause(err)
+				}
+				s.sendErrorJSON(w, r, rpcErr)
+				return
+			}
+		}
+
 		handler(ctx, w, r)
 	default:
-		err := ErrWebrpcBadRequest.WithCause(fmt.Errorf("unexpected Content-Type: %q", r.Header.Get("Content-Type")))
+		err := ErrWebrpcBadRequest.WithCause(fmt.Errorf("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type")))
 		s.sendErrorJSON(w, r, err)
 	}
 }
@@ -280,6 +300,12 @@ func RespondWithError(w http.ResponseWriter, err error) {
 // Helpers
 //
 
+type MethodCtx struct {
+	Name        string
+	Service     string
+	Annotations map[string]string
+}
+
 type contextKey struct {
 	name string
 }
@@ -296,6 +322,8 @@ var (
 	ServiceNameCtxKey = &contextKey{"ServiceName"}
 
 	MethodNameCtxKey = &contextKey{"MethodName"}
+
+	methodAnnotationsCtxKey = &contextKey{"MethodAnnotations"}
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -312,6 +340,19 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	return r
 }
+
+func MethodFromContext(ctx context.Context) MethodCtx {
+	name, _ := ctx.Value(MethodNameCtxKey).(string)
+	service, _ := ctx.Value(ServiceNameCtxKey).(string)
+	annotations, _ := ctx.Value(methodAnnotationsCtxKey).(map[string]string)
+
+	return MethodCtx{
+		Name:        name,
+		Service:     service,
+		Annotations: annotations,
+	}
+}
+
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
 	w, _ := ctx.Value(HTTPResponseWriterCtxKey).(http.ResponseWriter)
 	return w

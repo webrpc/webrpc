@@ -157,6 +157,22 @@ type EnumData struct {
 	List []Status          `json:"list"`
 }
 
+var (
+	methodAnnotations = map[string]map[string]string{
+		"/rpc/TestApi/GetEmpty":       {},
+		"/rpc/TestApi/GetError":       {},
+		"/rpc/TestApi/GetOne":         {},
+		"/rpc/TestApi/SendOne":        {},
+		"/rpc/TestApi/GetMulti":       {},
+		"/rpc/TestApi/SendMulti":      {},
+		"/rpc/TestApi/GetComplex":     {},
+		"/rpc/TestApi/SendComplex":    {},
+		"/rpc/TestApi/GetEnumList":    {},
+		"/rpc/TestApi/GetEnumMap":     {},
+		"/rpc/TestApi/GetSchemaError": {},
+	}
+)
+
 var WebRPCServices = map[string][]string{
 	"TestApi": {
 		"GetEmpty",
@@ -538,6 +554,12 @@ func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 // Helpers
 //
 
+type MethodCtx struct {
+	Name        string
+	Service     string
+	Annotations map[string]string
+}
+
 type contextKey struct {
 	name string
 }
@@ -553,6 +575,8 @@ var (
 	ServiceNameCtxKey = &contextKey{"ServiceName"}
 
 	MethodNameCtxKey = &contextKey{"MethodName"}
+
+	methodAnnotationsCtxKey = &contextKey{"MethodAnnotations"}
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -568,6 +592,18 @@ func MethodNameFromContext(ctx context.Context) string {
 func RequestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	return r
+}
+
+func MethodFromContext(ctx context.Context) MethodCtx {
+	name, _ := ctx.Value(MethodNameCtxKey).(string)
+	service, _ := ctx.Value(ServiceNameCtxKey).(string)
+	annotations, _ := ctx.Value(methodAnnotationsCtxKey).(map[string]string)
+
+	return MethodCtx{
+		Name:        name,
+		Service:     service,
+		Annotations: annotations,
+	}
 }
 
 //
