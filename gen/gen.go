@@ -46,6 +46,8 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		WebrpcTarget     string
 		WebrpcErrors     []*schema.Error
 		Opts             map[string]interface{}
+		TmplVersion      string
+		TmplTarget       string
 	}{
 		proto,
 		schemaHash,
@@ -54,6 +56,8 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		target,
 		WebrpcErrors,
 		config.TemplateOptions,
+		"",
+		"",
 	}
 	if isLocalDir(target) {
 		vars.WebrpcTarget = target
@@ -93,6 +97,12 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		return genOutput, err
 	}
 	genOutput.TemplateSource = *tmplSource
+
+	v := strings.Split(tmplSource.TmplVersion, "/")
+	tmplTarget, tmplVersion, _ := strings.Cut(v[len(v)-1], "@")
+
+	vars.TmplVersion = tmplVersion
+	vars.TmplTarget = tmplTarget
 
 	// Generate the template
 	var b bytes.Buffer
