@@ -88,18 +88,18 @@ export interface SendMessageArgs {
   text: string
 }
 
-export interface SendMessageReturn {  
+export interface SendMessageReturn {
 }
 export interface SubscribeMessagesArgs {
   username: string
 }
 
 export interface SubscribeMessagesReturn {
-  message: Message  
+  message: Message
 }
 
 
-  
+
 //
 // Client
 //
@@ -116,7 +116,7 @@ export class Chat implements Chat {
   private url(name: string): string {
     return this.hostname + this.path + name
   }
-  
+
   sendMessage = (args: SendMessageArgs, headers?: object, signal?: AbortSignal): Promise<SendMessageReturn> => {
     return this.fetch(
       this.url('SendMessage'),
@@ -128,7 +128,7 @@ export class Chat implements Chat {
       throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error.message || ''}` })
     })
   }
-  
+
   subscribeMessages = (args: SubscribeMessagesArgs, options: WebrpcStreamOptions<SubscribeMessagesReturn>): WebrpcStreamController => {
     const abortController = new AbortController();
     const abortSignal = abortController.signal
@@ -153,7 +153,7 @@ export class Chat implements Chat {
     };
   }
 }
-  
+
 const sseResponse = async (
     res: Response,
     options: WebrpcStreamOptions<any>,
@@ -572,4 +572,3 @@ export interface WebrpcStreamController {
   abort: (reason?: any) => void;
   closed: Promise<void>;
 }
-
