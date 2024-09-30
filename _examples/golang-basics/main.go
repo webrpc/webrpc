@@ -29,11 +29,14 @@ func startServer() error {
 
 	webrpcHandler := NewExampleServiceServer(&ExampleServiceRPC{})
 	webrpcHandler.OnRequest = func(w http.ResponseWriter, r *http.Request) error {
-		methodCtx := MethodFromContext(r.Context())
+		methodCtx, ok := GetMethodCtx(r)
+		if !ok {
+			return fmt.Errorf("could not find method context for request method: %s\n", r.URL.Path)
+		}
 
 		newEndpoint, ok := methodCtx.Annotations["deprecated"]
 		if ok {
-			fmt.Printf(
+			return fmt.Errorf(
 				"endpoint %s has been deprecated in favor of endpoint %s\n",
 				r.URL.Path,
 				newEndpoint,

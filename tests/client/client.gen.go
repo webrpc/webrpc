@@ -158,18 +158,62 @@ type EnumData struct {
 }
 
 var (
-	methodAnnotations = map[string]map[string]string{
-		"/rpc/TestApi/GetEmpty":       {},
-		"/rpc/TestApi/GetError":       {},
-		"/rpc/TestApi/GetOne":         {},
-		"/rpc/TestApi/SendOne":        {},
-		"/rpc/TestApi/GetMulti":       {},
-		"/rpc/TestApi/SendMulti":      {},
-		"/rpc/TestApi/GetComplex":     {},
-		"/rpc/TestApi/SendComplex":    {},
-		"/rpc/TestApi/GetEnumList":    {},
-		"/rpc/TestApi/GetEnumMap":     {},
-		"/rpc/TestApi/GetSchemaError": {},
+	methodAnnotations = map[string]MethodCtx{
+		"/rpc/TestApi/GetEmpty": {
+			Name:        "GetEmpty",
+			Service:     "TestApi",
+			Annotations: map[string]string{},
+		},
+		"/rpc/TestApi/GetError": {
+			Name:        "GetError",
+			Service:     "TestApi",
+			Annotations: map[string]string{},
+		},
+		"/rpc/TestApi/GetOne": {
+			Name:        "GetOne",
+			Service:     "TestApi",
+			Annotations: map[string]string{},
+		},
+		"/rpc/TestApi/SendOne": {
+			Name:        "SendOne",
+			Service:     "TestApi",
+			Annotations: map[string]string{},
+		},
+		"/rpc/TestApi/GetMulti": {
+			Name:        "GetMulti",
+			Service:     "TestApi",
+			Annotations: map[string]string{},
+		},
+		"/rpc/TestApi/SendMulti": {
+			Name:        "SendMulti",
+			Service:     "TestApi",
+			Annotations: map[string]string{},
+		},
+		"/rpc/TestApi/GetComplex": {
+			Name:        "GetComplex",
+			Service:     "TestApi",
+			Annotations: map[string]string{},
+		},
+		"/rpc/TestApi/SendComplex": {
+			Name:        "SendComplex",
+			Service:     "TestApi",
+			Annotations: map[string]string{},
+		},
+		"/rpc/TestApi/GetEnumList": {
+			Name:        "GetEnumList",
+			Service:     "TestApi",
+			Annotations: map[string]string{},
+		},
+		"/rpc/TestApi/GetEnumMap": {
+			Name:        "GetEnumMap",
+			Service:     "TestApi",
+			Annotations: map[string]string{},
+		},
+		"/rpc/TestApi/GetSchemaError": {
+			Name:        "GetSchemaError",
+			Service:     "TestApi",
+			Annotations: map[string]string{},
+		},
 	}
 )
 
@@ -575,8 +619,6 @@ var (
 	ServiceNameCtxKey = &contextKey{"ServiceName"}
 
 	MethodNameCtxKey = &contextKey{"MethodName"}
-
-	methodAnnotationsCtxKey = &contextKey{"MethodAnnotations"}
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -594,16 +636,13 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-func MethodFromContext(ctx context.Context) MethodCtx {
-	name, _ := ctx.Value(MethodNameCtxKey).(string)
-	service, _ := ctx.Value(ServiceNameCtxKey).(string)
-	annotations, _ := ctx.Value(methodAnnotationsCtxKey).(map[string]string)
-
-	return MethodCtx{
-		Name:        name,
-		Service:     service,
-		Annotations: annotations,
+func GetMethodCtx(r *http.Request) (MethodCtx, bool) {
+	ctx, ok := methodAnnotations[r.URL.Path]
+	if !ok {
+		return MethodCtx{}, false
 	}
+
+	return ctx, true
 }
 
 //
