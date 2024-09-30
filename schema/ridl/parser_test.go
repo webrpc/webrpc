@@ -1004,7 +1004,6 @@ func TestParseServiceComments(t *testing.T) {
 			#! skip this line as its internal comment
 			#! skip more lines
 			#! more
-			@deprecated Version2
 			- Version() => (details: any)
 			# test comment two lines above
 			
