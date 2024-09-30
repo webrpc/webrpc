@@ -62,23 +62,31 @@ const onClose = () => {
 
 const username = randomUserName();
 
-const controller = new AbortController();
-const abortSignal = controller.signal;
+// const controller = new AbortController();
+
+// const toggleConnectHandler = () => {
+//   if (connectionStatus.value == "connected") {
+//     controller.abort();
+//     connectionStatus.value = "aborted";
+//   } else if (connectionStatus.value == "aborted") {
+//     // reconnect();
+//   }
+// };
+
+// Subscribe to messages
+const stream = api.subscribeMessages(
+  { username },
+  { onMessage, onError, onOpen, onClose }//, signal: controller }
+);
 
 const toggleConnectHandler = () => {
   if (connectionStatus.value == "connected") {
-    controller.abort();
+    stream.abort();
     connectionStatus.value = "aborted";
   } else if (connectionStatus.value == "aborted") {
     // reconnect();
   }
 };
-
-// Subscribe to messages
-api.subscribeMessages(
-  { username },
-  { onMessage, onError, onOpen, onClose, signal: abortSignal }
-);
 
 // Update chatbox
 const chatbox = document.querySelector("#chat");

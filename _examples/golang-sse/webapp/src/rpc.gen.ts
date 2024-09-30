@@ -28,7 +28,7 @@ export interface Message {
 
 export interface Chat {
   sendMessage(args: SendMessageArgs, headers?: object, signal?: AbortSignal): Promise<SendMessageReturn>
-  subscribeMessages(args: SubscribeMessagesArgs, options: WebrpcStreamOptions<SubscribeMessagesReturn>): Promise<void>
+  subscribeMessages(args: SubscribeMessagesArgs, options: WebrpcStreamOptions<SubscribeMessagesReturn>): WebrpcStreamController
 }
 
 export interface SendMessageArgs {
@@ -77,14 +77,21 @@ export class Chat implements Chat {
     })
   }
   
-  subscribeMessages = (args: SubscribeMessagesArgs, options: WebrpcStreamOptions<SubscribeMessagesReturn>): Promise<void> => {
-    const _fetch = () => this.fetch(this.url('SubscribeMessages'),createHTTPRequest(args, options.headers, options.signal)
+  subscribeMessages = (args: SubscribeMessagesArgs, options: WebrpcStreamOptions<SubscribeMessagesReturn>): WebrpcStreamController => {
+    const abortController = options.signal ?? new AbortController();
+
+    const _fetch = () => this.fetch(this.url('SubscribeMessages'),createHTTPRequest(args, options.headers, abortController.signal)
       ).then(async (res) => {
         await sseResponse(res, options, _fetch);
     }, (error) => {
       options.onError(error, _fetch);
     });
-    return _fetch();
+
+    const resp = _fetch();
+    return {
+      abort: abortController.abort.bind(abortController),
+      wait: resp
+    };
   }
 }
   
@@ -478,8 +485,13 @@ export interface WebrpcStreamOptions<T> extends WebrpcOptions {
   onOpen?: () => void;
   onClose?: () => void;
 }
+
 export interface WebrpcOptions {
   headers?: HeadersInit;
-  signal?: AbortSignal;
+  signal?: AbortController;
 }
 
+export interface WebrpcStreamController {
+  abort: (reason?: any) => void;
+  wait: Promise<void>; // TODO: maybe there is a better name for this..?
+}
