@@ -28,6 +28,16 @@ func startServer() error {
 	})
 
 	webrpcHandler := NewExampleServiceServer(&ExampleServiceRPC{})
+	webrpcHandler.OnError = func(r *http.Request, err *WebRPCError) {
+		m, ok := MethodCtx(r.Context())
+
+		if ok {
+			_, ok = m.Annotations["deprecated"]
+			if ok {
+				fmt.Println(r.URL.Path, "deprecated")
+			}
+		}
+	}
 	webrpcHandler.OnRequest = func(w http.ResponseWriter, r *http.Request) error {
 		m, ok := MethodCtx(r.Context())
 		if !ok {
@@ -71,9 +81,9 @@ func (s *ExampleServiceRPC) Version(ctx context.Context) (*Version, error) {
 
 func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, error) {
 	if userID == 911 {
-
 		return 0, nil, ErrUserNotFound
 	}
+
 	if userID == 31337 {
 		return 0, nil, ErrorWithCause(ErrUserNotFound, fmt.Errorf("unknown user id %d", userID))
 	}
