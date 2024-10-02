@@ -1,42 +1,31 @@
 export PATH = $(shell echo $$PWD/bin:$$PATH)
 
 all:
-	@echo "*****************************************"
-	@echo "**             WebRPC Dev             **"
-	@echo "*****************************************"
+	@echo "****************************************"
+	@echo "**              webrpc                **"
+	@echo "****************************************"
 	@echo "make <cmd>"
 	@echo ""
 	@echo "commands:"
-	@echo ""
-	@echo " + Testing:"
-	@echo "   - test"
-	@echo "   - generate"
-	@echo "   - diff"
-	@echo ""
-	@echo " + Builds:"
-	@echo "   - build"
-	@echo "   - build-test"
-	@echo "   - clean"
-	@echo "   - install"
-	@echo ""
-	@echo " + Dep management:"
-	@echo "   - dep"
-	@echo "   - dep-upgrade-all"
-	@echo ""
+	@awk -F'[ :]' '/^#+/ {comment=$$0; gsub(/^#+[ ]*/, "", comment)} !/^(_|all:)/ && /^([A-Za-z_-]+):/ && !seen[$$1]++ {printf "  %-24s %s\n", $$1, (comment ? "- " comment : ""); comment=""} !/^#+/ {comment=""}' Makefile
 
+# Build webrpc-gen
 build:
 	go build -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe --tags)" -o ./bin/webrpc-gen ./cmd/webrpc-gen
 
+# Build webrpc-test
 build-test:
 	go build -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe --tags)" -o ./bin/webrpc-test ./cmd/webrpc-test
 
-clean:
-	rm -rf ./bin
-
+# Install webrpc-gen and webrpc-test binaries locally
 install:
 	go install -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe --tags)" ./cmd/webrpc-gen
 	go install -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe --tags)" ./cmd/webrpc-test
 
+clean:
+	rm -rf ./bin
+
+# Regenerate examples and tests using latest templates (see go.mod)
 generate: build
 	go generate -v -x ./...
 	cd _examples/ && go generate -x ./...
@@ -50,17 +39,22 @@ generate: build
 	git grep -l "$$(git describe --tags)" | xargs sed -i -e "s/@$$(git describe --tags)//g"
 	sed -i "/$$(git describe --tags)/d" tests/schema/test.debug.gen.txt
 
+# Upgrade Go dependencies
 dep-upgrade-all:
 	go get -u go@1.19 ./...
 
+# Run git diff and fail on any local changes
 diff:
 	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
 
+# Run all tests
 test: test-go test-interoperability
 
+# Run Go tests
 test-go: generate
 	go test -v ./...
 
+# Run interoperability test suite
 test-interoperability: build-test
 	echo "Running interoperability test suite"; \
 		./bin/webrpc-test -server -port=9988 -timeout=2s & \
