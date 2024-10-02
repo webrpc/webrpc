@@ -77,3 +77,7 @@ service ExampleService
   - FindUser(s: SearchFilter) => (name: string, user: User)
   - GetIntents() => (intents: []Intent)
   - CountIntents(userId: uint64) => (count: map<Intent,uint32>)
+
+service ExampleServiceV2
+  - Ping()
+  - Status() => (status: bool)

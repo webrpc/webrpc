@@ -2,6 +2,7 @@ package schema
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -190,4 +191,60 @@ func TestFoo(t *testing.T) {
 	assert.True(t, IsValidArgName("a3_44aass"))
 	assert.True(t, IsValidArgName("a55_____cdDDDD"))
 	assert.False(t, IsValidArgName("asSS_E_##$"))
+}
+
+func TestFilterServices(t *testing.T) {
+	type args struct {
+		s        *WebRPCSchema
+		services map[string]struct{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want *WebRPCSchema
+	}{
+		{
+			name: "filter services",
+			args: args{
+				s: &WebRPCSchema{
+					WebrpcVersion: "v0.1.0",
+					SchemaName:    "dev",
+					SchemaVersion: "dev-v0.1.0",
+					Services: []*Service{
+						{
+							Name: "ExampleService",
+						},
+						{
+							Name: "AdminService",
+						},
+						{
+							Name: "PublicService",
+						},
+					},
+				},
+				services: map[string]struct{}{
+					"ExampleService": {},
+					"AdminService":   {},
+				},
+			},
+			want: &WebRPCSchema{
+				WebrpcVersion: "v0.1.0",
+				SchemaName:    "dev",
+				SchemaVersion: "dev-v0.1.0",
+				Services: []*Service{
+					{
+						Name: "ExampleService",
+					},
+					{
+						Name: "AdminService",
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.EqualValues(t, tt.want, FilterServices(tt.args.s, tt.args.services))
+		})
+	}
 }

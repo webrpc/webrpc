@@ -110,3 +110,13 @@ func (s *WebRPCSchema) GetServiceByName(name string) *Service {
 	}
 	return nil
 }
+
+func FilterServices(s *WebRPCSchema, services map[string]struct{}) *WebRPCSchema {
+	for i, srv := range s.Services {
+		if _, ok := services[srv.Name]; !ok {
+			s.Services = append(s.Services[:i], s.Services[i+1:]...)
+		}
+	}
+
+	return s
+}

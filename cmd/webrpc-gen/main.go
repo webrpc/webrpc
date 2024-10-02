@@ -22,6 +22,7 @@ var (
 	fmtFlag          = flags.Bool("fmt", true, "format generated code")
 	refreshCacheFlag = flags.Bool("refreshCache", false, "refresh webrpc cache")
 	silentFlag       = flags.Bool("silent", false, "silence gen summary")
+	serviceFlag      = flags.String("service", "", "generate passed service only separated by comma, empty string means all services")
 )
 
 func main() {
@@ -47,7 +48,7 @@ func main() {
 	}
 
 	// Parse+validate the webrpc schema file
-	schema, err := webrpc.ParseSchemaFile(*schemaFlag)
+	s, err := webrpc.ParseSchemaFile(*schemaFlag)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to parse %s:%v\n", *schemaFlag, err)
 		os.Exit(1)
@@ -60,13 +61,23 @@ func main() {
 		os.Exit(1)
 	}
 
+	if strings.Trim(*serviceFlag, " ") != "" {
+		services := strings.Split(*serviceFlag, ",")
+		serviceMap := map[string]struct{}{}
+		for _, srv := range services {
+			serviceMap[srv] = struct{}{}
+		}
+
+		s = schema.FilterServices(s, serviceMap)
+	}
+
 	config := &gen.Config{
 		RefreshCache:    *refreshCacheFlag,
 		Format:          *fmtFlag,
 		TemplateOptions: templateOpts,
 	}
 
-	genOutput, err := gen.Generate(schema, *targetFlag, config)
+	genOutput, err := gen.Generate(s, *targetFlag, config)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
