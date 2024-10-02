@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func newStringParser(src string) (*parser, error) {
@@ -1022,4 +1023,57 @@ func TestParseServiceComments(t *testing.T) {
 	assert.Equal(t, "GetContact gives you contact for specific id\nsee https://www.example.com/?first=1&second=12#help", serviceNode.methods[0].comment)
 	assert.Equal(t, "Version returns you current deployed version\n", serviceNode.methods[1].comment)
 	assert.Equal(t, "", serviceNode.methods[2].comment)
+}
+
+func TestParseAnnotations(t *testing.T) {
+	p, err := newStringParser(`
+		service ContactsService
+			# Version returns you current deployed version
+			@auth:x-access-key
+			@deprecated:Version2 @internal @acl:"admin,member"
+			- Version() => (details: any)
+			@internal
+			- Version2() => (details: any)
+		`)
+	assert.NoError(t, err)
+
+	err = p.run()
+	assert.NoError(t, err)
+
+	serviceNode, ok := p.root.node.children[0].(*ServiceNode)
+	if !ok {
+		t.Errorf("expected type ServiceNode")
+	}
+
+	require.Len(t, serviceNode.methods[0].annotations, 4)
+	require.Equal(t, "deprecated", serviceNode.methods[0].annotations[0].AnnotationType().String())
+	require.Equal(t, "Version2", serviceNode.methods[0].annotations[0].Value().String())
+
+	require.Equal(t, "internal", serviceNode.methods[0].annotations[1].AnnotationType().String())
+
+	require.Equal(t, "acl", serviceNode.methods[0].annotations[2].AnnotationType().String())
+	require.Equal(t, "admin,member", serviceNode.methods[0].annotations[2].Value().String())
+
+	require.Equal(t, "auth", serviceNode.methods[0].annotations[3].AnnotationType().String())
+	require.Equal(t, "x-access-key", serviceNode.methods[0].annotations[3].Value().String())
+
+	require.Len(t, serviceNode.methods[1].annotations, 1)
+	require.Equal(t, "internal", serviceNode.methods[1].annotations[0].AnnotationType().String())
+}
+
+func TestFailParsingAnnotationsOnDuplicate(t *testing.T) {
+	p, err := newStringParser(`
+		service ContactsService
+			# Version returns you current deployed version
+			@auth:x-access-key
+			@auth:cookies
+			- Version() => (details: any)
+			@internal
+			- Version2() => (details: any)
+		`)
+	assert.NoError(t, err)
+
+	err = p.run()
+	assert.Error(t, err)
+	assert.ErrorContains(t, err, "duplicate annotation")
 }

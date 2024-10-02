@@ -277,6 +277,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				Inputs:       inputs,
 				Outputs:      outputs,
 				Comments:     parseComment(method.Comment()),
+				Annotations:  buildAnnotations(method),
 			}
 
 			methods = append(methods, m)
@@ -363,4 +364,21 @@ func parseComment(comment string) []string {
 	}
 
 	return strings.Split(comment, "\n")
+}
+
+func buildAnnotations(method *MethodNode) schema.Annotations {
+	annotations := make(map[string]*schema.Annotation)
+
+	for _, a := range method.Annotations() {
+		an := &schema.Annotation{
+			AnnotationType: a.AnnotationType().String(),
+		}
+		if a.Value() != nil {
+			an.Value = a.Value().String()
+		}
+
+		annotations[a.AnnotationType().String()] = an
+	}
+
+	return schema.Annotations(annotations)
 }

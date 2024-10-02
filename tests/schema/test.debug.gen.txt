@@ -1274,6 +1274,8 @@
 				Methods: ([]*schema.Method) (len=11 cap=16) {
 					(*schema.Method)({
 						Name: (string) (len=8) "GetEmpty",
+						Annotations: (schema.Annotations) {
+						},
 						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
@@ -1287,6 +1289,8 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=8) "GetError",
+						Annotations: (schema.Annotations) {
+						},
 						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
@@ -1300,6 +1304,8 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=6) "GetOne",
+						Annotations: (schema.Annotations) {
+						},
 						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
@@ -1387,6 +1393,8 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=7) "SendOne",
+						Annotations: (schema.Annotations) {
+						},
 						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
@@ -1474,6 +1482,8 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=8) "GetMulti",
+						Annotations: (schema.Annotations) {
+						},
 						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
@@ -1709,6 +1719,8 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=9) "SendMulti",
+						Annotations: (schema.Annotations) {
+						},
 						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
@@ -1944,6 +1956,8 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=10) "GetComplex",
+						Annotations: (schema.Annotations) {
+						},
 						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
@@ -2665,6 +2679,8 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=11) "SendComplex",
+						Annotations: (schema.Annotations) {
+						},
 						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
@@ -3386,6 +3402,8 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=11) "GetEnumList",
+						Annotations: (schema.Annotations) {
+						},
 						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
@@ -3474,6 +3492,8 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=10) "GetEnumMap",
+						Annotations: (schema.Annotations) {
+						},
 						Comments: ([]string) {
 						},
 						StreamInput: (bool) false,
@@ -3604,6 +3624,8 @@
 					}),
 					(*schema.Method)({
 						Name: (string) (len=14) "GetSchemaError",
+						Annotations: (schema.Annotations) {
+						},
 						Comments: ([]string) (len=1 cap=1) {
 							(string) (len=16) "added in v0.11.0"
 						},
@@ -3644,7 +3666,7 @@
 		},
 		Deprecated_Messages: ([]interface {}) <nil>
 	}),
-	SchemaHash: (string) (len=40) "caa2122d991d977ab3cc5aa0df13a8a4cc5e4176",
+	SchemaHash: (string) (len=40) "61c9c8c942e3f6bdffd9929e78ebb3631d924993",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcTarget: (string) (len=5) "debug",
 	WebrpcErrors: ([]*schema.Error) (len=11 cap=11) {

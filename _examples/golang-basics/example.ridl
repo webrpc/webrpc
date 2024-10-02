@@ -63,10 +63,17 @@ error 3000 PermissionDenied "Permission denied" HTTP 403
 
 
 service ExampleService
+  @internal
   - Ping()
+  @internal
   - Status() => (status: bool)
+  @internal
   - Version() => (version: Version)
+  @deprecated:GetUserV2
+  @internal
   - GetUser(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
+  @auth:"X-Access-Key,S2S,Cookies"
+  - GetUserV2(header: map<string,string>, userID: uint64) => (code: uint32, user: User, profile: string)
   - FindUser(s: SearchFilter) => (name: string, user: User)
   - GetIntents() => (intents: []Intent)
   - CountIntents(userId: uint64) => (count: map<Intent,uint32>)

@@ -28,6 +28,33 @@ func startServer() error {
 	})
 
 	webrpcHandler := NewExampleServiceServer(&ExampleServiceRPC{})
+	webrpcHandler.OnError = func(r *http.Request, err *WebRPCError) {
+		m, ok := MethodCtx(r.Context())
+
+		if ok {
+			_, ok = m.Annotations["deprecated"]
+			if ok {
+				fmt.Println(r.URL.Path, "deprecated")
+			}
+		}
+	}
+	webrpcHandler.OnRequest = func(w http.ResponseWriter, r *http.Request) error {
+		m, ok := MethodCtx(r.Context())
+		if !ok {
+			return fmt.Errorf("could not find method context for request method: %s\n", r.URL.Path)
+		}
+
+		newEndpoint, ok := m.Annotations["deprecated"]
+		if ok {
+			return fmt.Errorf(
+				"endpoint %s has been deprecated in favor of endpoint %s\n",
+				r.URL.Path,
+				newEndpoint,
+			)
+		}
+
+		return nil
+	}
 	r.Handle("/*", webrpcHandler)
 
 	return http.ListenAndServe(":4242", r)
@@ -56,6 +83,7 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]strin
 	if userID == 911 {
 		return 0, nil, ErrUserNotFound
 	}
+
 	if userID == 31337 {
 		return 0, nil, ErrorWithCause(ErrUserNotFound, fmt.Errorf("unknown user id %d", userID))
 	}
@@ -69,6 +97,25 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, header map[string]strin
 		Kind:     kind,
 		Intent:   intent,
 	}, nil
+}
+
+func (s *ExampleServiceRPC) GetUserV2(ctx context.Context, header map[string]string, userID uint64) (uint32, *User, string, error) {
+	if userID == 911 {
+		return 0, nil, "", ErrUserNotFound
+	}
+	if userID == 31337 {
+		return 0, nil, "", ErrorWithCause(ErrUserNotFound, fmt.Errorf("unknown user id %d", userID))
+	}
+
+	kind := Kind_ADMIN
+	intent := Intent_openSession
+
+	return 200, &User{
+		ID:       userID,
+		Username: "hihi",
+		Kind:     kind,
+		Intent:   intent,
+	}, "https://www.google.com/images/john-doe.jpg", nil
 }
 
 func (s *ExampleServiceRPC) FindUser(ctx context.Context, f *SearchFilter) (string, *User, error) {

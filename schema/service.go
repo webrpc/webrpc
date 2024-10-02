@@ -14,8 +14,9 @@ type Service struct {
 }
 
 type Method struct {
-	Name     string   `json:"name"`
-	Comments []string `json:"comments"`
+	Name        string      `json:"name"`
+	Annotations Annotations `json:"annotations"`
+	Comments    []string    `json:"comments"`
 
 	StreamInput  bool `json:"streamInput,omitempty"`
 	StreamOutput bool `json:"streamOutput,omitempty"`
@@ -38,17 +39,24 @@ type MethodArgument struct {
 	TypeExtra `json:",omitempty"`
 }
 
+type Annotations map[string]*Annotation
+
+type Annotation struct {
+	AnnotationType string `json:"annotationType"`
+	Value          string `json:"value"`
+}
+
 func (s *Service) Parse(schema *WebRPCSchema) error {
 	s.Schema = schema // back-ref
 
 	// Service name
-	serviceName := string(s.Name)
+	serviceName := s.Name
 	if string(s.Name) == "" {
 		return fmt.Errorf("schema error: service name cannot be empty")
 	}
 
 	// Ensure we don't have dupe service names (w/ normalization)
-	name := strings.ToLower(string(s.Name))
+	name := strings.ToLower(s.Name)
 	for _, svc := range schema.Services {
 		if svc != s && name == strings.ToLower(string(svc.Name)) {
 			return fmt.Errorf("schema error: duplicate service name detected in service '%s'", serviceName)
@@ -67,7 +75,7 @@ func (s *Service) Parse(schema *WebRPCSchema) error {
 			return fmt.Errorf("schema error: detected empty method name in service '%s", serviceName)
 		}
 
-		methodName := string(method.Name)
+		methodName := method.Name
 		methodNameLower := strings.ToLower(methodName)
 
 		if _, ok := methodList[methodNameLower]; ok {
@@ -92,7 +100,7 @@ func (m *Method) Parse(schema *WebRPCSchema, service *Service) error {
 		return fmt.Errorf("parse error, service arg cannot be nil")
 	}
 	m.Service = service // back-ref
-	serviceName := string(service.Name)
+	serviceName := service.Name
 
 	// Parse+validate inputs
 	for _, input := range m.Inputs {
