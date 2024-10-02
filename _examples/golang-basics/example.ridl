@@ -72,7 +72,7 @@ service ExampleService
   @deprecated:GetUserV2
   @internal
   - GetUser(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
-  @auth:X-Access-Key @auth:S2S @auth:Cookies
+  @auth:"X-Access-Key,S2S,Cookies"
   - GetUserV2(header: map<string,string>, userID: uint64) => (code: uint32, user: User, profile: string)
   - FindUser(s: SearchFilter) => (name: string, user: User)
   - GetIntents() => (intents: []Intent)
