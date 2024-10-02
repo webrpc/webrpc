@@ -406,6 +406,9 @@ func RequestFromContext(ctx context.Context) *http.Request {
 
 func MethodCtx(ctx context.Context) (method, bool) {
 	req := RequestFromContext(ctx)
+	if req == nil {
+		return method{}, false
+	}
 
 	m, ok := methods[req.URL.Path]
 	if !ok {
