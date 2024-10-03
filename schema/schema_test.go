@@ -334,7 +334,7 @@ func TestMatchServices(t *testing.T) {
 func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 	type args struct {
 		s                 *WebRPCSchema
-		ignoreAnnotations map[string]struct{}
+		ignoreAnnotations map[string]string
 	}
 	tests := []struct {
 		name string
@@ -345,9 +345,6 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 			name: "no methods to ignore",
 			args: args{
 				s: &WebRPCSchema{
-					WebrpcVersion: "v0.1.0",
-					SchemaName:    "dev",
-					SchemaVersion: "dev-v0.1.0",
 					Services: []*Service{
 						{
 							Name: "ExampleService",
@@ -364,14 +361,9 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 						},
 					},
 				},
-				ignoreAnnotations: map[string]struct{}{
-					"deprecated": {},
-				},
+				ignoreAnnotations: map[string]string{"deprecated": ""},
 			},
 			want: &WebRPCSchema{
-				WebrpcVersion: "v0.1.0",
-				SchemaName:    "dev",
-				SchemaVersion: "dev-v0.1.0",
 				Services: []*Service{
 					{
 						Name: "ExampleService",
@@ -393,9 +385,6 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 			name: "all methods ignored",
 			args: args{
 				s: &WebRPCSchema{
-					WebrpcVersion: "v0.1.0",
-					SchemaName:    "dev",
-					SchemaVersion: "dev-v0.1.0",
 					Services: []*Service{
 						{
 							Name: "ExampleService",
@@ -405,7 +394,7 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 									Annotations: map[string]*Annotation{
 										"deprecated": {
 											AnnotationType: "deprecated",
-											Value:          "v1",
+											Value:          "PingV2",
 										},
 									},
 								},
@@ -414,7 +403,7 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 									Annotations: map[string]*Annotation{
 										"deprecated": {
 											AnnotationType: "deprecated",
-											Value:          "v2",
+											Value:          "",
 										},
 									},
 								},
@@ -422,14 +411,9 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 						},
 					},
 				},
-				ignoreAnnotations: map[string]struct{}{
-					"deprecated": {},
-				},
+				ignoreAnnotations: map[string]string{"deprecated": ""},
 			},
 			want: &WebRPCSchema{
-				WebrpcVersion: "v0.1.0",
-				SchemaName:    "dev",
-				SchemaVersion: "dev-v0.1.0",
 				Services: []*Service{
 					{
 						Name:    "ExampleService",
@@ -442,9 +426,6 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 			name: "no matching annotations",
 			args: args{
 				s: &WebRPCSchema{
-					WebrpcVersion: "v0.1.0",
-					SchemaName:    "dev",
-					SchemaVersion: "dev-v0.1.0",
 					Services: []*Service{
 						{
 							Name: "ExampleService",
@@ -462,14 +443,9 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 						},
 					},
 				},
-				ignoreAnnotations: map[string]struct{}{
-					"deprecated": {},
-				},
+				ignoreAnnotations: map[string]string{"deprecated": ""},
 			},
 			want: &WebRPCSchema{
-				WebrpcVersion: "v0.1.0",
-				SchemaName:    "dev",
-				SchemaVersion: "dev-v0.1.0",
 				Services: []*Service{
 					{
 						Name: "ExampleService",
@@ -492,29 +468,18 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 			name: "empty schema",
 			args: args{
 				s: &WebRPCSchema{
-					WebrpcVersion: "v0.1.0",
-					SchemaName:    "dev",
-					SchemaVersion: "dev-v0.1.0",
-					Services:      []*Service{}, // No services in the schema
+					Services: []*Service{}, // No services in the schema
 				},
-				ignoreAnnotations: map[string]struct{}{
-					"deprecated": {},
-				},
+				ignoreAnnotations: map[string]string{"deprecated": ""},
 			},
 			want: &WebRPCSchema{
-				WebrpcVersion: "v0.1.0",
-				SchemaName:    "dev",
-				SchemaVersion: "dev-v0.1.0",
-				Services:      []*Service{}, // Expect no services
+				Services: []*Service{}, // Expect no services
 			},
 		},
 		{
 			name: "empty annotations map",
 			args: args{
 				s: &WebRPCSchema{
-					WebrpcVersion: "v0.1.0",
-					SchemaName:    "dev",
-					SchemaVersion: "dev-v0.1.0",
 					Services: []*Service{
 						{
 							Name: "ExampleService",
@@ -527,12 +492,9 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 						},
 					},
 				},
-				ignoreAnnotations: map[string]struct{}{},
+				ignoreAnnotations: map[string]string{},
 			},
 			want: &WebRPCSchema{
-				WebrpcVersion: "v0.1.0",
-				SchemaName:    "dev",
-				SchemaVersion: "dev-v0.1.0",
 				Services: []*Service{
 					{
 						Name: "ExampleService",
@@ -549,10 +511,8 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 		{
 			name: "nil schema",
 			args: args{
-				s: nil,
-				ignoreAnnotations: map[string]struct{}{
-					"deprecated": {},
-				},
+				s:                 nil,
+				ignoreAnnotations: map[string]string{"deprecated": ""},
 			},
 			want: nil, // Expect nil when the schema is nil
 		},
@@ -560,9 +520,6 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 			name: "nil annotations map",
 			args: args{
 				s: &WebRPCSchema{
-					WebrpcVersion: "v0.1.0",
-					SchemaName:    "dev",
-					SchemaVersion: "dev-v0.1.0",
 					Services: []*Service{
 						{
 							Name: "ExampleService",
@@ -583,9 +540,6 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 				ignoreAnnotations: nil, // Annotations map is nil
 			},
 			want: &WebRPCSchema{
-				WebrpcVersion: "v0.1.0",
-				SchemaName:    "dev",
-				SchemaVersion: "dev-v0.1.0",
 				Services: []*Service{
 					{
 						Name: "ExampleService",
@@ -605,12 +559,9 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 			},
 		},
 		{
-			name: "Filter deprecated methods",
+			name: "filter deprecated methods",
 			args: args{
 				s: &WebRPCSchema{
-					WebrpcVersion: "v0.1.0",
-					SchemaName:    "dev",
-					SchemaVersion: "dev-v0.1.0",
 					Services: []*Service{
 						{
 							Name: "ExampleService",
@@ -637,7 +588,6 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 										},
 										"deprecated": {
 											AnnotationType: "deprecated",
-											Value:          "Version2",
 										},
 									},
 								},
@@ -649,14 +599,9 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 						},
 					},
 				},
-				ignoreAnnotations: map[string]struct{}{
-					"deprecated": {},
-				},
+				ignoreAnnotations: map[string]string{"deprecated": ""},
 			},
 			want: &WebRPCSchema{
-				WebrpcVersion: "v0.1.0",
-				SchemaName:    "dev",
-				SchemaVersion: "dev-v0.1.0",
 				Services: []*Service{
 					{
 						Name: "ExampleService",

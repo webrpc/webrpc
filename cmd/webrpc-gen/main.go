@@ -67,17 +67,18 @@ func main() {
 	}
 
 	if strings.Trim(*ignoreFlag, " ") != "" {
-		ignoreAnnotations := strings.Split(*ignoreFlag, ",")
+		ignoreAnnotationMap := map[string]string{}
 
-		ignoreAnnotationMap := map[string]struct{}{}
-		for _, annonation := range ignoreAnnotations {
-			_, annotationName, ok := strings.Cut(annonation, "@")
+		for _, annonation := range strings.Split(*ignoreFlag, ",") {
+			_, fullAnnotation, ok := strings.Cut(annonation, "@")
 			if !ok {
 				fmt.Fprintf(os.Stderr, "ignore annotations must start with @\n\n")
 				os.Exit(1)
 			}
 
-			ignoreAnnotationMap[annotationName] = struct{}{}
+			annotationName, annotationValue, _ := strings.Cut(fullAnnotation, ":")
+
+			ignoreAnnotationMap[annotationName] = annotationValue
 		}
 
 		s = schema.IgnoreMethodsWithAnnotations(s, ignoreAnnotationMap)

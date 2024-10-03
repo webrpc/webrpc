@@ -137,7 +137,7 @@ func MatchServices(s *WebRPCSchema, services []string) *WebRPCSchema {
 	return s
 }
 
-func IgnoreMethodsWithAnnotations(s *WebRPCSchema, annotations map[string]struct{}) *WebRPCSchema {
+func IgnoreMethodsWithAnnotations(s *WebRPCSchema, annotations map[string]string) *WebRPCSchema {
 	if s == nil {
 		return nil
 	}
@@ -146,12 +146,28 @@ func IgnoreMethodsWithAnnotations(s *WebRPCSchema, annotations map[string]struct
 		var methods []*Method
 		for _, method := range srv.Methods {
 			ignore := false
-			for annotationName, _ := range annotations {
-				if _, ok := method.Annotations[annotationName]; ok {
-					ignore = true
-					break
+			for name, value := range annotations {
+				ann, ok := method.Annotations[name]
+				if !ok {
+					continue
+				}
+
+				trimmedAnnVal := strings.Trim(value, " ")
+				if trimmedAnnVal == "" {
+					// match annotation types only
+					if name == ann.AnnotationType {
+						ignore = true
+						break
+					}
+				} else {
+					// match @key:value
+					if name == ann.AnnotationType && value == ann.Value {
+						ignore = true
+						break
+					}
 				}
 			}
+
 			if !ignore {
 				methods = append(methods, method)
 			}
