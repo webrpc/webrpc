@@ -167,14 +167,6 @@ func (p *parser) rewind(n int) bool {
 	return true
 }
 
-func (p *parser) prev() bool {
-	if p.pos == 0 {
-		return false
-	}
-	p.pos = p.pos - 1
-	return true
-}
-
 func (p *parser) next() bool {
 	if p.pos >= p.length {
 		return false
@@ -188,15 +180,6 @@ func (p *parser) cursor() *token {
 		return eofToken
 	}
 	return &p.tokens[p.pos]
-}
-
-func (p *parser) goTo(position int) error {
-	if position < 0 || position > p.length {
-		return fmt.Errorf("invalid position")
-	}
-
-	p.pos = position
-	return nil
 }
 
 func (p *parser) expectStringValue() (*token, error) {
