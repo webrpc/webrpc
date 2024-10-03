@@ -6,11 +6,20 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 	return func(p *parser) parserState {
 		var streamInput, proxy bool
 
-		annotations, err := parseAnnotations(p)
-		if err != nil {
-			return p.stateError(err)
-		}
+		defer func() {
+			// clear annotation buffer
+			sn.methodAnnotations = []*AnnotationNode{}
+		}()
 
+		// check for annotation duplicates
+		annotations := make(map[string]struct{})
+		for _, ann := range sn.methodAnnotations {
+			if _, ok := annotations[ann.AnnotationType().String()]; ok {
+				return p.stateError(fmt.Errorf("duplicate annotation type: %v", ann.AnnotationType()))
+			}
+
+			annotations[ann.AnnotationType().String()] = struct{}{}
+		}
 		// - <name>([arguments]) [=> [([ return values ])]]
 		matches, err := p.match(tokenDash, tokenWhitespace, tokenWord)
 		if err != nil {
@@ -43,8 +52,8 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 
 		commentLine := matches[0].line
 		// we have to start parsing comments from the line of last annotation
-		if len(annotations) > 0 {
-			commentLine = annotations[len(annotations)-1].AnnotationType().tok.line
+		if len(sn.methodAnnotations) > 0 {
+			commentLine = sn.methodAnnotations[len(sn.methodAnnotations)-1].AnnotationType().tok.line
 		}
 
 		mn := &MethodNode{
@@ -58,7 +67,7 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 			outputs: argumentList{
 				arguments: []*ArgumentNode{},
 			},
-			annotations: annotations,
+			annotations: sn.methodAnnotations,
 		}
 
 		if proxy {
@@ -106,18 +115,25 @@ func parserStateServiceMethod(s *ServiceNode) parserState {
 		tok := p.cursor()
 
 		switch tok.tt {
-
 		case tokenNewLine, tokenWhitespace:
 			p.next()
 
 		case tokenAt:
-			p.continueUntilEOL()
+			anns, err := parseAnnotations(p)
+			if err != nil {
+				return p.stateError(err)
+			}
+			s.methodAnnotations = append(s.methodAnnotations, anns...)
 
 		case tokenHash:
-			p.continueUntilEOL()
+			err := p.continueUntilEOL()
+			if err != nil {
+				return p.stateError(err)
+			}
 
 		case tokenDash:
-			return parseStateServiceMethodDefinition(s)
+			state := parseStateServiceMethodDefinition(s)
+			return state
 
 		default:
 			p.emit(s)
@@ -150,90 +166,51 @@ func parseAnnotations(p *parser) ([]*AnnotationNode, error) {
 	annotations := []*AnnotationNode{}
 	annotationsMap := map[string]struct{}{}
 
-	currentPosition := p.pos
-
 	// @acl:admin
 	// @auth:"cookies,authorization,query" @internal
-	matcher := []tokenType{tokenWhitespace, tokenAt, tokenWord}
-	newline := 0
+	matcher := []tokenType{tokenAt, tokenWord}
 
-outerloop:
 	for {
-		prev := p.prev()
-		if !prev {
+		annotationMatches, err := p.match(matcher...)
+		if err != nil {
 			break
 		}
 
-		if p.cursor().tt == tokenNewLine {
-			newline++
+		annotation := &AnnotationNode{
+			annotationType: newTokenNode(annotationMatches[1]),
 		}
 
-		if p.cursor().tt == tokenNewLine && newline > 1 {
-			lineStartPosition := p.pos
-			p.next()
+		if _, ok := annotationsMap[annotation.annotationType.String()]; ok {
+			return nil, fmt.Errorf("duplicate annotation type: %s", annotation.annotationType.String())
+		}
 
-			matches := 0
-			for {
-				annotationMatches, err := p.match(matcher...)
-				// when we don't match annotation format
-				if err != nil {
-					if matches == 0 {
-						break outerloop
-					}
+		annotationsMap[annotation.annotationType.String()] = struct{}{}
 
-					break
-				}
+		if p.cursor().tt != tokenColon {
+			annotations = append(annotations, annotation)
+			continue
+		}
 
-				matches++
+		p.next()
 
-				if _, ok := annotationsMap[annotationMatches[2].String()]; ok {
-					return nil, fmt.Errorf("duplicate annotation detected: %s", annotationMatches[2].String())
-				}
+		// @acl:admin
+		if p.cursor() != eofToken && p.cursor().tt == tokenWord {
+			annotation.value = newTokenNode(p.cursor())
+		}
 
-				annotation := &AnnotationNode{
-					annotationType: newTokenNode(annotationMatches[2]),
-				}
-
-				annotationsMap[annotationMatches[2].String()] = struct{}{}
-
-				if p.cursor().tt != tokenColon {
-					annotations = append(annotations, annotation)
-					continue
-				}
-
-				p.next()
-
-				// @acl:admin
-				if p.cursor() != eofToken && p.cursor().tt == tokenWord {
-					annotation.value = newTokenNode(p.cursor())
-				}
-
-				// @auth:"cookies,authorization,query"
-				if p.cursor() != eofToken && p.cursor().tt == tokenQuote {
-					annotationValue, err := p.expectStringValue()
-					if err != nil {
-						return nil, fmt.Errorf("parse string value: %w", err)
-					}
-
-					annotation.value = newTokenNode(annotationValue)
-				}
-
-				p.next()
-
-				annotations = append(annotations, annotation)
-			}
-
-			err := p.goTo(lineStartPosition)
+		// @auth:"cookies,authorization,query"
+		if p.cursor() != eofToken && p.cursor().tt == tokenQuote {
+			annotationValue, err := p.expectStringValue()
 			if err != nil {
-				return annotations, fmt.Errorf("goto: %w", err)
+				return nil, fmt.Errorf("parse string value: %w", err)
 			}
-		}
-	}
 
-	// rewind to position before we started parsing annotations
-	err := p.goTo(currentPosition)
-	if err != nil {
-		return annotations, fmt.Errorf("goto: %w", err)
+			annotation.value = newTokenNode(annotationValue)
+		}
+
+		p.next()
+
+		annotations = append(annotations, annotation)
 	}
 
 	return annotations, nil

@@ -381,9 +381,10 @@ func (mn *MethodNode) Annotations() []*AnnotationNode {
 type ServiceNode struct {
 	node
 
-	name    *TokenNode
-	methods []*MethodNode
-	comment string
+	name              *TokenNode
+	methods           []*MethodNode
+	methodAnnotations []*AnnotationNode
+	comment           string
 }
 
 func (sn ServiceNode) Type() NodeType {
