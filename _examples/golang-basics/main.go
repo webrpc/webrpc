@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/webrpc/webrpc/_example/golang-basics/admin"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -55,9 +57,17 @@ func startServer() error {
 
 		return nil
 	}
+
+	r.Handle("/admin/*", admin.NewAdminServiceServer(&AdminServiceRPC{}))
 	r.Handle("/*", webrpcHandler)
 
 	return http.ListenAndServe(":4242", r)
+}
+
+type AdminServiceRPC struct{}
+
+func (*AdminServiceRPC) Auth(ctx context.Context) (string, string, error) {
+	return "jwt", "admin", nil
 }
 
 type ExampleServiceRPC struct {

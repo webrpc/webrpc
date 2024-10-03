@@ -22,6 +22,8 @@ var (
 	fmtFlag          = flags.Bool("fmt", true, "format generated code")
 	refreshCacheFlag = flags.Bool("refreshCache", false, "refresh webrpc cache")
 	silentFlag       = flags.Bool("silent", false, "silence gen summary")
+	serviceFlag      = flags.String("service", "", "generate passed service only separated by comma, empty string means all services")
+	ignoreFlag       = flags.String("ignore", "", "ignore ridl elements with specific annotations separated by commas")
 )
 
 func main() {
@@ -47,7 +49,7 @@ func main() {
 	}
 
 	// Parse+validate the webrpc schema file
-	schema, err := webrpc.ParseSchemaFile(*schemaFlag)
+	s, err := webrpc.ParseSchemaFile(*schemaFlag)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to parse %s:%v\n", *schemaFlag, err)
 		os.Exit(1)
@@ -60,13 +62,35 @@ func main() {
 		os.Exit(1)
 	}
 
+	if *serviceFlag != "" {
+		s = schema.MatchServices(s, strings.Split(*serviceFlag, ","))
+	}
+
+	if *ignoreFlag != "" {
+		ignoreAnnotationMap := map[string]string{}
+
+		for _, annonation := range strings.Split(*ignoreFlag, ",") {
+			_, fullAnnotation, ok := strings.Cut(annonation, "@")
+			if !ok {
+				fmt.Fprintf(os.Stderr, "ignore annotations must start with @\n\n")
+				os.Exit(1)
+			}
+
+			annotationName, annotationValue, _ := strings.Cut(fullAnnotation, ":")
+
+			ignoreAnnotationMap[annotationName] = annotationValue
+		}
+
+		s = schema.IgnoreMethodsWithAnnotations(s, ignoreAnnotationMap)
+	}
+
 	config := &gen.Config{
 		RefreshCache:    *refreshCacheFlag,
 		Format:          *fmtFlag,
 		TemplateOptions: templateOpts,
 	}
 
-	genOutput, err := gen.Generate(schema, *targetFlag, config)
+	genOutput, err := gen.Generate(s, *targetFlag, config)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)

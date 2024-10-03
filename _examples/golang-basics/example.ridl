@@ -72,8 +72,27 @@ service ExampleService
   @deprecated:GetUserV2
   @internal
   - GetUser(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
+  @public
   @auth:"X-Access-Key,S2S,Cookies"
   - GetUserV2(header: map<string,string>, userID: uint64) => (code: uint32, user: User, profile: string)
+  @public
   - FindUser(s: SearchFilter) => (name: string, user: User)
+  @public
   - GetIntents() => (intents: []Intent)
+  @public
   - CountIntents(userId: uint64) => (count: map<Intent,uint32>)
+
+service ExampleServiceV2
+  - Ping()
+  - Status() => (status: bool)
+
+service AdminService
+  @public
+  @deprecated:Auth
+  - AuthOld() => (jwt: string)
+  @public
+  - Auth() => (jwt: string, role: string)
+  @internal
+  - Status() => (status: bool)
+  @internal
+  - Version() => (version: Version)
