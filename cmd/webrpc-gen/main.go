@@ -23,6 +23,7 @@ var (
 	refreshCacheFlag = flags.Bool("refreshCache", false, "refresh webrpc cache")
 	silentFlag       = flags.Bool("silent", false, "silence gen summary")
 	serviceFlag      = flags.String("service", "", "generate passed service only separated by comma, empty string means all services")
+	ignoreFlag       = flags.String("ignore", "", "ignore ridl elements with specific annotations separated by commas")
 )
 
 func main() {
@@ -68,7 +69,24 @@ func main() {
 			serviceMap[srv] = struct{}{}
 		}
 
-		s = schema.FilterServices(s, serviceMap)
+		s = schema.MatchServices(s, serviceMap)
+	}
+
+	if strings.Trim(*ignoreFlag, " ") != "" {
+		ignoreAnnotations := strings.Split(*ignoreFlag, ",")
+
+		ignoreAnnotationMap := map[string]struct{}{}
+		for _, annonation := range ignoreAnnotations {
+			_, annotationName, ok := strings.Cut(annonation, "@")
+			if !ok {
+				fmt.Fprintf(os.Stderr, "ignore annotations must start with @\n\n")
+				os.Exit(1)
+			}
+
+			ignoreAnnotationMap[annotationName] = struct{}{}
+		}
+
+		s = schema.IgnoreMethodsWithAnnotations(s, ignoreAnnotationMap)
 	}
 
 	config := &gen.Config{

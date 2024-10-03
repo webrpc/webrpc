@@ -111,11 +111,48 @@ func (s *WebRPCSchema) GetServiceByName(name string) *Service {
 	return nil
 }
 
-func FilterServices(s *WebRPCSchema, services map[string]struct{}) *WebRPCSchema {
-	for i, srv := range s.Services {
-		if _, ok := services[srv.Name]; !ok {
-			s.Services = append(s.Services[:i], s.Services[i+1:]...)
+func MatchServices(s *WebRPCSchema, services map[string]struct{}) *WebRPCSchema {
+	if s == nil {
+		return nil
+	}
+
+	if len(services) == 0 {
+		return s
+	}
+
+	var matchedServices []*Service
+	for _, srv := range s.Services {
+		if _, ok := services[srv.Name]; ok {
+			matchedServices = append(matchedServices, srv)
 		}
+	}
+
+	s.Services = matchedServices
+
+	return s
+}
+
+func IgnoreMethodsWithAnnotations(s *WebRPCSchema, annotations map[string]struct{}) *WebRPCSchema {
+	if s == nil {
+		return nil
+	}
+
+	for i, srv := range s.Services {
+		var methods []*Method
+		for _, method := range srv.Methods {
+			ignore := false
+			for annotationName, _ := range annotations {
+				if _, ok := method.Annotations[annotationName]; ok {
+					ignore = true
+					break
+				}
+			}
+			if !ignore {
+				methods = append(methods, method)
+			}
+		}
+
+		s.Services[i].Methods = methods
 	}
 
 	return s

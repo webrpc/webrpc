@@ -193,7 +193,7 @@ func TestFoo(t *testing.T) {
 	assert.False(t, IsValidArgName("asSS_E_##$"))
 }
 
-func TestFilterServices(t *testing.T) {
+func TestMatchServices(t *testing.T) {
 	type args struct {
 		s        *WebRPCSchema
 		services map[string]struct{}
@@ -204,22 +204,16 @@ func TestFilterServices(t *testing.T) {
 		want *WebRPCSchema
 	}{
 		{
-			name: "filter services",
+			name: "match services",
 			args: args{
 				s: &WebRPCSchema{
 					WebrpcVersion: "v0.1.0",
 					SchemaName:    "dev",
 					SchemaVersion: "dev-v0.1.0",
 					Services: []*Service{
-						{
-							Name: "ExampleService",
-						},
-						{
-							Name: "AdminService",
-						},
-						{
-							Name: "PublicService",
-						},
+						{Name: "ExampleService"},
+						{Name: "AdminService"},
+						{Name: "PublicService"},
 					},
 				},
 				services: map[string]struct{}{
@@ -232,11 +226,471 @@ func TestFilterServices(t *testing.T) {
 				SchemaName:    "dev",
 				SchemaVersion: "dev-v0.1.0",
 				Services: []*Service{
+					{Name: "ExampleService"},
+					{Name: "AdminService"},
+				},
+			},
+		},
+		{
+			name: "no services to match",
+			args: args{
+				s: &WebRPCSchema{
+					WebrpcVersion: "v0.1.0",
+					SchemaName:    "dev",
+					SchemaVersion: "dev-v0.1.0",
+					Services: []*Service{
+						{Name: "ExampleService"},
+						{Name: "AdminService"},
+					},
+				},
+				services: map[string]struct{}{},
+			},
+			want: &WebRPCSchema{
+				WebrpcVersion: "v0.1.0",
+				SchemaName:    "dev",
+				SchemaVersion: "dev-v0.1.0",
+				Services: []*Service{
+					{Name: "ExampleService"},
+					{Name: "AdminService"},
+				},
+			},
+		},
+		{
+			name: "no matching services",
+			args: args{
+				s: &WebRPCSchema{
+					WebrpcVersion: "v0.1.0",
+					SchemaName:    "dev",
+					SchemaVersion: "dev-v0.1.0",
+					Services: []*Service{
+						{Name: "ExampleService"},
+						{Name: "AdminService"},
+					},
+				},
+				services: map[string]struct{}{
+					"NonExistentService": {},
+				},
+			},
+			want: &WebRPCSchema{
+				WebrpcVersion: "v0.1.0",
+				SchemaName:    "dev",
+				SchemaVersion: "dev-v0.1.0",
+				Services:      []*Service(nil),
+			},
+		},
+		{
+			name: "all services match",
+			args: args{
+				s: &WebRPCSchema{
+					WebrpcVersion: "v0.1.0",
+					SchemaName:    "dev",
+					SchemaVersion: "dev-v0.1.0",
+					Services: []*Service{
+						{Name: "ExampleService"},
+						{Name: "AdminService"},
+					},
+				},
+				services: map[string]struct{}{
+					"ExampleService": {},
+					"AdminService":   {},
+				},
+			},
+			want: &WebRPCSchema{
+				WebrpcVersion: "v0.1.0",
+				SchemaName:    "dev",
+				SchemaVersion: "dev-v0.1.0",
+				Services: []*Service{
+					{Name: "ExampleService"},
+					{Name: "AdminService"},
+				},
+			},
+		},
+		{
+			name: "empty service list in schema",
+			args: args{
+				s: &WebRPCSchema{
+					WebrpcVersion: "v0.1.0",
+					SchemaName:    "dev",
+					SchemaVersion: "dev-v0.1.0",
+					Services:      []*Service{}, // No services in schema
+				},
+				services: map[string]struct{}{
+					"ExampleService": {},
+				},
+			},
+			want: &WebRPCSchema{
+				WebrpcVersion: "v0.1.0",
+				SchemaName:    "dev",
+				SchemaVersion: "dev-v0.1.0",
+				Services:      []*Service(nil), // Nothing to match, return empty
+			},
+		},
+		{
+			name: "nil schema",
+			args: args{
+				s: nil, // Schema is nil
+				services: map[string]struct{}{
+					"ExampleService": {},
+				},
+			},
+			want: nil, // Expect nil in return
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.EqualValues(t, tt.want, MatchServices(tt.args.s, tt.args.services))
+		})
+	}
+}
+
+func TestIgnoreMethodsWithAnnotations(t *testing.T) {
+	type args struct {
+		s                 *WebRPCSchema
+		ignoreAnnotations map[string]struct{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want *WebRPCSchema
+	}{
+		{
+			name: "no methods to ignore",
+			args: args{
+				s: &WebRPCSchema{
+					WebrpcVersion: "v0.1.0",
+					SchemaName:    "dev",
+					SchemaVersion: "dev-v0.1.0",
+					Services: []*Service{
+						{
+							Name: "ExampleService",
+							Methods: []*Method{
+								{
+									Name:        "Ping",
+									Annotations: map[string]*Annotation{},
+								},
+								{
+									Name:        "Version",
+									Annotations: map[string]*Annotation{},
+								},
+							},
+						},
+					},
+				},
+				ignoreAnnotations: map[string]struct{}{
+					"deprecated": {},
+				},
+			},
+			want: &WebRPCSchema{
+				WebrpcVersion: "v0.1.0",
+				SchemaName:    "dev",
+				SchemaVersion: "dev-v0.1.0",
+				Services: []*Service{
 					{
 						Name: "ExampleService",
+						Methods: []*Method{
+							{
+								Name:        "Ping",
+								Annotations: map[string]*Annotation{},
+							},
+							{
+								Name:        "Version",
+								Annotations: map[string]*Annotation{},
+							},
+						},
 					},
+				},
+			},
+		},
+		{
+			name: "all methods ignored",
+			args: args{
+				s: &WebRPCSchema{
+					WebrpcVersion: "v0.1.0",
+					SchemaName:    "dev",
+					SchemaVersion: "dev-v0.1.0",
+					Services: []*Service{
+						{
+							Name: "ExampleService",
+							Methods: []*Method{
+								{
+									Name: "Ping",
+									Annotations: map[string]*Annotation{
+										"deprecated": {
+											AnnotationType: "deprecated",
+											Value:          "v1",
+										},
+									},
+								},
+								{
+									Name: "Version",
+									Annotations: map[string]*Annotation{
+										"deprecated": {
+											AnnotationType: "deprecated",
+											Value:          "v2",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ignoreAnnotations: map[string]struct{}{
+					"deprecated": {},
+				},
+			},
+			want: &WebRPCSchema{
+				WebrpcVersion: "v0.1.0",
+				SchemaName:    "dev",
+				SchemaVersion: "dev-v0.1.0",
+				Services: []*Service{
 					{
-						Name: "AdminService",
+						Name:    "ExampleService",
+						Methods: []*Method(nil), // All methods are ignored
+					},
+				},
+			},
+		},
+		{
+			name: "no matching annotations",
+			args: args{
+				s: &WebRPCSchema{
+					WebrpcVersion: "v0.1.0",
+					SchemaName:    "dev",
+					SchemaVersion: "dev-v0.1.0",
+					Services: []*Service{
+						{
+							Name: "ExampleService",
+							Methods: []*Method{
+								{
+									Name: "Ping",
+									Annotations: map[string]*Annotation{
+										"internal": {
+											AnnotationType: "internal",
+											Value:          "",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ignoreAnnotations: map[string]struct{}{
+					"deprecated": {},
+				},
+			},
+			want: &WebRPCSchema{
+				WebrpcVersion: "v0.1.0",
+				SchemaName:    "dev",
+				SchemaVersion: "dev-v0.1.0",
+				Services: []*Service{
+					{
+						Name: "ExampleService",
+						Methods: []*Method{
+							{
+								Name: "Ping",
+								Annotations: map[string]*Annotation{
+									"internal": {
+										AnnotationType: "internal",
+										Value:          "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "empty schema",
+			args: args{
+				s: &WebRPCSchema{
+					WebrpcVersion: "v0.1.0",
+					SchemaName:    "dev",
+					SchemaVersion: "dev-v0.1.0",
+					Services:      []*Service{}, // No services in the schema
+				},
+				ignoreAnnotations: map[string]struct{}{
+					"deprecated": {},
+				},
+			},
+			want: &WebRPCSchema{
+				WebrpcVersion: "v0.1.0",
+				SchemaName:    "dev",
+				SchemaVersion: "dev-v0.1.0",
+				Services:      []*Service{}, // Expect no services
+			},
+		},
+		{
+			name: "empty annotations map",
+			args: args{
+				s: &WebRPCSchema{
+					WebrpcVersion: "v0.1.0",
+					SchemaName:    "dev",
+					SchemaVersion: "dev-v0.1.0",
+					Services: []*Service{
+						{
+							Name: "ExampleService",
+							Methods: []*Method{
+								{
+									Name:        "Ping",
+									Annotations: map[string]*Annotation{},
+								},
+							},
+						},
+					},
+				},
+				ignoreAnnotations: map[string]struct{}{},
+			},
+			want: &WebRPCSchema{
+				WebrpcVersion: "v0.1.0",
+				SchemaName:    "dev",
+				SchemaVersion: "dev-v0.1.0",
+				Services: []*Service{
+					{
+						Name: "ExampleService",
+						Methods: []*Method{
+							{
+								Name:        "Ping",
+								Annotations: map[string]*Annotation{},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "nil schema",
+			args: args{
+				s: nil,
+				ignoreAnnotations: map[string]struct{}{
+					"deprecated": {},
+				},
+			},
+			want: nil, // Expect nil when the schema is nil
+		},
+		{
+			name: "nil annotations map",
+			args: args{
+				s: &WebRPCSchema{
+					WebrpcVersion: "v0.1.0",
+					SchemaName:    "dev",
+					SchemaVersion: "dev-v0.1.0",
+					Services: []*Service{
+						{
+							Name: "ExampleService",
+							Methods: []*Method{
+								{
+									Name: "Ping",
+									Annotations: map[string]*Annotation{
+										"deprecated": {
+											AnnotationType: "deprecated",
+											Value:          "v1",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				ignoreAnnotations: nil, // Annotations map is nil
+			},
+			want: &WebRPCSchema{
+				WebrpcVersion: "v0.1.0",
+				SchemaName:    "dev",
+				SchemaVersion: "dev-v0.1.0",
+				Services: []*Service{
+					{
+						Name: "ExampleService",
+						Methods: []*Method{
+							{
+								Name: "Ping",
+								Annotations: map[string]*Annotation{
+									"deprecated": {
+										AnnotationType: "deprecated",
+										Value:          "v1",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Filter deprecated methods",
+			args: args{
+				s: &WebRPCSchema{
+					WebrpcVersion: "v0.1.0",
+					SchemaName:    "dev",
+					SchemaVersion: "dev-v0.1.0",
+					Services: []*Service{
+						{
+							Name: "ExampleService",
+							Methods: []*Method{
+								{
+									Name: "Ping",
+									Annotations: map[string]*Annotation{
+										"internal": {
+											AnnotationType: "internal",
+											Value:          "",
+										},
+										"auth": {
+											AnnotationType: "auth",
+											Value:          "Cookies,Jwt,Authorization",
+										},
+									},
+								},
+								{
+									Name: "Version",
+									Annotations: map[string]*Annotation{
+										"internal": {
+											AnnotationType: "internal",
+											Value:          "",
+										},
+										"deprecated": {
+											AnnotationType: "deprecated",
+											Value:          "Version2",
+										},
+									},
+								},
+								{
+									Name:        "Version2",
+									Annotations: map[string]*Annotation{},
+								},
+							},
+						},
+					},
+				},
+				ignoreAnnotations: map[string]struct{}{
+					"deprecated": {},
+				},
+			},
+			want: &WebRPCSchema{
+				WebrpcVersion: "v0.1.0",
+				SchemaName:    "dev",
+				SchemaVersion: "dev-v0.1.0",
+				Services: []*Service{
+					{
+						Name: "ExampleService",
+						Methods: []*Method{
+							{
+								Name: "Ping",
+								Annotations: map[string]*Annotation{
+									"internal": {
+										AnnotationType: "internal",
+										Value:          "",
+									},
+									"auth": {
+										AnnotationType: "auth",
+										Value:          "Cookies,Jwt,Authorization",
+									},
+								},
+							},
+							{
+								Name:        "Version2",
+								Annotations: map[string]*Annotation{},
+							},
+						},
 					},
 				},
 			},
@@ -244,7 +698,7 @@ func TestFilterServices(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.EqualValues(t, tt.want, FilterServices(tt.args.s, tt.args.services))
+			require.EqualValues(t, tt.want, IgnoreMethodsWithAnnotations(tt.args.s, tt.args.ignoreAnnotations))
 		})
 	}
 }

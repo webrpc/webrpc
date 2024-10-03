@@ -81,3 +81,8 @@ service ExampleService
 service ExampleServiceV2
   - Ping()
   - Status() => (status: bool)
+
+service AdminService
+  @deprecated:Auth
+  - AuthOld() => (jwt: string)
+  - Auth() => (jwt: string, role: string)
