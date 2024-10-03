@@ -62,11 +62,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	if strings.Trim(*serviceFlag, " ") != "" {
+	if *serviceFlag != "" {
 		s = schema.MatchServices(s, strings.Split(*serviceFlag, ","))
 	}
 
-	if strings.Trim(*ignoreFlag, " ") != "" {
+	if *ignoreFlag != "" {
 		ignoreAnnotationMap := map[string]string{}
 
 		for _, annonation := range strings.Split(*ignoreFlag, ",") {
