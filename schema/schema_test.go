@@ -196,7 +196,7 @@ func TestFoo(t *testing.T) {
 func TestMatchServices(t *testing.T) {
 	type args struct {
 		s        *WebRPCSchema
-		services map[string]struct{}
+		services []string
 	}
 	tests := []struct {
 		name string
@@ -216,10 +216,7 @@ func TestMatchServices(t *testing.T) {
 						{Name: "PublicService"},
 					},
 				},
-				services: map[string]struct{}{
-					"ExampleService": {},
-					"AdminService":   {},
-				},
+				services: []string{"ExampleService", "AdminService"},
 			},
 			want: &WebRPCSchema{
 				WebrpcVersion: "v0.1.0",
@@ -243,7 +240,7 @@ func TestMatchServices(t *testing.T) {
 						{Name: "AdminService"},
 					},
 				},
-				services: map[string]struct{}{},
+				services: []string{},
 			},
 			want: &WebRPCSchema{
 				WebrpcVersion: "v0.1.0",
@@ -267,9 +264,7 @@ func TestMatchServices(t *testing.T) {
 						{Name: "AdminService"},
 					},
 				},
-				services: map[string]struct{}{
-					"NonExistentService": {},
-				},
+				services: []string{"NonExistentService"},
 			},
 			want: &WebRPCSchema{
 				WebrpcVersion: "v0.1.0",
@@ -290,10 +285,7 @@ func TestMatchServices(t *testing.T) {
 						{Name: "AdminService"},
 					},
 				},
-				services: map[string]struct{}{
-					"ExampleService": {},
-					"AdminService":   {},
-				},
+				services: []string{"ExampleService", "AdminService"},
 			},
 			want: &WebRPCSchema{
 				WebrpcVersion: "v0.1.0",
@@ -314,9 +306,7 @@ func TestMatchServices(t *testing.T) {
 					SchemaVersion: "dev-v0.1.0",
 					Services:      []*Service{}, // No services in schema
 				},
-				services: map[string]struct{}{
-					"ExampleService": {},
-				},
+				services: []string{"ExampleService", "AdminService"},
 			},
 			want: &WebRPCSchema{
 				WebrpcVersion: "v0.1.0",
@@ -328,10 +318,8 @@ func TestMatchServices(t *testing.T) {
 		{
 			name: "nil schema",
 			args: args{
-				s: nil, // Schema is nil
-				services: map[string]struct{}{
-					"ExampleService": {},
-				},
+				s:        nil, // Schema is nil
+				services: []string{"ExampleService", "AdminService"},
 			},
 			want: nil, // Expect nil in return
 		},

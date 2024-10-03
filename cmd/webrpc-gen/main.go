@@ -63,13 +63,7 @@ func main() {
 	}
 
 	if strings.Trim(*serviceFlag, " ") != "" {
-		services := strings.Split(*serviceFlag, ",")
-		serviceMap := map[string]struct{}{}
-		for _, srv := range services {
-			serviceMap[srv] = struct{}{}
-		}
-
-		s = schema.MatchServices(s, serviceMap)
+		s = schema.MatchServices(s, strings.Split(*serviceFlag, ","))
 	}
 
 	if strings.Trim(*ignoreFlag, " ") != "" {

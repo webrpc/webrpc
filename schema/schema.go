@@ -111,7 +111,7 @@ func (s *WebRPCSchema) GetServiceByName(name string) *Service {
 	return nil
 }
 
-func MatchServices(s *WebRPCSchema, services map[string]struct{}) *WebRPCSchema {
+func MatchServices(s *WebRPCSchema, services []string) *WebRPCSchema {
 	if s == nil {
 		return nil
 	}
@@ -120,9 +120,14 @@ func MatchServices(s *WebRPCSchema, services map[string]struct{}) *WebRPCSchema 
 		return s
 	}
 
+	serviceMap := map[string]struct{}{}
+	for _, srv := range services {
+		serviceMap[srv] = struct{}{}
+	}
+
 	var matchedServices []*Service
 	for _, srv := range s.Services {
-		if _, ok := services[srv.Name]; ok {
+		if _, ok := serviceMap[srv.Name]; ok {
 			matchedServices = append(matchedServices, srv)
 		}
 	}
