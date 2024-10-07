@@ -24,6 +24,20 @@ type GenOutput struct {
 	FormatErr error
 }
 
+type TemplateVars struct {
+	*schema.WebRPCSchema
+	SchemaHash       string
+	WebrpcGenVersion string
+	WebrpcGenCommand string
+	WebrpcHeader     string
+	WebrpcTarget     string
+	WebrpcErrors     []*schema.Error
+	Opts             map[string]interface{}
+	CodeGen          string
+	CodeGenVersion   string
+	CodeGenName      string
+}
+
 func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *GenOutput, err error) {
 	defer func() {
 		if err != nil {
@@ -37,23 +51,14 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		return nil, err
 	}
 
-	// Template vars
-	vars := struct {
-		*schema.WebRPCSchema
-		SchemaHash       string
-		WebrpcGenVersion string
-		WebrpcGenCommand string
-		WebrpcTarget     string
-		WebrpcErrors     []*schema.Error
-		Opts             map[string]interface{}
-	}{
-		proto,
-		schemaHash,
-		webrpc.VERSION,
-		getWebrpcGenCommand(),
-		target,
-		WebrpcErrors,
-		config.TemplateOptions,
+	vars := TemplateVars{
+		WebRPCSchema:     proto,
+		SchemaHash:       schemaHash,
+		WebrpcGenVersion: webrpc.VERSION,
+		WebrpcGenCommand: getWebrpcGenCommand(),
+		WebrpcTarget:     target,
+		WebrpcErrors:     WebrpcErrors,
+		Opts:             config.TemplateOptions,
 	}
 	if isLocalDir(target) {
 		vars.WebrpcTarget = target
@@ -94,6 +99,14 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 	}
 	genOutput.TemplateSource = *tmplSource
 
+	v := strings.Split(tmplSource.TmplVersion, "/")
+	codeGenName, codeGenVersion, _ := strings.Cut(v[len(v)-1], "@")
+
+	vars.CodeGen = v[len(v)-1]
+	vars.CodeGenVersion = codeGenVersion
+	vars.CodeGenName = codeGenName
+	vars.WebrpcHeader = webRPCGenHeader(vars)
+
 	// Generate the template
 	var b bytes.Buffer
 	err = tmpl.ExecuteTemplate(&b, "main", vars)
@@ -116,4 +129,18 @@ func getWebrpcGenCommand() string {
 		cmd = fmt.Sprintf("%s %s", cmd, strings.Join(os.Args[1:], " "))
 	}
 	return cmd
+}
+
+func webRPCGenHeader(t TemplateVars) string {
+	webrpcGenVersion := fmt.Sprintf("webrpc@%s", t.WebrpcGenVersion)
+
+	codeGenVersion := t.CodeGenVersion
+	if codeGenVersion == "" {
+		codeGenVersion = "unknown"
+	}
+	codeGen := fmt.Sprintf("%s@%s", t.CodeGenName, codeGenVersion)
+
+	schemaVersion := fmt.Sprintf("%s@%s", t.SchemaName, t.SchemaVersion)
+
+	return fmt.Sprintf("%s;%s;%s", webrpcGenVersion, codeGen, schemaVersion)
 }
