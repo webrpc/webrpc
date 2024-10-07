@@ -24,6 +24,19 @@ type GenOutput struct {
 	FormatErr error
 }
 
+type TemplateVars struct {
+	*schema.WebRPCSchema
+	SchemaHash       string
+	WebrpcGenVersion string
+	WebrpcGenCommand string
+	WebrpcGenHeader  string
+	WebrpcTarget     string
+	WebrpcErrors     []*schema.Error
+	Opts             map[string]interface{}
+	TmplVersion      string
+	TmplTarget       string
+}
+
 func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *GenOutput, err error) {
 	defer func() {
 		if err != nil {
@@ -37,27 +50,14 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		return nil, err
 	}
 
-	// Template vars
-	vars := struct {
-		*schema.WebRPCSchema
-		SchemaHash       string
-		WebrpcGenVersion string
-		WebrpcGenCommand string
-		WebrpcTarget     string
-		WebrpcErrors     []*schema.Error
-		Opts             map[string]interface{}
-		TmplVersion      string
-		TmplTarget       string
-	}{
-		proto,
-		schemaHash,
-		webrpc.VERSION,
-		getWebrpcGenCommand(),
-		target,
-		WebrpcErrors,
-		config.TemplateOptions,
-		"",
-		"",
+	vars := TemplateVars{
+		WebRPCSchema:     proto,
+		SchemaHash:       schemaHash,
+		WebrpcGenVersion: webrpc.VERSION,
+		WebrpcGenCommand: getWebrpcGenCommand(),
+		WebrpcTarget:     target,
+		WebrpcErrors:     WebrpcErrors,
+		Opts:             config.TemplateOptions,
 	}
 	if isLocalDir(target) {
 		vars.WebrpcTarget = target
@@ -103,6 +103,7 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 
 	vars.TmplVersion = tmplVersion
 	vars.TmplTarget = tmplTarget
+	vars.WebrpcGenHeader = webRPCGenHeader(vars)
 
 	// Generate the template
 	var b bytes.Buffer
@@ -126,4 +127,18 @@ func getWebrpcGenCommand() string {
 		cmd = fmt.Sprintf("%s %s", cmd, strings.Join(os.Args[1:], " "))
 	}
 	return cmd
+}
+
+func webRPCGenHeader(t TemplateVars) string {
+	webrpcGenVersion := fmt.Sprintf("webrpc@%s", t.WebrpcGenVersion)
+
+	tmplVersion := t.TmplVersion
+	if tmplVersion == "" {
+		tmplVersion = "unknown"
+	}
+	tmpl := fmt.Sprintf("%s@%s", t.TmplTarget, tmplVersion)
+
+	schemaVersion := fmt.Sprintf("%s@%s", t.SchemaName, t.SchemaVersion)
+
+	return fmt.Sprintf("%s;%s;%s", webrpcGenVersion, tmpl, schemaVersion)
 }
