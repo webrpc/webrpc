@@ -63,6 +63,7 @@ const onClose = () => {
 const username = randomUserName();
 
 // const controller = new AbortController();
+// const abortSignal = controller.signal
 
 // const toggleConnectHandler = () => {
 //   if (connectionStatus.value == "connected") {
@@ -76,7 +77,7 @@ const username = randomUserName();
 // Subscribe to messages
 const stream = api.subscribeMessages(
   { username },
-  { onMessage, onError, onOpen, onClose }//, signal: controller }
+  { onMessage, onError, onOpen, onClose }//, signal: abortSignal }
 );
 
 const toggleConnectHandler = () => {
