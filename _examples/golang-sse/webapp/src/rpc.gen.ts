@@ -78,9 +78,16 @@ export class Chat implements Chat {
   }
   
   subscribeMessages = (args: SubscribeMessagesArgs, options: WebrpcStreamOptions<SubscribeMessagesReturn>): WebrpcStreamController => {
-    const abortController = options.controller ?? new AbortController();
+    const abortController = new AbortController();
+    const abortSignal = abortController.signal
 
-    const _fetch = () => this.fetch(this.url('SubscribeMessages'),createHTTPRequest(args, options.headers, abortController.signal)
+    if (options.signal) {
+      abortSignal.addEventListener("abort", () => abortController.abort(options.signal?.reason), {
+        signal: options.signal,
+      });
+    }
+
+    const _fetch = () => this.fetch(this.url('SubscribeMessages'),createHTTPRequest(args, options.headers, abortSignal)
       ).then(async (res) => {
         await sseResponse(res, options, _fetch);
     }, (error) => {
@@ -488,7 +495,7 @@ export interface WebrpcStreamOptions<T> extends WebrpcOptions {
 
 export interface WebrpcOptions {
   headers?: HeadersInit;
-  controller?: AbortController;
+  signal?: AbortSignal;
 }
 
 export interface WebrpcStreamController {
