@@ -23,7 +23,8 @@ var (
 	refreshCacheFlag = flags.Bool("refreshCache", false, "refresh webrpc cache")
 	silentFlag       = flags.Bool("silent", false, "silence gen summary")
 	serviceFlag      = flags.String("service", "", "generate passed service only separated by comma, empty string means all services")
-	ignoreFlag       = flags.String("ignore", "", "ignore ridl elements with specific annotations separated by commas")
+	ignoreFlag       = flags.String("ignore", "", "ignore service methods with specific annotations separated by commas")
+	matchFlag        = flags.String("match", "", "match service methods with specific annotations separated by commas")
 )
 
 func main() {
@@ -66,22 +67,29 @@ func main() {
 		s = schema.MatchServices(s, strings.Split(*serviceFlag, ","))
 	}
 
+	if *ignoreFlag != "" && *matchFlag != "" {
+		fmt.Fprintf(os.Stderr, "-ignore and -match flags are mutually exclusive\n\n")
+		os.Exit(1)
+	}
+
 	if *ignoreFlag != "" {
-		ignoreAnnotationMap := map[string]string{}
-
-		for _, annonation := range strings.Split(*ignoreFlag, ",") {
-			_, fullAnnotation, ok := strings.Cut(annonation, "@")
-			if !ok {
-				fmt.Fprintf(os.Stderr, "ignore annotations must start with @\n\n")
-				os.Exit(1)
-			}
-
-			annotationName, annotationValue, _ := strings.Cut(fullAnnotation, ":")
-
-			ignoreAnnotationMap[annotationName] = annotationValue
+		ignoreAnnotations, err := makeAnnotationsMap(*ignoreFlag)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "parse ignore annotations %s:%v\n", *ignoreFlag, err)
+			os.Exit(1)
 		}
 
-		s = schema.IgnoreMethodsWithAnnotations(s, ignoreAnnotationMap)
+		s = schema.IgnoreMethodsWithAnnotations(s, ignoreAnnotations)
+	}
+
+	if *matchFlag != "" {
+		matchAnnotations, err := makeAnnotationsMap(*matchFlag)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "parse match annotations %s:%v\n", *matchFlag, err)
+			os.Exit(1)
+		}
+
+		s = schema.MatchMethodsWithAnnotations(s, matchAnnotations)
 	}
 
 	config := &gen.Config{
@@ -136,6 +144,23 @@ func main() {
 		fmt.Println(" format error       :", genOutput.FormatErr)
 		os.Exit(1)
 	}
+}
+
+func makeAnnotationsMap(annotations string) (map[string]string, error) {
+	annotationsMap := map[string]string{}
+
+	for _, annonation := range strings.Split(annotations, ",") {
+		_, fullAnnotation, ok := strings.Cut(annonation, "@")
+		if !ok {
+			return annotationsMap, fmt.Errorf("invalid annotation format: %s", annonation)
+		}
+
+		annotationName, annotationValue, _ := strings.Cut(fullAnnotation, ":")
+
+		annotationsMap[annotationName] = annotationValue
+	}
+
+	return annotationsMap, nil
 }
 
 func collectCliArgs(flags *flag.FlagSet, args []string) (cliFlags []string, templateOpts map[string]interface{}, err error) {

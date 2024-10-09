@@ -635,3 +635,67 @@ func TestIgnoreMethodsWithAnnotations(t *testing.T) {
 		})
 	}
 }
+
+func TestMatchMethodsWithAnnotations(t *testing.T) {
+	type args struct {
+		s                *WebRPCSchema
+		matchAnnotations map[string]string
+	}
+	tests := []struct {
+		name string
+		args args
+		want *WebRPCSchema
+	}{
+		{
+			name: "no methods to ignore",
+			args: args{
+				s: &WebRPCSchema{
+					Services: []*Service{
+						{
+							Name: "ExampleService",
+							Methods: []*Method{
+								{
+									Name:        "Ping",
+									Annotations: map[string]*Annotation{},
+								},
+								{
+									Name: "Version",
+									Annotations: map[string]*Annotation{
+										"deprecated": {
+											AnnotationType: "deprecated",
+											Value:          "",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				matchAnnotations: map[string]string{"deprecated": ""},
+			},
+			want: &WebRPCSchema{
+				Services: []*Service{
+					{
+						Name: "ExampleService",
+						Methods: []*Method{
+							{
+								Name: "Version",
+								Annotations: map[string]*Annotation{
+									"deprecated": {
+										AnnotationType: "deprecated",
+										Value:          "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.EqualValues(t, tt.want, MatchMethodsWithAnnotations(tt.args.s, tt.args.matchAnnotations))
+		})
+	}
+}
