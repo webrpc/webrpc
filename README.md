@@ -20,6 +20,7 @@ simplifying the development of backend services for modern Web applications.
 - [Development](#development)
   - [Building from source](#building-from-source)
   - [Writing your own code-generator](#writing-your-own-code-generator)
+  - [Format ridl files](#format-ridl)
 - [Authors](#authors)
 - [Credits](#credits)
 - [License](#license)
@@ -214,6 +215,10 @@ For more information please see the [schema readme](./schema/README.md).
 
 See [webrpc-gen documentation](./gen).
 
+## Format ridl
+- Use [Ridlfmt](https://github.com/webrpc/ridlfmt)
+- Supports same arguments as `gofmt` 
+- See: [Example](https://github.com/webrpc/webrpc/blob/master/_examples/golang-basics/Makefile#L4)
 
 # Authors
 
