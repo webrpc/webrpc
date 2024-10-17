@@ -1,6 +1,9 @@
 all:
 	@awk -F'[ :]' '!/^all:/ && /^([A-z_-]+):/ {print "make " $$1}' Makefile
 
+format:
+	go run github.com/webrpc/ridlfmt@v0.2.0 -w example.ridl
+
 generate:
 	webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -service="ExampleService" -out=./example.gen.go
 	webrpc-gen -schema=example.ridl -target=golang -pkg=admin -server -client -service="AdminService" -ignore="@deprecated" -out=./admin/admin.gen.go

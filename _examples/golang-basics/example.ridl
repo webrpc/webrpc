@@ -1,8 +1,7 @@
-webrpc = v1             # version of webrpc schema format (ridl or json)
+webrpc = v1 # version of webrpc schema format (ridl or json)
 
-name = example          # name of your backend app
-version = v0.0.1        # version of your schema
-              
+name = example # name of your backend app
+version = v0.0.1 # version of your schema
 
 enum Kind: uint32
   - USER
@@ -56,30 +55,28 @@ struct ComplexType
   - mapOfUsers: map<string,User>
   - user: User
 
-
-error 1000 UserNotFound "User not found" HTTP 404
-error 2000 Unauthorized "Unauthorized access" HTTP 401
-error 3000 PermissionDenied "Permission denied" HTTP 403
-
+error 1000 UserNotFound     "User not found"      HTTP 404
+error 2000 Unauthorized     "Unauthorized access" HTTP 401
+error 3000 PermissionDenied "Permission denied"   HTTP 403
 
 service ExampleService
-  @internal
+    @internal
   - Ping()
-  @internal
+    @internal
   - Status() => (status: bool)
-  @internal
+    @internal
   - Version() => (version: Version)
-  @deprecated:GetUserV2
-  @internal
+    @deprecated:GetUserV2
+    @internal
   - GetUser(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
-  @public
-  @auth:"X-Access-Key,S2S,Cookies"
+    @public
+    @auth:"X-Access-Key,S2S,Cookies"
   - GetUserV2(header: map<string,string>, userID: uint64) => (code: uint32, user: User, profile: string)
-  @public
+    @public
   - FindUser(s: SearchFilter) => (name: string, user: User)
-  @public
+    @public
   - GetIntents() => (intents: []Intent)
-  @public
+    @public
   - CountIntents(userId: uint64) => (count: map<Intent,uint32>)
 
 service ExampleServiceV2
@@ -87,12 +84,12 @@ service ExampleServiceV2
   - Status() => (status: bool)
 
 service AdminService
-  @public
-  @deprecated:Auth
+    @public
+    @deprecated:Auth
   - AuthOld() => (jwt: string)
-  @public
+    @public
   - Auth() => (jwt: string, role: string)
-  @internal
+    @internal
   - Status() => (status: bool)
-  @internal
+    @internal
   - Version() => (version: Version)
