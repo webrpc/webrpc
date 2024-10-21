@@ -140,7 +140,13 @@ func webRPCGenHeader(t TemplateVars) string {
 	}
 	codeGen := fmt.Sprintf("%s@%s", t.CodeGenName, codeGenVersion)
 
-	schemaVersion := fmt.Sprintf("%s@%s", t.SchemaName, t.SchemaVersion)
+	var schemaVersion string
+	// schema version is empty we use schemaHash instead
+	if t.SchemaVersion == "" {
+		schemaVersion = fmt.Sprintf("%s@v0.0.0-%s", t.SchemaName, t.SchemaHash)
+	} else {
+		schemaVersion = fmt.Sprintf("%s@%s", t.SchemaName, t.SchemaVersion)
+	}
 
 	return fmt.Sprintf("%s;%s;%s", webrpcGenVersion, codeGen, schemaVersion)
 }
