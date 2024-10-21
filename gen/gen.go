@@ -143,7 +143,7 @@ func webRPCGenHeader(t TemplateVars) string {
 	var schemaVersion string
 	// schema version is empty we use schemaHash instead
 	if t.SchemaVersion == "" {
-		schemaVersion = fmt.Sprintf("%s@%s", t.SchemaName, t.SchemaHash)
+		schemaVersion = fmt.Sprintf("%s@v0.0.0-%s", t.SchemaName, t.SchemaHash)
 	} else {
 		schemaVersion = fmt.Sprintf("%s@%s", t.SchemaName, t.SchemaVersion)
 	}
