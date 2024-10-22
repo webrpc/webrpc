@@ -14,7 +14,12 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 )
+
+const WebrpcHeader = "Webrpc"
+
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.0;Test@v0.10.0"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -29,6 +34,57 @@ func WebRPCSchemaVersion() string {
 // Schema hash generated from your RIDL schema
 func WebRPCSchemaHash() string {
 	return "61c9c8c942e3f6bdffd9929e78ebb3631d924993"
+}
+
+type WebrpcGenVersions struct {
+	WebrpcGenVersion string
+	CodeGenName      string
+	CodeGenVersion   string
+	SchemaName       string
+	SchemaVersion    string
+}
+
+func VersionFromHeader(h http.Header) (*WebrpcGenVersions, error) {
+	if h.Get(WebrpcHeader) == "" {
+		return nil, fmt.Errorf("header is empty or missing")
+	}
+
+	versions, err := parseWebrpcGenVersions(h.Get(WebrpcHeader))
+	if err != nil {
+		return nil, fmt.Errorf("webrpc header is invalid: %w", err)
+	}
+
+	return versions, nil
+}
+
+func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
+	versions := strings.Split(header, ";")
+	if len(versions) < 3 {
+		return nil, fmt.Errorf("expected at least 3 parts while parsing webrpc header: %v", header)
+	}
+
+	_, webrpcGenVersion, ok := strings.Cut(versions[0], "@")
+	if !ok {
+		return nil, fmt.Errorf("webrpc gen version could not be parsed from: %s", versions[0])
+	}
+
+	tmplTarget, tmplVersion, ok := strings.Cut(versions[1], "@")
+	if !ok {
+		return nil, fmt.Errorf("tmplTarget and tmplVersion could not be parsed from: %s", versions[1])
+	}
+
+	schemaName, schemaVersion, ok := strings.Cut(versions[2], "@")
+	if !ok {
+		return nil, fmt.Errorf("schema name and schema version could not be parsed from: %s", versions[2])
+	}
+
+	return &WebrpcGenVersions{
+		WebrpcGenVersion: webrpcGenVersion,
+		CodeGenName:      tmplTarget,
+		CodeGenVersion:   tmplVersion,
+		SchemaName:       schemaName,
+		SchemaVersion:    schemaVersion,
+	}, nil
 }
 
 //
@@ -309,7 +365,7 @@ func (c *testApiClient) GetEmpty(ctx context.Context) error {
 	if resp != nil {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
 		}
 	}
 
@@ -322,7 +378,7 @@ func (c *testApiClient) GetError(ctx context.Context) error {
 	if resp != nil {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
 		}
 	}
 
@@ -338,7 +394,7 @@ func (c *testApiClient) GetOne(ctx context.Context) (*Simple, error) {
 	if resp != nil {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
 		}
 	}
 
@@ -354,7 +410,7 @@ func (c *testApiClient) SendOne(ctx context.Context, one *Simple) error {
 	if resp != nil {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
 		}
 	}
 
@@ -372,7 +428,7 @@ func (c *testApiClient) GetMulti(ctx context.Context) (*Simple, *Simple, *Simple
 	if resp != nil {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
 		}
 	}
 
@@ -390,7 +446,7 @@ func (c *testApiClient) SendMulti(ctx context.Context, one *Simple, two *Simple,
 	if resp != nil {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
 		}
 	}
 
@@ -406,7 +462,7 @@ func (c *testApiClient) GetComplex(ctx context.Context) (*Complex, error) {
 	if resp != nil {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
 		}
 	}
 
@@ -422,7 +478,7 @@ func (c *testApiClient) SendComplex(ctx context.Context, complex *Complex) error
 	if resp != nil {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
 		}
 	}
 
@@ -438,7 +494,7 @@ func (c *testApiClient) GetEnumList(ctx context.Context) ([]Status, error) {
 	if resp != nil {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
 		}
 	}
 
@@ -454,7 +510,7 @@ func (c *testApiClient) GetEnumMap(ctx context.Context) (map[Access]uint64, erro
 	if resp != nil {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
 		}
 	}
 
@@ -470,7 +526,7 @@ func (c *testApiClient) GetSchemaError(ctx context.Context, code int) error {
 	if resp != nil {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
 		}
 	}
 
@@ -507,6 +563,7 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 	}
 	req.Header.Set("Accept", contentType)
 	req.Header.Set("Content-Type", contentType)
+	req.Header.Set(WebrpcHeader, WebrpcHeaderValue)
 	if headers, ok := HTTPRequestHeaders(ctx); ok {
 		for k := range headers {
 			for _, v := range headers[k] {
@@ -521,15 +578,15 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
 	reqBody, err := json.Marshal(in)
 	if err != nil {
-		return nil, ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to marshal JSON body: %w", err))
+		return nil, ErrWebrpcRequestFailed.WithCausef("failed to marshal JSON body: %w", err)
 	}
 	if err = ctx.Err(); err != nil {
-		return nil, ErrWebrpcRequestFailed.WithCause(fmt.Errorf("aborted because context was done: %w", err))
+		return nil, ErrWebrpcRequestFailed.WithCausef("aborted because context was done: %w", err)
 	}
 
 	req, err := newRequest(ctx, url, bytes.NewBuffer(reqBody), "application/json")
 	if err != nil {
-		return nil, ErrWebrpcRequestFailed.WithCause(fmt.Errorf("could not build request: %w", err))
+		return nil, ErrWebrpcRequestFailed.WithCausef("could not build request: %w", err)
 	}
 
 	resp, err := client.Do(req)
@@ -540,12 +597,12 @@ func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out i
 	if resp.StatusCode != 200 {
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return nil, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to read server error response body: %w", err))
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to read server error response body: %w", err)
 		}
 
 		var rpcErr WebRPCError
 		if err := json.Unmarshal(respBody, &rpcErr); err != nil {
-			return nil, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to unmarshal server error: %w", err))
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal server error: %w", err)
 		}
 		if rpcErr.Cause != "" {
 			rpcErr.cause = errors.New(rpcErr.Cause)
@@ -556,12 +613,12 @@ func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out i
 	if out != nil {
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return nil, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to read response body: %w", err))
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to read response body: %w", err)
 		}
 
 		err = json.Unmarshal(respBody, &out)
 		if err != nil {
-			return nil, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to unmarshal JSON response body: %w", err))
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal JSON response body: %w", err)
 		}
 	}
 

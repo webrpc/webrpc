@@ -20,6 +20,10 @@ import (
 	"time"
 )
 
+const WebrpcHeader = "Webrpc"
+
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.0;webrpc-sse-chat@v1.0.0"
+
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
 	return "v1"
@@ -33,6 +37,57 @@ func WebRPCSchemaVersion() string {
 // Schema hash generated from your RIDL schema
 func WebRPCSchemaHash() string {
 	return "21faef7a7920c42e730d4a5df1dae90fde9f2e5b"
+}
+
+type WebrpcGenVersions struct {
+	WebrpcGenVersion string
+	CodeGenName      string
+	CodeGenVersion   string
+	SchemaName       string
+	SchemaVersion    string
+}
+
+func VersionFromHeader(h http.Header) (*WebrpcGenVersions, error) {
+	if h.Get(WebrpcHeader) == "" {
+		return nil, fmt.Errorf("header is empty or missing")
+	}
+
+	versions, err := parseWebrpcGenVersions(h.Get(WebrpcHeader))
+	if err != nil {
+		return nil, fmt.Errorf("webrpc header is invalid: %w", err)
+	}
+
+	return versions, nil
+}
+
+func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
+	versions := strings.Split(header, ";")
+	if len(versions) < 3 {
+		return nil, fmt.Errorf("expected at least 3 parts while parsing webrpc header: %v", header)
+	}
+
+	_, webrpcGenVersion, ok := strings.Cut(versions[0], "@")
+	if !ok {
+		return nil, fmt.Errorf("webrpc gen version could not be parsed from: %s", versions[0])
+	}
+
+	tmplTarget, tmplVersion, ok := strings.Cut(versions[1], "@")
+	if !ok {
+		return nil, fmt.Errorf("tmplTarget and tmplVersion could not be parsed from: %s", versions[1])
+	}
+
+	schemaName, schemaVersion, ok := strings.Cut(versions[2], "@")
+	if !ok {
+		return nil, fmt.Errorf("schema name and schema version could not be parsed from: %s", versions[2])
+	}
+
+	return &WebrpcGenVersions{
+		WebrpcGenVersion: webrpcGenVersion,
+		CodeGenName:      tmplTarget,
+		CodeGenVersion:   tmplVersion,
+		SchemaName:       schemaName,
+		SchemaVersion:    schemaVersion,
+	}, nil
 }
 
 //
@@ -176,10 +231,12 @@ func (s *chatServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		// In case of a panic, serve a HTTP 500 error and then panic.
 		if rr := recover(); rr != nil {
-			s.sendErrorJSON(w, r, ErrWebrpcServerPanic.WithCause(fmt.Errorf("%v", rr)))
+			s.sendErrorJSON(w, r, ErrWebrpcServerPanic.WithCausef("%v", rr))
 			panic(rr)
 		}
 	}()
+
+	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
@@ -195,14 +252,14 @@ func (s *chatServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/rpc/Chat/SubscribeMessages":
 		handler = s.serveSubscribeMessagesJSONStream
 	default:
-		err := ErrWebrpcBadRoute.WithCause(fmt.Errorf("no WebRPC method defined for path %v", r.URL.Path))
+		err := ErrWebrpcBadRoute.WithCausef("no WebRPC method defined for path %v", r.URL.Path)
 		s.sendErrorJSON(w, r, err)
 		return
 	}
 
 	if r.Method != "POST" {
 		w.Header().Add("Allow", "POST") // RFC 9110.
-		err := ErrWebrpcBadMethod.WithCause(fmt.Errorf("unsupported method %v (only POST is allowed)", r.Method))
+		err := ErrWebrpcBadMethod.WithCausef("unsupported method %v (only POST is allowed)", r.Method)
 		s.sendErrorJSON(w, r, err)
 		return
 	}
@@ -228,7 +285,7 @@ func (s *chatServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		handler(ctx, w, r)
 	default:
-		err := ErrWebrpcBadRequest.WithCause(fmt.Errorf("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type")))
+		err := ErrWebrpcBadRequest.WithCausef("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type"))
 		s.sendErrorJSON(w, r, err)
 	}
 }
@@ -238,7 +295,7 @@ func (s *chatServer) serveSendMessageJSON(ctx context.Context, w http.ResponseWr
 
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to read request data: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
 		return
 	}
 	defer r.Body.Close()
@@ -248,7 +305,7 @@ func (s *chatServer) serveSendMessageJSON(ctx context.Context, w http.ResponseWr
 		Arg1 string `json:"text"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to unmarshal request data: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
 
@@ -273,7 +330,7 @@ func (s *chatServer) serveSubscribeMessagesJSONStream(ctx context.Context, w htt
 
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to read request data: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
 		return
 	}
 	defer r.Body.Close()
@@ -282,13 +339,13 @@ func (s *chatServer) serveSubscribeMessagesJSONStream(ctx context.Context, w htt
 		Arg0 string `json:"username"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to unmarshal request data: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
 
 	f, ok := w.(http.Flusher)
 	if !ok {
-		s.sendErrorJSON(w, r, ErrWebrpcInternalError.WithCause(fmt.Errorf("server http.ResponseWriter doesn't support .Flush() method")))
+		s.sendErrorJSON(w, r, ErrWebrpcInternalError.WithCausef("server http.ResponseWriter doesn't support .Flush() method"))
 		return
 	}
 
@@ -300,7 +357,7 @@ func (s *chatServer) serveSubscribeMessagesJSONStream(ctx context.Context, w htt
 
 	streamWriter := &subscribeMessagesStreamWriter{streamWriter{w: w, f: f, e: json.NewEncoder(w), sendError: s.sendErrorJSON}}
 	if err := streamWriter.ping(); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcStreamLost.WithCause(fmt.Errorf("failed to establish SSE stream: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcStreamLost.WithCausef("failed to establish SSE stream: %w", err))
 		return
 	}
 
@@ -386,7 +443,7 @@ func (c *chatClient) SendMessage(ctx context.Context, username string, text stri
 	if resp != nil {
 		cerr := resp.Body.Close()
 		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to close response body: %w", cerr))
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
 		}
 	}
 
@@ -475,7 +532,7 @@ func (r *streamReader) handleReadError(err error) error {
 	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 		return ErrWebrpcClientDisconnected.WithCause(err)
 	}
-	return ErrWebrpcBadResponse.WithCause(fmt.Errorf("reading stream: %w", err))
+	return ErrWebrpcBadResponse.WithCausef("reading stream: %w", err)
 }
 
 // HTTPClient is the interface used by generated clients to send HTTP requests.
@@ -508,6 +565,7 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 	}
 	req.Header.Set("Accept", contentType)
 	req.Header.Set("Content-Type", contentType)
+	req.Header.Set(WebrpcHeader, WebrpcHeaderValue)
 	if headers, ok := HTTPRequestHeaders(ctx); ok {
 		for k := range headers {
 			for _, v := range headers[k] {
@@ -522,15 +580,15 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
 	reqBody, err := json.Marshal(in)
 	if err != nil {
-		return nil, ErrWebrpcRequestFailed.WithCause(fmt.Errorf("failed to marshal JSON body: %w", err))
+		return nil, ErrWebrpcRequestFailed.WithCausef("failed to marshal JSON body: %w", err)
 	}
 	if err = ctx.Err(); err != nil {
-		return nil, ErrWebrpcRequestFailed.WithCause(fmt.Errorf("aborted because context was done: %w", err))
+		return nil, ErrWebrpcRequestFailed.WithCausef("aborted because context was done: %w", err)
 	}
 
 	req, err := newRequest(ctx, url, bytes.NewBuffer(reqBody), "application/json")
 	if err != nil {
-		return nil, ErrWebrpcRequestFailed.WithCause(fmt.Errorf("could not build request: %w", err))
+		return nil, ErrWebrpcRequestFailed.WithCausef("could not build request: %w", err)
 	}
 
 	resp, err := client.Do(req)
@@ -541,12 +599,12 @@ func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out i
 	if resp.StatusCode != 200 {
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return nil, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to read server error response body: %w", err))
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to read server error response body: %w", err)
 		}
 
 		var rpcErr WebRPCError
 		if err := json.Unmarshal(respBody, &rpcErr); err != nil {
-			return nil, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to unmarshal server error: %w", err))
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal server error: %w", err)
 		}
 		if rpcErr.Cause != "" {
 			rpcErr.cause = errors.New(rpcErr.Cause)
@@ -557,12 +615,12 @@ func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out i
 	if out != nil {
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return nil, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to read response body: %w", err))
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to read response body: %w", err)
 		}
 
 		err = json.Unmarshal(respBody, &out)
 		if err != nil {
-			return nil, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to unmarshal JSON response body: %w", err))
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal JSON response body: %w", err)
 		}
 	}
 

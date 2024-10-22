@@ -5,6 +5,10 @@
 //
 // webrpc-gen -schema=service.ridl -target=typescript -client -out=./webapp/client.gen.ts
 
+export const WebrpcHeader = "Webrpc"
+
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.15.0;node-ts@v1.0.0"
+
 // WebRPC description and code-gen version
 export const WebRPCVersion = "v1"
 
@@ -13,6 +17,54 @@ export const WebRPCSchemaVersion = "v1.0.0"
 
 // Schema hash generated from your RIDL schema
 export const WebRPCSchemaHash = "6713366104e62b8479d628a193e2a7ca03f37edc"
+
+type WebrpcGenVersions = {
+  webrpcGenVersion: string;
+  codeGenName: string;
+  codeGenVersion: string;
+  schemaName: string;
+  schemaVersion: string;
+};
+
+export function VersionFromHeader(headers: Headers): WebrpcGenVersions {
+  const headerValue = headers.get(WebrpcHeader);
+  if (!headerValue) {
+    return {
+      webrpcGenVersion: "",
+      codeGenName: "",
+      codeGenVersion: "",
+      schemaName: "",
+      schemaVersion: "",
+    };
+  }
+
+  return parseWebrpcGenVersions(headerValue);
+}
+
+function parseWebrpcGenVersions(header: string): WebrpcGenVersions {
+  const versions = header.split(";");
+  if (versions.length < 3) {
+    return {
+      webrpcGenVersion: "",
+      codeGenName: "",
+      codeGenVersion: "",
+      schemaName: "",
+      schemaVersion: "",
+    };
+  }
+
+  const [_, webrpcGenVersion] = versions[0].split("@");
+  const [codeGenName, codeGenVersion] = versions[1].split("@");
+  const [schemaName, schemaVersion] = versions[2].split("@");
+
+  return {
+    webrpcGenVersion,
+    codeGenName,
+    codeGenVersion,
+    schemaName,
+    schemaVersion,
+  };
+}
 
 //
 // Types
@@ -105,9 +157,12 @@ export class ExampleService implements ExampleService {
 }
 
   const createHTTPRequest = (body: object = {}, headers: object = {}, signal: AbortSignal | null = null): object => {
+  const reqHeaders = { ...headers, 'Content-Type': 'application/json' }
+  reqHeaders[WebrpcHeader] = WebrpcHeaderValue
+
   return {
     method: 'POST',
-    headers: { ...headers, 'Content-Type': 'application/json' },
+    headers: reqHeaders,
     body: JSON.stringify(body || {}),
     signal
   }
