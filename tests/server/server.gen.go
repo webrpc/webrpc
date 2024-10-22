@@ -15,6 +15,10 @@ import (
 	"strings"
 )
 
+const WebrpcHeader = "Webrpc"
+
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.0;Test@v0.10.0"
+
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
 	return "v1"
@@ -28,6 +32,57 @@ func WebRPCSchemaVersion() string {
 // Schema hash generated from your RIDL schema
 func WebRPCSchemaHash() string {
 	return "61c9c8c942e3f6bdffd9929e78ebb3631d924993"
+}
+
+type WebrpcGenVersions struct {
+	WebrpcGenVersion string
+	CodeGenName      string
+	CodeGenVersion   string
+	SchemaName       string
+	SchemaVersion    string
+}
+
+func VersionFromHeader(h http.Header) (*WebrpcGenVersions, error) {
+	if h.Get(WebrpcHeader) == "" {
+		return nil, fmt.Errorf("header is empty or missing")
+	}
+
+	versions, err := parseWebrpcGenVersions(h.Get(WebrpcHeader))
+	if err != nil {
+		return nil, fmt.Errorf("webrpc header is invalid: %w", err)
+	}
+
+	return versions, nil
+}
+
+func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
+	versions := strings.Split(header, ";")
+	if len(versions) < 3 {
+		return nil, fmt.Errorf("expected at least 3 parts while parsing webrpc header: %v", header)
+	}
+
+	_, webrpcGenVersion, ok := strings.Cut(versions[0], "@")
+	if !ok {
+		return nil, fmt.Errorf("webrpc gen version could not be parsed from: %s", versions[0])
+	}
+
+	tmplTarget, tmplVersion, ok := strings.Cut(versions[1], "@")
+	if !ok {
+		return nil, fmt.Errorf("tmplTarget and tmplVersion could not be parsed from: %s", versions[1])
+	}
+
+	schemaName, schemaVersion, ok := strings.Cut(versions[2], "@")
+	if !ok {
+		return nil, fmt.Errorf("schema name and schema version could not be parsed from: %s", versions[2])
+	}
+
+	return &WebrpcGenVersions{
+		WebrpcGenVersion: webrpcGenVersion,
+		CodeGenName:      tmplTarget,
+		CodeGenVersion:   tmplVersion,
+		SchemaName:       schemaName,
+		SchemaVersion:    schemaVersion,
+	}, nil
 }
 
 //
@@ -294,10 +349,12 @@ func (s *testApiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		// In case of a panic, serve a HTTP 500 error and then panic.
 		if rr := recover(); rr != nil {
-			s.sendErrorJSON(w, r, ErrWebrpcServerPanic.WithCause(fmt.Errorf("%v", rr)))
+			s.sendErrorJSON(w, r, ErrWebrpcServerPanic.WithCausef("%v", rr))
 			panic(rr)
 		}
 	}()
+
+	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
@@ -331,14 +388,14 @@ func (s *testApiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/rpc/TestApi/GetSchemaError":
 		handler = s.serveGetSchemaErrorJSON
 	default:
-		err := ErrWebrpcBadRoute.WithCause(fmt.Errorf("no WebRPC method defined for path %v", r.URL.Path))
+		err := ErrWebrpcBadRoute.WithCausef("no WebRPC method defined for path %v", r.URL.Path)
 		s.sendErrorJSON(w, r, err)
 		return
 	}
 
 	if r.Method != "POST" {
 		w.Header().Add("Allow", "POST") // RFC 9110.
-		err := ErrWebrpcBadMethod.WithCause(fmt.Errorf("unsupported method %v (only POST is allowed)", r.Method))
+		err := ErrWebrpcBadMethod.WithCausef("unsupported method %v (only POST is allowed)", r.Method)
 		s.sendErrorJSON(w, r, err)
 		return
 	}
@@ -364,7 +421,7 @@ func (s *testApiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		handler(ctx, w, r)
 	default:
-		err := ErrWebrpcBadRequest.WithCause(fmt.Errorf("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type")))
+		err := ErrWebrpcBadRequest.WithCausef("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type"))
 		s.sendErrorJSON(w, r, err)
 	}
 }
@@ -426,7 +483,7 @@ func (s *testApiServer) serveGetOneJSON(ctx context.Context, w http.ResponseWrit
 	}{ret0}
 	respBody, err := json.Marshal(respPayload)
 	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to marshal json response: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
 		return
 	}
 
@@ -440,7 +497,7 @@ func (s *testApiServer) serveSendOneJSON(ctx context.Context, w http.ResponseWri
 
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to read request data: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
 		return
 	}
 	defer r.Body.Close()
@@ -449,7 +506,7 @@ func (s *testApiServer) serveSendOneJSON(ctx context.Context, w http.ResponseWri
 		Arg0 *Simple `json:"one"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to unmarshal request data: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
 
@@ -490,7 +547,7 @@ func (s *testApiServer) serveGetMultiJSON(ctx context.Context, w http.ResponseWr
 	}{ret0, ret1, ret2}
 	respBody, err := json.Marshal(respPayload)
 	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to marshal json response: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
 		return
 	}
 
@@ -504,7 +561,7 @@ func (s *testApiServer) serveSendMultiJSON(ctx context.Context, w http.ResponseW
 
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to read request data: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
 		return
 	}
 	defer r.Body.Close()
@@ -515,7 +572,7 @@ func (s *testApiServer) serveSendMultiJSON(ctx context.Context, w http.ResponseW
 		Arg2 *Simple `json:"three"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to unmarshal request data: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
 
@@ -554,7 +611,7 @@ func (s *testApiServer) serveGetComplexJSON(ctx context.Context, w http.Response
 	}{ret0}
 	respBody, err := json.Marshal(respPayload)
 	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to marshal json response: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
 		return
 	}
 
@@ -568,7 +625,7 @@ func (s *testApiServer) serveSendComplexJSON(ctx context.Context, w http.Respons
 
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to read request data: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
 		return
 	}
 	defer r.Body.Close()
@@ -577,7 +634,7 @@ func (s *testApiServer) serveSendComplexJSON(ctx context.Context, w http.Respons
 		Arg0 *Complex `json:"complex"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to unmarshal request data: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
 
@@ -616,7 +673,7 @@ func (s *testApiServer) serveGetEnumListJSON(ctx context.Context, w http.Respons
 	}{ret0}
 	respBody, err := json.Marshal(respPayload)
 	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to marshal json response: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
 		return
 	}
 
@@ -644,7 +701,7 @@ func (s *testApiServer) serveGetEnumMapJSON(ctx context.Context, w http.Response
 	}{ret0}
 	respBody, err := json.Marshal(respPayload)
 	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCause(fmt.Errorf("failed to marshal json response: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
 		return
 	}
 
@@ -658,7 +715,7 @@ func (s *testApiServer) serveGetSchemaErrorJSON(ctx context.Context, w http.Resp
 
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to read request data: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
 		return
 	}
 	defer r.Body.Close()
@@ -667,7 +724,7 @@ func (s *testApiServer) serveGetSchemaErrorJSON(ctx context.Context, w http.Resp
 		Arg0 int `json:"code"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(fmt.Errorf("failed to unmarshal request data: %w", err)))
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
 
