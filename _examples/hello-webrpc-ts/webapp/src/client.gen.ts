@@ -7,7 +7,7 @@
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.15.0;hello-webrpc@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.15.1;hello-webrpc@v1.0.0"
 
 // WebRPC description and code-gen version
 export const WebRPCVersion = "v1"
@@ -182,7 +182,7 @@ export class ExampleService implements ExampleService {
 }
 
   const createHTTPRequest = (body: object = {}, headers: object = {}, signal: AbortSignal | null = null): object => {
-  const reqHeaders = { ...headers, 'Content-Type': 'application/json' }
+  const reqHeaders: {[key: string]: string} = { ...headers, 'Content-Type': 'application/json' }
   reqHeaders[WebrpcHeader] = WebrpcHeaderValue
 
   return {
