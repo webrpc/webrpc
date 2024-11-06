@@ -19,7 +19,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.0;Test@v0.10.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.1;Test@v0.10.0"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -213,65 +213,72 @@ type EnumData struct {
 	List []Status          `json:"list"`
 }
 
-var (
-	methods = map[string]method{
-		"/rpc/TestApi/GetEmpty": {
-			Name:        "GetEmpty",
-			Service:     "TestApi",
-			Annotations: map[string]string{},
-		},
-		"/rpc/TestApi/GetError": {
-			Name:        "GetError",
-			Service:     "TestApi",
-			Annotations: map[string]string{},
-		},
-		"/rpc/TestApi/GetOne": {
-			Name:        "GetOne",
-			Service:     "TestApi",
-			Annotations: map[string]string{},
-		},
-		"/rpc/TestApi/SendOne": {
-			Name:        "SendOne",
-			Service:     "TestApi",
-			Annotations: map[string]string{},
-		},
-		"/rpc/TestApi/GetMulti": {
-			Name:        "GetMulti",
-			Service:     "TestApi",
-			Annotations: map[string]string{},
-		},
-		"/rpc/TestApi/SendMulti": {
-			Name:        "SendMulti",
-			Service:     "TestApi",
-			Annotations: map[string]string{},
-		},
-		"/rpc/TestApi/GetComplex": {
-			Name:        "GetComplex",
-			Service:     "TestApi",
-			Annotations: map[string]string{},
-		},
-		"/rpc/TestApi/SendComplex": {
-			Name:        "SendComplex",
-			Service:     "TestApi",
-			Annotations: map[string]string{},
-		},
-		"/rpc/TestApi/GetEnumList": {
-			Name:        "GetEnumList",
-			Service:     "TestApi",
-			Annotations: map[string]string{},
-		},
-		"/rpc/TestApi/GetEnumMap": {
-			Name:        "GetEnumMap",
-			Service:     "TestApi",
-			Annotations: map[string]string{},
-		},
-		"/rpc/TestApi/GetSchemaError": {
-			Name:        "GetSchemaError",
-			Service:     "TestApi",
-			Annotations: map[string]string{},
-		},
+var methods = map[string]method{
+	"/rpc/TestApi/GetEmpty": {
+		Name:        "GetEmpty",
+		Service:     "TestApi",
+		Annotations: map[string]string{},
+	},
+	"/rpc/TestApi/GetError": {
+		Name:        "GetError",
+		Service:     "TestApi",
+		Annotations: map[string]string{},
+	},
+	"/rpc/TestApi/GetOne": {
+		Name:        "GetOne",
+		Service:     "TestApi",
+		Annotations: map[string]string{},
+	},
+	"/rpc/TestApi/SendOne": {
+		Name:        "SendOne",
+		Service:     "TestApi",
+		Annotations: map[string]string{},
+	},
+	"/rpc/TestApi/GetMulti": {
+		Name:        "GetMulti",
+		Service:     "TestApi",
+		Annotations: map[string]string{},
+	},
+	"/rpc/TestApi/SendMulti": {
+		Name:        "SendMulti",
+		Service:     "TestApi",
+		Annotations: map[string]string{},
+	},
+	"/rpc/TestApi/GetComplex": {
+		Name:        "GetComplex",
+		Service:     "TestApi",
+		Annotations: map[string]string{},
+	},
+	"/rpc/TestApi/SendComplex": {
+		Name:        "SendComplex",
+		Service:     "TestApi",
+		Annotations: map[string]string{},
+	},
+	"/rpc/TestApi/GetEnumList": {
+		Name:        "GetEnumList",
+		Service:     "TestApi",
+		Annotations: map[string]string{},
+	},
+	"/rpc/TestApi/GetEnumMap": {
+		Name:        "GetEnumMap",
+		Service:     "TestApi",
+		Annotations: map[string]string{},
+	},
+	"/rpc/TestApi/GetSchemaError": {
+		Name:        "GetSchemaError",
+		Service:     "TestApi",
+		Annotations: map[string]string{},
+	},
+}
+
+func WebrpcMethods() map[string]method {
+	res := make(map[string]method, len(methods))
+	for k, v := range methods {
+		res[k] = v
 	}
-)
+
+	return res
+}
 
 var WebRPCServices = map[string][]string{
 	"TestApi": {

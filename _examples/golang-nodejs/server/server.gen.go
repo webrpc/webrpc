@@ -18,7 +18,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.0;example@ v0.0.1"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.1;example@ v0.0.1"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -157,20 +157,27 @@ type RandomStuff struct {
 	User              *User                        `json:"user"`
 }
 
-var (
-	methods = map[string]method{
-		"/rpc/ExampleService/Ping": {
-			Name:        "Ping",
-			Service:     "ExampleService",
-			Annotations: map[string]string{},
-		},
-		"/rpc/ExampleService/GetUser": {
-			Name:        "GetUser",
-			Service:     "ExampleService",
-			Annotations: map[string]string{},
-		},
+var methods = map[string]method{
+	"/rpc/ExampleService/Ping": {
+		Name:        "Ping",
+		Service:     "ExampleService",
+		Annotations: map[string]string{},
+	},
+	"/rpc/ExampleService/GetUser": {
+		Name:        "GetUser",
+		Service:     "ExampleService",
+		Annotations: map[string]string{},
+	},
+}
+
+func WebrpcMethods() map[string]method {
+	res := make(map[string]method, len(methods))
+	for k, v := range methods {
+		res[k] = v
 	}
-)
+
+	return res
+}
 
 var WebRPCServices = map[string][]string{
 	"ExampleService": {
