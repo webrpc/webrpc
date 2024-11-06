@@ -80,7 +80,7 @@ export interface Message {
 
 export interface Chat {
   sendMessage(args: SendMessageArgs, headers?: object, signal?: AbortSignal): Promise<SendMessageReturn>
-  subscribeMessages(args: SubscribeMessagesArgs, options: WebrpcStreamOptions<SubscribeMessagesReturn>): Promise<void>
+  subscribeMessages(args: SubscribeMessagesArgs, options: WebrpcStreamOptions<SubscribeMessagesReturn>): WebrpcStreamController
 }
 
 export interface SendMessageArgs {
@@ -129,14 +129,28 @@ export class Chat implements Chat {
     })
   }
   
-  subscribeMessages = (args: SubscribeMessagesArgs, options: WebrpcStreamOptions<SubscribeMessagesReturn>): Promise<void> => {
-    const _fetch = () => this.fetch(this.url('SubscribeMessages'),createHTTPRequest(args, options.headers, options.signal)
+  subscribeMessages = (args: SubscribeMessagesArgs, options: WebrpcStreamOptions<SubscribeMessagesReturn>): WebrpcStreamController => {
+    const abortController = new AbortController();
+    const abortSignal = abortController.signal
+
+    if (options.signal) {
+      abortSignal.addEventListener("abort", () => abortController.abort(options.signal?.reason), {
+        signal: options.signal,
+      });
+    }
+
+    const _fetch = () => this.fetch(this.url('SubscribeMessages'),createHTTPRequest(args, options.headers, abortSignal)
       ).then(async (res) => {
         await sseResponse(res, options, _fetch);
     }, (error) => {
       options.onError(error, _fetch);
     });
-    return _fetch();
+
+    const resp = _fetch();
+    return {
+      abort: abortController.abort.bind(abortController),
+      closed: resp
+    };
   }
 }
   
@@ -533,8 +547,13 @@ export interface WebrpcStreamOptions<T> extends WebrpcOptions {
   onOpen?: () => void;
   onClose?: () => void;
 }
+
 export interface WebrpcOptions {
   headers?: HeadersInit;
   signal?: AbortSignal;
 }
 
+export interface WebrpcStreamController {
+  abort: (reason?: any) => void;
+  closed: Promise<void>;
+}
