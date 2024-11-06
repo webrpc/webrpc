@@ -22,7 +22,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.0;webrpc-sse-chat@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.1;webrpc-sse-chat@v1.0.0"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -101,20 +101,27 @@ type Message struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-var (
-	methods = map[string]method{
-		"/rpc/Chat/SendMessage": {
-			Name:        "SendMessage",
-			Service:     "Chat",
-			Annotations: map[string]string{},
-		},
-		"/rpc/Chat/SubscribeMessages": {
-			Name:        "SubscribeMessages",
-			Service:     "Chat",
-			Annotations: map[string]string{},
-		},
+var methods = map[string]method{
+	"/rpc/Chat/SendMessage": {
+		Name:        "SendMessage",
+		Service:     "Chat",
+		Annotations: map[string]string{},
+	},
+	"/rpc/Chat/SubscribeMessages": {
+		Name:        "SubscribeMessages",
+		Service:     "Chat",
+		Annotations: map[string]string{},
+	},
+}
+
+func WebrpcMethods() map[string]method {
+	res := make(map[string]method, len(methods))
+	for k, v := range methods {
+		res[k] = v
 	}
-)
+
+	return res
+}
 
 var WebRPCServices = map[string][]string{
 	"Chat": {

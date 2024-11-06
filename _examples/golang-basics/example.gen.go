@@ -19,7 +19,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.0;example@v0.0.1"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.1;example@v0.0.1"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -198,50 +198,57 @@ type ComplexType struct {
 	User              *User                        `json:"user"`
 }
 
-var (
-	methods = map[string]method{
-		"/rpc/ExampleService/Ping": {
-			Name:        "Ping",
-			Service:     "ExampleService",
-			Annotations: map[string]string{"internal": ""},
-		},
-		"/rpc/ExampleService/Status": {
-			Name:        "Status",
-			Service:     "ExampleService",
-			Annotations: map[string]string{"internal": ""},
-		},
-		"/rpc/ExampleService/Version": {
-			Name:        "Version",
-			Service:     "ExampleService",
-			Annotations: map[string]string{"internal": ""},
-		},
-		"/rpc/ExampleService/GetUser": {
-			Name:        "GetUser",
-			Service:     "ExampleService",
-			Annotations: map[string]string{"deprecated": "GetUserV2", "internal": ""},
-		},
-		"/rpc/ExampleService/GetUserV2": {
-			Name:        "GetUserV2",
-			Service:     "ExampleService",
-			Annotations: map[string]string{"auth": "X-Access-Key,S2S,Cookies", "public": ""},
-		},
-		"/rpc/ExampleService/FindUser": {
-			Name:        "FindUser",
-			Service:     "ExampleService",
-			Annotations: map[string]string{"public": ""},
-		},
-		"/rpc/ExampleService/GetIntents": {
-			Name:        "GetIntents",
-			Service:     "ExampleService",
-			Annotations: map[string]string{"public": ""},
-		},
-		"/rpc/ExampleService/CountIntents": {
-			Name:        "CountIntents",
-			Service:     "ExampleService",
-			Annotations: map[string]string{"public": ""},
-		},
+var methods = map[string]method{
+	"/rpc/ExampleService/Ping": {
+		Name:        "Ping",
+		Service:     "ExampleService",
+		Annotations: map[string]string{"internal": ""},
+	},
+	"/rpc/ExampleService/Status": {
+		Name:        "Status",
+		Service:     "ExampleService",
+		Annotations: map[string]string{"internal": ""},
+	},
+	"/rpc/ExampleService/Version": {
+		Name:        "Version",
+		Service:     "ExampleService",
+		Annotations: map[string]string{"internal": ""},
+	},
+	"/rpc/ExampleService/GetUser": {
+		Name:        "GetUser",
+		Service:     "ExampleService",
+		Annotations: map[string]string{"deprecated": "GetUserV2", "internal": ""},
+	},
+	"/rpc/ExampleService/GetUserV2": {
+		Name:        "GetUserV2",
+		Service:     "ExampleService",
+		Annotations: map[string]string{"auth": "X-Access-Key,S2S,Cookies", "public": ""},
+	},
+	"/rpc/ExampleService/FindUser": {
+		Name:        "FindUser",
+		Service:     "ExampleService",
+		Annotations: map[string]string{"public": ""},
+	},
+	"/rpc/ExampleService/GetIntents": {
+		Name:        "GetIntents",
+		Service:     "ExampleService",
+		Annotations: map[string]string{"public": ""},
+	},
+	"/rpc/ExampleService/CountIntents": {
+		Name:        "CountIntents",
+		Service:     "ExampleService",
+		Annotations: map[string]string{"public": ""},
+	},
+}
+
+func WebrpcMethods() map[string]method {
+	res := make(map[string]method, len(methods))
+	for k, v := range methods {
+		res[k] = v
 	}
-)
+
+	return res
+}
 
 var WebRPCServices = map[string][]string{
 	"ExampleService": {

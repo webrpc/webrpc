@@ -19,7 +19,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.0;example@v0.0.1"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.1;example@v0.0.1"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -198,25 +198,32 @@ type ComplexType struct {
 	User              *User                        `json:"user"`
 }
 
-var (
-	methods = map[string]method{
-		"/rpc/AdminService/Auth": {
-			Name:        "Auth",
-			Service:     "AdminService",
-			Annotations: map[string]string{"public": ""},
-		},
-		"/rpc/AdminService/Status": {
-			Name:        "Status",
-			Service:     "AdminService",
-			Annotations: map[string]string{"internal": ""},
-		},
-		"/rpc/AdminService/Version": {
-			Name:        "Version",
-			Service:     "AdminService",
-			Annotations: map[string]string{"internal": ""},
-		},
+var methods = map[string]method{
+	"/rpc/AdminService/Auth": {
+		Name:        "Auth",
+		Service:     "AdminService",
+		Annotations: map[string]string{"public": ""},
+	},
+	"/rpc/AdminService/Status": {
+		Name:        "Status",
+		Service:     "AdminService",
+		Annotations: map[string]string{"internal": ""},
+	},
+	"/rpc/AdminService/Version": {
+		Name:        "Version",
+		Service:     "AdminService",
+		Annotations: map[string]string{"internal": ""},
+	},
+}
+
+func WebrpcMethods() map[string]method {
+	res := make(map[string]method, len(methods))
+	for k, v := range methods {
+		res[k] = v
 	}
-)
+
+	return res
+}
 
 var WebRPCServices = map[string][]string{
 	"AdminService": {

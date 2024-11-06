@@ -6,10 +6,10 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/webrpc/webrpc/_example/golang-basics/admin"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/webrpc/webrpc/_example/golang-basics/admin"
 )
 
 func main() {
@@ -70,8 +70,19 @@ func (*AdminServiceRPC) Auth(ctx context.Context) (string, string, error) {
 	return "jwt", "admin", nil
 }
 
-type ExampleServiceRPC struct {
+func (s *AdminServiceRPC) Status(ctx context.Context) (bool, error) {
+	return true, nil
 }
+
+func (s *AdminServiceRPC) Version(ctx context.Context) (*admin.Version, error) {
+	return &admin.Version{
+		WebrpcVersion: WebRPCVersion(),
+		SchemaVersion: WebRPCSchemaVersion(),
+		SchemaHash:    WebRPCSchemaHash(),
+	}, nil
+}
+
+type ExampleServiceRPC struct{}
 
 func (s *ExampleServiceRPC) Ping(ctx context.Context) error {
 	return nil
