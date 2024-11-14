@@ -18,7 +18,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.1;hello-webrpc@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.16.2;hello-webrpc@v1.0.0"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -247,14 +247,14 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	case "/rpc/ExampleService/FindUsers":
 		handler = s.serveFindUsersJSON
 	default:
-		err := ErrWebrpcBadRoute.WithCausef("no WebRPC method defined for path %v", r.URL.Path)
+		err := ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path)
 		s.sendErrorJSON(w, r, err)
 		return
 	}
 
 	if r.Method != "POST" {
 		w.Header().Add("Allow", "POST") // RFC 9110.
-		err := ErrWebrpcBadMethod.WithCausef("unsupported method %v (only POST is allowed)", r.Method)
+		err := ErrWebrpcBadMethod.WithCausef("unsupported HTTP method %v (only POST is allowed)", r.Method)
 		s.sendErrorJSON(w, r, err)
 		return
 	}
