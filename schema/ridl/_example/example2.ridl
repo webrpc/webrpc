@@ -46,11 +46,11 @@ service ExampleService
 
   - GetUser(req: GetUserRequest) => (user: User)
 
-  - streamRecv(req: string)
+  - stream Recv(req: string)
 
-  - streamSend() => (resp: string)
+  - stream Send() => (resp: string)
 
-  - streamSendAndRecv(req: string) => stream (resp: string)
+  - stream SendAndRecv(req: string) => stream (resp: string)
 
   - Broadcast() => stream (resp: Notice)
 
