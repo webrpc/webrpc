@@ -133,6 +133,11 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				s.Types = append(s.Types, imported.Types[i])
 			}
 		}
+		for i := range imported.Errors {
+			if isImportAllowed(imported.Errors[i].Name, members) {
+				s.Errors = append(s.Errors, imported.Errors[i])
+			}
+		}
 		for i := range imported.Services {
 			if isImportAllowed(imported.Services[i].Name, members) {
 				s.Services = append(s.Services, imported.Services[i])
