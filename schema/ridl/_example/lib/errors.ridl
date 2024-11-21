@@ -1,0 +1,14 @@
+webrpc = v1
+name = errors
+version = v0.1
+
+error 1000 Unauthorized     "Unauthorized access"             HTTP 401
+error 1001 PermissionDenied "Permission denied"               HTTP 403
+error 1002 SessionExpired   "Session expired"                 HTTP 403
+error 1003 MethodNotFound   "Method not found"                HTTP 404
+error 1004 RequestConflict  "Conflict with target resource"   HTTP 409
+error 1005 Aborted          "Request aborted"                 HTTP 400
+error 1006 Geoblocked       "Geoblocked region"               HTTP 451
+error 1007 RateLimited      "Rate-limited. Please slow down." HTTP 429
+error 1008 ProjectNotFound  "Project not found"               HTTP 401
+
