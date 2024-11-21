@@ -82,6 +82,8 @@ func TestRIDLImports(t *testing.T) {
 
 			struct ExtraType
 			  - name: string
+			
+			error 1000 Unauthorized   "Unauthorized access"   HTTP 401
 		`)},
 		"schema/foo.ridl": {Data: []byte(`
 			webrpc = v1
@@ -90,6 +92,8 @@ func TestRIDLImports(t *testing.T) {
 
 			struct Foo
 			- name: string	
+
+			error 2000 FooError   "Foo, not enough access"   HTTP 403
 		`)},
 		"schema/subdir/bar.ridl": {Data: []byte(`
 			webrpc = v1
@@ -101,6 +105,8 @@ func TestRIDLImports(t *testing.T) {
 
 			struct Baz
 			- name: string	
+
+			error 3000 BarError   "The bar is too high"   HTTP 400
 			`)},
 		"common.ridl": {Data: []byte(`
 		webrpc = v1
@@ -125,6 +131,12 @@ func TestRIDLImports(t *testing.T) {
 		assert.Equal(t, "Baz", string(s.Types[2].Name))
 		assert.Equal(t, "Common", string(s.Types[3].Name))
 		assert.Equal(t, "ExtraType", string(s.Types[4].Name))
+	}
+
+	if assert.Equal(t, 3, len(s.Errors)) {
+		assert.Equal(t, "FooError", string(s.Errors[0].Name))
+		assert.Equal(t, "BarError", string(s.Errors[1].Name))
+		assert.Equal(t, "Unauthorized", string(s.Errors[2].Name))
 	}
 }
 
@@ -508,7 +520,7 @@ func TestRIDLParse(t *testing.T) {
 	assert.NotZero(t, jout)
 }
 
-func TestRIDLImportsExampleDir(t *testing.T) {
+func TestRIDLImportsExample1(t *testing.T) {
 	exampleDirFS := os.DirFS("./_example")
 
 	r := NewParser(exampleDirFS, "example1.ridl")
@@ -531,5 +543,31 @@ func TestRIDLImportsExampleDir(t *testing.T) {
 	if !cmp.Equal(golden, current) {
 		t.Error(cmp.Diff(golden, current))
 		t.Log("To update the golden file, run go test -update=./_example/example1-golden.json")
+	}
+}
+
+func TestRIDLImportsExample2(t *testing.T) {
+	exampleDirFS := os.DirFS("./_example")
+
+	r := NewParser(exampleDirFS, "example2.ridl")
+	s, err := r.Parse()
+	assert.NoError(t, err)
+
+	jout, err := s.ToJSON()
+	assert.NoError(t, err)
+
+	current := []byte(jout)
+
+	golden, err := os.ReadFile("./_example/example2-golden.json")
+	assert.NoError(t, err)
+
+	if *updateFlag == "./_example/example2-golden.json" {
+		assert.NoError(t, os.WriteFile("./_example/example2-golden.json", current, 0644))
+		return
+	}
+
+	if !cmp.Equal(golden, current) {
+		t.Error(cmp.Diff(golden, current))
+		t.Log("To update the golden file, run go test -update=./_example/example2-golden.json")
 	}
 }
