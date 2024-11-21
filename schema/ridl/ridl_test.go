@@ -82,6 +82,8 @@ func TestRIDLImports(t *testing.T) {
 
 			struct ExtraType
 			  - name: string
+			
+			error 1000 Unauthorized   "Unauthorized access"   HTTP 401
 		`)},
 		"schema/foo.ridl": {Data: []byte(`
 			webrpc = v1
@@ -90,6 +92,8 @@ func TestRIDLImports(t *testing.T) {
 
 			struct Foo
 			- name: string	
+
+			error 2000 FooError   "Foo, not enough access"   HTTP 403
 		`)},
 		"schema/subdir/bar.ridl": {Data: []byte(`
 			webrpc = v1
@@ -101,6 +105,8 @@ func TestRIDLImports(t *testing.T) {
 
 			struct Baz
 			- name: string	
+
+			error 3000 BarError   "The bar is too high"   HTTP 400
 			`)},
 		"common.ridl": {Data: []byte(`
 		webrpc = v1
@@ -125,6 +131,12 @@ func TestRIDLImports(t *testing.T) {
 		assert.Equal(t, "Baz", string(s.Types[2].Name))
 		assert.Equal(t, "Common", string(s.Types[3].Name))
 		assert.Equal(t, "ExtraType", string(s.Types[4].Name))
+	}
+
+	if assert.Equal(t, 3, len(s.Errors)) {
+		assert.Equal(t, "FooError", string(s.Errors[0].Name))
+		assert.Equal(t, "BarError", string(s.Errors[1].Name))
+		assert.Equal(t, "Unauthorized", string(s.Errors[2].Name))
 	}
 }
 
