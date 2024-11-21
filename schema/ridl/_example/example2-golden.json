@@ -207,9 +207,10 @@
      ]
     },
     {
-     "name": "streamRecv",
+     "name": "Recv",
      "annotations": {},
      "comments": [],
+     "streamInput": true,
      "inputs": [
       {
        "name": "req",
@@ -220,9 +221,10 @@
      "outputs": []
     },
     {
-     "name": "streamSend",
+     "name": "Send",
      "annotations": {},
      "comments": [],
+     "streamInput": true,
      "inputs": [],
      "outputs": [
       {
@@ -233,9 +235,10 @@
      ]
     },
     {
-     "name": "streamSendAndRecv",
+     "name": "SendAndRecv",
      "annotations": {},
      "comments": [],
+     "streamInput": true,
      "streamOutput": true,
      "inputs": [
       {
