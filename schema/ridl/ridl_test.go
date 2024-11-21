@@ -520,7 +520,7 @@ func TestRIDLParse(t *testing.T) {
 	assert.NotZero(t, jout)
 }
 
-func TestRIDLImportsExampleDir(t *testing.T) {
+func TestRIDLImportsExample1(t *testing.T) {
 	exampleDirFS := os.DirFS("./_example")
 
 	r := NewParser(exampleDirFS, "example1.ridl")
@@ -543,5 +543,31 @@ func TestRIDLImportsExampleDir(t *testing.T) {
 	if !cmp.Equal(golden, current) {
 		t.Error(cmp.Diff(golden, current))
 		t.Log("To update the golden file, run go test -update=./_example/example1-golden.json")
+	}
+}
+
+func TestRIDLImportsExample2(t *testing.T) {
+	exampleDirFS := os.DirFS("./_example")
+
+	r := NewParser(exampleDirFS, "example2.ridl")
+	s, err := r.Parse()
+	assert.NoError(t, err)
+
+	jout, err := s.ToJSON()
+	assert.NoError(t, err)
+
+	current := []byte(jout)
+
+	golden, err := os.ReadFile("./_example/example2-golden.json")
+	assert.NoError(t, err)
+
+	if *updateFlag == "./_example/example2-golden.json" {
+		assert.NoError(t, os.WriteFile("./_example/example2-golden.json", current, 0644))
+		return
+	}
+
+	if !cmp.Equal(golden, current) {
+		t.Error(cmp.Diff(golden, current))
+		t.Log("To update the golden file, run go test -update=./_example/example2-golden.json")
 	}
 }

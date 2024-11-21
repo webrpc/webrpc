@@ -3,10 +3,11 @@ webrpc = v1
 name = hello-webrpc
 version = v0.0.1
 
+import ./lib/errors.ridl
 
-import
-  - ./lib/errors.ridl
-  - ./lib/types.ridl
+import example1-partials.ridl
+  - Empty
+  - GetUserRequest
 
 struct Role
   - name: string
@@ -16,7 +17,6 @@ struct Role
   - perms: []string # comment
 
   - other: map<uint64,map<string,string>> # comment
-
 
 struct User
   - ID: uint64
@@ -34,11 +34,9 @@ struct User
     + json = created_at
     + go.tag.json = created_at,omitempty
     + go.tag.db = created_at
-    
 
 struct Notice
   - msg: string
-
 
 service ExampleService
 
@@ -48,14 +46,15 @@ service ExampleService
 
   - GetUser(req: GetUserRequest) => (user: User)
 
-  - stream Recv(req: string)
+  - streamRecv(req: string)
 
-  - stream Send() => (resp: string)
+  - streamSend() => (resp: string)
 
-  - stream SendAndRecv(req: string) => stream (resp: string)
+  - streamSendAndRecv(req: string) => stream (resp: string)
 
   - Broadcast() => stream (resp: Notice)
 
-  -	VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code: bool, ids: []bool)
-	
+  - VerifyUsers(seq: int32, header?: map<string,[]string>, ids: []uint64) => (code: bool, ids: []bool)
+
   - MoreTest(n: uint64, stuff: []map<uint64,string>, etc: string) => (code?: bool)
+

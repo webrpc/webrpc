@@ -1,0 +1,336 @@
+{
+ "webrpc": "v1",
+ "name": "hello-webrpc",
+ "version": "v0.0.1",
+ "types": [
+  {
+   "kind": "struct",
+   "name": "Empty"
+  },
+  {
+   "kind": "struct",
+   "name": "GetUserRequest",
+   "fields": [
+    {
+     "name": "userID",
+     "type": "uint64"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "Role",
+   "fields": [
+    {
+     "name": "name",
+     "type": "string"
+    },
+    {
+     "name": "users",
+     "type": "map<uint64,User>"
+    },
+    {
+     "comments": [
+      "comment"
+     ],
+     "name": "perms",
+     "type": "[]string"
+    },
+    {
+     "comments": [
+      "comment"
+     ],
+     "name": "other",
+     "type": "map<uint64,map<string,string>>"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "User",
+   "fields": [
+    {
+     "name": "ID",
+     "type": "uint64",
+     "meta": [
+      {
+       "json": "id"
+      },
+      {
+       "go.tag.db": "id"
+      }
+     ]
+    },
+    {
+     "name": "username",
+     "type": "string",
+     "meta": [
+      {
+       "json": "USERNAME"
+      },
+      {
+       "go.tag.db": "username"
+      }
+     ]
+    },
+    {
+     "name": "role",
+     "type": "string",
+     "meta": [
+      {
+       "go.tag.db": "-"
+      }
+     ]
+    },
+    {
+     "name": "createdAt",
+     "type": "timestamp",
+     "optional": true,
+     "meta": [
+      {
+       "json": "created_at"
+      },
+      {
+       "go.tag.json": "created_at,omitempty"
+      },
+      {
+       "go.tag.db": "created_at"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "Notice",
+   "fields": [
+    {
+     "name": "msg",
+     "type": "string"
+    }
+   ]
+  }
+ ],
+ "errors": [
+  {
+   "code": 1000,
+   "name": "Unauthorized",
+   "message": "Unauthorized access",
+   "httpStatus": 401
+  },
+  {
+   "code": 1001,
+   "name": "PermissionDenied",
+   "message": "Permission denied",
+   "httpStatus": 403
+  },
+  {
+   "code": 1002,
+   "name": "SessionExpired",
+   "message": "Session expired",
+   "httpStatus": 403
+  },
+  {
+   "code": 1003,
+   "name": "MethodNotFound",
+   "message": "Method not found",
+   "httpStatus": 404
+  },
+  {
+   "code": 1004,
+   "name": "RequestConflict",
+   "message": "Conflict with target resource",
+   "httpStatus": 409
+  },
+  {
+   "code": 1005,
+   "name": "Aborted",
+   "message": "Request aborted",
+   "httpStatus": 400
+  },
+  {
+   "code": 1006,
+   "name": "Geoblocked",
+   "message": "Geoblocked region",
+   "httpStatus": 451
+  },
+  {
+   "code": 1007,
+   "name": "RateLimited",
+   "message": "Rate-limited. Please slow down.",
+   "httpStatus": 429
+  },
+  {
+   "code": 1008,
+   "name": "ProjectNotFound",
+   "message": "Project not found",
+   "httpStatus": 401
+  }
+ ],
+ "services": [
+  {
+   "name": "ExampleService",
+   "methods": [
+    {
+     "name": "Ping",
+     "annotations": {},
+     "comments": [
+      "comment can go here",
+      "too .. :)"
+     ],
+     "inputs": [],
+     "outputs": [
+      {
+       "name": "status",
+       "type": "bool",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "GetUser",
+     "annotations": {},
+     "comments": [],
+     "inputs": [
+      {
+       "name": "req",
+       "type": "GetUserRequest",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "user",
+       "type": "User",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "streamRecv",
+     "annotations": {},
+     "comments": [],
+     "inputs": [
+      {
+       "name": "req",
+       "type": "string",
+       "optional": false
+      }
+     ],
+     "outputs": []
+    },
+    {
+     "name": "streamSend",
+     "annotations": {},
+     "comments": [],
+     "inputs": [],
+     "outputs": [
+      {
+       "name": "resp",
+       "type": "string",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "streamSendAndRecv",
+     "annotations": {},
+     "comments": [],
+     "streamOutput": true,
+     "inputs": [
+      {
+       "name": "req",
+       "type": "string",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "resp",
+       "type": "string",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "Broadcast",
+     "annotations": {},
+     "comments": [],
+     "streamOutput": true,
+     "inputs": [],
+     "outputs": [
+      {
+       "name": "resp",
+       "type": "Notice",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "VerifyUsers",
+     "annotations": {},
+     "comments": [],
+     "inputs": [
+      {
+       "name": "seq",
+       "type": "int32",
+       "optional": false
+      },
+      {
+       "name": "header",
+       "type": "map<string,[]string>",
+       "optional": true
+      },
+      {
+       "name": "ids",
+       "type": "[]uint64",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "code",
+       "type": "bool",
+       "optional": false
+      },
+      {
+       "name": "ids",
+       "type": "[]bool",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "MoreTest",
+     "annotations": {},
+     "comments": [],
+     "inputs": [
+      {
+       "name": "n",
+       "type": "uint64",
+       "optional": false
+      },
+      {
+       "name": "stuff",
+       "type": "[]map<uint64,string>",
+       "optional": false
+      },
+      {
+       "name": "etc",
+       "type": "string",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "code",
+       "type": "bool",
+       "optional": true
+      }
+     ]
+    }
+   ],
+   "comments": []
+  }
+ ]
+}
