@@ -7,7 +7,7 @@
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.16.0;hello-webrpc@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.16.1;hello-webrpc@v1.0.0"
 
 // WebRPC description and code-gen version
 export const WebRPCVersion = "v1"
@@ -409,7 +409,21 @@ export enum errors {
   WebrpcStreamFinished = 'WebrpcStreamFinished',
 }
 
-const webrpcErrorByCode: { [code: number]: any } = {
+export enum WebrpcErrorCodes {
+  WebrpcEndpoint = 0,
+  WebrpcRequestFailed = -1,
+  WebrpcBadRoute = -2,
+  WebrpcBadMethod = -3,
+  WebrpcBadRequest = -4,
+  WebrpcBadResponse = -5,
+  WebrpcServerPanic = -6,
+  WebrpcInternalError = -7,
+  WebrpcClientDisconnected = -8,
+  WebrpcStreamLost = -9,
+  WebrpcStreamFinished = -10,
+}
+
+export const webrpcErrorByCode: { [code: number]: any } = {
   [0]: WebrpcEndpointError,
   [-1]: WebrpcRequestFailedError,
   [-2]: WebrpcBadRouteError,
