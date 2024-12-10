@@ -7,7 +7,7 @@
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.16.1;webrpc-sse-chat@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.16.2;webrpc-sse-chat@v1.0.0"
 
 // WebRPC description and code-gen version
 export const WebRPCVersion = "v1"
@@ -353,7 +353,7 @@ export class WebrpcEndpointError extends WebrpcError {
   constructor(
     name: string = 'WebrpcEndpoint',
     code: number = 0,
-    message: string = 'endpoint error',
+    message: string = `endpoint error`,
     status: number = 0,
     cause?: string
   ) {
@@ -366,7 +366,7 @@ export class WebrpcRequestFailedError extends WebrpcError {
   constructor(
     name: string = 'WebrpcRequestFailed',
     code: number = -1,
-    message: string = 'request failed',
+    message: string = `request failed`,
     status: number = 0,
     cause?: string
   ) {
@@ -379,7 +379,7 @@ export class WebrpcBadRouteError extends WebrpcError {
   constructor(
     name: string = 'WebrpcBadRoute',
     code: number = -2,
-    message: string = 'bad route',
+    message: string = `bad route`,
     status: number = 0,
     cause?: string
   ) {
@@ -392,7 +392,7 @@ export class WebrpcBadMethodError extends WebrpcError {
   constructor(
     name: string = 'WebrpcBadMethod',
     code: number = -3,
-    message: string = 'bad method',
+    message: string = `bad method`,
     status: number = 0,
     cause?: string
   ) {
@@ -405,7 +405,7 @@ export class WebrpcBadRequestError extends WebrpcError {
   constructor(
     name: string = 'WebrpcBadRequest',
     code: number = -4,
-    message: string = 'bad request',
+    message: string = `bad request`,
     status: number = 0,
     cause?: string
   ) {
@@ -418,7 +418,7 @@ export class WebrpcBadResponseError extends WebrpcError {
   constructor(
     name: string = 'WebrpcBadResponse',
     code: number = -5,
-    message: string = 'bad response',
+    message: string = `bad response`,
     status: number = 0,
     cause?: string
   ) {
@@ -431,7 +431,7 @@ export class WebrpcServerPanicError extends WebrpcError {
   constructor(
     name: string = 'WebrpcServerPanic',
     code: number = -6,
-    message: string = 'server panic',
+    message: string = `server panic`,
     status: number = 0,
     cause?: string
   ) {
@@ -444,7 +444,7 @@ export class WebrpcInternalErrorError extends WebrpcError {
   constructor(
     name: string = 'WebrpcInternalError',
     code: number = -7,
-    message: string = 'internal error',
+    message: string = `internal error`,
     status: number = 0,
     cause?: string
   ) {
@@ -457,7 +457,7 @@ export class WebrpcClientDisconnectedError extends WebrpcError {
   constructor(
     name: string = 'WebrpcClientDisconnected',
     code: number = -8,
-    message: string = 'client disconnected',
+    message: string = `client disconnected`,
     status: number = 0,
     cause?: string
   ) {
@@ -470,7 +470,7 @@ export class WebrpcStreamLostError extends WebrpcError {
   constructor(
     name: string = 'WebrpcStreamLost',
     code: number = -9,
-    message: string = 'stream lost',
+    message: string = `stream lost`,
     status: number = 0,
     cause?: string
   ) {
@@ -483,7 +483,7 @@ export class WebrpcStreamFinishedError extends WebrpcError {
   constructor(
     name: string = 'WebrpcStreamFinished',
     code: number = -10,
-    message: string = 'stream finished',
+    message: string = `stream finished`,
     status: number = 0,
     cause?: string
   ) {
@@ -499,7 +499,7 @@ export class EmptyUsernameError extends WebrpcError {
   constructor(
     name: string = 'EmptyUsername',
     code: number = 100,
-    message: string = 'Username must be provided.',
+    message: string = `Username must be provided.`,
     status: number = 0,
     cause?: string
   ) {
