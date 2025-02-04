@@ -18,7 +18,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 20
-          fetch-tags: true
+        #  fetch-tags: true # Bug: https://github.com/actions/checkout/issues/1781
+      - run: git fetch --tags
       - run: git describe --tags
       - name: Set up Go
         uses: actions/setup-go@v4
@@ -38,7 +39,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 20
-          fetch-tags: true
+        #  fetch-tags: true # Bug: https://github.com/actions/checkout/issues/1781
+      - run: git fetch --tags
       - run: git describe --tags
       - name: Set up Go
         uses: actions/setup-go@v4
