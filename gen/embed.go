@@ -45,7 +45,7 @@ type EmbeddedTarget struct {
 }
 
 func init() {
-	// Parse target versions from go.mod file
+	// Parse versions of embedded generators from go.mod file
 	scanner := bufio.NewScanner(strings.NewReader(webrpc.GoModFile))
 	for scanner.Scan() {
 		//	github.com/webrpc/gen-golang v0.14.2 // comment
