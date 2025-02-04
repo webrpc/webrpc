@@ -19,6 +19,7 @@ jobs:
         with:
           fetch-depth: 20
           fetch-tags: true
+      - run: git describe --tags
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -38,6 +39,7 @@ jobs:
         with:
           fetch-depth: 20
           fetch-tags: true
+      - run: git describe --tags
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
