@@ -1,6 +1,7 @@
 module github.com/webrpc/webrpc
 
-go 1.19
+// Webrpc supports the four most recent major versions of Go.
+go 1.20
 
 // replace github.com/webrpc/gen-golang => ../gen-golang
 // replace github.com/webrpc/gen-typescript => ../gen-typescript
