@@ -43,7 +43,7 @@ plugin for RIDL synx highlighting.
 
 | Generator                                              | Description                       | Schema | Client | Server |
 |--------------------------------------------------------|-----------------------------------|--------|--------|--------|
-| [golang](https://github.com/webrpc/gen-golang)         | Go 1.16+                          | v1     | ✅     | ✅     |
+| [golang](https://github.com/webrpc/gen-golang)         | Go 1.22+                          | v1     | ✅     | ✅     |
 | [typescript](https://github.com/webrpc/gen-typescript) | TypeScript                        | v1     | ✅     | ✅     |
 | [javascript](https://github.com/webrpc/gen-javascript) | JavaScript (ES6)                  | v1     | ✅     | ✅     |
 | [kotlin](https://github.com/webrpc/gen-kotlin)         | Kotlin (coroutines, moshi, ktor)  | v1     | ✅     |        |
