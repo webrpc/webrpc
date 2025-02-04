@@ -6,33 +6,29 @@ import (
 	"strings"
 )
 
-// Version of webrpc-gen tooling & Template Functions API.
+// Version of webrpc-gen tooling.
 // Available as {{.WebrpcGenVersion}} variable in Go templates.
 //
-// The value is injected during `go build' in the release CI step.
+// The value can be injected during the build step:
+//
+//	go build -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe --tags)" ./cmd/webrpc-gen
+//
+// Alternatively, the value is inferred in the runtime from:
+//  1. go.mod file (useful when running webrpc-gen as a tool from another Go module)
+//  2. git history
 var VERSION = ""
-
-//go:embed go.mod
-var GoModFile string
 
 func init() {
 	if VERSION == "" {
-		VERSION = getRuntimeVersion()
+		VERSION = inferRuntimeVersion()
 	}
 }
 
-// getRuntimeVersion tries to infer webrpc version
-//  1. from the current go.mod file, which is useful when running webrpc-gen from
-//     another Go module using `go run github.com/webrpc/webrpc/cmd/webrpc-gen'.
-//  2. from the current git history.
-func getRuntimeVersion() string {
-	// $ go list -m github.com/webrpc/webrpc
-	// github.com/webrpc/webrpc v0.15.1\n
-	if out, _ := exec.Command("go", "list", "-m", "github.com/webrpc/webrpc").Output(); len(out) > 0 {
-		parts := strings.Split(strings.TrimSpace(string(out)), " ")
-		if len(parts) >= 2 {
-			return parts[1]
-		}
+func inferRuntimeVersion() string {
+	// $ go list -m -f {{.Version}} github.com/webrpc/webrpc
+	// v0.22.0\n
+	if out, _ := exec.Command("go", "list", "-m", "-f", "{{.Version}}", "github.com/webrpc/webrpc").Output(); len(out) > 0 {
+		return strings.TrimSpace(string(out))
 	}
 
 	// $ git describe --tags
@@ -43,3 +39,8 @@ func getRuntimeVersion() string {
 
 	return "unknown"
 }
+
+// Embed go.mod file, so we can parse version of the embedded generators in the runtime.
+//
+//go:embed go.mod
+var GoModFile string
