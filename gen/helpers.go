@@ -21,7 +21,7 @@ func getOldTarget(target string) string {
 }
 
 func isGolangTarget(target string) bool {
-	target, _, _ = stringsCut(target, "@")
+	target, _, _ = strings.Cut(target, "@")
 
 	if target == "golang" || target == "go" {
 		return true
@@ -43,13 +43,4 @@ func formatGoSource(source []byte) (string, error) {
 		return string(source), fmt.Errorf("failed to format generated Go source: %w", err)
 	}
 	return string(formatted), nil
-}
-
-// strings.Cut was added in Go 1.18.
-// Replace this once we bump up go version directive in go.mod.
-func stringsCut(s, sep string) (before, after string, found bool) {
-	if i := strings.Index(s, sep); i >= 0 {
-		return s[:i], s[i+len(sep):], true
-	}
-	return s, "", false
 }

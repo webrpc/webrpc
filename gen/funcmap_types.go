@@ -61,7 +61,7 @@ func isListType(v interface{}) bool {
 
 // Return true if given type is map (ie. map<T1,T2>).
 func isMapType(v interface{}) bool {
-	key, value, found := stringsCut(toString(v), ",")
+	key, value, found := strings.Cut(toString(v), ",")
 	return found && strings.HasPrefix(key, "map<") && strings.HasSuffix(value, ">")
 }
 
@@ -74,7 +74,7 @@ func mapKeyType(v interface{}) string {
 		return toString(t.Map.Key)
 	default:
 		str := toString(v)
-		key, value, found := stringsCut(str, ",")
+		key, value, found := strings.Cut(str, ",")
 		if !found || !strings.HasPrefix(key, "map<") || !strings.HasSuffix(value, ">") {
 			panic(fmt.Errorf("mapKeyValue: expected map<Type1,Type2>, got %v", str))
 		}
@@ -85,7 +85,7 @@ func mapKeyType(v interface{}) string {
 // Returns given map's value type (ie. `T2` from `map<T1,T2>`)
 func mapValueType(v interface{}) string {
 	str := toString(v)
-	key, value, found := stringsCut(str, ",")
+	key, value, found := strings.Cut(str, ",")
 	if !found || !strings.HasPrefix(key, "map<") || !strings.HasSuffix(value, ">") {
 		panic(fmt.Errorf("mapKeyValue: expected map<Type1,Type2>, got %v", str))
 	}
