@@ -48,14 +48,14 @@ func init() {
 	// Parse versions of embedded generators from go.mod file
 	scanner := bufio.NewScanner(strings.NewReader(webrpc.GoModFile))
 	for scanner.Scan() {
-		//	github.com/webrpc/gen-golang v0.14.2 // comment
 		line := scanner.Text()
-		prefix := "\tgithub.com/webrpc/gen-"
-		if !strings.HasPrefix(line, prefix) {
-			// NOTE: Use strings.CutPrefix() once we decide to bump go.mod to Go 1.20.
+		//	github.com/webrpc/gen-golang v0.14.2 // comment
+		//	                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+		match, found := strings.CutPrefix(line, "\tgithub.com/webrpc/gen-")
+		if !found {
 			continue
 		}
-		parts := strings.Split(line[len(prefix):], " ")
+		parts := strings.Split(match, " ")
 		if len(parts) < 2 {
 			continue
 		}
