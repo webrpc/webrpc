@@ -7,7 +7,7 @@
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.16.2;node-ts@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.16.3;node-ts@v1.0.0"
 
 // WebRPC description and code-gen version
 export const WebRPCVersion = "v1"
@@ -53,16 +53,16 @@ function parseWebrpcGenVersions(header: string): WebrpcGenVersions {
     };
   }
 
-  const [_, webrpcGenVersion] = versions[0].split("@");
-  const [codeGenName, codeGenVersion] = versions[1].split("@");
-  const [schemaName, schemaVersion] = versions[2].split("@");
+  const [_, webrpcGenVersion] = versions[0]!.split("@");
+  const [codeGenName, codeGenVersion] = versions[1]!.split("@");
+  const [schemaName, schemaVersion] = versions[2]!.split("@");
 
   return {
-    webrpcGenVersion,
-    codeGenName,
-    codeGenVersion,
-    schemaName,
-    schemaVersion,
+    webrpcGenVersion: webrpcGenVersion ?? "",
+    codeGenName: codeGenName ?? "",
+    codeGenVersion: codeGenVersion ?? "",
+    schemaName: schemaName ?? "",
+    schemaVersion: schemaVersion ?? "",
   };
 }
 
