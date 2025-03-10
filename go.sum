@@ -209,6 +209,8 @@ github.com/webrpc/gen-dart v0.1.1 h1:PZh5oNNdA84Qxu8ixKDf1cT8Iv6t0g7x6q9aeX1bti4
 github.com/webrpc/gen-dart v0.1.1/go.mod h1:yq0ThW3ANNulJLyR50jx1aZMEVBDp19VUHucK65ayPs=
 github.com/webrpc/gen-golang v0.17.0 h1:qCvkhrIdEalQNYJEyqUhKiZ/wK5yEOhx0TJ5X0fzoKM=
 github.com/webrpc/gen-golang v0.17.0/go.mod h1:qy1qEWMlTvrRzjSuQLy+176RqNaX1ymUULDtlo7Dapo=
+github.com/webrpc/gen-golang v0.18.0 h1:ymN3ZPVD3PtYitVZf4M2xmReO3dG+14lKK5OyMMkD6I=
+github.com/webrpc/gen-golang v0.18.0/go.mod h1:t8tIVL/AQhaMteA31xNbzWUrumiMXc7OcKmnNALpnAM=
 github.com/webrpc/gen-javascript v0.13.0 h1:tw7U1xueUjZz3cQAAA4/DZ90BHydkQKiJC4VXd/j2hg=
 github.com/webrpc/gen-javascript v0.13.0/go.mod h1:5EhapSJgzbiWrIGlqzZN9Lg9mE9209wwX+Du2dgn4EU=
 github.com/webrpc/gen-kotlin v0.1.0 h1:tnlinqbDgowEoSy8E3VovTdP2OjyOIbgACCbahRjNcc=
