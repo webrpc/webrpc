@@ -1,0 +1,9 @@
+name: make-generate
+
+on:
+  pull_request:
+
+jobs:
+  run:
+    uses: ./.github/workflows/make-generate.yml
+    secrets: inherit

@@ -1,0 +1,23 @@
+name: make-generate-label
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  generate:
+    if: ${{ github.event.label.name == 'make generate' }}
+    uses: ./.github/workflows/make-generate.yml
+    secrets: inherit
+
+  rm:
+    if: ${{ github.event.label.name == 'make generate' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove the label
+        run: |
+          LABEL=$(echo "${{ github.event.label.name }}" | sed 's/ /%20/g')
+          curl -X DELETE \
+          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/$LABEL
