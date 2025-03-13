@@ -1,0 +1,30 @@
+name: make generate
+
+on:
+  workflow_call:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-tags: true
+          fetch-depth: 20
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
+      - run: make generate
+
+      - name: Commit back
+        uses: 0xsequence/actions/git-commit@v0.0.5
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN_GIT_COMMIT }}
+        with:
+          files: "_examples/ tests/"
+          branch: ${{ github.head_ref }}
+          commit_message: "[AUTOMATED] make generate"
