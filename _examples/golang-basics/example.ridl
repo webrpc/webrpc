@@ -66,7 +66,7 @@ service ExampleService
   - Status() => (status: bool)
     @internal
   - Version() => (version: Version)
-    @deprecated:GetUserV2
+    @deprecated:"Use GetUserV2 instead."
     @internal
   - GetUser(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
     @public
@@ -85,7 +85,7 @@ service ExampleServiceV2
 
 service AdminService
     @public
-    @deprecated:Auth
+    @deprecated:"Use Auth instead."
   - AuthOld() => (jwt: string)
     @public
   - Auth() => (jwt: string, role: string)

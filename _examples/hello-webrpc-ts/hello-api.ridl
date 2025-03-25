@@ -32,6 +32,11 @@ struct Page
   - num: uint32
 
 service ExampleService
+  @deprecated:"Use /ping endpoint instead."
   - Ping() => (status: bool)
+
+  # GetUser returns a user by ID.
   - GetUser(userID: uint64) => (user: User)
+
+  # FindUsers returns a list of users matching given search query.
   - FindUsers(q: string) => (page: Page, users: []User)

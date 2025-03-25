@@ -7,7 +7,7 @@
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.16.3;webrpc-sse-chat@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.17.0;webrpc-sse-chat@v1.0.0"
 
 // WebRPC description and code-gen version
 export const WebRPCVersion = "v1"
