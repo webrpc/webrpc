@@ -18,7 +18,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.18.3;example@ v0.0.1"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.18.4;example@ v0.0.1"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
