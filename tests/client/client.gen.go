@@ -19,7 +19,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.18.4;Test@v0.10.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.19.0;Test@v0.10.0"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -215,59 +215,59 @@ type EnumData struct {
 
 var methods = map[string]method{
 	"/rpc/TestApi/GetEmpty": {
-		Name:        "GetEmpty",
-		Service:     "TestApi",
-		Annotations: map[string]string{},
+		name:        "GetEmpty",
+		service:     "TestApi",
+		annotations: map[string]string{},
 	},
 	"/rpc/TestApi/GetError": {
-		Name:        "GetError",
-		Service:     "TestApi",
-		Annotations: map[string]string{},
+		name:        "GetError",
+		service:     "TestApi",
+		annotations: map[string]string{},
 	},
 	"/rpc/TestApi/GetOne": {
-		Name:        "GetOne",
-		Service:     "TestApi",
-		Annotations: map[string]string{},
+		name:        "GetOne",
+		service:     "TestApi",
+		annotations: map[string]string{},
 	},
 	"/rpc/TestApi/SendOne": {
-		Name:        "SendOne",
-		Service:     "TestApi",
-		Annotations: map[string]string{},
+		name:        "SendOne",
+		service:     "TestApi",
+		annotations: map[string]string{},
 	},
 	"/rpc/TestApi/GetMulti": {
-		Name:        "GetMulti",
-		Service:     "TestApi",
-		Annotations: map[string]string{},
+		name:        "GetMulti",
+		service:     "TestApi",
+		annotations: map[string]string{},
 	},
 	"/rpc/TestApi/SendMulti": {
-		Name:        "SendMulti",
-		Service:     "TestApi",
-		Annotations: map[string]string{},
+		name:        "SendMulti",
+		service:     "TestApi",
+		annotations: map[string]string{},
 	},
 	"/rpc/TestApi/GetComplex": {
-		Name:        "GetComplex",
-		Service:     "TestApi",
-		Annotations: map[string]string{},
+		name:        "GetComplex",
+		service:     "TestApi",
+		annotations: map[string]string{},
 	},
 	"/rpc/TestApi/SendComplex": {
-		Name:        "SendComplex",
-		Service:     "TestApi",
-		Annotations: map[string]string{},
+		name:        "SendComplex",
+		service:     "TestApi",
+		annotations: map[string]string{},
 	},
 	"/rpc/TestApi/GetEnumList": {
-		Name:        "GetEnumList",
-		Service:     "TestApi",
-		Annotations: map[string]string{},
+		name:        "GetEnumList",
+		service:     "TestApi",
+		annotations: map[string]string{},
 	},
 	"/rpc/TestApi/GetEnumMap": {
-		Name:        "GetEnumMap",
-		Service:     "TestApi",
-		Annotations: map[string]string{},
+		name:        "GetEnumMap",
+		service:     "TestApi",
+		annotations: map[string]string{},
 	},
 	"/rpc/TestApi/GetSchemaError": {
-		Name:        "GetSchemaError",
-		Service:     "TestApi",
-		Annotations: map[string]string{},
+		name:        "GetSchemaError",
+		service:     "TestApi",
+		annotations: map[string]string{},
 	},
 }
 
@@ -367,7 +367,6 @@ func NewTestApiClient(addr string, client HTTPClient) TestApiClient {
 }
 
 func (c *testApiClient) GetEmpty(ctx context.Context) error {
-
 	resp, err := doHTTPRequest(ctx, c.client, c.urls[0], nil, nil)
 	if resp != nil {
 		cerr := resp.Body.Close()
@@ -380,7 +379,6 @@ func (c *testApiClient) GetEmpty(ctx context.Context) error {
 }
 
 func (c *testApiClient) GetError(ctx context.Context) error {
-
 	resp, err := doHTTPRequest(ctx, c.client, c.urls[1], nil, nil)
 	if resp != nil {
 		cerr := resp.Body.Close()
@@ -663,9 +661,26 @@ func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 //
 
 type method struct {
-	Name        string
-	Service     string
-	Annotations map[string]string
+	name        string
+	service     string
+	annotations map[string]string
+}
+
+func (m method) Name() string {
+	return m.name
+}
+
+func (m method) Service() string {
+	return m.service
+}
+
+func (m method) Annotations() map[string]string {
+	res := make(map[string]string, len(m.annotations))
+	for k, v := range m.annotations {
+		res[k] = v
+	}
+
+	return res
 }
 
 type contextKey struct {

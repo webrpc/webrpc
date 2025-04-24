@@ -19,7 +19,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.18.4;example@v0.0.1"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.19.0;example@v0.0.1"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -200,19 +200,19 @@ type ComplexType struct {
 
 var methods = map[string]method{
 	"/rpc/AdminService/Auth": {
-		Name:        "Auth",
-		Service:     "AdminService",
-		Annotations: map[string]string{"public": ""},
+		name:        "Auth",
+		service:     "AdminService",
+		annotations: map[string]string{"public": ""},
 	},
 	"/rpc/AdminService/Status": {
-		Name:        "Status",
-		Service:     "AdminService",
-		Annotations: map[string]string{"internal": ""},
+		name:        "Status",
+		service:     "AdminService",
+		annotations: map[string]string{"internal": ""},
 	},
 	"/rpc/AdminService/Version": {
-		Name:        "Version",
-		Service:     "AdminService",
-		Annotations: map[string]string{"internal": ""},
+		name:        "Version",
+		service:     "AdminService",
+		annotations: map[string]string{"internal": ""},
 	},
 }
 
@@ -644,9 +644,26 @@ func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 //
 
 type method struct {
-	Name        string
-	Service     string
-	Annotations map[string]string
+	name        string
+	service     string
+	annotations map[string]string
+}
+
+func (m method) Name() string {
+	return m.name
+}
+
+func (m method) Service() string {
+	return m.service
+}
+
+func (m method) Annotations() map[string]string {
+	res := make(map[string]string, len(m.annotations))
+	for k, v := range m.annotations {
+		res[k] = v
+	}
+
+	return res
 }
 
 type contextKey struct {

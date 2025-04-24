@@ -19,7 +19,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.18.4;example@v0.0.1"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.19.0;example@v0.0.1"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -200,44 +200,44 @@ type ComplexType struct {
 
 var methods = map[string]method{
 	"/rpc/ExampleService/Ping": {
-		Name:        "Ping",
-		Service:     "ExampleService",
-		Annotations: map[string]string{"internal": ""},
+		name:        "Ping",
+		service:     "ExampleService",
+		annotations: map[string]string{"internal": ""},
 	},
 	"/rpc/ExampleService/Status": {
-		Name:        "Status",
-		Service:     "ExampleService",
-		Annotations: map[string]string{"internal": ""},
+		name:        "Status",
+		service:     "ExampleService",
+		annotations: map[string]string{"internal": ""},
 	},
 	"/rpc/ExampleService/Version": {
-		Name:        "Version",
-		Service:     "ExampleService",
-		Annotations: map[string]string{"internal": ""},
+		name:        "Version",
+		service:     "ExampleService",
+		annotations: map[string]string{"internal": ""},
 	},
 	"/rpc/ExampleService/GetUser": {
-		Name:        "GetUser",
-		Service:     "ExampleService",
-		Annotations: map[string]string{"deprecated": "Use GetUserV2 instead.", "internal": ""},
+		name:        "GetUser",
+		service:     "ExampleService",
+		annotations: map[string]string{"deprecated": "Use GetUserV2 instead.", "internal": ""},
 	},
 	"/rpc/ExampleService/GetUserV2": {
-		Name:        "GetUserV2",
-		Service:     "ExampleService",
-		Annotations: map[string]string{"auth": "X-Access-Key,S2S,Cookies", "public": ""},
+		name:        "GetUserV2",
+		service:     "ExampleService",
+		annotations: map[string]string{"auth": "X-Access-Key,S2S,Cookies", "public": ""},
 	},
 	"/rpc/ExampleService/FindUser": {
-		Name:        "FindUser",
-		Service:     "ExampleService",
-		Annotations: map[string]string{"public": ""},
+		name:        "FindUser",
+		service:     "ExampleService",
+		annotations: map[string]string{"public": ""},
 	},
 	"/rpc/ExampleService/GetIntents": {
-		Name:        "GetIntents",
-		Service:     "ExampleService",
-		Annotations: map[string]string{"public": ""},
+		name:        "GetIntents",
+		service:     "ExampleService",
+		annotations: map[string]string{"public": ""},
 	},
 	"/rpc/ExampleService/CountIntents": {
-		Name:        "CountIntents",
-		Service:     "ExampleService",
-		Annotations: map[string]string{"public": ""},
+		name:        "CountIntents",
+		service:     "ExampleService",
+		annotations: map[string]string{"public": ""},
 	},
 }
 
@@ -726,7 +726,6 @@ func NewExampleServiceClient(addr string, client HTTPClient) ExampleServiceClien
 }
 
 func (c *exampleServiceClient) Ping(ctx context.Context) error {
-
 	resp, err := doHTTPRequest(ctx, c.client, c.urls[0], nil, nil)
 	if resp != nil {
 		cerr := resp.Body.Close()
@@ -775,6 +774,7 @@ func (c *exampleServiceClient) GetUser(ctx context.Context, header map[string]st
 		Arg0 map[string]string `json:"header"`
 		Arg1 uint64            `json:"userID"`
 	}{header, userID}
+
 	out := struct {
 		Ret0 uint32 `json:"code"`
 		Ret1 *User  `json:"user"`
@@ -796,6 +796,7 @@ func (c *exampleServiceClient) GetUserV2(ctx context.Context, header map[string]
 		Arg0 map[string]string `json:"header"`
 		Arg1 uint64            `json:"userID"`
 	}{header, userID}
+
 	out := struct {
 		Ret0 uint32 `json:"code"`
 		Ret1 *User  `json:"user"`
@@ -817,6 +818,7 @@ func (c *exampleServiceClient) FindUser(ctx context.Context, s *SearchFilter) (s
 	in := struct {
 		Arg0 *SearchFilter `json:"s"`
 	}{s}
+
 	out := struct {
 		Ret0 string `json:"name"`
 		Ret1 *User  `json:"user"`
@@ -853,6 +855,7 @@ func (c *exampleServiceClient) CountIntents(ctx context.Context, userId uint64) 
 	in := struct {
 		Arg0 uint64 `json:"userId"`
 	}{userId}
+
 	out := struct {
 		Ret0 map[Intent]uint32 `json:"count"`
 	}{}
@@ -991,9 +994,26 @@ func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 //
 
 type method struct {
-	Name        string
-	Service     string
-	Annotations map[string]string
+	name        string
+	service     string
+	annotations map[string]string
+}
+
+func (m method) Name() string {
+	return m.name
+}
+
+func (m method) Service() string {
+	return m.service
+}
+
+func (m method) Annotations() map[string]string {
+	res := make(map[string]string, len(m.annotations))
+	for k, v := range m.annotations {
+		res[k] = v
+	}
+
+	return res
 }
 
 type contextKey struct {
