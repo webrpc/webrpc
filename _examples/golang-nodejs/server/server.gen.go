@@ -18,7 +18,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.18.4;example@ v0.0.1"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.19.0;example@ v0.0.1"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -159,14 +159,14 @@ type RandomStuff struct {
 
 var methods = map[string]method{
 	"/rpc/ExampleService/Ping": {
-		Name:        "Ping",
-		Service:     "ExampleService",
-		Annotations: map[string]string{},
+		name:        "Ping",
+		service:     "ExampleService",
+		annotations: map[string]string{},
 	},
 	"/rpc/ExampleService/GetUser": {
-		Name:        "GetUser",
-		Service:     "ExampleService",
-		Annotations: map[string]string{},
+		name:        "GetUser",
+		service:     "ExampleService",
+		annotations: map[string]string{},
 	},
 }
 
@@ -388,9 +388,26 @@ func RespondWithError(w http.ResponseWriter, err error) {
 //
 
 type method struct {
-	Name        string
-	Service     string
-	Annotations map[string]string
+	name        string
+	service     string
+	annotations map[string]string
+}
+
+func (m method) Name() string {
+	return m.name
+}
+
+func (m method) Service() string {
+	return m.service
+}
+
+func (m method) Annotations() map[string]string {
+	res := make(map[string]string, len(m.annotations))
+	for k, v := range m.annotations {
+		res[k] = v
+	}
+
+	return res
 }
 
 type contextKey struct {

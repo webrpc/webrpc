@@ -22,7 +22,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.18.4;webrpc-sse-chat@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.19.0;webrpc-sse-chat@v1.0.0"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -103,14 +103,14 @@ type Message struct {
 
 var methods = map[string]method{
 	"/rpc/Chat/SendMessage": {
-		Name:        "SendMessage",
-		Service:     "Chat",
-		Annotations: map[string]string{},
+		name:        "SendMessage",
+		service:     "Chat",
+		annotations: map[string]string{},
 	},
 	"/rpc/Chat/SubscribeMessages": {
-		Name:        "SubscribeMessages",
-		Service:     "Chat",
-		Annotations: map[string]string{},
+		name:        "SubscribeMessages",
+		service:     "Chat",
+		annotations: map[string]string{},
 	},
 }
 
@@ -665,9 +665,26 @@ func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 //
 
 type method struct {
-	Name        string
-	Service     string
-	Annotations map[string]string
+	name        string
+	service     string
+	annotations map[string]string
+}
+
+func (m method) Name() string {
+	return m.name
+}
+
+func (m method) Service() string {
+	return m.service
+}
+
+func (m method) Annotations() map[string]string {
+	res := make(map[string]string, len(m.annotations))
+	for k, v := range m.annotations {
+		res[k] = v
+	}
+
+	return res
 }
 
 type contextKey struct {
