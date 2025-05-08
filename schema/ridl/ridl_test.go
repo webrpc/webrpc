@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/webrpc/webrpc/schema"
 )
 
@@ -90,6 +91,9 @@ func TestRIDLImports(t *testing.T) {
 			version = v0.8.0
 			name = foo
 
+			import
+			  - ../common.ridl  # import from parent directory again
+
 			struct Foo
 			- name: string	
 
@@ -119,18 +123,17 @@ func TestRIDLImports(t *testing.T) {
 	}
 
 	s, err := NewParser(fsys, "schema/import-service.ridl").Parse()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, "v1", s.WebrpcVersion)
 	assert.Equal(t, "ImportService", s.SchemaName)
 	assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
 	if assert.Equal(t, 5, len(s.Types)) {
-		assert.Equal(t, "Foo", string(s.Types[0].Name))
-		assert.Equal(t, "Bar", string(s.Types[1].Name))
-		assert.Equal(t, "Baz", string(s.Types[2].Name))
-		assert.Equal(t, "Common", string(s.Types[3].Name))
-		assert.Equal(t, "ExtraType", string(s.Types[4].Name))
+		expected := []string{"Common", "Foo", "Bar", "Baz", "ExtraType"}
+		for i, name := range expected {
+			assert.Equal(t, name, string(s.Types[i].Name))
+		}
 	}
 
 	if assert.Equal(t, 3, len(s.Errors)) {
@@ -138,6 +141,39 @@ func TestRIDLImports(t *testing.T) {
 		assert.Equal(t, "BarError", string(s.Errors[1].Name))
 		assert.Equal(t, "Unauthorized", string(s.Errors[2].Name))
 	}
+}
+
+func TestRIDLImportsCycle(t *testing.T) {
+	fsys := fstest.MapFS{
+		"schema/a.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.1.1
+			name = A
+	
+			import
+			- b.ridl
+			`)},
+		"schema/b.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v1.0.0
+			name = B
+
+			import
+			  - c.ridl
+		`)},
+		"schema/c.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.8.0
+			name = foo
+
+			import
+			  - a.ridl        # cycles to a
+		`)},
+	}
+
+	s, err := NewParser(fsys, "schema/a.ridl").Parse()
+	assert.ErrorContains(t, err, "circular import")
+	assert.Nil(t, s)
 }
 
 func TestRIDLEnum(t *testing.T) {
