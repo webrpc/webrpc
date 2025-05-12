@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/webrpc/webrpc/schema"
+	"github.com/webrpc/webrpc/schema/ridl/internal/graph"
 )
 
 var (
@@ -18,7 +19,7 @@ var (
 
 type Parser struct {
 	parent  *Parser
-	imports map[string]struct{}
+	imports *graph.Graph[string]
 
 	reader io.Reader
 	path   string
@@ -27,12 +28,9 @@ type Parser struct {
 
 func NewParser(fsys fs.FS, path string) *Parser {
 	return &Parser{
-		fsys: fsys,
-		path: path,
-		imports: map[string]struct{}{
-			// this file imports itself
-			path: {},
-		},
+		fsys:    fsys,
+		path:    path,
+		imports: graph.New(path),
 	}
 }
 
@@ -52,14 +50,19 @@ func (p *Parser) Parse() (*schema.WebRPCSchema, error) {
 }
 
 func (p *Parser) importRIDLFile(filename string) (*schema.WebRPCSchema, error) {
-	for node := p; node != nil; node = node.parent {
-		if _, imported := node.imports[filename]; imported {
-			return nil, fmt.Errorf("circular import %q in file %q", path.Base(filename), p.path)
-		}
-		node.imports[filename] = struct{}{}
+	added := p.imports.AddNode(filename)
+	p.imports.AddEdge(p.path, filename)
+
+	if p.imports.IsCircular() {
+		return nil, fmt.Errorf("circular import %q in file %q", path.Base(filename), p.path)
+	}
+
+	if !added {
+		return nil, nil
 	}
 
 	m := NewParser(p.fsys, filename)
+	m.imports = p.imports
 	m.parent = p
 	return m.Parse()
 }
@@ -128,19 +131,21 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			members = append(members, member.String())
 		}
 
-		for i := range imported.Types {
-			if isImportAllowed(imported.Types[i].Name, members) {
-				s.Types = append(s.Types, imported.Types[i])
+		if imported != nil {
+			for i := range imported.Types {
+				if isImportAllowed(imported.Types[i].Name, members) {
+					s.Types = append(s.Types, imported.Types[i])
+				}
 			}
-		}
-		for i := range imported.Errors {
-			if isImportAllowed(imported.Errors[i].Name, members) {
-				s.Errors = append(s.Errors, imported.Errors[i])
+			for i := range imported.Errors {
+				if isImportAllowed(imported.Errors[i].Name, members) {
+					s.Errors = append(s.Errors, imported.Errors[i])
+				}
 			}
-		}
-		for i := range imported.Services {
-			if isImportAllowed(imported.Services[i].Name, members) {
-				s.Services = append(s.Services, imported.Services[i])
+			for i := range imported.Services {
+				if isImportAllowed(imported.Services[i].Name, members) {
+					s.Services = append(s.Services, imported.Services[i])
+				}
 			}
 		}
 	}
