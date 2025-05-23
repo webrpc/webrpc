@@ -18,6 +18,9 @@ type Type struct {
 	Fields    []*TypeField `json:"fields,omitempty"`
 	TypeExtra `json:",omitempty"`
 	Comments  []string `json:"comments,omitempty"`
+
+	Filename string `json:"-" spew:"-"`
+	Line     int    `json:"-" spew:"-"`
 }
 
 type TypeField struct {
@@ -38,7 +41,7 @@ type TypeExtra struct {
 
 type TypeFieldMeta map[string]interface{}
 
-func (t *Type) Parse(schema *WebRPCSchema) error {
+func (t *Type) Parse(schema *WebRPCSchema, index int) error {
 	// Type name
 	typName := string(t.Name)
 	if typName == "" {
@@ -50,9 +53,12 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 
 	// Ensure we don't have dupe types (w/ normalization)
 	name := strings.ToLower(typName)
-	for _, msg := range schema.Types {
+	for _, msg := range schema.Types[index:] {
 		if msg != t && name == strings.ToLower(string(msg.Name)) {
-			return fmt.Errorf("schema error: duplicate type detected, '%s'", typName)
+			if msg.Filename != t.Filename || msg.Line != t.Line {
+				return fmt.Errorf("schema error: type '%s' declared at %s:%d and %s:%d", typName, t.Filename, t.Line, msg.Filename, msg.Line)
+			}
+			return errAlreadyParsed
 		}
 	}
 

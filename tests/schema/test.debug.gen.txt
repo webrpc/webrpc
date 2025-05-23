@@ -45,7 +45,9 @@
 					Value: (string) "",
 					Meta: ([]schema.TypeFieldMeta) <nil>
 				},
-				Comments: ([]string) <nil>
+				Comments: ([]string) <nil>,
+				Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+				Line: (int) 42
 			}),
 			(*schema.Type)({
 				Kind: (string) (len=4) "enum",
@@ -121,7 +123,9 @@
 					Value: (string) "",
 					Meta: ([]schema.TypeFieldMeta) <nil>
 				},
-				Comments: ([]string) <nil>
+				Comments: ([]string) <nil>,
+				Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+				Line: (int) 46
 			}),
 			(*schema.Type)({
 				Kind: (string) (len=6) "struct",
@@ -173,7 +177,9 @@
 					Meta: ([]schema.TypeFieldMeta) <nil>
 				},
 				Comments: ([]string) {
-				}
+				},
+				Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+				Line: (int) 25
 			}),
 			(*schema.Type)({
 				Kind: (string) (len=6) "struct",
@@ -265,7 +271,9 @@
 					Meta: ([]schema.TypeFieldMeta) <nil>
 				},
 				Comments: ([]string) {
-				}
+				},
+				Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+				Line: (int) 29
 			}),
 			(*schema.Type)({
 				Kind: (string) (len=6) "struct",
@@ -619,7 +627,9 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) {
-											}
+											},
+											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 29
 										})
 									}),
 									Enum: (*schema.VarEnumType)(<nil>)
@@ -752,7 +762,9 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) {
-											}
+											},
+											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 29
 										})
 									}),
 									Enum: (*schema.VarEnumType)(<nil>)
@@ -869,7 +881,9 @@
 										Meta: ([]schema.TypeFieldMeta) <nil>
 									},
 									Comments: ([]string) {
-									}
+									},
+									Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+									Line: (int) 29
 								})
 							}),
 							Enum: (*schema.VarEnumType)(<nil>)
@@ -934,7 +948,9 @@
 										Value: (string) "",
 										Meta: ([]schema.TypeFieldMeta) <nil>
 									},
-									Comments: ([]string) <nil>
+									Comments: ([]string) <nil>,
+									Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+									Line: (int) 42
 								})
 							})
 						}),
@@ -951,7 +967,9 @@
 					Meta: ([]schema.TypeFieldMeta) <nil>
 				},
 				Comments: ([]string) {
-				}
+				},
+				Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+				Line: (int) 53
 			}),
 			(*schema.Type)({
 				Kind: (string) (len=6) "struct",
@@ -1051,7 +1069,9 @@
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
-											Comments: ([]string) <nil>
+											Comments: ([]string) <nil>,
+											Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 46
 										})
 									})
 								}),
@@ -1133,7 +1153,9 @@
 												Value: (string) "",
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
-											Comments: ([]string) <nil>
+											Comments: ([]string) <nil>,
+											Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 42
 										})
 									})
 								})
@@ -1155,7 +1177,9 @@
 					Meta: ([]schema.TypeFieldMeta) <nil>
 				},
 				Comments: ([]string) {
-				}
+				},
+				Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+				Line: (int) 65
 			})
 		},
 		Errors: ([]*schema.Error) (len=18 cap=32) {
@@ -1374,7 +1398,9 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) {
-											}
+											},
+											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 25
 										})
 									}),
 									Enum: (*schema.VarEnumType)(<nil>)
@@ -1461,7 +1487,9 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) {
-											}
+											},
+											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 25
 										})
 									}),
 									Enum: (*schema.VarEnumType)(<nil>)
@@ -1552,7 +1580,9 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) {
-											}
+											},
+											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 25
 										})
 									}),
 									Enum: (*schema.VarEnumType)(<nil>)
@@ -1626,7 +1656,9 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) {
-											}
+											},
+											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 25
 										})
 									}),
 									Enum: (*schema.VarEnumType)(<nil>)
@@ -1700,7 +1732,9 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) {
-											}
+											},
+											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 25
 										})
 									}),
 									Enum: (*schema.VarEnumType)(<nil>)
@@ -1787,7 +1821,9 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) {
-											}
+											},
+											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 25
 										})
 									}),
 									Enum: (*schema.VarEnumType)(<nil>)
@@ -1861,7 +1897,9 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) {
-											}
+											},
+											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 25
 										})
 									}),
 									Enum: (*schema.VarEnumType)(<nil>)
@@ -1935,7 +1973,9 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) {
-											}
+											},
+											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 25
 										})
 									}),
 									Enum: (*schema.VarEnumType)(<nil>)
@@ -2328,7 +2368,9 @@
 																			Meta: ([]schema.TypeFieldMeta) <nil>
 																		},
 																		Comments: ([]string) {
-																		}
+																		},
+																		Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																		Line: (int) 29
 																	})
 																}),
 																Enum: (*schema.VarEnumType)(<nil>)
@@ -2461,7 +2503,9 @@
 																			Meta: ([]schema.TypeFieldMeta) <nil>
 																		},
 																		Comments: ([]string) {
-																		}
+																		},
+																		Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																		Line: (int) 29
 																	})
 																}),
 																Enum: (*schema.VarEnumType)(<nil>)
@@ -2578,7 +2622,9 @@
 																	Meta: ([]schema.TypeFieldMeta) <nil>
 																},
 																Comments: ([]string) {
-																}
+																},
+																Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																Line: (int) 29
 															})
 														}),
 														Enum: (*schema.VarEnumType)(<nil>)
@@ -2643,7 +2689,9 @@
 																	Value: (string) "",
 																	Meta: ([]schema.TypeFieldMeta) <nil>
 																},
-																Comments: ([]string) <nil>
+																Comments: ([]string) <nil>,
+																Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																Line: (int) 42
 															})
 														})
 													}),
@@ -2660,7 +2708,9 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) {
-											}
+											},
+											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 53
 										})
 									}),
 									Enum: (*schema.VarEnumType)(<nil>)
@@ -3049,7 +3099,9 @@
 																			Meta: ([]schema.TypeFieldMeta) <nil>
 																		},
 																		Comments: ([]string) {
-																		}
+																		},
+																		Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																		Line: (int) 29
 																	})
 																}),
 																Enum: (*schema.VarEnumType)(<nil>)
@@ -3182,7 +3234,9 @@
 																			Meta: ([]schema.TypeFieldMeta) <nil>
 																		},
 																		Comments: ([]string) {
-																		}
+																		},
+																		Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																		Line: (int) 29
 																	})
 																}),
 																Enum: (*schema.VarEnumType)(<nil>)
@@ -3299,7 +3353,9 @@
 																	Meta: ([]schema.TypeFieldMeta) <nil>
 																},
 																Comments: ([]string) {
-																}
+																},
+																Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																Line: (int) 29
 															})
 														}),
 														Enum: (*schema.VarEnumType)(<nil>)
@@ -3364,7 +3420,9 @@
 																	Value: (string) "",
 																	Meta: ([]schema.TypeFieldMeta) <nil>
 																},
-																Comments: ([]string) <nil>
+																Comments: ([]string) <nil>,
+																Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																Line: (int) 42
 															})
 														})
 													}),
@@ -3381,7 +3439,9 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) {
-											}
+											},
+											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Line: (int) 53
 										})
 									}),
 									Enum: (*schema.VarEnumType)(<nil>)
@@ -3469,7 +3529,9 @@
 														Value: (string) "",
 														Meta: ([]schema.TypeFieldMeta) <nil>
 													},
-													Comments: ([]string) <nil>
+													Comments: ([]string) <nil>,
+													Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+													Line: (int) 42
 												})
 											})
 										})
@@ -3593,7 +3655,9 @@
 														Value: (string) "",
 														Meta: ([]schema.TypeFieldMeta) <nil>
 													},
-													Comments: ([]string) <nil>
+													Comments: ([]string) <nil>,
+													Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+													Line: (int) 46
 												})
 											})
 										}),
@@ -3664,7 +3728,8 @@
 				Schema: (*schema.WebRPCSchema)(<already shown>)
 			})
 		},
-		Deprecated_Messages: ([]interface {}) <nil>
+		Deprecated_Messages: ([]interface {}) <nil>,
+		Filename: (string) ""
 	}),
 	SchemaHash: (string) (len=40) "61c9c8c942e3f6bdffd9929e78ebb3631d924993",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",

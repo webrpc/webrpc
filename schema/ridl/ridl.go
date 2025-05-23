@@ -49,22 +49,22 @@ func (p *Parser) Parse() (*schema.WebRPCSchema, error) {
 	return s, nil
 }
 
-func (p *Parser) importRIDLFile(filename string) (*schema.WebRPCSchema, error) {
-	added := p.imports.AddNode(filename)
-	p.imports.AddEdge(p.path, filename)
+func (p *Parser) importParser(filename string) (*Parser, error) {
+	newNode := p.imports.AddNode(filename)
+	newEdge := p.imports.AddEdge(p.path, filename)
 
 	if p.imports.IsCircular() {
 		return nil, fmt.Errorf("circular import %q in file %q", path.Base(filename), p.path)
 	}
 
-	if !added {
+	if !newNode && !newEdge {
 		return nil, nil
 	}
 
 	m := NewParser(p.fsys, filename)
 	m.imports = p.imports
 	m.parent = p
-	return m.Parse()
+	return m, nil
 }
 
 func (p *Parser) parse() (*schema.WebRPCSchema, error) {
@@ -121,9 +121,13 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, line := range q.root.Imports() {
 		importPath := path.Join(path.Dir(p.path), line.Path().String())
 
-		imported, err := p.importRIDLFile(importPath)
+		parser, err := p.importParser(importPath)
 		if err != nil {
 			return nil, p.trace(err, line.Path())
+		}
+		imported, err := parser.Parse()
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse import %q: %w", importPath, parser.trace(err, line.Path()))
 		}
 
 		members := []string{}
@@ -156,6 +160,9 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			Kind:   schemaTypeKindEnum,
 			Name:   line.Name().String(),
 			Fields: []*schema.TypeField{},
+
+			Filename: "/" + p.path,
+			Line:     line.line,
 		})
 	}
 
@@ -165,6 +172,8 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			Kind:     schemaTypeKindStruct,
 			Name:     line.Name().String(),
 			Comments: parseComment(line.Comment()),
+			Filename: "/" + p.path,
+			Line:     line.line,
 		})
 	}
 

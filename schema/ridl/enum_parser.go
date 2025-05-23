@@ -71,5 +71,6 @@ func parserStateEnum(p *parser) parserState {
 		enumType: newTokenNode(matches[5]),
 		values:   []*DefinitionNode{},
 		comment:  parseComments(p.comments, matches[0].line),
+		line:     matches[0].line,
 	})
 }
