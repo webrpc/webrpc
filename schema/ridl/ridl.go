@@ -127,7 +127,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		}
 		imported, err := parser.Parse()
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse import %q: %w", importPath, parser.trace(err, line.Path()))
+			return nil, fmt.Errorf("failed to parse import %q:\n%w", importPath, parser.trace(err, line.Path()))
 		}
 
 		members := []string{}
@@ -161,7 +161,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			Name:   line.Name().String(),
 			Fields: []*schema.TypeField{},
 
-			Filename: "/" + p.path,
+			Filename: p.path,
 			Line:     line.line,
 		})
 	}
@@ -172,7 +172,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			Kind:     schemaTypeKindStruct,
 			Name:     line.Name().String(),
 			Comments: parseComment(line.Comment()),
-			Filename: "/" + p.path,
+			Filename: p.path,
 			Line:     line.line,
 		})
 	}

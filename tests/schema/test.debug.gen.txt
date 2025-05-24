@@ -46,7 +46,7 @@
 					Meta: ([]schema.TypeFieldMeta) <nil>
 				},
 				Comments: ([]string) <nil>,
-				Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+				Filename: (string) (len=16) "schema/test.ridl",
 				Line: (int) 42
 			}),
 			(*schema.Type)({
@@ -124,7 +124,7 @@
 					Meta: ([]schema.TypeFieldMeta) <nil>
 				},
 				Comments: ([]string) <nil>,
-				Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+				Filename: (string) (len=16) "schema/test.ridl",
 				Line: (int) 46
 			}),
 			(*schema.Type)({
@@ -178,7 +178,7 @@
 				},
 				Comments: ([]string) {
 				},
-				Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+				Filename: (string) (len=16) "schema/test.ridl",
 				Line: (int) 25
 			}),
 			(*schema.Type)({
@@ -272,7 +272,7 @@
 				},
 				Comments: ([]string) {
 				},
-				Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+				Filename: (string) (len=16) "schema/test.ridl",
 				Line: (int) 29
 			}),
 			(*schema.Type)({
@@ -628,7 +628,7 @@
 											},
 											Comments: ([]string) {
 											},
-											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 29
 										})
 									}),
@@ -763,7 +763,7 @@
 											},
 											Comments: ([]string) {
 											},
-											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 29
 										})
 									}),
@@ -882,7 +882,7 @@
 									},
 									Comments: ([]string) {
 									},
-									Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+									Filename: (string) (len=16) "schema/test.ridl",
 									Line: (int) 29
 								})
 							}),
@@ -949,7 +949,7 @@
 										Meta: ([]schema.TypeFieldMeta) <nil>
 									},
 									Comments: ([]string) <nil>,
-									Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+									Filename: (string) (len=16) "schema/test.ridl",
 									Line: (int) 42
 								})
 							})
@@ -968,7 +968,7 @@
 				},
 				Comments: ([]string) {
 				},
-				Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+				Filename: (string) (len=16) "schema/test.ridl",
 				Line: (int) 53
 			}),
 			(*schema.Type)({
@@ -1070,7 +1070,7 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) <nil>,
-											Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 46
 										})
 									})
@@ -1154,7 +1154,7 @@
 												Meta: ([]schema.TypeFieldMeta) <nil>
 											},
 											Comments: ([]string) <nil>,
-											Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 42
 										})
 									})
@@ -1178,7 +1178,7 @@
 				},
 				Comments: ([]string) {
 				},
-				Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+				Filename: (string) (len=16) "schema/test.ridl",
 				Line: (int) 65
 			})
 		},
@@ -1399,7 +1399,7 @@
 											},
 											Comments: ([]string) {
 											},
-											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 25
 										})
 									}),
@@ -1488,7 +1488,7 @@
 											},
 											Comments: ([]string) {
 											},
-											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 25
 										})
 									}),
@@ -1581,7 +1581,7 @@
 											},
 											Comments: ([]string) {
 											},
-											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 25
 										})
 									}),
@@ -1657,7 +1657,7 @@
 											},
 											Comments: ([]string) {
 											},
-											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 25
 										})
 									}),
@@ -1733,7 +1733,7 @@
 											},
 											Comments: ([]string) {
 											},
-											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 25
 										})
 									}),
@@ -1822,7 +1822,7 @@
 											},
 											Comments: ([]string) {
 											},
-											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 25
 										})
 									}),
@@ -1898,7 +1898,7 @@
 											},
 											Comments: ([]string) {
 											},
-											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 25
 										})
 									}),
@@ -1974,7 +1974,7 @@
 											},
 											Comments: ([]string) {
 											},
-											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 25
 										})
 									}),
@@ -2369,7 +2369,7 @@
 																		},
 																		Comments: ([]string) {
 																		},
-																		Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																		Filename: (string) (len=16) "schema/test.ridl",
 																		Line: (int) 29
 																	})
 																}),
@@ -2504,7 +2504,7 @@
 																		},
 																		Comments: ([]string) {
 																		},
-																		Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																		Filename: (string) (len=16) "schema/test.ridl",
 																		Line: (int) 29
 																	})
 																}),
@@ -2623,7 +2623,7 @@
 																},
 																Comments: ([]string) {
 																},
-																Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																Filename: (string) (len=16) "schema/test.ridl",
 																Line: (int) 29
 															})
 														}),
@@ -2690,7 +2690,7 @@
 																	Meta: ([]schema.TypeFieldMeta) <nil>
 																},
 																Comments: ([]string) <nil>,
-																Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																Filename: (string) (len=16) "schema/test.ridl",
 																Line: (int) 42
 															})
 														})
@@ -2709,7 +2709,7 @@
 											},
 											Comments: ([]string) {
 											},
-											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 53
 										})
 									}),
@@ -3100,7 +3100,7 @@
 																		},
 																		Comments: ([]string) {
 																		},
-																		Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																		Filename: (string) (len=16) "schema/test.ridl",
 																		Line: (int) 29
 																	})
 																}),
@@ -3235,7 +3235,7 @@
 																		},
 																		Comments: ([]string) {
 																		},
-																		Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																		Filename: (string) (len=16) "schema/test.ridl",
 																		Line: (int) 29
 																	})
 																}),
@@ -3354,7 +3354,7 @@
 																},
 																Comments: ([]string) {
 																},
-																Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																Filename: (string) (len=16) "schema/test.ridl",
 																Line: (int) 29
 															})
 														}),
@@ -3421,7 +3421,7 @@
 																	Meta: ([]schema.TypeFieldMeta) <nil>
 																},
 																Comments: ([]string) <nil>,
-																Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+																Filename: (string) (len=16) "schema/test.ridl",
 																Line: (int) 42
 															})
 														})
@@ -3440,7 +3440,7 @@
 											},
 											Comments: ([]string) {
 											},
-											Filename: (string) (len=66) "Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+											Filename: (string) (len=16) "schema/test.ridl",
 											Line: (int) 53
 										})
 									}),
@@ -3530,7 +3530,7 @@
 														Meta: ([]schema.TypeFieldMeta) <nil>
 													},
 													Comments: ([]string) <nil>,
-													Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+													Filename: (string) (len=16) "schema/test.ridl",
 													Line: (int) 42
 												})
 											})
@@ -3656,7 +3656,7 @@
 														Meta: ([]schema.TypeFieldMeta) <nil>
 													},
 													Comments: ([]string) <nil>,
-													Filename: (string) (len=67) "/Users/klaid/Workspace/Horizon/webrpc/webrpc/tests/schema/test.ridl",
+													Filename: (string) (len=16) "schema/test.ridl",
 													Line: (int) 46
 												})
 											})

@@ -2,8 +2,10 @@ package webrpc
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/webrpc/webrpc/schema"
 	"github.com/webrpc/webrpc/schema/ridl"
@@ -29,21 +31,33 @@ func ParseSchemaFile(path string) (*schema.WebRPCSchema, error) {
 		// Use root FS to allow RIDL file imports from parent directories,
 		// ie. import ../../common.ridl.
 
-		root := "/"
-
 		// Support Windows paths. Currently only supports paths on the same volume.
-		if volume := filepath.VolumeName(absolutePath); volume != "" {
-			root = volume + "/"
+		root := filepath.VolumeName(absolutePath) + "/"
+
+		basePath, _ := os.Getwd()
+
+		path, err := filepath.Rel(basePath, absolutePath)
+		if err != nil {
+			return nil, fmt.Errorf("get relative path %q: %w", path, err)
 		}
 
-		path := filepath.ToSlash(absolutePath[len(root):])
+		rootFS := rootFS{
+			FS:       os.DirFS(root),
+			BasePath: basePath,
+		}
 
-		rootFS := os.DirFS(root)
-
-		r := ridl.NewParser(rootFS, path)
-		return r.Parse()
+		return ridl.NewParser(&rootFS, path).Parse()
 
 	default:
 		return nil, fmt.Errorf("invalid schema file extension %q", ext)
 	}
+}
+
+type rootFS struct {
+	fs.FS
+	BasePath string
+}
+
+func (r *rootFS) Open(path string) (fs.File, error) {
+	return r.FS.Open(strings.TrimPrefix(filepath.Join(r.BasePath, path), "/"))
 }
