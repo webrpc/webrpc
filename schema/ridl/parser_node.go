@@ -231,6 +231,7 @@ type EnumNode struct {
 	enumType *TokenNode
 	values   []*DefinitionNode
 	comment  string
+	line     int
 }
 
 func (en EnumNode) Type() NodeType {
@@ -257,6 +258,7 @@ type StructNode struct {
 	name    *TokenNode
 	fields  []*DefinitionNode
 	comment string
+	line    int
 }
 
 func (mn StructNode) Name() *TokenNode {
