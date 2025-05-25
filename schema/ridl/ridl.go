@@ -1,6 +1,7 @@
 package ridl
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -67,6 +68,28 @@ func (p *Parser) importParser(filename string) (*Parser, error) {
 	return m, nil
 }
 
+type importError struct {
+	stack []string
+	err   error
+}
+
+func (e importError) Error() string {
+	if len(e.stack) == 0 {
+		return e.err.Error()
+	}
+
+	s := strings.Builder{}
+	s.WriteString(e.err.Error())
+	s.WriteString("\nstack trace:\n")
+	for i, file := range e.stack {
+		fmt.Fprintf(&s, "  - %s", file)
+		if i < len(e.stack)-1 {
+			s.WriteString("\n")
+		}
+	}
+	return s.String()
+}
+
 func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	if !fs.ValidPath(p.path) {
 		return nil, fmt.Errorf("invalid fs.FS path %q, see https://pkg.go.dev/io/fs#ValidPath", p.path)
@@ -123,11 +146,21 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 
 		parser, err := p.importParser(importPath)
 		if err != nil {
-			return nil, p.trace(err, line.Path())
+			return nil, err
 		}
 		imported, err := parser.Parse()
 		if err != nil {
-			return nil, fmt.Errorf("import %q:\n%w", importPath, parser.trace(err, line.Path()))
+			if errors.As(err, &importError{}) {
+				return nil, err
+			}
+			var stack []string
+			for p := parser; p != nil; p = p.parent {
+				stack = append(stack, p.path)
+			}
+			return nil, importError{
+				stack: stack,
+				err:   err,
+			}
 		}
 
 		members := []string{}
