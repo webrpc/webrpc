@@ -127,7 +127,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		}
 		imported, err := parser.Parse()
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse import %q:\n%w", importPath, parser.trace(err, line.Path()))
+			return nil, fmt.Errorf("import %q:\n%w", importPath, parser.trace(err, line.Path()))
 		}
 
 		members := []string{}

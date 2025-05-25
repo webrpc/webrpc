@@ -178,6 +178,7 @@ func TestRIDLImportsCycle(t *testing.T) {
 	s, err := NewParser(fsys, "schema/a.ridl").Parse()
 	assert.ErrorContains(t, err, "circular import")
 	assert.Nil(t, s)
+	t.Logf("RIDL imports cycle:\n%s", err)
 }
 
 func TestRIDLDuplicateEnumSameFile(t *testing.T) {
@@ -214,7 +215,9 @@ func TestRIDLDuplicateEnumSameFile(t *testing.T) {
 	s, err := NewParser(fsys, "schema/a.ridl").Parse()
 	assert.ErrorContains(t, err, "declared")
 	assert.Nil(t, s)
+	t.Logf("RIDL duplicate enum same file:\n%s", err)
 }
+
 func TestRIDLDuplicateEnumDifferenFiles(t *testing.T) {
 	fsys := fstest.MapFS{
 		"schema/a.ridl": {Data: []byte(`
@@ -249,6 +252,7 @@ func TestRIDLDuplicateEnumDifferenFiles(t *testing.T) {
 	s, err := NewParser(fsys, "schema/a.ridl").Parse()
 	assert.ErrorContains(t, err, "declared")
 	assert.Nil(t, s)
+	t.Logf("RIDL duplicate enum different files:\n%s", err)
 }
 
 func TestRIDLDuplicateStructSameFile(t *testing.T) {
@@ -285,7 +289,9 @@ func TestRIDLDuplicateStructSameFile(t *testing.T) {
 	s, err := NewParser(fsys, "schema/a.ridl").Parse()
 	assert.ErrorContains(t, err, "declared")
 	assert.Nil(t, s)
+	t.Logf("RIDL duplicate struct same file:\n%s", err)
 }
+
 func TestRIDLDuplicateStructDifferenFiles(t *testing.T) {
 	fsys := fstest.MapFS{
 		"schema/a.ridl": {Data: []byte(`
@@ -320,6 +326,7 @@ func TestRIDLDuplicateStructDifferenFiles(t *testing.T) {
 	s, err := NewParser(fsys, "schema/a.ridl").Parse()
 	assert.ErrorContains(t, err, "declared")
 	assert.Nil(t, s)
+	t.Logf("RIDL duplicate struct different files:\n%s", err)
 }
 
 func TestRIDLEnum(t *testing.T) {
