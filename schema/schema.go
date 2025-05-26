@@ -5,12 +5,9 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 )
-
-var errAlreadyParsed = errors.New("already parsed")
 
 const (
 	SCHEMA_VERSION = "v1"
@@ -40,27 +37,23 @@ func (s *WebRPCSchema) Validate() error {
 		return fmt.Errorf("webrpc schema version, '%s' is invalid, try '%s'", s.WebrpcVersion, SCHEMA_VERSION)
 	}
 
-	for i := 0; i < len(s.Types); i++ {
+	for i := range s.Types {
 		err := s.Types[i].Parse(s, i)
 		if err != nil {
-			if !errors.Is(err, errAlreadyParsed) {
-				return err
-			}
-			s.Types = append(s.Types[:i], s.Types[i+1:]...)
-			i--
+			return err
 		}
 	}
 
 	for _, e := range s.Errors {
 		err := e.Parse(s)
-		if err != nil && !errors.Is(err, errAlreadyParsed) {
+		if err != nil {
 			return err
 		}
 	}
 
 	for _, svc := range s.Services {
 		err := svc.Parse(s)
-		if err != nil && !errors.Is(err, errAlreadyParsed) {
+		if err != nil {
 			return err
 		}
 	}

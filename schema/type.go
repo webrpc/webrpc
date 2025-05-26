@@ -55,10 +55,7 @@ func (t *Type) Parse(schema *WebRPCSchema, index int) error {
 	name := strings.ToLower(typName)
 	for _, msg := range schema.Types[index:] {
 		if msg != t && name == strings.ToLower(string(msg.Name)) {
-			if msg.Filename != t.Filename || msg.Line != t.Line {
-				return fmt.Errorf("schema error: type '%s' declared at %s:%d and %s:%d", typName, t.Filename, t.Line, msg.Filename, msg.Line)
-			}
-			return errAlreadyParsed
+			return fmt.Errorf("schema error: type '%s' declared at %s:%d and %s:%d", typName, t.Filename, t.Line, msg.Filename, msg.Line)
 		}
 	}
 
