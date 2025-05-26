@@ -132,7 +132,7 @@ func TestRIDLImports(t *testing.T) {
 	assert.Equal(t, "v0.1.1", s.SchemaVersion)
 
 	if assert.Equal(t, 5, len(s.Types)) {
-		expected := []string{"Foo", "Bar", "Baz", "Common", "ExtraType"}
+		expected := []string{"Common", "Foo", "Bar", "Baz", "ExtraType"}
 		names := make([]string, len(s.Types))
 		for i, t := range s.Types {
 			names[i] = t.Name
