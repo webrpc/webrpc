@@ -3,9 +3,9 @@ package ridl
 import (
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"path"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -21,10 +21,10 @@ var (
 type Parser struct {
 	parent  *Parser
 	imports *graph.Graph[string]
+	cache   map[string]*schema.WebRPCSchema // cache for already parsed schemas
 
-	reader io.Reader
-	path   string
-	fsys   fs.FS
+	path string
+	fsys fs.FS
 }
 
 func NewParser(fsys fs.FS, path string) *Parser {
@@ -32,6 +32,7 @@ func NewParser(fsys fs.FS, path string) *Parser {
 		fsys:    fsys,
 		path:    path,
 		imports: graph.New(path),
+		cache:   make(map[string]*schema.WebRPCSchema),
 	}
 }
 
@@ -60,8 +61,23 @@ func (p *Parser) importParser(filename string) (*Parser, error) {
 
 	m := NewParser(p.fsys, filename)
 	m.imports = p.imports
+	m.cache = p.cache
 	m.parent = p
 	return m, nil
+}
+
+func newImportError(parser *Parser, cause error) error {
+	if errors.As(cause, &importError{}) {
+		return cause
+	}
+	var stack []string
+	for p := parser; p != nil; p = p.parent {
+		stack = append(stack, p.path)
+	}
+	return importError{
+		stack: stack,
+		err:   cause,
+	}
 }
 
 type importError struct {
@@ -140,22 +156,13 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, line := range q.root.Imports() {
 		importPath := path.Join(path.Dir(p.path), line.Path().String())
 
-		parser, err := p.importParser(importPath)
-		if err != nil {
-			return nil, err
-		}
-		imported, err := parser.Parse()
-		if err != nil {
-			if errors.As(err, &importError{}) {
+		if _, ok := p.cache[importPath]; !ok {
+			parser, err := p.importParser(importPath)
+			if err != nil {
 				return nil, err
 			}
-			var stack []string
-			for p := parser; p != nil; p = p.parent {
-				stack = append(stack, p.path)
-			}
-			return nil, importError{
-				stack: stack,
-				err:   err,
+			if p.cache[importPath], err = parser.Parse(); err != nil {
+				return nil, newImportError(parser, err)
 			}
 		}
 
@@ -164,9 +171,9 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			members = append(members, member.String())
 		}
 
-		if imported != nil {
+		if imported := p.cache[importPath]; imported != nil {
 			for i := range imported.Types {
-				if isImportAllowed(imported.Types[i].Name, members) {
+				if !slices.Contains(s.Types, imported.Types[i]) && isImportAllowed(imported.Types[i].Name, members) {
 					s.Types = append(s.Types, imported.Types[i])
 				}
 			}
