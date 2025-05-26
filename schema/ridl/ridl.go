@@ -51,15 +51,11 @@ func (p *Parser) Parse() (*schema.WebRPCSchema, error) {
 }
 
 func (p *Parser) importParser(filename string) (*Parser, error) {
-	newNode := p.imports.AddNode(filename)
-	newEdge := p.imports.AddEdge(p.path, filename)
+	p.imports.AddNode(filename)
+	p.imports.AddEdge(p.path, filename)
 
 	if p.imports.IsCircular() {
 		return nil, fmt.Errorf("circular import %q in file %q", path.Base(filename), p.path)
-	}
-
-	if !newNode && !newEdge {
-		return nil, nil
 	}
 
 	m := NewParser(p.fsys, filename)
