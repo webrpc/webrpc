@@ -125,6 +125,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		Types:    []*schema.Type{},
 		Errors:   []*schema.Error{},
 		Services: []*schema.Service{},
+		Filename: p.path,
 	}
 
 	// main definitions
