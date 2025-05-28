@@ -42,8 +42,8 @@ func ParseSchemaFile(path string) (*schema.WebRPCSchema, error) {
 			basePath := strings.TrimPrefix(wd, root)
 			schema.Filename, _ = filepath.Rel(basePath, schema.Filename)
 			for _, t := range schema.Types {
-				if t.Filename != "" {
-					t.Filename, _ = filepath.Rel(basePath, t.Filename)
+				if filename, _ := filepath.Rel(basePath, t.Filename); filename != "" {
+					t.Filename = filename
 				}
 			}
 		}
