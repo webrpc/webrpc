@@ -32,7 +32,8 @@ func ParseSchemaFile(path string) (*schema.WebRPCSchema, error) {
 			return nil, fmt.Errorf("get root path: %w", err)
 		}
 
-		schema, err := ridl.NewParser(os.DirFS(root), filepath.ToSlash(absolutePath[len(root):])).Parse()
+		path := filepath.ToSlash(absolutePath[len(root):])
+		schema, err := ridl.NewParser(os.DirFS(root), path).Parse()
 		if err != nil {
 			return nil, err
 		}
