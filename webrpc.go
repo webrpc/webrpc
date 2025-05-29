@@ -40,7 +40,6 @@ func ParseSchemaFile(path string) (*schema.WebRPCSchema, error) {
 		// Convert absolute paths to relative paths.
 		if root, wd, _ := getRootPath(); wd != "" {
 			basePath := strings.TrimPrefix(wd, root)
-			schema.Filename, _ = filepath.Rel(basePath, schema.Filename)
 			for _, t := range schema.Types {
 				if filename, _ := filepath.Rel(basePath, t.Filename); filename != "" {
 					t.Filename = filename
