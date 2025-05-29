@@ -27,7 +27,7 @@ func ParseSchemaFile(path string) (*schema.WebRPCSchema, error) {
 		return schema.ParseSchemaJSON(json)
 
 	case ".ridl":
-		root, _, err := getRootPath()
+		root, wd, err := getRootPath()
 		if err != nil {
 			return nil, fmt.Errorf("get root path: %w", err)
 		}
@@ -39,12 +39,10 @@ func ParseSchemaFile(path string) (*schema.WebRPCSchema, error) {
 		}
 
 		// Convert absolute paths to relative paths.
-		if root, wd, _ := getRootPath(); wd != "" {
-			basePath := strings.TrimPrefix(wd, root)
-			for _, t := range schema.Types {
-				if filename, _ := filepath.Rel(basePath, t.Filename); filename != "" {
-					t.Filename = filename
-				}
+		basePath := strings.TrimPrefix(wd, root)
+		for _, t := range schema.Types {
+			if filename, _ := filepath.Rel(basePath, t.Filename); filename != "" {
+				t.Filename = filename
 			}
 		}
 
