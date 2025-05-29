@@ -38,7 +38,7 @@ func (s *WebRPCSchema) Validate() error {
 	}
 
 	for i := range s.Types {
-		err := s.Types[i].Parse(s, i)
+		err := s.Types[i].Parse(s)
 		if err != nil {
 			return err
 		}

@@ -41,7 +41,7 @@ type TypeExtra struct {
 
 type TypeFieldMeta map[string]interface{}
 
-func (t *Type) Parse(schema *WebRPCSchema, index int) error {
+func (t *Type) Parse(schema *WebRPCSchema) error {
 	// Type name
 	typName := string(t.Name)
 	if typName == "" {
@@ -53,7 +53,7 @@ func (t *Type) Parse(schema *WebRPCSchema, index int) error {
 
 	// Ensure we don't have dupe types (w/ normalization)
 	name := strings.ToLower(typName)
-	for _, msg := range schema.Types[index:] {
+	for _, msg := range schema.Types {
 		if msg != t && name == strings.ToLower(string(msg.Name)) {
 			return fmt.Errorf("schema error: type '%s' declared at %s:%d and %s:%d", typName, t.Filename, t.Line, msg.Filename, msg.Line)
 		}
