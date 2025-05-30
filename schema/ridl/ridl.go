@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"path"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -24,13 +25,15 @@ type Parser struct {
 	cache   map[string]*schema.WebRPCSchema // cache for already parsed schemas
 
 	path string
+	root string
 	fsys fs.FS
 }
 
-func NewParser(fsys fs.FS, path string) *Parser {
+func NewParser(fsys fs.FS, root, path string) *Parser {
 	return &Parser{
 		fsys:    fsys,
 		path:    path,
+		root:    root,
 		imports: graph.New(path),
 		cache:   make(map[string]*schema.WebRPCSchema),
 	}
@@ -59,7 +62,7 @@ func (p *Parser) importParser(filename string) (*Parser, error) {
 		return nil, fmt.Errorf("circular import %q in file %q", path.Base(filename), p.path)
 	}
 
-	m := NewParser(p.fsys, filename)
+	m := NewParser(p.fsys, p.root, filename)
 	m.imports = p.imports
 	m.cache = p.cache
 	m.parent = p
@@ -72,7 +75,7 @@ func newImportError(parser *Parser, cause error) error {
 	}
 	var stack []string
 	for p := parser; p != nil; p = p.parent {
-		stack = append(stack, p.path)
+		stack = append(stack, filepath.Join(p.root, p.path))
 	}
 	return importError{
 		stack: stack,
@@ -197,7 +200,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			Name:   line.Name().String(),
 			Fields: []*schema.TypeField{},
 
-			Filename: p.path,
+			Filename: filepath.Join(p.root, p.path),
 			Line:     line.line,
 		})
 	}
@@ -208,7 +211,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			Kind:     schemaTypeKindStruct,
 			Name:     line.Name().String(),
 			Comments: parseComment(line.Comment()),
-			Filename: p.path,
+			Filename: filepath.Join(p.root, p.path),
 			Line:     line.line,
 		})
 	}

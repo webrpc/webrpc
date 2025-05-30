@@ -21,7 +21,7 @@ func parseString(src string) (*schema.WebRPCSchema, error) {
 			Data: []byte(src),
 		},
 	}
-	return NewParser(fsys, "main.ridl").Parse()
+	return NewParser(fsys, "/", "main.ridl").Parse()
 }
 
 func TestRIDLHeader(t *testing.T) {
@@ -124,7 +124,7 @@ func TestRIDLImports(t *testing.T) {
 		`)},
 	}
 
-	s, err := NewParser(fsys, "schema/import-service.ridl").Parse()
+	s, err := NewParser(fsys, "/", "schema/import-service.ridl").Parse()
 	require.NoError(t, err)
 
 	assert.Equal(t, "v1", s.WebrpcVersion)
@@ -175,7 +175,7 @@ func TestRIDLImportsCycle(t *testing.T) {
 		`)},
 	}
 
-	s, err := NewParser(fsys, "schema/a.ridl").Parse()
+	s, err := NewParser(fsys, "/", "schema/a.ridl").Parse()
 	assert.ErrorContains(t, err, "circular import")
 	assert.Nil(t, s)
 	t.Logf("RIDL imports cycle:\n%s", err)
@@ -212,7 +212,7 @@ func TestRIDLDuplicateEnumSameFile(t *testing.T) {
 		`)},
 	}
 
-	s, err := NewParser(fsys, "schema/a.ridl").Parse()
+	s, err := NewParser(fsys, "/", "schema/a.ridl").Parse()
 	assert.ErrorContains(t, err, "declared")
 	assert.Nil(t, s)
 	t.Logf("RIDL duplicate enum same file:\n%s", err)
@@ -249,7 +249,7 @@ func TestRIDLDuplicateEnumDifferenFiles(t *testing.T) {
 		`)},
 	}
 
-	s, err := NewParser(fsys, "schema/a.ridl").Parse()
+	s, err := NewParser(fsys, "/", "schema/a.ridl").Parse()
 	assert.ErrorContains(t, err, "declared")
 	assert.Nil(t, s)
 	t.Logf("RIDL duplicate enum different files:\n%s", err)
@@ -286,7 +286,7 @@ func TestRIDLDuplicateStructSameFile(t *testing.T) {
 		`)},
 	}
 
-	s, err := NewParser(fsys, "schema/a.ridl").Parse()
+	s, err := NewParser(fsys, "/", "schema/a.ridl").Parse()
 	assert.ErrorContains(t, err, "declared")
 	assert.Nil(t, s)
 	t.Logf("RIDL duplicate struct same file:\n%s", err)
@@ -323,7 +323,7 @@ func TestRIDLDuplicateStructDifferenFiles(t *testing.T) {
 		`)},
 	}
 
-	s, err := NewParser(fsys, "schema/a.ridl").Parse()
+	s, err := NewParser(fsys, "/", "schema/a.ridl").Parse()
 	assert.ErrorContains(t, err, "declared")
 	assert.Nil(t, s)
 	t.Logf("RIDL duplicate struct different files:\n%s", err)
@@ -712,7 +712,7 @@ func TestRIDLParse(t *testing.T) {
 func TestRIDLImportsExample1(t *testing.T) {
 	exampleDirFS := os.DirFS("./_example")
 
-	r := NewParser(exampleDirFS, "example1.ridl")
+	r := NewParser(exampleDirFS, "/", "example1.ridl")
 	s, err := r.Parse()
 	assert.NoError(t, err)
 
@@ -738,7 +738,7 @@ func TestRIDLImportsExample1(t *testing.T) {
 func TestRIDLImportsExample2(t *testing.T) {
 	exampleDirFS := os.DirFS("./_example")
 
-	r := NewParser(exampleDirFS, "example2.ridl")
+	r := NewParser(exampleDirFS, "/", "example2.ridl")
 	s, err := r.Parse()
 	assert.NoError(t, err)
 

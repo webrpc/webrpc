@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/webrpc/webrpc/schema"
 	"github.com/webrpc/webrpc/schema/ridl"
@@ -33,15 +32,14 @@ func ParseSchemaFile(path string) (*schema.WebRPCSchema, error) {
 		}
 
 		path := filepath.ToSlash(absolutePath[len(root):])
-		schema, err := ridl.NewParser(os.DirFS(root), path).Parse()
+		schema, err := ridl.NewParser(os.DirFS(root), root, path).Parse()
 		if err != nil {
 			return nil, err
 		}
 
 		// Convert absolute paths to relative paths.
-		basePath := strings.TrimPrefix(wd, root)
 		for _, t := range schema.Types {
-			if filename, _ := filepath.Rel(basePath, t.Filename); filename != "" {
+			if filename, _ := filepath.Rel(wd, t.Filename); filename != "" {
 				t.Filename = filename
 			}
 		}
