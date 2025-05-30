@@ -21,7 +21,7 @@ func parseString(src string) (*schema.WebRPCSchema, error) {
 			Data: []byte(src),
 		},
 	}
-	return NewParser(fsys, "main.ridl").Parse()
+	return NewParser(fsys, "/", "main.ridl").Parse()
 }
 
 func TestRIDLHeader(t *testing.T) {
@@ -83,6 +83,7 @@ func TestRIDLImports(t *testing.T) {
 
 			struct ExtraType
 			  - name: string
+			  - common: Common
 			
 			error 1000 Unauthorized   "Unauthorized access"   HTTP 401
 		`)},
@@ -95,7 +96,8 @@ func TestRIDLImports(t *testing.T) {
 			  - ../common.ridl  # import from parent directory again
 
 			struct Foo
-			- name: string	
+			- name: string
+			- common: Common	
 
 			error 2000 FooError   "Foo, not enough access"   HTTP 403
 		`)},
@@ -122,7 +124,7 @@ func TestRIDLImports(t *testing.T) {
 		`)},
 	}
 
-	s, err := NewParser(fsys, "schema/import-service.ridl").Parse()
+	s, err := NewParser(fsys, "/", "schema/import-service.ridl").Parse()
 	require.NoError(t, err)
 
 	assert.Equal(t, "v1", s.WebrpcVersion)
@@ -131,9 +133,11 @@ func TestRIDLImports(t *testing.T) {
 
 	if assert.Equal(t, 5, len(s.Types)) {
 		expected := []string{"Common", "Foo", "Bar", "Baz", "ExtraType"}
-		for i, name := range expected {
-			assert.Equal(t, name, string(s.Types[i].Name))
+		names := make([]string, len(s.Types))
+		for i, t := range s.Types {
+			names[i] = t.Name
 		}
+		assert.Equal(t, expected, names)
 	}
 
 	if assert.Equal(t, 3, len(s.Errors)) {
@@ -171,9 +175,158 @@ func TestRIDLImportsCycle(t *testing.T) {
 		`)},
 	}
 
-	s, err := NewParser(fsys, "schema/a.ridl").Parse()
+	s, err := NewParser(fsys, "/", "schema/a.ridl").Parse()
 	assert.ErrorContains(t, err, "circular import")
 	assert.Nil(t, s)
+	t.Logf("RIDL imports cycle:\n%s", err)
+}
+
+func TestRIDLDuplicateEnumSameFile(t *testing.T) {
+	fsys := fstest.MapFS{
+		"schema/a.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.1.1
+			name = A
+	
+			import
+			- b.ridl
+			`)},
+		"schema/b.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v1.0.0
+			name = B
+
+			import
+			  - c.ridl
+		`)},
+		"schema/c.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.8.0
+			name = foo
+
+			enum Foo:uint32
+			- USER = 33
+			
+			enum Foo:uint32
+			- USER = 33
+		`)},
+	}
+
+	s, err := NewParser(fsys, "/", "schema/a.ridl").Parse()
+	assert.ErrorContains(t, err, "declared")
+	assert.Nil(t, s)
+	t.Logf("RIDL duplicate enum same file:\n%s", err)
+}
+
+func TestRIDLDuplicateEnumDifferenFiles(t *testing.T) {
+	fsys := fstest.MapFS{
+		"schema/a.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.1.1
+			name = A
+	
+			import
+			- b.ridl
+			`)},
+		"schema/b.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v1.0.0
+			name = B
+
+			import
+			  - c.ridl
+			
+			enum Foo:uint32
+			- USER = 33
+		`)},
+		"schema/c.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.8.0
+			name = foo
+
+			enum Foo:uint32
+			- USER = 33
+		`)},
+	}
+
+	s, err := NewParser(fsys, "/", "schema/a.ridl").Parse()
+	assert.ErrorContains(t, err, "declared")
+	assert.Nil(t, s)
+	t.Logf("RIDL duplicate enum different files:\n%s", err)
+}
+
+func TestRIDLDuplicateStructSameFile(t *testing.T) {
+	fsys := fstest.MapFS{
+		"schema/a.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.1.1
+			name = A
+	
+			import
+			- b.ridl
+			`)},
+		"schema/b.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v1.0.0
+			name = B
+
+			import
+			  - c.ridl
+		`)},
+		"schema/c.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.8.0
+			name = foo
+
+			struct Foo
+			- a: string
+			
+			struct Foo
+			- a: string
+		`)},
+	}
+
+	s, err := NewParser(fsys, "/", "schema/a.ridl").Parse()
+	assert.ErrorContains(t, err, "declared")
+	assert.Nil(t, s)
+	t.Logf("RIDL duplicate struct same file:\n%s", err)
+}
+
+func TestRIDLDuplicateStructDifferenFiles(t *testing.T) {
+	fsys := fstest.MapFS{
+		"schema/a.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.1.1
+			name = A
+	
+			import
+			- b.ridl
+			`)},
+		"schema/b.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v1.0.0
+			name = B
+
+			import
+			  - c.ridl
+			
+			struct Foo
+			- a: string
+		`)},
+		"schema/c.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.8.0
+			name = foo
+
+			struct Foo
+			- a: string
+		`)},
+	}
+
+	s, err := NewParser(fsys, "/", "schema/a.ridl").Parse()
+	assert.ErrorContains(t, err, "declared")
+	assert.Nil(t, s)
+	t.Logf("RIDL duplicate struct different files:\n%s", err)
 }
 
 func TestRIDLEnum(t *testing.T) {
@@ -559,7 +712,7 @@ func TestRIDLParse(t *testing.T) {
 func TestRIDLImportsExample1(t *testing.T) {
 	exampleDirFS := os.DirFS("./_example")
 
-	r := NewParser(exampleDirFS, "example1.ridl")
+	r := NewParser(exampleDirFS, "/", "example1.ridl")
 	s, err := r.Parse()
 	assert.NoError(t, err)
 
@@ -585,7 +738,7 @@ func TestRIDLImportsExample1(t *testing.T) {
 func TestRIDLImportsExample2(t *testing.T) {
 	exampleDirFS := os.DirFS("./_example")
 
-	r := NewParser(exampleDirFS, "example2.ridl")
+	r := NewParser(exampleDirFS, "/", "example2.ridl")
 	s, err := r.Parse()
 	assert.NoError(t, err)
 

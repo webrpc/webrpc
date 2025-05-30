@@ -35,8 +35,8 @@ func (s *WebRPCSchema) Validate() error {
 		return fmt.Errorf("webrpc schema version, '%s' is invalid, try '%s'", s.WebrpcVersion, SCHEMA_VERSION)
 	}
 
-	for _, msg := range s.Types {
-		err := msg.Parse(s)
+	for i := range s.Types {
+		err := s.Types[i].Parse(s)
 		if err != nil {
 			return err
 		}

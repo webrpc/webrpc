@@ -24,8 +24,12 @@ func (g *Graph[T]) AddNode(node T) bool {
 	return true
 }
 
-func (g *Graph[T]) AddEdge(u, v T) {
+func (g *Graph[T]) AddEdge(u, v T) bool {
+	if slices.Contains(g.adjacency[u], v) {
+		return false
+	}
 	g.adjacency[u] = append(g.adjacency[u], v)
+	return true
 }
 
 func (g *Graph[T]) isCircular(node T, visited, recursionStack map[T]bool) bool {

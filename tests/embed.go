@@ -15,7 +15,7 @@ func GetRIDLSchema() string {
 }
 
 func GetJSONSchema() string {
-	schema, _ := ridl.NewParser(fs, "schema/test.ridl").Parse()
+	schema, _ := ridl.NewParser(fs, "/", "schema/test.ridl").Parse()
 	data, _ := schema.ToJSON()
 	return data
 }

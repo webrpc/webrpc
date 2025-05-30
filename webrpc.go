@@ -26,24 +26,42 @@ func ParseSchemaFile(path string) (*schema.WebRPCSchema, error) {
 		return schema.ParseSchemaJSON(json)
 
 	case ".ridl":
-		// Use root FS to allow RIDL file imports from parent directories,
-		// ie. import ../../common.ridl.
-
-		root := "/"
-
-		// Support Windows paths. Currently only supports paths on the same volume.
-		if volume := filepath.VolumeName(absolutePath); volume != "" {
-			root = volume + "/"
+		root, wd, err := getRootPath()
+		if err != nil {
+			return nil, fmt.Errorf("get root path: %w", err)
 		}
 
 		path := filepath.ToSlash(absolutePath[len(root):])
+		schema, err := ridl.NewParser(os.DirFS(root), root, path).Parse()
+		if err != nil {
+			return nil, err
+		}
 
-		rootFS := os.DirFS(root)
+		// Convert absolute paths to relative paths.
+		for _, t := range schema.Types {
+			if filename, _ := filepath.Rel(wd, t.Filename); filename != "" {
+				t.Filename = filename
+			}
+		}
 
-		r := ridl.NewParser(rootFS, path)
-		return r.Parse()
+		return schema, nil
 
 	default:
 		return nil, fmt.Errorf("invalid schema file extension %q", ext)
 	}
+}
+
+func getRootPath() (root, wd string, err error) {
+	if wd, err = os.Getwd(); err != nil {
+		return "", "", fmt.Errorf("get working directory: %w", err)
+	}
+
+	// Use root FS to allow RIDL file imports from parent directories,
+	// ie. import ../../common.ridl.
+	root = "/"
+	// Support Windows paths. Currently only supports paths on the same volume.
+	if volume := filepath.VolumeName(wd); volume != "" {
+		root = volume + "/"
+	}
+	return root, wd, nil
 }

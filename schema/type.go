@@ -18,6 +18,9 @@ type Type struct {
 	Fields    []*TypeField `json:"fields,omitempty"`
 	TypeExtra `json:",omitempty"`
 	Comments  []string `json:"comments,omitempty"`
+
+	Filename string `json:"-" spew:"-"`
+	Line     int    `json:"-" spew:"-"`
 }
 
 type TypeField struct {
@@ -52,7 +55,7 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 	name := strings.ToLower(typName)
 	for _, msg := range schema.Types {
 		if msg != t && name == strings.ToLower(string(msg.Name)) {
-			return fmt.Errorf("schema error: duplicate type detected, '%s'", typName)
+			return fmt.Errorf("schema error: type '%s' was already declared at %s:%d and %s:%d", typName, t.Filename, t.Line, msg.Filename, msg.Line)
 		}
 	}
 

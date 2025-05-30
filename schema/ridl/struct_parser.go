@@ -141,5 +141,6 @@ func parserStateStruct(p *parser) parserState {
 		name:    newTokenNode(matches[2]),
 		fields:  []*DefinitionNode{},
 		comment: parseComments(p.comments, matches[0].line),
+		line:    matches[0].line,
 	})
 }
