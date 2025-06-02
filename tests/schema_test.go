@@ -15,7 +15,7 @@ var updateFlag = flag.String("update", "", "update golden file to match tests' c
 func TestRIDLSchemaAgainstJSON(t *testing.T) {
 	exampleDirFS := os.DirFS("./schema")
 
-	schema, err := ridl.NewParser(exampleDirFS, "test.ridl").Parse()
+	schema, err := ridl.NewParser(exampleDirFS, "/", "test.ridl").Parse()
 	assert.NoError(t, err)
 
 	jsonSchema, err := schema.ToJSON()

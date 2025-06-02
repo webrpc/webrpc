@@ -1,10 +1,12 @@
 package ridl
 
 import (
+	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"path"
+	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -20,17 +22,20 @@ var (
 type Parser struct {
 	parent  *Parser
 	imports *graph.Graph[string]
+	cache   map[string]*schema.WebRPCSchema // cache for already parsed schemas
 
-	reader io.Reader
-	path   string
-	fsys   fs.FS
+	path string
+	root string
+	fsys fs.FS
 }
 
-func NewParser(fsys fs.FS, path string) *Parser {
+func NewParser(fsys fs.FS, root, path string) *Parser {
 	return &Parser{
 		fsys:    fsys,
 		path:    path,
+		root:    root,
 		imports: graph.New(path),
+		cache:   make(map[string]*schema.WebRPCSchema),
 	}
 }
 
@@ -49,22 +54,55 @@ func (p *Parser) Parse() (*schema.WebRPCSchema, error) {
 	return s, nil
 }
 
-func (p *Parser) importRIDLFile(filename string) (*schema.WebRPCSchema, error) {
-	added := p.imports.AddNode(filename)
+func (p *Parser) importParser(filename string) (*Parser, error) {
+	p.imports.AddNode(filename)
 	p.imports.AddEdge(p.path, filename)
 
 	if p.imports.IsCircular() {
 		return nil, fmt.Errorf("circular import %q in file %q", path.Base(filename), p.path)
 	}
 
-	if !added {
-		return nil, nil
+	m := NewParser(p.fsys, p.root, filename)
+	m.imports = p.imports
+	m.cache = p.cache
+	m.parent = p
+	return m, nil
+}
+
+func newImportError(parser *Parser, cause error) error {
+	if errors.As(cause, &importError{}) {
+		return cause
+	}
+	var stack []string
+	for p := parser; p != nil; p = p.parent {
+		stack = append(stack, filepath.Join(p.root, p.path))
+	}
+	return importError{
+		stack: stack,
+		err:   cause,
+	}
+}
+
+type importError struct {
+	stack []string
+	err   error
+}
+
+func (e importError) Error() string {
+	if len(e.stack) == 0 {
+		return e.err.Error()
 	}
 
-	m := NewParser(p.fsys, filename)
-	m.imports = p.imports
-	m.parent = p
-	return m.Parse()
+	s := strings.Builder{}
+	s.WriteString(e.err.Error())
+	s.WriteString("\nstack trace:\n")
+	for i, file := range e.stack {
+		fmt.Fprintf(&s, "  - %s", file)
+		if i < len(e.stack)-1 {
+			s.WriteString("\n")
+		}
+	}
+	return s.String()
 }
 
 func (p *Parser) parse() (*schema.WebRPCSchema, error) {
@@ -77,7 +115,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	q, err := newParser(src)
+	q, err := newParser(p.path, src)
 	if err != nil {
 		return nil, err
 	}
@@ -121,9 +159,14 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, line := range q.root.Imports() {
 		importPath := path.Join(path.Dir(p.path), line.Path().String())
 
-		imported, err := p.importRIDLFile(importPath)
-		if err != nil {
-			return nil, p.trace(err, line.Path())
+		if _, ok := p.cache[importPath]; !ok {
+			parser, err := p.importParser(importPath)
+			if err != nil {
+				return nil, err
+			}
+			if p.cache[importPath], err = parser.Parse(); err != nil {
+				return nil, newImportError(parser, err)
+			}
 		}
 
 		members := []string{}
@@ -131,9 +174,9 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			members = append(members, member.String())
 		}
 
-		if imported != nil {
+		if imported := p.cache[importPath]; imported != nil {
 			for i := range imported.Types {
-				if isImportAllowed(imported.Types[i].Name, members) {
+				if !slices.Contains(s.Types, imported.Types[i]) && isImportAllowed(imported.Types[i].Name, members) {
 					s.Types = append(s.Types, imported.Types[i])
 				}
 			}

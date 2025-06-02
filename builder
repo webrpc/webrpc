@@ -1,0 +1,1 @@
+/Users/klaid/Workspace/Horizon/0xsequence/builder/api/proto/schema

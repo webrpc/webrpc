@@ -8,7 +8,7 @@ import (
 )
 
 func newStringParser(src string) (*parser, error) {
-	return newParser([]byte(src))
+	return newParser("", []byte(src))
 }
 
 func TestParserTopLevelDefinitions(t *testing.T) {

@@ -52,7 +52,7 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 	name := strings.ToLower(typName)
 	for _, msg := range schema.Types {
 		if msg != t && name == strings.ToLower(string(msg.Name)) {
-			return fmt.Errorf("schema error: duplicate type detected, '%s'", typName)
+			return fmt.Errorf("schema error: type '%s' was already declared", typName)
 		}
 	}
 

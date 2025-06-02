@@ -34,6 +34,7 @@ var eofToken = &token{tt: tokenEOF}
 type parserState func(*parser) parserState
 
 type parser struct {
+	file   string
 	tokens []token
 	length int
 	pos    int
@@ -44,13 +45,14 @@ type parser struct {
 	root RootNode
 }
 
-func newParser(src []byte) (*parser, error) {
+func newParser(file string, src []byte) (*parser, error) {
 	tokens, comments, err := tokenize(src)
 	if err != nil {
 		return nil, err
 	}
 
 	p := &parser{
+		file:     file,
 		words:    make(chan interface{}),
 		tokens:   tokens,
 		length:   len(tokens),
