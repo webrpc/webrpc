@@ -2,8 +2,7 @@ module github.com/webrpc/webrpc
 
 // Webrpc supports the two most recent major versions of Go.
 go 1.22.12
-
-toolchain go1.24.0
+toolchain go1.24.1
 
 // replace github.com/webrpc/gen-golang => ../gen-golang
 // replace github.com/webrpc/gen-typescript => ../gen-typescript
@@ -59,7 +58,7 @@ require (
 	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/spf13/cast v1.7.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
