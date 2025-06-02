@@ -115,7 +115,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	q, err := newParser(src)
+	q, err := newParser(p.path, src)
 	if err != nil {
 		return nil, err
 	}
@@ -199,9 +199,6 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			Kind:   schemaTypeKindEnum,
 			Name:   line.Name().String(),
 			Fields: []*schema.TypeField{},
-
-			Filename: filepath.Join(p.root, p.path),
-			Line:     line.line,
 		})
 	}
 
@@ -211,8 +208,6 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			Kind:     schemaTypeKindStruct,
 			Name:     line.Name().String(),
 			Comments: parseComment(line.Comment()),
-			Filename: filepath.Join(p.root, p.path),
-			Line:     line.line,
 		})
 	}
 
