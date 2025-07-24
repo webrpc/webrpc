@@ -13,8 +13,11 @@ dev-generate-local-templates:
 	../../bin/webrpc-gen -schema=proto/chat.ridl -target=golang -pkg=proto -server -client -out=proto/chat.gen.go
 	../../bin/webrpc-gen -schema=proto/chat.ridl -target=typescript -client -out=webapp/src/rpc.gen.ts
 
-run:
+run-server:
 	go run ./
+
+run-webapp:
+	cd webapp && pnpm run dev
 
 test:
 	go test -v ./

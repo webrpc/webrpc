@@ -2,27 +2,40 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log/slog"
+	"os"
 	"sync"
 	"time"
 
+	"github.com/go-chi/httplog/v3"
+	"github.com/golang-cz/devslog"
+	"github.com/golang-cz/ringbuf"
 	"github.com/webrpc/webrpc/_example/golang-sse/proto"
 )
 
 type ChatServer struct {
-	mu        sync.Mutex
-	msgId     uint64
-	lastSubId uint64
-	subs      map[uint64]chan *proto.Message
+	mu       sync.Mutex
+	msgId    uint64
+	messages *ringbuf.RingBuffer[*proto.Message]
+	logger   *slog.Logger
 }
 
 func NewChatServer() *ChatServer {
 	return &ChatServer{
-		subs: map[uint64]chan *proto.Message{},
+		messages: ringbuf.New[*proto.Message](10000),
+		logger: slog.New(devslog.NewHandler(os.Stdout, &devslog.Options{
+			HandlerOptions: &slog.HandlerOptions{
+				ReplaceAttr: httplog.SchemaECS.Concise(true).ReplaceAttr,
+			},
+		})),
 	}
 }
 
 func (s *ChatServer) SendMessage(ctx context.Context, username string, text string) error {
+	now := time.Now()
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -30,16 +43,11 @@ func (s *ChatServer) SendMessage(ctx context.Context, username string, text stri
 		Id:        s.msgId,
 		Username:  username,
 		Text:      text,
-		CreatedAt: time.Now(),
+		CreatedAt: now,
 	}
 	s.msgId++
 
-	for _, sub := range s.subs {
-		sub := sub
-		go func() {
-			sub <- msg
-		}()
-	}
+	s.messages.Write(msg)
 
 	return nil
 }
@@ -49,44 +57,20 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, str
 		return proto.ErrEmptyUsername
 	}
 
-	s.SendMessage(ctx, "SYSTEM", fmt.Sprintf("%v joined", username))
-	defer s.SendMessage(ctx, "SYSTEM", fmt.Sprintf("%v left", username))
+	s.SendMessage(context.Background(), "", fmt.Sprintf("%v joined", username))
+	defer s.SendMessage(context.Background(), "", fmt.Sprintf("%v left", username))
 
-	msgs := make(chan *proto.Message, 10)
-	defer s.unsubscribe(s.subscribe(msgs))
+	sub := s.messages.Subscribe(ctx, &ringbuf.SubscribeOpts{Name: "sub1"})
 
-	for {
-		select {
-		case <-ctx.Done():
-			switch err := ctx.Err(); err {
-			case context.Canceled:
-				return proto.ErrWebrpcClientDisconnected
-			default:
-				return proto.ErrWebrpcInternalError
-			}
-
-		case msg := <-msgs:
-			if err := stream.Write(msg); err != nil {
-				return err
-			}
+	for msg := range sub.Seq {
+		if err := stream.Write(msg); err != nil {
+			return err
 		}
 	}
-}
 
-func (s *ChatServer) subscribe(c chan *proto.Message) uint64 {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	if err := sub.Err(); !errors.Is(err, context.Canceled) {
+		return proto.ErrWebrpcInternalError.WithCausef("failed to stream messages: %w", err)
+	}
 
-	id := s.lastSubId
-	s.subs[id] = c
-	s.lastSubId++
-
-	return id
-}
-
-func (s *ChatServer) unsubscribe(subscriptionId uint64) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	delete(s.subs, subscriptionId)
+	return nil
 }

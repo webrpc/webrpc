@@ -23,17 +23,6 @@ func TestMain(m *testing.M) {
 	srv := httptest.NewServer(rpc.Router())
 	defer srv.Close()
 
-	// opts := &devslog.Options{
-	// 	MaxSlicePrintSize: 4,
-	// 	SortKeys:          true,
-	// 	TimeFormat:        "[04:05:06]",
-	// 	NewLineAfterLog:   true,
-	// 	DebugColor:        devslog.Magenta,
-	// }
-
-	// logger := slog.New(devslog.NewHandler(os.Stdout, opts))
-	// slog.SetDefault(logger)
-
 	client = proto.NewChatClient(srv.URL, &http.Client{})
 	time.Sleep(time.Millisecond * 500)
 

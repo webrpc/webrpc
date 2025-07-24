@@ -1,17 +1,25 @@
 import { effect, signal } from "@preact/signals-core";
-import { Chat, Message, SubscribeMessagesReturn, WebrpcError } from "./rpc.gen";
+import {
+  Chat,
+  Message,
+  SubscribeMessagesReturn,
+  WebrpcError,
+  WebrpcErrorCodes,
+  WebrpcStreamController,
+} from "./rpc.gen";
 import "./style.css";
 
-// Create client
+// Create API client
 const api = new Chat("http://localhost:4848", fetch);
 
 // Create signal for messages and log
 const messages = signal<Message[]>([]);
+let lastMessageId = 0;
 const connectionStatus = signal<
-  "connected" | "error" | "aborted" | "disconnected"
->("disconnected");
+  "connected" | "connecting" | "disconnected" | "finished"
+>("connecting");
 
-type Log = { type: "error" | "info" | "warn"; log: string };
+type Log = { type: "error" | "info" | "warn" | "debug"; log: string };
 const log = signal<Log[]>([]);
 const appendLog = (logValue: Log) => {
   log.value = [...log.value, logValue];
@@ -19,38 +27,51 @@ const appendLog = (logValue: Log) => {
 
 // Create message handlers
 const onMessage = (message: SubscribeMessagesReturn) => {
-  console.log("onMessage()", message);
-  messages.value = [...messages.value, message.message];
+  lastMessageId = message.message.id;
+
+  if (messages.value.length >= 1000) {
+    messages.value = [...messages.value.slice(-999), message.message];
+  } else {
+    messages.value = [...messages.value, message.message];
+  }
 };
 
 let retryCount = 0;
 const maxDelay = 30; // seconds
 
-const onError = (error: WebrpcError, reconnect?: () => void) => {
-  connectionStatus.value = "error";
+const onError = (error: WebrpcError, reconnect: () => void) => {
   console.error("onError()", error);
-  if (error.message == "AbortError") {
-    connectionStatus.value = "aborted";
-    appendLog({ type: "warn", log: "Connection closed by abort signal" });
-    // TODO: Reconnect
-  } else {
-    appendLog({ type: "error", log: "Lost connection" });
-    appendLog({ type: "error", log: String(error) });
-    if (reconnect) {
-      appendLog({
-        type: "warn",
-        log: `Attempting reconnect ${retryCount + 1}`,
-      });
-      retryCount++;
-      const backoffTime = Math.min(maxDelay, Math.pow(2, retryCount)) * 1000;
-      setTimeout(reconnect, backoffTime);
-    }
+
+  switch (error.code) {
+    case WebrpcErrorCodes.WebrpcStreamFinished:
+      appendLog({ type: "debug", log: `stream finished` });
+      connectionStatus.value = "finished";
+      return;
+    case WebrpcErrorCodes.WebrpcClientDisconnected:
+    case WebrpcErrorCodes.WebrpcRequestFailed /* THIS IS WRONG */:
+      appendLog({ type: "debug", log: `Disconnected` });
+      connectionStatus.value = "disconnected";
+      messages.value = [];
+      return;
   }
+
+  appendLog({ type: "error", log: String(error) });
+  connectionStatus.value = "connecting";
+
+  const backoffTime = Math.min(maxDelay, Math.pow(2, retryCount)) * 1000;
+  appendLog({
+    type: "debug",
+    log: `Reconnecting in ${backoffTime / 1000}s`,
+  });
+  retryCount++;
+
+  setTimeout(reconnect, backoffTime);
 };
 
 const onOpen = () => {
   console.log("onOpen()");
   connectionStatus.value = "connected";
+  retryCount = 0;
   appendLog({ type: "info", log: "Connected" });
 };
 
@@ -60,25 +81,39 @@ const onClose = () => {
   appendLog({ type: "info", log: "Disconnected" });
 };
 
-const username = randomUserName();
+const username = randomUsername();
+const usernameEl = document.querySelector("#username");
+if (usernameEl) {
+  usernameEl.innerHTML = username;
+}
 
-const controller = new AbortController();
-const abortSignal = controller.signal;
+// const controller = new AbortController();
+// const abortSignal = controller.signal;
 
 const toggleConnectHandler = () => {
   if (connectionStatus.value == "connected") {
-    controller.abort();
-    connectionStatus.value = "aborted";
-  } else if (connectionStatus.value == "aborted") {
-    // reconnect();
+    controller.abort("user disconnected");
+  } else if (connectionStatus.value == "connecting") {
+    appendLog({ type: "debug", log: "Reconnecting..." });
+  } else {
+    connect();
+    // appendLog({ type: "debug", log: "?" });
   }
 };
 
-// Subscribe to messages
-api.subscribeMessages(
-  { username },
-  { onMessage, onError, onOpen, onClose, signal: abortSignal }
-);
+let controller: WebrpcStreamController;
+
+function connect() {
+  appendLog({ type: "debug", log: "Connecting..." });
+
+  // Subscribe to messages
+  controller = api.subscribeMessages(
+    { username },
+    { onMessage, onError, onOpen, onClose }
+  );
+}
+
+connect();
 
 // Update chatbox
 const chatbox = document.querySelector("#chat");
@@ -107,19 +142,25 @@ effect(() => {
 
 // Send new message on submit
 const form = document.querySelector("form") as HTMLFormElement;
+const textField = form.elements.namedItem("text") as HTMLInputElement;
 
 function sendMessage(event: Event) {
-  const textField = form.elements.namedItem("text") as HTMLInputElement;
+  event.preventDefault();
+  const msg = textField.value;
+
+  if (connectionStatus.value != "connected" || msg.length == 0) {
+    return;
+  }
+
   try {
     api.sendMessage({
       username,
-      text: textField.value,
+      text: msg,
     });
   } catch (e) {
     console.error(e);
   }
   textField.value = "";
-  event.preventDefault();
 }
 
 form.addEventListener("submit", sendMessage);
@@ -151,18 +192,17 @@ effect(() => {
       toggleConnectButton.disabled = false;
       break;
     case "disconnected":
-    case "aborted":
       toggleConnectButton.innerText = "Connect";
       toggleConnectButton.disabled = false;
       break;
-    case "error":
-      toggleConnectButton.innerText = "Connection error";
+    default:
+      toggleConnectButton.innerText = "Reconnecting..";
       toggleConnectButton.disabled = true;
       break;
   }
 });
 
-function randomUserName() {
+function randomUsername() {
   const names = [
     "Chuck Norris",
     "Mr. Bean",
@@ -170,20 +210,34 @@ function randomUserName() {
     "Homer Simpson",
     "SpongeBob",
     "Patrick Star",
-    "Pikachu",
     "Mario",
     "Luigi",
     "Yoda",
+    "Batman",
+    "Iron Man",
+    "Spider-Man",
+    "Captain America",
+    "Wonder Woman",
+    "Superman",
+    "Mickey Mouse",
+    "Donald Duck",
+    "Shrek",
+    "Darth Vader",
+    "Harry Potter",
   ];
+
   const randomIndex = Math.floor(Math.random() * names.length);
   return names[randomIndex];
 }
 
 function formatTime(dateString: string) {
   const date = new Date(dateString);
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const seconds = date.getSeconds();
+  const hours =
+    date.getHours() > 9 ? `${date.getHours()}` : `0${date.getHours()}`;
+  const minutes =
+    date.getMinutes() > 9 ? `${date.getMinutes()}` : `0${date.getMinutes()}`;
+  const seconds =
+    date.getSeconds() > 9 ? `${date.getSeconds()}` : `0${date.getSeconds()}`;
 
   return `${hours}:${minutes}:${seconds}`;
 }

@@ -1,24 +1,24 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"log"
 	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/httplog/v3"
 	"github.com/webrpc/webrpc/_example/golang-sse/proto"
 )
 
 func main() {
 	port := 4848
-	slog.Info(fmt.Sprintf("serving at http://localhost:%v", port))
 
 	rpc := NewChatServer()
+
+	slog.SetDefault(rpc.logger)
+	slog.Info(fmt.Sprintf("serving at http://localhost:%v", port))
 
 	err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%v", port), rpc.Router())
 	if err != nil {
@@ -28,9 +28,15 @@ func main() {
 
 func (s *ChatServer) Router() http.Handler {
 	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
-	r.Use(requestDebugger)
-	r.Use(middleware.Recoverer)
+
+	// Request logger
+	r.Use(httplog.RequestLogger(s.logger, &httplog.Options{
+		Level:           slog.LevelInfo,
+		Schema:          httplog.SchemaECS.Concise(true),
+		RecoverPanics:   true,
+		LogRequestBody:  func(req *http.Request) bool { return true },
+		LogResponseBody: func(req *http.Request) bool { return true },
+	}))
 
 	cors := cors.New(cors.Options{
 		// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
@@ -52,29 +58,4 @@ func (s *ChatServer) Router() http.Handler {
 	})
 
 	return r
-}
-
-func requestDebugger(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		var reqBody bytes.Buffer
-		r.Body = io.NopCloser(io.TeeReader(r.Body, &reqBody))
-
-		var respBody bytes.Buffer
-		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
-		ww.Tee(&respBody)
-
-		slog.Info(fmt.Sprintf("req started"),
-			slog.String("url", fmt.Sprintf("%v %v", r.Method, r.URL.String())))
-
-		defer func() {
-			slog.Info(fmt.Sprintf("req finished HTTP %v", ww.Status()),
-				slog.String("url", fmt.Sprintf("%v %v", r.Method, r.URL.String())),
-				slog.String("reqBody", reqBody.String()),
-				slog.String("respBody", respBody.String()),
-			)
-		}()
-
-		next.ServeHTTP(ww, r)
-	}
-	return http.HandlerFunc(fn)
 }
