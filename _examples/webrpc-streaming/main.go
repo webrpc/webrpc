@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -20,10 +25,39 @@ func main() {
 	slog.SetDefault(rpc.logger)
 	slog.Info(fmt.Sprintf("serving at http://localhost:%v", port))
 
-	err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%v", port), rpc.Router())
-	if err != nil {
-		log.Fatal(err)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	defer stop()
+
+	server := &http.Server{
+		Addr:    fmt.Sprintf("0.0.0.0:%v", port),
+		Handler: rpc.Router(),
 	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	go func() {
+		defer cancel()
+
+		err := server.ListenAndServe()
+		if !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
+		}
+	}()
+
+	<-ctx.Done()
+	slog.Info("shutting down")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	rpc.close(shutdownCtx)
+
+	// Finish active connections.
+	err := server.Shutdown(shutdownCtx)
+	if err != nil {
+		log.Fatal(fmt.Errorf("shut down HTTP server: %w", err))
+	}
+
+	slog.Info("shut down")
 }
 
 func (s *ChatServer) Router() http.Handler {

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -33,6 +32,11 @@ func NewChatServer() *ChatServer {
 	}
 }
 
+func (s *ChatServer) close(ctx context.Context) {
+	s.SendMessage(ctx, "SYSTEM", "Server shutting down...")
+	s.messages.Close()
+}
+
 func (s *ChatServer) SendMessage(ctx context.Context, username string, text string) error {
 	now := time.Now()
 
@@ -52,7 +56,7 @@ func (s *ChatServer) SendMessage(ctx context.Context, username string, text stri
 	return nil
 }
 
-func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, stream proto.SubscribeMessagesStreamWriter) error {
+func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, lastMessageId *uint64, stream proto.SubscribeMessagesStreamWriter) error {
 	if username == "" {
 		return proto.ErrEmptyUsername
 	}
@@ -60,7 +64,18 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, str
 	s.SendMessage(context.Background(), "", fmt.Sprintf("%v joined", username))
 	defer s.SendMessage(context.Background(), "", fmt.Sprintf("%v left", username))
 
-	sub := s.messages.Subscribe(ctx, &ringbuf.SubscribeOpts{Name: "sub1"})
+	sub := s.messages.Subscribe(ctx, &ringbuf.SubscribeOpts{
+		Name:        username,
+		StartBehind: s.messages.Size() / 2,
+		MaxBehind:   3 * s.messages.Size() / 4,
+	})
+
+	if lastMessageId != nil {
+		// Reconnection logic.
+		sub.Skip(func(msg *proto.Message) bool {
+			return msg.Id <= *lastMessageId
+		})
+	}
 
 	for msg := range sub.Seq {
 		if err := stream.Write(msg); err != nil {
@@ -68,9 +83,12 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, str
 		}
 	}
 
-	if err := sub.Err(); !errors.Is(err, context.Canceled) {
-		return proto.ErrWebrpcInternalError.WithCausef("failed to stream messages: %w", err)
+	switch sub.Err() {
+	case ringbuf.ErrRingBufferClosed:
+		return proto.ErrWebrpcStreamFinished.WithCausef("stream finished: %w", sub.Err())
+	default:
+		return proto.ErrWebrpcInternalError.WithCausef("failed to stream messages: %w", sub.Err())
 	}
 
-	return nil
+	return nil // TODO: Shouldn't `nil` actually return `ErrWebrpcStreamFinished` automatically? I think so..
 }

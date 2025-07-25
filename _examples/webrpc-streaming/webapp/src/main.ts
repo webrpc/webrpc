@@ -14,7 +14,7 @@ const api = new Chat("http://localhost:4848", fetch);
 
 // Create signal for messages and log
 const messages = signal<Message[]>([]);
-let lastMessageId = 0;
+let lastMessageId: number | null = null;
 const connectionStatus = signal<
   "connected" | "connecting" | "disconnected" | "finished"
 >("connecting");
@@ -44,14 +44,13 @@ const onError = (error: WebrpcError, reconnect: () => void) => {
 
   switch (error.code) {
     case WebrpcErrorCodes.WebrpcStreamFinished:
-      appendLog({ type: "debug", log: `stream finished` });
+      appendLog({ type: "info", log: `Chat closed` });
       connectionStatus.value = "finished";
       return;
     case WebrpcErrorCodes.WebrpcClientDisconnected:
     case WebrpcErrorCodes.WebrpcRequestFailed /* THIS IS WRONG */:
       appendLog({ type: "debug", log: `Disconnected` });
       connectionStatus.value = "disconnected";
-      messages.value = [];
       return;
   }
 
@@ -108,7 +107,7 @@ function connect() {
 
   // Subscribe to messages
   controller = api.subscribeMessages(
-    { username },
+    { username, lastMessageId },
     { onMessage, onError, onOpen, onClose }
   );
 }
@@ -192,9 +191,14 @@ effect(() => {
       toggleConnectButton.disabled = false;
       break;
     case "disconnected":
-      toggleConnectButton.innerText = "Connect";
+      toggleConnectButton.innerText = "Re-connect";
       toggleConnectButton.disabled = false;
       break;
+    case "finished":
+      toggleConnectButton.innerText = "Chat closed";
+      toggleConnectButton.disabled = true;
+      break;
+
     default:
       toggleConnectButton.innerText = "Reconnecting..";
       toggleConnectButton.disabled = true;
