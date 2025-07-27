@@ -9,8 +9,8 @@ github.com/go-chi/httplog/v3 v3.2.2 h1:G0oYv3YYcikNjijArHFUlqfR78cQNh9fGT43i6Stq
 github.com/go-chi/httplog/v3 v3.2.2/go.mod h1:N/J1l5l1fozUrqIVuT8Z/HzNeSy8TF2EFyokPLe6y2w=
 github.com/golang-cz/devslog v0.0.15 h1:ejoBLTCwJHWGbAmDf2fyTJJQO3AkzcPjw8SC9LaOQMI=
 github.com/golang-cz/devslog v0.0.15/go.mod h1:bSe5bm0A7Nyfqtijf1OMNgVJHlWEuVSXnkuASiE1vV8=
-github.com/golang-cz/ringbuf v0.0.4 h1:jeay3rT3HKSmov4SbJ5Ybx9yS6kl+ph+E30GgA3cB4w=
-github.com/golang-cz/ringbuf v0.0.4/go.mod h1:8+ZxUAKKWGaaLfIX/ldnpiUIoqm9xva3kWNk/ki1vco=
+github.com/golang-cz/ringbuf v0.0.5 h1:dA3B25ONUQEMMSMg5lJ2ASq1w0Ac2I/vZ+yuem+1/ik=
+github.com/golang-cz/ringbuf v0.0.5/go.mod h1:8+ZxUAKKWGaaLfIX/ldnpiUIoqm9xva3kWNk/ki1vco=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
