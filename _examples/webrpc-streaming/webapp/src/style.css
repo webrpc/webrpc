@@ -44,6 +44,7 @@ header {
 }
 
 #log {
+  font-size: 14px;
   padding: 10px;
   height: 435px;
   overflow: auto;
@@ -80,6 +81,7 @@ li > div {
 .message {
   border-left: 1px solid #cfdae1;
   color: #333f4d;
+  overflow-wrap: anywhere;
 }
 
 .msg-time {

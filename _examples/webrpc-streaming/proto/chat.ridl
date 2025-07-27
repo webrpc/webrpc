@@ -11,6 +11,7 @@ struct Message
 
 service Chat
   - SendMessage(username: string, text: string)
-  - SubscribeMessages(username: string) => stream (message: Message)
+  - SubscribeMessages(username: string, lastMessageId?: uint64) => stream (message: Message)
 
 error 100 EmptyUsername "Username must be provided." HTTP 400
+
