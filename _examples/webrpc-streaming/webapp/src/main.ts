@@ -47,7 +47,7 @@ const onError = (error: WebrpcError, reconnect: () => void) => {
       appendLog({ type: "info", log: `Chat closed` });
       connectionStatus.value = "finished";
       return;
-    case WebrpcErrorCodes.WebrpcClientDisconnected:
+    case WebrpcErrorCodes.WebrpcClientAborted:
     case WebrpcErrorCodes.WebrpcRequestFailed /* THIS IS WRONG */:
       appendLog({ type: "debug", log: `Disconnected` });
       connectionStatus.value = "disconnected";

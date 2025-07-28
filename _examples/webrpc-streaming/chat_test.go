@@ -61,7 +61,7 @@ func TestStream10k(t *testing.T) {
 
 	_, err = stream.Read()
 	if err != nil {
-		assert.ErrorIs(t, err, proto.ErrWebrpcClientDisconnected)
+		assert.ErrorIs(t, err, proto.ErrWebrpcClientAborted)
 	}
 }
 
@@ -129,7 +129,7 @@ func testStreamClientTimeout(t *testing.T, timeout time.Duration) func(t *testin
 		for {
 			msg, err := stream.Read()
 			if err != nil {
-				assert.ErrorIs(t, err, proto.ErrWebrpcClientDisconnected)
+				assert.ErrorIs(t, err, proto.ErrWebrpcClientAborted)
 				break
 			}
 			t.Log(msg.Text)
