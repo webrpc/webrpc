@@ -365,7 +365,7 @@ export class WebrpcClientAbortedError extends WebrpcError {
   constructor(
     name: string = 'WebrpcClientAborted',
     code: number = -8,
-    message: string = `client disconnected`,
+    message: string = `request aborted by client`,
     status: number = 0,
     cause?: string
   ) {

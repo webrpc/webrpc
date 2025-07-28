@@ -3722,7 +3722,7 @@
 		(*schema.Error)({
 			Code: (int) -8,
 			Name: (string) (len=19) "WebrpcClientAborted",
-			Message: (string) (len=19) "client disconnected",
+			Message: (string) (len=25) "request aborted by client",
 			HTTPStatus: (int) 400
 		}),
 		(*schema.Error)({

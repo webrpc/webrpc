@@ -576,7 +576,7 @@ var (
 	ErrWebrpcBadResponse    = WebRPCError{Code: -5, Name: "WebrpcBadResponse", Message: "bad response", HTTPStatus: 500}
 	ErrWebrpcServerPanic    = WebRPCError{Code: -6, Name: "WebrpcServerPanic", Message: "server panic", HTTPStatus: 500}
 	ErrWebrpcInternalError  = WebRPCError{Code: -7, Name: "WebrpcInternalError", Message: "internal error", HTTPStatus: 500}
-	ErrWebrpcClientAborted  = WebRPCError{Code: -8, Name: "WebrpcClientAborted", Message: "client disconnected", HTTPStatus: 400}
+	ErrWebrpcClientAborted  = WebRPCError{Code: -8, Name: "WebrpcClientAborted", Message: "request aborted by client", HTTPStatus: 400}
 	ErrWebrpcStreamLost     = WebRPCError{Code: -9, Name: "WebrpcStreamLost", Message: "stream lost", HTTPStatus: 400}
 	ErrWebrpcStreamFinished = WebRPCError{Code: -10, Name: "WebrpcStreamFinished", Message: "stream finished", HTTPStatus: 200}
 )
