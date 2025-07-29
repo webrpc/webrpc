@@ -7,7 +7,7 @@
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.17.0;node-ts@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.19.0;node-ts@v1.0.0"
 
 // WebRPC description and code-gen version
 export const WebRPCVersion = "v1"
@@ -135,7 +135,7 @@ export class ExampleService implements ExampleService {
         return {}
       })
     }, (error) => {
-      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error.message || ''}` })
+      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error instanceof Error ? error.message : String(error)}` })
     })
   }
   
@@ -150,7 +150,7 @@ export class ExampleService implements ExampleService {
         }
       })
     }, (error) => {
-      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error.message || ''}` })
+      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error instanceof Error ? error.message : String(error)}` })
     })
   }
   
@@ -174,13 +174,9 @@ const buildResponse = (res: Response): Promise<any> => {
     try {
       data = JSON.parse(text)
     } catch(error) {
-      let message = ''
-      if (error instanceof Error)  {
-        message = error.message
-      }
       throw WebrpcBadResponseError.new({
         status: res.status,
-        cause: `JSON.parse(): ${message}: response text: ${text}`},
+        cause: `JSON.parse(): ${error instanceof Error ? error.message : String(error)}: response text: ${text}`},
       )
     }
     if (!res.ok) {
@@ -228,7 +224,7 @@ export class WebrpcEndpointError extends WebrpcError {
     name: string = 'WebrpcEndpoint',
     code: number = 0,
     message: string = `endpoint error`,
-    status: number = 0,
+    status: number = 400,
     cause?: string
   ) {
     super(name, code, message, status, cause)
@@ -241,7 +237,7 @@ export class WebrpcRequestFailedError extends WebrpcError {
     name: string = 'WebrpcRequestFailed',
     code: number = -1,
     message: string = `request failed`,
-    status: number = 0,
+    status: number = 400,
     cause?: string
   ) {
     super(name, code, message, status, cause)
@@ -254,7 +250,7 @@ export class WebrpcBadRouteError extends WebrpcError {
     name: string = 'WebrpcBadRoute',
     code: number = -2,
     message: string = `bad route`,
-    status: number = 0,
+    status: number = 404,
     cause?: string
   ) {
     super(name, code, message, status, cause)
@@ -267,7 +263,7 @@ export class WebrpcBadMethodError extends WebrpcError {
     name: string = 'WebrpcBadMethod',
     code: number = -3,
     message: string = `bad method`,
-    status: number = 0,
+    status: number = 405,
     cause?: string
   ) {
     super(name, code, message, status, cause)
@@ -280,7 +276,7 @@ export class WebrpcBadRequestError extends WebrpcError {
     name: string = 'WebrpcBadRequest',
     code: number = -4,
     message: string = `bad request`,
-    status: number = 0,
+    status: number = 400,
     cause?: string
   ) {
     super(name, code, message, status, cause)
@@ -293,7 +289,7 @@ export class WebrpcBadResponseError extends WebrpcError {
     name: string = 'WebrpcBadResponse',
     code: number = -5,
     message: string = `bad response`,
-    status: number = 0,
+    status: number = 500,
     cause?: string
   ) {
     super(name, code, message, status, cause)
@@ -306,7 +302,7 @@ export class WebrpcServerPanicError extends WebrpcError {
     name: string = 'WebrpcServerPanic',
     code: number = -6,
     message: string = `server panic`,
-    status: number = 0,
+    status: number = 500,
     cause?: string
   ) {
     super(name, code, message, status, cause)
@@ -319,7 +315,7 @@ export class WebrpcInternalErrorError extends WebrpcError {
     name: string = 'WebrpcInternalError',
     code: number = -7,
     message: string = `internal error`,
-    status: number = 0,
+    status: number = 500,
     cause?: string
   ) {
     super(name, code, message, status, cause)
@@ -332,7 +328,7 @@ export class WebrpcClientAbortedError extends WebrpcError {
     name: string = 'WebrpcClientAborted',
     code: number = -8,
     message: string = `request aborted by client`,
-    status: number = 0,
+    status: number = 400,
     cause?: string
   ) {
     super(name, code, message, status, cause)
@@ -345,7 +341,7 @@ export class WebrpcStreamLostError extends WebrpcError {
     name: string = 'WebrpcStreamLost',
     code: number = -9,
     message: string = `stream lost`,
-    status: number = 0,
+    status: number = 400,
     cause?: string
   ) {
     super(name, code, message, status, cause)
@@ -358,7 +354,7 @@ export class WebrpcStreamFinishedError extends WebrpcError {
     name: string = 'WebrpcStreamFinished',
     code: number = -10,
     message: string = `stream finished`,
-    status: number = 0,
+    status: number = 200,
     cause?: string
   ) {
     super(name, code, message, status, cause)
