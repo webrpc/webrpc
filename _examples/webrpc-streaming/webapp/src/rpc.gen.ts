@@ -7,7 +7,7 @@
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.18.0;webrpc-sse-chat@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.19.0;webrpc-sse-chat@v1.0.0"
 
 // WebRPC description and code-gen version
 export const WebRPCVersion = "v1"
@@ -126,7 +126,7 @@ export class Chat implements Chat {
         return {}
       })
     }, (error) => {
-      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error.message || ''}` })
+      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error instanceof Error ? error.message : String(error)}` })
     })
   }
   
@@ -208,11 +208,6 @@ const sseResponse = async (
             lastReadTime = Date.now();
             buffer += decoder.decode(value, {stream: true});
         } catch (error) {
-            let message = "";
-            if (error instanceof Error) {
-                message = error.message;
-            }
-
             if (error instanceof DOMException && error.name === "AbortError") {
                 onError(
                     WebrpcClientAbortedError.new({
@@ -226,7 +221,7 @@ const sseResponse = async (
             } else {
                 onError(
                     WebrpcStreamLostError.new({
-                        cause: `reader.read(): ${message}`,
+                        cause: `reader.read(): ${error instanceof Error ? error.message : String(error)}`,
                     }),
                     retryFetch
                 );
@@ -262,8 +257,7 @@ const sseResponse = async (
                 onError(
                     WebrpcBadResponseError.new({
                         status: res.status,
-                        // @ts-ignore
-                        cause: `JSON.parse(): ${error.message}`,
+                        cause: `JSON.parse(): ${error instanceof Error ? error.message : String(error)}`,
                     }),
                     retryFetch
                 );
@@ -301,13 +295,9 @@ const buildResponse = (res: Response): Promise<any> => {
     try {
       data = JSON.parse(text)
     } catch(error) {
-      let message = ''
-      if (error instanceof Error)  {
-        message = error.message
-      }
       throw WebrpcBadResponseError.new({
         status: res.status,
-        cause: `JSON.parse(): ${message}: response text: ${text}`},
+        cause: `JSON.parse(): ${error instanceof Error ? error.message : String(error)}: response text: ${text}`},
       )
     }
     if (!res.ok) {

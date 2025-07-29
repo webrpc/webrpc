@@ -7,7 +7,7 @@
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.18.0;node-ts@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.19.0;node-ts@v1.0.0"
 
 // WebRPC description and code-gen version
 export const WebRPCVersion = "v1"
@@ -135,7 +135,7 @@ export class ExampleService implements ExampleService {
         return {}
       })
     }, (error) => {
-      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error.message || ''}` })
+      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error instanceof Error ? error.message : String(error)}` })
     })
   }
   
@@ -150,7 +150,7 @@ export class ExampleService implements ExampleService {
         }
       })
     }, (error) => {
-      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error.message || ''}` })
+      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error instanceof Error ? error.message : String(error)}` })
     })
   }
   
@@ -174,13 +174,9 @@ const buildResponse = (res: Response): Promise<any> => {
     try {
       data = JSON.parse(text)
     } catch(error) {
-      let message = ''
-      if (error instanceof Error)  {
-        message = error.message
-      }
       throw WebrpcBadResponseError.new({
         status: res.status,
-        cause: `JSON.parse(): ${message}: response text: ${text}`},
+        cause: `JSON.parse(): ${error instanceof Error ? error.message : String(error)}: response text: ${text}`},
       )
     }
     if (!res.ok) {
