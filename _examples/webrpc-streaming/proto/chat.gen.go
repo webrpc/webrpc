@@ -22,7 +22,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.19.0;webrpc-sse-chat@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.20.0;webrpc-sse-chat@v1.0.0"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -509,7 +509,7 @@ func (r *streamReader) read(v interface{}) error {
 		select {
 		case <-r.ctx.Done():
 			r.c.Close()
-			return ErrWebrpcClientDisconnected.WithCause(r.ctx.Err())
+			return ErrWebrpcClientAborted.WithCause(r.ctx.Err())
 		default:
 		}
 
@@ -539,7 +539,7 @@ func (r *streamReader) handleReadError(err error) error {
 		return ErrWebrpcStreamLost.WithCause(err)
 	}
 	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-		return ErrWebrpcClientDisconnected.WithCause(err)
+		return ErrWebrpcClientAborted.WithCause(err)
 	}
 	return ErrWebrpcBadResponse.WithCausef("reading stream: %w", err)
 }
