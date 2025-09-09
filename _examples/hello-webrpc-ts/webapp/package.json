@@ -1,0 +1,19 @@
+{
+  "name": "hello-webrpc-ts",
+  "version": "1.0.0",
+  "description": "Simple client+server app with Go api backend (server) and Typescript Webapp (client)",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "whatwg-fetch": "3.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vite": "^4.0.0"
+  }
+}
