@@ -6,11 +6,11 @@ install:
 	cd client && npm install
 
 generate:
-	webrpc-gen -schema=example.webrpc.json -target=golang -pkg=main -server -out=./server/server.gen.go
+	webrpc-gen -schema=example.webrpc.json -target=golang -pkg=rpc -server -out=./server/pkg/rpc/server.gen.go
 	webrpc-gen -schema=example.webrpc.json -target=javascript -client -out=./client/client.gen.mjs
 
 run-server:
-	go run lsserver/cmd/api.go
+	go run ./server/cmd/api
 
 run-client:
-	cd ./client && npm start
+	cd ./client && pnpm run dev
