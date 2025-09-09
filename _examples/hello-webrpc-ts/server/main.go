@@ -54,15 +54,13 @@ func (s *ExampleServiceRPC) Ping(ctx context.Context) (bool, error) {
 
 func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, error) {
 	if userID == 911 {
-		return nil, ErrorNotFound("unknown userID %d", 911)
-		// return nil, Errorf(ErrNotFound, "unknown userID %d", 911)
-		// return nil, WrapError(ErrNotFound, err, "unknown userID %d", 911)
+		return nil, ErrUserNotFound.WithCausef("unknown userID %d", 911)
 	}
 
 	return &User{
 		ID:       userID,
 		Username: "hihi",
-		Meta:     map[string]interface{}{"location": "Toronto"},
+		Meta:     map[string]any{"location": "Toronto"},
 	}, nil
 }
 
@@ -70,8 +68,8 @@ func (s *ExampleServiceRPC) FindUsers(ctx context.Context, q string) (*Page, []*
 	page := &Page{Num: 1}
 
 	users := []*User{
-		&User{ID: 1, Username: "a", Meta: map[string]interface{}{"location": "Montreal"}},
-		&User{ID: 2, Username: "b", Meta: map[string]interface{}{"age": 10}},
+		{ID: 1, Username: "a", Meta: map[string]any{"location": "Montreal"}},
+		{ID: 2, Username: "b", Meta: map[string]any{"age": 10}},
 	}
 
 	return page, users, nil

@@ -40,7 +40,7 @@ async function main() {
   // Get an unknown user from the API -- we expect a 404 from the server
   //
   console.log(
-    "[C] webrpc -- calling GetUser() rpc method of an unknown user (expecting a 404):"
+    "[C] webrpc -- calling GetUser() rpc method of an unknown user (expecting HTTP 400):"
   );
 
   try {

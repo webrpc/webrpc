@@ -1,9 +1,6 @@
 all:
 	@awk -F'[ :]' '!/^all:/ && /^([A-z_-]+):/ {print "make " $$1}' Makefile
 
-tools:
-	GO111MODULE=off go get -u github.com/goware/webify
-
 generate: generate-server generate-client
 
 generate-server:
@@ -20,4 +17,4 @@ run-server:
 	go run ./server
 
 run-client:
-	cd webapp && npm start
+	cd webapp && pnpm run dev
