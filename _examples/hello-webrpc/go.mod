@@ -14,3 +14,5 @@ require (
 	github.com/rs/zerolog v1.26.1 // indirect
 	moul.io/http2curl/v2 v2.3.0 // indirect
 )
+
+tool github.com/goware/webify
