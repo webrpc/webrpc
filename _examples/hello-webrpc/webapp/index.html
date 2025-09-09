@@ -29,7 +29,7 @@
   })
 
   // Expecting an error
-  console.log('[B] webrpc -- calling GetUser() rpc method of an unknown user (expecting a 404):')
+  console.log('[B] webrpc -- calling GetUser() rpc method of an unknown user (expecting HTTP 400):')
 
   svc.getUser({userID: 911}).then(resp => {
     console.log('[B]', resp.user)
