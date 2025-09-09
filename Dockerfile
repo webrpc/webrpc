@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------
 # Builder
 # -----------------------------------------------------------------
-FROM golang:1.23-alpine3.21 as builder
+FROM golang:1.25-alpine3.22 as builder
 ARG VERSION
 
 RUN apk add --update git
@@ -14,7 +14,7 @@ RUN go build -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=${VERSION}" -o 
 # -----------------------------------------------------------------
 # Runner
 # -----------------------------------------------------------------
-FROM alpine:3.21
+FROM alpine:3.22
 
 ENV TZ=UTC
 
