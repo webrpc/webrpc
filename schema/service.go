@@ -25,6 +25,7 @@ type Method struct {
 
 	Inputs  []*MethodArgument `json:"inputs"`
 	Outputs []*MethodArgument `json:"outputs"`
+	Errors  []string          `json:"throws,omitempty"` // List of error names this method can throw
 
 	Service *Service `json:"-"` // denormalize/back-reference
 }
@@ -130,6 +131,20 @@ func (m *Method) Parse(schema *WebRPCSchema, service *Service) error {
 		err := output.Type.Parse(schema)
 		if err != nil {
 			return err
+		}
+	}
+
+	// Parse+validate errors
+	for _, errorName := range m.Errors {
+		found := false
+		for _, schemaError := range schema.Errors {
+			if schemaError.Name == errorName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("schema error: method '%s' in service '%s' references undefined error '%s'", m.Name, serviceName, errorName)
 		}
 	}
 

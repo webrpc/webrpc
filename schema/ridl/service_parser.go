@@ -104,6 +104,17 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 			mn.outputs.arguments = outputArguments
 		}
 
+		// Check for optional throws clause
+		matches, err = p.match(tokenWhitespace, tokenWord)
+		if err == nil && matches[1].val == wordThrows {
+			// Parse comma-separated list of error names
+			errorNames, err := p.expectErrorList()
+			if err != nil {
+				return p.stateError(err)
+			}
+			mn.errors = errorNames
+		}
+
 		sn.methods = append(sn.methods, mn)
 
 		return parserStateServiceMethod(sn)
