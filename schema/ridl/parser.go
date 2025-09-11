@@ -19,6 +19,7 @@ const (
 	wordProxy   = "proxy"
 	wordService = "service"
 	wordStream  = "stream"
+	wordThrows  = "throws"
 	wordVersion = "version"
 	wordWebRPC  = "webrpc"
 )
