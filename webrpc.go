@@ -30,7 +30,7 @@ func ParseSchemaFile(path string) (*schema.WebRPCSchema, error) {
 		// ie. import ../../common.ridl.
 		root := "/"
 		// Support Windows paths. Currently only supports paths on the same volume.
-		if volume := filepath.VolumeName(path); volume != "" {
+		if volume := filepath.VolumeName(absolutePath); volume != "" {
 			root = volume + "/"
 		}
 
