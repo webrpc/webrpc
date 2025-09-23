@@ -22,7 +22,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.20.0;webrpc-sse-chat@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.21.0;webrpc-sse-chat@v1.0.0"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -183,22 +183,21 @@ func (w *streamWriter) keepAlive(ctx context.Context) {
 }
 
 func (w *streamWriter) ping() error {
-	defer w.f.Flush()
-
 	w.mu.Lock()
-	defer w.mu.Unlock()
-
 	_, err := w.w.Write([]byte("\n"))
+	w.f.Flush()
+	w.mu.Unlock()
+
 	return err
 }
 
 func (w *streamWriter) write(respPayload interface{}) error {
-	defer w.f.Flush()
-
 	w.mu.Lock()
-	defer w.mu.Unlock()
+	err := w.e.Encode(respPayload)
+	w.f.Flush()
+	w.mu.Unlock()
 
-	return w.e.Encode(respPayload)
+	return err
 }
 
 //
@@ -376,11 +375,15 @@ func (s *chatServer) serveSubscribeMessagesJSONStream(ctx context.Context, w htt
 
 	// Call service method implementation.
 	if err := s.Chat.SubscribeMessages(ctx, reqPayload.Arg0, reqPayload.Arg1, streamWriter); err != nil {
+		cancel()
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
+		streamWriter.mu.Lock()
 		streamWriter.sendError(w, r, rpcErr)
+		streamWriter.f.Flush()
+		streamWriter.mu.Unlock()
 		return
 	}
 }
