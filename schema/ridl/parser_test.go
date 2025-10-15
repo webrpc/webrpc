@@ -3,7 +3,6 @@ package ridl
 import (
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -912,8 +911,6 @@ func TestParserServiceSuccinct(t *testing.T) {
 
 	err = p.run()
 	require.NoError(t, err)
-
-	spew.Dump(p)
 }
 
 func TestParserExamples(t *testing.T) {
