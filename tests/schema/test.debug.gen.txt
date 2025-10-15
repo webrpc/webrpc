@@ -1278,6 +1278,7 @@
 						},
 						Comments: ([]string) {
 						},
+						Succinct: (bool) false,
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
@@ -1293,6 +1294,7 @@
 						},
 						Comments: ([]string) {
 						},
+						Succinct: (bool) false,
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
@@ -1308,6 +1310,7 @@
 						},
 						Comments: ([]string) {
 						},
+						Succinct: (bool) false,
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
@@ -1397,6 +1400,7 @@
 						},
 						Comments: ([]string) {
 						},
+						Succinct: (bool) false,
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
@@ -1486,6 +1490,7 @@
 						},
 						Comments: ([]string) {
 						},
+						Succinct: (bool) false,
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
@@ -1723,6 +1728,7 @@
 						},
 						Comments: ([]string) {
 						},
+						Succinct: (bool) false,
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
@@ -1960,6 +1966,7 @@
 						},
 						Comments: ([]string) {
 						},
+						Succinct: (bool) false,
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
@@ -2683,6 +2690,7 @@
 						},
 						Comments: ([]string) {
 						},
+						Succinct: (bool) false,
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
@@ -3406,6 +3414,7 @@
 						},
 						Comments: ([]string) {
 						},
+						Succinct: (bool) false,
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
@@ -3496,6 +3505,7 @@
 						},
 						Comments: ([]string) {
 						},
+						Succinct: (bool) false,
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
@@ -3629,6 +3639,7 @@
 						Comments: ([]string) (len=1 cap=1) {
 							(string) (len=16) "added in v0.11.0"
 						},
+						Succinct: (bool) false,
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
