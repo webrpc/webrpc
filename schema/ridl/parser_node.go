@@ -300,7 +300,6 @@ type ArgumentNode struct {
 	optional     bool
 
 	inlineStruct *TokenNode
-	succinct     bool
 }
 
 func (an *ArgumentNode) Name() *TokenNode {
