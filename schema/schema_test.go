@@ -2,8 +2,9 @@ package schema
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -119,7 +120,31 @@ func TestSchema(t *testing.T) {
 							{ "go.tag.db": "created_at" }
 						]
 					}
-
+				]
+			},
+			{
+				"kind": "struct",
+				"name": "GetArticleRequest",
+				"fields": [
+					{
+						"name": "articleId",
+						"type": "uint32",
+						"optional": false,
+						"meta": [
+							{ "go.field.name": "ArticleID" }
+						]
+					}
+				]
+			},
+			{
+				"kind": "struct",
+				"name": "GetArticleResponse",
+				"fields": [
+					{
+						"name": "title",
+						"type": "string",
+						"optional": false
+					}
 				]
 			}
 		],
@@ -157,6 +182,22 @@ func TestSchema(t *testing.T) {
 							{
 								"name": "user",
 								"type": "User"
+							}
+						]
+					},
+					{
+						"name": "GetArticle",
+						"succinct": true,
+						"inputs": [
+							{
+								"name": "getArticleRequest",
+								"type": "GetArticleRequest"
+							}
+						],
+						"outputs": [
+							{
+								"name": "getArticleResponse",
+								"type": "GetArticleResponse"
 							}
 						]
 					}

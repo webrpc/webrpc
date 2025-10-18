@@ -17,6 +17,7 @@ type Method struct {
 	Name        string      `json:"name"`
 	Annotations Annotations `json:"annotations"`
 	Comments    []string    `json:"comments"`
+	Succinct    bool        `json:"succinct,omitempty"`
 
 	StreamInput  bool `json:"streamInput,omitempty"`
 	StreamOutput bool `json:"streamOutput,omitempty"`
@@ -103,6 +104,9 @@ func (m *Method) Parse(schema *WebRPCSchema, service *Service) error {
 	serviceName := service.Name
 
 	// Parse+validate inputs
+	if len(m.Inputs) > 1 && m.Succinct {
+		return fmt.Errorf("schema error: detected multiple input arguments using succinct form for method '%s' in service '%s'", m.Name, serviceName)
+	}
 	for _, input := range m.Inputs {
 		input.InputArg = true // back-ref
 		if input.Name == "" {
@@ -115,6 +119,9 @@ func (m *Method) Parse(schema *WebRPCSchema, service *Service) error {
 	}
 
 	// Parse+validate outputs
+	if len(m.Outputs) > 1 && m.Succinct {
+		return fmt.Errorf("schema error: detected multiple output arguments using succinct form for method '%s' in service '%s'", m.Name, serviceName)
+	}
 	for _, output := range m.Outputs {
 		output.OutputArg = true // back-ref
 		if output.Name == "" {

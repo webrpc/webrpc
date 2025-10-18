@@ -404,48 +404,19 @@
      "name": "Flatten",
      "annotations": {},
      "comments": [],
+     "succinct": true,
      "inputs": [
       {
-       "name": "name",
-       "type": "string",
-       "optional": false,
-       "meta": [
-        {
-         "go.tag.db": "name"
-        }
-       ]
-      },
-      {
-       "name": "amount",
-       "type": "uint64",
-       "optional": true,
-       "meta": [
-        {
-         "go.tag.db": "amount"
-        }
-       ]
+       "name": "flattenRequest",
+       "type": "FlattenRequest",
+       "optional": false
       }
      ],
      "outputs": [
       {
-       "name": "id",
-       "type": "uint64",
-       "optional": false,
-       "meta": [
-        {
-         "go.field.name": "ID"
-        }
-       ]
-      },
-      {
-       "name": "count",
-       "type": "uint64",
-       "optional": false,
-       "meta": [
-        {
-         "json": "counter"
-        }
-       ]
+       "name": "flattenResponse",
+       "type": "FlattenResponse",
+       "optional": false
       }
      ]
     },

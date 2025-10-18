@@ -889,7 +889,7 @@ func TestParserService(t *testing.T) {
 	}
 }
 
-func TestParserServiceSuccint(t *testing.T) {
+func TestParserServiceSuccinct(t *testing.T) {
 	p, err := newStringParser(`
 		struct FlattenRequest
 			- name: string
@@ -907,10 +907,10 @@ func TestParserServiceSuccint(t *testing.T) {
 			- DemoService(in: input) => (out: output)
 			- Flatten(FlattenRequest) => (FlattenResponse)
 	`)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	err = p.run()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestParserExamples(t *testing.T) {

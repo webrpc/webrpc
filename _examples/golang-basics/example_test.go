@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	client ExampleService
+	client ExampleClient
 )
 
 // func TestMain()
@@ -20,7 +20,7 @@ func init() {
 		startServer()
 	}()
 
-	client = NewExampleServiceClient("http://0.0.0.0:4242", &http.Client{
+	client = NewExampleClient("http://0.0.0.0:4242", &http.Client{
 		Timeout: time.Duration(2 * time.Second),
 	})
 	time.Sleep(time.Millisecond * 500)
@@ -41,7 +41,7 @@ func TestStatus(t *testing.T) {
 func TestDeprecatedUserEndpoint(t *testing.T) {
 	arg1 := map[string]string{"a": "1"}
 
-	_, _, err := client.GetUser(context.Background(), arg1, 12)
+	_, err := client.GetUser(context.Background(), GetUserRequest{UserID: 42, Prefs: arg1})
 
 	assert.Error(t, err)
 }
@@ -49,22 +49,22 @@ func TestDeprecatedUserEndpoint(t *testing.T) {
 func TestGetUser(t *testing.T) {
 	{
 		arg1 := map[string]string{"a": "1"}
-		code, user, _, err := client.GetUserV2(context.Background(), arg1, 12)
+		resp, err := client.GetUserV2(context.Background(), GetUserRequest{UserID: 12, Prefs: arg1})
 		intent := Intent_openSession
 		kind := Kind_ADMIN
 
-		assert.Equal(t, uint32(200), code)
-		assert.Equal(t, &User{ID: 12, Username: "hihi", Intent: intent, Kind: kind}, user)
+		assert.Equal(t, uint32(200), resp.Code)
+		assert.Equal(t, &User{ID: 12, Username: "hihi", Intent: intent, Kind: kind}, resp.User)
 		assert.NoError(t, err)
 	}
 
 	{
 		// Error case, expecting to receive an error
-		code, user, _, err := client.GetUserV2(context.Background(), nil, 911)
+		resp, err := client.GetUserV2(context.Background(), GetUserRequest{UserID: 911})
 
 		assert.ErrorAs(t, err, &ErrUserNotFound)
-		assert.Nil(t, user)
-		assert.Equal(t, uint32(0), code)
+		assert.Nil(t, resp)
+		// assert.Equal(t, uint32(0), resp.Code)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not found")
 	}

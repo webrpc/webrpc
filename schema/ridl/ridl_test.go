@@ -672,7 +672,6 @@ func TestRIDLService(t *testing.T) {
 		assert.False(t, s.Services[0].Methods[1].StreamInput)
 		assert.True(t, s.Services[0].Methods[1].StreamOutput)
 		assert.True(t, s.Services[0].Methods[1].Outputs[0].Optional)
-
 	}
 
 	{
@@ -690,6 +689,46 @@ func TestRIDLService(t *testing.T) {
 
 		assert.Equal(t, "map<string,[][]string>", s.Services[0].Methods[0].Inputs[0].Type.String())
 		assert.Equal(t, "[]map<uint64,map<int32,string>>", s.Services[0].Methods[2].Inputs[1].Type.String())
+	}
+
+	{
+		input := `
+    webrpc = v1
+    version = v0.1.1
+          name = hello-webrpc
+
+					struct GetArticleRequest
+						- articleId: uint32
+							+ go.field.name = ArticleID
+
+					struct GetArticleResponse
+						- title: string
+
+          service Simple
+          - Ping()
+          -  Status() => (status: bool)
+          -  GetArticle(GetArticleRequest) => (GetArticleResponse)`
+
+		s, err := parseString(input)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "Ping", string(s.Services[0].Methods[0].Name))
+		assert.Equal(t, "Status", string(s.Services[0].Methods[1].Name))
+		assert.Equal(t, "GetArticle", string(s.Services[0].Methods[2].Name))
+
+		assert.Equal(t, 0, len(s.Services[0].Methods[1].Inputs))
+		assert.Equal(t, "status", string(s.Services[0].Methods[1].Outputs[0].Name))
+		assert.Equal(t, "bool", s.Services[0].Methods[1].Outputs[0].Type.String())
+
+		assert.Equal(t, 1, len(s.Services[0].Methods[2].Inputs))
+		assert.Equal(t, "getArticleRequest", s.Services[0].Methods[2].Inputs[0].Name)
+		assert.Equal(t, "GetArticleRequest", s.Services[0].Methods[2].Inputs[0].Type.String())
+
+		assert.Equal(t, 1, len(s.Services[0].Methods[2].Outputs))
+		assert.Equal(t, "getArticleResponse", s.Services[0].Methods[2].Outputs[0].Name)
+		assert.Equal(t, "GetArticleResponse", s.Services[0].Methods[2].Outputs[0].Type.String())
+
+		assert.True(t, s.Services[0].Methods[2].Succinct)
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/webrpc/webrpc/schema"
 	"github.com/webrpc/webrpc/schema/ridl/internal/graph"
@@ -312,14 +313,18 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		methods := []*schema.Method{}
 
 		for _, method := range service.Methods() {
-			inputs, err := buildArgumentsList(s, method.Inputs())
+			inputs, succinctInput, err := buildArgumentsList(s, method.Inputs())
 			if err != nil {
 				return nil, err
 			}
 
-			outputs, err := buildArgumentsList(s, method.Outputs())
+			outputs, succinctOutput, err := buildArgumentsList(s, method.Outputs())
 			if err != nil {
 				return nil, err
+			}
+
+			if (len(inputs) > 1 || len(outputs) > 1) && (succinctInput || succinctOutput) {
+				return nil, fmt.Errorf("method definition must be in succinct form for both inputs and inputs of method '%s'", method.Name().String())
 			}
 
 			// push m
@@ -331,6 +336,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				Outputs:      outputs,
 				Comments:     parseComment(method.Comment()),
 				Annotations:  buildAnnotations(method),
+				Succinct:     succinctInput || succinctOutput,
 			}
 
 			methods = append(methods, m)
@@ -366,30 +372,32 @@ func isImportAllowed(name string, whitelist []string) bool {
 	return false
 }
 
-func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema.MethodArgument, error) {
+func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema.MethodArgument, bool, error) {
 	output := []*schema.MethodArgument{}
 
-	// succint form
+	// succinct form
 	if len(args) == 1 && args[0].inlineStruct != nil {
 		node := args[0].inlineStruct
 		structName := node.tok.val
 
 		typ := s.GetTypeByName(structName)
 		if typ.Kind != "struct" {
-			return nil, fmt.Errorf("expecting struct type for inline definition of '%s'", structName)
+			return nil, true, fmt.Errorf("expecting struct type for succinct definition of '%s'", structName)
 		}
 
-		for _, arg := range typ.Fields {
-			methodArgument := &schema.MethodArgument{
-				Name:      arg.Name,
-				Type:      arg.Type,
-				Optional:  arg.Optional,
-				TypeExtra: arg.TypeExtra,
-			}
-			output = append(output, methodArgument)
+		var varType schema.VarType
+		err := schema.ParseVarTypeExpr(s, typ.Name, &varType)
+		if err != nil {
+			return nil, true, fmt.Errorf("parsing argument %v: %w", typ.Name, err)
 		}
 
-		return output, nil
+		output = append(output, &schema.MethodArgument{
+			Name:     toLowerFirstChar(typ.Name),
+			Type:     &varType,
+			Optional: false,
+		})
+
+		return output, true, nil
 	}
 
 	// normal form
@@ -397,7 +405,7 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 		var varType schema.VarType
 		err := schema.ParseVarTypeExpr(s, arg.TypeName().String(), &varType)
 		if err != nil {
-			return nil, fmt.Errorf("parsing argument %v: %w", arg.TypeName(), err)
+			return nil, false, fmt.Errorf("parsing argument %v: %w", arg.TypeName(), err)
 		}
 
 		methodArgument := &schema.MethodArgument{
@@ -408,7 +416,7 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 		output = append(output, methodArgument)
 	}
 
-	return output, nil
+	return output, false, nil
 }
 
 func parseComment(comment string) []string {
@@ -434,4 +442,14 @@ func buildAnnotations(method *MethodNode) schema.Annotations {
 	}
 
 	return schema.Annotations(annotations)
+}
+
+func toLowerFirstChar(s string) string {
+	if s == "" {
+		return ""
+	}
+
+	rs := []rune(s)
+	rs[0] = unicode.ToLower(rs[0])
+	return string(rs)
 }
