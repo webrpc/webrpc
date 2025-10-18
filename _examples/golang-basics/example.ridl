@@ -55,41 +55,64 @@ struct ComplexType
   - mapOfUsers: map<string,User>
   - user: User
 
+struct GetUserRequest
+  - userId: uint64
+    + go.field.name = UserID
+  - prefs: map<string,string>
+
+struct GetUserResponse
+  - code: uint32
+  - user: User
+  - profile: string
+
 error 1000 UserNotFound     "User not found"      HTTP 404
 error 2000 Unauthorized     "Unauthorized access" HTTP 401
 error 3000 PermissionDenied "Permission denied"   HTTP 403
 
-service ExampleService
-    @internal
+
+service Example
+  @internal
   - Ping()
-    @internal
+
+  @internal
   - Status() => (status: bool)
-    @internal
+
+  @internal
   - Version() => (version: Version)
-    @deprecated:"Use GetUserV2 instead."
-    @internal
-  - GetUser(header: map<string,string>, userID: uint64) => (code: uint32, user: User)
-    @public
-    @auth:"X-Access-Key,S2S,Cookies"
-  - GetUserV2(header: map<string,string>, userID: uint64) => (code: uint32, user: User, profile: string)
-    @public
+
+  @deprecated:"Use GetUserV2 instead."
+  @internal
+  - GetUser(GetUserRequest) => (GetUserResponse)
+
+  @public
+  @auth:"X-Access-Key,S2S,Cookies"
+  - GetUserV2(GetUserRequest) => (GetUserResponse)
+
+  @public
   - FindUser(s: SearchFilter) => (name: string, user: User)
-    @public
+
+  @public
   - GetIntents() => (intents: []Intent)
-    @public
+
+  @public
   - CountIntents(userId: uint64) => (count: map<Intent,uint32>)
 
-service ExampleServiceV2
+
+service ExampleV2
   - Ping()
   - Status() => (status: bool)
 
-service AdminService
-    @public
-    @deprecated:"Use Auth instead."
+
+service Admin
+  @public
+  @deprecated:"Use Auth instead."
   - AuthOld() => (jwt: string)
-    @public
+
+  @public
   - Auth() => (jwt: string, role: string)
-    @internal
+
+  @internal
   - Status() => (status: bool)
-    @internal
+
+  @internal
   - Version() => (version: Version)
