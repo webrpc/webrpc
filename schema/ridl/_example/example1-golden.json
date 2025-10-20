@@ -206,7 +206,26 @@
    ]
   }
  ],
- "errors": [],
+ "errors": [
+  {
+   "code": 1000,
+   "name": "UserNotFoundError",
+   "message": "User not found",
+   "httpStatus": 404
+  },
+  {
+   "code": 1001,
+   "name": "UnauthorizedError",
+   "message": "Unauthorized access",
+   "httpStatus": 401
+  },
+  {
+   "code": 1002,
+   "name": "ValidationError",
+   "message": "Validation failed",
+   "httpStatus": 400
+  }
+ ],
  "services": [
   {
    "name": "PingerService",
@@ -437,6 +456,10 @@
        "type": "uint64",
        "optional": false
       }
+     ],
+     "throws": [
+      "UserNotFoundError",
+      "UnauthorizedError"
      ]
     }
    ],

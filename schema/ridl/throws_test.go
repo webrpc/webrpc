@@ -38,24 +38,24 @@ service UserService
 
 	// Now the parser should succeed since we implemented 'throws' support!
 	schema, err := parseRIDLString(ridlContent)
-	
+
 	require.NoError(t, err, "Parser should now succeed with 'throws' keyword")
 	require.NotNil(t, schema, "Schema should not be nil")
-	
+
 	// Validate that the schema has the expected service
 	require.Len(t, schema.Services, 1, "Should have exactly one service")
 	service := schema.Services[0]
 	require.Equal(t, "UserService", service.Name)
-	
+
 	// Validate that the method has the expected error specification
 	require.Len(t, service.Methods, 1, "Should have exactly one method")
 	getUserMethod := service.Methods[0]
 	require.Equal(t, "GetUser", getUserMethod.Name)
-	
+
 	// This is the key assertion - the method should have the error specified
 	require.Len(t, getUserMethod.Errors, 1, "Method should throw exactly one error")
 	require.Equal(t, "UserNotFound", getUserMethod.Errors[0], "Method should throw UserNotFound error")
-	
+
 	t.Logf("✅ Test passes! Method errors: %v", getUserMethod.Errors)
 }
 
@@ -81,24 +81,24 @@ service UserService
 
 	// Now the parser should succeed since we implemented 'throws' support!
 	schema, err := parseRIDLString(ridlContent)
-	
+
 	require.NoError(t, err, "Parser should now succeed with 'throws' keyword")
 	require.NotNil(t, schema, "Schema should not be nil")
-	
+
 	// Validate that the schema has the expected service
 	require.Len(t, schema.Services, 1, "Should have exactly one service")
 	service := schema.Services[0]
 	require.Equal(t, "UserService", service.Name)
-	
+
 	// Validate that the method has the expected error specification
 	require.Len(t, service.Methods, 1, "Should have exactly one method")
 	updateMethod := service.Methods[0]
 	require.Equal(t, "UpdateUser", updateMethod.Name)
-	
+
 	// This is the key assertion - the method should have multiple errors specified
 	require.Len(t, updateMethod.Errors, 3, "Method should throw exactly three errors")
 	assert.Equal(t, []string{"Unauthorized", "ValidationError", "ServiceError"}, updateMethod.Errors)
-	
+
 	t.Logf("✅ Test passes! Method errors: %v", updateMethod.Errors)
 }
 
@@ -124,26 +124,26 @@ service UserService
 
 	// This should SUCCEED because methods without 'throws' should work as before
 	schema, err := parseRIDLString(ridlContent)
-	
+
 	require.NoError(t, err, "Methods without throws should parse successfully")
 	require.NotNil(t, schema, "Schema should not be nil")
-	
+
 	// Validate the schema structure
 	require.Len(t, schema.Services, 1)
 	service := schema.Services[0]
 	require.Equal(t, "UserService", service.Name)
 	require.Len(t, service.Methods, 2)
-	
+
 	// Check first method
 	getUserMethod := service.Methods[0]
 	require.Equal(t, "GetUser", getUserMethod.Name)
 	require.Len(t, getUserMethod.Errors, 0, "Method without throws should have no errors")
-	
-	// Check second method  
+
+	// Check second method
 	listMethod := service.Methods[1]
 	require.Equal(t, "ListUsers", listMethod.Name)
 	require.Len(t, listMethod.Errors, 0, "Method without throws should have no errors")
-	
+
 	t.Logf("✅ Backward compatibility maintained - methods without throws work fine")
 }
 
@@ -196,29 +196,29 @@ func TestThrowsKeyword_JsonSchemaSupport(t *testing.T) {
 	parsedSchema, err := schema.ParseSchemaJSON([]byte(jsonContent))
 	require.NoError(t, err, "JSON schema with method errors should parse successfully")
 	require.NotNil(t, parsedSchema, "Schema should not be nil")
-	
+
 	// Validate service and methods
 	require.Len(t, parsedSchema.Services, 1)
 	service := parsedSchema.Services[0]
 	require.Equal(t, "UserService", service.Name)
 	require.Len(t, service.Methods, 3)
-	
+
 	// Check GetUser method (single error)
 	getUserMethod := service.Methods[0]
 	require.Equal(t, "GetUser", getUserMethod.Name)
 	require.Len(t, getUserMethod.Errors, 1)
 	require.Equal(t, "UserNotFound", getUserMethod.Errors[0])
-	
+
 	// Check UpdateUser method (multiple errors)
 	updateMethod := service.Methods[1]
-	require.Equal(t, "UpdateUser", updateMethod.Name) 
+	require.Equal(t, "UpdateUser", updateMethod.Name)
 	require.Len(t, updateMethod.Errors, 2)
 	require.Equal(t, []string{"UserNotFound", "Unauthorized"}, updateMethod.Errors)
-	
+
 	// Check ListUsers method (no errors)
 	listMethod := service.Methods[2]
 	require.Equal(t, "ListUsers", listMethod.Name)
 	require.Len(t, listMethod.Errors, 0)
-	
+
 	t.Logf("✅ JSON schema support works! Methods have proper throws specifications")
 }

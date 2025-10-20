@@ -81,4 +81,8 @@ struct FlattenResponse
 
 service Another
   - Flatten(FlattenRequest) => (FlattenResponse)
-  - GetAccountBalance(name: string) => (balance: uint64)
+  - GetAccountBalance(name: string) => (balance: uint64) throws UserNotFoundError, UnauthorizedError
+
+error 1000 UserNotFoundError "User not found" HTTP 404
+error 1001 UnauthorizedError "Unauthorized access" HTTP 401  
+error 1002 ValidationError "Validation failed" HTTP 400
