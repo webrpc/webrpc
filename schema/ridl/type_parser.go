@@ -81,6 +81,10 @@ loop:
 			tokens = append(tokens, tok)
 			p.next()
 
+		case tokenBar:
+			tokens = append(tokens, tok)
+			p.next()
+
 		case tokenWord:
 			// succinct form, Method(InRequest) => (OutReponse)
 			{
@@ -162,7 +166,7 @@ loop:
 			tokens = append(tokens, tok)
 			break loop
 
-		case tokenComma:
+		case tokenComma, tokenBar:
 			tokens = append(tokens, tok)
 			p.next()
 
@@ -191,7 +195,7 @@ loop:
 
 		switch tok.tt {
 
-		case tokenNewLine, tokenWhitespace, tokenComma, tokenCloseAngleBracket, tokenCloseParen, tokenHash:
+		case tokenNewLine, tokenWhitespace, tokenComma, tokenBar, tokenCloseAngleBracket, tokenCloseParen, tokenHash:
 			break loop
 
 		case tokenEOF:

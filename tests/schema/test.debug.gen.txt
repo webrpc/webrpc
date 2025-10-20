@@ -1286,6 +1286,8 @@
 						},
 						Outputs: ([]*schema.MethodArgument) {
 						},
+						Errors: ([]string) {
+						},
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -1301,6 +1303,8 @@
 						Inputs: ([]*schema.MethodArgument) {
 						},
 						Outputs: ([]*schema.MethodArgument) {
+						},
+						Errors: ([]string) {
 						},
 						Service: (*schema.Service)(<already shown>)
 					}),
@@ -1392,6 +1396,8 @@
 								}
 							})
 						},
+						Errors: ([]string) {
+						},
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -1481,6 +1487,8 @@
 							})
 						},
 						Outputs: ([]*schema.MethodArgument) {
+						},
+						Errors: ([]string) {
 						},
 						Service: (*schema.Service)(<already shown>)
 					}),
@@ -1720,6 +1728,8 @@
 								}
 							})
 						},
+						Errors: ([]string) {
+						},
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -1957,6 +1967,8 @@
 							})
 						},
 						Outputs: ([]*schema.MethodArgument) {
+						},
+						Errors: ([]string) {
 						},
 						Service: (*schema.Service)(<already shown>)
 					}),
@@ -2682,6 +2694,8 @@
 								}
 							})
 						},
+						Errors: ([]string) {
+						},
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -3406,6 +3420,8 @@
 						},
 						Outputs: ([]*schema.MethodArgument) {
 						},
+						Errors: ([]string) {
+						},
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -3496,6 +3512,8 @@
 									Meta: ([]schema.TypeFieldMeta) <nil>
 								}
 							})
+						},
+						Errors: ([]string) {
 						},
 						Service: (*schema.Service)(<already shown>)
 					}),
@@ -3630,6 +3648,8 @@
 								}
 							})
 						},
+						Errors: ([]string) {
+						},
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -3666,6 +3686,8 @@
 							})
 						},
 						Outputs: ([]*schema.MethodArgument) {
+						},
+						Errors: ([]string) {
 						},
 						Service: (*schema.Service)(<already shown>)
 					})
