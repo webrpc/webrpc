@@ -18,10 +18,10 @@ func parseRIDLString(src string) (*schema.WebRPCSchema, error) {
 	return NewParser(fsys, "/", "test.ridl").Parse()
 }
 
-func TestThrowsKeyword_SingleError(t *testing.T) {
+func TestMethodErrorsKeyword_SingleError(t *testing.T) {
 	ridlContent := `webrpc = v1
 
-name = ThrowsTest
+name = MethodErrorsTest
 version = v0.1.0
 
 # Define a custom error
@@ -32,14 +32,14 @@ struct User
   - username: string
 
 service UserService
-  # Method that throws a specific error
-  - GetUser(userID: uint64) => (user: User) throws UserNotFound
+  # Method that scopes specific potential errors returned
+  - GetUser(userID: uint64) => (user: User) errors UserNotFound
 `
 
-	// Now the parser should succeed since we implemented 'throws' support!
+	// Now the parser should succeed since we implemented 'errors' support!
 	schema, err := parseRIDLString(ridlContent)
 
-	require.NoError(t, err, "Parser should now succeed with 'throws' keyword")
+	require.NoError(t, err, "Parser should now succeed with 'errors' keyword")
 	require.NotNil(t, schema, "Schema should not be nil")
 
 	// Validate that the schema has the expected service
@@ -59,10 +59,10 @@ service UserService
 	t.Logf("✅ Test passes! Method errors: %v", getUserMethod.Errors)
 }
 
-func TestThrowsKeyword_MultipleErrors(t *testing.T) {
+func TestMethodErrorsKeyword_MultipleErrors(t *testing.T) {
 	ridlContent := `webrpc = v1
 
-name = MultipleThrowsTest
+name = MultipleMethodErrorsTest
 version = v0.1.0
 
 # Define multiple custom errors
@@ -75,14 +75,14 @@ struct User
   - username: string
 
 service UserService
-  # Method that throws multiple specific errors
-  - UpdateUser(user: User) => (user: User) throws Unauthorized, ValidationError, ServiceError
+  # Method that errors multiple specific errors
+  - UpdateUser(user: User) => (user: User) errors Unauthorized, ValidationError, ServiceError
 `
 
-	// Now the parser should succeed since we implemented 'throws' support!
+	// Now the parser should succeed since we implemented 'errors' support!
 	schema, err := parseRIDLString(ridlContent)
 
-	require.NoError(t, err, "Parser should now succeed with 'throws' keyword")
+	require.NoError(t, err, "Parser should now succeed with 'errors' keyword")
 	require.NotNil(t, schema, "Schema should not be nil")
 
 	// Validate that the schema has the expected service
@@ -102,13 +102,13 @@ service UserService
 	t.Logf("✅ Test passes! Method errors: %v", updateMethod.Errors)
 }
 
-func TestThrowsKeyword_BackwardCompatibility(t *testing.T) {
+func TestMethodErrorsKeyword_BackwardCompatibility(t *testing.T) {
 	ridlContent := `webrpc = v1
 
 name = BackwardCompatTest
 version = v0.1.0
 
-# Define some errors (even though we won't use them in throws)
+# Define some errors (even though we won't use them in errors)
 error 1 SomeError "some error" HTTP 400
 
 struct User
@@ -116,16 +116,16 @@ struct User
   - username: string
 
 service UserService
-  # Method without throws clause - should work normally
+  # Method without errors clause - should work normally
   - GetUser(userID: uint64) => (user: User)
-  # Another method without throws
+  # Another method without errors
   - ListUsers() => (users: []User)
 `
 
-	// This should SUCCEED because methods without 'throws' should work as before
+	// This should SUCCEED because methods without 'errors' should work as before
 	schema, err := parseRIDLString(ridlContent)
 
-	require.NoError(t, err, "Methods without throws should parse successfully")
+	require.NoError(t, err, "Methods without errors should parse successfully")
 	require.NotNil(t, schema, "Schema should not be nil")
 
 	// Validate the schema structure
@@ -137,20 +137,20 @@ service UserService
 	// Check first method
 	getUserMethod := service.Methods[0]
 	require.Equal(t, "GetUser", getUserMethod.Name)
-	require.Len(t, getUserMethod.Errors, 0, "Method without throws should have no errors")
+	require.Len(t, getUserMethod.Errors, 0, "Method without errors should have no errors")
 
 	// Check second method
 	listMethod := service.Methods[1]
 	require.Equal(t, "ListUsers", listMethod.Name)
-	require.Len(t, listMethod.Errors, 0, "Method without throws should have no errors")
+	require.Len(t, listMethod.Errors, 0, "Method without errors should have no errors")
 
-	t.Logf("✅ Backward compatibility maintained - methods without throws work fine")
+	t.Logf("✅ Backward compatibility maintained - methods without errors work fine")
 }
 
-func TestThrowsKeyword_JsonSchemaSupport(t *testing.T) {
+func TestMethodErrorsKeyword_JsonSchemaSupport(t *testing.T) {
 	jsonContent := `{
   "webrpc": "v1",
-  "name": "JsonThrowsTest",
+  "name": "JsonMethodErrorsTest",
   "version": "v1.0.0",
   "types": [
     {
@@ -174,13 +174,13 @@ func TestThrowsKeyword_JsonSchemaSupport(t *testing.T) {
           "name": "GetUser",
           "inputs": [{"name": "userID", "type": "uint64", "optional": false}],
           "outputs": [{"name": "user", "type": "User", "optional": false}],
-          "throws": ["UserNotFound"]
+          "errors": ["UserNotFound"]
         },
         {
           "name": "UpdateUser", 
           "inputs": [{"name": "user", "type": "User", "optional": false}],
           "outputs": [{"name": "user", "type": "User", "optional": false}],
-          "throws": ["UserNotFound", "Unauthorized"]
+          "errors": ["UserNotFound", "Unauthorized"]
         },
         {
           "name": "ListUsers",
@@ -220,5 +220,5 @@ func TestThrowsKeyword_JsonSchemaSupport(t *testing.T) {
 	require.Equal(t, "ListUsers", listMethod.Name)
 	require.Len(t, listMethod.Errors, 0)
 
-	t.Logf("✅ JSON schema support works! Methods have proper throws specifications")
+	t.Logf("✅ JSON schema support works! Methods have proper errors specifications")
 }

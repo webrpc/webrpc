@@ -457,7 +457,7 @@
        "optional": false
       }
      ],
-     "throws": [
+     "errors": [
       "UserNotFoundError",
       "UnauthorizedError"
      ]

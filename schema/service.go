@@ -25,7 +25,7 @@ type Method struct {
 
 	Inputs  []*MethodArgument `json:"inputs"`
 	Outputs []*MethodArgument `json:"outputs"`
-	Errors  []string          `json:"throws,omitempty"` // List of error names this method can throw
+	Errors  []string          `json:"errors,omitempty"` // List of errors this method can throw
 
 	Service *Service `json:"-"` // denormalize/back-reference
 }
