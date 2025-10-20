@@ -18,3 +18,6 @@ dev-generate-local-templates:
 	../../bin/webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -service="Example" -ignore="@deprecated" -out=./example.gen.go
 	../../bin/webrpc-gen -schema=example.ridl -target=golang -pkg=admin -server -client -service="Admin" -ignore="@deprecated" -out=./admin/admin.gen.go
 	../../bin/webrpc-gen -schema=example.ridl -target=golang -pkg=internal -server -client -service="Example,Admin" -ignore="@public,@deprecated" -out=./internal/internal.gen.go
+
+test:
+	go test -v -race ./...
