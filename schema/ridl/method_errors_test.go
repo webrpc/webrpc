@@ -76,7 +76,7 @@ struct User
 
 service UserService
   # Method that errors multiple specific errors
-  - UpdateUser(user: User) => (user: User) errors Unauthorized, ValidationError, ServiceError
+  - UpdateUser(user: User) => (user: User) errors Unauthorized | ValidationError | ServiceError
 `
 
 	// Now the parser should succeed since we implemented 'errors' support!

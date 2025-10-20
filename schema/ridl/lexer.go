@@ -57,6 +57,7 @@ const (
 	tokenHash                        // "#"
 	tokenColon                       // ":"
 	tokenComma                       // ","
+	tokenBar                         // "|"
 	tokenBackslash                   // "\"
 	tokenSlash                       // "/"
 	tokenQuote                       //  "
@@ -93,6 +94,7 @@ var tokenTypeName = map[tokenType]string{
 	tokenHash:              "[hash]",
 	tokenColon:             "[colon]",
 	tokenComma:             "[comma]",
+	tokenBar:               "[bar]",
 	tokenDot:               "[dot]",
 	tokenQuote:             "[quote]",
 	tokenBackslash:         "[backslash]",
@@ -125,6 +127,7 @@ var tokenTypeValue = map[tokenType][]rune{
 	tokenBackslash:         {'\\'},
 	tokenSlash:             {'/'},
 	tokenComma:             {','},
+	tokenBar:               {'|'},
 	tokenDot:               {'.'},
 	tokenQuestionMark:      {'?'},
 	tokenBang:              {'!'},
@@ -147,6 +150,7 @@ var (
 	isMinusSign         = isTokenType(tokenMinusSign)
 	isEqual             = isTokenType(tokenEqual)
 	isComma             = isTokenType(tokenComma)
+	isBar               = isTokenType(tokenBar)
 	isQuote             = isTokenType(tokenQuote)
 	isBackslash         = isTokenType(tokenBackslash)
 	isSlash             = isTokenType(tokenSlash)
@@ -234,6 +238,10 @@ func lexStateHash(lx *lexer) lexState {
 
 func lexStateComma(lx *lexer) lexState {
 	return lexPushTokenState(tokenComma)
+}
+
+func lexStateBar(lx *lexer) lexState {
+	return lexPushTokenState(tokenBar)
 }
 
 func lexStateDot(lx *lexer) lexState {
@@ -376,6 +384,9 @@ func lexDefaultState(lx *lexer) lexState {
 
 	case isComma(r):
 		return lexStateComma
+
+	case isBar(r):
+		return lexStateBar
 
 	case isDot(r):
 		return lexStateDot
