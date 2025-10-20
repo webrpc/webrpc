@@ -99,7 +99,7 @@ func RunTests(ctx context.Context, serverURL string) error {
 	return nil
 }
 
-func testSchemaErrors(ctx context.Context, testApi TestApi) []error {
+func testSchemaErrors(ctx context.Context, testApi TestApiClient) []error {
 	tt := []struct {
 		code           int
 		err            WebRPCError

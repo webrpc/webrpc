@@ -18,7 +18,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.21.0;example@ v0.0.1"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.0;example@ v0.0.1"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -190,7 +190,7 @@ var WebRPCServices = map[string][]string{
 // Server types
 //
 
-type ExampleService interface {
+type ExampleServiceServer interface {
 	Ping(ctx context.Context) (bool, error)
 	GetUser(ctx context.Context, req *GetUserRequest) (*User, error)
 }
@@ -212,19 +212,19 @@ type WebRPCServer interface {
 	http.Handler
 }
 
-type exampleServiceServer struct {
-	ExampleService
+type exampleServiceService struct {
+	ExampleServiceServer
 	OnError   func(r *http.Request, rpcErr *WebRPCError)
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
 }
 
-func NewExampleServiceServer(svc ExampleService) *exampleServiceServer {
-	return &exampleServiceServer{
-		ExampleService: svc,
+func NewExampleServiceServer(svc ExampleServiceServer) *exampleServiceService {
+	return &exampleServiceService{
+		ExampleServiceServer: svc,
 	}
 }
 
-func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *exampleServiceService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		// In case of a panic, serve a HTTP 500 error and then panic.
 		if rr := recover(); rr != nil {
@@ -287,11 +287,11 @@ func (s *exampleServiceServer) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *exampleServiceService) servePingJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Ping")
 
 	// Call service method implementation.
-	ret0, err := s.ExampleService.Ping(ctx)
+	ret0, err := s.ExampleServiceServer.Ping(ctx)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -315,7 +315,7 @@ func (s *exampleServiceServer) servePingJSON(ctx context.Context, w http.Respons
 	w.Write(respBody)
 }
 
-func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *exampleServiceService) serveGetUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetUser")
 
 	reqBody, err := io.ReadAll(r.Body)
@@ -334,7 +334,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	}
 
 	// Call service method implementation.
-	ret0, err := s.ExampleService.GetUser(ctx, reqPayload.Arg0)
+	ret0, err := s.ExampleServiceServer.GetUser(ctx, reqPayload.Arg0)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -358,7 +358,7 @@ func (s *exampleServiceServer) serveGetUserJSON(ctx context.Context, w http.Resp
 	w.Write(respBody)
 }
 
-func (s *exampleServiceServer) sendErrorJSON(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError) {
+func (s *exampleServiceService) sendErrorJSON(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError) {
 	if s.OnError != nil {
 		s.OnError(r, &rpcErr)
 	}

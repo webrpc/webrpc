@@ -17,7 +17,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.21.0;Test@v0.10.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.0;Test@v0.10.0"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -298,7 +298,7 @@ var WebRPCServices = map[string][]string{
 // Server types
 //
 
-type TestApi interface {
+type TestApiServer interface {
 	GetEmpty(ctx context.Context) error
 	GetError(ctx context.Context) error
 	GetOne(ctx context.Context) (*Simple, error)
@@ -340,19 +340,19 @@ type WebRPCServer interface {
 	http.Handler
 }
 
-type testApiServer struct {
-	TestApi
+type testApiService struct {
+	TestApiServer
 	OnError   func(r *http.Request, rpcErr *WebRPCError)
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
 }
 
-func NewTestApiServer(svc TestApi) *testApiServer {
-	return &testApiServer{
-		TestApi: svc,
+func NewTestApiServer(svc TestApiServer) *testApiService {
+	return &testApiService{
+		TestApiServer: svc,
 	}
 }
 
-func (s *testApiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *testApiService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		// In case of a panic, serve a HTTP 500 error and then panic.
 		if rr := recover(); rr != nil {
@@ -433,11 +433,11 @@ func (s *testApiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *testApiServer) serveGetEmptyJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *testApiService) serveGetEmptyJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetEmpty")
 
 	// Call service method implementation.
-	err := s.TestApi.GetEmpty(ctx)
+	err := s.TestApiServer.GetEmpty(ctx)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -452,11 +452,11 @@ func (s *testApiServer) serveGetEmptyJSON(ctx context.Context, w http.ResponseWr
 	w.Write([]byte("{}"))
 }
 
-func (s *testApiServer) serveGetErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *testApiService) serveGetErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetError")
 
 	// Call service method implementation.
-	err := s.TestApi.GetError(ctx)
+	err := s.TestApiServer.GetError(ctx)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -471,11 +471,11 @@ func (s *testApiServer) serveGetErrorJSON(ctx context.Context, w http.ResponseWr
 	w.Write([]byte("{}"))
 }
 
-func (s *testApiServer) serveGetOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *testApiService) serveGetOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetOne")
 
 	// Call service method implementation.
-	ret0, err := s.TestApi.GetOne(ctx)
+	ret0, err := s.TestApiServer.GetOne(ctx)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -499,7 +499,7 @@ func (s *testApiServer) serveGetOneJSON(ctx context.Context, w http.ResponseWrit
 	w.Write(respBody)
 }
 
-func (s *testApiServer) serveSendOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *testApiService) serveSendOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendOne")
 
 	reqBody, err := io.ReadAll(r.Body)
@@ -518,7 +518,7 @@ func (s *testApiServer) serveSendOneJSON(ctx context.Context, w http.ResponseWri
 	}
 
 	// Call service method implementation.
-	err = s.TestApi.SendOne(ctx, reqPayload.Arg0)
+	err = s.TestApiServer.SendOne(ctx, reqPayload.Arg0)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -533,11 +533,11 @@ func (s *testApiServer) serveSendOneJSON(ctx context.Context, w http.ResponseWri
 	w.Write([]byte("{}"))
 }
 
-func (s *testApiServer) serveGetMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *testApiService) serveGetMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetMulti")
 
 	// Call service method implementation.
-	ret0, ret1, ret2, err := s.TestApi.GetMulti(ctx)
+	ret0, ret1, ret2, err := s.TestApiServer.GetMulti(ctx)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -563,7 +563,7 @@ func (s *testApiServer) serveGetMultiJSON(ctx context.Context, w http.ResponseWr
 	w.Write(respBody)
 }
 
-func (s *testApiServer) serveSendMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *testApiService) serveSendMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendMulti")
 
 	reqBody, err := io.ReadAll(r.Body)
@@ -584,7 +584,7 @@ func (s *testApiServer) serveSendMultiJSON(ctx context.Context, w http.ResponseW
 	}
 
 	// Call service method implementation.
-	err = s.TestApi.SendMulti(ctx, reqPayload.Arg0, reqPayload.Arg1, reqPayload.Arg2)
+	err = s.TestApiServer.SendMulti(ctx, reqPayload.Arg0, reqPayload.Arg1, reqPayload.Arg2)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -599,11 +599,11 @@ func (s *testApiServer) serveSendMultiJSON(ctx context.Context, w http.ResponseW
 	w.Write([]byte("{}"))
 }
 
-func (s *testApiServer) serveGetComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *testApiService) serveGetComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetComplex")
 
 	// Call service method implementation.
-	ret0, err := s.TestApi.GetComplex(ctx)
+	ret0, err := s.TestApiServer.GetComplex(ctx)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -627,7 +627,7 @@ func (s *testApiServer) serveGetComplexJSON(ctx context.Context, w http.Response
 	w.Write(respBody)
 }
 
-func (s *testApiServer) serveSendComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *testApiService) serveSendComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendComplex")
 
 	reqBody, err := io.ReadAll(r.Body)
@@ -646,7 +646,7 @@ func (s *testApiServer) serveSendComplexJSON(ctx context.Context, w http.Respons
 	}
 
 	// Call service method implementation.
-	err = s.TestApi.SendComplex(ctx, reqPayload.Arg0)
+	err = s.TestApiServer.SendComplex(ctx, reqPayload.Arg0)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -661,11 +661,11 @@ func (s *testApiServer) serveSendComplexJSON(ctx context.Context, w http.Respons
 	w.Write([]byte("{}"))
 }
 
-func (s *testApiServer) serveGetEnumListJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *testApiService) serveGetEnumListJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetEnumList")
 
 	// Call service method implementation.
-	ret0, err := s.TestApi.GetEnumList(ctx)
+	ret0, err := s.TestApiServer.GetEnumList(ctx)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -689,11 +689,11 @@ func (s *testApiServer) serveGetEnumListJSON(ctx context.Context, w http.Respons
 	w.Write(respBody)
 }
 
-func (s *testApiServer) serveGetEnumMapJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *testApiService) serveGetEnumMapJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetEnumMap")
 
 	// Call service method implementation.
-	ret0, err := s.TestApi.GetEnumMap(ctx)
+	ret0, err := s.TestApiServer.GetEnumMap(ctx)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -717,7 +717,7 @@ func (s *testApiServer) serveGetEnumMapJSON(ctx context.Context, w http.Response
 	w.Write(respBody)
 }
 
-func (s *testApiServer) serveGetSchemaErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *testApiService) serveGetSchemaErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetSchemaError")
 
 	reqBody, err := io.ReadAll(r.Body)
@@ -736,7 +736,7 @@ func (s *testApiServer) serveGetSchemaErrorJSON(ctx context.Context, w http.Resp
 	}
 
 	// Call service method implementation.
-	err = s.TestApi.GetSchemaError(ctx, reqPayload.Arg0)
+	err = s.TestApiServer.GetSchemaError(ctx, reqPayload.Arg0)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -751,7 +751,7 @@ func (s *testApiServer) serveGetSchemaErrorJSON(ctx context.Context, w http.Resp
 	w.Write([]byte("{}"))
 }
 
-func (s *testApiServer) sendErrorJSON(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError) {
+func (s *testApiService) sendErrorJSON(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError) {
 	if s.OnError != nil {
 		s.OnError(r, &rpcErr)
 	}

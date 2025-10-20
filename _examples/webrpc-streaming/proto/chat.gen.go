@@ -22,7 +22,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.21.0;webrpc-sse-chat@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.0;webrpc-sse-chat@v1.0.0"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -134,7 +134,7 @@ var WebRPCServices = map[string][]string{
 // Server types
 //
 
-type Chat interface {
+type ChatServer interface {
 	SendMessage(ctx context.Context, username string, text string) error
 	SubscribeMessages(ctx context.Context, username string, lastMessageId *uint64, stream SubscribeMessagesStreamWriter) error
 }
@@ -161,9 +161,13 @@ type streamWriter struct {
 	mu sync.Mutex // Guards concurrent writes to w.
 	w  http.ResponseWriter
 	f  http.Flusher
-	e  *json.Encoder
+	e  jsonEncoder
 
 	sendError func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
+}
+
+type jsonEncoder interface {
+	Encode(v any) error
 }
 
 const StreamKeepAliveInterval = 10 * time.Second
@@ -221,19 +225,19 @@ type WebRPCServer interface {
 	http.Handler
 }
 
-type chatServer struct {
-	Chat
+type chatService struct {
+	ChatServer
 	OnError   func(r *http.Request, rpcErr *WebRPCError)
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
 }
 
-func NewChatServer(svc Chat) *chatServer {
-	return &chatServer{
-		Chat: svc,
+func NewChatServer(svc ChatServer) *chatService {
+	return &chatService{
+		ChatServer: svc,
 	}
 }
 
-func (s *chatServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *chatService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		// In case of a panic, serve a HTTP 500 error and then panic.
 		if rr := recover(); rr != nil {
@@ -296,7 +300,7 @@ func (s *chatServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *chatServer) serveSendMessageJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *chatService) serveSendMessageJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendMessage")
 
 	reqBody, err := io.ReadAll(r.Body)
@@ -316,7 +320,7 @@ func (s *chatServer) serveSendMessageJSON(ctx context.Context, w http.ResponseWr
 	}
 
 	// Call service method implementation.
-	err = s.Chat.SendMessage(ctx, reqPayload.Arg0, reqPayload.Arg1)
+	err = s.ChatServer.SendMessage(ctx, reqPayload.Arg0, reqPayload.Arg1)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -331,7 +335,7 @@ func (s *chatServer) serveSendMessageJSON(ctx context.Context, w http.ResponseWr
 	w.Write([]byte("{}"))
 }
 
-func (s *chatServer) serveSubscribeMessagesJSONStream(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SubscribeMessages")
 
 	reqBody, err := io.ReadAll(r.Body)
@@ -368,13 +372,13 @@ func (s *chatServer) serveSubscribeMessagesJSONStream(ctx context.Context, w htt
 		return
 	}
 
-	ctx, cancel := context.WithCancel(r.Context())
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	go streamWriter.keepAlive(ctx)
 
 	// Call service method implementation.
-	if err := s.Chat.SubscribeMessages(ctx, reqPayload.Arg0, reqPayload.Arg1, streamWriter); err != nil {
+	if err := s.ChatServer.SubscribeMessages(ctx, reqPayload.Arg0, reqPayload.Arg1, streamWriter); err != nil {
 		cancel()
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -388,7 +392,7 @@ func (s *chatServer) serveSubscribeMessagesJSONStream(ctx context.Context, w htt
 	}
 }
 
-func (s *chatServer) sendErrorJSON(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError) {
+func (s *chatService) sendErrorJSON(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError) {
 	if s.OnError != nil {
 		s.OnError(r, &rpcErr)
 	}
