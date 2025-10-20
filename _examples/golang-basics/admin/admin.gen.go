@@ -19,7 +19,7 @@ import (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.21.0;example@v0.0.1"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.0;example@v0.0.1"
 
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
@@ -248,7 +248,7 @@ var WebRPCServices = map[string][]string{
 // Server types
 //
 
-type Admin interface {
+type AdminServer interface {
 	Auth(ctx context.Context) (string, string, error)
 	Status(ctx context.Context) (bool, error)
 	Version(ctx context.Context) (*Version, error)
@@ -272,19 +272,19 @@ type WebRPCServer interface {
 	http.Handler
 }
 
-type adminServer struct {
-	Admin
+type adminService struct {
+	AdminServer
 	OnError   func(r *http.Request, rpcErr *WebRPCError)
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
 }
 
-func NewAdminServer(svc Admin) *adminServer {
-	return &adminServer{
-		Admin: svc,
+func NewAdminServer(svc AdminServer) *adminService {
+	return &adminService{
+		AdminServer: svc,
 	}
 }
 
-func (s *adminServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *adminService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		// In case of a panic, serve a HTTP 500 error and then panic.
 		if rr := recover(); rr != nil {
@@ -349,11 +349,11 @@ func (s *adminServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *adminServer) serveAuthJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *adminService) serveAuthJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Auth")
 
 	// Call service method implementation.
-	ret0, ret1, err := s.Admin.Auth(ctx)
+	ret0, ret1, err := s.AdminServer.Auth(ctx)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -378,11 +378,11 @@ func (s *adminServer) serveAuthJSON(ctx context.Context, w http.ResponseWriter, 
 	w.Write(respBody)
 }
 
-func (s *adminServer) serveStatusJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *adminService) serveStatusJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Status")
 
 	// Call service method implementation.
-	ret0, err := s.Admin.Status(ctx)
+	ret0, err := s.AdminServer.Status(ctx)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -406,11 +406,11 @@ func (s *adminServer) serveStatusJSON(ctx context.Context, w http.ResponseWriter
 	w.Write(respBody)
 }
 
-func (s *adminServer) serveVersionJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *adminService) serveVersionJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Version")
 
 	// Call service method implementation.
-	ret0, err := s.Admin.Version(ctx)
+	ret0, err := s.AdminServer.Version(ctx)
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
@@ -434,7 +434,7 @@ func (s *adminServer) serveVersionJSON(ctx context.Context, w http.ResponseWrite
 	w.Write(respBody)
 }
 
-func (s *adminServer) sendErrorJSON(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError) {
+func (s *adminService) sendErrorJSON(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError) {
 	if s.OnError != nil {
 		s.OnError(r, &rpcErr)
 	}
