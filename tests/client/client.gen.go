@@ -708,6 +708,11 @@ func (e WebRPCError) WithCausef(format string, args ...interface{}) WebRPCError 
 	return err
 }
 
+// Deprecated: Use .WithCause() method on WebRPCError.
+func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
+	return rpcErr.WithCause(cause)
+}
+
 // Webrpc errors
 var (
 	ErrWebrpcEndpoint       = WebRPCError{Code: 0, Name: "WebrpcEndpoint", Message: "endpoint error", HTTPStatus: 400}
