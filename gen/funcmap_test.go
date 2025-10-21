@@ -3,6 +3,8 @@ package gen
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestMinVersion(t *testing.T) {
@@ -153,6 +155,47 @@ func TestLastIndex(t *testing.T) {
 		got := lastIndex(tc.Array)
 		if got != tc.Result {
 			t.Errorf("lastIndex of %v expected %d but got %d", tc.Array, tc.Result, got)
+		}
+	}
+}
+
+func TestTemplateFuncMap(t *testing.T) {
+	funcMap := templateFuncMap(map[string]interface{}{})
+
+	{
+		firstLetterToLowerFn, ok := funcMap["firstLetterToLower"]
+		require.True(t, ok)
+		require.NotNil(t, firstLetterToLowerFn)
+
+		s := "Example"
+		expect := "example"
+		result := firstLetterToLowerFn.(func(interface{}) string)(s)
+		require.Equal(t, expect, result)
+	}
+
+	{
+		firstWordToLowerFn, ok := funcMap["firstWordToLower"]
+		require.True(t, ok)
+		require.NotNil(t, firstWordToLowerFn)
+
+		table := []struct {
+			input  string
+			expect string
+		}{
+			{"ExampleString", "exampleString"},
+			{"Example", "example"},
+			{"example", "example"},
+			{"", ""},
+			{"apiService", "apiService"},
+			{"APIService", "apiService"},
+			{"API", "api"},
+			{"APIv2Service", "apiv2Service"},
+			{"APIv2", "apiv2"},
+		}
+
+		for _, row := range table {
+			result := firstWordToLowerFn.(func(interface{}) string)(row.input)
+			require.Equal(t, row.expect, result, "input: %q", row.input)
 		}
 	}
 }
