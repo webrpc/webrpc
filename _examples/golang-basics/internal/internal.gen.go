@@ -17,10 +17,6 @@ import (
 	"strings"
 )
 
-const WebrpcHeader = "Webrpc"
-
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.0;example@v0.0.1"
-
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
 	return "v1"
@@ -36,59 +32,38 @@ func WebRPCSchemaHash() string {
 	return "1b3e018be07230f9cc9726c900e528b1fa5e0b30"
 }
 
-type WebrpcGenVersions struct {
-	WebrpcGenVersion string
-	CodeGenName      string
-	CodeGenVersion   string
-	SchemaName       string
-	SchemaVersion    string
+//
+// Client interface
+//
+
+type ExampleClient interface {
+	Ping(ctx context.Context) error
+	Status(ctx context.Context) (bool, error)
+	Version(ctx context.Context) (*Version, error)
 }
 
-func VersionFromHeader(h http.Header) (*WebrpcGenVersions, error) {
-	if h.Get(WebrpcHeader) == "" {
-		return nil, fmt.Errorf("header is empty or missing")
-	}
-
-	versions, err := parseWebrpcGenVersions(h.Get(WebrpcHeader))
-	if err != nil {
-		return nil, fmt.Errorf("webrpc header is invalid: %w", err)
-	}
-
-	return versions, nil
-}
-
-func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
-	versions := strings.Split(header, ";")
-	if len(versions) < 3 {
-		return nil, fmt.Errorf("expected at least 3 parts while parsing webrpc header: %v", header)
-	}
-
-	_, webrpcGenVersion, ok := strings.Cut(versions[0], "@")
-	if !ok {
-		return nil, fmt.Errorf("webrpc gen version could not be parsed from: %s", versions[0])
-	}
-
-	tmplTarget, tmplVersion, ok := strings.Cut(versions[1], "@")
-	if !ok {
-		return nil, fmt.Errorf("tmplTarget and tmplVersion could not be parsed from: %s", versions[1])
-	}
-
-	schemaName, schemaVersion, ok := strings.Cut(versions[2], "@")
-	if !ok {
-		return nil, fmt.Errorf("schema name and schema version could not be parsed from: %s", versions[2])
-	}
-
-	return &WebrpcGenVersions{
-		WebrpcGenVersion: webrpcGenVersion,
-		CodeGenName:      tmplTarget,
-		CodeGenVersion:   tmplVersion,
-		SchemaName:       schemaName,
-		SchemaVersion:    schemaVersion,
-	}, nil
+type AdminClient interface {
+	Status(ctx context.Context) (bool, error)
+	Version(ctx context.Context) (*Version, error)
 }
 
 //
-// Common types
+// Server interface
+//
+
+type ExampleServer interface {
+	Ping(ctx context.Context) error
+	Status(ctx context.Context) (bool, error)
+	Version(ctx context.Context) (*Version, error)
+}
+
+type AdminServer interface {
+	Status(ctx context.Context) (bool, error)
+	Version(ctx context.Context) (*Version, error)
+}
+
+//
+// Schema types
 //
 
 type Kind uint32
@@ -259,33 +234,121 @@ var WebRPCServices = map[string][]string{
 }
 
 //
-// Server types
+// Client
 //
 
-type ExampleServer interface {
-	Ping(ctx context.Context) error
-	Status(ctx context.Context) (bool, error)
-	Version(ctx context.Context) (*Version, error)
+const ExamplePathPrefix = "/rpc/Example/"
+const AdminPathPrefix = "/rpc/Admin/"
+
+type exampleClient struct {
+	client HTTPClient
+	urls   [3]string
 }
 
-type AdminServer interface {
-	Status(ctx context.Context) (bool, error)
-	Version(ctx context.Context) (*Version, error)
+func NewExampleClient(addr string, client HTTPClient) ExampleClient {
+	prefix := urlBase(addr) + ExamplePathPrefix
+	urls := [3]string{
+		prefix + "Ping",
+		prefix + "Status",
+		prefix + "Version",
+	}
+	return &exampleClient{
+		client: client,
+		urls:   urls,
+	}
 }
 
-//
-// Client types
-//
+func (c *exampleClient) Ping(ctx context.Context) error {
+	resp, err := doHTTPRequest(ctx, c.client, c.urls[0], nil, nil)
+	if resp != nil {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
+		}
+	}
 
-type ExampleClient interface {
-	Ping(ctx context.Context) error
-	Status(ctx context.Context) (bool, error)
-	Version(ctx context.Context) (*Version, error)
+	return err
 }
 
-type AdminClient interface {
-	Status(ctx context.Context) (bool, error)
-	Version(ctx context.Context) (*Version, error)
+func (c *exampleClient) Status(ctx context.Context) (bool, error) {
+	out := struct {
+		Ret0 bool `json:"status"`
+	}{}
+
+	resp, err := doHTTPRequest(ctx, c.client, c.urls[1], nil, &out)
+	if resp != nil {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
+		}
+	}
+
+	return out.Ret0, err
+}
+
+func (c *exampleClient) Version(ctx context.Context) (*Version, error) {
+	out := struct {
+		Ret0 *Version `json:"version"`
+	}{}
+
+	resp, err := doHTTPRequest(ctx, c.client, c.urls[2], nil, &out)
+	if resp != nil {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
+		}
+	}
+
+	return out.Ret0, err
+}
+
+type adminClient struct {
+	client HTTPClient
+	urls   [2]string
+}
+
+func NewAdminClient(addr string, client HTTPClient) AdminClient {
+	prefix := urlBase(addr) + AdminPathPrefix
+	urls := [2]string{
+		prefix + "Status",
+		prefix + "Version",
+	}
+	return &adminClient{
+		client: client,
+		urls:   urls,
+	}
+}
+
+func (c *adminClient) Status(ctx context.Context) (bool, error) {
+	out := struct {
+		Ret0 bool `json:"status"`
+	}{}
+
+	resp, err := doHTTPRequest(ctx, c.client, c.urls[0], nil, &out)
+	if resp != nil {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
+		}
+	}
+
+	return out.Ret0, err
+}
+
+func (c *adminClient) Version(ctx context.Context) (*Version, error) {
+	out := struct {
+		Ret0 *Version `json:"version"`
+	}{}
+
+	resp, err := doHTTPRequest(ctx, c.client, c.urls[1], nil, &out)
+	if resp != nil {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
+		}
+	}
+
+	return out.Ret0, err
 }
 
 //
@@ -617,122 +680,8 @@ func RespondWithError(w http.ResponseWriter, err error) {
 }
 
 //
-// Client
+// Client helpers
 //
-
-const ExamplePathPrefix = "/rpc/Example/"
-const AdminPathPrefix = "/rpc/Admin/"
-
-type exampleClient struct {
-	client HTTPClient
-	urls   [3]string
-}
-
-func NewExampleClient(addr string, client HTTPClient) ExampleClient {
-	prefix := urlBase(addr) + ExamplePathPrefix
-	urls := [3]string{
-		prefix + "Ping",
-		prefix + "Status",
-		prefix + "Version",
-	}
-	return &exampleClient{
-		client: client,
-		urls:   urls,
-	}
-}
-
-func (c *exampleClient) Ping(ctx context.Context) error {
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[0], nil, nil)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
-
-	return err
-}
-
-func (c *exampleClient) Status(ctx context.Context) (bool, error) {
-	out := struct {
-		Ret0 bool `json:"status"`
-	}{}
-
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[1], nil, &out)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
-
-	return out.Ret0, err
-}
-
-func (c *exampleClient) Version(ctx context.Context) (*Version, error) {
-	out := struct {
-		Ret0 *Version `json:"version"`
-	}{}
-
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[2], nil, &out)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
-
-	return out.Ret0, err
-}
-
-type adminClient struct {
-	client HTTPClient
-	urls   [2]string
-}
-
-func NewAdminClient(addr string, client HTTPClient) AdminClient {
-	prefix := urlBase(addr) + AdminPathPrefix
-	urls := [2]string{
-		prefix + "Status",
-		prefix + "Version",
-	}
-	return &adminClient{
-		client: client,
-		urls:   urls,
-	}
-}
-
-func (c *adminClient) Status(ctx context.Context) (bool, error) {
-	out := struct {
-		Ret0 bool `json:"status"`
-	}{}
-
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[0], nil, &out)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
-
-	return out.Ret0, err
-}
-
-func (c *adminClient) Version(ctx context.Context) (*Version, error) {
-	out := struct {
-		Ret0 *Version `json:"version"`
-	}{}
-
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[1], nil, &out)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
-
-	return out.Ret0, err
-}
 
 // HTTPClient is the interface used by generated clients to send HTTP requests.
 // It is fulfilled by *(net/http).Client, which is sufficient for most users.
@@ -853,7 +802,7 @@ func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 }
 
 //
-// Helpers
+// Webrpc helpers
 //
 
 type method struct {
@@ -888,14 +837,11 @@ func (k *contextKey) String() string {
 }
 
 var (
-	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"}
-	HTTPResponseWriterCtxKey       = &contextKey{"HTTPResponseWriter"}
-
-	HTTPRequestCtxKey = &contextKey{"HTTPRequest"}
-
-	ServiceNameCtxKey = &contextKey{"ServiceName"}
-
-	MethodNameCtxKey = &contextKey{"MethodName"}
+	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"} // client
+	HTTPResponseWriterCtxKey       = &contextKey{"HTTPResponseWriter"}       // server
+	HTTPRequestCtxKey              = &contextKey{"HTTPRequest"}              // server
+	ServiceNameCtxKey              = &contextKey{"ServiceName"}              // server
+	MethodNameCtxKey               = &contextKey{"MethodName"}               // server
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -1009,3 +955,62 @@ var (
 	ErrUnauthorized     = WebRPCError{Code: 2000, Name: "Unauthorized", Message: "Unauthorized access", HTTPStatus: 401}
 	ErrPermissionDenied = WebRPCError{Code: 3000, Name: "PermissionDenied", Message: "Permission denied", HTTPStatus: 403}
 )
+
+//
+// Webrpc
+//
+
+const WebrpcHeader = "Webrpc"
+
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.2;example@v0.0.1"
+
+type WebrpcGenVersions struct {
+	WebrpcGenVersion string
+	CodeGenName      string
+	CodeGenVersion   string
+	SchemaName       string
+	SchemaVersion    string
+}
+
+func VersionFromHeader(h http.Header) (*WebrpcGenVersions, error) {
+	if h.Get(WebrpcHeader) == "" {
+		return nil, fmt.Errorf("header is empty or missing")
+	}
+
+	versions, err := parseWebrpcGenVersions(h.Get(WebrpcHeader))
+	if err != nil {
+		return nil, fmt.Errorf("webrpc header is invalid: %w", err)
+	}
+
+	return versions, nil
+}
+
+func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
+	versions := strings.Split(header, ";")
+	if len(versions) < 3 {
+		return nil, fmt.Errorf("expected at least 3 parts while parsing webrpc header: %v", header)
+	}
+
+	_, webrpcGenVersion, ok := strings.Cut(versions[0], "@")
+	if !ok {
+		return nil, fmt.Errorf("webrpc gen version could not be parsed from: %s", versions[0])
+	}
+
+	tmplTarget, tmplVersion, ok := strings.Cut(versions[1], "@")
+	if !ok {
+		return nil, fmt.Errorf("tmplTarget and tmplVersion could not be parsed from: %s", versions[1])
+	}
+
+	schemaName, schemaVersion, ok := strings.Cut(versions[2], "@")
+	if !ok {
+		return nil, fmt.Errorf("schema name and schema version could not be parsed from: %s", versions[2])
+	}
+
+	return &WebrpcGenVersions{
+		WebrpcGenVersion: webrpcGenVersion,
+		CodeGenName:      tmplTarget,
+		CodeGenVersion:   tmplVersion,
+		SchemaName:       schemaName,
+		SchemaVersion:    schemaVersion,
+	}, nil
+}
