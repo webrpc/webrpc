@@ -16,10 +16,6 @@ import (
 	"time"
 )
 
-const WebrpcHeader = "Webrpc"
-
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.0;hello-webrpc@v1.0.0"
-
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
 	return "v1"
@@ -35,59 +31,21 @@ func WebRPCSchemaHash() string {
 	return "313bfc22d58ed057fbf059d03c362119f870c3ca"
 }
 
-type WebrpcGenVersions struct {
-	WebrpcGenVersion string
-	CodeGenName      string
-	CodeGenVersion   string
-	SchemaName       string
-	SchemaVersion    string
-}
+//
+// Server interface
+//
 
-func VersionFromHeader(h http.Header) (*WebrpcGenVersions, error) {
-	if h.Get(WebrpcHeader) == "" {
-		return nil, fmt.Errorf("header is empty or missing")
-	}
-
-	versions, err := parseWebrpcGenVersions(h.Get(WebrpcHeader))
-	if err != nil {
-		return nil, fmt.Errorf("webrpc header is invalid: %w", err)
-	}
-
-	return versions, nil
-}
-
-func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
-	versions := strings.Split(header, ";")
-	if len(versions) < 3 {
-		return nil, fmt.Errorf("expected at least 3 parts while parsing webrpc header: %v", header)
-	}
-
-	_, webrpcGenVersion, ok := strings.Cut(versions[0], "@")
-	if !ok {
-		return nil, fmt.Errorf("webrpc gen version could not be parsed from: %s", versions[0])
-	}
-
-	tmplTarget, tmplVersion, ok := strings.Cut(versions[1], "@")
-	if !ok {
-		return nil, fmt.Errorf("tmplTarget and tmplVersion could not be parsed from: %s", versions[1])
-	}
-
-	schemaName, schemaVersion, ok := strings.Cut(versions[2], "@")
-	if !ok {
-		return nil, fmt.Errorf("schema name and schema version could not be parsed from: %s", versions[2])
-	}
-
-	return &WebrpcGenVersions{
-		WebrpcGenVersion: webrpcGenVersion,
-		CodeGenName:      tmplTarget,
-		CodeGenVersion:   tmplVersion,
-		SchemaName:       schemaName,
-		SchemaVersion:    schemaVersion,
-	}, nil
+type ExampleServer interface {
+	// Deprecated: Use /ping endpoint instead.
+	Ping(ctx context.Context) (bool, error)
+	// GetUser returns a user by ID.
+	GetUser(ctx context.Context, userID uint64) (*User, error)
+	// FindUsers returns a list of users matching given search query.
+	FindUsers(ctx context.Context, q string) (*Page, []*User, error)
 }
 
 //
-// Common types
+// Schema types
 //
 
 type Kind uint32
@@ -178,32 +136,6 @@ var WebRPCServices = map[string][]string{
 		"GetUser",
 		"FindUsers",
 	},
-}
-
-//
-// Server types
-//
-
-type ExampleServer interface {
-	// Deprecated: Use /ping endpoint instead.
-	Ping(ctx context.Context) (bool, error)
-	// GetUser returns a user by ID.
-	GetUser(ctx context.Context, userID uint64) (*User, error)
-	// FindUsers returns a list of users matching given search query.
-	FindUsers(ctx context.Context, q string) (*Page, []*User, error)
-}
-
-//
-// Client types
-//
-
-type ExampleClient interface {
-	// Deprecated: Use /ping endpoint instead.
-	Ping(ctx context.Context) (bool, error)
-	// GetUser returns a user by ID.
-	GetUser(ctx context.Context, userID uint64) (*User, error)
-	// FindUsers returns a list of users matching given search query.
-	FindUsers(ctx context.Context, q string) (*Page, []*User, error)
 }
 
 //
@@ -432,7 +364,7 @@ func RespondWithError(w http.ResponseWriter, err error) {
 }
 
 //
-// Helpers
+// Webrpc helpers
 //
 
 type method struct {
@@ -467,13 +399,10 @@ func (k *contextKey) String() string {
 }
 
 var (
-	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"}
-
-	HTTPRequestCtxKey = &contextKey{"HTTPRequest"}
-
-	ServiceNameCtxKey = &contextKey{"ServiceName"}
-
-	MethodNameCtxKey = &contextKey{"MethodName"}
+	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"} // server
+	HTTPRequestCtxKey        = &contextKey{"HTTPRequest"}        // server
+	ServiceNameCtxKey        = &contextKey{"ServiceName"}        // server
+	MethodNameCtxKey         = &contextKey{"MethodName"}         // server
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -561,11 +490,6 @@ func (e WebRPCError) WithCausef(format string, args ...interface{}) WebRPCError 
 	return err
 }
 
-// Deprecated: Use .WithCause() method on WebRPCError.
-func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
-	return rpcErr.WithCause(cause)
-}
-
 // Webrpc errors
 var (
 	ErrWebrpcEndpoint       = WebRPCError{Code: 0, Name: "WebrpcEndpoint", Message: "endpoint error", HTTPStatus: 400}
@@ -585,3 +509,62 @@ var (
 var (
 	ErrUserNotFound = WebRPCError{Code: 1000, Name: "UserNotFound", Message: "User not found", HTTPStatus: 400}
 )
+
+//
+// Webrpc
+//
+
+const WebrpcHeader = "Webrpc"
+
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.1;hello-webrpc@v1.0.0"
+
+type WebrpcGenVersions struct {
+	WebrpcGenVersion string
+	CodeGenName      string
+	CodeGenVersion   string
+	SchemaName       string
+	SchemaVersion    string
+}
+
+func VersionFromHeader(h http.Header) (*WebrpcGenVersions, error) {
+	if h.Get(WebrpcHeader) == "" {
+		return nil, fmt.Errorf("header is empty or missing")
+	}
+
+	versions, err := parseWebrpcGenVersions(h.Get(WebrpcHeader))
+	if err != nil {
+		return nil, fmt.Errorf("webrpc header is invalid: %w", err)
+	}
+
+	return versions, nil
+}
+
+func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
+	versions := strings.Split(header, ";")
+	if len(versions) < 3 {
+		return nil, fmt.Errorf("expected at least 3 parts while parsing webrpc header: %v", header)
+	}
+
+	_, webrpcGenVersion, ok := strings.Cut(versions[0], "@")
+	if !ok {
+		return nil, fmt.Errorf("webrpc gen version could not be parsed from: %s", versions[0])
+	}
+
+	tmplTarget, tmplVersion, ok := strings.Cut(versions[1], "@")
+	if !ok {
+		return nil, fmt.Errorf("tmplTarget and tmplVersion could not be parsed from: %s", versions[1])
+	}
+
+	schemaName, schemaVersion, ok := strings.Cut(versions[2], "@")
+	if !ok {
+		return nil, fmt.Errorf("schema name and schema version could not be parsed from: %s", versions[2])
+	}
+
+	return &WebrpcGenVersions{
+		WebrpcGenVersion: webrpcGenVersion,
+		CodeGenName:      tmplTarget,
+		CodeGenVersion:   tmplVersion,
+		SchemaName:       schemaName,
+		SchemaVersion:    schemaVersion,
+	}, nil
+}

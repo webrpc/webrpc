@@ -20,10 +20,6 @@ import (
 	"time"
 )
 
-const WebrpcHeader = "Webrpc"
-
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.0;webrpc-sse-chat@v1.0.0"
-
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
 	return "v1"
@@ -39,99 +35,21 @@ func WebRPCSchemaHash() string {
 	return "e2216792ea031e9bc24bbfd40d224b0a84f5c1c5"
 }
 
-type WebrpcGenVersions struct {
-	WebrpcGenVersion string
-	CodeGenName      string
-	CodeGenVersion   string
-	SchemaName       string
-	SchemaVersion    string
+//
+// Client interface
+//
+
+type ChatClient interface {
+	SendMessage(ctx context.Context, username string, text string) error
+	SubscribeMessages(ctx context.Context, username string, lastMessageId *uint64) (SubscribeMessagesStreamReader, error)
 }
 
-func VersionFromHeader(h http.Header) (*WebrpcGenVersions, error) {
-	if h.Get(WebrpcHeader) == "" {
-		return nil, fmt.Errorf("header is empty or missing")
-	}
-
-	versions, err := parseWebrpcGenVersions(h.Get(WebrpcHeader))
-	if err != nil {
-		return nil, fmt.Errorf("webrpc header is invalid: %w", err)
-	}
-
-	return versions, nil
-}
-
-func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
-	versions := strings.Split(header, ";")
-	if len(versions) < 3 {
-		return nil, fmt.Errorf("expected at least 3 parts while parsing webrpc header: %v", header)
-	}
-
-	_, webrpcGenVersion, ok := strings.Cut(versions[0], "@")
-	if !ok {
-		return nil, fmt.Errorf("webrpc gen version could not be parsed from: %s", versions[0])
-	}
-
-	tmplTarget, tmplVersion, ok := strings.Cut(versions[1], "@")
-	if !ok {
-		return nil, fmt.Errorf("tmplTarget and tmplVersion could not be parsed from: %s", versions[1])
-	}
-
-	schemaName, schemaVersion, ok := strings.Cut(versions[2], "@")
-	if !ok {
-		return nil, fmt.Errorf("schema name and schema version could not be parsed from: %s", versions[2])
-	}
-
-	return &WebrpcGenVersions{
-		WebrpcGenVersion: webrpcGenVersion,
-		CodeGenName:      tmplTarget,
-		CodeGenVersion:   tmplVersion,
-		SchemaName:       schemaName,
-		SchemaVersion:    schemaVersion,
-	}, nil
+type SubscribeMessagesStreamReader interface {
+	Read() (message *Message, err error)
 }
 
 //
-// Common types
-//
-
-type Message struct {
-	Id        uint64    `json:"id"`
-	Username  string    `json:"username"`
-	Text      string    `json:"text"`
-	CreatedAt time.Time `json:"createdAt"`
-}
-
-var methods = map[string]method{
-	"/rpc/Chat/SendMessage": {
-		name:        "SendMessage",
-		service:     "Chat",
-		annotations: map[string]string{},
-	},
-	"/rpc/Chat/SubscribeMessages": {
-		name:        "SubscribeMessages",
-		service:     "Chat",
-		annotations: map[string]string{},
-	},
-}
-
-func WebrpcMethods() map[string]method {
-	res := make(map[string]method, len(methods))
-	for k, v := range methods {
-		res[k] = v
-	}
-
-	return res
-}
-
-var WebRPCServices = map[string][]string{
-	"Chat": {
-		"SendMessage",
-		"SubscribeMessages",
-	},
-}
-
-//
-// Server types
+// Server interface
 //
 
 type ChatServer interface {
@@ -205,16 +123,169 @@ func (w *streamWriter) write(respPayload interface{}) error {
 }
 
 //
-// Client types
+// Schema types
 //
 
-type ChatClient interface {
-	SendMessage(ctx context.Context, username string, text string) error
-	SubscribeMessages(ctx context.Context, username string, lastMessageId *uint64) (SubscribeMessagesStreamReader, error)
+type Message struct {
+	Id        uint64    `json:"id"`
+	Username  string    `json:"username"`
+	Text      string    `json:"text"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
-type SubscribeMessagesStreamReader interface {
-	Read() (message *Message, err error)
+var methods = map[string]method{
+	"/rpc/Chat/SendMessage": {
+		name:        "SendMessage",
+		service:     "Chat",
+		annotations: map[string]string{},
+	},
+	"/rpc/Chat/SubscribeMessages": {
+		name:        "SubscribeMessages",
+		service:     "Chat",
+		annotations: map[string]string{},
+	},
+}
+
+func WebrpcMethods() map[string]method {
+	res := make(map[string]method, len(methods))
+	for k, v := range methods {
+		res[k] = v
+	}
+
+	return res
+}
+
+var WebRPCServices = map[string][]string{
+	"Chat": {
+		"SendMessage",
+		"SubscribeMessages",
+	},
+}
+
+//
+// Client
+//
+
+const ChatPathPrefix = "/rpc/Chat/"
+
+type chatClient struct {
+	client HTTPClient
+	urls   [2]string
+}
+
+func NewChatClient(addr string, client HTTPClient) ChatClient {
+	prefix := urlBase(addr) + ChatPathPrefix
+	urls := [2]string{
+		prefix + "SendMessage",
+		prefix + "SubscribeMessages",
+	}
+	return &chatClient{
+		client: client,
+		urls:   urls,
+	}
+}
+
+func (c *chatClient) SendMessage(ctx context.Context, username string, text string) error {
+	in := struct {
+		Arg0 string `json:"username"`
+		Arg1 string `json:"text"`
+	}{username, text}
+
+	resp, err := doHTTPRequest(ctx, c.client, c.urls[0], in, nil)
+	if resp != nil {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
+		}
+	}
+
+	return err
+}
+
+func (c *chatClient) SubscribeMessages(ctx context.Context, username string, lastMessageId *uint64) (SubscribeMessagesStreamReader, error) {
+	in := struct {
+		Arg0 string  `json:"username"`
+		Arg1 *uint64 `json:"lastMessageId"`
+	}{username, lastMessageId}
+
+	resp, err := doHTTPRequest(ctx, c.client, c.urls[1], in, nil)
+	if err != nil {
+		if resp != nil {
+			resp.Body.Close()
+		}
+		return nil, err
+	}
+
+	buf := bufio.NewReader(resp.Body)
+	return &subscribeMessagesStreamReader{streamReader{ctx: ctx, c: resp.Body, r: buf}}, nil
+}
+
+type subscribeMessagesStreamReader struct {
+	streamReader
+}
+
+func (r *subscribeMessagesStreamReader) Read() (*Message, error) {
+	out := struct {
+		Ret0        *Message     `json:"message"`
+		WebRPCError *WebRPCError `json:"webrpcError"`
+	}{}
+
+	err := r.streamReader.read(&out)
+	if err != nil {
+		return out.Ret0, err
+	}
+
+	if out.WebRPCError != nil {
+		return out.Ret0, out.WebRPCError
+	}
+
+	return out.Ret0, nil
+}
+
+type streamReader struct {
+	ctx context.Context
+	c   io.Closer
+	r   *bufio.Reader
+}
+
+func (r *streamReader) read(v interface{}) error {
+	for {
+		select {
+		case <-r.ctx.Done():
+			r.c.Close()
+			return ErrWebrpcClientAborted.WithCause(r.ctx.Err())
+		default:
+		}
+
+		line, err := r.r.ReadBytes('\n')
+		if err != nil {
+			return r.handleReadError(err)
+		}
+
+		// Eat newlines (keep-alive pings).
+		if len(line) == 1 && line[0] == '\n' {
+			continue
+		}
+
+		if err := json.Unmarshal(line, &v); err != nil {
+			return r.handleReadError(err)
+		}
+		return nil
+	}
+}
+
+func (r *streamReader) handleReadError(err error) error {
+	defer r.c.Close()
+	if errors.Is(err, io.EOF) {
+		return ErrWebrpcStreamFinished.WithCause(err)
+	}
+	if errors.Is(err, io.ErrUnexpectedEOF) {
+		return ErrWebrpcStreamLost.WithCause(err)
+	}
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return ErrWebrpcClientAborted.WithCause(err)
+	}
+	return ErrWebrpcBadResponse.WithCausef("reading stream: %w", err)
 }
 
 //
@@ -426,130 +497,8 @@ func RespondWithError(w http.ResponseWriter, err error) {
 }
 
 //
-// Client
+// Client helpers
 //
-
-const ChatPathPrefix = "/rpc/Chat/"
-
-type chatClient struct {
-	client HTTPClient
-	urls   [2]string
-}
-
-func NewChatClient(addr string, client HTTPClient) ChatClient {
-	prefix := urlBase(addr) + ChatPathPrefix
-	urls := [2]string{
-		prefix + "SendMessage",
-		prefix + "SubscribeMessages",
-	}
-	return &chatClient{
-		client: client,
-		urls:   urls,
-	}
-}
-
-func (c *chatClient) SendMessage(ctx context.Context, username string, text string) error {
-	in := struct {
-		Arg0 string `json:"username"`
-		Arg1 string `json:"text"`
-	}{username, text}
-
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[0], in, nil)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
-
-	return err
-}
-
-func (c *chatClient) SubscribeMessages(ctx context.Context, username string, lastMessageId *uint64) (SubscribeMessagesStreamReader, error) {
-	in := struct {
-		Arg0 string  `json:"username"`
-		Arg1 *uint64 `json:"lastMessageId"`
-	}{username, lastMessageId}
-
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[1], in, nil)
-	if err != nil {
-		if resp != nil {
-			resp.Body.Close()
-		}
-		return nil, err
-	}
-
-	buf := bufio.NewReader(resp.Body)
-	return &subscribeMessagesStreamReader{streamReader{ctx: ctx, c: resp.Body, r: buf}}, nil
-}
-
-type subscribeMessagesStreamReader struct {
-	streamReader
-}
-
-func (r *subscribeMessagesStreamReader) Read() (*Message, error) {
-	out := struct {
-		Ret0        *Message     `json:"message"`
-		WebRPCError *WebRPCError `json:"webrpcError"`
-	}{}
-
-	err := r.streamReader.read(&out)
-	if err != nil {
-		return out.Ret0, err
-	}
-
-	if out.WebRPCError != nil {
-		return out.Ret0, out.WebRPCError
-	}
-
-	return out.Ret0, nil
-}
-
-type streamReader struct {
-	ctx context.Context
-	c   io.Closer
-	r   *bufio.Reader
-}
-
-func (r *streamReader) read(v interface{}) error {
-	for {
-		select {
-		case <-r.ctx.Done():
-			r.c.Close()
-			return ErrWebrpcClientAborted.WithCause(r.ctx.Err())
-		default:
-		}
-
-		line, err := r.r.ReadBytes('\n')
-		if err != nil {
-			return r.handleReadError(err)
-		}
-
-		// Eat newlines (keep-alive pings).
-		if len(line) == 1 && line[0] == '\n' {
-			continue
-		}
-
-		if err := json.Unmarshal(line, &v); err != nil {
-			return r.handleReadError(err)
-		}
-		return nil
-	}
-}
-
-func (r *streamReader) handleReadError(err error) error {
-	defer r.c.Close()
-	if errors.Is(err, io.EOF) {
-		return ErrWebrpcStreamFinished.WithCause(err)
-	}
-	if errors.Is(err, io.ErrUnexpectedEOF) {
-		return ErrWebrpcStreamLost.WithCause(err)
-	}
-	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-		return ErrWebrpcClientAborted.WithCause(err)
-	}
-	return ErrWebrpcBadResponse.WithCausef("reading stream: %w", err)
-}
 
 // HTTPClient is the interface used by generated clients to send HTTP requests.
 // It is fulfilled by *(net/http).Client, which is sufficient for most users.
@@ -670,7 +619,7 @@ func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 }
 
 //
-// Helpers
+// Webrpc helpers
 //
 
 type method struct {
@@ -705,14 +654,11 @@ func (k *contextKey) String() string {
 }
 
 var (
-	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"}
-	HTTPResponseWriterCtxKey       = &contextKey{"HTTPResponseWriter"}
-
-	HTTPRequestCtxKey = &contextKey{"HTTPRequest"}
-
-	ServiceNameCtxKey = &contextKey{"ServiceName"}
-
-	MethodNameCtxKey = &contextKey{"MethodName"}
+	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"} // client
+	HTTPResponseWriterCtxKey       = &contextKey{"HTTPResponseWriter"}       // server
+	HTTPRequestCtxKey              = &contextKey{"HTTPRequest"}              // server
+	ServiceNameCtxKey              = &contextKey{"ServiceName"}              // server
+	MethodNameCtxKey               = &contextKey{"MethodName"}               // server
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -800,11 +746,6 @@ func (e WebRPCError) WithCausef(format string, args ...interface{}) WebRPCError 
 	return err
 }
 
-// Deprecated: Use .WithCause() method on WebRPCError.
-func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
-	return rpcErr.WithCause(cause)
-}
-
 // Webrpc errors
 var (
 	ErrWebrpcEndpoint       = WebRPCError{Code: 0, Name: "WebrpcEndpoint", Message: "endpoint error", HTTPStatus: 400}
@@ -824,3 +765,62 @@ var (
 var (
 	ErrEmptyUsername = WebRPCError{Code: 100, Name: "EmptyUsername", Message: "Username must be provided.", HTTPStatus: 400}
 )
+
+//
+// Webrpc
+//
+
+const WebrpcHeader = "Webrpc"
+
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.1;webrpc-sse-chat@v1.0.0"
+
+type WebrpcGenVersions struct {
+	WebrpcGenVersion string
+	CodeGenName      string
+	CodeGenVersion   string
+	SchemaName       string
+	SchemaVersion    string
+}
+
+func VersionFromHeader(h http.Header) (*WebrpcGenVersions, error) {
+	if h.Get(WebrpcHeader) == "" {
+		return nil, fmt.Errorf("header is empty or missing")
+	}
+
+	versions, err := parseWebrpcGenVersions(h.Get(WebrpcHeader))
+	if err != nil {
+		return nil, fmt.Errorf("webrpc header is invalid: %w", err)
+	}
+
+	return versions, nil
+}
+
+func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
+	versions := strings.Split(header, ";")
+	if len(versions) < 3 {
+		return nil, fmt.Errorf("expected at least 3 parts while parsing webrpc header: %v", header)
+	}
+
+	_, webrpcGenVersion, ok := strings.Cut(versions[0], "@")
+	if !ok {
+		return nil, fmt.Errorf("webrpc gen version could not be parsed from: %s", versions[0])
+	}
+
+	tmplTarget, tmplVersion, ok := strings.Cut(versions[1], "@")
+	if !ok {
+		return nil, fmt.Errorf("tmplTarget and tmplVersion could not be parsed from: %s", versions[1])
+	}
+
+	schemaName, schemaVersion, ok := strings.Cut(versions[2], "@")
+	if !ok {
+		return nil, fmt.Errorf("schema name and schema version could not be parsed from: %s", versions[2])
+	}
+
+	return &WebrpcGenVersions{
+		WebrpcGenVersion: webrpcGenVersion,
+		CodeGenName:      tmplTarget,
+		CodeGenVersion:   tmplVersion,
+		SchemaName:       schemaName,
+		SchemaVersion:    schemaVersion,
+	}, nil
+}

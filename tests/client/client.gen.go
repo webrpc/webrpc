@@ -17,10 +17,6 @@ import (
 	"strings"
 )
 
-const WebrpcHeader = "Webrpc"
-
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.0;Test@v0.10.0"
-
 // WebRPC description and code-gen version
 func WebRPCVersion() string {
 	return "v1"
@@ -36,59 +32,27 @@ func WebRPCSchemaHash() string {
 	return "61c9c8c942e3f6bdffd9929e78ebb3631d924993"
 }
 
-type WebrpcGenVersions struct {
-	WebrpcGenVersion string
-	CodeGenName      string
-	CodeGenVersion   string
-	SchemaName       string
-	SchemaVersion    string
-}
+//
+// Client interface
+//
 
-func VersionFromHeader(h http.Header) (*WebrpcGenVersions, error) {
-	if h.Get(WebrpcHeader) == "" {
-		return nil, fmt.Errorf("header is empty or missing")
-	}
-
-	versions, err := parseWebrpcGenVersions(h.Get(WebrpcHeader))
-	if err != nil {
-		return nil, fmt.Errorf("webrpc header is invalid: %w", err)
-	}
-
-	return versions, nil
-}
-
-func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
-	versions := strings.Split(header, ";")
-	if len(versions) < 3 {
-		return nil, fmt.Errorf("expected at least 3 parts while parsing webrpc header: %v", header)
-	}
-
-	_, webrpcGenVersion, ok := strings.Cut(versions[0], "@")
-	if !ok {
-		return nil, fmt.Errorf("webrpc gen version could not be parsed from: %s", versions[0])
-	}
-
-	tmplTarget, tmplVersion, ok := strings.Cut(versions[1], "@")
-	if !ok {
-		return nil, fmt.Errorf("tmplTarget and tmplVersion could not be parsed from: %s", versions[1])
-	}
-
-	schemaName, schemaVersion, ok := strings.Cut(versions[2], "@")
-	if !ok {
-		return nil, fmt.Errorf("schema name and schema version could not be parsed from: %s", versions[2])
-	}
-
-	return &WebrpcGenVersions{
-		WebrpcGenVersion: webrpcGenVersion,
-		CodeGenName:      tmplTarget,
-		CodeGenVersion:   tmplVersion,
-		SchemaName:       schemaName,
-		SchemaVersion:    schemaVersion,
-	}, nil
+type TestApiClient interface {
+	GetEmpty(ctx context.Context) error
+	GetError(ctx context.Context) error
+	GetOne(ctx context.Context) (*Simple, error)
+	SendOne(ctx context.Context, one *Simple) error
+	GetMulti(ctx context.Context) (*Simple, *Simple, *Simple, error)
+	SendMulti(ctx context.Context, one *Simple, two *Simple, three *Simple) error
+	GetComplex(ctx context.Context) (*Complex, error)
+	SendComplex(ctx context.Context, complex *Complex) error
+	GetEnumList(ctx context.Context) ([]Status, error)
+	GetEnumMap(ctx context.Context) (map[Access]uint64, error)
+	// added in v0.11.0
+	GetSchemaError(ctx context.Context, code int) error
 }
 
 //
-// Common types
+// Schema types
 //
 
 type Status uint32
@@ -297,44 +261,6 @@ var WebRPCServices = map[string][]string{
 }
 
 //
-// Server types
-//
-
-type TestApiServer interface {
-	GetEmpty(ctx context.Context) error
-	GetError(ctx context.Context) error
-	GetOne(ctx context.Context) (*Simple, error)
-	SendOne(ctx context.Context, one *Simple) error
-	GetMulti(ctx context.Context) (*Simple, *Simple, *Simple, error)
-	SendMulti(ctx context.Context, one *Simple, two *Simple, three *Simple) error
-	GetComplex(ctx context.Context) (*Complex, error)
-	SendComplex(ctx context.Context, complex *Complex) error
-	GetEnumList(ctx context.Context) ([]Status, error)
-	GetEnumMap(ctx context.Context) (map[Access]uint64, error)
-	// added in v0.11.0
-	GetSchemaError(ctx context.Context, code int) error
-}
-
-//
-// Client types
-//
-
-type TestApiClient interface {
-	GetEmpty(ctx context.Context) error
-	GetError(ctx context.Context) error
-	GetOne(ctx context.Context) (*Simple, error)
-	SendOne(ctx context.Context, one *Simple) error
-	GetMulti(ctx context.Context) (*Simple, *Simple, *Simple, error)
-	SendMulti(ctx context.Context, one *Simple, two *Simple, three *Simple) error
-	GetComplex(ctx context.Context) (*Complex, error)
-	SendComplex(ctx context.Context, complex *Complex) error
-	GetEnumList(ctx context.Context) ([]Status, error)
-	GetEnumMap(ctx context.Context) (map[Access]uint64, error)
-	// added in v0.11.0
-	GetSchemaError(ctx context.Context, code int) error
-}
-
-//
 // Client
 //
 
@@ -538,6 +464,10 @@ func (c *testApiClient) GetSchemaError(ctx context.Context, code int) error {
 	return err
 }
 
+//
+// Client helpers
+//
+
 // HTTPClient is the interface used by generated clients to send HTTP requests.
 // It is fulfilled by *(net/http).Client, which is sufficient for most users.
 // Users can provide their own implementation for special retry policies.
@@ -657,7 +587,7 @@ func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 }
 
 //
-// Helpers
+// Webrpc helpers
 //
 
 type method struct {
@@ -692,12 +622,10 @@ func (k *contextKey) String() string {
 }
 
 var (
-	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"}
-	HTTPRequestCtxKey              = &contextKey{"HTTPRequest"}
-
-	ServiceNameCtxKey = &contextKey{"ServiceName"}
-
-	MethodNameCtxKey = &contextKey{"MethodName"}
+	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"} // client
+	HTTPRequestCtxKey              = &contextKey{"HTTPRequest"}              // server
+	ServiceNameCtxKey              = &contextKey{"ServiceName"}              // server
+	MethodNameCtxKey               = &contextKey{"MethodName"}               // server
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -780,11 +708,6 @@ func (e WebRPCError) WithCausef(format string, args ...interface{}) WebRPCError 
 	return err
 }
 
-// Deprecated: Use .WithCause() method on WebRPCError.
-func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
-	return rpcErr.WithCause(cause)
-}
-
 // Webrpc errors
 var (
 	ErrWebrpcEndpoint       = WebRPCError{Code: 0, Name: "WebrpcEndpoint", Message: "endpoint error", HTTPStatus: 400}
@@ -821,3 +744,62 @@ var (
 	ErrFileInfected    = WebRPCError{Code: 301, Name: "FileInfected", Message: "file is infected", HTTPStatus: 400}
 	ErrFileType        = WebRPCError{Code: 302, Name: "FileType", Message: "unsupported file type", HTTPStatus: 400}
 )
+
+//
+// Webrpc
+//
+
+const WebrpcHeader = "Webrpc"
+
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.1;Test@v0.10.0"
+
+type WebrpcGenVersions struct {
+	WebrpcGenVersion string
+	CodeGenName      string
+	CodeGenVersion   string
+	SchemaName       string
+	SchemaVersion    string
+}
+
+func VersionFromHeader(h http.Header) (*WebrpcGenVersions, error) {
+	if h.Get(WebrpcHeader) == "" {
+		return nil, fmt.Errorf("header is empty or missing")
+	}
+
+	versions, err := parseWebrpcGenVersions(h.Get(WebrpcHeader))
+	if err != nil {
+		return nil, fmt.Errorf("webrpc header is invalid: %w", err)
+	}
+
+	return versions, nil
+}
+
+func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
+	versions := strings.Split(header, ";")
+	if len(versions) < 3 {
+		return nil, fmt.Errorf("expected at least 3 parts while parsing webrpc header: %v", header)
+	}
+
+	_, webrpcGenVersion, ok := strings.Cut(versions[0], "@")
+	if !ok {
+		return nil, fmt.Errorf("webrpc gen version could not be parsed from: %s", versions[0])
+	}
+
+	tmplTarget, tmplVersion, ok := strings.Cut(versions[1], "@")
+	if !ok {
+		return nil, fmt.Errorf("tmplTarget and tmplVersion could not be parsed from: %s", versions[1])
+	}
+
+	schemaName, schemaVersion, ok := strings.Cut(versions[2], "@")
+	if !ok {
+		return nil, fmt.Errorf("schema name and schema version could not be parsed from: %s", versions[2])
+	}
+
+	return &WebrpcGenVersions{
+		WebrpcGenVersion: webrpcGenVersion,
+		CodeGenName:      tmplTarget,
+		CodeGenVersion:   tmplVersion,
+		SchemaName:       schemaName,
+		SchemaVersion:    schemaVersion,
+	}, nil
+}
