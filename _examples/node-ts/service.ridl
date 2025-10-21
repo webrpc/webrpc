@@ -3,11 +3,9 @@ webrpc = v1
 name = node-ts
 version = v1.0.0
 
-
 enum Kind: uint32
   - USER
   - ADMIN
-
 
 struct User
   - ID: uint64
@@ -20,16 +18,34 @@ struct User
 
   - meta: map<string,any>
 
-  - internalID: uint64
+  - internalId: uint64
     + json = -
 
   - createdAt?: timestamp
 
-
 struct Page
   - num: uint32
 
+struct GetArticleRequest
+  - articleId: uint32
 
-service ExampleService
+struct GetArticleResponse
+  - title: string
+  - content?: string
+
+error 1000 Unauthorized     "Unauthorized access"                                HTTP 401
+error 1001 PermissionDenied "Permission denied"                                  HTTP 403
+error 1002 SessionExpired   "Session expired"                                    HTTP 403
+error 1003 Geoblocked       "Geoblocked region"                                  HTTP 451
+error 1004 RateLimited      "Rate-limited. Please slow down."                    HTTP 429
+error 1005 CorsDisallowed   "CORS disallowed. JWT can't be used from a web app." HTTP 403
+
+service Example
+  @deprecated:"Use /health endpoint instead."
   - Ping() => ()
-  - GetUser(userID: uint64) => (code: uint32, user: User)
+
+  # GetUser returns a user by ID.
+  - GetUser(userId: uint64) => (code: uint32, user: User)
+
+  # Get article by id.
+  - GetArticle(GetArticleRequest) => (GetArticleResponse)

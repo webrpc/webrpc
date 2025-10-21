@@ -33,7 +33,7 @@ struct User
 struct Page
   - num: uint32
 
-service ExampleService
+service Example
     @deprecated:"Use /ping endpoint instead."
   - Ping() => (status: bool)
 

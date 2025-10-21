@@ -87,7 +87,7 @@
 	],
 	"services": [
 		{
-			"name": "ExampleService",
+			"name": "Example",
 			"methods": [
 				{
 					"name": "Ping",
