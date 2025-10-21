@@ -3,7 +3,7 @@ all:
 
 generate:
 	webrpc-gen -schema=proto/chat.ridl -target=golang -pkg=proto -server -client -out=proto/chat.gen.go
-	webrpc-gen -schema=proto/chat.ridl -target=typescript -client -out=webapp/src/rpc.gen.ts
+	webrpc-gen -schema=proto/chat.ridl -target=typescript@v0.20.1 -client -out=webapp/src/rpc.gen.ts
 
 dev-generate:
 	../../bin/webrpc-gen -schema=proto/chat.ridl -target=golang -pkg=proto -server -client -out=proto/chat.gen.go

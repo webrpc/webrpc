@@ -15,6 +15,16 @@ example of generating a webrpc server and client from [service.ridl](./service.r
 
 Visit http://localhost:4444 !
 
+## Recommendation
+
+You can find webrpc nodejs server examples in a variety of frameworks including:
+* ./server -- just vanilla nodejs (no framework)
+* ./server-hono -- built on hono library
+* ./server-fastify -- built on fastify library
+
+Our recommendation is to use hono over fastify, as hono is much cleaner. The cool thing
+is that the server.gen.ts generated webrpc code is the same in all examples, its just
+the http service router (ie. none/hono/fastify) is different.
 
 ## Notes
 

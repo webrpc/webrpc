@@ -13,15 +13,25 @@
 
   <body>
     <div>
-      <button id="js-ping-btn">Ping</button>
+      <button id="js-ping-btn">ping()</button>
       <span id="js-ping-text"></span>
     </div>
 
     <div>
-      <button id="js-get-user-btn">Get user</button>
+      <button id="js-get-user-btn">getUser()</button>
       <span id="js-username-text"></span>
     </div>
 
-    <script src="./index.ts"></script>
+    <div>
+      <button id="js-get-user-error-btn">getUser() [expecting error]</button>
+      <span id="js-username-error-text"></span>
+    </div>
+
+    <div>
+      <button id="js-get-article-btn">getArticle()</button>
+      <span id="js-article-text"></span>
+    </div>
+
+    <script src="./index.ts" type="module"></script>
   </body>
 </html>

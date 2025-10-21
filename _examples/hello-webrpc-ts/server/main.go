@@ -39,7 +39,7 @@ func startServer() error {
 		w.Write([]byte("."))
 	})
 
-	webrpcHandler := NewExampleServiceServer(&ExampleServiceRPC{})
+	webrpcHandler := NewExampleServer(&ExampleServiceRPC{})
 	r.Handle("/*", webrpcHandler)
 
 	return http.ListenAndServe(":4242", r)
