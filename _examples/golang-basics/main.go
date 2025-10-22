@@ -142,7 +142,8 @@ func (s *ExampleServiceRPC) GetUserV2(ctx context.Context, req GetUserRequest) (
 			Kind:     kind,
 			Intent:   intent,
 		},
-		Profile: "https://www.google.com/images/john-doe.jpg",
+		Profile:  "https://www.google.com/images/john-doe.jpg",
+		LargeNum: NewBigInt(31337),
 	}, nil
 }
 

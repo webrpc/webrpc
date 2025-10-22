@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
 	"net/url"
 	"strings"
@@ -151,6 +152,14 @@ type User struct {
 	Role     string `json:"role" db:"-"`
 	Kind     Kind   `json:"kind"`
 	Intent   Intent `json:"intent"`
+	Balance  BigInt `json:"balance"`
+	Extra    *Extra `json:"extra"`
+}
+
+type Extra struct {
+	Info   string   `json:"info"`
+	Amount BigInt   `json:"amount"`
+	Points []BigInt `json:"points"`
 }
 
 type SearchFilter struct {
@@ -178,12 +187,14 @@ type ComplexType struct {
 type GetUserRequest struct {
 	UserID uint64            `json:"userId"`
 	Prefs  map[string]string `json:"prefs"`
+	ByBN   BigInt            `json:"byBN"`
 }
 
 type GetUserResponse struct {
-	Code    uint32 `json:"code"`
-	User    *User  `json:"user"`
-	Profile string `json:"profile"`
+	Code     uint32 `json:"code"`
+	User     *User  `json:"user"`
+	Profile  string `json:"profile"`
+	LargeNum BigInt `json:"largeNum"`
 }
 
 var methods = map[string]method{
@@ -1132,3 +1143,46 @@ func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
 		SchemaVersion:    schemaVersion,
 	}, nil
 }
+
+//
+// BigInt helpers
+//
+
+// BigInt is an alias of big.Int with custom JSON (decimal string) encoding.
+type BigInt big.Int
+
+func NewBigInt(v int64) BigInt { var bi big.Int; bi.SetInt64(v); return BigInt(bi) }
+
+// MarshalJSON implements json.Marshaler producing a quoted base-10 string.
+func (b BigInt) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf("\"%s\"", (*big.Int)(&b).String())), nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler accepting string or number tokens.
+func (b *BigInt) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		(*big.Int)(b).SetInt64(0)
+		return nil
+	}
+	var s string
+	if len(data) > 0 && data[0] == '"' {
+		if err := json.Unmarshal(data, &s); err != nil {
+			return fmt.Errorf("invalid bigint JSON string: %w", err)
+		}
+	} else {
+		s = string(data)
+	}
+	if s == "" {
+		(*big.Int)(b).SetInt64(0)
+		return nil
+	}
+	bi, ok := new(big.Int).SetString(s, 10)
+	if !ok {
+		return fmt.Errorf("invalid decimal bigint %q", s)
+	}
+	*b = BigInt(*bi)
+	return nil
+}
+
+// AsInt exposes the underlying *big.Int.
+func (b *BigInt) AsInt() *big.Int { return (*big.Int)(b) }

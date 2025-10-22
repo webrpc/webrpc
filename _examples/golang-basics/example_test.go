@@ -49,12 +49,14 @@ func TestDeprecatedUserEndpoint(t *testing.T) {
 func TestGetUser(t *testing.T) {
 	{
 		arg1 := map[string]string{"a": "1"}
-		resp, err := client.GetUserV2(context.Background(), GetUserRequest{UserID: 12, Prefs: arg1})
+		resp, err := client.GetUserV2(context.Background(), GetUserRequest{UserID: 12, Prefs: arg1, ByBN: NewBigInt(123)})
 		intent := Intent_openSession
 		kind := Kind_ADMIN
 
 		assert.Equal(t, uint32(200), resp.Code)
 		assert.Equal(t, &User{ID: 12, Username: "hihi", Intent: intent, Kind: kind}, resp.User)
+		assert.Equal(t, NewBigInt(31337), resp.LargeNum)
+		assert.Equal(t, int64(31337), resp.LargeNum.AsInt().Int64())
 		assert.NoError(t, err)
 	}
 
