@@ -8,6 +8,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -1153,36 +1154,119 @@ type BigInt big.Int
 
 func NewBigInt(v int64) BigInt { var bi big.Int; bi.SetInt64(v); return BigInt(bi) }
 
-// MarshalJSON implements json.Marshaler producing a quoted base-10 string.
-func (b BigInt) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("\"%s\"", (*big.Int)(&b).String())), nil
+// AsInt exposes the underlying *big.Int.
+func (b *BigInt) AsInt() *big.Int { return (*big.Int)(b) }
+
+// String returns the decimal string representation of the BigInt.
+func (b BigInt) String() string { return b.AsInt().String() }
+
+// MarshalText implements encoding.TextMarshaler.
+func (b BigInt) MarshalText() ([]byte, error) {
+	return []byte(fmt.Sprintf("\"%s\"", b.String())), nil
 }
 
-// UnmarshalJSON implements json.Unmarshaler accepting string or number tokens.
-func (b *BigInt) UnmarshalJSON(data []byte) error {
-	if string(data) == "null" {
-		(*big.Int)(b).SetInt64(0)
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (b *BigInt) UnmarshalText(text []byte) error {
+	t := string(text)
+	if len(text) <= 2 || t == "null" || t == "" {
 		return nil
 	}
-	var s string
-	if len(data) > 0 && data[0] == '"' {
-		if err := json.Unmarshal(data, &s); err != nil {
-			return fmt.Errorf("invalid bigint JSON string: %w", err)
-		}
-	} else {
-		s = string(data)
-	}
-	if s == "" {
-		(*big.Int)(b).SetInt64(0)
-		return nil
-	}
-	bi, ok := new(big.Int).SetString(s, 10)
+	i, ok := big.NewInt(0).SetString(string(text[1:len(text)-1]), 10)
 	if !ok {
-		return fmt.Errorf("invalid decimal bigint %q", s)
+		return fmt.Errorf("BigInt.UnmarshalText: failed to unmarshal %q", text)
 	}
-	*b = BigInt(*bi)
+	*b = BigInt(*i)
 	return nil
 }
 
-// AsInt exposes the underlying *big.Int.
-func (b *BigInt) AsInt() *big.Int { return (*big.Int)(b) }
+// MarshalJSON implements json.Marshaler
+func (b BigInt) MarshalJSON() ([]byte, error) {
+	return b.MarshalText()
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (b *BigInt) UnmarshalJSON(text []byte) error {
+	if string(text) == "null" {
+		return nil
+	}
+	return b.UnmarshalText(text)
+}
+
+// MarshalBinary implements encoding.BinaryMarshaler. The first byte is the sign byte
+// to represent positive or negative numbers.
+func (b BigInt) MarshalBinary() ([]byte, error) {
+	bytes := b.AsInt().Bytes()
+	out := make([]byte, len(bytes)+1)
+	copy(out[1:], bytes)
+	if b.AsInt().Sign() < 0 {
+		// Prepend a sign byte (0xFF for negative)
+		out[0] = 0xFF
+	} else {
+		// For zero or positive numbers, prepend 0x00
+		out[0] = 0x00
+	}
+	return out, nil
+}
+
+// UnmarshalBinary implements encoding.BinaryUnmarshaler. The first byte is the sign byte
+// to represent positive or negative numbers.
+func (b *BigInt) UnmarshalBinary(buff []byte) error {
+	if len(buff) == 0 {
+		*b = BigInt(*big.NewInt(0))
+		return nil
+	}
+	// Extract the sign byte
+	signByte := buff[0]
+	i := new(big.Int)
+	if len(buff) > 1 {
+		i.SetBytes(buff[1:])
+	}
+	// Apply sign if negative
+	if signByte == 0xFF {
+		i.Neg(i)
+	}
+	*b = BigInt(*i)
+	return nil
+}
+
+func (b BigInt) Value() (driver.Value, error) {
+	return b.String(), nil
+}
+
+func (b *BigInt) Scan(src interface{}) error {
+	if src == nil {
+		return nil
+	}
+
+	var svalue string
+	switch v := src.(type) {
+	case string:
+		svalue = v
+	case []byte:
+		svalue = string(v)
+	default:
+		return fmt.Errorf("BigInt.Scan: unexpected type %T", src)
+	}
+
+	// pgx driver returns NeX where N is digits and X is exponent
+	parts := strings.SplitN(svalue, "e", 2)
+
+	var ok bool
+	i := &big.Int{}
+	i, ok = i.SetString(parts[0], 10)
+	if !ok {
+		return fmt.Errorf("BigInt.Scan: failed to scan value %q", svalue)
+	}
+
+	if len(parts) >= 2 {
+		exp := big.NewInt(0)
+		exp, ok = exp.SetString(parts[1], 10)
+		if !ok {
+			return fmt.Errorf("BigInt.Scan failed to scan exp component %q", svalue)
+		}
+		i = i.Mul(i, big.NewInt(1).Exp(big.NewInt(10), exp, nil))
+	}
+
+	*b = BigInt(*i)
+	return nil
+}
