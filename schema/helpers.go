@@ -6,7 +6,10 @@ import "strings"
 // that are of type bigint (case insensitive), including nested structs and lists of bigints.
 //
 // This function is used as a template helper for adding bigint support in various codegen targets.
-func SchemaBigIntFieldsByType(s *WebRPCSchema) map[string][]any {
+//
+// NOTE: we also add support for "compat" mode / flag, used for old typescript generation that uses
+// the names Args and Return for suffixes instead of Request and Resposne suffixes for implicit method types.
+func SchemaBigIntFieldsByType(s *WebRPCSchema, optCompatMode ...bool) map[string][]any {
 	out := make(map[string][]any)
 	// cache for recursive detection to avoid cycles
 	visited := make(map[string]bool)
@@ -97,17 +100,58 @@ func SchemaBigIntFieldsByType(s *WebRPCSchema) map[string][]any {
 		}
 	}
 
-	// Synthetic implicit response types for non-succinct methods.
+	// Synthetic implicit req/resp types for non-succinct method inputs/outputs.
 	// For a method Foo with Succinct=false (or unspecified), we have implicit FooResponse
 	// comprised of its output arguments. If any output argument (directly or nested)
 	// contains bigint, include FooResponse in the result. For nested structs, we emit
 	// [fieldName, StructName] similar to real struct handling.
+	// Likewise, implicit FooRequest (or FooArgs in compat mode) is synthesized from inputs.
 	for _, svc := range s.Services {
 		for _, m := range svc.Methods {
 			if m == nil || m.Succinct { // skip succinct methods, they don't get FooResponse types
 				continue
 			}
-			responseName := m.Name + "Response"
+
+			// Build synthetic request type from inputs
+			requestName := m.Name
+			if len(optCompatMode) > 0 && optCompatMode[0] {
+				requestName += "Args"
+			} else {
+				requestName += "Request"
+			}
+			var reqList []any
+			for _, arg := range m.Inputs {
+				if arg == nil || arg.Type == nil {
+					continue
+				}
+				vt := arg.Type
+				if strings.EqualFold(vt.Expr, "bigint") { // scalar bigint
+					reqList = append(reqList, string(arg.Name))
+					continue
+				}
+				if vt.Type == T_List && vt.List != nil && strings.EqualFold(vt.List.Elem.Expr, "bigint") { // list of bigint
+					reqList = append(reqList, string(arg.Name)+"[]")
+					continue
+				}
+				if vt.Type == T_Struct && vt.Struct != nil && structHasBigIntRecursive(vt.Struct.Type) { // nested struct
+					reqList = append(reqList, [2]string{string(arg.Name), vt.Struct.Name})
+					continue
+				}
+				if vt.Type == T_List && vt.List != nil && vt.List.Elem.Type == T_Struct && vt.List.Elem.Struct != nil && structHasBigIntRecursive(vt.List.Elem.Struct.Type) { // list of nested struct
+					reqList = append(reqList, [2]string{string(arg.Name), vt.List.Elem.Struct.Name + "[]"})
+					continue
+				}
+			}
+			if len(reqList) > 0 {
+				out[requestName] = reqList
+			}
+
+			responseName := m.Name
+			if len(optCompatMode) > 0 && optCompatMode[0] {
+				responseName += "Return"
+			} else {
+				responseName += "Response"
+			}
 			var respList []any
 			for _, arg := range m.Outputs {
 				if arg == nil || arg.Type == nil {

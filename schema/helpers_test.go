@@ -197,7 +197,13 @@ func TestSchemaBigIntFieldsByType(t *testing.T) {
 				"methods": [
 					{
 						"name": "Ping",
-						"inputs": [],
+						"inputs": [
+							{
+								"name": "counter",
+								"type": "bigint",
+								"optional": true
+							}
+						],
 						"outputs": [
 							{
 								"name": "status",
@@ -262,6 +268,7 @@ func TestSchemaBigIntFieldsByType(t *testing.T) {
 		"User":               {"balance", [2]string{"extra", "Extra"}},
 		"Extra":              {"amount", "points[]"},
 		"RandomStuff":        {[2]string{"listOfUsers", "User[]"}, [2]string{"user", "User"}},
+		"PingRequest":        {"counter"},
 	}
 
 	require.Equal(t, expected, bigIntFields)

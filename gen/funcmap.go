@@ -6,7 +6,7 @@ import (
 	"github.com/Masterminds/sprig/v3"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/golang-cz/textcase"
-	sch "github.com/webrpc/webrpc/schema"
+	"github.com/webrpc/webrpc/schema"
 )
 
 // Template functions are part of webrpc-gen API. Keep backward-compatible.
@@ -31,6 +31,10 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"mapKeyType":   mapKeyType,   // v0.7.0
 		"mapValueType": mapValueType, // v0.7.0
 		"listElemType": listElemType, // v0.7.0
+		"isString": func(v interface{}) bool { // v0.30.0
+			_, ok := v.(string)
+			return ok
+		},
 
 		// Dictionary (map[string]any).
 		"dict":   dict,   // v0.7.0
@@ -117,7 +121,7 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"replaceAll": strings.ReplaceAll,
 
 		// Schema analysis + bigint helpers
-		"SchemaBigIntFieldsByType": sch.SchemaBigIntFieldsByType,
+		"SchemaBigIntFieldsByType": schema.SchemaBigIntFieldsByType, // v0.30.0
 	}
 
 	for k, v := range extra {

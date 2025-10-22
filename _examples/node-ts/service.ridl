@@ -21,7 +21,16 @@ struct User
   - internalId: uint64
     + json = -
 
+  - balance: bigint
+
   - createdAt?: timestamp
+
+  - extra: Extra
+
+struct Extra
+  - info: string
+  - amount: bigint
+  - points: []bigint
 
 struct Page
   - num: uint32
@@ -29,10 +38,12 @@ struct Page
 struct GetArticleRequest
   - articleId: uint32
     + go.field.name = ArticleID
+  - byBN: bigint
 
 struct GetArticleResponse
   - title: string
   - content?: string
+  - largeNum: bigint
 
 error 1000 Unauthorized     "Unauthorized access"                                HTTP 401
 error 1001 PermissionDenied "Permission denied"                                  HTTP 403
@@ -43,10 +54,14 @@ error 1005 CorsDisallowed   "CORS disallowed. JWT can't be used from a web app."
 
 service Example
   @deprecated:"Use /health endpoint instead."
-  - Ping() => ()
+  - Ping(counter?: bigint) => ()
 
   # GetUser returns a user by ID.
   - GetUser(userId: uint64) => (code: uint32, user: User)
 
   # Get article by id.
   - GetArticle(GetArticleRequest) => (GetArticleResponse)
+
+# TODO:
+# 1. add new type, GetFriend, without any bigints
+# 2. add bigint to getUser req and response inline, check code gen, etc... user max:bigint / calc:bigint
