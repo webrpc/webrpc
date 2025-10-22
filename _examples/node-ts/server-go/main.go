@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-
-	"github.com/webrpc/webrpc/_example/golang-basics/admin"
+	"github.com/go-chi/cors"
 )
 
 func main() {
@@ -25,61 +25,29 @@ func startServer() error {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	// CORS middleware for dev/demo purposes. Adjust origins/methods in production.
+	r.Use(cors.Handler(cors.Options{
+		// Allow all origins for local development; replace with specific domains as needed.
+		AllowedOrigins: []string{"*"},
+		// Allow standard methods; include OPTIONS for preflight.
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		// Allow headers commonly used in APIs.
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		// MaxAge indicates how long (in seconds) the results of a preflight request can be cached.
+		MaxAge: int((12 * time.Hour).Seconds()),
+	}))
+
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("."))
 	})
 
 	webrpcHandler := NewExampleServer(&ExampleServiceRPC{})
-	webrpcHandler.OnError = func(r *http.Request, err *WebRPCError) {
-		m, ok := MethodCtx(r.Context())
 
-		if ok {
-			_, ok = m.Annotations()["deprecated"]
-			if ok {
-				fmt.Println(r.URL.Path, "deprecated")
-			}
-		}
-	}
-	webrpcHandler.OnRequest = func(w http.ResponseWriter, r *http.Request) error {
-		m, ok := MethodCtx(r.Context())
-		if !ok {
-			return fmt.Errorf("could not find method context for request method: %s", r.URL.Path)
-		}
-
-		newEndpoint, ok := m.Annotations()["deprecated"]
-		if ok {
-			return fmt.Errorf(
-				"endpoint %s has been deprecated in favor of endpoint %s",
-				r.URL.Path,
-				newEndpoint,
-			)
-		}
-
-		return nil
-	}
-
-	r.Handle("/admin/*", admin.NewAdminServer(&AdminServiceRPC{}))
 	r.Handle("/*", webrpcHandler)
 
-	return http.ListenAndServe(":4242", r)
-}
-
-type AdminServiceRPC struct{}
-
-func (*AdminServiceRPC) Auth(ctx context.Context) (string, string, error) {
-	return "jwt", "admin", nil
-}
-
-func (s *AdminServiceRPC) Status(ctx context.Context) (bool, error) {
-	return true, nil
-}
-
-func (s *AdminServiceRPC) Version(ctx context.Context) (*admin.Version, error) {
-	return &admin.Version{
-		WebrpcVersion: WebRPCVersion(),
-		SchemaVersion: WebRPCSchemaVersion(),
-		SchemaHash:    WebRPCSchemaHash(),
-	}, nil
+	return http.ListenAndServe(":3000", r)
 }
 
 type ExampleServiceRPC struct{}
