@@ -50,7 +50,6 @@ export interface User {
   USERNAME: string
   role: Kind
   meta: {[key: string]: any}
-  balance: bigint
   createdAt?: string
 }
 
@@ -60,13 +59,11 @@ export interface Page {
 
 export interface GetArticleRequest {
   articleId: number
-  byBN: bigint
 }
 
 export interface GetArticleResponse {
   title: string
   content?: string
-  largeNum: bigint
 }
 
 export interface PingRequest {
@@ -121,9 +118,12 @@ export class Example implements ExampleClient {
   getUser = (req: GetUserRequest, headers?: object, signal?: AbortSignal): Promise<GetUserResponse> => {
     return this.fetch(
       this.url('GetUser'),
-      createHttpRequest(JsonEncode('GetUserRequest', req), headers, signal, true)).then((res) => {
+      createHttpRequest(req, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
-        return JsonDecode<GetUserResponse>('GetUserResponse', _data)
+        return {
+          code: <number>(_data.code),
+          user: <User>(_data.user),
+        }
       })
     }, (error) => {
       throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error instanceof Error ? error.message : String(error)}` })
@@ -133,10 +133,7 @@ export class Example implements ExampleClient {
   getArticle = (req: GetArticleRequest, headers?: object, signal?: AbortSignal): Promise<GetArticleResponse> => {
     return this.fetch(
       this.url('GetArticle'),
-      createHttpRequest(JsonEncode('GetArticleRequest', req), headers, signal, true)).then((res) => {
-      return buildResponse(res).then(_data => {
-        return JsonDecode<GetArticleResponse>('GetArticleResponse', _data)
-      })
+      createHttpRequest(req, headers, signal)).then((res) => {return buildResponse(res)
     }, (error) => {
       throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error instanceof Error ? error.message : String(error)}` })
     })
@@ -144,11 +141,15 @@ export class Example implements ExampleClient {
   
 }
 
-// If bodyIsString is true, body argument is assumed to already be a JSON string.
-const createHttpRequest = (body: any = {}, headers: object = {}, signal: AbortSignal | null = null, bodyIsString = false): object => {
+const createHttpRequest = (body: object = {}, headers: object = {}, signal: AbortSignal | null = null): object => {
   const reqHeaders: {[key: string]: string} = { ...headers, 'Content-Type': 'application/json' }
-  const payload = bodyIsString ? (typeof body === 'string' ? body : JSON.stringify(body)) : JSON.stringify(body || {})
-  return { method: 'POST', headers: reqHeaders, body: payload, signal }
+
+  return {
+    method: 'POST',
+    headers: reqHeaders,
+    body: JSON.stringify(body || {}),
+    signal
+  }
 }
 
 const buildResponse = (res: Response): Promise<any> => {
@@ -173,101 +174,7 @@ const buildResponse = (res: Response): Promise<any> => {
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
 
 
-const BIG_INT_FIELDS: { [typ: string]: (string | [string, string])[] } = {
-  GetArticleRequest: ['byBN'],
-  GetArticleResponse: ['largeNum'],
-  GetUserResponse: [['user', 'User']],
-  User: ['balance', ['extra', 'Extra']],
-  Extra: ['amount', 'points[]'],
-}
 
-// Encode in-place: mutate provided object graph to serialize bigints to strings.
-function encodeType(typ: string, obj: any): any {
-  if (obj == null || typeof obj !== 'object') return obj
-  const descs = BIG_INT_FIELDS[typ] || []
-  for (const d of descs) {
-    if (Array.isArray(d)) {
-      const [fieldName, nestedType] = d
-      if (fieldName.endsWith('[]')) {
-        const base = fieldName.slice(0, -2)
-        const arr = obj[base]
-        if (Array.isArray(arr)) {
-          for (let i = 0; i < arr.length; i++) arr[i] = encodeType(nestedType, arr[i])
-        }
-      } else if (obj[fieldName]) {
-        obj[fieldName] = encodeType(nestedType, obj[fieldName])
-      }
-      continue
-    }
-    if (d.endsWith('[]')) {
-      const base = d.slice(0, -2)
-      const arr = obj[base]
-      if (Array.isArray(arr)) {
-        for (let i = 0; i < arr.length; i++) {
-          if (typeof arr[i] === 'bigint') arr[i] = arr[i].toString()
-        }
-      }
-      continue
-    }
-    if (typeof obj[d] === 'bigint') obj[d] = obj[d].toString()
-  }
-  return obj
-}
-
-// Decode in-place: mutate object graph; throw if expected numeric string is invalid.
-function decodeType(typ: string, obj: any): any {
-  if (obj == null || typeof obj !== 'object') return obj
-  const descs = BIG_INT_FIELDS[typ] || []
-  for (const d of descs) {
-    if (Array.isArray(d)) {
-      const [fieldName, nestedType] = d
-      if (fieldName.endsWith('[]')) {
-        const base = fieldName.slice(0, -2)
-        const arr = obj[base]
-        if (Array.isArray(arr)) {
-          for (let i = 0; i < arr.length; i++) arr[i] = decodeType(nestedType, arr[i])
-        }
-      } else if (obj[fieldName]) {
-        obj[fieldName] = decodeType(nestedType, obj[fieldName])
-      }
-      continue
-    }
-    if (d.endsWith('[]')) {
-      const base = d.slice(0, -2)
-      const arr = obj[base]
-      if (Array.isArray(arr)) {
-        for (let i = 0; i < arr.length; i++) {
-          const v = arr[i]
-          if (typeof v === 'string') {
-            try { arr[i] = BigInt(v) } catch (e) { throw WebrpcBadResponseError.new({ cause: `Invalid bigint value for ${base}[${i}]: ${v}` }) }
-          }
-        }
-      }
-      continue
-    }
-    const v = obj[d]
-    if (typeof v === 'string') {
-      try { obj[d] = BigInt(v) } catch (e) { throw WebrpcBadResponseError.new({ cause: `Invalid bigint value for ${d}: ${v}` }) }
-    }
-  }
-  return obj
-}
-
-// Encode object of given root type to JSON with BigInts converted to decimal strings.
-const JsonEncode = <T = any>(typ: string, obj: T): string => {
-  return JSON.stringify(encodeType(typ, obj))
-}
-
-// Decode data (JSON string or already-parsed object) and convert declared BigInt string fields back to BigInt.
-const JsonDecode = <T = any>(typ: string, data: string | any): T => {
-  let parsed: any = data
-  if (typeof data === 'string') {
-    try { parsed = JSON.parse(data) } catch (err) {
-      throw WebrpcBadResponseError.new({ cause: `JsonDecode: JSON.parse failed: ${(err as Error).message}` })
-    }
-  }
-  return decodeType(typ, parsed) as T
-}
 
 
 //
