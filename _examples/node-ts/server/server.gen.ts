@@ -609,6 +609,7 @@ function parseWebrpcGenVersions(header: string): WebrpcGenVersions {
   };
 }
 
+// NOTE: this can be generated from the tempalte itself.. no need for a helper ..
 const SERVICE_METHOD_TYPES: { [service: string]: { [method: string]: [string, string] } } = {
   'Example': {
     GetUser: ['GetUserRequest', 'GetUserResponse'],
@@ -617,10 +618,12 @@ const SERVICE_METHOD_TYPES: { [service: string]: { [method: string]: [string, st
   }
 }
 
+// TODO: maybe we approach this with BIG_INT_METHODS and BIG_INT_TYPES ...? and should be covered?
+
 const BIG_INT_FIELDS: { [typ: string]: (string | [string, string])[] } = {
   GetArticleRequest: ['byBN'],
   GetArticleResponse: ['largeNum'],
-  GetUserResponse: [['user', 'User']],
+  // GetUserResponse: [['user', 'User']],
   User: ['balance', ['extra', 'Extra']],
   Extra: ['amount', 'points[]'],
 }

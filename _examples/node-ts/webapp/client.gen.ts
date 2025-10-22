@@ -176,7 +176,7 @@ export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response
 const BIG_INT_FIELDS: { [typ: string]: (string | [string, string])[] } = {
   GetArticleRequest: ['byBN'],
   GetArticleResponse: ['largeNum'],
-  GetUserResponse: [['user', 'User']],
+  // GetUserResponse: [['user', 'User']],
   User: ['balance', ['extra', 'Extra']],
   Extra: ['amount', 'points[]'],
 }
