@@ -6,6 +6,7 @@ import (
 	"github.com/Masterminds/sprig/v3"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/golang-cz/textcase"
+	sch "github.com/webrpc/webrpc/schema"
 )
 
 // Template functions are part of webrpc-gen API. Keep backward-compatible.
@@ -114,6 +115,9 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"snakeCase":  applyStringFunction("snakeCase", textcase.SnakeCase),   // v0.7.0
 		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),   // v0.7.0
 		"replaceAll": strings.ReplaceAll,
+
+		// Schema analysis + bigint helpers
+		"SchemaBigIntFieldsByType": sch.SchemaBigIntFieldsByType,
 	}
 
 	for k, v := range extra {
