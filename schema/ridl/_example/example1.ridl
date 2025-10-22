@@ -31,7 +31,7 @@ struct User
     + json = USERNAME
     + go.tag.db = username
 
-  - amount: uint64
+  - amount: bigint
 
   - role: string
     + go.tag.db = -

@@ -112,6 +112,11 @@ func TestSchema(t *testing.T) {
 						]
 					},
 					{
+						"name": "amount",
+						"type": "bigint",
+						"optional": false
+					},
+					{
 						"name": "createdAt",
 						"type": "timestamp",
 						"optional": true,
