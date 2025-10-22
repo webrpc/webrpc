@@ -10,6 +10,7 @@
     "start": "parcel --no-cache --port 4444 index.html"
   },
   "devDependencies": {
+    "@tsconfig/strictest": "^2.0.6",
     "typescript": "^5.9.3"
   }
 }

@@ -6,3 +6,6 @@ test:
 
 run:
 	go run .
+
+generate-local:
+	webrpc-gen -schema=../service.ridl -target=../../../../gen-golang -pkg=main -server -client -out=./example.gen.go
