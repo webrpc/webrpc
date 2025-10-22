@@ -25,7 +25,7 @@ const exampleService: ExampleServer<RequestContext> = {
         balance: BigInt(31337),
         extra: {
           info: 'additional user info',
-          amount: BigInt(99999),
+          amount: BigInt(5678),
           points: [BigInt(100), BigInt(200), BigInt(300)],
         }
       }

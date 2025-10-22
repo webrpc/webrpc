@@ -28,6 +28,7 @@ struct Page
 
 struct GetArticleRequest
   - articleId: uint32
+    + go.field.name = ArticleID
 
 struct GetArticleResponse
   - title: string
