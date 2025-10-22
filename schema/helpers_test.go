@@ -258,6 +258,7 @@ func TestSchemaBigIntFieldsByType(t *testing.T) {
 	expected := map[string][]any{
 		"GetArticleRequest":  {"byBN"},
 		"GetArticleResponse": {"largeNum"},
+		"GetUserResponse":    {[2]string{"user", "User"}},
 		"User":               {"balance", [2]string{"extra", "Extra"}},
 		"Extra":              {"amount", "points[]"},
 		"RandomStuff":        {[2]string{"listOfUsers", "User[]"}, [2]string{"user", "User"}},

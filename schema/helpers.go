@@ -56,10 +56,8 @@ func SchemaBigIntFieldsByType(s *WebRPCSchema) map[string][]any {
 		return false
 	}
 
-	for _, t := range s.Types {
-		if t.Kind != TypeKind_Struct {
-			continue
-		}
+	// helper to collect bigint-related fields for a given struct type
+	collectStruct := func(t *Type) []any {
 		var list []any
 		for _, f := range t.Fields {
 			if f.Type == nil {
@@ -80,14 +78,66 @@ func SchemaBigIntFieldsByType(s *WebRPCSchema) map[string][]any {
 				list = append(list, [2]string{string(f.Name), f.Type.Struct.Name})
 				continue
 			}
-			// list of nested struct (emit field name, and nested type suffixed with [] to indicate array)
+			// list of nested struct containing bigint
 			if f.Type.Type == T_List && f.Type.List != nil && f.Type.List.Elem.Type == T_Struct && f.Type.List.Elem.Struct != nil && structHasBigIntRecursive(f.Type.List.Elem.Struct.Type) {
 				list = append(list, [2]string{string(f.Name), f.Type.List.Elem.Struct.Name + "[]"})
 				continue
 			}
 		}
+		return list
+	}
+
+	for _, t := range s.Types {
+		if t.Kind != TypeKind_Struct {
+			continue
+		}
+		list := collectStruct(t)
 		if len(list) > 0 {
 			out[t.Name] = list
+		}
+	}
+
+	// Synthetic implicit response types for non-succinct methods.
+	// For a method Foo with Succinct=false (or unspecified), we have implicit FooResponse
+	// comprised of its output arguments. If any output argument (directly or nested)
+	// contains bigint, include FooResponse in the result. For nested structs, we emit
+	// [fieldName, StructName] similar to real struct handling.
+	for _, svc := range s.Services {
+		for _, m := range svc.Methods {
+			if m == nil || m.Succinct { // skip succinct methods, they don't get FooResponse types
+				continue
+			}
+			responseName := m.Name + "Response"
+			var respList []any
+			for _, arg := range m.Outputs {
+				if arg == nil || arg.Type == nil {
+					continue
+				}
+				vt := arg.Type
+				// direct scalar bigint
+				if strings.EqualFold(vt.Expr, "bigint") {
+					respList = append(respList, string(arg.Name))
+					continue
+				}
+				// list of bigint
+				if vt.Type == T_List && vt.List != nil && strings.EqualFold(vt.List.Elem.Expr, "bigint") {
+					respList = append(respList, string(arg.Name)+"[]")
+					continue
+				}
+				// nested struct
+				if vt.Type == T_Struct && vt.Struct != nil && structHasBigIntRecursive(vt.Struct.Type) {
+					respList = append(respList, [2]string{string(arg.Name), vt.Struct.Name})
+					continue
+				}
+				// list of nested struct
+				if vt.Type == T_List && vt.List != nil && vt.List.Elem.Type == T_Struct && vt.List.Elem.Struct != nil && structHasBigIntRecursive(vt.List.Elem.Struct.Type) {
+					respList = append(respList, [2]string{string(arg.Name), vt.List.Elem.Struct.Name + "[]"})
+					continue
+				}
+			}
+			if len(respList) > 0 {
+				out[responseName] = respList
+			}
 		}
 	}
 	return out
