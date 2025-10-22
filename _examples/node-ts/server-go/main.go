@@ -48,7 +48,7 @@ func startServer() error {
 
 type ExampleServiceRPC struct{}
 
-func (s *ExampleServiceRPC) Ping(ctx context.Context) error {
+func (s *ExampleServiceRPC) Ping(ctx context.Context, counter *BigInt) error {
 	return nil
 }
 
