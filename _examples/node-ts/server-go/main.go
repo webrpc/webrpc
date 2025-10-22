@@ -71,10 +71,11 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (uint32,
 }
 
 func (s *ExampleServiceRPC) GetArticle(ctx context.Context, req GetArticleRequest) (*GetArticleResponse, error) {
+	fmt.Println("GetArticle called with ByBN", req.ByBN.String())
 
 	return &GetArticleResponse{
 		Title:    fmt.Sprintf("Article %d", req.ArticleID),
 		Content:  PtrTo(fmt.Sprintf("Hello, this is the content for article %d", req.ArticleID)),
-		LargeNum: NewBigInt(999999999999),
+		LargeNum: NewBigInt(req.ByBN.AsInt().Int64() * 2),
 	}, nil
 }

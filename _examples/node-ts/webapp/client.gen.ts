@@ -52,6 +52,13 @@ export interface User {
   meta: {[key: string]: any}
   balance: bigint
   createdAt?: string
+  extra: Extra
+}
+
+export interface Extra {
+  info: string
+  amount: bigint
+  points: bigint[]
 }
 
 export interface Page {
@@ -173,10 +180,14 @@ const buildResponse = (res: Response): Promise<any> => {
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
 
 
+//
+// BigInt helpers
+//
+
 const BIG_INT_FIELDS: { [typ: string]: (string | [string, string])[] } = {
   GetArticleRequest: ['byBN'],
   GetArticleResponse: ['largeNum'],
-  // GetUserResponse: [['user', 'User']],
+  GetUserResponse: [['user', 'User']],
   User: ['balance', ['extra', 'Extra']],
   Extra: ['amount', 'points[]'],
 }
