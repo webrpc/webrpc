@@ -173,14 +173,6 @@ const buildResponse = (res: Response): Promise<any> => {
 export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
 
 
-// Extended BigInt field metadata supporting nested types.
-// Descriptor formats:
-//  - 'field'      => scalar bigint field
-//  - 'field[]'    => array of bigint elements
-//  - ['field', 'TypeName'] => nested object of given type (recursively process that type)
-//  - ['field[]', 'TypeName'] => array of nested objects of given type (each processed recursively)
-// NOTE: Nested single objects (e.g. User.extra -> Extra)
-
 const BIG_INT_FIELDS: { [typ: string]: (string | [string, string])[] } = {
   GetArticleRequest: ['byBN'],
   GetArticleResponse: ['largeNum'],

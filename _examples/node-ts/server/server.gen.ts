@@ -91,21 +91,12 @@ export const serveExampleRpc = async <Context>(service: ExampleServer<Context>, 
   if (parts.length !== 3 || parts[0] !== 'rpc' || parts[1] !== 'Example') return null
   const method = parts[2]
   try {
-    // Map method names to root request/response types for BigInt conversion.
-    // Decode incoming body BigInt string representations before dispatch (in-place) using JsonDecode (accepts object)
-    const decodedBody = EXAMPLE_REQUEST_TYPES[method] ? JsonDecode(EXAMPLE_REQUEST_TYPES[method], body) : body
-
-    // ..
-    const result = await dispatchExampleRequest(service, ctx, method, decodedBody)
-
-    // Encode outgoing response BigInts to strings (in-place) using encodeType for efficiency.
-    const encoded = EXAMPLE_RESPONSE_TYPES[method] ? encodeType(EXAMPLE_RESPONSE_TYPES[method], result) : result
-    
+    const result = await dispatchExampleRequest(service, ctx, method, body)
     return {
       method,
       status: 200,
       headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
-      body: encoded ?? {}
+      body: result ?? {}
     }
   } catch (err: any) {
     if (err instanceof WebrpcError) {
@@ -127,29 +118,42 @@ export const serveExampleRpc = async <Context>(service: ExampleServer<Context>, 
   }
 }
 
-const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, ctx: Context, method: string, payload: any) => {
+const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, ctx: Context, method: string, body: any) => {
+  const methodTypes = SERVICE_METHOD_TYPES['Example'][method]
+  if (!methodTypes) {
+    throw new WebrpcBadRouteError({ cause: 'method not found' })
+  }
+  const [reqType, respType] = methodTypes
+  const payload = reqType ? JsonDecode(reqType, body) : body
+
+  let result: any
   switch (method) {
-    case 'Ping':
-      return service.ping(ctx, payload || {})
-  
-    case 'GetUser':
+    case 'Ping': {
+      result = await service.ping(ctx, payload || {})
+      break
+    }
+    case 'GetUser': {
       if (!("userId" in payload)) {
         throw new WebrpcBadRequestError({ cause: "missing argument `userId`" })
       }
       if ("userId" in payload && !validateType(payload["userId"], "number")) {
         throw new WebrpcBadRequestError({ cause: "invalid argument: userId" })
       }
-      return service.getUser(ctx, payload || {})
-  
-    case 'GetArticle':
+      result = await service.getUser(ctx, payload || {})
+      break
+    }
+    case 'GetArticle': {
       if (payload && !validateType(payload, "GetArticleRequest")) {
         throw new WebrpcBadRequestError({ cause: "invalid argument: getArticleRequest" })
       }
-      return service.getArticle(ctx, payload || {})
-  
+      result = await service.getArticle(ctx, payload || {})
+      break
+    }
     default:
       throw new WebrpcBadRouteError({ cause: 'method not found' })
   }
+
+  return respType ? encodeType(respType, result) : result
 }
 
 
@@ -605,11 +609,14 @@ function parseWebrpcGenVersions(header: string): WebrpcGenVersions {
   };
 }
 
-// TODO: update this to just METHOD_TYPES = service / request:response
-const EXAMPLE_REQUEST_TYPES: { [m: string]: string } = { GetUser: 'GetUserRequest', GetArticle: 'GetArticleRequest', Ping: 'PingRequest' }
-const EXAMPLE_RESPONSE_TYPES: { [m: string]: string } = { GetUser: 'GetUserResponse', GetArticle: 'GetArticleResponse', Ping: 'PingResponse' }
+const SERVICE_METHOD_TYPES: { [service: string]: { [method: string]: [string, string] } } = {
+  'Example': {
+    GetUser: ['GetUserRequest', 'GetUserResponse'],
+    GetArticle: ['GetArticleRequest', 'GetArticleResponse'],
+    Ping: ['PingRequest', 'PingResponse']
+  }
+}
 
-// TODO: we need the service in here too... so extra nesting ..
 const BIG_INT_FIELDS: { [typ: string]: (string | [string, string])[] } = {
   GetArticleRequest: ['byBN'],
   GetArticleResponse: ['largeNum'],
