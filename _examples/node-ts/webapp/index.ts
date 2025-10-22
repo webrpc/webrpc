@@ -51,7 +51,7 @@ async function onGetUserWithErrorClick(usernameWithErrorText: HTMLElement) {
 
 async function onGetArticleClick(articleText: HTMLElement) {
 	try {
-		const article = await example.getArticle({ articleId: 1 })
+		const article = await example.getArticle({ articleId: 1, byBN: BigInt(444555) })
 		console.log('getArticle() responded with:', { article })
 		articleText.textContent = `Title: ${article.title}\n\nContent: ${article.content}`
 	} catch (error) {

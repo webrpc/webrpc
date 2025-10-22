@@ -39,7 +39,15 @@ export interface User {
   USERNAME: string
   role: Kind
   meta: {[key: string]: any}
+  balance: bigint
   createdAt?: string
+  extra: Extra
+}
+
+export interface Extra {
+  info: string
+  amount: bigint
+  points: bigint[]
 }
 
 export interface Page {
@@ -48,11 +56,13 @@ export interface Page {
 
 export interface GetArticleRequest {
   articleId: number
+  byBN: bigint
 }
 
 export interface GetArticleResponse {
   title: string
   content?: string
+  largeNum: bigint
 }
 
 export interface PingRequest {
@@ -71,9 +81,6 @@ export interface GetUserResponse {
 }
 
 
-
-
-
 //
 // Server handler
 //
@@ -84,12 +91,21 @@ export const serveExampleRpc = async <Context>(service: ExampleServer<Context>, 
   if (parts.length !== 3 || parts[0] !== 'rpc' || parts[1] !== 'Example') return null
   const method = parts[2]
   try {
-    const result = await dispatchExampleRequest(service, ctx, method, body)
+    // Map method names to root request/response types for BigInt conversion.
+    // Decode incoming body BigInt string representations before dispatch (in-place) using JsonDecode (accepts object)
+    const decodedBody = EXAMPLE_REQUEST_TYPES[method] ? JsonDecode(EXAMPLE_REQUEST_TYPES[method], body) : body
+
+    // ..
+    const result = await dispatchExampleRequest(service, ctx, method, decodedBody)
+
+    // Encode outgoing response BigInts to strings (in-place) using encodeType for efficiency.
+    const encoded = EXAMPLE_RESPONSE_TYPES[method] ? encodeType(EXAMPLE_RESPONSE_TYPES[method], result) : result
+    
     return {
       method,
       status: 200,
       headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
-      body: result ?? {}
+      body: encoded ?? {}
     }
   } catch (err: any) {
     if (err instanceof WebrpcError) {
@@ -194,6 +210,10 @@ const validatePage = (value: any) => {
 
 const validateGetArticleRequest = (value: any) => {
   if (!("articleId" in value) || !validateType(value["articleId"], "number")) {
+    return false
+  }
+  // byBN is optional in validation here because we accept string and convert before validation; if present ensure it's bigint
+  if ("byBN" in value && typeof value["byBN"] !== 'bigint') {
     return false
   }
   return true
@@ -585,3 +605,103 @@ function parseWebrpcGenVersions(header: string): WebrpcGenVersions {
   };
 }
 
+// TODO: update this to just METHOD_TYPES = service / request:response
+const EXAMPLE_REQUEST_TYPES: { [m: string]: string } = { GetUser: 'GetUserRequest', GetArticle: 'GetArticleRequest', Ping: 'PingRequest' }
+const EXAMPLE_RESPONSE_TYPES: { [m: string]: string } = { GetUser: 'GetUserResponse', GetArticle: 'GetArticleResponse', Ping: 'PingResponse' }
+
+// TODO: we need the service in here too... so extra nesting ..
+const BIG_INT_FIELDS: { [typ: string]: (string | [string, string])[] } = {
+  GetArticleRequest: ['byBN'],
+  GetArticleResponse: ['largeNum'],
+  GetUserResponse: [['user', 'User']],
+  User: ['balance', ['extra', 'Extra']],
+  Extra: ['amount', 'points[]'],
+}
+
+// Encode in-place: mutate provided object graph to serialize bigints to strings.
+function encodeType(typ: string, obj: any): any {
+  if (obj == null || typeof obj !== 'object') return obj
+  const descs = BIG_INT_FIELDS[typ] || []
+  for (const d of descs) {
+    if (Array.isArray(d)) {
+      const [fieldName, nestedType] = d
+      if (fieldName.endsWith('[]')) {
+        const base = fieldName.slice(0, -2)
+        const arr = obj[base]
+        if (Array.isArray(arr)) {
+          for (let i = 0; i < arr.length; i++) arr[i] = encodeType(nestedType, arr[i])
+        }
+      } else if (obj[fieldName]) {
+        obj[fieldName] = encodeType(nestedType, obj[fieldName])
+      }
+      continue
+    }
+    if (d.endsWith('[]')) {
+      const base = d.slice(0, -2)
+      const arr = obj[base]
+      if (Array.isArray(arr)) {
+        for (let i = 0; i < arr.length; i++) {
+          if (typeof arr[i] === 'bigint') arr[i] = arr[i].toString()
+        }
+      }
+      continue
+    }
+    if (typeof obj[d] === 'bigint') obj[d] = obj[d].toString()
+  }
+  return obj
+}
+
+// Decode in-place: mutate object graph; throw if expected numeric string is invalid.
+function decodeType(typ: string, obj: any): any {
+  if (obj == null || typeof obj !== 'object') return obj
+  const descs = BIG_INT_FIELDS[typ] || []
+  for (const d of descs) {
+    if (Array.isArray(d)) {
+      const [fieldName, nestedType] = d
+      if (fieldName.endsWith('[]')) {
+        const base = fieldName.slice(0, -2)
+        const arr = obj[base]
+        if (Array.isArray(arr)) {
+          for (let i = 0; i < arr.length; i++) arr[i] = decodeType(nestedType, arr[i])
+        }
+      } else if (obj[fieldName]) {
+        obj[fieldName] = decodeType(nestedType, obj[fieldName])
+      }
+      continue
+    }
+    if (d.endsWith('[]')) {
+      const base = d.slice(0, -2)
+      const arr = obj[base]
+      if (Array.isArray(arr)) {
+        for (let i = 0; i < arr.length; i++) {
+          const v = arr[i]
+          if (typeof v === 'string') {
+            try { arr[i] = BigInt(v) } catch (e) { throw WebrpcBadResponseError.new({ cause: `Invalid bigint value for ${base}[${i}]: ${v}` }) }
+          }
+        }
+      }
+      continue
+    }
+    const v = obj[d]
+    if (typeof v === 'string') {
+      try { obj[d] = BigInt(v) } catch (e) { throw WebrpcBadResponseError.new({ cause: `Invalid bigint value for ${d}: ${v}` }) }
+    }
+  }
+  return obj
+}
+
+// Encode object of given root type to JSON with BigInts converted to decimal strings.
+const JsonEncode = <T = any>(typ: string, obj: T): string => {
+  return JSON.stringify(encodeType(typ, obj))
+}
+
+// Decode data (JSON string or already-parsed object) and convert declared BigInt string fields back to BigInt.
+const JsonDecode = <T = any>(typ: string, data: string | any): T => {
+  let parsed: any = data
+  if (typeof data === 'string') {
+    try { parsed = JSON.parse(data) } catch (err) {
+      throw WebrpcBadResponseError.new({ cause: `JsonDecode: JSON.parse failed: ${(err as Error).message}` })
+    }
+  }
+  return decodeType(typ, parsed) as T
+}
