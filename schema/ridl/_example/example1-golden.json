@@ -117,7 +117,7 @@
     },
     {
      "name": "amount",
-     "type": "uint64"
+     "type": "bigint"
     },
     {
      "name": "role",

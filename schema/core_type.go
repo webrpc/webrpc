@@ -27,6 +27,8 @@ const (
 	T_Int32
 	T_Int64
 
+	T_BigInt
+
 	T_Float32
 	T_Float64
 
@@ -59,6 +61,8 @@ var CoreTypeToString = map[CoreType]string{
 	T_Int32: "int32",
 	T_Int64: "int64",
 
+	T_BigInt: "bigint",
+
 	T_Float32: "float32",
 	T_Float64: "float64",
 
@@ -68,6 +72,11 @@ var CoreTypeToString = map[CoreType]string{
 
 	T_Map:  "map",
 	T_List: "[]",
+}
+
+var CoreTypeWebWarnings = map[CoreType]string{
+	T_Int64:  "int64 type is not supported in web clients; consider using bigint instead",
+	T_Uint64: "uint64 type is not supported in web clients; consider using bigint instead",
 }
 
 var CoreTypeFromString = map[string]CoreType{
@@ -87,6 +96,8 @@ var CoreTypeFromString = map[string]CoreType{
 	"int16": T_Int16,
 	"int32": T_Int32,
 	"int64": T_Int64,
+
+	"bigint": T_BigInt,
 
 	"float32": T_Float32,
 	"float64": T_Float64,

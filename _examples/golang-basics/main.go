@@ -119,6 +119,12 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, req GetUserRequest) (*G
 			Username: "hihi",
 			Kind:     kind,
 			Intent:   intent,
+			Balance:  NewBigInt(1234),
+			Extra: &Extra{
+				Info:   "some info",
+				Amount: NewBigInt(5678),
+				Points: []BigInt{NewBigInt(10), NewBigInt(20), NewBigInt(30)},
+			},
 		},
 	}, nil
 }
@@ -142,7 +148,8 @@ func (s *ExampleServiceRPC) GetUserV2(ctx context.Context, req GetUserRequest) (
 			Kind:     kind,
 			Intent:   intent,
 		},
-		Profile: "https://www.google.com/images/john-doe.jpg",
+		Profile:  "https://www.google.com/images/john-doe.jpg",
+		LargeNum: NewBigInt(31337),
 	}, nil
 }
 

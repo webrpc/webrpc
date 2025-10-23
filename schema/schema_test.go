@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSchema(t *testing.T) {
@@ -110,6 +109,11 @@ func TestSchema(t *testing.T) {
 							{ "json": "USERNAME" },
 							{ "go.tag.db": "username" }
 						]
+					},
+					{
+						"name": "amount",
+						"type": "bigint",
+						"optional": false
 					},
 					{
 						"name": "createdAt",

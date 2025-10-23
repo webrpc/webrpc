@@ -40,7 +40,7 @@ func TestStream10k(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	stream, err := client.SubscribeMessages(ctx, t.Name())
+	stream, err := client.SubscribeMessages(ctx, t.Name(), nil)
 	require.Nil(t, err)
 
 	msgCount := 10000
@@ -82,7 +82,7 @@ func TestStreamServerConnectionLost(t *testing.T) {
 
 	ctx := context.Background()
 
-	stream, err := client.SubscribeMessages(ctx, t.Name())
+	stream, err := client.SubscribeMessages(ctx, t.Name(), nil)
 	require.Nil(t, err)
 
 	for {
@@ -100,8 +100,8 @@ func TestStreamCustomError(t *testing.T) {
 
 	ctx := context.Background()
 
-	stream, err := client.SubscribeMessages(ctx, "") // empty username
-	require.Nil(t, err)                              // only network/connection errors should come back here
+	stream, err := client.SubscribeMessages(ctx, "", nil) // empty username
+	require.Nil(t, err)                                   // only network/connection errors should come back here
 
 	_, err = stream.Read() // we should receive RPC handler errors (e.g. EmptyUsername) only when we start reading the data
 	require.Error(t, err)
@@ -123,7 +123,7 @@ func testStreamClientTimeout(t *testing.T, timeout time.Duration) func(t *testin
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 
-		stream, err := client.SubscribeMessages(ctx, t.Name())
+		stream, err := client.SubscribeMessages(ctx, t.Name(), nil)
 		require.Nil(t, err)
 
 		for {

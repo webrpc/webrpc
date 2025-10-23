@@ -13,6 +13,7 @@ generate:
 
 generate-server:
 	webrpc-gen -schema=service.ridl -target=../../../gen-typescript -server -out=./server/server.gen.ts
+	webrpc-gen -schema=service.ridl -target=../../../gen-typescript -server -out=./server-hono/server.gen.ts
 
 generate-client:
 	webrpc-gen -schema=service.ridl -target=../../../gen-typescript -client -out=./webapp/client.gen.ts

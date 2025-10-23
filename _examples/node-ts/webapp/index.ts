@@ -27,11 +27,29 @@ async function onGetUserClick(usernameText: HTMLElement) {
 	try {
 		const { user } = await example.getUser({ userId: 1 })
 		console.log('getUser() responded with:', { user })
+
+		if (typeof user.balance !== 'bigint') {
+			throw new Error('user.balance is not a bigint')
+		}
+		console.log('user.balance as bigint:', user.balance)
+		if (user.balance !== BigInt(31337)) {
+			throw new Error(`user.balance has unexpected value: ${user.balance.toString()}`)
+		}
+		if (typeof user.extra?.amount !== 'bigint') {
+			throw new Error('user.extra.amount is not a bigint')
+		}
+		if (user.extra.amount !== BigInt(5678)) {
+			throw new Error(`user.extra.amount has unexpected value: ${user.extra.amount.toString()}`)
+		}
+		console.log('user.extra.amount as bigint:', user.extra.amount)
+
 		usernameText.textContent = user.USERNAME
 	} catch (error) {
 		if (error instanceof WebrpcError) {
 			console.error(error)
-			usernameText.textContent = `error: ${error.message}, cause: ${error.cause}`
+			usernameText.textContent = `webrpc error: ${error.message}, cause: ${error.cause}`
+		} else {
+			console.error('unexpected error:', error)
 		}
 	}
 }
@@ -44,20 +62,33 @@ async function onGetUserWithErrorClick(usernameWithErrorText: HTMLElement) {
 	} catch (error) {
 		if (error instanceof WebrpcError) {
 			console.error(error)
-			usernameWithErrorText.textContent = `error: ${error.message}, cause: ${error.cause}`
+			usernameWithErrorText.textContent = `webrpc error: ${error.message}, cause: ${error.cause}`
+		} else {
+			console.error('unexpected error:', error)
 		}
 	}
 }
 
 async function onGetArticleClick(articleText: HTMLElement) {
 	try {
-		const article = await example.getArticle({ articleId: 1 })
+		const article = await example.getArticle({ articleId: 1, byBN: BigInt(444555) })
 		console.log('getArticle() responded with:', { article })
+
+		if (typeof article.largeNum !== 'bigint') {
+			throw new Error('article.largeNum is not a bigint')
+		}
+		console.log('article.largeNum as bigint:', article.largeNum)
+		if (article.largeNum !== BigInt(444555) * BigInt(2)) {
+			throw new Error(`article.largeNum has unexpected value: ${article.largeNum.toString()}`)
+		}
+
 		articleText.textContent = `Title: ${article.title}\n\nContent: ${article.content}`
 	} catch (error) {
 		if (error instanceof WebrpcError) {
 			console.error(error)
-			articleText.textContent = `error: ${error.message}, cause: ${error.cause}`
+			articleText.textContent = `webrpc error: ${error.message}, cause: ${error.cause}`
+		} else {
+			console.error('unexpected error:', error)
 		}
 	}
 }

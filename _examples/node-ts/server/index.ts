@@ -8,6 +8,7 @@ const exampleService: ExampleServer<RequestContext> = {
   async ping() {
     return {}
   },
+
   async getUser(ctx, { userId }) {
     const traceId = ctx.get<string>('traceId') || ''
 
@@ -22,13 +23,22 @@ const exampleService: ExampleServer<RequestContext> = {
         USERNAME: `user-${userId}`,
         role: Kind.USER,
         meta: { env: 'dev', reqId: ctx.reqId, traceId },
+        balance: BigInt(31337),
+        extra: {
+          info: 'additional user info',
+          amount: BigInt(5678),
+          points: [BigInt(100), BigInt(200), BigInt(300)],
+        }
       }
     }
   },
-  async getArticle(ctx, { articleId }) {
+  
+  async getArticle(ctx, { articleId, byBN }) {
+    console.log('getArticle byBN:', byBN)
     return {
       title: `Article ${articleId}`,
-      content: `Hello, this is the content for article ${articleId}. (req ${ctx.reqId})`
+      content: `Hello, this is the content for article ${articleId}. (req ${ctx.reqId})`,
+      largeNum: byBN * BigInt(2),
     }
   }
 }
