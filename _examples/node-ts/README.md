@@ -8,8 +8,8 @@ example of generating a webrpc server and client from [service.ridl](./service.r
 
 ## Usage
 
-1. Install nodejs + yarn
-2. $ `make bootstrap` -- runs yarn on both ./server and ./webapp
+1. Install nodejs + pnpm
+2. $ `make bootstrap` -- runs pnpm on both ./server and ./webapp
 3. $ `make run-server`
 4. $ `make run-client`
 

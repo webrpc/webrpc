@@ -65,6 +65,11 @@
 					]
 				},
 				{
+					"name": "role",
+					"type": "Kind",
+					"optional": false
+				},
+				{
 					"name": "createdAt",
 					"type": "timestamp",
 					"optional": true,
@@ -82,7 +87,7 @@
 	],
 	"services": [
 		{
-			"name": "ExampleService",
+			"name": "Example",
 			"methods": [
 				{
 					"name": "Ping",

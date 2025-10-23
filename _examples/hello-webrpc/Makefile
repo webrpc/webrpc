@@ -7,11 +7,14 @@ generate-server:
 	webrpc-gen -schema=hello-api.ridl -target=golang -pkg=main -server -out=./server/hello_api.gen.go
 
 generate-client:
-	webrpc-gen -schema=hello-api.ridl -target=javascript -exports=false -client -out=./webapp/client.gen.js
+	webrpc-gen -schema=hello-api.ridl -target=typescript -client -out=./webapp/client.gen.ts
+
+bootstrap:
+	rm -rf webapp/node_modules
+	cd webapp && pnpm install
 
 run-server:
 	go run ./server
 
 run-client:
-	go run github.com/goware/webify -host=localhost -port=4444 -dir=./webapp
-
+	cd webapp && pnpm run dev

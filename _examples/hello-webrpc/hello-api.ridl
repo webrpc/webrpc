@@ -3,11 +3,11 @@ webrpc = v1
 name = hello-webrpc
 version = v1.0.0
 
+error 1000 UserNotFound "User not found" HTTP 400 # Note: We keep HTTP 404 errors reserved for "route not found" errors.
+
 enum Kind: uint32
   - USER = 1
   - ADMIN = 2
-
-struct Empty
 
 struct User
   - ID: uint64
@@ -18,19 +18,28 @@ struct User
     + json = USERNAME
     + go.tag.db = username
 
+  - role: Kind
+
+  - meta: map<string,any>
+
+  - internalID: uint64
+    + json = -
+
   - createdAt?: timestamp
     + json = created_at
     + go.tag.json = created_at,omitempty
     + go.tag.db = created_at
 
-  - updatedAt?: timestamp
-    + go.tag.json = ,omitempty
+struct Page
+  - num: uint32
 
-  - deletedAt?: timestamp
-
-error 1000 UserNotFound "User not found" HTTP 400
-
-service ExampleService
+service Example
+    @deprecated:"Use /ping endpoint instead."
   - Ping() => (status: bool)
+
+  # GetUser returns a user by ID.
   - GetUser(userID: uint64) => (user: User)
+
+  # FindUsers returns a list of users matching given search query.
+  - FindUsers(q: string) => (page: Page, users: []User)
 

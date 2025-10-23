@@ -657,6 +657,9 @@ func MethodCtx(ctx context.Context) (method, bool) {
 	return m, true
 }
 
+// PtrTo is a useful helper when constructing values for optional fields.
+func PtrTo[T any](v T) *T { return &v }
+
 //
 // Errors
 //
@@ -756,7 +759,7 @@ var (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.2;Test@v0.10.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.3-0.20251023011716-32dc838c6d4e;Test@v0.10.0"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string

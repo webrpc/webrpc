@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	client ExampleAPI
+	client ExampleAPIClient
 )
 
 // func TestMain()

@@ -8,12 +8,10 @@ package main
 import (
 	"bytes"
 	"context"
-	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"math/big"
 	"net/http"
 	"net/url"
 	"strings"
@@ -153,14 +151,6 @@ type User struct {
 	Role     string `json:"role" db:"-"`
 	Kind     Kind   `json:"kind"`
 	Intent   Intent `json:"intent"`
-	Balance  BigInt `json:"balance"`
-	Extra    *Extra `json:"extra"`
-}
-
-type Extra struct {
-	Info   string   `json:"info"`
-	Amount BigInt   `json:"amount"`
-	Points []BigInt `json:"points"`
 }
 
 type SearchFilter struct {
@@ -188,14 +178,12 @@ type ComplexType struct {
 type GetUserRequest struct {
 	UserID uint64            `json:"userId"`
 	Prefs  map[string]string `json:"prefs"`
-	ByBN   BigInt            `json:"byBN"`
 }
 
 type GetUserResponse struct {
-	Code     uint32 `json:"code"`
-	User     *User  `json:"user"`
-	Profile  string `json:"profile"`
-	LargeNum BigInt `json:"largeNum"`
+	Code    uint32 `json:"code"`
+	User    *User  `json:"user"`
+	Profile string `json:"profile"`
 }
 
 var methods = map[string]method{
@@ -1003,6 +991,9 @@ func MethodCtx(ctx context.Context) (method, bool) {
 	return m, true
 }
 
+// PtrTo is a useful helper when constructing values for optional fields.
+func PtrTo[T any](v T) *T { return &v }
+
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
 	w, _ := ctx.Value(HTTPResponseWriterCtxKey).(http.ResponseWriter)
 	return w
@@ -1092,7 +1083,7 @@ var (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.2;example@v0.0.1"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.22.3-0.20251023011716-32dc838c6d4e;example@v0.0.1"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string
@@ -1143,130 +1134,4 @@ func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
 		SchemaName:       schemaName,
 		SchemaVersion:    schemaVersion,
 	}, nil
-}
-
-//
-// BigInt helpers
-//
-
-// BigInt is an alias of big.Int with custom JSON (decimal string) encoding.
-type BigInt big.Int
-
-func NewBigInt(v int64) BigInt { var bi big.Int; bi.SetInt64(v); return BigInt(bi) }
-
-// AsInt exposes the underlying *big.Int.
-func (b *BigInt) AsInt() *big.Int { return (*big.Int)(b) }
-
-// String returns the decimal string representation of the BigInt.
-func (b BigInt) String() string { return b.AsInt().String() }
-
-// MarshalText implements encoding.TextMarshaler.
-func (b BigInt) MarshalText() ([]byte, error) {
-	return []byte(fmt.Sprintf("\"%s\"", b.String())), nil
-}
-
-// UnmarshalText implements encoding.TextUnmarshaler.
-func (b *BigInt) UnmarshalText(text []byte) error {
-	t := string(text)
-	if len(text) <= 2 || t == "null" || t == "" {
-		return nil
-	}
-	i, ok := big.NewInt(0).SetString(string(text[1:len(text)-1]), 10)
-	if !ok {
-		return fmt.Errorf("BigInt.UnmarshalText: failed to unmarshal %q", text)
-	}
-	*b = BigInt(*i)
-	return nil
-}
-
-// MarshalJSON implements json.Marshaler
-func (b BigInt) MarshalJSON() ([]byte, error) {
-	return b.MarshalText()
-}
-
-// UnmarshalJSON implements json.Unmarshaler
-func (b *BigInt) UnmarshalJSON(text []byte) error {
-	if string(text) == "null" {
-		return nil
-	}
-	return b.UnmarshalText(text)
-}
-
-// MarshalBinary implements encoding.BinaryMarshaler. The first byte is the sign byte
-// to represent positive or negative numbers.
-func (b BigInt) MarshalBinary() ([]byte, error) {
-	bytes := b.AsInt().Bytes()
-	out := make([]byte, len(bytes)+1)
-	copy(out[1:], bytes)
-	if b.AsInt().Sign() < 0 {
-		// Prepend a sign byte (0xFF for negative)
-		out[0] = 0xFF
-	} else {
-		// For zero or positive numbers, prepend 0x00
-		out[0] = 0x00
-	}
-	return out, nil
-}
-
-// UnmarshalBinary implements encoding.BinaryUnmarshaler. The first byte is the sign byte
-// to represent positive or negative numbers.
-func (b *BigInt) UnmarshalBinary(buff []byte) error {
-	if len(buff) == 0 {
-		*b = BigInt(*big.NewInt(0))
-		return nil
-	}
-	// Extract the sign byte
-	signByte := buff[0]
-	i := new(big.Int)
-	if len(buff) > 1 {
-		i.SetBytes(buff[1:])
-	}
-	// Apply sign if negative
-	if signByte == 0xFF {
-		i.Neg(i)
-	}
-	*b = BigInt(*i)
-	return nil
-}
-
-func (b BigInt) Value() (driver.Value, error) {
-	return b.String(), nil
-}
-
-func (b *BigInt) Scan(src interface{}) error {
-	if src == nil {
-		return nil
-	}
-
-	var svalue string
-	switch v := src.(type) {
-	case string:
-		svalue = v
-	case []byte:
-		svalue = string(v)
-	default:
-		return fmt.Errorf("BigInt.Scan: unexpected type %T", src)
-	}
-
-	// pgx driver returns NeX where N is digits and X is exponent
-	parts := strings.SplitN(svalue, "e", 2)
-
-	var ok bool
-	i := &big.Int{}
-	i, ok = i.SetString(parts[0], 10)
-	if !ok {
-		return fmt.Errorf("BigInt.Scan: failed to scan value %q", svalue)
-	}
-
-	if len(parts) >= 2 {
-		exp := big.NewInt(0)
-		exp, ok = exp.SetString(parts[1], 10)
-		if !ok {
-			return fmt.Errorf("BigInt.Scan failed to scan exp component %q", svalue)
-		}
-		i = i.Mul(i, big.NewInt(1).Exp(big.NewInt(10), exp, nil))
-	}
-
-	*b = BigInt(*i)
-	return nil
 }

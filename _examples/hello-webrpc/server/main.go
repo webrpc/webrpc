@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 )
 
@@ -24,8 +24,9 @@ func startServer() error {
 	r.Use(middleware.Recoverer)
 
 	cors := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:4444"},
-		//AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"*"},
+		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"POST", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "Webrpc"},
 		ExposedHeaders:   []string{"Link", "Webrpc"},
@@ -38,7 +39,7 @@ func startServer() error {
 		w.Write([]byte("."))
 	})
 
-	webrpcHandler := NewExampleServiceServer(&ExampleServiceRPC{})
+	webrpcHandler := NewExampleServer(&ExampleServiceRPC{})
 	r.Handle("/*", webrpcHandler)
 
 	return http.ListenAndServe(":4242", r)
@@ -59,5 +60,17 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (*User, 
 	return &User{
 		ID:       userID,
 		Username: "hihi",
+		Meta:     map[string]any{"location": "Toronto"},
 	}, nil
+}
+
+func (s *ExampleServiceRPC) FindUsers(ctx context.Context, q string) (*Page, []*User, error) {
+	page := &Page{Num: 1}
+
+	users := []*User{
+		{ID: 1, Username: "a", Meta: map[string]any{"location": "Montreal"}},
+		{ID: 2, Username: "b", Meta: map[string]any{"age": 10}},
+	}
+
+	return page, users, nil
 }
