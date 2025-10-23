@@ -30,35 +30,40 @@ func TestPing(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// func TestGetUser(t *testing.T) {
-// 	{
-// 		arg1 := map[string]string{"a": "1"}
-// 		resp, err := client.GetUserV2(context.Background(), GetUserRequest{UserID: 12, Prefs: arg1, ByBN: NewBigInt(123)})
-// 		intent := Intent_openSession
-// 		kind := Kind_ADMIN
+func TestGetUserSuccess(t *testing.T) {
+	code, user, err := client.GetUser(context.Background(), 123)
+	require.NoError(t, err)
+	require.Equal(t, uint32(200), code)
+	require.NotNil(t, user)
+	require.Equal(t, uint64(123), user.ID)
+	require.Equal(t, "user-123", user.Username)
+	require.Equal(t, Kind_USER, user.Role)
+	// BigInt underlying string value
+	require.Equal(t, "31337", user.Balance.String())
+	require.NotNil(t, user.Extra)
+	require.Equal(t, "additional user info", user.Extra.Info)
+	require.Equal(t, "5678", user.Extra.Amount.String())
+	require.Len(t, user.Extra.Points, 3)
+	require.Equal(t, "100", user.Extra.Points[0].String())
+}
 
-// 		assert.Equal(t, uint32(200), resp.Code)
-// 		assert.Equal(t, &User{ID: 12, Username: "hihi", Intent: intent, Kind: kind}, resp.User)
-// 		assert.Equal(t, NewBigInt(31337), resp.LargeNum)
-// 		assert.Equal(t, int64(31337), resp.LargeNum.AsInt().Int64())
-// 		assert.NoError(t, err)
-// 	}
+func TestGetUserForbidden(t *testing.T) {
+	_, _, err := client.GetUser(context.Background(), 911)
+	require.Error(t, err)
+	// Expect a WebRPCError with endpoint error cause
+	var rpcErr WebRPCError
+	require.ErrorAs(t, err, &rpcErr)
+	require.Equal(t, ErrWebrpcEndpoint.Code, rpcErr.Code)
+}
 
-// 	{
-// 		// Error case, expecting to receive an error
-// 		resp, err := client.GetUserV2(context.Background(), GetUserRequest{UserID: 911})
-
-// 		assert.ErrorAs(t, err, &ErrUserNotFound)
-// 		assert.Nil(t, resp)
-// 		// assert.Equal(t, uint32(0), resp.Code)
-// 		assert.Error(t, err)
-// 		assert.Contains(t, err.Error(), "not found")
-// 	}
-
-// 	{
-// 		name, user, err := client.FindUser(context.Background(), &SearchFilter{Q: "joe"})
-// 		assert.Equal(t, "joe", name)
-// 		assert.Equal(t, &User{ID: 123, Username: "joe"}, user)
-// 		assert.NoError(t, err)
-// 	}
-// }
+func TestGetArticle(t *testing.T) {
+	req := GetArticleRequest{ArticleID: 7, ByBN: NewBigInt(42)}
+	resp, err := client.GetArticle(context.Background(), req)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, "Article 7", resp.Title)
+	require.NotNil(t, resp.Content)
+	require.Contains(t, *resp.Content, "article 7")
+	// LargeNum should be ByBN * 2 (42 * 2)
+	require.Equal(t, "84", resp.LargeNum.String())
+}
