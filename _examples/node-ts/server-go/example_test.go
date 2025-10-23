@@ -6,14 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
 	client ExampleClient
 )
-
-// func TestMain()
 
 func init() {
 	go func() {
@@ -28,23 +26,9 @@ func init() {
 }
 
 func TestPing(t *testing.T) {
-	err := client.Ping(context.Background())
-	assert.NoError(t, err)
+	err := client.Ping(context.Background(), nil)
+	require.NoError(t, err)
 }
-
-// func TestStatus(t *testing.T) {
-// 	resp, err := client.Status(context.Background())
-// 	assert.Equal(t, true, resp)
-// 	assert.NoError(t, err)
-// }
-
-// func TestDeprecatedUserEndpoint(t *testing.T) {
-// 	arg1 := map[string]string{"a": "1"}
-
-// 	_, err := client.GetUser(context.Background(), GetUserRequest{UserID: 42, Prefs: arg1})
-
-// 	assert.Error(t, err)
-// }
 
 // func TestGetUser(t *testing.T) {
 // 	{

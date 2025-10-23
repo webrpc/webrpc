@@ -10,8 +10,8 @@ dev-generate:
 	../../bin/webrpc-gen -schema=proto/chat.ridl -target=typescript -client -out=webapp/src/rpc.gen.ts
 
 dev-generate-local-templates:
-	../../bin/webrpc-gen -schema=proto/chat.ridl -target=golang -pkg=proto -server -client -out=proto/chat.gen.go
-	../../bin/webrpc-gen -schema=proto/chat.ridl -target=typescript -client -out=webapp/src/rpc.gen.ts
+	../../bin/webrpc-gen -schema=proto/chat.ridl -target=../../../gen-golang -pkg=proto -server -client -out=proto/chat.gen.go
+	../../bin/webrpc-gen -schema=proto/chat.ridl -target=../../../gen-typescript -client -out=webapp/src/rpc.gen.ts
 
 run-server:
 	go run ./

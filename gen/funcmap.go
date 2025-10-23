@@ -120,7 +120,8 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"kebabCase":  applyStringFunction("kebabCase", textcase.KebabCase),   // v0.7.0
 		"replaceAll": strings.ReplaceAll,
 
-		// Schema analysis + bigint helpers
+		// Schema bigint analysis + helpers
+		"SchemaUsesBigInts":        schema.SchemaUsesBigInts,        // v0.30.0
 		"SchemaBigIntFieldsByType": schema.SchemaBigIntFieldsByType, // v0.30.0
 	}
 

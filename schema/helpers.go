@@ -2,6 +2,103 @@ package schema
 
 import "strings"
 
+// SchemaUsesBigInts returns true if any struct type in the schema, or any
+// method input/output argument (including nested / list / struct references)
+// makes use of a bigint field (case-insensitive match on the original expr).
+// The function is read-only and does not mutate the provided schema.
+func SchemaUsesBigInts(s *WebRPCSchema) bool {
+	if s == nil {
+		return false
+	}
+
+	visited := make(map[string]bool) // cycle guard for struct recursion
+	memo := make(map[string]bool)    // memoize struct -> hasBigInt
+
+	var structHasBigIntRecursive func(t *Type) bool
+	var varTypeHasBigInt func(vt *VarType) bool // forward declaration so each can call the other
+
+	structHasBigIntRecursive = func(t *Type) bool {
+		if t == nil || t.Kind != TypeKind_Struct {
+			return false
+		}
+		if v, ok := memo[t.Name]; ok {
+			return v
+		}
+		if visited[t.Name] { // cycle
+			return false
+		}
+		visited[t.Name] = true
+		defer func() { visited[t.Name] = false }()
+
+		for _, f := range t.Fields {
+			if f.Type == nil {
+				continue
+			}
+			if varTypeHasBigInt(f.Type) {
+				memo[t.Name] = true
+				return true
+			}
+		}
+		memo[t.Name] = false
+		return false
+	}
+
+	// Helper on VarType mirroring logic in SchemaBigIntFieldsByType.
+	varTypeHasBigInt = func(vt *VarType) bool {
+		if vt == nil {
+			return false
+		}
+		// Direct scalar
+		if strings.EqualFold(vt.Expr, "bigint") {
+			return true
+		}
+		switch vt.Type {
+		case T_List:
+			if vt.List != nil {
+				// []bigint
+				if strings.EqualFold(vt.List.Elem.Expr, "bigint") {
+					return true
+				}
+				// []Struct{...}
+				if vt.List.Elem.Type == T_Struct && vt.List.Elem.Struct != nil && structHasBigIntRecursive(vt.List.Elem.Struct.Type) {
+					return true
+				}
+			}
+		case T_Struct:
+			if vt.Struct != nil && structHasBigIntRecursive(vt.Struct.Type) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Scan all defined struct types first.
+	for _, t := range s.Types {
+		if t.Kind == TypeKind_Struct && structHasBigIntRecursive(t) {
+			return true
+		}
+	}
+
+	// Scan all method inputs & outputs (non-succinct & succinct alike; succinct
+	// still exposes argument types directly).
+	for _, svc := range s.Services {
+		for _, m := range svc.Methods {
+			for _, in := range m.Inputs {
+				if in != nil && varTypeHasBigInt(in.Type) {
+					return true
+				}
+			}
+			for _, out := range m.Outputs {
+				if out != nil && varTypeHasBigInt(out.Type) {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
 // SchemaBigIntFieldsByType inspects the schema and returns a map of struct type names to a list of fields
 // that are of type bigint (case insensitive), including nested structs and lists of bigints.
 //
