@@ -12,13 +12,12 @@ import { randomUUID } from 'node:crypto'
 // ---------------------------------------------------------------------------
 // NOTE: you can also implement the service methods in a class.
 const exampleService: ExampleServer<RequestContext> = {
-  async ping(ctx) {
-    ctx.set('pingedAt', new Date().toISOString())
+  async ping() {
     return {}
   },
 
   async getUser(ctx, { userId }) {
-    if (userId === 911) {
+		if (userId === 911) {
 			throw new WebrpcEndpointError({ cause: 'User 911 is forbidden' })
 		}
 
@@ -28,15 +27,23 @@ const exampleService: ExampleServer<RequestContext> = {
         id: userId,
         USERNAME: `user-${userId}`,
         role: Kind.USER,
-        meta: { env: 'dev', traceId: ctx.var.traceId },
+        meta: { env: 'dev', reqId: ctx.var.traceId },
+        balance: BigInt(31337),
+        extra: {
+          info: 'additional user info',
+          amount: BigInt(5678),
+          points: [BigInt(100), BigInt(200), BigInt(300)],
+        }
       }
     }
   },
 
-  async getArticle(ctx, { articleId }) {
+  async getArticle(ctx, { articleId, byBN }) {
+    console.log('getArticle byBN:', byBN)
     return {
       title: `Article ${articleId}`,
-      content: `Hello, this is the content for article ${articleId}. (trace ${ctx.var.traceId})`
+      content: `Hello, this is the content for article ${articleId}. (req ${ctx.var.traceId})`,
+      largeNum: byBN * BigInt(2),
     }
   }
 }

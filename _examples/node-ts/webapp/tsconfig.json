@@ -7,5 +7,6 @@
     "resolveJsonModule": true,
     "lib": ["ES2022", "dom"]
   },
-  "include": ["."]
+  "include": ["."],
+  "exclude": ["dist"]
 }

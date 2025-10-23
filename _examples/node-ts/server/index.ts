@@ -8,6 +8,7 @@ const exampleService: ExampleServer<RequestContext> = {
   async ping() {
     return {}
   },
+
   async getUser(ctx, { userId }) {
     const traceId = ctx.get<string>('traceId') || ''
 
@@ -31,6 +32,7 @@ const exampleService: ExampleServer<RequestContext> = {
       }
     }
   },
+  
   async getArticle(ctx, { articleId, byBN }) {
     console.log('getArticle byBN:', byBN)
     return {
