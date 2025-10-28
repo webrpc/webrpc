@@ -388,6 +388,9 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 		structName := node.tok.val
 
 		typ := s.GetTypeByName(structName)
+		if typ == nil {
+			return nil, true, fmt.Errorf("unknown type for succinct definition of '%s'", structName)
+		}
 		if typ.Kind != "struct" {
 			return nil, true, fmt.Errorf("expecting struct type for succinct definition of '%s'", structName)
 		}
