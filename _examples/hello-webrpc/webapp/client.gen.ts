@@ -146,7 +146,7 @@ export class Example implements ExampleClient {
 }
 
 const createHttpRequest = (body: string = '{}', headers: object = {}, signal: AbortSignal | null = null): object => {
-  const reqHeaders: { [key: string]: string } = { ...headers, 'Content-Type': 'application/json', 'Webrpc': WebrpcHeaderValue }
+  const reqHeaders: { [key: string]: string } = { ...headers, 'Content-Type': 'application/json', [WebrpcHeader]: WebrpcHeaderValue }
   return { method: 'POST', headers: reqHeaders, body, signal }
 }
 
@@ -420,7 +420,7 @@ export const webrpcErrorByCode: { [code: number]: any } = {
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.22.4;hello-webrpc@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.22.5;hello-webrpc@v1.0.0"
 
 type WebrpcGenVersions = {
   WebrpcGenVersion: string;
