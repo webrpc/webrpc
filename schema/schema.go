@@ -22,10 +22,6 @@ type WebRPCSchema struct {
 	Types    []*Type    `json:"types"`
 	Errors   []*Error   `json:"errors"`
 	Services []*Service `json:"services"`
-
-	// Deprecated. Renamed to Types. Keep this field for now, so we can
-	// error out & advise users to migrate to v0.9.0+ schema format.
-	Deprecated_Messages []interface{} `json:"messages,omitempty"`
 }
 
 // Validate validates the schema through the AST, intended to be called after
@@ -54,10 +50,6 @@ func (s *WebRPCSchema) Validate() error {
 		if err != nil {
 			return err
 		}
-	}
-
-	if len(s.Deprecated_Messages) > 0 {
-		return fmt.Errorf(" field \"messages\" was renamed to \"types\", see https://github.com/webrpc/webrpc/blob/master/CHANGELOG.md#json-schema-v090-migration-guide")
 	}
 
 	return nil
