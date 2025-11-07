@@ -199,11 +199,6 @@ func collectCliArgs(flags *flag.FlagSet, args []string) (cliFlags []string, temp
 		} else {
 			templateOpts[name] = value
 		}
-
-		// Support webrpc-gen v0.6.0 -target=js -extra=noexports flag.
-		if name == "extra" && value == "noexports" {
-			templateOpts["export"] = "false"
-		}
 	}
 
 	return
