@@ -23,8 +23,8 @@ require (
 	github.com/webrpc/gen-golang v0.23.1
 	github.com/webrpc/gen-javascript v0.13.0
 	github.com/webrpc/gen-kotlin v0.1.0
-	github.com/webrpc/gen-openapi v0.16.3
-	github.com/webrpc/gen-typescript v0.22.2
+	github.com/webrpc/gen-openapi v0.16.4
+	github.com/webrpc/gen-typescript v0.22.3
 	golang.org/x/tools v0.36.0
 )
 
