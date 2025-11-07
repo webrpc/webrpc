@@ -41,7 +41,7 @@ generate: build
 
 # Upgrade Go dependencies
 dep-upgrade-all:
-	go get -u go@1.25 ./...
+	go get -u go@1.23 ./...
 
 # Run git diff and fail on any local changes
 diff:
