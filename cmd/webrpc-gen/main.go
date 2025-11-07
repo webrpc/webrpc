@@ -17,6 +17,7 @@ var (
 	flags            = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
 	versionFlag      = flags.Bool("version", false, "print version and exit")
 	schemaFlag       = flags.String("schema", "", "webrpc input schema file, ie. proto.ridl or proto.json (required)")
+	schemaVersion    = flags.String("schemaVersion", "$WEBRPC_SCHEMA_VERSION", "override schema version")
 	targetFlag       = flags.String("target", "", targetUsage())
 	outFlag          = flags.String("out", "", "generated output file (default stdout)")
 	fmtFlag          = flags.Bool("fmt", true, "format generated code")
@@ -54,6 +55,14 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to parse %s:%v\n", *schemaFlag, err)
 		os.Exit(1)
+	}
+	switch *schemaVersion {
+	case "$WEBRPC_SCHEMA_VERSION": // Default option value.
+		if version := os.Getenv("WEBRPC_SCHEMA_VERSION"); version != "" {
+			s.SchemaVersion = version
+		}
+	default:
+		s.SchemaVersion = *schemaVersion
 	}
 
 	// Code-gen targets
@@ -167,7 +176,7 @@ func collectCliArgs(flags *flag.FlagSet, args []string) (cliFlags []string, temp
 	templateOpts = map[string]interface{}{}
 
 	for _, arg := range args {
-		//name, value, _ := strings.Cut(arg, "=") // Added in Go 1.18.
+		// name, value, _ := strings.Cut(arg, "=") // Added in Go 1.18.
 		name, value := arg, ""
 		if i := strings.Index(arg, "="); i >= 0 {
 			name = arg[:i]
@@ -211,13 +220,13 @@ func writeOutfile(outfile string, protoGen []byte) error {
 
 	outdir := filepath.Dir(outfile)
 	if _, err := os.Stat(outdir); os.IsNotExist(err) {
-		err := os.MkdirAll(outdir, 0755)
+		err := os.MkdirAll(outdir, 0o755)
 		if err != nil {
 			return err
 		}
 	}
 
-	err = os.WriteFile(outfile, []byte(protoGen), 0644)
+	err = os.WriteFile(outfile, []byte(protoGen), 0o644)
 	if err != nil {
 		return err
 	}
