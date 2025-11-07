@@ -3696,8 +3696,7 @@
 				},
 				Schema: (*schema.WebRPCSchema)(<already shown>)
 			})
-		},
-		Deprecated_Messages: ([]interface {}) <nil>
+		}
 	}),
 	SchemaHash: (string) (len=40) "61c9c8c942e3f6bdffd9929e78ebb3631d924993",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
