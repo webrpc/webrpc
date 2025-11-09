@@ -211,8 +211,8 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/webrpc/gen-dart v0.1.1 h1:PZh5oNNdA84Qxu8ixKDf1cT8Iv6t0g7x6q9aeX1bti4=
 github.com/webrpc/gen-dart v0.1.1/go.mod h1:yq0ThW3ANNulJLyR50jx1aZMEVBDp19VUHucK65ayPs=
-github.com/webrpc/gen-golang v0.23.1 h1:YIW9Vs+Hq8Kt3S52RctpY3tjvFs712IFC8yy+2qn0g4=
-github.com/webrpc/gen-golang v0.23.1/go.mod h1:NxGXwEKm7yzKHISAFhD09yExukocb2XYa/KarN2IXpM=
+github.com/webrpc/gen-golang v0.23.3 h1:MiJ+NCSL2SseI1uVGZe35OmfpDHyVnKTTZ7ylJL0TE4=
+github.com/webrpc/gen-golang v0.23.3/go.mod h1:NxGXwEKm7yzKHISAFhD09yExukocb2XYa/KarN2IXpM=
 github.com/webrpc/gen-javascript v0.13.0 h1:tw7U1xueUjZz3cQAAA4/DZ90BHydkQKiJC4VXd/j2hg=
 github.com/webrpc/gen-javascript v0.13.0/go.mod h1:5EhapSJgzbiWrIGlqzZN9Lg9mE9209wwX+Du2dgn4EU=
 github.com/webrpc/gen-kotlin v0.1.0 h1:tnlinqbDgowEoSy8E3VovTdP2OjyOIbgACCbahRjNcc=

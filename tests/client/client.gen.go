@@ -177,89 +177,6 @@ type EnumData struct {
 	List []Status          `json:"list"`
 }
 
-var methods = map[string]method{
-	"/rpc/TestApi/GetEmpty": {
-		name:        "GetEmpty",
-		service:     "TestApi",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApi/GetError": {
-		name:        "GetError",
-		service:     "TestApi",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApi/GetOne": {
-		name:        "GetOne",
-		service:     "TestApi",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApi/SendOne": {
-		name:        "SendOne",
-		service:     "TestApi",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApi/GetMulti": {
-		name:        "GetMulti",
-		service:     "TestApi",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApi/SendMulti": {
-		name:        "SendMulti",
-		service:     "TestApi",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApi/GetComplex": {
-		name:        "GetComplex",
-		service:     "TestApi",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApi/SendComplex": {
-		name:        "SendComplex",
-		service:     "TestApi",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApi/GetEnumList": {
-		name:        "GetEnumList",
-		service:     "TestApi",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApi/GetEnumMap": {
-		name:        "GetEnumMap",
-		service:     "TestApi",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApi/GetSchemaError": {
-		name:        "GetSchemaError",
-		service:     "TestApi",
-		annotations: map[string]string{},
-	},
-}
-
-func WebrpcMethods() map[string]method {
-	res := make(map[string]method, len(methods))
-	for k, v := range methods {
-		res[k] = v
-	}
-
-	return res
-}
-
-var WebRPCServices = map[string][]string{
-	"TestApi": {
-		"GetEmpty",
-		"GetError",
-		"GetOne",
-		"SendOne",
-		"GetMulti",
-		"SendMulti",
-		"GetComplex",
-		"SendComplex",
-		"GetEnumList",
-		"GetEnumMap",
-		"GetSchemaError",
-	},
-}
-
 //
 // Client
 //
@@ -590,29 +507,6 @@ func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 // Webrpc helpers
 //
 
-type method struct {
-	name        string
-	service     string
-	annotations map[string]string
-}
-
-func (m method) Name() string {
-	return m.name
-}
-
-func (m method) Service() string {
-	return m.service
-}
-
-func (m method) Annotations() map[string]string {
-	res := make(map[string]string, len(m.annotations))
-	for k, v := range m.annotations {
-		res[k] = v
-	}
-
-	return res
-}
-
 type contextKey struct {
 	name string
 }
@@ -622,40 +516,8 @@ func (k *contextKey) String() string {
 }
 
 var (
-	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"} // client
-	HTTPRequestCtxKey              = &contextKey{"HTTPRequest"}              // server
-	ServiceNameCtxKey              = &contextKey{"ServiceName"}              // server
-	MethodNameCtxKey               = &contextKey{"MethodName"}               // server
+	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"}
 )
-
-func ServiceNameFromContext(ctx context.Context) string {
-	service, _ := ctx.Value(ServiceNameCtxKey).(string)
-	return service
-}
-
-func MethodNameFromContext(ctx context.Context) string {
-	method, _ := ctx.Value(MethodNameCtxKey).(string)
-	return method
-}
-
-func RequestFromContext(ctx context.Context) *http.Request {
-	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
-	return r
-}
-
-func MethodCtx(ctx context.Context) (method, bool) {
-	req := RequestFromContext(ctx)
-	if req == nil {
-		return method{}, false
-	}
-
-	m, ok := methods[req.URL.Path]
-	if !ok {
-		return method{}, false
-	}
-
-	return m, true
-}
 
 // PtrTo is a useful helper when constructing values for optional fields.
 func PtrTo[T any](v T) *T { return &v }
@@ -753,13 +615,9 @@ var (
 	ErrFileType        = WebRPCError{Code: 302, Name: "FileType", Message: "unsupported file type", HTTPStatus: 400}
 )
 
-//
-// Webrpc
-//
-
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.23.1;Test@v0.10.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.23.3;Test@v0.10.0"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string

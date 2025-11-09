@@ -103,41 +103,6 @@ type Page struct {
 	Num uint32 `json:"num"`
 }
 
-var methods = map[string]method{
-	"/rpc/Example/Ping": {
-		name:        "Ping",
-		service:     "Example",
-		annotations: map[string]string{"deprecated": "Use /ping endpoint instead."},
-	},
-	"/rpc/Example/GetUser": {
-		name:        "GetUser",
-		service:     "Example",
-		annotations: map[string]string{},
-	},
-	"/rpc/Example/FindUsers": {
-		name:        "FindUsers",
-		service:     "Example",
-		annotations: map[string]string{},
-	},
-}
-
-func WebrpcMethods() map[string]method {
-	res := make(map[string]method, len(methods))
-	for k, v := range methods {
-		res[k] = v
-	}
-
-	return res
-}
-
-var WebRPCServices = map[string][]string{
-	"Example": {
-		"Ping",
-		"GetUser",
-		"FindUsers",
-	},
-}
-
 //
 // Server
 //
@@ -363,32 +328,59 @@ func RespondWithError(w http.ResponseWriter, err error) {
 	w.Write(respBody)
 }
 
-//
-// Webrpc helpers
-//
-
 type method struct {
 	name        string
 	service     string
 	annotations map[string]string
 }
 
-func (m method) Name() string {
-	return m.name
+func (m *method) Name() string                   { return m.name }
+func (m *method) Service() string                { return m.service }
+func (m *method) Annotations() map[string]string { return m.annotations }
+
+var methods = map[string]*method{
+	"/rpc/Example/Ping": {
+		name:        "Ping",
+		service:     "Example",
+		annotations: map[string]string{"deprecated": "Use /ping endpoint instead."},
+	},
+	"/rpc/Example/GetUser": {
+		name:        "GetUser",
+		service:     "Example",
+		annotations: map[string]string{},
+	},
+	"/rpc/Example/FindUsers": {
+		name:        "FindUsers",
+		service:     "Example",
+		annotations: map[string]string{},
+	},
 }
 
-func (m method) Service() string {
-	return m.service
-}
-
-func (m method) Annotations() map[string]string {
-	res := make(map[string]string, len(m.annotations))
-	for k, v := range m.annotations {
-		res[k] = v
+func MethodCtx(ctx context.Context) (*method, bool) {
+	req := RequestFromContext(ctx)
+	if req == nil {
+		return nil, false
 	}
 
-	return res
+	m, ok := methods[req.URL.Path]
+	return m, ok
 }
+
+func WebrpcMethods() map[string]*method {
+	return methods
+}
+
+var WebRPCServices = map[string][]string{
+	"Example": {
+		"Ping",
+		"GetUser",
+		"FindUsers",
+	},
+}
+
+//
+// Webrpc helpers
+//
 
 type contextKey struct {
 	name string
@@ -399,10 +391,10 @@ func (k *contextKey) String() string {
 }
 
 var (
-	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"} // server
-	HTTPRequestCtxKey        = &contextKey{"HTTPRequest"}        // server
-	ServiceNameCtxKey        = &contextKey{"ServiceName"}        // server
-	MethodNameCtxKey         = &contextKey{"MethodName"}         // server
+	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"}
+	MethodNameCtxKey         = &contextKey{"MethodName"}
+	HTTPRequestCtxKey        = &contextKey{"HTTPRequest"}
+	ServiceNameCtxKey        = &contextKey{"ServiceName"}
 )
 
 func ServiceNameFromContext(ctx context.Context) string {
@@ -418,20 +410,6 @@ func MethodNameFromContext(ctx context.Context) string {
 func RequestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	return r
-}
-
-func MethodCtx(ctx context.Context) (method, bool) {
-	req := RequestFromContext(ctx)
-	if req == nil {
-		return method{}, false
-	}
-
-	m, ok := methods[req.URL.Path]
-	if !ok {
-		return method{}, false
-	}
-
-	return m, true
 }
 
 // PtrTo is a useful helper when constructing values for optional fields.
@@ -518,13 +496,9 @@ var (
 	ErrUserNotFound = WebRPCError{Code: 1000, Name: "UserNotFound", Message: "User not found", HTTPStatus: 400}
 )
 
-//
-// Webrpc
-//
-
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.23.1;hello-webrpc@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.23.3;hello-webrpc@v1.0.0"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string
