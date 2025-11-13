@@ -122,7 +122,7 @@ export class Example implements ExampleClient {
   getUser = (req: GetUserRequest, headers?: object, signal?: AbortSignal): Promise<GetUserResponse> => {
     return this.fetch(
       this.url('GetUser'),
-      createHttpRequest(JsonEncode(req, 'GetUserRequest'), headers, signal)).then((res) => {
+      createHttpRequest(JsonEncode(req), headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return JsonDecode<GetUserResponse>(_data, 'GetUserResponse')
       })
@@ -134,7 +134,7 @@ export class Example implements ExampleClient {
   findUsers = (req: FindUsersRequest, headers?: object, signal?: AbortSignal): Promise<FindUsersResponse> => {
     return this.fetch(
       this.url('FindUsers'),
-      createHttpRequest(JsonEncode(req, 'FindUsersRequest'), headers, signal)).then((res) => {
+      createHttpRequest(JsonEncode(req), headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return JsonDecode<FindUsersResponse>(_data, 'FindUsersResponse')
       })
@@ -176,7 +176,7 @@ export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response
 
 
 
-export const JsonEncode = <T = any>(obj: T, _typ: string = ''): string => {
+export const JsonEncode = <T = any>(obj: T): string => {
   return JSON.stringify(obj)
 }
 
@@ -420,7 +420,7 @@ export const webrpcErrorByCode: { [code: number]: any } = {
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.22.5;hello-webrpc@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.23.1;hello-webrpc@v1.0.0"
 
 type WebrpcGenVersions = {
   WebrpcGenVersion: string;

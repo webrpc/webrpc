@@ -300,40 +300,6 @@ const BIG_INT_FIELDS: { [typ: string]: (string | [string, string])[] } = {
   User: ['balance', ['extra', 'Extra']]
 }
 
-// Encode in-place: mutate provided object graph to serialize bigints to strings.
-function encodeType(typ: string, obj: any): any {
-  if (obj == null || typeof obj !== 'object') return obj
-  const descs = BIG_INT_FIELDS[typ] || []
-  if (!descs.length) return obj
-  for (const d of descs) {
-    if (Array.isArray(d)) {
-      const [fieldName, nestedType] = d
-      if (fieldName.endsWith('[]')) {
-        const base = fieldName.slice(0, -2)
-        const arr = obj[base]
-        if (Array.isArray(arr)) {
-          for (let i = 0; i < arr.length; i++) arr[i] = encodeType(nestedType, arr[i])
-        }
-      } else if (obj[fieldName]) {
-        obj[fieldName] = encodeType(nestedType, obj[fieldName])
-      }
-      continue
-    }
-    if (d.endsWith('[]')) {
-      const base = d.slice(0, -2)
-      const arr = obj[base]
-      if (Array.isArray(arr)) {
-        for (let i = 0; i < arr.length; i++) {
-          if (typeof arr[i] === 'bigint') arr[i] = arr[i].toString()
-        }
-      }
-      continue
-    }
-    if (typeof obj[d] === 'bigint') obj[d] = obj[d].toString()
-  }
-  return obj
-}
-
 // Decode in-place: mutate object graph; throw if expected numeric string is invalid.
 function decodeType(typ: string, obj: any): any {
   if (obj == null || typeof obj !== 'object') return obj
@@ -349,7 +315,16 @@ function decodeType(typ: string, obj: any): any {
           for (let i = 0; i < arr.length; i++) arr[i] = decodeType(nestedType, arr[i])
         }
       } else if (obj[fieldName]) {
-        obj[fieldName] = decodeType(nestedType, obj[fieldName])
+        // Handle nestedType that might be an array type like 'Message[]'
+        if (nestedType.endsWith('[]')) {
+          const baseType = nestedType.slice(0, -2)
+          const arr = obj[fieldName]
+          if (Array.isArray(arr)) {
+            for (let i = 0; i < arr.length; i++) arr[i] = decodeType(baseType, arr[i])
+          }
+        } else {
+          obj[fieldName] = decodeType(nestedType, obj[fieldName])
+        }
       }
       continue
     }
@@ -374,9 +349,11 @@ function decodeType(typ: string, obj: any): any {
   return obj
 }
 
-// Encode object of given root type to JSON with BigInts converted to decimal strings.
-export const JsonEncode = <T = any>(obj: T, typ: string = ''): string => {
-  return JSON.stringify(encodeType(typ, obj))
+// Encode object to JSON with BigInts converted to decimal strings.
+export const JsonEncode = <T = any>(obj: T): string => {
+  return JSON.stringify(obj, (key, value) =>
+    typeof value === 'bigint' ? value.toString() : value
+  )
 }
 
 // Decode data (JSON string or already-parsed object) and convert declared BigInt string fields back to BigInt.
@@ -695,7 +672,7 @@ export const webrpcErrorByCode: { [code: number]: any } = {
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.22.5;node-ts@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.23.1;node-ts@v1.0.0"
 
 type WebrpcGenVersions = {
   WebrpcGenVersion: string;
