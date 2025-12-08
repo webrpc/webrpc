@@ -129,6 +129,77 @@ func MatchServices(s *WebRPCSchema, services []string) *WebRPCSchema {
 	return s
 }
 
+func MethodTreeShake(s *WebRPCSchema) *WebRPCSchema {
+	if s == nil {
+		return nil
+	}
+
+	// Collect type names referenced by service methods (including nested references).
+	used := map[string]bool{}
+
+	// Helper: recursively walk VarType and mark used type names, including nested struct fields and map/list elements.
+	var walkVarType func(vt *VarType)
+	walkVarType = func(vt *VarType) {
+		if vt == nil {
+			return
+		}
+
+		// List element
+		if vt.List != nil {
+			walkVarType(vt.List.Elem)
+		}
+
+		// Map key/value
+		if vt.Map != nil {
+			walkVarType(vt.Map.Key)
+			walkVarType(vt.Map.Value)
+		}
+
+		// Struct type: mark and traverse its fields
+		if vt.Struct != nil && vt.Struct.Type != nil {
+			t := vt.Struct.Type
+			if t.Name != "" {
+				used[t.Name] = true
+			}
+			// Traverse struct fields to include transitive type usage
+			for _, f := range t.Fields {
+				walkVarType(f.Type)
+			}
+		}
+
+		// Enum type: mark usage
+		if vt.Enum != nil && vt.Enum.Type != nil {
+			t := vt.Enum.Type
+			if t.Name != "" {
+				used[t.Name] = true
+			}
+		}
+	}
+
+	// Traverse all methods of all services to collect referenced types.
+	for _, srv := range s.Services {
+		for _, m := range srv.Methods {
+			for _, in := range m.Inputs {
+				walkVarType(in.Type)
+			}
+			for _, out := range m.Outputs {
+				walkVarType(out.Type)
+			}
+		}
+	}
+
+	// Filter types: keep only those marked as used.
+	var kept []*Type
+	for _, t := range s.Types {
+		if used[t.Name] {
+			kept = append(kept, t)
+		}
+	}
+	s.Types = kept
+
+	return s
+}
+
 func MatchMethodsWithAnnotations(s *WebRPCSchema, annotations map[string]string) *WebRPCSchema {
 	if s == nil {
 		return nil

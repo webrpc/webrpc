@@ -14,18 +14,19 @@ import (
 )
 
 var (
-	flags            = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
-	versionFlag      = flags.Bool("version", false, "print version and exit")
-	schemaFlag       = flags.String("schema", "", "webrpc input schema file, ie. proto.ridl or proto.json (required)")
-	schemaVersion    = flags.String("schemaVersion", "$WEBRPC_SCHEMA_VERSION", "override schema version")
-	targetFlag       = flags.String("target", "", targetUsage())
-	outFlag          = flags.String("out", "", "generated output file (default stdout)")
-	fmtFlag          = flags.Bool("fmt", true, "format generated code")
-	refreshCacheFlag = flags.Bool("refreshCache", false, "refresh webrpc cache")
-	silentFlag       = flags.Bool("silent", false, "silence gen summary")
-	serviceFlag      = flags.String("service", "", "generate passed service only separated by comma, empty string means all services")
-	ignoreFlag       = flags.String("ignore", "", "ignore service methods with specific annotations separated by commas")
-	matchFlag        = flags.String("match", "", "match service methods with specific annotations separated by commas")
+	flags               = flag.NewFlagSet("webrpc-gen", flag.ExitOnError)
+	versionFlag         = flags.Bool("version", false, "print version and exit")
+	schemaFlag          = flags.String("schema", "", "webrpc input schema file, ie. proto.ridl or proto.json (required)")
+	schemaVersion       = flags.String("schemaVersion", "$WEBRPC_SCHEMA_VERSION", "override schema version")
+	targetFlag          = flags.String("target", "", targetUsage())
+	outFlag             = flags.String("out", "", "generated output file (default stdout)")
+	fmtFlag             = flags.Bool("fmt", true, "format generated code")
+	refreshCacheFlag    = flags.Bool("refreshCache", false, "refresh webrpc cache")
+	silentFlag          = flags.Bool("silent", false, "silence gen summary")
+	serviceFlag         = flags.String("service", "", "generate passed service only separated by comma, empty string means all services")
+	methodTreeShakeFlag = flags.Bool("methodTreeShake", true, "remove unused types based on used methods in services when using -service flag")
+	ignoreFlag          = flags.String("ignore", "", "ignore service methods with specific annotations separated by commas")
+	matchFlag           = flags.String("match", "", "match service methods with specific annotations separated by commas")
 )
 
 func main() {
@@ -74,6 +75,10 @@ func main() {
 
 	if *serviceFlag != "" {
 		s = schema.MatchServices(s, strings.Split(*serviceFlag, ","))
+	}
+
+	if *methodTreeShakeFlag {
+		s = schema.MethodTreeShake(s)
 	}
 
 	if *ignoreFlag != "" && *matchFlag != "" {
