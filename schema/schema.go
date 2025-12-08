@@ -129,41 +129,52 @@ func MatchServices(s *WebRPCSchema, services []string) *WebRPCSchema {
 	return s
 }
 
-func MethodTreeShake(s *WebRPCSchema) *WebRPCSchema {
+// MethodTreeShake removes unused types from the schema based on the methods which
+// are *not used* in the output. We look up services which are excluded, and then
+// omit types which are referenced by those methods only, and not other methods
+// from other services.
+func MethodTreeShake(s *WebRPCSchema, services []string) *WebRPCSchema {
 	if s == nil {
 		return nil
 	}
 
-	// Collect type names referenced by service methods (including nested references).
-	used := map[string]bool{}
+	// Build set of included services from input list
+	include := map[string]struct{}{}
+	for _, name := range services {
+		include[name] = struct{}{}
+	}
+
+	// Collect type names referenced by included vs excluded service methods
+	usedIncluded := map[string]bool{}
+	usedExcluded := map[string]bool{}
 
 	// Helper: recursively walk VarType and mark used type names, including nested struct fields and map/list elements.
-	var walkVarType func(vt *VarType)
-	walkVarType = func(vt *VarType) {
+	var walkVarType func(vt *VarType, mark map[string]bool)
+	walkVarType = func(vt *VarType, mark map[string]bool) {
 		if vt == nil {
 			return
 		}
 
 		// List element
 		if vt.List != nil {
-			walkVarType(vt.List.Elem)
+			walkVarType(vt.List.Elem, mark)
 		}
 
 		// Map key/value
 		if vt.Map != nil {
-			walkVarType(vt.Map.Key)
-			walkVarType(vt.Map.Value)
+			walkVarType(vt.Map.Key, mark)
+			walkVarType(vt.Map.Value, mark)
 		}
 
 		// Struct type: mark and traverse its fields
 		if vt.Struct != nil && vt.Struct.Type != nil {
 			t := vt.Struct.Type
 			if t.Name != "" {
-				used[t.Name] = true
+				mark[t.Name] = true
 			}
 			// Traverse struct fields to include transitive type usage
 			for _, f := range t.Fields {
-				walkVarType(f.Type)
+				walkVarType(f.Type, mark)
 			}
 		}
 
@@ -171,27 +182,41 @@ func MethodTreeShake(s *WebRPCSchema) *WebRPCSchema {
 		if vt.Enum != nil && vt.Enum.Type != nil {
 			t := vt.Enum.Type
 			if t.Name != "" {
-				used[t.Name] = true
+				mark[t.Name] = true
 			}
 		}
 	}
 
-	// Traverse all methods of all services to collect referenced types.
+	// Traverse all methods of services; split by included/excluded.
 	for _, srv := range s.Services {
+		_, isIncluded := include[srv.Name]
+		mark := usedExcluded
+		if isIncluded {
+			mark = usedIncluded
+		}
 		for _, m := range srv.Methods {
 			for _, in := range m.Inputs {
-				walkVarType(in.Type)
+				walkVarType(in.Type, mark)
 			}
 			for _, out := range m.Outputs {
-				walkVarType(out.Type)
+				walkVarType(out.Type, mark)
 			}
 		}
 	}
 
-	// Filter types: keep only those marked as used.
+	// Keep types used by included services OR not referenced by any service.
+	// Remove only those referenced exclusively by excluded services.
+	referencedAny := map[string]bool{}
+	for name := range usedIncluded {
+		referencedAny[name] = true
+	}
+	for name := range usedExcluded {
+		referencedAny[name] = true
+	}
+
 	var kept []*Type
 	for _, t := range s.Types {
-		if used[t.Name] {
+		if usedIncluded[t.Name] || !referencedAny[t.Name] {
 			kept = append(kept, t)
 		}
 	}

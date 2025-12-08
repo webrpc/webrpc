@@ -24,7 +24,7 @@ var (
 	refreshCacheFlag    = flags.Bool("refreshCache", false, "refresh webrpc cache")
 	silentFlag          = flags.Bool("silent", false, "silence gen summary")
 	serviceFlag         = flags.String("service", "", "generate passed service only separated by comma, empty string means all services")
-	methodTreeShakeFlag = flags.Bool("methodTreeShake", true, "remove unused types based on used methods in services when using -service flag")
+	methodTreeShakeFlag = flags.Bool("methodTreeShake", false, "remove unused types of omitted services when using -service flag")
 	ignoreFlag          = flags.String("ignore", "", "ignore service methods with specific annotations separated by commas")
 	matchFlag           = flags.String("match", "", "match service methods with specific annotations separated by commas")
 )
@@ -73,12 +73,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if *serviceFlag != "" {
-		s = schema.MatchServices(s, strings.Split(*serviceFlag, ","))
+	if *methodTreeShakeFlag && *serviceFlag != "" {
+		s = schema.MethodTreeShake(s, strings.Split(*serviceFlag, ","))
 	}
 
-	if *methodTreeShakeFlag {
-		s = schema.MethodTreeShake(s)
+	if *serviceFlag != "" {
+		s = schema.MatchServices(s, strings.Split(*serviceFlag, ","))
 	}
 
 	if *ignoreFlag != "" && *matchFlag != "" {
