@@ -49,6 +49,10 @@ func parserStateErrorMessage(et *ErrorNode) parserState {
 
 		// <message>
 		case tokenWord:
+			if tok.val == "HTTP" {
+				p.rewind(1)
+				return parserStateErrorExplicitStatusCode(et)
+			}
 			et.message = newTokenNode(tok)
 			p.next()
 
@@ -56,7 +60,17 @@ func parserStateErrorMessage(et *ErrorNode) parserState {
 			return p.stateError(fmt.Errorf("expected <message> but got %v", tok))
 		}
 
-		return parserStateErrorExplicitStatusCode(et)
+		if et.httpStatus == nil {
+			return parserStateErrorExplicitStatusCode(et)
+		}
+
+		if err := p.expectOptionalCommentOrEOL(); err != nil {
+			return p.stateError(err)
+		}
+
+		p.emit(et)
+		return parserDefaultState
+
 	}
 }
 
@@ -91,6 +105,13 @@ func parserStateErrorExplicitStatusCode(et *ErrorNode) parserState {
 		}
 
 		et.httpStatus = newTokenNode(matches[1])
+
+		if et.message == nil {
+			if _, err = p.match(tokenWhitespace); err != nil {
+				return p.stateError(fmt.Errorf("expecting 'whitespace <message>': %w", err))
+			}
+			return parserStateErrorMessage(et)
+		}
 
 		if err := p.expectOptionalCommentOrEOL(); err != nil {
 			return p.stateError(err)

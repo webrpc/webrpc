@@ -394,34 +394,39 @@ func TestRIDLErrors(t *testing.T) {
 			error 400100 MemoryFull      "system memory is full"
 			error 400200 Unauthorized    "Unauthorized" HTTP 401
 			error 400300 UserNotFound    "user not found"
+			error 400301 Conflict       HTTP 409 "no auth"
 		`
 		s, err := parseString(input)
 		assert.NoError(t, err)
 
-		if assert.NotNil(t, s) && assert.Equal(t, 5, len(s.Errors)) {
+		if assert.NotNil(t, s) && assert.Equal(t, 6, len(s.Errors)) {
 			assert.Equal(t, 500100, s.Errors[0].Code)
 			assert.Equal(t, 500101, s.Errors[1].Code)
 			assert.Equal(t, 400100, s.Errors[2].Code)
 			assert.Equal(t, 400200, s.Errors[3].Code)
 			assert.Equal(t, 400300, s.Errors[4].Code)
+			assert.Equal(t, 400301, s.Errors[5].Code)
 
 			assert.Equal(t, "MissingArgument", s.Errors[0].Name)
 			assert.Equal(t, "InvalidUsername", s.Errors[1].Name)
 			assert.Equal(t, "MemoryFull", s.Errors[2].Name)
 			assert.Equal(t, "Unauthorized", s.Errors[3].Name)
 			assert.Equal(t, "UserNotFound", s.Errors[4].Name)
+			assert.Equal(t, "Conflict", s.Errors[5].Name)
 
 			assert.Equal(t, "missing argument", s.Errors[0].Message)
 			assert.Equal(t, "invalid username", s.Errors[1].Message)
 			assert.Equal(t, "system memory is full", s.Errors[2].Message)
 			assert.Equal(t, "Unauthorized", s.Errors[3].Message)
 			assert.Equal(t, "user not found", s.Errors[4].Message)
+			assert.Equal(t, "no auth", s.Errors[5].Message)
 
 			assert.Equal(t, 400, s.Errors[0].HTTPStatus)
 			assert.Equal(t, 400, s.Errors[1].HTTPStatus)
 			assert.Equal(t, 400, s.Errors[2].HTTPStatus)
 			assert.Equal(t, 401, s.Errors[3].HTTPStatus)
 			assert.Equal(t, 400, s.Errors[4].HTTPStatus)
+			assert.Equal(t, 409, s.Errors[5].HTTPStatus)
 		}
 	}
 
