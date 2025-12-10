@@ -49,6 +49,7 @@ func parserStateErrorMessage(et *ErrorNode) parserState {
 
 		// <message>
 		case tokenWord:
+			// optional HTTP status code before message
 			if tok.val == "HTTP" {
 				p.rewind(1)
 				return parserStateErrorExplicitStatusCode(et)
@@ -60,10 +61,12 @@ func parserStateErrorMessage(et *ErrorNode) parserState {
 			return p.stateError(fmt.Errorf("expected <message> but got %v", tok))
 		}
 
+		// optional HTTP status code after message
 		if et.httpStatus == nil {
 			return parserStateErrorExplicitStatusCode(et)
 		}
 
+		// end of error definition, check for comment or EOL
 		if err := p.expectOptionalCommentOrEOL(); err != nil {
 			return p.stateError(err)
 		}
@@ -107,6 +110,7 @@ func parserStateErrorExplicitStatusCode(et *ErrorNode) parserState {
 		et.httpStatus = newTokenNode(matches[1])
 
 		if et.message == nil {
+			// if message is not yet set, it means HTTP status code was before message, so parse message now
 			if _, err = p.match(tokenWhitespace); err != nil {
 				return p.stateError(fmt.Errorf("expecting 'whitespace <message>': %w", err))
 			}
