@@ -52,6 +52,19 @@ func split(sep string, str string) []string {
 	return strings.Split(str, sep)
 }
 
+func replaceString(v interface{}, pairs ...string) string {
+	str := toString(v)
+	if len(pairs)%2 != 0 {
+		panic(fmt.Errorf("replaceString(): oldNewPairs must be even, got %d", len(pairs)))
+	}
+	for i := 0; i < len(pairs); i += 2 {
+		if str == pairs[i] {
+			return pairs[i+1]
+		}
+	}
+	return str
+}
+
 func applyStringFunction(fnName string, fn func(string) string) func(v interface{}) string {
 	return func(v interface{}) string {
 		switch t := v.(type) {
