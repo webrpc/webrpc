@@ -3,7 +3,7 @@ module github.com/webrpc/webrpc/_example/golang-basics
 go 1.22
 
 require (
-	github.com/go-chi/chi/v5 v5.0.12
+	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/cors v1.2.2
 	github.com/stretchr/testify v1.11.1
 )
