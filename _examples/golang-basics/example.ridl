@@ -69,50 +69,47 @@ error 1000 UserNotFound     "User not found"      HTTP 404
 error 2000 Unauthorized     "Unauthorized access" HTTP 401
 error 3000 PermissionDenied "Permission denied"   HTTP 403
 
-
 service Example
-  @internal
+    @internal
   - Ping()
 
-  @internal
+    @internal
   - Status() => (status: bool)
 
-  @internal
+    @internal
   - Version() => (version: Version)
 
-  @deprecated:"Use GetUserV2 instead."
-  @internal
+    @deprecated:"Use GetUserV2 instead."
+    @internal
   - GetUser(GetUserRequest) => (GetUserResponse)
 
-  @public
-  @auth:"X-Access-Key,S2S,Cookies"
+    @public
+    @auth:"X-Access-Key,S2S,Cookies"
   - GetUserV2(GetUserRequest) => (GetUserResponse)
 
-  @public
+    @public
   - FindUser(s: SearchFilter) => (name: string, user: User)
 
-  @public
+    @public
   - GetIntents() => (intents: []Intent)
 
-  @public
+    @public
   - CountIntents(userId: uint64) => (count: map<Intent,uint32>)
-
 
 service ExampleV2
   - Ping()
   - Status() => (status: bool)
 
-
 service Admin
-  @public
-  @deprecated:"Use Auth instead."
+    @public
+    @deprecated:"Use Auth instead."
   - AuthOld() => (jwt: string)
 
-  @public
+    @public
   - Auth() => (jwt: string, role: string)
 
-  @internal
+    @internal
   - Status() => (status: bool)
 
-  @internal
+    @internal
   - Version() => (version: Version)
