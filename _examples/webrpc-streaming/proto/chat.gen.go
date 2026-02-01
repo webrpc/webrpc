@@ -113,9 +113,15 @@ func (w *streamWriter) ping() error {
 	return err
 }
 
-func (w *streamWriter) write(respPayload interface{}) error {
+func (w *streamWriter) write(respPayload ...interface{}) error {
+	var err error
 	w.mu.Lock()
-	err := w.e.Encode(respPayload)
+	for _, respPayload := range respPayload {
+		err = w.e.Encode(respPayload)
+		if err != nil {
+			break
+		}
+	}
 	w.f.Flush()
 	w.mu.Unlock()
 
@@ -391,6 +397,7 @@ func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w ht
 		Arg0 string  `json:"username"`
 		Arg1 *uint64 `json:"lastMessageId"`
 	}{}
+
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
@@ -408,7 +415,9 @@ func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w ht
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(http.StatusOK)
 
-	streamWriter := &subscribeMessagesStreamWriter{streamWriter{w: w, f: f, e: json.NewEncoder(w), sendError: s.sendErrorJSON}}
+	e := json.NewEncoder(w)
+	e.SetIndent("", "")
+	streamWriter := &subscribeMessagesStreamWriter{streamWriter{w: w, f: f, e: e, sendError: s.sendErrorJSON}}
 	if err := streamWriter.ping(); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcStreamLost.WithCausef("failed to establish SSE stream: %w", err))
 		return
@@ -757,7 +766,7 @@ var (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.23.3;webrpc-sse-chat@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.24.0;webrpc-sse-chat@v1.0.0"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string

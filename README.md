@@ -20,7 +20,7 @@ simplifying the development of backend services for modern Web applications.
 - [Development](#development)
   - [Building from source](#building-from-source)
   - [Writing your own code-generator](#writing-your-own-code-generator)
-  - [Format ridl files](#format-ridl)
+  - [Format ridl](#format-ridl)
 - [Authors](#authors)
 - [Credits](#credits)
 - [License](#license)
@@ -48,7 +48,7 @@ plugin for RIDL synx highlighting.
 | [javascript](https://github.com/webrpc/gen-javascript) | JavaScript (ES6)                  | v1     | ✅     | ✅     |
 | [kotlin](https://github.com/webrpc/gen-kotlin)         | Kotlin (coroutines, moshi, ktor)  | v1     | ✅     |        |
 | [dart](https://github.com/webrpc/gen-dart)             | Dart 3.1+                         | v1     | ✅     |        |
-| [openapi](https://github.com/webrpc/gen-openapi)       | OpenAPI 3.x (Swagger)             | v1     | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview) | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview)  |
+| [openapi](https://github.com/webrpc/gen-openapi)       | OpenAPI 3.0.0 (Swagger)           | v1     | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview) | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview)  |
 
 ..contribute more! [webrpc generators](./gen/) are just Go templates (similar to [Hugo](https://gohugo.io/templates/) or [Helm](https://helm.sh/docs/chart_best_practices/templates/)).
 
@@ -174,10 +174,6 @@ especially if you have to write it by hand and then maintain robust code in both
 the server. Ahh, I just want to call a function on my server from my app! Save yourself the work
 and time, and code-generate it instead - Enter gRPC / Twirp .. and now, webrpc :) 
 
-
-Future goals/work:
-1. Add RPC streaming support for client/server
-2. More code generators.. for Rust, Python, ..
 
 # Schema
 

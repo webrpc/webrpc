@@ -28,13 +28,7 @@ clean:
 # Regenerate examples and tests using latest templates (see go.mod)
 generate: build
 	go generate -v -x ./...
-	cd _examples/ && go generate -x ./...
-	@for i in _examples/*/Makefile; do           \
-		echo; echo $$ cd $$(dirname $$i) \&\& make generate; \
-		cd $$(dirname $$i);                      \
-		make generate || exit 1;                 \
-		cd ../../;                               \
-	done
+	for i in _examples/*; do make -C $$i generate || exit 1; done
 	# Replace webrpc version in all generated files to avoid git conflicts.
 	git grep -l "$$(git describe --tags)" | xargs sed -i -e "s/@$$(git describe --tags)//g"
 	sed -i "/$$(git describe --tags)/d" tests/schema/test.debug.gen.txt
