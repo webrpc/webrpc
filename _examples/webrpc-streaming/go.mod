@@ -7,7 +7,7 @@ go 1.23
 toolchain go1.24.2
 
 require (
-	github.com/go-chi/chi/v5 v5.1.0
+	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/httplog/v3 v3.2.2
 	github.com/golang-cz/devslog v0.0.15
