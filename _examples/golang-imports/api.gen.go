@@ -649,7 +649,7 @@ var (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.23.3;example-api-service@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.24.0;example-api-service@v1.0.0"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string
