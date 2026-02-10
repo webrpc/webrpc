@@ -23,6 +23,7 @@ conventions, but it is not RESTful. It is a straightforward REST‑like JSON API
 webrpc = v1
 name = <schema-name>
 version = <schema-version>
+basepath = <api-base-path>
 ```
 
 ## Imports
