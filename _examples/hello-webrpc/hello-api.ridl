@@ -2,12 +2,19 @@ webrpc = v1
 
 name = hello-webrpc
 version = v1.0.0
+#basepath = /rpc
+
+service Example
+    @deprecated:"Use /ping endpoint instead."
+  - Ping() => (status: bool)
+
+  # GetUser returns a user by ID.
+  - GetUser(userID: uint64) => (user: User)
+
+  # FindUsers returns a list of users matching given search query.
+  - FindUsers(q: string) => (page: Page, users: []User)
 
 error 1000 UserNotFound "User not found" HTTP 400 # Note: We keep HTTP 404 errors reserved for "route not found" errors.
-
-enum Kind: uint32
-  - USER = 1
-  - ADMIN = 2
 
 struct User
   - ID: uint64
@@ -30,16 +37,9 @@ struct User
     + go.tag.json = created_at,omitempty
     + go.tag.db = created_at
 
+enum Kind: uint32
+  - USER = 1
+  - ADMIN = 2
+  
 struct Page
   - num: uint32
-
-service Example
-    @deprecated:"Use /ping endpoint instead."
-  - Ping() => (status: bool)
-
-  # GetUser returns a user by ID.
-  - GetUser(userID: uint64) => (user: User)
-
-  # FindUsers returns a list of users matching given search query.
-  - FindUsers(q: string) => (page: Page, users: []User)
-
