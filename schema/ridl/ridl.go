@@ -146,6 +146,11 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				return nil, fmt.Errorf(`name was previously declared`)
 			}
 			s.SchemaName = value
+		case wordBasepath:
+			if s.BasePath != "" {
+				return nil, fmt.Errorf(`basepath was previously declared`)
+			}
+			s.BasePath = value
 		case wordVersion:
 			if s.SchemaVersion != "" {
 				return nil, fmt.Errorf(`version was previously declared`)

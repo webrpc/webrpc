@@ -45,6 +45,10 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		}
 	}()
 
+	if proto.BasePath == "" && len(proto.Services) > 0 {
+		proto.BasePath = "/rpc/"
+	}
+
 	// Generate deterministic schema hash of the proto file
 	schemaHash, err := proto.SchemaHash()
 	if err != nil {

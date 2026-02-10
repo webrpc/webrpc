@@ -60,7 +60,15 @@ Here is an example webrpc schema in RIDL format (a new documentation-like format
 webrpc = v1
 
 name = your-app
-version = v0.1.0
+version = v1.0.0
+basepath = /rpc
+
+service ExampleService
+  - Ping()
+  - Status() => (status: bool)
+  - GetUserByID(userID: uint64) => (user: User)
+  - IsOnline(user: User) => (online: bool)
+  - ListUsers(q?: UsersQueryFilter) => (page: uint32, users: []User)
 
 struct User
   - id: uint64
@@ -72,16 +80,11 @@ struct UsersQueryFilter
   - name?: string
   - location?: string
 
-service ExampleService
-  - Ping()
-  - Status() => (status: bool)
-  - GetUserByID(userID: uint64) => (user: User)
-  - IsOnline(user: User) => (online: bool)
-  - ListUsers(q?: UsersQueryFilter) => (page: uint32, users: []User)
-
-error 100 RateLimited     "too many requests"   HTTP 429
-error 101 DatabaseDown    "service outage"      HTTP 503
+error 1000 RateLimited     "too many requests"   HTTP 429
+error 1001 DatabaseDown    "service outage"      HTTP 503
 ```
+
+Note: `basepath` defaults to `/rpc/` when services are defined (and will be required in a future release). `version` will also be required when services are defined.
 
 Generate webrpc Go server+client code:
 

@@ -2,6 +2,7 @@
  "webrpc": "v1",
  "name": "hello-webrpc",
  "version": "v0.0.1",
+ "basepath": "/rpc/",
  "types": [
   {
    "kind": "struct",

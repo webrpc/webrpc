@@ -28,9 +28,11 @@ func TestRIDLHeader(t *testing.T) {
 	{
 		buf := `
     name = myapi
+    service Example
+      - Ping()
   `
 		_, err := parseString(buf)
-		assert.Error(t, err, `"version" is required`)
+		assert.Error(t, err, `version is required when services are defined`)
 	}
 
 	{
@@ -58,7 +60,25 @@ func TestRIDLHeader(t *testing.T) {
 		assert.Equal(t, "v1", s.WebrpcVersion)
 		assert.Equal(t, "h_ello-webrpc", s.SchemaName)
 		assert.Equal(t, "v0.1.1", s.SchemaVersion)
+		assert.Equal(t, "", s.BasePath)
 	}
+}
+
+func TestRIDLBasepathAndServiceSlash(t *testing.T) {
+	buf := `
+webrpc = v1
+name = example
+version = v1.0.0
+basepath = /rpc/
+
+service v1/Example
+  - Ping()
+`
+	s, err := parseString(buf)
+	require.NoError(t, err)
+	require.Len(t, s.Services, 1)
+	assert.Equal(t, "/rpc/", s.BasePath)
+	assert.Equal(t, "v1/Example", s.Services[0].Name)
 }
 
 func TestRIDLImports(t *testing.T) {
@@ -764,13 +784,13 @@ func TestRIDLImportsExample1(t *testing.T) {
 	assert.NoError(t, err)
 
 	if *updateFlag == "./_example/example1-golden.json" {
-		assert.NoError(t, os.WriteFile("./_example/example1-golden.json", current, 0644))
+		assert.NoError(t, os.WriteFile("./_example/example1-golden.json", current, 0o644))
 		return
 	}
 
 	if !cmp.Equal(golden, current) {
 		t.Error(cmp.Diff(golden, current))
-		t.Log("To update the golden file, run go test -update=./_example/example1-golden.json")
+		t.Log("To update the golden file, run go test ./schema/ridl -update=./_example/example1-golden.json")
 	}
 }
 
@@ -790,7 +810,7 @@ func TestRIDLImportsExample2(t *testing.T) {
 	assert.NoError(t, err)
 
 	if *updateFlag == "./_example/example2-golden.json" {
-		assert.NoError(t, os.WriteFile("./_example/example2-golden.json", current, 0644))
+		assert.NoError(t, os.WriteFile("./_example/example2-golden.json", current, 0o644))
 		return
 	}
 
