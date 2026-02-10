@@ -790,7 +790,7 @@ func TestRIDLImportsExample1(t *testing.T) {
 
 	if !cmp.Equal(golden, current) {
 		t.Error(cmp.Diff(golden, current))
-		t.Log("To update the golden file, run go test -update=./_example/example1-golden.json")
+		t.Log("To update the golden file, run go test ./schema/ridl -update=./_example/example1-golden.json")
 	}
 }
 
