@@ -3,7 +3,6 @@
 		WebrpcVersion: (string) (len=2) "v1",
 		SchemaName: (string) (len=4) "Test",
 		SchemaVersion: (string) (len=6) "v1.0.0",
-		BasePath: (string) (len=5) "/rpc/",
 		Types: ([]*schema.Type) (len=6 cap=8) {
 			(*schema.Type)({
 				Kind: (string) (len=4) "enum",
@@ -3699,7 +3698,7 @@
 			})
 		}
 	}),
-	SchemaHash: (string) (len=40) "846ba26b9f91c5e1a66ed2f84d38f98e7c0fb67a",
+	SchemaHash: (string) (len=40) "a25e7bf715bfdbac113915024fd9653da7640017",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcHeader: (string) "",
 	WebrpcTarget: (string) (len=5) "debug",
