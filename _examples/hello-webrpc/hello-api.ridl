@@ -2,7 +2,7 @@ webrpc = v1
 
 name = hello-webrpc
 version = v1.0.0
-#basepath = /rpc
+basepath = /
 
 service Example
     @deprecated:"Use /ping endpoint instead."

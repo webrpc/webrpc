@@ -22,7 +22,8 @@ func TestMethodErrorsKeyword_SingleError(t *testing.T) {
 	ridlContent := `webrpc = v1
 
 name = MethodErrorsTest
-version = v0.1.0
+version = v1.0.0
+basepath = /rpc
 
 # Define a custom error
 error 1 UserNotFound "user not found" HTTP 404

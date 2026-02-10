@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 )
 
@@ -18,6 +19,7 @@ type WebRPCSchema struct {
 	WebrpcVersion string `json:"webrpc"`
 	SchemaName    string `json:"name"`
 	SchemaVersion string `json:"version"`
+	BasePath      string `json:"basepath"`
 
 	Types    []*Type    `json:"types"`
 	Errors   []*Error   `json:"errors"`
@@ -29,6 +31,39 @@ type WebRPCSchema struct {
 func (s *WebRPCSchema) Validate() error {
 	if s.WebrpcVersion != SCHEMA_VERSION {
 		return fmt.Errorf("webrpc schema version, '%s' is invalid, try '%s'", s.WebrpcVersion, SCHEMA_VERSION)
+	}
+
+	if len(s.Services) > 0 && s.SchemaVersion == "" {
+		return fmt.Errorf("schema error: version is required when services are defined")
+	}
+
+	if s.BasePath != "" {
+		if strings.ContainsAny(s.BasePath, " \t\r\n") {
+			return fmt.Errorf("schema error: basepath must not contain whitespace")
+		}
+		if strings.ContainsAny(s.BasePath, "?#") {
+			return fmt.Errorf("schema error: basepath must not include query or fragment")
+		}
+		if strings.Contains(s.BasePath, "://") {
+			return fmt.Errorf("schema error: basepath must be a path, not a URL")
+		}
+		pathToParse := s.BasePath
+		if !strings.HasPrefix(pathToParse, "/") {
+			pathToParse = "/" + pathToParse
+		}
+		parsed, err := url.ParseRequestURI(pathToParse)
+		if err != nil {
+			return fmt.Errorf("schema error: basepath is invalid: %w", err)
+		}
+		if parsed.Scheme != "" || parsed.Host != "" || parsed.Opaque != "" || parsed.User != nil {
+			return fmt.Errorf("schema error: basepath must be a path, not a URL")
+		}
+		if !strings.HasPrefix(s.BasePath, "/") {
+			s.BasePath = "/" + s.BasePath
+		}
+		if !strings.HasSuffix(s.BasePath, "/") {
+			s.BasePath += "/"
+		}
 	}
 
 	for i := range s.Types {

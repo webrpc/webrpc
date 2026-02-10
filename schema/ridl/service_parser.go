@@ -157,7 +157,7 @@ func parserStateServiceMethod(s *ServiceNode) parserState {
 }
 
 func parserStateService(p *parser) parserState {
-	matches, err := p.match(tokenWord, tokenWhitespace, tokenWord, tokenEOL)
+	matches, err := p.match(tokenWord, tokenWhitespace)
 	if err != nil {
 		return p.stateError(err)
 	}
@@ -166,8 +166,16 @@ func parserStateService(p *parser) parserState {
 		return p.stateError(errUnexpectedToken)
 	}
 
+	serviceName, err := p.expectLiteralValue()
+	if err != nil {
+		return p.stateError(err)
+	}
+	if err := p.expectOptionalCommentOrEOL(); err != nil {
+		return p.stateError(err)
+	}
+
 	return parserStateServiceMethod(&ServiceNode{
-		name:    newTokenNode(matches[2]),
+		name:    newTokenNode(serviceName),
 		methods: []*MethodNode{},
 		comment: parseComments(p.comments, matches[0].line),
 	})

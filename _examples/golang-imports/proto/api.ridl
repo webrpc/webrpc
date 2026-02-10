@@ -2,7 +2,7 @@ webrpc = v1
 
 name = example-api-service
 version = v1.0.0
-#basepath = /rpc
+basepath = /v1
 
 import ./types.ridl
 

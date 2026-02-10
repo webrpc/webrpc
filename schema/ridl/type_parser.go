@@ -5,7 +5,6 @@ import (
 )
 
 func (p *parser) expectMapDefinition() (*token, error) {
-
 	tok := p.cursor()
 	if tok.val != "map" {
 		return nil, errors.New(`expecting "map"`)
@@ -144,7 +143,6 @@ loop:
 }
 
 func (p *parser) expectTypeList() (*token, error) {
-
 	tok, err := p.match(tokenOpenAngleBracket)
 	if err != nil {
 		return nil, err
@@ -199,7 +197,7 @@ loop:
 			break loop
 
 		case tokenEOF:
-			return nil, errUnexpectedEOF
+			break loop
 
 		case tokenOpenBracket:
 			brackets, err := p.match(tokenOpenBracket, tokenCloseBracket)

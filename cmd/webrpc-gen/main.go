@@ -57,6 +57,10 @@ func main() {
 		fmt.Fprintf(os.Stderr, "failed to parse %s:%v\n", *schemaFlag, err)
 		os.Exit(1)
 	}
+	if s.BasePath == "" && len(s.Services) > 0 {
+		fmt.Fprintf(os.Stderr, "warning: Please add basepath = \"/rpc/\" to %s. basepath will be required in future versions of webrpc when services are defined.\n", *schemaFlag)
+		s.BasePath = "/rpc/"
+	}
 	switch *schemaVersion {
 	case "$WEBRPC_SCHEMA_VERSION": // Default option value.
 		if version := os.Getenv("WEBRPC_SCHEMA_VERSION"); version != "" {

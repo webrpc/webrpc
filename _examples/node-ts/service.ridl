@@ -2,7 +2,7 @@ webrpc = v1
 
 name = node-ts
 version = v1.0.0
-#basepath = /rpc
+basepath = /v1
 
 service Example
   @deprecated:"Use /health endpoint instead."

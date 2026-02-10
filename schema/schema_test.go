@@ -238,6 +238,77 @@ func TestFoo(t *testing.T) {
 	assert.False(t, IsValidArgName("asSS_E_##$"))
 }
 
+func TestBasePathValidation(t *testing.T) {
+	base := `{
+		"webrpc": "v1",
+		"name": "example",
+		"version": "v0.0.1",
+		"basepath": %q,
+		"types": [],
+		"errors": [],
+		"services": []
+	}`
+
+	cases := []struct {
+		name    string
+		path    string
+		wantErr bool
+		want    string
+	}{
+		{name: "empty", path: "", wantErr: false, want: ""},
+		{name: "root", path: "/", wantErr: false, want: "/"},
+		{name: "simple", path: "/rpc", wantErr: false, want: "/rpc/"},
+		{name: "nested", path: "/rpc/v1", wantErr: false, want: "/rpc/v1/"},
+		{name: "trailing slash", path: "/rpc/", wantErr: false, want: "/rpc/"},
+		{name: "double slash", path: "/rpc//v1", wantErr: false, want: "/rpc//v1/"},
+		{name: "missing leading slash", path: "rpc", wantErr: false, want: "/rpc/"},
+		{name: "whitespace", path: "/rpc v1", wantErr: true},
+		{name: "url", path: "https://example.com/rpc", wantErr: true},
+		{name: "query", path: "/rpc?x=1", wantErr: true},
+		{name: "fragment", path: "/rpc#v1", wantErr: true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			schemaJSON := fmt.Sprintf(base, tc.path)
+			schema, err := ParseSchemaJSON([]byte(schemaJSON))
+			if tc.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			assert.NoError(t, err)
+			assert.Equal(t, tc.want, schema.BasePath)
+		})
+	}
+
+	t.Run("omitted", func(t *testing.T) {
+		schemaJSON := `{
+			"webrpc": "v1",
+			"name": "example",
+			"version": "v0.0.1",
+			"types": [],
+			"errors": [],
+			"services": []
+		}`
+		_, err := ParseSchemaJSON([]byte(schemaJSON))
+		assert.NoError(t, err)
+	})
+
+	t.Run("version required with services", func(t *testing.T) {
+		schemaJSON := `{
+			"webrpc": "v1",
+			"name": "example",
+			"types": [],
+			"errors": [],
+			"services": [
+				{ "name": "Example", "methods": [ { "name": "Ping", "inputs": [], "outputs": [] } ] }
+			]
+		}`
+		_, err := ParseSchemaJSON([]byte(schemaJSON))
+		assert.Error(t, err)
+	})
+}
+
 func TestMatchServices(t *testing.T) {
 	type args struct {
 		s        *WebRPCSchema

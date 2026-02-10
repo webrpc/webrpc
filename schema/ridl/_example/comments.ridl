@@ -2,6 +2,16 @@ webrpc = v1
 
 name = hello-webrpc
 version = v0.0.1
+basepath = /
+
+# ExampleService first line
+# ExampleService second line
+# ExampleService third line
+service ExampleService
+
+  # comment can go here
+  # too .. :)
+  - Ping() => (status: bool)
 
 # this is a comment
 # yep
@@ -19,12 +29,3 @@ struct Role
   # role name line first
   - name: string # role name
   - perms: []string # permissions
-
-# ExampleService first line
-# ExampleService second line
-# ExampleService third line
-service ExampleService
-
-  # comment can go here
-  # too .. :)
-  - Ping() => (status: bool)

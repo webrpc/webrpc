@@ -10,18 +10,19 @@ import (
 )
 
 const (
-	wordError   = "error"
-	wordEnum    = "enum"
-	wordImport  = "import"
-	wordMap     = "map"
-	wordStruct  = "struct"
-	wordName    = "name"
-	wordProxy   = "proxy"
-	wordService = "service"
-	wordStream  = "stream"
-	wordErrors  = "errors"
-	wordVersion = "version"
-	wordWebRPC  = "webrpc"
+	wordError    = "error"
+	wordEnum     = "enum"
+	wordImport   = "import"
+	wordMap      = "map"
+	wordStruct   = "struct"
+	wordName     = "name"
+	wordProxy    = "proxy"
+	wordService  = "service"
+	wordStream   = "stream"
+	wordErrors   = "errors"
+	wordBasepath = "basepath"
+	wordVersion  = "version"
+	wordWebRPC   = "webrpc"
 )
 
 var (
@@ -95,7 +96,7 @@ func (p *parser) run() error {
 		for state != nil {
 			fname := runtime.FuncForPC(reflect.ValueOf(state).Pointer()).Name()
 			_ = fname
-			//log.Printf("state: %v", fname)
+			// log.Printf("state: %v", fname)
 			state = state(p)
 		}
 	}()
@@ -246,7 +247,7 @@ loop:
 			}
 			return tok, nil
 
-		case tokenWord:
+		case tokenWord, tokenSlash:
 			tokens = append(tokens, tok)
 			p.next()
 
@@ -392,7 +393,7 @@ func parserStateDeclaration(p *parser) parserState {
 	}
 
 	switch word.val {
-	case wordWebRPC, wordName, wordVersion:
+	case wordWebRPC, wordName, wordVersion, wordBasepath:
 		// <word> = <value> # optional comment
 		return parserStateDefinition
 	case wordImport:

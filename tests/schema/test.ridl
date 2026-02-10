@@ -2,7 +2,7 @@ webrpc = v1
 
 name = Test
 version = v1.0.0
-#basepath = /rpc
+basepath = /rpc
 
 service TestApi
   - GetEmpty()
