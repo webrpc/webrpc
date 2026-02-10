@@ -3,15 +3,14 @@ webrpc = v1
 name = webrpc-sse-chat
 version = v1.0.0
 
+service Chat
+  - SendMessage(username: string, text: string)
+  - SubscribeMessages(username: string, lastMessageId?: uint64) => stream (message: Message)
+
 struct Message
   - id: uint64
   - username: string
   - text: string
   - createdAt: timestamp
-
-service Chat
-  - SendMessage(username: string, text: string)
-  - SubscribeMessages(username: string, lastMessageId?: uint64) => stream (message: Message)
-
+  
 error 100 EmptyUsername "Username must be provided." HTTP 400
-

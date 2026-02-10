@@ -1,7 +1,54 @@
 webrpc = v1 # version of webrpc schema format (ridl or json)
 
-name = example # name of your backend app
-version = v0.0.1 # version of your schema
+name = example   # name of your backend app
+version = v1.0.0 # version of your schema
+#basepath = /rpc  # basepath for the API
+
+service Example
+    @internal
+  - Ping()
+
+    @internal
+  - Status() => (status: bool)
+
+    @internal
+  - Version() => (version: Version)
+
+    @deprecated:"Use GetUserV2 instead."
+    @internal
+  - GetUser(GetUserRequest) => (GetUserResponse)
+
+    @public
+    @auth:"X-Access-Key,S2S,Cookies"
+  - GetUserV2(GetUserRequest) => (GetUserResponse)
+
+    @public
+  - FindUser(s: SearchFilter) => (name: string, user: User)
+
+    @public
+  - GetIntents() => (intents: []Intent)
+
+    @public
+  - CountIntents(userId: uint64) => (count: map<Intent,uint32>)
+
+service ExampleV2
+  - Ping()
+  - Status() => (status: bool)
+
+service Admin
+    @public
+    @deprecated:"Use Auth instead."
+  - AuthOld() => (jwt: string)
+
+    @public
+  - Auth() => (jwt: string, role: string)
+
+    @internal
+  - Status() => (status: bool)
+
+    @internal
+  - Version() => (version: Version)
+
 
 enum Kind: uint32
   - USER
@@ -68,48 +115,3 @@ struct GetUserResponse
 error 1000 UserNotFound     "User not found"      HTTP 404
 error 2000 Unauthorized     "Unauthorized access" HTTP 401
 error 3000 PermissionDenied "Permission denied"   HTTP 403
-
-service Example
-    @internal
-  - Ping()
-
-    @internal
-  - Status() => (status: bool)
-
-    @internal
-  - Version() => (version: Version)
-
-    @deprecated:"Use GetUserV2 instead."
-    @internal
-  - GetUser(GetUserRequest) => (GetUserResponse)
-
-    @public
-    @auth:"X-Access-Key,S2S,Cookies"
-  - GetUserV2(GetUserRequest) => (GetUserResponse)
-
-    @public
-  - FindUser(s: SearchFilter) => (name: string, user: User)
-
-    @public
-  - GetIntents() => (intents: []Intent)
-
-    @public
-  - CountIntents(userId: uint64) => (count: map<Intent,uint32>)
-
-service ExampleV2
-  - Ping()
-  - Status() => (status: bool)
-
-service Admin
-    @public
-    @deprecated:"Use Auth instead."
-  - AuthOld() => (jwt: string)
-
-    @public
-  - Auth() => (jwt: string, role: string)
-
-    @internal
-  - Status() => (status: bool)
-
-    @internal
-  - Version() => (version: Version)

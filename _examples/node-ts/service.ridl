@@ -2,10 +2,17 @@ webrpc = v1
 
 name = node-ts
 version = v1.0.0
+#basepath = /rpc
 
-enum Kind: uint32
-  - USER
-  - ADMIN
+service Example
+  @deprecated:"Use /health endpoint instead."
+  - Ping(counter?: bigint) => ()
+
+  # GetUser returns a user by ID.
+  - GetUser(userId: uint64) => (code: uint32, user: User)
+
+  # Get article by id.
+  - GetArticle(GetArticleRequest) => (GetArticleResponse)
 
 struct User
   - ID: uint64
@@ -26,6 +33,10 @@ struct User
   - createdAt?: timestamp
 
   - extra: Extra
+
+enum Kind: uint32
+  - USER
+  - ADMIN
 
 struct Extra
   - info: string
@@ -51,16 +62,6 @@ error 1002 SessionExpired   "Session expired"                                   
 error 1003 Geoblocked       "Geoblocked region"                                  HTTP 451
 error 1004 RateLimited      "Rate-limited. Please slow down."                    HTTP 429
 error 1005 CorsDisallowed   "CORS disallowed. JWT can't be used from a web app." HTTP 403
-
-service Example
-  @deprecated:"Use /health endpoint instead."
-  - Ping(counter?: bigint) => ()
-
-  # GetUser returns a user by ID.
-  - GetUser(userId: uint64) => (code: uint32, user: User)
-
-  # Get article by id.
-  - GetArticle(GetArticleRequest) => (GetArticleResponse)
 
 # TODO:
 # 1. add new type, GetFriend, without any bigints
