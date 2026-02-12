@@ -102,7 +102,7 @@ export interface GetUserResponse {
 export class Example implements ExampleClient {
   protected hostname: string
   protected fetch: Fetch
-  protected path = '/rpc/Example/'
+  protected path = '/v1/Example/'
 
   constructor(hostname: string, fetch: Fetch) {
     this.hostname = hostname.replace(/\/*$/, '')
@@ -572,7 +572,7 @@ export const webrpcErrorByCode: { [code: number]: any } = {
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.23.1;node-ts@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.24.0;node-ts@v1.0.0"
 
 type WebrpcGenVersions = {
   WebrpcGenVersion: string;

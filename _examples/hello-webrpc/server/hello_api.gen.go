@@ -143,11 +143,11 @@ func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	switch r.URL.Path {
-	case "/rpc/Example/Ping":
+	case "/Example/Ping":
 		handler = s.servePingJSON
-	case "/rpc/Example/GetUser":
+	case "/Example/GetUser":
 		handler = s.serveGetUserJSON
-	case "/rpc/Example/FindUsers":
+	case "/Example/FindUsers":
 		handler = s.serveFindUsersJSON
 	default:
 		err := ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path)
@@ -339,17 +339,17 @@ func (m *method) Service() string                { return m.service }
 func (m *method) Annotations() map[string]string { return m.annotations }
 
 var methods = map[string]*method{
-	"/rpc/Example/Ping": {
+	"/Example/Ping": {
 		name:        "Ping",
 		service:     "Example",
 		annotations: map[string]string{"deprecated": "Use /ping endpoint instead."},
 	},
-	"/rpc/Example/GetUser": {
+	"/Example/GetUser": {
 		name:        "GetUser",
 		service:     "Example",
 		annotations: map[string]string{},
 	},
-	"/rpc/Example/FindUsers": {
+	"/Example/FindUsers": {
 		name:        "FindUsers",
 		service:     "Example",
 		annotations: map[string]string{},
@@ -498,7 +498,7 @@ var (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.24.0;hello-webrpc@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.25.0;hello-webrpc@v1.0.0"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string

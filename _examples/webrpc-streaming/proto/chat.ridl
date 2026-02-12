@@ -2,6 +2,7 @@ webrpc = v1
 
 name = webrpc-sse-chat
 version = v1.0.0
+basepath = /v1
 
 service Chat
   - SendMessage(username: string, text: string)

@@ -69,7 +69,7 @@ func TestRIDLBasepathAndServiceSlash(t *testing.T) {
 webrpc = v1
 name = example
 version = v1.0.0
-basepath = /rpc/
+basepath = /rpc
 
 service v1/Example
   - Ping()

@@ -37,6 +37,14 @@ generate: build
 dep-upgrade-all:
 	go get -u go@1.23 ./...
 
+dep-upgrade-templates:
+	go get github.com/webrpc/gen-dart@latest
+	go get github.com/webrpc/gen-golang@latest
+	go get github.com/webrpc/gen-javascript@latest
+	go get github.com/webrpc/gen-kotlin@latest
+	go get github.com/webrpc/gen-openapi@latest
+	go get github.com/webrpc/gen-typescript@latest
+
 # Run git diff and fail on any local changes
 diff:
 	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
