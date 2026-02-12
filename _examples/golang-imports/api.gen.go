@@ -107,7 +107,7 @@ func (x *Location) Is(values ...Location) bool {
 // Client
 //
 
-const ExampleAPIPathPrefix = "/rpc/ExampleAPI/"
+const ExampleAPIPathPrefix = "/v1/ExampleAPI/"
 
 type exampleAPIClient struct {
 	client HTTPClient
@@ -212,11 +212,11 @@ func (s *exampleAPIService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	switch r.URL.Path {
-	case "/rpc/ExampleAPI/Ping":
+	case "/v1/ExampleAPI/Ping":
 		handler = s.servePingJSON
-	case "/rpc/ExampleAPI/Status":
+	case "/v1/ExampleAPI/Status":
 		handler = s.serveStatusJSON
-	case "/rpc/ExampleAPI/GetUsers":
+	case "/v1/ExampleAPI/GetUsers":
 		handler = s.serveGetUsersJSON
 	default:
 		err := ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path)
@@ -369,17 +369,17 @@ func (m *method) Service() string                { return m.service }
 func (m *method) Annotations() map[string]string { return m.annotations }
 
 var methods = map[string]*method{
-	"/rpc/ExampleAPI/Ping": {
+	"/v1/ExampleAPI/Ping": {
 		name:        "Ping",
 		service:     "ExampleAPI",
 		annotations: map[string]string{},
 	},
-	"/rpc/ExampleAPI/Status": {
+	"/v1/ExampleAPI/Status": {
 		name:        "Status",
 		service:     "ExampleAPI",
 		annotations: map[string]string{},
 	},
-	"/rpc/ExampleAPI/GetUsers": {
+	"/v1/ExampleAPI/GetUsers": {
 		name:        "GetUsers",
 		service:     "ExampleAPI",
 		annotations: map[string]string{},
@@ -649,7 +649,7 @@ var (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.24.0;example-api-service@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.25.0;example-api-service@v1.0.0"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string

@@ -90,7 +90,7 @@ export interface GetUserResponse {
 //
 
 export const serveExampleRpc = async <Context>(service: ExampleServer<Context>, ctx: Context, urlPath: string, body: any) => {
-  if (!urlPath.startsWith('/rpc/')) return null
+  if (!urlPath.startsWith('/v1/')) return null
   const parts = urlPath.split('/').filter(Boolean)
   if (parts.length !== 3 || parts[0] !== 'rpc' || parts[1] !== 'Example') return null
   const method = parts[2]!
@@ -672,7 +672,7 @@ export const webrpcErrorByCode: { [code: number]: any } = {
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.23.1;node-ts@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.24.0;node-ts@v1.0.0"
 
 type WebrpcGenVersions = {
   WebrpcGenVersion: string;
