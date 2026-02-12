@@ -58,7 +58,7 @@ func main() {
 		os.Exit(1)
 	}
 	if s.BasePath == "" && len(s.Services) > 0 {
-		fmt.Fprintf(os.Stderr, "warning: Please add basepath = \"/rpc/\" to %s. basepath will be required in future versions of webrpc when services are defined.\n", *schemaFlag)
+		fmt.Fprintf(os.Stderr, "warning: Please add 'basepath = /rpc' to %s. basepath will be required in future versions of webrpc.\n", *schemaFlag)
 		s.BasePath = "/rpc/"
 	}
 	switch *schemaVersion {

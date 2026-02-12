@@ -61,7 +61,7 @@ webrpc = v1
 
 name = your-app
 version = v1.0.0
-basepath = /rpc
+basepath = /v1
 
 service ExampleService
   - Ping()
