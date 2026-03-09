@@ -68,22 +68,22 @@ const (
 	Location_NEW_YORK Location = 1
 )
 
-var Location_name = map[uint32]string{
-	0: "TORONTO",
-	1: "NEW_YORK",
+var Location_name = map[Location]string{
+	Location_TORONTO:  "TORONTO",
+	Location_NEW_YORK: "NEW_YORK",
 }
 
-var Location_value = map[string]uint32{
-	"TORONTO":  0,
-	"NEW_YORK": 1,
+var Location_value = map[string]Location{
+	"TORONTO":  Location_TORONTO,
+	"NEW_YORK": Location_NEW_YORK,
 }
 
 func (x Location) String() string {
-	return Location_name[uint32(x)]
+	return Location_name[x]
 }
 
 func (x Location) MarshalText() ([]byte, error) {
-	return []byte(Location_name[uint32(x)]), nil
+	return []byte(Location_name[x]), nil
 }
 
 func (x *Location) UnmarshalText(b []byte) error {
@@ -180,16 +180,26 @@ type WebRPCServer interface {
 	http.Handler
 }
 
+type Options struct {
+	OnError   func(r *http.Request, rpcErr *WebRPCError)
+	OnRequest func(w http.ResponseWriter, r *http.Request) error
+}
+
 type exampleAPIService struct {
 	ExampleAPIServer
 	OnError   func(r *http.Request, rpcErr *WebRPCError)
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
 }
 
-func NewExampleAPIServer(svc ExampleAPIServer) *exampleAPIService {
-	return &exampleAPIService{
+func NewExampleAPIServer(svc ExampleAPIServer, options ...*Options) *exampleAPIService {
+	server := &exampleAPIService{
 		ExampleAPIServer: svc,
 	}
+	if len(options) > 0 && options[0] != nil {
+		server.OnError = options[0].OnError
+		server.OnRequest = options[0].OnRequest
+	}
+	return server
 }
 
 func (s *exampleAPIService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -627,11 +637,6 @@ func (e WebRPCError) WithCausef(format string, args ...interface{}) WebRPCError 
 	return err
 }
 
-// Deprecated: Use .WithCause() method on WebRPCError.
-func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
-	return rpcErr.WithCause(cause)
-}
-
 // Webrpc errors
 var (
 	ErrWebrpcEndpoint       = WebRPCError{Code: 0, Name: "WebrpcEndpoint", Message: "endpoint error", HTTPStatus: 400}
@@ -649,7 +654,7 @@ var (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.25.0;example-api-service@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.26.1;example-api-service@v1.0.0"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string

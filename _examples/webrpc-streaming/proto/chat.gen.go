@@ -273,16 +273,26 @@ type WebRPCServer interface {
 	http.Handler
 }
 
+type Options struct {
+	OnError   func(r *http.Request, rpcErr *WebRPCError)
+	OnRequest func(w http.ResponseWriter, r *http.Request) error
+}
+
 type chatService struct {
 	ChatServer
 	OnError   func(r *http.Request, rpcErr *WebRPCError)
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
 }
 
-func NewChatServer(svc ChatServer) *chatService {
-	return &chatService{
+func NewChatServer(svc ChatServer, options ...*Options) *chatService {
+	server := &chatService{
 		ChatServer: svc,
 	}
+	if len(options) > 0 && options[0] != nil {
+		server.OnError = options[0].OnError
+		server.OnRequest = options[0].OnRequest
+	}
+	return server
 }
 
 func (s *chatService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -739,11 +749,6 @@ func (e WebRPCError) WithCausef(format string, args ...interface{}) WebRPCError 
 	return err
 }
 
-// Deprecated: Use .WithCause() method on WebRPCError.
-func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
-	return rpcErr.WithCause(cause)
-}
-
 // Webrpc errors
 var (
 	ErrWebrpcEndpoint       = WebRPCError{Code: 0, Name: "WebrpcEndpoint", Message: "endpoint error", HTTPStatus: 400}
@@ -766,7 +771,7 @@ var (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.25.0;webrpc-sse-chat@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.26.1;webrpc-sse-chat@v1.0.0"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string
