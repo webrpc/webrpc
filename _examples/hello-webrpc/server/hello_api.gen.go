@@ -55,22 +55,22 @@ const (
 	Kind_ADMIN Kind = 2
 )
 
-var Kind_name = map[uint32]string{
-	1: "USER",
-	2: "ADMIN",
+var Kind_name = map[Kind]string{
+	Kind_USER:  "USER",
+	Kind_ADMIN: "ADMIN",
 }
 
-var Kind_value = map[string]uint32{
-	"USER":  1,
-	"ADMIN": 2,
+var Kind_value = map[string]Kind{
+	"USER":  Kind_USER,
+	"ADMIN": Kind_ADMIN,
 }
 
 func (x Kind) String() string {
-	return Kind_name[uint32(x)]
+	return Kind_name[x]
 }
 
 func (x Kind) MarshalText() ([]byte, error) {
-	return []byte(Kind_name[uint32(x)]), nil
+	return []byte(Kind_name[x]), nil
 }
 
 func (x *Kind) UnmarshalText(b []byte) error {
@@ -111,16 +111,26 @@ type WebRPCServer interface {
 	http.Handler
 }
 
+type Options struct {
+	OnError   func(r *http.Request, rpcErr *WebRPCError)
+	OnRequest func(w http.ResponseWriter, r *http.Request) error
+}
+
 type exampleService struct {
 	ExampleServer
 	OnError   func(r *http.Request, rpcErr *WebRPCError)
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
 }
 
-func NewExampleServer(svc ExampleServer) *exampleService {
-	return &exampleService{
+func NewExampleServer(svc ExampleServer, options *Options) *exampleService {
+	server := &exampleService{
 		ExampleServer: svc,
 	}
+	if options != nil {
+		server.OnError = options.OnError
+		server.OnRequest = options.OnRequest
+	}
+	return server
 }
 
 func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -471,11 +481,6 @@ func (e WebRPCError) WithCausef(format string, args ...interface{}) WebRPCError 
 	return err
 }
 
-// Deprecated: Use .WithCause() method on WebRPCError.
-func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
-	return rpcErr.WithCause(cause)
-}
-
 // Webrpc errors
 var (
 	ErrWebrpcEndpoint       = WebRPCError{Code: 0, Name: "WebrpcEndpoint", Message: "endpoint error", HTTPStatus: 400}
@@ -498,7 +503,7 @@ var (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.25.0;hello-webrpc@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.26.0;hello-webrpc@v1.0.0"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string

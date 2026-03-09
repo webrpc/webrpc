@@ -62,22 +62,22 @@ const (
 	Status_NOT_AVAILABLE Status = 1
 )
 
-var Status_name = map[uint32]string{
-	0: "AVAILABLE",
-	1: "NOT_AVAILABLE",
+var Status_name = map[Status]string{
+	Status_AVAILABLE:     "AVAILABLE",
+	Status_NOT_AVAILABLE: "NOT_AVAILABLE",
 }
 
-var Status_value = map[string]uint32{
-	"AVAILABLE":     0,
-	"NOT_AVAILABLE": 1,
+var Status_value = map[string]Status{
+	"AVAILABLE":     Status_AVAILABLE,
+	"NOT_AVAILABLE": Status_NOT_AVAILABLE,
 }
 
 func (x Status) String() string {
-	return Status_name[uint32(x)]
+	return Status_name[x]
 }
 
 func (x Status) MarshalText() ([]byte, error) {
-	return []byte(Status_name[uint32(x)]), nil
+	return []byte(Status_name[x]), nil
 }
 
 func (x *Status) UnmarshalText(b []byte) error {
@@ -107,28 +107,28 @@ const (
 	Access_OWNER Access = 4
 )
 
-var Access_name = map[uint32]string{
-	0: "NONE",
-	1: "READ",
-	2: "WRITE",
-	3: "ADMIN",
-	4: "OWNER",
+var Access_name = map[Access]string{
+	Access_NONE:  "NONE",
+	Access_READ:  "READ",
+	Access_WRITE: "WRITE",
+	Access_ADMIN: "ADMIN",
+	Access_OWNER: "OWNER",
 }
 
-var Access_value = map[string]uint32{
-	"NONE":  0,
-	"READ":  1,
-	"WRITE": 2,
-	"ADMIN": 3,
-	"OWNER": 4,
+var Access_value = map[string]Access{
+	"NONE":  Access_NONE,
+	"READ":  Access_READ,
+	"WRITE": Access_WRITE,
+	"ADMIN": Access_ADMIN,
+	"OWNER": Access_OWNER,
 }
 
 func (x Access) String() string {
-	return Access_name[uint32(x)]
+	return Access_name[x]
 }
 
 func (x Access) MarshalText() ([]byte, error) {
-	return []byte(Access_name[uint32(x)]), nil
+	return []byte(Access_name[x]), nil
 }
 
 func (x *Access) UnmarshalText(b []byte) error {
@@ -573,11 +573,6 @@ func (e WebRPCError) WithCausef(format string, args ...interface{}) WebRPCError 
 	return err
 }
 
-// Deprecated: Use .WithCause() method on WebRPCError.
-func ErrorWithCause(rpcErr WebRPCError, cause error) WebRPCError {
-	return rpcErr.WithCause(cause)
-}
-
 // Webrpc errors
 var (
 	ErrWebrpcEndpoint       = WebRPCError{Code: 0, Name: "WebrpcEndpoint", Message: "endpoint error", HTTPStatus: 400}
@@ -617,7 +612,7 @@ var (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.25.0;Test@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.26.0;Test@v1.0.0"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string
