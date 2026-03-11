@@ -249,6 +249,16 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				val = strconv.Itoa(i)
 			}
 
+			// For string enums, if the field name contains dots (e.g. "v1.5"),
+			// use the original name as the value and sanitize the name by
+			// replacing dots with underscores for valid variable names.
+			if strings.Contains(key, ".") {
+				if enumType.String() == "string" && def.Right().String() == "" {
+					val = key
+				}
+				key = strings.ReplaceAll(key, ".", "_")
+			}
+
 			elems := &schema.TypeField{
 				Name: key,
 				TypeExtra: schema.TypeExtra{

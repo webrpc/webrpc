@@ -247,7 +247,7 @@ loop:
 			}
 			return tok, nil
 
-		case tokenWord, tokenSlash:
+		case tokenWord, tokenSlash, tokenDot:
 			tokens = append(tokens, tok)
 			p.next()
 

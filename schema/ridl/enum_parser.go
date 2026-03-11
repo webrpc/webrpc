@@ -34,8 +34,25 @@ func parserStateEnumDefinition(et *EnumNode) parserState {
 				return p.stateError(err)
 			}
 
+			// Collect additional tokenDot and tokenWord tokens to support
+			// dot-separated names like "v1.5" (lexed as word "v1", dot ".", word "5").
+			nameTokens := []*token{matches[2]}
+			for {
+				tok := p.cursor()
+				if tok.tt == tokenDot || tok.tt == tokenWord {
+					nameTokens = append(nameTokens, tok)
+					p.next()
+				} else {
+					break
+				}
+			}
+			nameTok, err := composedValue(nameTokens)
+			if err != nil {
+				return p.stateError(err)
+			}
+
 			return parserStateEnumExplicitValue(et, &DefinitionNode{
-				leftNode: newTokenNode(matches[2]),
+				leftNode: newTokenNode(nameTok),
 				comment:  parseComments(p.comments, matches[0].line),
 			})
 
