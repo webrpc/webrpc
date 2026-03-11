@@ -106,7 +106,7 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, req GetUserRequest) (*G
 	}
 
 	if req.UserID == 31337 {
-		return nil, ErrorWithCause(ErrUserNotFound, fmt.Errorf("unknown user id %d", req.UserID))
+		return nil, ErrUserNotFound.WithCausef("unknown user id %d", req.UserID)
 	}
 
 	kind := Kind_ADMIN
@@ -128,7 +128,7 @@ func (s *ExampleServiceRPC) GetUserV2(ctx context.Context, req GetUserRequest) (
 		return nil, ErrUserNotFound
 	}
 	if req.UserID == 31337 {
-		return nil, ErrorWithCause(ErrUserNotFound, fmt.Errorf("unknown user id %d", req.UserID))
+		return nil, ErrUserNotFound.WithCausef("unknown user id %d", req.UserID)
 	}
 
 	kind := Kind_ADMIN

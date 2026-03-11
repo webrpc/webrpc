@@ -246,17 +246,13 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		for i, def := range line.Values() {
 			key, val := def.Left().String(), def.Right().String()
 			if val == "" {
-				val = strconv.Itoa(i)
-			}
-
-			// For string enums, if the field name contains dots (e.g. "v1.5"),
-			// use the original name as the value and sanitize the name by
-			// replacing dots with underscores for valid variable names.
-			if strings.Contains(key, ".") {
-				if enumType.String() == "string" && def.Right().String() == "" {
+				if enumType.String() == "string" {
+					// For string enums without an explicit value, use the
+					// field name as the value.
 					val = key
+				} else {
+					val = strconv.Itoa(i)
 				}
-				key = strings.ReplaceAll(key, ".", "_")
 			}
 
 			elems := &schema.TypeField{
