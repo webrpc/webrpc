@@ -59,6 +59,14 @@ enum Intent: string
   - closeSession
   - validateSession
 
+enum ProtocolVersion: string
+  - v1 = "v1"
+  - v1_5 = "v1.5"
+
+enum Country: string
+  - US = "United States"
+  - CA = "Canada"
+
 struct Empty
 
 # User struct

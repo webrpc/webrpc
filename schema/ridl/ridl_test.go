@@ -402,6 +402,81 @@ func TestRIDLEnum(t *testing.T) {
 	}
 }
 
+func TestRIDLEnumStringWithExplicitValues(t *testing.T) {
+	{
+		// Test string enum with explicit values containing special characters
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum Version: string
+				- v1_0 = "v1.0"
+				- v1_5 = "v1.5"
+				- v2_0 = "v2.0"
+		`
+		s, err := parseString(input)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "Version", string(s.Types[0].Name))
+		assert.Equal(t, "enum", string(s.Types[0].Kind))
+		assert.Equal(t, "string", string(s.Types[0].Type.String()))
+
+		// Field names
+		assert.Equal(t, "v1_0", string(s.Types[0].Fields[0].Name))
+		assert.Equal(t, "v1_5", string(s.Types[0].Fields[1].Name))
+		assert.Equal(t, "v2_0", string(s.Types[0].Fields[2].Name))
+
+		// Values from explicit assignment
+		assert.Equal(t, "v1.0", string(s.Types[0].Fields[0].Value))
+		assert.Equal(t, "v1.5", string(s.Types[0].Fields[1].Value))
+		assert.Equal(t, "v2.0", string(s.Types[0].Fields[2].Value))
+	}
+
+	{
+		// Test string enum with quoted explicit values
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum Country: string
+				- US = "United States"
+				- CA = "Canada"
+		`
+		s, err := parseString(input)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "US", string(s.Types[0].Fields[0].Name))
+		assert.Equal(t, "CA", string(s.Types[0].Fields[1].Name))
+
+		assert.Equal(t, "United States", string(s.Types[0].Fields[0].Value))
+		assert.Equal(t, "Canada", string(s.Types[0].Fields[1].Value))
+	}
+
+	{
+		// Test string enum without explicit values defaults to field name
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum Intent: string
+				- openSession
+				- closeSession
+		`
+		s, err := parseString(input)
+		assert.NoError(t, err)
+
+		assert.Equal(t, "openSession", string(s.Types[0].Fields[0].Name))
+		assert.Equal(t, "closeSession", string(s.Types[0].Fields[1].Name))
+
+		// Without explicit value, string enums use the field name as value
+		assert.Equal(t, "openSession", string(s.Types[0].Fields[0].Value))
+		assert.Equal(t, "closeSession", string(s.Types[0].Fields[1].Value))
+	}
+}
+
 func TestRIDLErrors(t *testing.T) {
 	{
 		input := `

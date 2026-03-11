@@ -246,7 +246,13 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		for i, def := range line.Values() {
 			key, val := def.Left().String(), def.Right().String()
 			if val == "" {
-				val = strconv.Itoa(i)
+				if enumType.String() == "string" {
+					// For string enums without an explicit value, use the
+					// field name as the value.
+					val = key
+				} else {
+					val = strconv.Itoa(i)
+				}
 			}
 
 			elems := &schema.TypeField{

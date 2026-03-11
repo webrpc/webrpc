@@ -629,6 +629,30 @@ func TestParserEnum(t *testing.T) {
 			assert.Equal(t, "ADMIN", enums[3].values[1].Left().String())
 		}
 	}
+
+	// Test enum with explicit string values containing dots
+	{
+		p, err := newStringParser(`
+			enum Version: string
+				- v1_0 = "v1.0"
+				- v1_5 = "v1.5"
+		`)
+		assert.NoError(t, err)
+
+		err = p.run()
+		assert.NoError(t, err)
+
+		enums := p.root.Enums()
+		if assert.Equal(t, 1, len(enums)) {
+			assert.Equal(t, "Version", enums[0].Name().String())
+
+			assert.Equal(t, "v1_0", enums[0].values[0].Left().String())
+			assert.Equal(t, "v1.0", enums[0].values[0].Right().String())
+
+			assert.Equal(t, "v1_5", enums[0].values[1].Left().String())
+			assert.Equal(t, "v1.5", enums[0].values[1].Right().String())
+		}
+	}
 }
 
 func TestParserStruct(t *testing.T) {
