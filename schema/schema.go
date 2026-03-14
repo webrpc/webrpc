@@ -239,19 +239,10 @@ func MethodTreeShake(s *WebRPCSchema, services []string) *WebRPCSchema {
 		}
 	}
 
-	// Keep types used by included services OR not referenced by any service.
-	// Remove only those referenced exclusively by excluded services.
-	referencedAny := map[string]bool{}
-	for name := range usedIncluded {
-		referencedAny[name] = true
-	}
-	for name := range usedExcluded {
-		referencedAny[name] = true
-	}
-
+	// Keep only types that are transitively referenced by included service methods.
 	var kept []*Type
 	for _, t := range s.Types {
-		if usedIncluded[t.Name] || !referencedAny[t.Name] {
+		if usedIncluded[t.Name] {
 			kept = append(kept, t)
 		}
 	}
