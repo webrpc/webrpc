@@ -184,7 +184,8 @@
       {
        "name": "status",
        "type": "bool",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     },
@@ -196,14 +197,16 @@
       {
        "name": "req",
        "type": "GetUserRequest",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ],
      "outputs": [
       {
        "name": "user",
        "type": "User",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     },
@@ -216,7 +219,8 @@
       {
        "name": "req",
        "type": "string",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ],
      "outputs": []
@@ -231,7 +235,8 @@
       {
        "name": "resp",
        "type": "string",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     },
@@ -245,14 +250,16 @@
       {
        "name": "req",
        "type": "string",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ],
      "outputs": [
       {
        "name": "resp",
        "type": "string",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     },
@@ -266,7 +273,8 @@
       {
        "name": "resp",
        "type": "Notice",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     },
@@ -278,29 +286,34 @@
       {
        "name": "seq",
        "type": "int32",
-       "optional": false
+       "optional": false,
+       "location": "body"
       },
       {
        "name": "header",
        "type": "map<string,[]string>",
-       "optional": true
+       "optional": true,
+       "location": "body"
       },
       {
        "name": "ids",
        "type": "[]uint64",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ],
      "outputs": [
       {
        "name": "code",
        "type": "bool",
-       "optional": false
+       "optional": false,
+       "location": "body"
       },
       {
        "name": "ids",
        "type": "[]bool",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     },
@@ -312,24 +325,28 @@
       {
        "name": "n",
        "type": "uint64",
-       "optional": false
+       "optional": false,
+       "location": "body"
       },
       {
        "name": "stuff",
        "type": "[]map<uint64,string>",
-       "optional": false
+       "optional": false,
+       "location": "body"
       },
       {
        "name": "etc",
        "type": "string",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ],
      "outputs": [
       {
        "name": "code",
        "type": "bool",
-       "optional": true
+       "optional": true,
+       "location": "body"
       }
      ]
     }

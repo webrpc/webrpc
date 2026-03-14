@@ -243,7 +243,8 @@
       {
        "name": "status",
        "type": "bool",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     }
@@ -265,7 +266,8 @@
       {
        "name": "status",
        "type": "bool",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     },
@@ -277,14 +279,16 @@
       {
        "name": "req",
        "type": "GetUserRequest",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ],
      "outputs": [
       {
        "name": "user",
        "type": "User",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     },
@@ -297,7 +301,8 @@
       {
        "name": "req",
        "type": "string",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ],
      "outputs": []
@@ -312,7 +317,8 @@
       {
        "name": "resp",
        "type": "string",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     },
@@ -326,14 +332,16 @@
       {
        "name": "req",
        "type": "string",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ],
      "outputs": [
       {
        "name": "resp",
        "type": "string",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     },
@@ -347,7 +355,8 @@
       {
        "name": "resp",
        "type": "Notice",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     },
@@ -359,29 +368,34 @@
       {
        "name": "seq",
        "type": "int32",
-       "optional": false
+       "optional": false,
+       "location": "body"
       },
       {
        "name": "header",
        "type": "map<string,[]string>",
-       "optional": true
+       "optional": true,
+       "location": "body"
       },
       {
        "name": "ids",
        "type": "[]uint64",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ],
      "outputs": [
       {
        "name": "code",
        "type": "bool",
-       "optional": false
+       "optional": false,
+       "location": "body"
       },
       {
        "name": "ids",
        "type": "[]bool",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     },
@@ -393,24 +407,28 @@
       {
        "name": "n",
        "type": "uint64",
-       "optional": false
+       "optional": false,
+       "location": "body"
       },
       {
        "name": "stuff",
        "type": "[]map<uint64,string>",
-       "optional": false
+       "optional": false,
+       "location": "body"
       },
       {
        "name": "etc",
        "type": "string",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ],
      "outputs": [
       {
        "name": "code",
        "type": "bool",
-       "optional": true
+       "optional": true,
+       "location": "body"
       }
      ]
     }
@@ -429,14 +447,16 @@
       {
        "name": "flattenRequest",
        "type": "FlattenRequest",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ],
      "outputs": [
       {
        "name": "flattenResponse",
        "type": "FlattenResponse",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ]
     },
@@ -448,14 +468,16 @@
       {
        "name": "name",
        "type": "string",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ],
      "outputs": [
       {
        "name": "balance",
        "type": "uint64",
-       "optional": false
+       "optional": false,
+       "location": "body"
       }
      ],
      "errors": [

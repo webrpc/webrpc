@@ -309,6 +309,48 @@ func TestBasePathValidation(t *testing.T) {
 	})
 }
 
+func TestMethodArgumentLocationJSONEncoding(t *testing.T) {
+	s := &WebRPCSchema{
+		WebrpcVersion: "v1",
+		SchemaName:    "example",
+		SchemaVersion: "v0.0.1",
+		Services: []*Service{
+			{
+				Name: "Example",
+				Methods: []*Method{
+					{
+						Name: "Ping",
+						Inputs: []*MethodArgument{
+							{
+								Name: "authToken",
+								Type: &VarType{
+									Expr: "string",
+								},
+								Location: MethodArgumentLocationHeader,
+							},
+							{
+								Name: "userID",
+								Type: &VarType{
+									Expr: "uint64",
+								},
+							},
+						},
+						Outputs: []*MethodArgument{},
+					},
+				},
+			},
+		},
+	}
+
+	err := s.Validate()
+	assert.NoError(t, err)
+
+	jout, err := s.ToJSON()
+	assert.NoError(t, err)
+	assert.Contains(t, jout, `"location": "header"`)
+	assert.Contains(t, jout, `"location": "body"`)
+}
+
 func TestMatchServices(t *testing.T) {
 	type args struct {
 		s        *WebRPCSchema

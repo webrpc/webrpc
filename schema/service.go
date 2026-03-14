@@ -30,11 +30,11 @@ type Method struct {
 	Service *Service `json:"-"` // denormalize/back-reference
 }
 
-type MethodArgumentLocation uint
+type MethodArgumentLocation string
 
 const (
-	MethodArgumentLocationBody MethodArgumentLocation = iota
-	MethodArgumentLocationHeader
+	MethodArgumentLocationBody   MethodArgumentLocation = "body"
+	MethodArgumentLocationHeader MethodArgumentLocation = "header"
 )
 
 type MethodArgument struct {
@@ -122,6 +122,9 @@ func (m *Method) Parse(schema *WebRPCSchema, service *Service) error {
 		if input.Name == "" {
 			return fmt.Errorf("schema error: detected empty input argument name for method '%s' in service '%s'", m.Name, serviceName)
 		}
+		if input.Location == "" {
+			input.Location = MethodArgumentLocationBody
+		}
 		err := input.Type.Parse(schema)
 		if err != nil {
 			return err
@@ -136,6 +139,9 @@ func (m *Method) Parse(schema *WebRPCSchema, service *Service) error {
 		output.OutputArg = true // back-ref
 		if output.Name == "" {
 			return fmt.Errorf("schema error: detected empty output name for method '%s' in service '%s'", m.Name, serviceName)
+		}
+		if output.Location == "" {
+			output.Location = MethodArgumentLocationBody
 		}
 		err := output.Type.Parse(schema)
 		if err != nil {
