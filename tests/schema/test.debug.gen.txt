@@ -1388,6 +1388,7 @@
 									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
+								Location: (schema.MethodArgumentLocation) (len=4) "body",
 								InputArg: (bool) false,
 								OutputArg: (bool) true,
 								TypeExtra: (schema.TypeExtra) {
@@ -1478,6 +1479,7 @@
 									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
+								Location: (schema.MethodArgumentLocation) (len=4) "body",
 								InputArg: (bool) true,
 								OutputArg: (bool) false,
 								TypeExtra: (schema.TypeExtra) {
@@ -1572,6 +1574,7 @@
 									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
+								Location: (schema.MethodArgumentLocation) (len=4) "body",
 								InputArg: (bool) false,
 								OutputArg: (bool) true,
 								TypeExtra: (schema.TypeExtra) {
@@ -1646,6 +1649,7 @@
 									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
+								Location: (schema.MethodArgumentLocation) (len=4) "body",
 								InputArg: (bool) false,
 								OutputArg: (bool) true,
 								TypeExtra: (schema.TypeExtra) {
@@ -1720,6 +1724,7 @@
 									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
+								Location: (schema.MethodArgumentLocation) (len=4) "body",
 								InputArg: (bool) false,
 								OutputArg: (bool) true,
 								TypeExtra: (schema.TypeExtra) {
@@ -1810,6 +1815,7 @@
 									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
+								Location: (schema.MethodArgumentLocation) (len=4) "body",
 								InputArg: (bool) true,
 								OutputArg: (bool) false,
 								TypeExtra: (schema.TypeExtra) {
@@ -1884,6 +1890,7 @@
 									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
+								Location: (schema.MethodArgumentLocation) (len=4) "body",
 								InputArg: (bool) true,
 								OutputArg: (bool) false,
 								TypeExtra: (schema.TypeExtra) {
@@ -1958,6 +1965,7 @@
 									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
+								Location: (schema.MethodArgumentLocation) (len=4) "body",
 								InputArg: (bool) true,
 								OutputArg: (bool) false,
 								TypeExtra: (schema.TypeExtra) {
@@ -2686,6 +2694,7 @@
 									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
+								Location: (schema.MethodArgumentLocation) (len=4) "body",
 								InputArg: (bool) false,
 								OutputArg: (bool) true,
 								TypeExtra: (schema.TypeExtra) {
@@ -3410,6 +3419,7 @@
 									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
+								Location: (schema.MethodArgumentLocation) (len=4) "body",
 								InputArg: (bool) true,
 								OutputArg: (bool) false,
 								TypeExtra: (schema.TypeExtra) {
@@ -3505,6 +3515,7 @@
 									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
+								Location: (schema.MethodArgumentLocation) (len=4) "body",
 								InputArg: (bool) false,
 								OutputArg: (bool) true,
 								TypeExtra: (schema.TypeExtra) {
@@ -3640,6 +3651,7 @@
 									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
+								Location: (schema.MethodArgumentLocation) (len=4) "body",
 								InputArg: (bool) false,
 								OutputArg: (bool) true,
 								TypeExtra: (schema.TypeExtra) {
@@ -3677,6 +3689,7 @@
 									Enum: (*schema.VarEnumType)(<nil>)
 								}),
 								Optional: (bool) false,
+								Location: (schema.MethodArgumentLocation) (len=4) "body",
 								InputArg: (bool) true,
 								OutputArg: (bool) false,
 								TypeExtra: (schema.TypeExtra) {
@@ -3699,7 +3712,7 @@
 			})
 		}
 	}),
-	SchemaHash: (string) (len=40) "846ba26b9f91c5e1a66ed2f84d38f98e7c0fb67a",
+	SchemaHash: (string) (len=40) "ae44390f5a1f4fc197bde203dc28d80314a1a4cd",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcHeader: (string) "",
 	WebrpcTarget: (string) (len=5) "debug",
