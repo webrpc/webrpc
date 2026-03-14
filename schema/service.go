@@ -30,10 +30,19 @@ type Method struct {
 	Service *Service `json:"-"` // denormalize/back-reference
 }
 
+type MethodArgumentLocation uint
+
+const (
+	MethodArgumentLocationBody MethodArgumentLocation = iota
+	MethodArgumentLocationHeader
+)
+
 type MethodArgument struct {
 	Name     string   `json:"name"`
 	Type     *VarType `json:"type"`
 	Optional bool     `json:"optional"`
+
+	Location MethodArgumentLocation `json:"location,omitempty"`
 
 	InputArg  bool `json:"-"` // denormalize/back-reference
 	OutputArg bool `json:"-"` // denormalize/back-reference

@@ -843,6 +843,43 @@ func TestRIDLParse(t *testing.T) {
 	assert.NotZero(t, jout)
 }
 
+func TestRIDLParsesMethodArgumentLocationsFromHeaderAnnotation(t *testing.T) {
+	input := `
+	webrpc = v1
+	version = v0.1.1
+	name = hello-webrpc
+
+	service Simple
+	  @header:"authToken, role"
+	  - GetUser(authToken: string, role: string, userID: uint64) => (ok: bool)
+	`
+
+	s, err := parseString(input)
+	assert.NoError(t, err)
+
+	method := s.Services[0].Methods[0]
+	require.Len(t, method.Inputs, 3)
+	assert.Equal(t, schema.MethodArgumentLocationHeader, method.Inputs[0].Location)
+	assert.Equal(t, schema.MethodArgumentLocationHeader, method.Inputs[1].Location)
+	assert.Equal(t, schema.MethodArgumentLocationBody, method.Inputs[2].Location)
+}
+
+func TestRIDLFailsOnUnknownHeaderAnnotationInput(t *testing.T) {
+	input := `
+	webrpc = v1
+	version = v0.1.1
+	name = hello-webrpc
+
+	service Simple
+	  @header:missing
+	  - GetUser(authToken: string, userID: uint64) => (ok: bool)
+	`
+
+	_, err := parseString(input)
+	require.Error(t, err)
+	assert.ErrorContains(t, err, `@header references unknown input "missing"`)
+}
+
 func TestRIDLImportsExample1(t *testing.T) {
 	exampleDirFS := os.DirFS("./_example")
 
