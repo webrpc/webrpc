@@ -300,8 +300,7 @@
       {
        "name": "one",
        "type": "Simple",
-       "optional": false,
-       "location": "body"
+       "optional": false
       }
      ]
     },
@@ -313,8 +312,7 @@
       {
        "name": "one",
        "type": "Simple",
-       "optional": false,
-       "location": "body"
+       "optional": false
       }
      ],
      "outputs": []
@@ -328,20 +326,17 @@
       {
        "name": "one",
        "type": "Simple",
-       "optional": false,
-       "location": "body"
+       "optional": false
       },
       {
        "name": "two",
        "type": "Simple",
-       "optional": false,
-       "location": "body"
+       "optional": false
       },
       {
        "name": "three",
        "type": "Simple",
-       "optional": false,
-       "location": "body"
+       "optional": false
       }
      ]
     },
@@ -353,20 +348,17 @@
       {
        "name": "one",
        "type": "Simple",
-       "optional": false,
-       "location": "body"
+       "optional": false
       },
       {
        "name": "two",
        "type": "Simple",
-       "optional": false,
-       "location": "body"
+       "optional": false
       },
       {
        "name": "three",
        "type": "Simple",
-       "optional": false,
-       "location": "body"
+       "optional": false
       }
      ],
      "outputs": []
@@ -380,8 +372,7 @@
       {
        "name": "complex",
        "type": "Complex",
-       "optional": false,
-       "location": "body"
+       "optional": false
       }
      ]
     },
@@ -393,8 +384,7 @@
       {
        "name": "complex",
        "type": "Complex",
-       "optional": false,
-       "location": "body"
+       "optional": false
       }
      ],
      "outputs": []
@@ -408,8 +398,7 @@
       {
        "name": "list",
        "type": "[]Status",
-       "optional": false,
-       "location": "body"
+       "optional": false
       }
      ]
     },
@@ -422,8 +411,7 @@
       {
        "name": "map",
        "type": "map<Access,uint64>",
-       "optional": false,
-       "location": "body"
+       "optional": false
       }
      ]
     },
@@ -437,8 +425,7 @@
       {
        "name": "code",
        "type": "int",
-       "optional": false,
-       "location": "body"
+       "optional": false
       }
      ],
      "outputs": []
