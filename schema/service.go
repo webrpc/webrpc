@@ -1,6 +1,9 @@
 package schema
 
 import (
+	"bytes"
+	"cmp"
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -37,6 +40,10 @@ const (
 	MethodArgumentLocationHeader MethodArgumentLocation = "header"
 )
 
+func (l MethodArgumentLocation) IsBody() bool {
+	return l == "" || l == MethodArgumentLocationBody
+}
+
 type MethodArgument struct {
 	Name     string   `json:"name"`
 	Type     *VarType `json:"type"`
@@ -48,6 +55,28 @@ type MethodArgument struct {
 	OutputArg bool `json:"-"` // denormalize/back-reference
 
 	TypeExtra `json:",omitempty"`
+}
+
+func (a MethodArgument) GetLocation() MethodArgumentLocation {
+	return cmp.Or(a.Location, MethodArgumentLocationBody)
+}
+
+func (a MethodArgument) MarshalJSON() ([]byte, error) {
+	type methodArgumentJSON MethodArgument
+
+	v := methodArgumentJSON(a)
+	if a.GetLocation().IsBody() {
+		v.Location = ""
+	}
+
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+
+	return bytes.TrimSpace(buf.Bytes()), nil
 }
 
 type Annotations map[string]*Annotation
@@ -122,9 +151,6 @@ func (m *Method) Parse(schema *WebRPCSchema, service *Service) error {
 		if input.Name == "" {
 			return fmt.Errorf("schema error: detected empty input argument name for method '%s' in service '%s'", m.Name, serviceName)
 		}
-		if input.Location == "" {
-			input.Location = MethodArgumentLocationBody
-		}
 		err := input.Type.Parse(schema)
 		if err != nil {
 			return err
@@ -139,9 +165,6 @@ func (m *Method) Parse(schema *WebRPCSchema, service *Service) error {
 		output.OutputArg = true // back-ref
 		if output.Name == "" {
 			return fmt.Errorf("schema error: detected empty output name for method '%s' in service '%s'", m.Name, serviceName)
-		}
-		if output.Location == "" {
-			output.Location = MethodArgumentLocationBody
 		}
 		err := output.Type.Parse(schema)
 		if err != nil {

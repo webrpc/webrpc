@@ -2,6 +2,7 @@ package schema
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -335,7 +336,15 @@ func TestMethodArgumentLocationJSONEncoding(t *testing.T) {
 								},
 							},
 						},
-						Outputs: []*MethodArgument{},
+						Outputs: []*MethodArgument{
+							{
+								Name: "ok",
+								Type: &VarType{
+									Expr: "bool",
+								},
+								Location: MethodArgumentLocationBody,
+							},
+						},
 					},
 				},
 			},
@@ -348,7 +357,19 @@ func TestMethodArgumentLocationJSONEncoding(t *testing.T) {
 	jout, err := s.ToJSON()
 	assert.NoError(t, err)
 	assert.Contains(t, jout, `"location": "header"`)
-	assert.Contains(t, jout, `"location": "body"`)
+	assert.NotContains(t, jout, `"location": "body"`)
+	assert.Equal(t, 0, strings.Count(jout, `"location": "body"`))
+	assert.Contains(t, jout, "{\n       \"name\": \"userID\",\n       \"type\": \"uint64\",\n       \"optional\": false\n      }")
+	assert.Contains(t, jout, "{\n       \"name\": \"ok\",\n       \"type\": \"bool\",\n       \"optional\": false\n      }")
+}
+
+func TestMethodArgumentLocationEmptyBehavesLikeBody(t *testing.T) {
+	assert.Equal(t, MethodArgumentLocationBody, MethodArgument{}.GetLocation())
+	assert.Equal(t, MethodArgumentLocationBody, MethodArgument{Location: MethodArgumentLocationBody}.GetLocation())
+	assert.Equal(t, MethodArgumentLocationHeader, MethodArgument{Location: MethodArgumentLocationHeader}.GetLocation())
+	assert.True(t, MethodArgument{}.GetLocation().IsBody())
+	assert.True(t, MethodArgument{Location: MethodArgumentLocationBody}.GetLocation().IsBody())
+	assert.False(t, MethodArgument{Location: MethodArgumentLocationHeader}.GetLocation().IsBody())
 }
 
 func TestMatchServices(t *testing.T) {

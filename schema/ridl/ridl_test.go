@@ -859,9 +859,11 @@ func TestRIDLParsesMethodArgumentLocationsFromHeaderAnnotation(t *testing.T) {
 
 	method := s.Services[0].Methods[0]
 	require.Len(t, method.Inputs, 3)
-	assert.Equal(t, schema.MethodArgumentLocationHeader, method.Inputs[0].Location)
-	assert.Equal(t, schema.MethodArgumentLocationHeader, method.Inputs[1].Location)
-	assert.Equal(t, schema.MethodArgumentLocationBody, method.Inputs[2].Location)
+	assert.Equal(t, schema.MethodArgumentLocationHeader, method.Inputs[0].GetLocation())
+	assert.Equal(t, schema.MethodArgumentLocationHeader, method.Inputs[1].GetLocation())
+	assert.Empty(t, method.Inputs[2].Location)
+	assert.Equal(t, schema.MethodArgumentLocationBody, method.Inputs[2].GetLocation())
+	assert.True(t, method.Inputs[2].GetLocation().IsBody())
 }
 
 func TestRIDLFailsOnUnknownHeaderAnnotationInput(t *testing.T) {
