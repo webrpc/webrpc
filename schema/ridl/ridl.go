@@ -338,6 +338,10 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				return nil, fmt.Errorf("method definition must be in succinct form for both inputs and inputs of method '%s'", method.Name().String())
 			}
 
+			if err := applyMethodArgumentLocations(method, inputs); err != nil {
+				return nil, err
+			}
+
 			// Convert error tokens to strings
 			methodErrors := make([]string, len(method.Errors()))
 			for i, errorToken := range method.Errors() {
@@ -438,6 +442,35 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 	}
 
 	return output, false, nil
+}
+
+func applyMethodArgumentLocations(method *MethodNode, inputs []*schema.MethodArgument) error {
+	inputsByName := make(map[string]*schema.MethodArgument, len(inputs))
+	for _, input := range inputs {
+		inputsByName[input.Name] = input
+	}
+
+	for _, annotation := range method.Annotations() {
+		if annotation.AnnotationType().String() != "header" || annotation.Value() == nil {
+			continue
+		}
+
+		for _, name := range strings.Split(annotation.Value().String(), ",") {
+			argName := strings.TrimSpace(name)
+			if argName == "" {
+				return fmt.Errorf("method '%s': empty input name in @header annotation", method.Name().String())
+			}
+
+			input, ok := inputsByName[argName]
+			if !ok {
+				return fmt.Errorf("method '%s': @header references unknown input %q", method.Name().String(), argName)
+			}
+
+			input.Location = schema.MethodArgumentLocationHeader
+		}
+	}
+
+	return nil
 }
 
 func parseComment(comment string) []string {

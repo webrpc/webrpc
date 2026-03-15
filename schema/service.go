@@ -1,6 +1,9 @@
 package schema
 
 import (
+	"bytes"
+	"cmp"
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -30,15 +33,50 @@ type Method struct {
 	Service *Service `json:"-"` // denormalize/back-reference
 }
 
+type MethodArgumentLocation string
+
+const (
+	MethodArgumentLocationBody   MethodArgumentLocation = "body"
+	MethodArgumentLocationHeader MethodArgumentLocation = "header"
+)
+
+func (l MethodArgumentLocation) IsBody() bool {
+	return l == "" || l == MethodArgumentLocationBody
+}
+
 type MethodArgument struct {
 	Name     string   `json:"name"`
 	Type     *VarType `json:"type"`
 	Optional bool     `json:"optional"`
 
+	Location MethodArgumentLocation `json:"location,omitempty"`
+
 	InputArg  bool `json:"-"` // denormalize/back-reference
 	OutputArg bool `json:"-"` // denormalize/back-reference
 
 	TypeExtra `json:",omitempty"`
+}
+
+func (a MethodArgument) GetLocation() MethodArgumentLocation {
+	return cmp.Or(a.Location, MethodArgumentLocationBody)
+}
+
+func (a MethodArgument) MarshalJSON() ([]byte, error) {
+	type methodArgumentJSON MethodArgument
+
+	v := methodArgumentJSON(a)
+	if a.GetLocation().IsBody() {
+		v.Location = ""
+	}
+
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+
+	return bytes.TrimSpace(buf.Bytes()), nil
 }
 
 type Annotations map[string]*Annotation

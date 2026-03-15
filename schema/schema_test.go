@@ -2,6 +2,7 @@ package schema
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -307,6 +308,68 @@ func TestBasePathValidation(t *testing.T) {
 		_, err := ParseSchemaJSON([]byte(schemaJSON))
 		assert.Error(t, err)
 	})
+}
+
+func TestMethodArgumentLocationJSONEncoding(t *testing.T) {
+	s := &WebRPCSchema{
+		WebrpcVersion: "v1",
+		SchemaName:    "example",
+		SchemaVersion: "v0.0.1",
+		Services: []*Service{
+			{
+				Name: "Example",
+				Methods: []*Method{
+					{
+						Name: "Ping",
+						Inputs: []*MethodArgument{
+							{
+								Name: "authToken",
+								Type: &VarType{
+									Expr: "string",
+								},
+								Location: MethodArgumentLocationHeader,
+							},
+							{
+								Name: "userID",
+								Type: &VarType{
+									Expr: "uint64",
+								},
+							},
+						},
+						Outputs: []*MethodArgument{
+							{
+								Name: "ok",
+								Type: &VarType{
+									Expr: "bool",
+								},
+								Location: MethodArgumentLocationBody,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	err := s.Validate()
+	assert.NoError(t, err)
+
+	jout, err := s.ToJSON()
+	assert.NoError(t, err)
+	assert.Contains(t, jout, `"location": "header"`)
+	assert.NotContains(t, jout, `"location": "body"`)
+	assert.Equal(t, 0, strings.Count(jout, `"location": "body"`))
+	assert.Contains(t, jout, "{\n       \"name\": \"userID\",\n       \"type\": \"uint64\",\n       \"optional\": false\n      }")
+	assert.Contains(t, jout, "{\n       \"name\": \"ok\",\n       \"type\": \"bool\",\n       \"optional\": false\n      }")
+}
+
+func TestMethodArgumentLocationEmptyBehavesLikeBody(t *testing.T) {
+	assert.Equal(t, MethodArgumentLocationBody, MethodArgument{}.GetLocation())
+	assert.Equal(t, MethodArgumentLocationBody, MethodArgument{Location: MethodArgumentLocationBody}.GetLocation())
+	assert.Equal(t, MethodArgumentLocationHeader, MethodArgument{Location: MethodArgumentLocationHeader}.GetLocation())
+	assert.True(t, MethodArgument{}.GetLocation().IsBody())
+	assert.True(t, MethodArgument{Location: MethodArgumentLocationBody}.GetLocation().IsBody())
+	assert.False(t, MethodArgument{Location: MethodArgumentLocationHeader}.GetLocation().IsBody())
 }
 
 func TestMatchServices(t *testing.T) {
