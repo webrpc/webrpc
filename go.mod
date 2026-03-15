@@ -6,7 +6,9 @@ go 1.23.12
 toolchain go1.25.0
 
 // replace github.com/webrpc/gen-golang => ../gen-golang
+
 // replace github.com/webrpc/gen-typescript => ../gen-typescript
+
 // replace github.com/webrpc/gen-javascript => ../gen-javascript
 // replace github.com/webrpc/gen-openapi => ../gen-openapi
 // replace github.com/webrpc/gen-kotlin => ../gen-kotlin
@@ -20,11 +22,11 @@ require (
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c
 	github.com/stretchr/testify v1.11.1
 	github.com/webrpc/gen-dart v0.2.0
-	github.com/webrpc/gen-golang v0.27.0
+	github.com/webrpc/gen-golang v0.27.1-0.20260315155603-1ff56724f5ce
 	github.com/webrpc/gen-javascript v0.14.0
 	github.com/webrpc/gen-kotlin v0.2.0
 	github.com/webrpc/gen-openapi v0.18.0
-	github.com/webrpc/gen-typescript v0.25.0
+	github.com/webrpc/gen-typescript v0.25.1-0.20260315155814-448298de7057
 	golang.org/x/tools v0.36.0
 )
 
