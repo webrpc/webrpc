@@ -484,7 +484,7 @@ func fieldLocation(f *schema.TypeField) (location string, directives map[string]
 				location = strings.TrimSpace(parts[0])
 				directives = make(map[string]bool, len(parts)-1)
 				for _, d := range parts[1:] {
-					directives[strings.TrimSpace(d)] = true
+					directives[strings.ToLower(strings.TrimSpace(d))] = true
 				}
 				return
 			}
