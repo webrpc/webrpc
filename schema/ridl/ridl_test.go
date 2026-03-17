@@ -843,6 +843,200 @@ func TestRIDLParse(t *testing.T) {
 	assert.NotZero(t, jout)
 }
 
+func TestRIDLFieldLocationHeaderMeta(t *testing.T) {
+	input := `
+	webrpc = v1
+	version = v0.1.1
+	name = hello-webrpc
+
+	struct ListProjectsRequest
+	  - teamId: uint64
+	    + location = header
+	  - filter?: string
+	  - page?: uint32
+
+	struct ListProjectsResponse
+	  - projects: []string
+
+	service Projects
+	  - ListProjects(ListProjectsRequest) => (ListProjectsResponse)
+	`
+
+	s, err := parseString(input)
+	assert.NoError(t, err)
+
+	method := s.Services[0].Methods[0]
+	require.Len(t, method.Inputs, 1)
+
+	// HeaderFields should contain teamId.
+	require.Len(t, method.HeaderFields, 1)
+	assert.Equal(t, "teamId", method.HeaderFields[0].Name)
+	assert.Equal(t, "uint64", method.HeaderFields[0].Type.Expr)
+
+	// BodyFields should contain filter and page.
+	require.Len(t, method.BodyFields, 2)
+	assert.Equal(t, "filter", method.BodyFields[0].Name)
+	assert.Equal(t, "page", method.BodyFields[1].Name)
+}
+
+func TestRIDLFieldLocationHeaderMultipleFields(t *testing.T) {
+	input := `
+	webrpc = v1
+	version = v0.1.1
+	name = hello-webrpc
+
+	struct Req
+	  - authToken: string
+	    + location = header
+	  - role: string
+	    + location = header
+	  - userID: uint64
+
+	struct Resp
+	  - ok: bool
+
+	service Simple
+	  - GetUser(Req) => (Resp)
+	`
+
+	s, err := parseString(input)
+	assert.NoError(t, err)
+
+	method := s.Services[0].Methods[0]
+	require.Len(t, method.HeaderFields, 2)
+	assert.Equal(t, "authToken", method.HeaderFields[0].Name)
+	assert.Equal(t, "role", method.HeaderFields[1].Name)
+	require.Len(t, method.BodyFields, 1)
+	assert.Equal(t, "userID", method.BodyFields[0].Name)
+}
+
+func TestRIDLFieldLocationHeaderAllFields(t *testing.T) {
+	input := `
+	webrpc = v1
+	version = v0.1.1
+	name = hello-webrpc
+
+	struct Req
+	  - authToken: string
+	    + location = header
+	  - userID: uint64
+	    + location = header
+
+	service Simple
+	  - DeleteUser(Req)
+	`
+
+	s, err := parseString(input)
+	assert.NoError(t, err)
+
+	method := s.Services[0].Methods[0]
+	require.Len(t, method.HeaderFields, 2)
+	assert.Equal(t, "authToken", method.HeaderFields[0].Name)
+	assert.Equal(t, "string", method.HeaderFields[0].Type.Expr)
+	assert.Equal(t, "userID", method.HeaderFields[1].Name)
+	assert.Equal(t, "uint64", method.HeaderFields[1].Type.Expr)
+	assert.Empty(t, method.BodyFields)
+}
+
+func TestRIDLFieldLocationHeaderPreservesOptional(t *testing.T) {
+	input := `
+	webrpc = v1
+	version = v0.1.1
+	name = hello-webrpc
+
+	struct Req
+	  - authToken: string
+	    + location = header
+	  - filter?: string
+
+	struct Resp
+	  - ok: bool
+
+	service Simple
+	  - Search(Req) => (Resp)
+	`
+
+	s, err := parseString(input)
+	assert.NoError(t, err)
+
+	method := s.Services[0].Methods[0]
+	require.Len(t, method.HeaderFields, 1)
+	assert.False(t, method.HeaderFields[0].Optional)
+	require.Len(t, method.BodyFields, 1)
+	assert.Equal(t, "filter", method.BodyFields[0].Name)
+	assert.True(t, method.BodyFields[0].Optional)
+}
+
+func TestRIDLFieldLocationHeaderIgnoredForNonSuccinct(t *testing.T) {
+	input := `
+	webrpc = v1
+	version = v0.1.1
+	name = hello-webrpc
+
+	struct Req
+	  - authToken: string
+	    + location = header
+
+	service Simple
+	  - GetUser(authToken: string, userID: uint64) => (ok: bool)
+	`
+
+	s, err := parseString(input)
+	assert.NoError(t, err)
+
+	method := s.Services[0].Methods[0]
+	// Non-succinct methods should NOT populate HeaderFields/BodyFields.
+	assert.Nil(t, method.HeaderFields)
+	assert.Nil(t, method.BodyFields)
+}
+
+func TestRIDLFieldLocationInvalidValueFails(t *testing.T) {
+	input := `
+	webrpc = v1
+	version = v0.1.1
+	name = hello-webrpc
+
+	struct Req
+	  - authToken: string
+	    + location = cookie
+
+	struct Resp
+	  - ok: bool
+
+	service Simple
+	  - GetUser(Req) => (Resp)
+	`
+
+	_, err := parseString(input)
+	require.Error(t, err)
+	assert.ErrorContains(t, err, `unsupported location value "cookie"`)
+}
+
+func TestRIDLNoLocationMetaMeansNoSplitting(t *testing.T) {
+	input := `
+	webrpc = v1
+	version = v0.1.1
+	name = hello-webrpc
+
+	struct Req
+	  - authToken: string
+	  - userID: uint64
+
+	struct Resp
+	  - ok: bool
+
+	service Simple
+	  - GetUser(Req) => (Resp)
+	`
+
+	s, err := parseString(input)
+	assert.NoError(t, err)
+
+	method := s.Services[0].Methods[0]
+	assert.Nil(t, method.HeaderFields)
+	assert.Nil(t, method.BodyFields)
+}
+
 func TestRIDLImportsExample1(t *testing.T) {
 	exampleDirFS := os.DirFS("./_example")
 

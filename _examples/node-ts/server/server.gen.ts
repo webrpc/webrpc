@@ -89,13 +89,13 @@ export interface GetUserResponse {
 // Server handler
 //
 
-export const serveExampleRpc = async <Context>(service: ExampleServer<Context>, ctx: Context, urlPath: string, body: any) => {
+export const serveExampleRpc = async <Context>(service: ExampleServer<Context>, ctx: Context, urlPath: string, body: any, reqHeaders?: Record<string, string>) => {
   if (!urlPath.startsWith('/v1/')) return null
   const parts = urlPath.split('/').filter(Boolean)
   if (parts.length !== 3 || parts[0] !== 'rpc' || parts[1] !== 'Example') return null
   const method = parts[2]!
   try {
-    const result = await dispatchExampleRequest(service, ctx, method, body)
+    const result = await dispatchExampleRequest(service, ctx, method, body, reqHeaders)
     return {
       method,
       status: 200,
@@ -122,7 +122,7 @@ export const serveExampleRpc = async <Context>(service: ExampleServer<Context>, 
   }
 }
 
-const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, ctx: Context, method: string, body: any) => {
+const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, ctx: Context, method: string, body: any, reqHeaders?: Record<string, string>) => {
   const methodTypes = SERVICE_METHOD_TYPES['Example'][method]
   if (!methodTypes) {
     throw new WebrpcBadRouteError({ cause: 'method not found' })
@@ -672,7 +672,7 @@ export const webrpcErrorByCode: { [code: number]: any } = {
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.24.0;node-ts@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.25.1-0.20260317104430-8bbbf8c55334;node-ts@v1.0.0"
 
 type WebrpcGenVersions = {
   WebrpcGenVersion: string;

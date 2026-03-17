@@ -112,7 +112,7 @@ export class Example implements ExampleClient {
   private url(name: string): string {
     return this.hostname + this.path + name
   }
-  
+
   queryKey = {
     ping: (req: PingRequest) => ['Example', 'ping', req] as const,
     getUser: (req: GetUserRequest) => ['Example', 'getUser', req] as const,
@@ -572,7 +572,7 @@ export const webrpcErrorByCode: { [code: number]: any } = {
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.24.0;node-ts@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.25.1-0.20260317104430-8bbbf8c55334;node-ts@v1.0.0"
 
 type WebrpcGenVersions = {
   WebrpcGenVersion: string;

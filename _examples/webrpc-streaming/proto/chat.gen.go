@@ -407,7 +407,6 @@ func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w ht
 		Arg0 string  `json:"username"`
 		Arg1 *uint64 `json:"lastMessageId"`
 	}{}
-
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
@@ -771,7 +770,7 @@ var (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.26.1;webrpc-sse-chat@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.27.1-0.20260317104215-ae913313df7e;webrpc-sse-chat@v1.0.0"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string

@@ -27,7 +27,18 @@ type Method struct {
 	Outputs []*MethodArgument `json:"outputs"`
 	Errors  []string          `json:"errors,omitempty"` // List of errors this method can throw
 
+	// For succinct methods: struct fields split by location (from + location = header meta).
+	HeaderFields []*MethodStructField `json:"headerFields,omitempty"`
+	BodyFields   []*MethodStructField `json:"bodyFields,omitempty"`
+
 	Service *Service `json:"-"` // denormalize/back-reference
+}
+
+type MethodStructField struct {
+	Name     string          `json:"name"`
+	Type     *VarType        `json:"type"`
+	Optional bool            `json:"optional,omitempty"`
+	Meta     []TypeFieldMeta `json:"meta,omitempty"`
 }
 
 type MethodArgument struct {

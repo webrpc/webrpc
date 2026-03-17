@@ -338,6 +338,11 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				return nil, fmt.Errorf("method definition must be in succinct form for both inputs and inputs of method '%s'", method.Name().String())
 			}
 
+			headerFields, bodyFields, err := resolveHeaderFields(s, inputs, succinctInput)
+			if err != nil {
+				return nil, err
+			}
+
 			// Convert error tokens to strings
 			methodErrors := make([]string, len(method.Errors()))
 			for i, errorToken := range method.Errors() {
@@ -355,6 +360,8 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				Comments:     parseComment(method.Comment()),
 				Annotations:  buildAnnotations(method),
 				Succinct:     succinctInput || succinctOutput,
+				HeaderFields: headerFields,
+				BodyFields:   bodyFields,
 			}
 
 			methods = append(methods, m)
@@ -438,6 +445,55 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 	}
 
 	return output, false, nil
+}
+
+func resolveHeaderFields(s *schema.WebRPCSchema, inputs []*schema.MethodArgument, succinct bool) ([]*schema.MethodStructField, []*schema.MethodStructField, error) {
+	if !succinct || len(inputs) != 1 {
+		return nil, nil, nil
+	}
+
+	structType := s.GetTypeByName(inputs[0].Type.Expr)
+	if structType == nil || structType.Kind != "struct" {
+		return nil, nil, nil
+	}
+
+	var headerFields, bodyFields []*schema.MethodStructField
+	for _, f := range structType.Fields {
+		location := fieldLocation(f)
+		switch location {
+		case "", "body":
+			bodyFields = append(bodyFields, toMethodStructField(f))
+		case "header":
+			headerFields = append(headerFields, toMethodStructField(f))
+		default:
+			return nil, nil, fmt.Errorf("struct %q field %q: unsupported location value %q (expected \"header\")", structType.Name, f.Name, location)
+		}
+	}
+
+	if len(headerFields) == 0 {
+		return nil, nil, nil
+	}
+	return headerFields, bodyFields, nil
+}
+
+func fieldLocation(f *schema.TypeField) string {
+	for _, m := range f.Meta {
+		if v, ok := m["location"]; ok {
+			if s, ok := v.(string); ok {
+				return s
+			}
+		}
+	}
+	return ""
+}
+
+func toMethodStructField(f *schema.TypeField) *schema.MethodStructField {
+	return &schema.MethodStructField{
+		Name:     f.Name,
+		Type:     f.Type,
+		Optional: f.Optional,
+		Meta:     f.Meta,
+	}
 }
 
 func parseComment(comment string) []string {

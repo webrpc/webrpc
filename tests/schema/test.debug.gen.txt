@@ -1289,6 +1289,8 @@
 						},
 						Errors: ([]string) {
 						},
+						HeaderFields: ([]*schema.MethodStructField) <nil>,
+						BodyFields: ([]*schema.MethodStructField) <nil>,
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -1307,6 +1309,8 @@
 						},
 						Errors: ([]string) {
 						},
+						HeaderFields: ([]*schema.MethodStructField) <nil>,
+						BodyFields: ([]*schema.MethodStructField) <nil>,
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -1399,6 +1403,8 @@
 						},
 						Errors: ([]string) {
 						},
+						HeaderFields: ([]*schema.MethodStructField) <nil>,
+						BodyFields: ([]*schema.MethodStructField) <nil>,
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -1491,6 +1497,8 @@
 						},
 						Errors: ([]string) {
 						},
+						HeaderFields: ([]*schema.MethodStructField) <nil>,
+						BodyFields: ([]*schema.MethodStructField) <nil>,
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -1731,6 +1739,8 @@
 						},
 						Errors: ([]string) {
 						},
+						HeaderFields: ([]*schema.MethodStructField) <nil>,
+						BodyFields: ([]*schema.MethodStructField) <nil>,
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -1971,6 +1981,8 @@
 						},
 						Errors: ([]string) {
 						},
+						HeaderFields: ([]*schema.MethodStructField) <nil>,
+						BodyFields: ([]*schema.MethodStructField) <nil>,
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -2697,6 +2709,8 @@
 						},
 						Errors: ([]string) {
 						},
+						HeaderFields: ([]*schema.MethodStructField) <nil>,
+						BodyFields: ([]*schema.MethodStructField) <nil>,
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -3423,6 +3437,8 @@
 						},
 						Errors: ([]string) {
 						},
+						HeaderFields: ([]*schema.MethodStructField) <nil>,
+						BodyFields: ([]*schema.MethodStructField) <nil>,
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -3516,6 +3532,8 @@
 						},
 						Errors: ([]string) {
 						},
+						HeaderFields: ([]*schema.MethodStructField) <nil>,
+						BodyFields: ([]*schema.MethodStructField) <nil>,
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -3651,6 +3669,8 @@
 						},
 						Errors: ([]string) {
 						},
+						HeaderFields: ([]*schema.MethodStructField) <nil>,
+						BodyFields: ([]*schema.MethodStructField) <nil>,
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
@@ -3690,6 +3710,8 @@
 						},
 						Errors: ([]string) {
 						},
+						HeaderFields: ([]*schema.MethodStructField) <nil>,
+						BodyFields: ([]*schema.MethodStructField) <nil>,
 						Service: (*schema.Service)(<already shown>)
 					})
 				},
