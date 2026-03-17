@@ -26,7 +26,7 @@ require (
 	github.com/webrpc/gen-javascript v0.14.0
 	github.com/webrpc/gen-kotlin v0.2.0
 	github.com/webrpc/gen-openapi v0.18.0
-	github.com/webrpc/gen-typescript v0.25.1-0.20260317140554-18056cf31a6e
+	github.com/webrpc/gen-typescript v0.25.1-0.20260317150440-8cfa5b6a5a38
 	golang.org/x/tools v0.36.0
 )
 

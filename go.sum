@@ -233,6 +233,8 @@ github.com/webrpc/gen-typescript v0.25.1-0.20260317104430-8bbbf8c55334 h1:nq7+kp
 github.com/webrpc/gen-typescript v0.25.1-0.20260317104430-8bbbf8c55334/go.mod h1:XDW2lL0Ft7Mdf12wcj8STdvuV24k2L/vGY49Ag2M4Lw=
 github.com/webrpc/gen-typescript v0.25.1-0.20260317140554-18056cf31a6e h1:aULb0BQ+8WPdLorocFo9SAGBPL6L871NNpQ/5JypMgI=
 github.com/webrpc/gen-typescript v0.25.1-0.20260317140554-18056cf31a6e/go.mod h1:XDW2lL0Ft7Mdf12wcj8STdvuV24k2L/vGY49Ag2M4Lw=
+github.com/webrpc/gen-typescript v0.25.1-0.20260317150440-8cfa5b6a5a38 h1:mjshjDBZpttdkL9w2x+nmDigA+bObdAUl/S7/LR/hNE=
+github.com/webrpc/gen-typescript v0.25.1-0.20260317150440-8cfa5b6a5a38/go.mod h1:XDW2lL0Ft7Mdf12wcj8STdvuV24k2L/vGY49Ag2M4Lw=
 github.com/xanzy/ssh-agent v0.3.3 h1:+/15pJfg/RsTxqYcX6fHqOXZwwMP+2VyYWJeWM2qQFM=
 github.com/xanzy/ssh-agent v0.3.3/go.mod h1:6dzNDKs0J9rVPHPhaGCukekBHKqfl+L3KghI1Bc68Uw=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
