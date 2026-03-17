@@ -35,10 +35,11 @@ type Method struct {
 }
 
 type MethodStructField struct {
-	Name     string          `json:"name"`
-	Type     *VarType        `json:"type"`
-	Optional bool            `json:"optional,omitempty"`
-	Meta     []TypeFieldMeta `json:"meta,omitempty"`
+	Name      string          `json:"name"`
+	Type      *VarType        `json:"type"`
+	Optional  bool            `json:"optional,omitempty"`
+	OmitEmpty bool            `json:"omitEmpty,omitempty"`
+	Meta      []TypeFieldMeta `json:"meta,omitempty"`
 }
 
 type MethodArgument struct {

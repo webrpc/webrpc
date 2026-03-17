@@ -459,14 +459,14 @@ func resolveHeaderFields(s *schema.WebRPCSchema, inputs []*schema.MethodArgument
 
 	var headerFields, bodyFields []*schema.MethodStructField
 	for _, f := range structType.Fields {
-		location := fieldLocation(f)
-		switch location {
+		loc, directives := fieldLocation(f)
+		switch loc {
 		case "", "body":
-			bodyFields = append(bodyFields, toMethodStructField(f))
+			bodyFields = append(bodyFields, toMethodStructField(f, directives))
 		case "header":
-			headerFields = append(headerFields, toMethodStructField(f))
+			headerFields = append(headerFields, toMethodStructField(f, directives))
 		default:
-			return nil, nil, fmt.Errorf("struct %q field %q: unsupported location value %q (expected \"header\")", structType.Name, f.Name, location)
+			return nil, nil, fmt.Errorf("struct %q field %q: unsupported location value %q (expected \"header\")", structType.Name, f.Name, loc)
 		}
 	}
 
@@ -476,23 +476,30 @@ func resolveHeaderFields(s *schema.WebRPCSchema, inputs []*schema.MethodArgument
 	return headerFields, bodyFields, nil
 }
 
-func fieldLocation(f *schema.TypeField) string {
+func fieldLocation(f *schema.TypeField) (location string, directives map[string]bool) {
 	for _, m := range f.Meta {
 		if v, ok := m["location"]; ok {
 			if s, ok := v.(string); ok {
-				return s
+				parts := strings.Split(s, ",")
+				location = strings.TrimSpace(parts[0])
+				directives = make(map[string]bool, len(parts)-1)
+				for _, d := range parts[1:] {
+					directives[strings.TrimSpace(d)] = true
+				}
+				return
 			}
 		}
 	}
-	return ""
+	return "", nil
 }
 
-func toMethodStructField(f *schema.TypeField) *schema.MethodStructField {
+func toMethodStructField(f *schema.TypeField, directives map[string]bool) *schema.MethodStructField {
 	return &schema.MethodStructField{
-		Name:     f.Name,
-		Type:     f.Type,
-		Optional: f.Optional,
-		Meta:     f.Meta,
+		Name:      f.Name,
+		Type:      f.Type,
+		Optional:  f.Optional,
+		OmitEmpty: directives["omitempty"],
+		Meta:      f.Meta,
 	}
 }
 
