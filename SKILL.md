@@ -1,14 +1,18 @@
-# webrpc + RIDL quick guide for LLMs
+---
+name: webrpc-ridl-schema
+description: webrpc schema and RIDL syntax
+---
 
-This repo contains the webrpc schema definition, the RIDL parser, and the `webrpc-gen` codegen tooling.
-`go.mod` pins the codegen template versions (for example `gen-golang`, `gen-typescript`).
-The templates are intentionally minimal: they generate simple, human‑readable clients/servers
-(or docs) that look like the HTTP client code you would hand‑write. No magic.
+# webrpc schema and RIDL syntax skill for LLMs
 
-RIDL defines the HTTP client/server API over the wire. The service API follows a subset of REST
-conventions, but it is not RESTful. It is a straightforward REST‑like JSON API:
-- always uses POST
-- JSON body only (no path params or query params)
+## When to use this skill
+Use this skill when the user needs to work with RIDL files.
+
+The RIDL file defines schema for HTTP client/server communications (browser-to-server or service-to-service).
+The `webrpc-gen` codegen generates a REST-like API with JSON messages, a subset of REST API conventions, which:
+- is not RESTful
+- always uses POST method
+- uses JSON body only (no path params or query params)
 
 ## Do and don't
 - Prefer editing `.ridl` files; do not manually edit generated `*.gen.*` files.
@@ -48,7 +52,7 @@ List:
 Map:
 `map<key,value>`
 
-Struct:
+Struct (message):
 ```
 struct User
   - id: uint64
@@ -116,7 +120,7 @@ Fields can include metadata lines:
 - `schema/README.md` (type system)
 - `schema/ridl/README.md` (errors and RIDL notes)
 
-## Codegen templates (upstream repos)
+## webrpc-gen codegen targets (upstream Go template repositories)
 - https://github.com/webrpc/gen-golang
 - https://github.com/webrpc/gen-typescript
 - https://github.com/webrpc/gen-javascript
@@ -126,6 +130,6 @@ Fields can include metadata lines:
 
 ## Common mistakes
 - Missing `webrpc = v1`.
-- Using deprecated `message` instead of `struct`.
+- Using deprecated `message` keyword instead of `struct`.
 - Mixing succinct and multi‑arg method signatures.
 - Forgetting optional `?` on nullable fields.
