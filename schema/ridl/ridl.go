@@ -334,9 +334,11 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				return nil, err
 			}
 
-			// Succinct requires both sides to use inline struct types.
-			// If only one side qualifies, fall back to non-succinct.
-			succinct := succinctInput && succinctOutput
+			if succinctInput || succinctOutput {
+				if !succinctInput || !succinctOutput {
+					return nil, fmt.Errorf("method definition must be in succinct form for both inputs and outputs of method '%s'", method.Name().String())
+				}
+			}
 
 			// Convert error tokens to strings
 			methodErrors := make([]string, len(method.Errors()))
@@ -354,7 +356,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				Errors:       methodErrors,
 				Comments:     parseComment(method.Comment()),
 				Annotations:  buildAnnotations(method),
-				Succinct:     succinct,
+				Succinct:     succinctInput && succinctOutput,
 			}
 
 			methods = append(methods, m)
