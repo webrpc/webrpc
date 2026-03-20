@@ -334,8 +334,10 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				return nil, err
 			}
 
-			if (len(inputs) > 1 || len(outputs) > 1) && (succinctInput || succinctOutput) {
-				return nil, fmt.Errorf("method definition must be in succinct form for both inputs and inputs of method '%s'", method.Name().String())
+			if succinctInput || succinctOutput {
+				if !succinctInput || !succinctOutput {
+					return nil, fmt.Errorf("method definition must be in succinct form for both inputs and outputs of method '%s'", method.Name().String())
+				}
 			}
 
 			// Convert error tokens to strings
@@ -354,7 +356,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				Errors:       methodErrors,
 				Comments:     parseComment(method.Comment()),
 				Annotations:  buildAnnotations(method),
-				Succinct:     succinctInput || succinctOutput,
+				Succinct:     succinctInput && succinctOutput,
 			}
 
 			methods = append(methods, m)
