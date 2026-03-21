@@ -41,6 +41,7 @@ const (
 
 	T_Struct // aka, a reference to our own webrpc struct type
 	T_Enum
+	T_Alias
 )
 
 var CoreTypeToString = map[CoreType]string{

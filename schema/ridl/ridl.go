@@ -18,6 +18,7 @@ import (
 var (
 	schemaTypeKindEnum   = "enum"
 	schemaTypeKindStruct = "struct"
+	schemaTypeKindAlias  = "alias"
 )
 
 type Parser struct {
@@ -199,6 +200,15 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		}
 	}
 
+	// pushing type aliases (1st pass)
+	for _, line := range q.root.TypeAliases() {
+		s.Types = append(s.Types, &schema.Type{
+			Kind:     schemaTypeKindAlias,
+			Name:     line.Name().String(),
+			Comments: parseComment(line.Comments()),
+		})
+	}
+
 	// pushing enums (1st pass)
 	for _, line := range q.root.Enums() {
 		s.Types = append(s.Types, &schema.Type{
@@ -225,6 +235,30 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 		}
 
 		s.Services = append(s.Services, srv)
+	}
+
+	// type alias resolution
+	for _, line := range q.root.TypeAliases() {
+		name := line.Name().String()
+		aliasDef := s.GetTypeByName(name)
+
+		if aliasDef == nil {
+			return nil, fmt.Errorf("unexpected error, could not find definition for: %v", name)
+		}
+
+		var aliasType schema.VarType
+		err := schema.ParseVarTypeExpr(s, line.TypeName().String(), &aliasType)
+		if err != nil {
+			return nil, fmt.Errorf("type alias %q: unknown type: %v", name, line.TypeName())
+		}
+		aliasDef.Type = &aliasType
+
+		for _, meta := range line.Meta() {
+			key, val := meta.Left().String(), meta.Right().String()
+			aliasDef.Meta = append(aliasDef.Meta, schema.TypeFieldMeta{
+				key: val,
+			})
+		}
 	}
 
 	// enum fields

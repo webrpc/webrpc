@@ -26,6 +26,7 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"isCoreType":   isCoreType,   // v0.9.0
 		"isStructType": isStructType, // v0.7.0
 		"isEnumType":   isEnumType,   // v0.7.0
+		"isAliasType":  isAliasType,
 		"isMapType":    isMapType,    // v0.7.0
 		"isListType":   isListType,   // v0.7.0
 		"mapKeyType":   mapKeyType,   // v0.7.0
