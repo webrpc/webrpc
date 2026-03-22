@@ -894,3 +894,101 @@ func TestRIDLImportsExample2(t *testing.T) {
 		t.Log("To update the golden file, run go test -update=./_example/example2-golden.json")
 	}
 }
+
+func TestRIDLTypeAlias(t *testing.T) {
+	input := `
+		webrpc = v1
+		version = v0.1.0
+		name = test
+
+		type Banana: string
+		type Age: uint32
+	`
+	s, err := parseString(input)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 2, len(s.Types))
+
+	assert.Equal(t, "Banana", s.Types[0].Name)
+	assert.Equal(t, "alias", s.Types[0].Kind)
+	assert.Equal(t, "string", s.Types[0].Type.String())
+
+	assert.Equal(t, "Age", s.Types[1].Name)
+	assert.Equal(t, "alias", s.Types[1].Kind)
+	assert.Equal(t, "uint32", s.Types[1].Type.String())
+}
+
+func TestRIDLTypeAliasWithMeta(t *testing.T) {
+	input := `
+		webrpc = v1
+		version = v0.1.0
+		name = test
+
+		type Banana: string
+			+ go.type = MyBanana
+			+ ts.type = string
+
+		type Age: uint32
+			+ go.type = uint64
+	`
+	s, err := parseString(input)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 2, len(s.Types))
+
+	// Banana
+	assert.Equal(t, "Banana", s.Types[0].Name)
+	assert.Equal(t, "alias", s.Types[0].Kind)
+	assert.Equal(t, "string", s.Types[0].Type.String())
+	assert.Equal(t, 2, len(s.Types[0].Meta))
+	assert.Equal(t, "MyBanana", s.Types[0].Meta[0]["go.type"])
+	assert.Equal(t, "string", s.Types[0].Meta[1]["ts.type"])
+
+	// Age
+	assert.Equal(t, "Age", s.Types[1].Name)
+	assert.Equal(t, "alias", s.Types[1].Kind)
+	assert.Equal(t, "uint32", s.Types[1].Type.String())
+	assert.Equal(t, 1, len(s.Types[1].Meta))
+	assert.Equal(t, "uint64", s.Types[1].Meta[0]["go.type"])
+}
+
+func TestRIDLTypeAliasUsage(t *testing.T) {
+	input := `
+		webrpc = v1
+		version = v0.1.0
+		name = test
+
+		type Banana: string
+		type Age: uint32
+
+		struct User
+			- name: Banana
+			- age: Age
+			- tags?: []Banana
+
+		service Fruits
+			- GetUser(name: Banana) => (user: User)
+			- SetAge(age: Age)
+	`
+	s, err := parseString(input)
+	assert.NoError(t, err)
+
+	// struct fields using alias types
+	userType := s.GetTypeByName("User")
+	assert.NotNil(t, userType)
+
+	assert.Equal(t, "Banana", userType.Fields[0].Type.String())
+	assert.Equal(t, "Age", userType.Fields[1].Type.String())
+	assert.Equal(t, "[]Banana", userType.Fields[2].Type.String())
+
+	// method arguments using alias types
+	assert.Equal(t, 1, len(s.Services))
+	assert.Equal(t, 2, len(s.Services[0].Methods))
+
+	getUser := s.Services[0].Methods[0]
+	assert.Equal(t, "Banana", getUser.Inputs[0].Type.String())
+	assert.Equal(t, "User", getUser.Outputs[0].Type.String())
+
+	setAge := s.Services[0].Methods[1]
+	assert.Equal(t, "Age", setAge.Inputs[0].Type.String())
+}

@@ -22,6 +22,7 @@ const (
 	wordErrors   = "errors"
 	wordBasepath = "basepath"
 	wordVersion  = "version"
+	wordType     = "type"
 	wordWebRPC   = "webrpc"
 )
 
@@ -410,6 +411,9 @@ func parserStateDeclaration(p *parser) parserState {
 	case "message":
 		// Deprecated in v0.9.0.
 		return p.stateError(fmt.Errorf("keyword \"message\" was renamed to \"struct\", see https://github.com/webrpc/webrpc/blob/master/CHANGELOG.md#ridl-v090-migration-guide"))
+	case wordType:
+		// type <name>: <type>
+		return parserStateTypeAlias
 	case wordStruct:
 		// struct <name>
 		//   - <name>: <type>

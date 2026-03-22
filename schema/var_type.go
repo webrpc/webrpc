@@ -14,6 +14,7 @@ type VarType struct {
 	Map    *VarMapType
 	Struct *VarStructType
 	Enum   *VarEnumType
+	Alias  *VarAliasType
 }
 
 func (t *VarType) String() string {
@@ -78,6 +79,11 @@ type VarStructType struct {
 }
 
 type VarEnumType struct {
+	Name string
+	Type *Type
+}
+
+type VarAliasType struct {
 	Name string
 	Type *Type
 }
@@ -166,6 +172,9 @@ func ParseVarTypeExpr(schema *WebRPCSchema, expr string, vt *VarType) error {
 		case TypeKind_Enum:
 			vt.Type = T_Enum // TODO: T_Enum, see https://github.com/webrpc/webrpc/issues/44
 			vt.Enum = &VarEnumType{Name: expr, Type: typ}
+		case TypeKind_Alias:
+			vt.Type = T_Alias
+			vt.Alias = &VarAliasType{Name: expr, Type: typ}
 		default:
 			return fmt.Errorf("schema error: unexpected type '%s'", expr)
 		}
@@ -223,6 +232,10 @@ func buildVarTypeExpr(vt *VarType, expr string) string {
 
 	case T_Enum:
 		expr += vt.Enum.Name
+		return expr
+
+	case T_Alias:
+		expr += vt.Alias.Name
 		return expr
 
 	default:

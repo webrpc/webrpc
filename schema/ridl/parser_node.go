@@ -15,6 +15,7 @@ const (
 	MethodNodeType
 	ServiceNodeType
 	AnnotationType
+	TypeAliasNodeType
 )
 
 // Node represents a parser tree node
@@ -114,6 +115,17 @@ func (rn RootNode) Enums() []*EnumNode {
 	}
 
 	return enumNodes
+}
+
+func (rn RootNode) TypeAliases() []*TypeAliasNode {
+	nodes := rn.Filter(TypeAliasNodeType)
+
+	typeAliasNodes := make([]*TypeAliasNode, 0, len(nodes))
+	for i := range nodes {
+		typeAliasNodes = append(typeAliasNodes, nodes[i].(*TypeAliasNode))
+	}
+
+	return typeAliasNodes
 }
 
 func (rn RootNode) Services() []*ServiceNode {
@@ -407,6 +419,32 @@ func (sn ServiceNode) Methods() []*MethodNode {
 }
 
 func (sn ServiceNode) Comment() string { return sn.comment }
+
+type TypeAliasNode struct {
+	node
+
+	name      *TokenNode
+	aliasType *TokenNode
+	meta      []*DefinitionNode
+	comment   string
+	line      int
+}
+
+func (tn TypeAliasNode) Type() NodeType {
+	return TypeAliasNodeType
+}
+
+func (tn TypeAliasNode) Name() *TokenNode {
+	return tn.name
+}
+
+func (tn TypeAliasNode) TypeName() *TokenNode {
+	return tn.aliasType
+}
+
+func (tn TypeAliasNode) Meta() []*DefinitionNode { return tn.meta }
+
+func (tn TypeAliasNode) Comments() string { return tn.comment }
 
 type argumentList struct {
 	stream bool

@@ -54,6 +54,25 @@ func isEnumType(v interface{}) bool {
 	}
 }
 
+// Returns true if given type is alias.
+func isAliasType(v interface{}) bool {
+	switch t := v.(type) {
+	case schema.Type:
+		return t.Kind == "alias"
+	case *schema.Type:
+		return t.Kind == "alias"
+	case schema.VarType:
+		return t.Type == schema.T_Alias
+	case *schema.VarType:
+		if t != nil {
+			return t.Type == schema.T_Alias
+		}
+		return false
+	default:
+		return false
+	}
+}
+
 // Returns true if given type is list (ie. `[]T`).
 func isListType(v interface{}) bool {
 	return strings.HasPrefix(toString(v), "[]")
