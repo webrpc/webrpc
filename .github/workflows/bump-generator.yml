@@ -1,15 +1,28 @@
-name: Bump generator dependency
+# Bump generator dependencies in go.mod and regenerate code.
+#
+# Primary trigger: repository_dispatch from generator repos on new tags.
+# Each generator repo has a workflow that dispatches here with the generator
+# name and version (see gen-golang/.github/workflows/notify-main.yml).
+# Requires WEBRPC_DISPATCH_TOKEN org-level secret.
+#
+# Fallback: manual workflow_dispatch to poll all generators at once.
+# Compares go.mod versions against latest tags for all generators.
+# Works without any cross-repo secrets (github.token reads public repos).
+
+name: Bump generator dependencies
 
 on:
   repository_dispatch:
     types: [generator-updated]
+  workflow_dispatch: {}
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  bump:
+  bump-dispatch:
+    if: github.event_name == 'repository_dispatch'
     runs-on: ubuntu-latest
     env:
       GENERATOR: ${{ github.event.client_payload.generator }}
@@ -42,12 +55,115 @@ jobs:
           make install
           make generate
 
-      - name: Create pull request
-        uses: peter-evans/create-pull-request@v7
+      - name: Commit and create pull request
+        uses: 0xsequence/actions/git-commit@v0.0.7
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.WEBRPC_DISPATCH_TOKEN }}
         with:
+          files: "go.mod go.sum _examples/"
           branch: auto/bump-generators
-          commit-message: "bump ${{ env.GENERATOR }} to ${{ env.VERSION }}"
-          title: "bump generators"
-          body: |
-            Automated PR to bump generator dependencies.
-          labels: automated,dependencies
+          commit_message: "[automated]: update ${{ env.GENERATOR }} to ${{ env.VERSION }}"
+          pr_create: "true"
+          pr_title: "[automated] Generators update"
+          pr_description: "Automated bump of ${{ env.GENERATOR }} to ${{ env.VERSION }}."
+          pr_labels: "automated,dependencies"
+
+  bump-poll:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+
+      - run: git fetch --tags
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "go.mod"
+
+      - name: Set up webrpc cache folder
+        uses: actions/cache@v4
+        with:
+          key: webrpc-cache
+          path: /tmp/webrpc-cache
+
+      - name: Check for generator updates
+        id: check
+        run: |
+          GENERATORS="gen-golang gen-typescript gen-javascript gen-kotlin gen-openapi gen-dart"
+          UPDATES=""
+          COMMIT_MSG=""
+          PR_BODY=""
+
+          for gen in $GENERATORS; do
+            CURRENT=$(grep "github.com/webrpc/${gen} " go.mod | awk '{print $2}')
+            if [ -z "$CURRENT" ]; then
+              continue
+            fi
+
+            LATEST=$(gh api "repos/webrpc/${gen}/tags" --jq '.[0].name' 2>/dev/null || echo "")
+            if [ -z "$LATEST" ]; then
+              continue
+            fi
+
+            if [ "$CURRENT" != "$LATEST" ]; then
+              echo "Update available: ${gen} ${CURRENT} -> ${LATEST}"
+              UPDATES="${UPDATES} ${gen}@${LATEST}"
+              COMMIT_MSG="${COMMIT_MSG}[automated]: update ${gen} to ${LATEST}"$'\n'
+              PR_BODY="${PR_BODY}- ${gen}: ${CURRENT} → ${LATEST}"$'\n'
+            fi
+          done
+
+          if [ -z "$UPDATES" ]; then
+            echo "No updates found"
+            echo "has_updates=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_updates=true" >> "$GITHUB_OUTPUT"
+            echo "updates=${UPDATES}" >> "$GITHUB_OUTPUT"
+
+            {
+              echo "commit_msg<<ENDOFMSG"
+              echo "${COMMIT_MSG}"
+              echo "ENDOFMSG"
+            } >> "$GITHUB_OUTPUT"
+
+            {
+              echo "pr_body<<ENDOFBODY"
+              echo "Automated PR to bump generator dependencies."
+              echo ""
+              echo "${PR_BODY}"
+              echo "ENDOFBODY"
+            } >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Bump dependencies
+        if: steps.check.outputs.has_updates == 'true'
+        run: |
+          for update in ${{ steps.check.outputs.updates }}; do
+            go get "github.com/webrpc/${update}"
+          done
+          go mod tidy
+
+      - name: Build and regenerate
+        if: steps.check.outputs.has_updates == 'true'
+        run: |
+          make install
+          make generate
+
+      - name: Commit and create pull request
+        if: steps.check.outputs.has_updates == 'true'
+        uses: 0xsequence/actions/git-commit@v0.0.7
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.WEBRPC_DISPATCH_TOKEN }}
+        with:
+          files: "go.mod go.sum _examples/"
+          branch: auto/bump-generators
+          commit_message: ${{ steps.check.outputs.commit_msg }}
+          pr_create: "true"
+          pr_title: "[automated] Generators update"
+          pr_description: ${{ steps.check.outputs.pr_body }}
+          pr_labels: "automated,dependencies"
