@@ -1,0 +1,53 @@
+name: Bump generator dependency
+
+on:
+  repository_dispatch:
+    types: [generator-updated]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    env:
+      GENERATOR: ${{ github.event.client_payload.generator }}
+      VERSION: ${{ github.event.client_payload.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+
+      - run: git fetch --tags
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "go.mod"
+
+      - name: Set up webrpc cache folder
+        uses: actions/cache@v4
+        with:
+          key: webrpc-cache
+          path: /tmp/webrpc-cache
+
+      - name: Bump dependency
+        run: |
+          go get "github.com/webrpc/${GENERATOR}@${VERSION}"
+          go mod tidy
+
+      - name: Build and regenerate
+        run: |
+          make install
+          make generate
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: auto/bump-generators
+          commit-message: "bump ${{ env.GENERATOR }} to ${{ env.VERSION }}"
+          title: "bump generators"
+          body: |
+            Automated PR to bump generator dependencies.
+          labels: automated,dependencies
