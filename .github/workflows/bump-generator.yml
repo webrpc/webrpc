@@ -111,7 +111,7 @@ jobs:
             if [ "$CURRENT" != "$LATEST" ]; then
               echo "Update available: ${gen} ${CURRENT} -> ${LATEST}"
               UPDATES="${UPDATES} ${gen}@${LATEST}"
-              COMMIT_MSG="${COMMIT_MSG}[automated]: update ${gen} to ${LATEST}"$'\n'
+              COMMIT_MSG="${COMMIT_MSG}- ${gen}: ${LATEST}"$'\n'
               PR_BODY="${PR_BODY}- ${gen}: ${CURRENT} → ${LATEST}"$'\n'
             fi
           done
@@ -125,6 +125,7 @@ jobs:
 
             {
               echo "commit_msg<<ENDOFMSG"
+              echo "[automated]: update generators"
               echo "${COMMIT_MSG}"
               echo "ENDOFMSG"
             } >> "$GITHUB_OUTPUT"
