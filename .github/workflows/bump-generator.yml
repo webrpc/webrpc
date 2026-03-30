@@ -3,7 +3,7 @@
 # Primary trigger: repository_dispatch from generator repos on new tags.
 # Each generator repo has a workflow that dispatches here with the generator
 # name and version (see gen-golang/.github/workflows/notify-main.yml).
-# Requires WEBRPC_DISPATCH_TOKEN org-level secret.
+# Uses GITHUB_TOKEN (workflow has contents:write and pull-requests:write).
 #
 # Fallback: manual workflow_dispatch to poll all generators at once.
 # Compares go.mod versions against latest tags for all generators.
@@ -58,7 +58,7 @@ jobs:
       - name: Commit and create pull request
         uses: 0xsequence/actions/git-commit@v0.0.7
         env:
-          API_TOKEN_GITHUB: ${{ secrets.WEBRPC_DISPATCH_TOKEN }}
+          API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: "go.mod go.sum _examples/"
           branch: auto/bump-generators
@@ -158,7 +158,7 @@ jobs:
         if: steps.check.outputs.has_updates == 'true'
         uses: 0xsequence/actions/git-commit@v0.0.7
         env:
-          API_TOKEN_GITHUB: ${{ secrets.WEBRPC_DISPATCH_TOKEN }}
+          API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: "go.mod go.sum _examples/"
           branch: auto/bump-generators
