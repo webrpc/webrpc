@@ -9,6 +9,7 @@ import (
 const (
 	TypeKind_Struct = "struct"
 	TypeKind_Enum   = "enum"
+	TypeKind_Alias  = "alias"
 )
 
 type Type struct {
@@ -57,8 +58,16 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 	}
 
 	// Ensure we have a valid kind
-	if t.Kind != TypeKind_Enum && t.Kind != TypeKind_Struct {
-		return fmt.Errorf("schema error: type must be one of 'enum', or 'struct' for '%s'", typName)
+	if t.Kind != TypeKind_Enum && t.Kind != TypeKind_Struct && t.Kind != TypeKind_Alias {
+		return fmt.Errorf("schema error: type must be one of 'enum', 'struct', or 'alias' for '%s'", typName)
+	}
+
+	// For aliases, validate the underlying type is set and return early
+	if t.Kind == TypeKind_Alias {
+		if t.Type == nil {
+			return fmt.Errorf("schema error: alias '%s' must have an underlying type", typName)
+		}
+		return nil
 	}
 
 	// Verify field names and ensure we don't have any duplicate field names
