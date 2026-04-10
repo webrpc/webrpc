@@ -46,7 +46,7 @@ plugin for RIDL synx highlighting.
 | [golang](https://github.com/webrpc/gen-golang)         | Go 1.22+                          | v1     | ✅     | ✅     |
 | [typescript](https://github.com/webrpc/gen-typescript) | TypeScript (ES2022+)              | v1     | ✅     | ✅     |
 | [javascript](https://github.com/webrpc/gen-javascript) | JavaScript (ES6)                  | v1     | ✅     | ✅     |
-| [kotlin](https://github.com/webrpc/gen-kotlin)         | Kotlin (coroutines, moshi, ktor)  | v1     | ✅     |        |
+| [kotlin](https://github.com/webrpc/gen-kotlin)         | Kotlin (coroutines, kotlinx.serialization) | v1     | ✅     |        |
 | [dart](https://github.com/webrpc/gen-dart)             | Dart 3.1+                         | v1     | ✅     |        |
 | [openapi](https://github.com/webrpc/gen-openapi)       | OpenAPI 3.0.0 (Swagger)           | v1     | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview) | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview)  |
 
