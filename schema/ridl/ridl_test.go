@@ -167,6 +167,61 @@ func TestRIDLImports(t *testing.T) {
 	}
 }
 
+// TestRIDLImportsDiamondErrors exercises the diamond-import case where two
+// sibling schemas each import a shared errors file. The shared file's errors
+// must be deduplicated — not rejected as duplicate declarations.
+func TestRIDLImportsDiamondErrors(t *testing.T) {
+	fsys := fstest.MapFS{
+		"schema/main.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.1.0
+			name = main
+
+			import
+			- dashboard.ridl
+			- backoffice.ridl
+			`)},
+		"schema/dashboard.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.1.0
+			name = dashboard
+
+			import
+			- errors.ridl
+
+			service Dashboard
+			  - Ping() => (version: string)
+			`)},
+		"schema/backoffice.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.1.0
+			name = backoffice
+
+			import
+			- errors.ridl
+
+			service Backoffice
+			  - Ping() => (version: string)
+			`)},
+		"schema/errors.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.1.0
+			name = errors
+
+			error 1000 Unauthorized "unauthorized access" HTTP 401
+			error 1001 Forbidden    "forbidden"           HTTP 403
+			`)},
+	}
+
+	s, err := NewParser(fsys, "/", "schema/main.ridl").Parse()
+	require.NoError(t, err)
+
+	if assert.Equal(t, 2, len(s.Errors)) {
+		assert.Equal(t, "Unauthorized", string(s.Errors[0].Name))
+		assert.Equal(t, "Forbidden", string(s.Errors[1].Name))
+	}
+}
+
 func TestRIDLImportsCycle(t *testing.T) {
 	fsys := fstest.MapFS{
 		"schema/a.ridl": {Data: []byte(`
