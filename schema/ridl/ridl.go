@@ -188,7 +188,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				}
 			}
 			for i := range imported.Errors {
-				if isImportAllowed(imported.Errors[i].Name, members) {
+				if !slices.Contains(s.Errors, imported.Errors[i]) && isImportAllowed(imported.Errors[i].Name, members) {
 					s.Errors = append(s.Errors, imported.Errors[i])
 				}
 			}
