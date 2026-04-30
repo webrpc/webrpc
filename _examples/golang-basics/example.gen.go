@@ -118,6 +118,12 @@ const (
 	Intent_validateSession Intent = "validateSession"
 )
 
+var Intent_values = []Intent{
+	Intent_openSession,
+	Intent_closeSession,
+	Intent_validateSession,
+}
+
 func (x Intent) MarshalText() ([]byte, error) {
 	return []byte(x), nil
 }
@@ -146,6 +152,11 @@ const (
 	ProtocolVersion_v1_5 ProtocolVersion = "v1.5"
 )
 
+var ProtocolVersion_values = []ProtocolVersion{
+	ProtocolVersion_v1,
+	ProtocolVersion_v1_5,
+}
+
 func (x ProtocolVersion) MarshalText() ([]byte, error) {
 	return []byte(x), nil
 }
@@ -173,6 +184,11 @@ const (
 	Country_US Country = "United States"
 	Country_CA Country = "Canada"
 )
+
+var Country_values = []Country{
+	Country_US,
+	Country_CA,
+}
 
 func (x Country) MarshalText() ([]byte, error) {
 	return []byte(x), nil
@@ -1121,7 +1137,7 @@ var (
 
 const WebrpcHeader = "Webrpc"
 
-const WebrpcHeaderValue = "webrpc;gen-golang@v0.28.0;example@v1.0.0"
+const WebrpcHeaderValue = "webrpc;gen-golang@v0.28.1;example@v1.0.0"
 
 type WebrpcGenVersions struct {
 	WebrpcGenVersion string
