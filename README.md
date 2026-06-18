@@ -95,6 +95,24 @@ webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -out=./
 and see the generated `./example.gen.go` file of types, server and client in Go. This is essentially
 how the [golang-basics](./_examples/golang-basics) example was built.
 
+## Omitting the schema hash
+
+By default, generated code embeds a `WebRPCSchemaHash` — a fingerprint (SHA1) of your schema. webrpc
+itself never compares it; it's an informational value you can surface yourself (for example, via a
+`Version` RPC) to detect when a client and server were generated from different schema versions
+(schema drift). Because this hash changes on any schema edit, two concurrent PRs that both regenerate
+code will conflict on the hash line.
+
+Pass `-omitSchemaHash` to leave the hash empty in the generated output:
+
+```
+webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -omitSchemaHash -out=./example.gen.go
+```
+
+The hash value becomes constant across regenerations, so it no longer causes merge conflicts. The
+only thing you lose is the fingerprint itself — so omit it unless you actually read `WebRPCSchemaHash()`
+somewhere to detect schema drift.
+
 
 ## Example apps
 

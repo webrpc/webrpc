@@ -27,6 +27,7 @@ var (
 	methodTreeShakeFlag = flags.Bool("methodTreeShake", false, "remove unused types of omitted services when using -service flag")
 	ignoreFlag          = flags.String("ignore", "", "ignore service methods with specific annotations separated by commas")
 	matchFlag           = flags.String("match", "", "match service methods with specific annotations separated by commas")
+	omitSchemaHashFlag  = flags.Bool("omitSchemaHash", false, "omit the schema hash from generated output (avoids merge conflicts; removes the fingerprint used to detect client/server schema drift)")
 )
 
 func main() {
@@ -113,6 +114,7 @@ func main() {
 	config := &gen.Config{
 		RefreshCache:    *refreshCacheFlag,
 		Format:          *fmtFlag,
+		OmitSchemaHash:  *omitSchemaHashFlag,
 		TemplateOptions: templateOpts,
 	}
 

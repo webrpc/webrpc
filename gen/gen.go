@@ -15,6 +15,7 @@ import (
 type Config struct {
 	RefreshCache    bool
 	Format          bool
+	OmitSchemaHash  bool
 	TemplateOptions map[string]interface{}
 }
 
@@ -49,10 +50,15 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 		proto.BasePath = "/rpc/"
 	}
 
-	// Generate deterministic schema hash of the proto file
-	schemaHash, err := proto.SchemaHash()
-	if err != nil {
-		return nil, err
+	// Generate deterministic schema hash of the proto file. When OmitSchemaHash
+	// is set, the hash is left empty so it never appears in generated output,
+	// avoiding merge conflicts on the hash line across concurrent PRs.
+	var schemaHash string
+	if !config.OmitSchemaHash {
+		schemaHash, err = proto.SchemaHash()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	vars := TemplateVars{
@@ -145,11 +151,15 @@ func webRPCGenHeader(t TemplateVars) string {
 	codeGen := fmt.Sprintf("%s@%s", t.CodeGenName, codeGenVersion)
 
 	var schemaVersion string
-	// schema version is empty we use schemaHash instead
-	if t.SchemaVersion == "" {
-		schemaVersion = fmt.Sprintf("%s@v0.0.0-%s", t.SchemaName, t.SchemaHash)
-	} else {
+	switch {
+	case t.SchemaVersion != "":
 		schemaVersion = fmt.Sprintf("%s@%s", t.SchemaName, t.SchemaVersion)
+	case t.SchemaHash != "":
+		// schema version is empty, we use schemaHash instead
+		schemaVersion = fmt.Sprintf("%s@v0.0.0-%s", t.SchemaName, t.SchemaHash)
+	default:
+		// no schema version and hash omitted
+		schemaVersion = fmt.Sprintf("%s@v0.0.0", t.SchemaName)
 	}
 
 	return fmt.Sprintf("%s;%s;%s", webrpcGenVersion, codeGen, schemaVersion)
