@@ -60,7 +60,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: "go.mod go.sum _examples/"
+          files: "go.mod go.sum _examples/ tests/"
           branch: auto/bump-generators
           commit_message: "[automated]: update ${{ env.GENERATOR }} to ${{ env.VERSION }}"
           pr_create: "true"
@@ -161,7 +161,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: "go.mod go.sum _examples/"
+          files: "go.mod go.sum _examples/ tests/"
           branch: auto/bump-generators
           commit_message: ${{ steps.check.outputs.commit_msg }}
           pr_create: "true"
