@@ -30,10 +30,10 @@ generate: build
 	go generate -v -x ./...
 	for i in _examples/*; do echo $$i; make -C $$i generate || exit 1; done
 	# Replace webrpc version in all generated files to avoid git conflicts.
-	git grep -l "$$(git describe --tags)" | xargs sed -i -e "s/@$$(git describe --tags)//g"
-	sed -i "/$$(git describe --tags)/d" tests/schema/test.debug.gen.txt
+	git grep -l "$$(git describe --tags)" | xargs perl -i -pe "s/\@$$(git describe --tags)//g"
+	perl -i -ne "print unless /$$(git describe --tags)/" tests/schema/test.debug.gen.txt
 	# Strip code-generator versions (gen-<name>@vX.Y.Z) from generated files so dependency bumps don't churn them.
-	git grep -lE "gen-[a-z]+@v[0-9]" -- _examples tests | xargs sed -i -e "s/\(gen-[a-z][a-z]*\)@v[0-9][0-9.]*/\1/g"
+	git grep -lE "gen-[a-z]+@v[0-9]" -- _examples tests | xargs perl -i -pe 's/(gen-[a-z]+)\@v[0-9][0-9.]*/$$1/g'
 
 # Upgrade Go dependencies
 dep-upgrade-all:
