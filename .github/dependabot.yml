@@ -1,0 +1,40 @@
+version: 2
+
+# Combine every ecosystem's updates into a single weekly PR instead of one
+# PR per dependency. See the "all-dependencies" multi-ecosystem group below.
+multi-ecosystem-groups:
+  all-dependencies:
+    schedule:
+      interval: "weekly"
+
+updates:
+  # Root module + every _examples/* module.
+  - package-ecosystem: "gomod"
+    directories:
+      - "/"
+      - "/_examples/**"
+    patterns: ["*"]
+    multi-ecosystem-group: "all-dependencies"
+
+  # Example webapps / node servers.
+  - package-ecosystem: "npm"
+    directories:
+      - "/_examples/**"
+    patterns: ["*"]
+    multi-ecosystem-group: "all-dependencies"
+    cooldown:
+      default-days: 14
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    patterns: ["*"]
+    multi-ecosystem-group: "all-dependencies"
+    cooldown:
+      default-days: 14
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    patterns: ["*"]
+    multi-ecosystem-group: "all-dependencies"
+    cooldown:
+      default-days: 14
