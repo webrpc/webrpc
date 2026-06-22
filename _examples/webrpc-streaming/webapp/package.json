@@ -13,7 +13,7 @@
   "devDependencies": {
     "typescript": "^5.9.2",
     "vite": "^7.3.5",
-    "vitest": "^1.6.1"
+    "vitest": "^3.2.6"
   },
   "dependencies": {
     "@preact/signals-core": "^1.12.1"
