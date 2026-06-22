@@ -3856,6 +3856,7 @@
 		}
 	}),
 	SchemaHash: (string) (len=40) "846ba26b9f91c5e1a66ed2f84d38f98e7c0fb67a",
+	WebrpcGenVersion: (string) (len=7) "v0.37.4",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcHeader: (string) "",
 	WebrpcTarget: (string) (len=5) "debug",
