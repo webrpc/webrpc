@@ -37,7 +37,7 @@ generate: build
 
 # Upgrade Go dependencies
 dep-upgrade-all:
-	go get -u go@1.23 ./...
+	go get -u go@1.25 ./...
 
 dep-upgrade-templates:
 	go get github.com/webrpc/gen-dart@latest
