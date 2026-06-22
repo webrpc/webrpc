@@ -93,7 +93,7 @@ func RunTests(ctx context.Context, serverURL string) error {
 		for _, err := range errs {
 			fmt.Fprintf(&b, "%v\n", err)
 		}
-		return fmt.Errorf(b.String())
+		return errors.New(b.String())
 	}
 
 	return nil
