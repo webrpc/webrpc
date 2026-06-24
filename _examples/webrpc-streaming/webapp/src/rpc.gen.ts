@@ -519,7 +519,7 @@ export const webrpcErrorByCode: { [code: number]: any } = {
 
 export const WebrpcHeader = "Webrpc"
 
-export const WebrpcHeaderValue = "webrpc;gen-typescript@v0.20.1;webrpc-sse-chat@v1.0.0"
+export const WebrpcHeaderValue = "webrpc;gen-typescript;webrpc-sse-chat@v1.0.0"
 
 type WebrpcGenVersions = {
   WebrpcGenVersion: string;
