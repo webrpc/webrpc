@@ -51,18 +51,25 @@ type ExampleServer interface {
 type Kind uint32
 
 const (
-	Kind_USER  Kind = 1
+	KindUser  Kind = 1
+	KindAdmin Kind = 2
+)
+
+const (
+	// Deprecated: Use KindUser instead.
+	Kind_USER Kind = 1
+	// Deprecated: Use KindAdmin instead.
 	Kind_ADMIN Kind = 2
 )
 
 var Kind_name = map[Kind]string{
-	Kind_USER:  "USER",
-	Kind_ADMIN: "ADMIN",
+	KindUser:  "USER",
+	KindAdmin: "ADMIN",
 }
 
 var Kind_value = map[string]Kind{
-	"USER":  Kind_USER,
-	"ADMIN": Kind_ADMIN,
+	"USER":  KindUser,
+	"ADMIN": KindAdmin,
 }
 
 func (x Kind) String() string {
@@ -422,7 +429,7 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-// PtrTo is a useful helper when constructing values for optional fields.
+// Deprecated: Use Go 1.26's new(expr).
 func PtrTo[T any](v T) *T { return &v }
 
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {

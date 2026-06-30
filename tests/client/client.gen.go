@@ -58,18 +58,25 @@ type TestApiClient interface {
 type Status uint32
 
 const (
-	Status_AVAILABLE     Status = 0
+	StatusAvailable    Status = 0
+	StatusNotAvailable Status = 1
+)
+
+const (
+	// Deprecated: Use StatusAvailable instead.
+	Status_AVAILABLE Status = 0
+	// Deprecated: Use StatusNotAvailable instead.
 	Status_NOT_AVAILABLE Status = 1
 )
 
 var Status_name = map[Status]string{
-	Status_AVAILABLE:     "AVAILABLE",
-	Status_NOT_AVAILABLE: "NOT_AVAILABLE",
+	StatusAvailable:    "AVAILABLE",
+	StatusNotAvailable: "NOT_AVAILABLE",
 }
 
 var Status_value = map[string]Status{
-	"AVAILABLE":     Status_AVAILABLE,
-	"NOT_AVAILABLE": Status_NOT_AVAILABLE,
+	"AVAILABLE":     StatusAvailable,
+	"NOT_AVAILABLE": StatusNotAvailable,
 }
 
 func (x Status) String() string {
@@ -100,27 +107,40 @@ func (x *Status) Is(values ...Status) bool {
 type Access uint32
 
 const (
-	Access_NONE  Access = 0
-	Access_READ  Access = 1
+	AccessNone  Access = 0
+	AccessRead  Access = 1
+	AccessWrite Access = 2
+	AccessAdmin Access = 3
+	AccessOwner Access = 4
+)
+
+const (
+	// Deprecated: Use AccessNone instead.
+	Access_NONE Access = 0
+	// Deprecated: Use AccessRead instead.
+	Access_READ Access = 1
+	// Deprecated: Use AccessWrite instead.
 	Access_WRITE Access = 2
+	// Deprecated: Use AccessAdmin instead.
 	Access_ADMIN Access = 3
+	// Deprecated: Use AccessOwner instead.
 	Access_OWNER Access = 4
 )
 
 var Access_name = map[Access]string{
-	Access_NONE:  "NONE",
-	Access_READ:  "READ",
-	Access_WRITE: "WRITE",
-	Access_ADMIN: "ADMIN",
-	Access_OWNER: "OWNER",
+	AccessNone:  "NONE",
+	AccessRead:  "READ",
+	AccessWrite: "WRITE",
+	AccessAdmin: "ADMIN",
+	AccessOwner: "OWNER",
 }
 
 var Access_value = map[string]Access{
-	"NONE":  Access_NONE,
-	"READ":  Access_READ,
-	"WRITE": Access_WRITE,
-	"ADMIN": Access_ADMIN,
-	"OWNER": Access_OWNER,
+	"NONE":  AccessNone,
+	"READ":  AccessRead,
+	"WRITE": AccessWrite,
+	"ADMIN": AccessAdmin,
+	"OWNER": AccessOwner,
 }
 
 func (x Access) String() string {
@@ -519,7 +539,7 @@ var (
 	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"}
 )
 
-// PtrTo is a useful helper when constructing values for optional fields.
+// Deprecated: Use Go 1.26's new(expr).
 func PtrTo[T any](v T) *T { return &v }
 
 //

@@ -64,18 +64,25 @@ type User struct {
 type Location uint32
 
 const (
-	Location_TORONTO  Location = 0
+	LocationToronto Location = 0
+	LocationNewYork Location = 1
+)
+
+const (
+	// Deprecated: Use LocationToronto instead.
+	Location_TORONTO Location = 0
+	// Deprecated: Use LocationNewYork instead.
 	Location_NEW_YORK Location = 1
 )
 
 var Location_name = map[Location]string{
-	Location_TORONTO:  "TORONTO",
-	Location_NEW_YORK: "NEW_YORK",
+	LocationToronto: "TORONTO",
+	LocationNewYork: "NEW_YORK",
 }
 
 var Location_value = map[string]Location{
-	"TORONTO":  Location_TORONTO,
-	"NEW_YORK": Location_NEW_YORK,
+	"TORONTO":  LocationToronto,
+	"NEW_YORK": LocationNewYork,
 }
 
 func (x Location) String() string {
@@ -578,7 +585,7 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-// PtrTo is a useful helper when constructing values for optional fields.
+// Deprecated: Use Go 1.26's new(expr).
 func PtrTo[T any](v T) *T { return &v }
 
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
