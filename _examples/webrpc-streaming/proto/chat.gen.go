@@ -690,7 +690,7 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-// PtrTo is a useful helper when constructing values for optional fields.
+// Deprecated: Use Go 1.26's new(expr).
 func PtrTo[T any](v T) *T { return &v }
 
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {

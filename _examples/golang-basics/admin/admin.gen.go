@@ -59,18 +59,25 @@ type AdminServer interface {
 type Kind uint32
 
 const (
-	Kind_USER  Kind = 0
+	KindUser  Kind = 0
+	KindAdmin Kind = 1
+)
+
+const (
+	// Deprecated: Use KindUser instead.
+	Kind_USER Kind = 0
+	// Deprecated: Use KindAdmin instead.
 	Kind_ADMIN Kind = 1
 )
 
 var Kind_name = map[Kind]string{
-	Kind_USER:  "USER",
-	Kind_ADMIN: "ADMIN",
+	KindUser:  "USER",
+	KindAdmin: "ADMIN",
 }
 
 var Kind_value = map[string]Kind{
-	"USER":  Kind_USER,
-	"ADMIN": Kind_ADMIN,
+	"USER":  KindUser,
+	"ADMIN": KindAdmin,
 }
 
 func (x Kind) String() string {
@@ -101,15 +108,24 @@ func (x *Kind) Is(values ...Kind) bool {
 type Intent string
 
 const (
-	Intent_openSession     Intent = "openSession"
-	Intent_closeSession    Intent = "closeSession"
+	IntentOpenSession     Intent = "openSession"
+	IntentCloseSession    Intent = "closeSession"
+	IntentValidateSession Intent = "validateSession"
+)
+
+const (
+	// Deprecated: Use IntentOpenSession instead.
+	Intent_openSession Intent = "openSession"
+	// Deprecated: Use IntentCloseSession instead.
+	Intent_closeSession Intent = "closeSession"
+	// Deprecated: Use IntentValidateSession instead.
 	Intent_validateSession Intent = "validateSession"
 )
 
 var Intent_values = []Intent{
-	Intent_openSession,
-	Intent_closeSession,
-	Intent_validateSession,
+	IntentOpenSession,
+	IntentCloseSession,
+	IntentValidateSession,
 }
 
 func (x Intent) MarshalText() ([]byte, error) {
@@ -136,13 +152,20 @@ func (x *Intent) Is(values ...Intent) bool {
 type ProtocolVersion string
 
 const (
-	ProtocolVersion_v1   ProtocolVersion = "v1"
+	ProtocolVersionV1  ProtocolVersion = "v1"
+	ProtocolVersionV15 ProtocolVersion = "v1.5"
+)
+
+const (
+	// Deprecated: Use ProtocolVersionV1 instead.
+	ProtocolVersion_v1 ProtocolVersion = "v1"
+	// Deprecated: Use ProtocolVersionV15 instead.
 	ProtocolVersion_v1_5 ProtocolVersion = "v1.5"
 )
 
 var ProtocolVersion_values = []ProtocolVersion{
-	ProtocolVersion_v1,
-	ProtocolVersion_v1_5,
+	ProtocolVersionV1,
+	ProtocolVersionV15,
 }
 
 func (x ProtocolVersion) MarshalText() ([]byte, error) {
@@ -169,13 +192,20 @@ func (x *ProtocolVersion) Is(values ...ProtocolVersion) bool {
 type Country string
 
 const (
+	CountryUs Country = "United States"
+	CountryCa Country = "Canada"
+)
+
+const (
+	// Deprecated: Use CountryUs instead.
 	Country_US Country = "United States"
+	// Deprecated: Use CountryCa instead.
 	Country_CA Country = "Canada"
 )
 
 var Country_values = []Country{
-	Country_US,
-	Country_CA,
+	CountryUs,
+	CountryCa,
 }
 
 func (x Country) MarshalText() ([]byte, error) {
@@ -734,7 +764,7 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-// PtrTo is a useful helper when constructing values for optional fields.
+// Deprecated: Use Go 1.26's new(expr).
 func PtrTo[T any](v T) *T { return &v }
 
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
