@@ -8,6 +8,9 @@
 # Fallback: manual workflow_dispatch to poll all generators at once.
 # Compares go.mod versions against latest tags for all generators.
 # Works without any cross-repo secrets (github.token reads public repos).
+#
+# Both paths open one pull request per generator (own branch + PR), so a
+# bump for one generator never blocks or bundles with another.
 
 name: Bump generator dependencies
 
@@ -61,16 +64,67 @@ jobs:
           API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: "go.mod go.sum _examples/ tests/"
-          branch: auto/bump-generators
-          commit_message: "[automated]: update ${{ env.GENERATOR }} to ${{ env.VERSION }}"
+          branch: "auto/bump-${{ env.GENERATOR }}"
+          commit_message: "chore(deps): update webrpc/${{ env.GENERATOR }}@${{ env.VERSION }}"
           pr_create: "true"
-          pr_title: "[automated] Generators update"
-          pr_description: "Automated bump of ${{ env.GENERATOR }} to ${{ env.VERSION }}."
+          pr_title: "chore(deps): update webrpc/${{ env.GENERATOR }}@${{ env.VERSION }}"
+          pr_description: "Automated bump of `webrpc/${{ env.GENERATOR }}` to `${{ env.VERSION }}`."
           pr_labels: "automated,dependencies"
 
-  bump-poll:
+  detect-poll:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    outputs:
+      has_updates: ${{ steps.check.outputs.has_updates }}
+      matrix: ${{ steps.check.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+
+      - run: git fetch --tags
+
+      - name: Check for generator updates
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          GENERATORS="gen-golang gen-typescript gen-javascript gen-kotlin gen-openapi gen-dart"
+          include='[]'
+
+          for gen in $GENERATORS; do
+            current=$(grep "github.com/webrpc/${gen} " go.mod | awk '{print $2}' || true)
+            [ -z "$current" ] && continue
+
+            latest=$(gh api "repos/webrpc/${gen}/tags" --jq '.[0].name' 2>/dev/null || echo "")
+            [ -z "$latest" ] && continue
+
+            if [ "$current" != "$latest" ]; then
+              echo "Update available: ${gen} ${current} -> ${latest}"
+              include=$(jq -c --arg g "$gen" --arg v "$latest" \
+                '. + [{generator: $g, version: $v}]' <<<"$include")
+            fi
+          done
+
+          echo "matrix={\"include\":${include}}" >> "$GITHUB_OUTPUT"
+          if [ "$(jq 'length' <<<"$include")" -eq 0 ]; then
+            echo "No updates found"
+            echo "has_updates=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_updates=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  bump-poll:
+    needs: detect-poll
+    if: needs.detect-poll.outputs.has_updates == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.detect-poll.outputs.matrix) }}
+    env:
+      GENERATOR: ${{ matrix.generator }}
+      VERSION: ${{ matrix.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -89,82 +143,25 @@ jobs:
           key: webrpc-cache
           path: /tmp/webrpc-cache
 
-      - name: Check for generator updates
-        id: check
+      - name: Bump dependency
         run: |
-          GENERATORS="gen-golang gen-typescript gen-javascript gen-kotlin gen-openapi gen-dart"
-          UPDATES=""
-          COMMIT_MSG=""
-          PR_BODY=""
-
-          for gen in $GENERATORS; do
-            CURRENT=$(grep "github.com/webrpc/${gen} " go.mod | awk '{print $2}')
-            if [ -z "$CURRENT" ]; then
-              continue
-            fi
-
-            LATEST=$(gh api "repos/webrpc/${gen}/tags" --jq '.[0].name' 2>/dev/null || echo "")
-            if [ -z "$LATEST" ]; then
-              continue
-            fi
-
-            if [ "$CURRENT" != "$LATEST" ]; then
-              echo "Update available: ${gen} ${CURRENT} -> ${LATEST}"
-              UPDATES="${UPDATES} ${gen}@${LATEST}"
-              COMMIT_MSG="${COMMIT_MSG}- ${gen}: ${LATEST}"$'\n'
-              PR_BODY="${PR_BODY}- ${gen}: ${CURRENT} → ${LATEST}"$'\n'
-            fi
-          done
-
-          if [ -z "$UPDATES" ]; then
-            echo "No updates found"
-            echo "has_updates=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_updates=true" >> "$GITHUB_OUTPUT"
-            echo "updates=${UPDATES}" >> "$GITHUB_OUTPUT"
-
-            {
-              echo "commit_msg<<ENDOFMSG"
-              echo "[automated]: update generators"
-              echo "${COMMIT_MSG}"
-              echo "ENDOFMSG"
-            } >> "$GITHUB_OUTPUT"
-
-            {
-              echo "pr_body<<ENDOFBODY"
-              echo "Automated PR to bump generator dependencies."
-              echo ""
-              echo "${PR_BODY}"
-              echo "ENDOFBODY"
-            } >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      - name: Bump dependencies
-        if: steps.check.outputs.has_updates == 'true'
-        run: |
-          for update in ${{ steps.check.outputs.updates }}; do
-            go get "github.com/webrpc/${update}"
-          done
+          go get "github.com/webrpc/${GENERATOR}@${VERSION}"
           go mod tidy
 
       - name: Build and regenerate
-        if: steps.check.outputs.has_updates == 'true'
         run: |
           make install
           make generate
 
       - name: Commit and create pull request
-        if: steps.check.outputs.has_updates == 'true'
         uses: 0xsequence/actions/git-commit@v0.0.7
         env:
           API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: "go.mod go.sum _examples/ tests/"
-          branch: auto/bump-generators
-          commit_message: ${{ steps.check.outputs.commit_msg }}
+          branch: "auto/bump-${{ env.GENERATOR }}"
+          commit_message: "chore(deps): update webrpc/${{ env.GENERATOR }}@${{ env.VERSION }}"
           pr_create: "true"
-          pr_title: "[automated] Generators update"
-          pr_description: ${{ steps.check.outputs.pr_body }}
+          pr_title: "chore(deps): update webrpc/${{ env.GENERATOR }}@${{ env.VERSION }}"
+          pr_description: "Automated bump of `webrpc/${{ env.GENERATOR }}` to `${{ env.VERSION }}`."
           pr_labels: "automated,dependencies"
