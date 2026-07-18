@@ -324,6 +324,7 @@ func (s *testApiService) serveGetEmptyJSON(ctx context.Context, w http.ResponseW
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
+
 func (s *testApiService) serveGetErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetError")
 
@@ -342,6 +343,7 @@ func (s *testApiService) serveGetErrorJSON(ctx context.Context, w http.ResponseW
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
+
 func (s *testApiService) serveGetOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetOne")
 
@@ -369,6 +371,7 @@ func (s *testApiService) serveGetOneJSON(ctx context.Context, w http.ResponseWri
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
+
 func (s *testApiService) serveSendOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendOne")
 
@@ -402,6 +405,7 @@ func (s *testApiService) serveSendOneJSON(ctx context.Context, w http.ResponseWr
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
+
 func (s *testApiService) serveGetMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetMulti")
 
@@ -431,6 +435,7 @@ func (s *testApiService) serveGetMultiJSON(ctx context.Context, w http.ResponseW
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
+
 func (s *testApiService) serveSendMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendMulti")
 
@@ -466,6 +471,7 @@ func (s *testApiService) serveSendMultiJSON(ctx context.Context, w http.Response
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
+
 func (s *testApiService) serveGetComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetComplex")
 
@@ -493,6 +499,7 @@ func (s *testApiService) serveGetComplexJSON(ctx context.Context, w http.Respons
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
+
 func (s *testApiService) serveSendComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendComplex")
 
@@ -526,6 +533,7 @@ func (s *testApiService) serveSendComplexJSON(ctx context.Context, w http.Respon
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
+
 func (s *testApiService) serveGetEnumListJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetEnumList")
 
@@ -553,6 +561,7 @@ func (s *testApiService) serveGetEnumListJSON(ctx context.Context, w http.Respon
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
+
 func (s *testApiService) serveGetEnumMapJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetEnumMap")
 
@@ -580,6 +589,7 @@ func (s *testApiService) serveGetEnumMapJSON(ctx context.Context, w http.Respons
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
+
 func (s *testApiService) serveGetSchemaErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetSchemaError")
 

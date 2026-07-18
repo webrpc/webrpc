@@ -386,6 +386,7 @@ func (s *chatService) serveSendMessageJSON(ctx context.Context, w http.ResponseW
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
+
 func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SubscribeMessages")
 

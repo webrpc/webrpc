@@ -274,6 +274,7 @@ func (s *exampleAPIService) servePingJSON(ctx context.Context, w http.ResponseWr
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
+
 func (s *exampleAPIService) serveStatusJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Status")
 
@@ -301,6 +302,7 @@ func (s *exampleAPIService) serveStatusJSON(ctx context.Context, w http.Response
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
+
 func (s *exampleAPIService) serveGetUsersJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetUsers")
 

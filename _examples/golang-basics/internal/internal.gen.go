@@ -487,6 +487,7 @@ func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWrite
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
+
 func (s *exampleService) serveStatusJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Status")
 
@@ -514,6 +515,7 @@ func (s *exampleService) serveStatusJSON(ctx context.Context, w http.ResponseWri
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
+
 func (s *exampleService) serveVersionJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Version")
 
@@ -661,6 +663,7 @@ func (s *adminService) serveStatusJSON(ctx context.Context, w http.ResponseWrite
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
+
 func (s *adminService) serveVersionJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Version")
 

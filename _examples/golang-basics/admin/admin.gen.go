@@ -454,6 +454,7 @@ func (s *adminService) serveAuthJSON(ctx context.Context, w http.ResponseWriter,
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
+
 func (s *adminService) serveStatusJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Status")
 
@@ -481,6 +482,7 @@ func (s *adminService) serveStatusJSON(ctx context.Context, w http.ResponseWrite
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
+
 func (s *adminService) serveVersionJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Version")
 

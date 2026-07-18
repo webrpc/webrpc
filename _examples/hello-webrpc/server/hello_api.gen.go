@@ -232,6 +232,7 @@ func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWrite
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
+
 func (s *exampleService) serveGetUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetUser")
 
@@ -274,6 +275,7 @@ func (s *exampleService) serveGetUserJSON(ctx context.Context, w http.ResponseWr
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
+
 func (s *exampleService) serveFindUsersJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "FindUsers")
 
