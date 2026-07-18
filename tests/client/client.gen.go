@@ -230,25 +230,13 @@ func NewTestApiClient(addr string, client HTTPClient) TestApiClient {
 }
 
 func (c *testApiClient) GetEmpty(ctx context.Context) error {
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[0], nil, nil)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[0], nil, nil)
 
 	return err
 }
 
 func (c *testApiClient) GetError(ctx context.Context) error {
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[1], nil, nil)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[1], nil, nil)
 
 	return err
 }
@@ -258,13 +246,7 @@ func (c *testApiClient) GetOne(ctx context.Context) (*Simple, error) {
 		Ret0 *Simple `json:"one"`
 	}{}
 
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[2], nil, &out)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[2], nil, &out)
 
 	return out.Ret0, err
 }
@@ -274,13 +256,7 @@ func (c *testApiClient) SendOne(ctx context.Context, one *Simple) error {
 		Arg0 *Simple `json:"one"`
 	}{one}
 
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[3], in, nil)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[3], in, nil)
 
 	return err
 }
@@ -292,13 +268,7 @@ func (c *testApiClient) GetMulti(ctx context.Context) (*Simple, *Simple, *Simple
 		Ret2 *Simple `json:"three"`
 	}{}
 
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[4], nil, &out)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[4], nil, &out)
 
 	return out.Ret0, out.Ret1, out.Ret2, err
 }
@@ -310,13 +280,7 @@ func (c *testApiClient) SendMulti(ctx context.Context, one *Simple, two *Simple,
 		Arg2 *Simple `json:"three"`
 	}{one, two, three}
 
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[5], in, nil)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[5], in, nil)
 
 	return err
 }
@@ -326,13 +290,7 @@ func (c *testApiClient) GetComplex(ctx context.Context) (*Complex, error) {
 		Ret0 *Complex `json:"complex"`
 	}{}
 
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[6], nil, &out)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[6], nil, &out)
 
 	return out.Ret0, err
 }
@@ -342,13 +300,7 @@ func (c *testApiClient) SendComplex(ctx context.Context, complex *Complex) error
 		Arg0 *Complex `json:"complex"`
 	}{complex}
 
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[7], in, nil)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[7], in, nil)
 
 	return err
 }
@@ -358,13 +310,7 @@ func (c *testApiClient) GetEnumList(ctx context.Context) ([]Status, error) {
 		Ret0 []Status `json:"list"`
 	}{}
 
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[8], nil, &out)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[8], nil, &out)
 
 	return out.Ret0, err
 }
@@ -374,13 +320,7 @@ func (c *testApiClient) GetEnumMap(ctx context.Context) (map[Access]uint64, erro
 		Ret0 map[Access]uint64 `json:"map"`
 	}{}
 
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[9], nil, &out)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[9], nil, &out)
 
 	return out.Ret0, err
 }
@@ -390,13 +330,7 @@ func (c *testApiClient) GetSchemaError(ctx context.Context, code int) error {
 		Arg0 int `json:"code"`
 	}{code}
 
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[10], in, nil)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[10], in, nil)
 
 	return err
 }
@@ -446,8 +380,10 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 	return req, nil
 }
 
-// doHTTPRequest is common code to make a request to the remote service.
-func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
+// doHTTPRequestRaw is common code to make a request to the remote service.
+// It returns the open *http.Response; the caller is responsible for closing
+// its body. Unary methods should use doHTTPRequest, which closes it for them.
+func doHTTPRequestRaw(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
 	reqBody, err := json.Marshal(in)
 	if err != nil {
 		return nil, ErrWebrpcRequestFailed.WithCausef("failed to marshal JSON body: %w", err)
@@ -521,6 +457,20 @@ func WithHTTPRequestHeaders(ctx context.Context, h http.Header) (context.Context
 func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 	h, ok := ctx.Value(HTTPClientRequestHeadersCtxKey).(http.Header)
 	return h, ok
+}
+
+// doHTTPRequest makes a request to the remote service and closes the response
+// body. It is used by all unary methods; streaming methods use
+// doHTTPRequestRaw directly, since they read from the response body.
+func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) error {
+	resp, err := doHTTPRequestRaw(ctx, client, url, in, out)
+	if resp != nil {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
+		}
+	}
+	return err
 }
 
 //

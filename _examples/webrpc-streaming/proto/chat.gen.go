@@ -168,13 +168,7 @@ func (c *chatClient) SendMessage(ctx context.Context, username string, text stri
 		Arg1 string `json:"text"`
 	}{username, text}
 
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[0], in, nil)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[0], in, nil)
 
 	return err
 }
@@ -185,7 +179,7 @@ func (c *chatClient) SubscribeMessages(ctx context.Context, username string, las
 		Arg1 *uint64 `json:"lastMessageId"`
 	}{username, lastMessageId}
 
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[1], in, nil)
+	resp, err := doHTTPRequestRaw(ctx, c.client, c.urls[1], in, nil)
 	if err != nil {
 		if resp != nil {
 			resp.Body.Close()
@@ -392,7 +386,6 @@ func (s *chatService) serveSendMessageJSON(ctx context.Context, w http.ResponseW
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
-
 func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SubscribeMessages")
 
@@ -486,6 +479,47 @@ func RespondWithError(w http.ResponseWriter, err error) {
 	w.Write(respBody)
 }
 
+type sendErrorFunc func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
+
+func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O, error), sendError sendErrorFunc) func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
+
+		reqBody, err := io.ReadAll(r.Body)
+		if err != nil {
+			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+			return
+		}
+		defer r.Body.Close()
+
+		var reqPayload I
+		if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
+			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
+			return
+		}
+
+		respPayload, err := fn(ctx, reqPayload)
+		if err != nil {
+			rpcErr, ok := err.(WebRPCError)
+			if !ok {
+				rpcErr = ErrWebrpcEndpoint.WithCause(err)
+			}
+			sendError(w, r, rpcErr)
+			return
+		}
+
+		respBody, err := json.Marshal(respPayload)
+		if err != nil {
+			sendError(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(respBody)
+	}
+}
+
 type method struct {
 	name        string
 	service     string
@@ -575,8 +609,10 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 	return req, nil
 }
 
-// doHTTPRequest is common code to make a request to the remote service.
-func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
+// doHTTPRequestRaw is common code to make a request to the remote service.
+// It returns the open *http.Response; the caller is responsible for closing
+// its body. Unary methods should use doHTTPRequest, which closes it for them.
+func doHTTPRequestRaw(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
 	reqBody, err := json.Marshal(in)
 	if err != nil {
 		return nil, ErrWebrpcRequestFailed.WithCausef("failed to marshal JSON body: %w", err)
@@ -650,6 +686,20 @@ func WithHTTPRequestHeaders(ctx context.Context, h http.Header) (context.Context
 func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 	h, ok := ctx.Value(HTTPClientRequestHeadersCtxKey).(http.Header)
 	return h, ok
+}
+
+// doHTTPRequest makes a request to the remote service and closes the response
+// body. It is used by all unary methods; streaming methods use
+// doHTTPRequestRaw directly, since they read from the response body.
+func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) error {
+	resp, err := doHTTPRequestRaw(ctx, client, url, in, out)
+	if resp != nil {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
+		}
+	}
+	return err
 }
 
 //

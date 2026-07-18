@@ -324,7 +324,6 @@ func (s *testApiService) serveGetEmptyJSON(ctx context.Context, w http.ResponseW
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
-
 func (s *testApiService) serveGetErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetError")
 
@@ -343,7 +342,6 @@ func (s *testApiService) serveGetErrorJSON(ctx context.Context, w http.ResponseW
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
-
 func (s *testApiService) serveGetOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetOne")
 
@@ -371,7 +369,6 @@ func (s *testApiService) serveGetOneJSON(ctx context.Context, w http.ResponseWri
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
-
 func (s *testApiService) serveSendOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendOne")
 
@@ -405,7 +402,6 @@ func (s *testApiService) serveSendOneJSON(ctx context.Context, w http.ResponseWr
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
-
 func (s *testApiService) serveGetMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetMulti")
 
@@ -435,7 +431,6 @@ func (s *testApiService) serveGetMultiJSON(ctx context.Context, w http.ResponseW
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
-
 func (s *testApiService) serveSendMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendMulti")
 
@@ -471,7 +466,6 @@ func (s *testApiService) serveSendMultiJSON(ctx context.Context, w http.Response
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
-
 func (s *testApiService) serveGetComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetComplex")
 
@@ -499,7 +493,6 @@ func (s *testApiService) serveGetComplexJSON(ctx context.Context, w http.Respons
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
-
 func (s *testApiService) serveSendComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendComplex")
 
@@ -533,7 +526,6 @@ func (s *testApiService) serveSendComplexJSON(ctx context.Context, w http.Respon
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("{}"))
 }
-
 func (s *testApiService) serveGetEnumListJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetEnumList")
 
@@ -561,7 +553,6 @@ func (s *testApiService) serveGetEnumListJSON(ctx context.Context, w http.Respon
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
-
 func (s *testApiService) serveGetEnumMapJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetEnumMap")
 
@@ -589,7 +580,6 @@ func (s *testApiService) serveGetEnumMapJSON(ctx context.Context, w http.Respons
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
-
 func (s *testApiService) serveGetSchemaErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetSchemaError")
 
@@ -647,6 +637,47 @@ func RespondWithError(w http.ResponseWriter, err error) {
 
 	respBody, _ := json.Marshal(rpcErr)
 	w.Write(respBody)
+}
+
+type sendErrorFunc func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
+
+func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O, error), sendError sendErrorFunc) func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
+
+		reqBody, err := io.ReadAll(r.Body)
+		if err != nil {
+			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+			return
+		}
+		defer r.Body.Close()
+
+		var reqPayload I
+		if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
+			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
+			return
+		}
+
+		respPayload, err := fn(ctx, reqPayload)
+		if err != nil {
+			rpcErr, ok := err.(WebRPCError)
+			if !ok {
+				rpcErr = ErrWebrpcEndpoint.WithCause(err)
+			}
+			sendError(w, r, rpcErr)
+			return
+		}
+
+		respBody, err := json.Marshal(respPayload)
+		if err != nil {
+			sendError(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(respBody)
+	}
 }
 
 type method struct {

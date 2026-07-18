@@ -232,7 +232,6 @@ func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWrite
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
-
 func (s *exampleService) serveGetUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetUser")
 
@@ -275,7 +274,6 @@ func (s *exampleService) serveGetUserJSON(ctx context.Context, w http.ResponseWr
 	w.WriteHeader(http.StatusOK)
 	w.Write(respBody)
 }
-
 func (s *exampleService) serveFindUsersJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "FindUsers")
 
@@ -343,6 +341,47 @@ func RespondWithError(w http.ResponseWriter, err error) {
 
 	respBody, _ := json.Marshal(rpcErr)
 	w.Write(respBody)
+}
+
+type sendErrorFunc func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
+
+func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O, error), sendError sendErrorFunc) func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
+
+		reqBody, err := io.ReadAll(r.Body)
+		if err != nil {
+			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+			return
+		}
+		defer r.Body.Close()
+
+		var reqPayload I
+		if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
+			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
+			return
+		}
+
+		respPayload, err := fn(ctx, reqPayload)
+		if err != nil {
+			rpcErr, ok := err.(WebRPCError)
+			if !ok {
+				rpcErr = ErrWebrpcEndpoint.WithCause(err)
+			}
+			sendError(w, r, rpcErr)
+			return
+		}
+
+		respBody, err := json.Marshal(respPayload)
+		if err != nil {
+			sendError(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(respBody)
+	}
 }
 
 type method struct {
