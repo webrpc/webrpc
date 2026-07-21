@@ -122,7 +122,7 @@ type exampleAPIClient struct {
 }
 
 func NewExampleAPIClient(addr string, client HTTPClient) ExampleAPIClient {
-	prefix := urlBase(addr) + ExampleAPIPathPrefix
+	prefix := serviceURL(addr, ExampleAPIPathPrefix)
 	urls := [3]string{
 		prefix + "Ping",
 		prefix + "Status",
@@ -135,13 +135,7 @@ func NewExampleAPIClient(addr string, client HTTPClient) ExampleAPIClient {
 }
 
 func (c *exampleAPIClient) Ping(ctx context.Context) error {
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[0], nil, nil)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[0], nil, nil)
 
 	return err
 }
@@ -151,13 +145,7 @@ func (c *exampleAPIClient) Status(ctx context.Context) (bool, error) {
 		Ret0 bool `json:"status"`
 	}{}
 
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[1], nil, &out)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[1], nil, &out)
 
 	return out.Ret0, err
 }
@@ -168,13 +156,7 @@ func (c *exampleAPIClient) GetUsers(ctx context.Context) ([]*User, Location, err
 		Ret1 Location `json:"location"`
 	}{}
 
-	resp, err := doHTTPRequest(ctx, c.client, c.urls[2], nil, &out)
-	if resp != nil {
-		cerr := resp.Body.Close()
-		if err == nil && cerr != nil {
-			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
-		}
-	}
+	err := doHTTPRequest(ctx, c.client, c.urls[2], nil, &out)
 
 	return out.Ret0, out.Ret1, err
 }
@@ -429,29 +411,23 @@ var WebRPCServices = map[string][]string{
 // Client helpers
 //
 
-// HTTPClient is the interface used by generated clients to send HTTP requests.
-// It is fulfilled by *(net/http).Client, which is sufficient for most users.
-// Users can provide their own implementation for special retry policies.
+// HTTPClient is the interface used to send HTTP requests. It is fulfilled by *http.Client.
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// urlBase helps ensure that addr specifies a scheme. If it is unparsable
-// as a URL, it returns addr unchanged.
-func urlBase(addr string) string {
-	// If the addr specifies a scheme, use it. If not, default to
-	// http. If url.Parse fails on it, return it unchanged.
-	url, err := url.Parse(addr)
-	if err != nil {
-		return addr
+// serviceURL joins addr (a full URL, e.g. "http://localhost:8080") with the
+// service path prefix. Malformed addrs fail on the first request.
+func serviceURL(addr, prefix string) string {
+	u, err := url.Parse(addr)
+	if err != nil || u.Host == "" {
+		return addr + prefix
 	}
-	if url.Scheme == "" {
-		url.Scheme = "http"
-	}
-	return url.String()
+	u.RawQuery, u.Fragment = "", ""
+	return u.JoinPath(prefix).String()
 }
 
-// newRequest makes an http.Request from a client, adding common headers.
+// newRequest makes an http.Request with common headers.
 func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType string) (*http.Request, error) {
 	req, err := http.NewRequestWithContext(ctx, "POST", url, reqBody)
 	if err != nil {
@@ -470,8 +446,8 @@ func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType 
 	return req, nil
 }
 
-// doHTTPRequest is common code to make a request to the remote service.
-func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
+// doHTTPRequestRaw makes a request and returns the open *http.Response; the caller must close its body.
+func doHTTPRequestRaw(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
 	reqBody, err := json.Marshal(in)
 	if err != nil {
 		return nil, ErrWebrpcRequestFailed.WithCausef("failed to marshal JSON body: %w", err)
@@ -545,6 +521,18 @@ func WithHTTPRequestHeaders(ctx context.Context, h http.Header) (context.Context
 func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
 	h, ok := ctx.Value(HTTPClientRequestHeadersCtxKey).(http.Header)
 	return h, ok
+}
+
+// doHTTPRequest makes a request and closes the response body.
+func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) error {
+	resp, err := doHTTPRequestRaw(ctx, client, url, in, out)
+	if resp != nil {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
+		}
+	}
+	return err
 }
 
 //
