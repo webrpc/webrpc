@@ -55,11 +55,12 @@ const (
 	KindAdmin Kind = 2
 )
 
+//go:fix inline
 const (
 	// Deprecated: Use KindUser instead.
-	Kind_USER Kind = 1
+	Kind_USER Kind = KindUser
 	// Deprecated: Use KindAdmin instead.
-	Kind_ADMIN Kind = 2
+	Kind_ADMIN Kind = KindAdmin
 )
 
 var Kind_name = map[Kind]string{
@@ -429,7 +430,7 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-// Deprecated: Use Go 1.26's new(expr).
+// Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...
 func PtrTo[T any](v T) *T { return &v }
 
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {

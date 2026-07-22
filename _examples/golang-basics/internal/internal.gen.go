@@ -73,11 +73,12 @@ const (
 	KindAdmin Kind = 1
 )
 
+//go:fix inline
 const (
 	// Deprecated: Use KindUser instead.
-	Kind_USER Kind = 0
+	Kind_USER Kind = KindUser
 	// Deprecated: Use KindAdmin instead.
-	Kind_ADMIN Kind = 1
+	Kind_ADMIN Kind = KindAdmin
 )
 
 var Kind_name = map[Kind]string{
@@ -123,13 +124,14 @@ const (
 	IntentValidateSession Intent = "validateSession"
 )
 
+//go:fix inline
 const (
 	// Deprecated: Use IntentOpenSession instead.
-	Intent_openSession Intent = "openSession"
+	Intent_openSession Intent = IntentOpenSession
 	// Deprecated: Use IntentCloseSession instead.
-	Intent_closeSession Intent = "closeSession"
+	Intent_closeSession Intent = IntentCloseSession
 	// Deprecated: Use IntentValidateSession instead.
-	Intent_validateSession Intent = "validateSession"
+	Intent_validateSession Intent = IntentValidateSession
 )
 
 var Intent_values = []Intent{
@@ -166,11 +168,12 @@ const (
 	ProtocolVersionV15 ProtocolVersion = "v1.5"
 )
 
+//go:fix inline
 const (
 	// Deprecated: Use ProtocolVersionV1 instead.
-	ProtocolVersion_v1 ProtocolVersion = "v1"
+	ProtocolVersion_v1 ProtocolVersion = ProtocolVersionV1
 	// Deprecated: Use ProtocolVersionV15 instead.
-	ProtocolVersion_v1_5 ProtocolVersion = "v1.5"
+	ProtocolVersion_v1_5 ProtocolVersion = ProtocolVersionV15
 )
 
 var ProtocolVersion_values = []ProtocolVersion{
@@ -206,11 +209,12 @@ const (
 	CountryCa Country = "Canada"
 )
 
+//go:fix inline
 const (
 	// Deprecated: Use CountryUs instead.
-	Country_US Country = "United States"
+	Country_US Country = CountryUs
 	// Deprecated: Use CountryCa instead.
-	Country_CA Country = "Canada"
+	Country_CA Country = CountryCa
 )
 
 var Country_values = []Country{
@@ -947,7 +951,7 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-// Deprecated: Use Go 1.26's new(expr).
+// Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...
 func PtrTo[T any](v T) *T { return &v }
 
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {

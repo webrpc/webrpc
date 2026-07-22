@@ -62,11 +62,12 @@ const (
 	StatusNotAvailable Status = 1
 )
 
+//go:fix inline
 const (
 	// Deprecated: Use StatusAvailable instead.
-	Status_AVAILABLE Status = 0
+	Status_AVAILABLE Status = StatusAvailable
 	// Deprecated: Use StatusNotAvailable instead.
-	Status_NOT_AVAILABLE Status = 1
+	Status_NOT_AVAILABLE Status = StatusNotAvailable
 )
 
 var Status_name = map[Status]string{
@@ -114,17 +115,18 @@ const (
 	AccessOwner Access = 4
 )
 
+//go:fix inline
 const (
 	// Deprecated: Use AccessNone instead.
-	Access_NONE Access = 0
+	Access_NONE Access = AccessNone
 	// Deprecated: Use AccessRead instead.
-	Access_READ Access = 1
+	Access_READ Access = AccessRead
 	// Deprecated: Use AccessWrite instead.
-	Access_WRITE Access = 2
+	Access_WRITE Access = AccessWrite
 	// Deprecated: Use AccessAdmin instead.
-	Access_ADMIN Access = 3
+	Access_ADMIN Access = AccessAdmin
 	// Deprecated: Use AccessOwner instead.
-	Access_OWNER Access = 4
+	Access_OWNER Access = AccessOwner
 )
 
 var Access_name = map[Access]string{
@@ -479,7 +481,7 @@ var (
 	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"}
 )
 
-// Deprecated: Use Go 1.26's new(expr).
+// Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...
 func PtrTo[T any](v T) *T { return &v }
 
 //
