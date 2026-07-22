@@ -68,11 +68,12 @@ const (
 	LocationNewYork Location = 1
 )
 
+//go:fix inline
 const (
 	// Deprecated: Use LocationToronto instead.
-	Location_TORONTO Location = 0
+	Location_TORONTO Location = LocationToronto
 	// Deprecated: Use LocationNewYork instead.
-	Location_NEW_YORK Location = 1
+	Location_NEW_YORK Location = LocationNewYork
 )
 
 var Location_name = map[Location]string{
@@ -573,7 +574,7 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-// Deprecated: Use Go 1.26's new(expr).
+// Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...
 func PtrTo[T any](v T) *T { return &v }
 
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {

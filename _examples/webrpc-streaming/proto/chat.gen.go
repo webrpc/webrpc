@@ -690,7 +690,7 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-// Deprecated: Use Go 1.26's new(expr).
+// Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...
 func PtrTo[T any](v T) *T { return &v }
 
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
