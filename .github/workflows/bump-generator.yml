@@ -58,8 +58,24 @@ jobs:
           make install
           make generate
 
+      - name: Prepare PR body with release notes
+        id: body
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          notes=$(gh api "repos/webrpc/${GENERATOR}/releases/tags/${VERSION}" --jq '.body // ""' 2>/dev/null || true)
+          [ -z "$notes" ] && notes="_No GitHub release found for ${VERSION} when this PR was opened._"
+          {
+            echo "body<<EOF_PR_BODY"
+            echo "Automated bump of [\`webrpc/${GENERATOR}@${VERSION}\`](https://github.com/webrpc/${GENERATOR}/releases/tag/${VERSION})."
+            echo ""
+            printf '%s\n' "$notes"
+            echo "EOF_PR_BODY"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Commit and create pull request
-        uses: 0xsequence/actions/git-commit@v0.0.7
+        uses: 0xsequence/actions/git-commit@v0.10.0
         env:
           API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -68,7 +84,7 @@ jobs:
           commit_message: "chore(deps): update webrpc/${{ env.GENERATOR }}@${{ env.VERSION }}"
           pr_create: "true"
           pr_title: "chore(deps): update webrpc/${{ env.GENERATOR }}@${{ env.VERSION }}"
-          pr_description: "Automated bump of `webrpc/${{ env.GENERATOR }}` to `${{ env.VERSION }}`."
+          pr_description: "${{ steps.body.outputs.body }}"
           pr_labels: "automated,dependencies"
 
   detect-poll:
@@ -153,8 +169,24 @@ jobs:
           make install
           make generate
 
+      - name: Prepare PR body with release notes
+        id: body
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          notes=$(gh api "repos/webrpc/${GENERATOR}/releases/tags/${VERSION}" --jq '.body // ""' 2>/dev/null || true)
+          [ -z "$notes" ] && notes="_No GitHub release found for ${VERSION} when this PR was opened._"
+          {
+            echo "body<<EOF_PR_BODY"
+            echo "Automated bump of [\`webrpc/${GENERATOR}@${VERSION}\`](https://github.com/webrpc/${GENERATOR}/releases/tag/${VERSION})."
+            echo ""
+            printf '%s\n' "$notes"
+            echo "EOF_PR_BODY"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Commit and create pull request
-        uses: 0xsequence/actions/git-commit@v0.0.7
+        uses: 0xsequence/actions/git-commit@v0.10.0
         env:
           API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -163,5 +195,5 @@ jobs:
           commit_message: "chore(deps): update webrpc/${{ env.GENERATOR }}@${{ env.VERSION }}"
           pr_create: "true"
           pr_title: "chore(deps): update webrpc/${{ env.GENERATOR }}@${{ env.VERSION }}"
-          pr_description: "Automated bump of `webrpc/${{ env.GENERATOR }}` to `${{ env.VERSION }}`."
+          pr_description: "${{ steps.body.outputs.body }}"
           pr_labels: "automated,dependencies"
