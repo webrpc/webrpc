@@ -182,7 +182,7 @@ type User struct {
 }
 
 type Complex struct {
-	Meta              map[string]interface{}       `json:"meta"`
+	Meta              map[string]any               `json:"meta"`
 	MetaNestedExample map[string]map[string]uint32 `json:"metaNestedExample"`
 	NamesList         []string                     `json:"namesList"`
 	NumsList          []int64                      `json:"numsList"`

@@ -13,8 +13,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -489,6 +491,7 @@ type method struct {
 func (m *method) Name() string                   { return m.name }
 func (m *method) Service() string                { return m.service }
 func (m *method) Annotations() map[string]string { return m.annotations }
+func (m *method) Annotation(key string) string   { return m.annotations[key] }
 
 var methods = map[string]*method{
 	"/v1/Chat/SendMessage": {
@@ -513,8 +516,25 @@ func MethodCtx(ctx context.Context) (*method, bool) {
 	return m, ok
 }
 
-func WebrpcMethods() map[string]*method {
-	return methods
+type Service string
+
+const (
+	ServiceChat Service = "Chat"
+)
+
+// WebrpcMethods returns a copy of all methods, or only those for the given services.
+// For further filtering (e.g. by annotation), use maps.DeleteFunc on the result.
+func WebrpcMethods(services ...Service) map[string]*method {
+	if len(services) == 0 {
+		return maps.Clone(methods)
+	}
+	out := make(map[string]*method)
+	for path, m := range methods {
+		if slices.Contains(services, Service(m.service)) {
+			out[path] = m
+		}
+	}
+	return out
 }
 
 var WebRPCServices = map[string][]string{
