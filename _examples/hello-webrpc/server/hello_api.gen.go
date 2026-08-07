@@ -11,7 +11,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 )
@@ -99,12 +101,12 @@ func (x *Kind) Is(values ...Kind) bool {
 }
 
 type User struct {
-	ID         uint64                 `json:"id" db:"id"`
-	Username   string                 `json:"USERNAME" db:"username"`
-	Role       Kind                   `json:"role"`
-	Meta       map[string]interface{} `json:"meta"`
-	InternalID uint64                 `json:"-"`
-	CreatedAt  *time.Time             `json:"created_at,omitempty" db:"created_at"`
+	ID         uint64         `json:"id" db:"id"`
+	Username   string         `json:"USERNAME" db:"username"`
+	Role       Kind           `json:"role"`
+	Meta       map[string]any `json:"meta"`
+	InternalID uint64         `json:"-"`
+	CreatedAt  *time.Time     `json:"created_at,omitempty" db:"created_at"`
 }
 
 type Page struct {
@@ -355,6 +357,7 @@ type method struct {
 func (m *method) Name() string                   { return m.name }
 func (m *method) Service() string                { return m.service }
 func (m *method) Annotations() map[string]string { return m.annotations }
+func (m *method) Annotation(key string) string   { return m.annotations[key] }
 
 var methods = map[string]*method{
 	"/Example/Ping": {
@@ -384,8 +387,25 @@ func MethodCtx(ctx context.Context) (*method, bool) {
 	return m, ok
 }
 
-func WebrpcMethods() map[string]*method {
-	return methods
+type Service string
+
+const (
+	ServiceExample Service = "Example"
+)
+
+// WebrpcMethods returns a copy of all methods, or only those for the given services.
+// For further filtering (e.g. by annotation), use maps.DeleteFunc on the result.
+func WebrpcMethods(services ...Service) map[string]*method {
+	if len(services) == 0 {
+		return maps.Clone(methods)
+	}
+	out := make(map[string]*method)
+	for path, m := range methods {
+		if slices.Contains(services, Service(m.service)) {
+			out[path] = m
+		}
+	}
+	return out
 }
 
 var WebRPCServices = map[string][]string{
