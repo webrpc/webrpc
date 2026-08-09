@@ -733,6 +733,7 @@ func (m *method) Name() string                   { return m.name }
 func (m *method) Service() string                { return m.service }
 func (m *method) Annotations() map[string]string { return m.annotations }
 func (m *method) Annotation(key string) string   { return m.annotations[key] }
+func (m *method) HasAnnotation(key string) bool  { _, ok := m.annotations[key]; return ok }
 
 var methods = map[string]*method{
 	"/v1/Example/Ping": {
