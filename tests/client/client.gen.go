@@ -337,6 +337,20 @@ func (c *testApiClient) GetSchemaError(ctx context.Context, code int) error {
 	return err
 }
 
+// Clients bundles one client per service, all sharing the same address and
+// HTTP client. Construct them once with NewClients and use the fields you
+// need. Skip it when services need different transports (e.g. separate admin
+// vs user credentials).
+type Clients struct {
+	TestApi TestApiClient
+}
+
+func NewClients(addr string, client HTTPClient) Clients {
+	return Clients{
+		TestApi: NewTestApiClient(addr, client),
+	}
+}
+
 //
 // Client helpers
 //

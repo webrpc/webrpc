@@ -164,6 +164,20 @@ func (c *exampleAPIClient) GetUsers(ctx context.Context) ([]*User, Location, err
 	return out.Ret0, out.Ret1, err
 }
 
+// Clients bundles one client per service, all sharing the same address and
+// HTTP client. Construct them once with NewClients and use the fields you
+// need. Skip it when services need different transports (e.g. separate admin
+// vs user credentials).
+type Clients struct {
+	ExampleAPI ExampleAPIClient
+}
+
+func NewClients(addr string, client HTTPClient) Clients {
+	return Clients{
+		ExampleAPI: NewExampleAPIClient(addr, client),
+	}
+}
+
 //
 // Server
 //

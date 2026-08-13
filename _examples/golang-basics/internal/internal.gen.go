@@ -380,6 +380,22 @@ func (c *adminClient) Version(ctx context.Context) (*Version, error) {
 	return out.Ret0, err
 }
 
+// Clients bundles one client per service, all sharing the same address and
+// HTTP client. Construct them once with NewClients and use the fields you
+// need. Skip it when services need different transports (e.g. separate admin
+// vs user credentials).
+type Clients struct {
+	Example ExampleClient
+	Admin   AdminClient
+}
+
+func NewClients(addr string, client HTTPClient) Clients {
+	return Clients{
+		Example: NewExampleClient(addr, client),
+		Admin:   NewAdminClient(addr, client),
+	}
+}
+
 //
 // Server
 //
