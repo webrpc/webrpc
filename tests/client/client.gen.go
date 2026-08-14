@@ -337,6 +337,20 @@ func (c *testApiClient) GetSchemaError(ctx context.Context, code int) error {
 	return err
 }
 
+// Client is a unified client for every service of this API, all sharing the
+// same address and HTTP client: c.Users.Get(ctx, …). Skip it when services
+// need different transports (e.g. separate admin vs user credentials) — the
+// per-service constructors stay.
+type Client struct {
+	TestApi TestApiClient
+}
+
+func NewClient(addr string, client HTTPClient) Client {
+	return Client{
+		TestApi: NewTestApiClient(addr, client),
+	}
+}
+
 //
 // Client helpers
 //

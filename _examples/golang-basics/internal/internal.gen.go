@@ -380,6 +380,22 @@ func (c *adminClient) Version(ctx context.Context) (*Version, error) {
 	return out.Ret0, err
 }
 
+// Client is a unified client for every service of this API, all sharing the
+// same address and HTTP client: c.Users.Get(ctx, …). Skip it when services
+// need different transports (e.g. separate admin vs user credentials) — the
+// per-service constructors stay.
+type Client struct {
+	Example ExampleClient
+	Admin   AdminClient
+}
+
+func NewClient(addr string, client HTTPClient) Client {
+	return Client{
+		Example: NewExampleClient(addr, client),
+		Admin:   NewAdminClient(addr, client),
+	}
+}
+
 //
 // Server
 //

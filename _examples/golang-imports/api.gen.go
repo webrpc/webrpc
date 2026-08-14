@@ -164,6 +164,20 @@ func (c *exampleAPIClient) GetUsers(ctx context.Context) ([]*User, Location, err
 	return out.Ret0, out.Ret1, err
 }
 
+// Client is a unified client for every service of this API, all sharing the
+// same address and HTTP client: c.Users.Get(ctx, …). Skip it when services
+// need different transports (e.g. separate admin vs user credentials) — the
+// per-service constructors stay.
+type Client struct {
+	ExampleAPI ExampleAPIClient
+}
+
+func NewClient(addr string, client HTTPClient) Client {
+	return Client{
+		ExampleAPI: NewExampleAPIClient(addr, client),
+	}
+}
+
 //
 // Server
 //
