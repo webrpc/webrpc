@@ -48,6 +48,8 @@ checksum:
 
 release:
   replace_existing_artifacts: true
+  # Overwrite notes typed in the GitHub UI, so header/footer always apply.
+  mode: replace
   header: |
     ## Go package
     ```
