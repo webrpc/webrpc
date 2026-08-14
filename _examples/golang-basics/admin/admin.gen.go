@@ -345,8 +345,8 @@ type Client struct {
 	Admin AdminClient
 }
 
-func NewClient(addr string, client HTTPClient) Client {
-	return Client{
+func NewClient(addr string, client HTTPClient) *Client {
+	return &Client{
 		Admin: NewAdminClient(addr, client),
 	}
 }

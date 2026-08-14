@@ -408,8 +408,8 @@ type Client struct {
 	Example ExampleClient
 }
 
-func NewClient(addr string, client HTTPClient) Client {
-	return Client{
+func NewClient(addr string, client HTTPClient) *Client {
+	return &Client{
 		Example: NewExampleClient(addr, client),
 	}
 }

@@ -172,8 +172,8 @@ type Client struct {
 	ExampleAPI ExampleAPIClient
 }
 
-func NewClient(addr string, client HTTPClient) Client {
-	return Client{
+func NewClient(addr string, client HTTPClient) *Client {
+	return &Client{
 		ExampleAPI: NewExampleAPIClient(addr, client),
 	}
 }

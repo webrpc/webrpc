@@ -345,8 +345,8 @@ type Client struct {
 	TestApi TestApiClient
 }
 
-func NewClient(addr string, client HTTPClient) Client {
-	return Client{
+func NewClient(addr string, client HTTPClient) *Client {
+	return &Client{
 		TestApi: NewTestApiClient(addr, client),
 	}
 }

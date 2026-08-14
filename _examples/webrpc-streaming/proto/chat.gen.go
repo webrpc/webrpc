@@ -269,8 +269,8 @@ type Client struct {
 	Chat ChatClient
 }
 
-func NewClient(addr string, client HTTPClient) Client {
-	return Client{
+func NewClient(addr string, client HTTPClient) *Client {
+	return &Client{
 		Chat: NewChatClient(addr, client),
 	}
 }
