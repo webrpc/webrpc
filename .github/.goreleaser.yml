@@ -48,6 +48,11 @@ checksum:
 
 release:
   replace_existing_artifacts: true
+  header: |
+    ## Go package
+    ```
+    go get github.com/webrpc/webrpc@v{{.Version}}
+    ```
   footer: |
     ## Docker
     ```
