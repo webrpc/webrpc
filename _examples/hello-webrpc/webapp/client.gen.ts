@@ -365,7 +365,6 @@ export class UserNotFoundError extends WebrpcError {
   }
 }
 
-
 export enum errors {
   WebrpcEndpoint = 'WebrpcEndpoint',
   WebrpcRequestFailed = 'WebrpcRequestFailed',

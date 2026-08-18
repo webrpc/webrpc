@@ -218,8 +218,8 @@ github.com/webrpc/gen-kotlin v0.3.2 h1:8d8BVjrCrYU7tMPBrzn8ZEoeBsxfYmV3Pnll12uGQ
 github.com/webrpc/gen-kotlin v0.3.2/go.mod h1:tPuW8Ys0tqgUdUjAaVCDufhvV5IExsKBl/iVOj9/A34=
 github.com/webrpc/gen-openapi v0.18.0 h1:1DpmGgiWWG+ON8KXhUIrmdac63vTfxIA4sT79bpq/kc=
 github.com/webrpc/gen-openapi v0.18.0/go.mod h1:fwY3ylZmdiCr+WXjR8Ek8wm08CFRr2/GaXI7Zd/Ou4Y=
-github.com/webrpc/gen-typescript v0.28.0 h1:su5fU9zZwwb8z1QDfPzfQMBoobZf7dxv0YNr5a8bwR0=
-github.com/webrpc/gen-typescript v0.28.0/go.mod h1:XDW2lL0Ft7Mdf12wcj8STdvuV24k2L/vGY49Ag2M4Lw=
+github.com/webrpc/gen-typescript v0.30.0 h1:Qe1hA01+gPQSeA3mdAcYk4Xe6qcKEhvXckdJoXFUPFg=
+github.com/webrpc/gen-typescript v0.30.0/go.mod h1:XDW2lL0Ft7Mdf12wcj8STdvuV24k2L/vGY49Ag2M4Lw=
 github.com/xanzy/ssh-agent v0.3.3 h1:+/15pJfg/RsTxqYcX6fHqOXZwwMP+2VyYWJeWM2qQFM=
 github.com/xanzy/ssh-agent v0.3.3/go.mod h1:6dzNDKs0J9rVPHPhaGCukekBHKqfl+L3KghI1Bc68Uw=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
