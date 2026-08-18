@@ -2,7 +2,7 @@ import { effect, signal } from "@preact/signals-core";
 import {
   Chat,
   Message,
-  SubscribeMessagesReturn,
+  SubscribeMessagesResponse,
   WebrpcError,
   WebrpcErrorCodes,
   WebrpcStreamController,
@@ -14,7 +14,7 @@ const api = new Chat("http://localhost:4848", fetch);
 
 // Create signal for messages and log
 const messages = signal<Message[]>([]);
-let lastMessageId: number | null = null;
+let lastMessageId: number | undefined = undefined;
 const connectionStatus = signal<
   "connected" | "connecting" | "disconnected" | "finished"
 >("connecting");
@@ -26,7 +26,7 @@ const appendLog = (logValue: Log) => {
 };
 
 // Create message handlers
-const onMessage = (message: SubscribeMessagesReturn) => {
+const onMessage = (message: SubscribeMessagesResponse) => {
   lastMessageId = message.message.id;
 
   if (messages.value.length >= 1000) {
