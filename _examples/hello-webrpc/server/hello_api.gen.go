@@ -337,6 +337,23 @@ func (s *exampleService) sendErrorJSON(w http.ResponseWriter, r *http.Request, r
 	w.Write(respBody)
 }
 
+// Server bundles one handler impl per service; a nil field is not mounted.
+type Server struct {
+	Example ExampleServer
+}
+
+// Methods returns the routes of every non-nil service, for explicit per-method mounting.
+func (s Server) Methods(opts *Options) []Method {
+	var out []Method
+	appendIf := func(set bool, srv interface{ Methods() []Method }) {
+		if set {
+			out = append(out, srv.Methods()...)
+		}
+	}
+	appendIf(s.Example != nil, NewExampleServer(s.Example, opts))
+	return out
+}
+
 func RespondWithError(w http.ResponseWriter, err error) {
 	rpcErr, ok := err.(WebRPCError)
 	if !ok {
