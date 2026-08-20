@@ -1,135 +1,128 @@
 ---
 name: webrpc-ridl-schema
-description: webrpc schema and RIDL syntax
+description: Write and edit webrpc .ridl schema files and run webrpc-gen code generation. Use when working with RIDL syntax, webrpc schemas, generated *.gen.go / *.gen.ts files, or designing webrpc API contracts (Go/TypeScript/JavaScript/Kotlin/Dart/OpenAPI).
 ---
 
-# webrpc schema and RIDL syntax skill for LLMs
+# webrpc RIDL schemas and codegen
 
-## When to use this skill
-Use this skill when the user needs to work with RIDL files.
+RIDL defines an HTTP API contract; `webrpc-gen` generates typed servers and clients
+from it. POST-only with JSON bodies — never design path or query params.
 
-The RIDL file defines schema for HTTP client/server communications (browser-to-server or service-to-service).
-The `webrpc-gen` codegen generates a REST-like API with JSON messages, a subset of REST API conventions, which:
-- is not RESTful
-- always uses POST method
-- uses JSON body only (no path params or query params)
+## Rules
+- Edit `.ridl` sources, never `*.gen.*` output — rerun codegen instead.
+- Identifiers are case-sensitive. Run `ridlfmt` after edits. No circular imports.
+- Prefer succinct method signatures (one request struct in, one response struct out);
+  never mix succinct and multi-arg forms in one method.
+- Common mistakes: missing `webrpc = v1`; deprecated `message` keyword (use `struct`);
+  forgetting `?` on nullable fields; omitting `HTTP <status>` on non-400 errors.
 
-## Do and don't
-- Prefer editing `.ridl` files; do not manually edit generated `*.gen.*` files.
-- Keep syntax strict: identifiers are case‑sensitive; spacing is mostly flexible.
-- Use `ridlfmt` after edits when possible.
-- Prefer succinct method signatures for request/response structs.
-- Avoid mixing succinct and multi‑arg method signatures.
-- Don't use circular imports.
-
-## Schema header (required)
+## Header (required) and imports
 ```
 webrpc = v1
 name = <schema-name>
 version = <schema-version>
-basepath = <api-base-path>
-```
+basepath = /rpc
 
-## Imports
+import "path/to/file.ridl"    # everything (quotes optional)
+import "../shared/ids.ridl"   # named members only
+  - OrgID
 ```
-import "path/to/file.ridl"
-import "path/to/file.ridl" (TypeA, ServiceB)
-```
-Imports are merged into the current schema and can be limited to named members.
+Imports merge into one flat schema. An import with no referenced member can be
+intentional (pulls types into the generated package) — keep those in codegen roots only.
 
-## Comments
-- `#` starts a line comment.
-- Adjacent comment lines attach to the next definition as doc comments.
+## Running codegen
+Install from releases, or pin as a Go tool dependency and run via
+`go run github.com/webrpc/webrpc/cmd/webrpc-gen`:
+```
+webrpc-gen -schema=main.ridl -target=golang -pkg=proto -server -client -out=./proto/api.gen.go
+webrpc-gen -schema=app/dashboard.ridl -target=typescript -client -enumStyle=union -out=./src/rpc/proto/api.gen.ts
+```
+Golang flags: `-errorStackTrace=true`, `-json=sonic`. Pin targets: `-target=golang@v0.14.0`.
+
+## Multi-file layout (recommended for larger projects)
+```
+schema/
+  main.ridl          # Go codegen root: imports errors.ridl + every app/*.ridl
+  errors.ridl        # all errors in one place
+  app/<app>.ridl     # per-app TS codegen roots
+  service/<app>/     # one service block per domain
+  model/             # shared structs, typed ids, enums
+```
+Go codegen runs on `main.ridl` (one unified package); TS codegen on `app/<app>.ridl`
+so each webapp sees only its own surface.
 
 ## Types
-Core types:
-`byte`, `bool`, `any`, `null`, `string`, `timestamp`,
-`uint8/16/32/64`, `int8/16/32/64`, `float32/64`.
-
-List:
-`[]Type`, `[][]Type`
-
-Map:
-`map<key,value>`
-
-Struct (message):
+`#` starts a comment; adjacent comments attach to the next definition as docs.
+Core: `byte`, `bool`, `any`, `null`, `string`, `timestamp`, `uint8`-`64`, `int8`-`64`,
+`float32/64`, `[]T`, `map<K,V>`.
 ```
 struct User
   - id: uint64
-  - name?: string  # optional field
-```
-Fields are required unless marked optional (`?`).
+  - name?: string    # optional; fields are required unless marked ?
 
-Enum:
-```
-enum SortOrder: uint32
-  - DESC = 0
-  - ASC  = 1
-```
-If no explicit value is provided, enum values default by index.
+enum SortOrder: uint32   # values default by index
+  - DESC
+  - ASC
 
-## Services and methods
+type WebhookID: string          # alias: JSON stays string;
+  + go.alias = typeid.UUID      # Go uses this type (typed IDs, uuid.UUID, ...)
+  + go.type.import = github.com/example/typeid
 ```
+
+## Services, errors, annotations
+```
+error 1000 Unauthorized "unauthorized" HTTP 401    # status defaults to 400
+error 4001 InvalidTransition "invalid state" HTTP 409
+
 service Example
-  - Ping()
-  - GetUser(userId: uint64) => (user: User)
+  @deprecated:"use NewMethod instead"
+  @access:s2s
+  - GetUser(GetUserRequest) => (GetUserResponse)   # succinct form, preferred
+  - Ping() => (version: string)                    # no-payload inline return is fine
 ```
-
-Succinct form (single struct arg/return only, preferred):
-```
-service Example
-  - Ping(PingRequest) => (PingResponse)
-  - GetUser(GetUserRequest) => (GetUserResponse)
-```
-Do not mix succinct form with multi‑arg form in a single method.
-
-## Errors
-```
-error 100 RateLimited "too many requests" HTTP 429
-error 200 UserNotFound "user not found"
-```
-Default HTTP status is 400 when omitted.
-
-## Annotations
-Methods can be annotated:
-```
-@deprecated:"use NewMethod instead"
-@stampede:3s
-```
+- Group error codes by range (1xxx auth, 2xxx validation, 3xxx not-found, 4xxx business).
+- Go: a `WebRPCError` must reach the transport unwrapped (the server type-asserts it) —
+  use `proto.ErrXxx.WithCause(err)`, not `fmt.Errorf` chains.
+- Custom annotations (`@access:`, `@perms:`) are readable at runtime: middleware calls
+  `proto.MethodCtx(ctx)` then `Annotation("access")` / `HasAnnotation(...)`.
 
 ## Field metadata
-Fields can include metadata lines:
 ```
   - id: string
-    + go.field.name = ID
-    + go.field.type = uint64
-    + go.tag.json = id,string
-    + go.tag.db = id,omitempty
-  - createdAt: timestamp
-    + go.tag.db = created_at,omitempty
-  - updatedAt: timestamp
-    + go.tag.db = updated_at,omitempty
-  - deletedAt?: timestamp
-    + go.tag.db = deleted_at,omitempty
+    + go.field.name = ID       # rename the Go field
+    + go.field.type = uint64   # override the Go type
+    + go.tag.db = id           # any go.tag.<name> becomes a struct tag
   - featureIndex: int
-    + json = - # internal server-only field (omitted in clients)
+    + json = -                 # server-only: dropped from Go json AND the TS interface
+```
+- `+ json = -` vs `+ go.tag.json = -`: the latter is Go-only — the field stays in the TS
+  interface but is always `undefined` at runtime (the TS type lies). Use `go.tag.json`
+  only for Go tag options like `,omitempty`.
+- The generator title-cases names naively (`userId` → `UserId`); fix acronyms with
+  `go.field.name` (`ID`, `URL`, `URI`, `API`, `JSON`, `HTTP`, `RPC`, `IP`, `DB`, ...).
+
+### Inferred Go types — override only to get a *different* type
+| RIDL | Go |
+|---|---|
+| primitives, `[]T`, `map<K,V>` | direct equivalents; `timestamp` → `time.Time` |
+| `name?: <simple>` | pointer (`*string`); `name?: []T` stays `[]T` (already nil-able) |
+| struct fields | pointers: `*S`, `[]*S`, `map[K]*S` (succinct method arg: value) |
+| enum / alias | value; pointer when optional |
+
+Useful overrides: a different type (`json.RawMessage`, typed IDs), value-element slices
+(`[]S`), non-pointer optionals. Overrides matching the table are noise — delete them.
+
+## Custom templates
+`-target` accepts a local Go text/template directory, and fields carry arbitrary
+metadata — combine them to generate validators, permission constants, etc.:
+```
+  - email: string
+    + validate = "required,maxlen=320,email"
+```
+```
+webrpc-gen -schema=main.ridl -target=./schema/templates/validate-go -pkg=proto -out=./proto/validate.gen.go
 ```
 
-## Good references in this repo
-- `_examples/golang-basics/example.ridl` (small, clear schema)
-- `schema/README.md` (type system)
-- `schema/ridl/README.md` (errors and RIDL notes)
-
-## webrpc-gen codegen targets (upstream Go template repositories)
-- https://github.com/webrpc/gen-golang
-- https://github.com/webrpc/gen-typescript
-- https://github.com/webrpc/gen-javascript
-- https://github.com/webrpc/gen-kotlin
-- https://github.com/webrpc/gen-dart
-- https://github.com/webrpc/gen-openapi
-
-## Common mistakes
-- Missing `webrpc = v1`.
-- Using deprecated `message` keyword instead of `struct`.
-- Mixing succinct and multi‑arg method signatures.
-- Forgetting optional `?` on nullable fields.
+## References
+`_examples/golang-basics/example.ridl`, `schema/README.md`, `schema/ridl/README.md`.
+Official targets: `github.com/webrpc/gen-{golang,typescript,javascript,kotlin,dart,openapi}`.
