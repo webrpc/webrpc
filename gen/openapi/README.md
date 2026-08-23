@@ -34,6 +34,7 @@ Change any of the following default values by passing `-option="Value"` CLI flag
 | `-servers`             | `""`                     | `http://localhost:8080;description,http://localhost:8081;description`                                                                |
 | `-securityAnnotation`  | `""`                     | `@auth`                                                                                                                              |
 | `-securitySchemes`     | `""`                     | `{"ApiKeyAuth":{"type":"apiKey", "in":"header", "description":"Access key for authenticating requests", "name":"X-Access-Key"}}`     | 
+| `-schemaHash`          | `true`                   | `false` (omit the schema hash from the header comment)                                                                                |
 
 
 Example:

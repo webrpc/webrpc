@@ -14,6 +14,8 @@
         {{- range $type.Fields}}
         - {{.Name}}
         {{- end -}}
+    {{- else if isAliasType $type}}
+      {{ template "fieldType" dict "Type" $type.Type "TypeMap" $typeMap "Indent" "      " }}
     {{else}}
       type: object
       {{- if gt (len $type.Fields) 0}}

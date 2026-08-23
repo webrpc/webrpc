@@ -9,7 +9,13 @@
 
 {{- else if isListType $type -}}
 
+    {{- /* A list of bytes is base64-encoded into a single string, not an
+           array of anything. Go, Kotlin and Dart all serialize it that way. */ -}}
+    {{- if eq (printf "%v" (listElemType $type)) "byte" -}}
+    string
+    {{- else -}}
     Array<{{template "type" dict "Type" (listElemType $type) "TypeMap" $typeMap}}>
+    {{- end -}}
 
 
 {{- else if isCoreType $type -}}

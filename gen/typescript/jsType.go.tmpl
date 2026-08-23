@@ -10,7 +10,13 @@
 
 {{- else if isListType $type -}}
 
+    {{- /* A base64-encoded list of bytes arrives as a string, so validating it
+           as an array would reject every well-formed request. */ -}}
+    {{- if eq (printf "%v" (listElemType $type)) "byte" -}}
+    string
+    {{- else -}}
     {{template "type" dict "Type" (listElemType $type) "TypeMap" $typeMap}}[]
+    {{- end -}}
 
 {{- else if isCoreType $type -}}
 

@@ -1,0 +1,330 @@
+{{define "client"}}
+
+{{- $basePath := .BasePath -}}
+{{- $schemaName := .SchemaName -}}
+{{- $schemaPrefix := pascalCase $schemaName -}}
+{{- $typeMap := .TypeMap -}}
+{{- $types := .Types -}}
+{{- $opts := .Opts -}}
+{{- $access := get $opts "visibility" -}}
+{{- $reservedTypeNames := dict -}}
+{{- range $_, $type := $types -}}
+    {{- set $reservedTypeNames $type.Name true -}}
+{{- end -}}
+{{- $usedAPINames := dict -}}
+{{- $usedClientNames := dict -}}
+
+{{- if .Services}}
+{{range $serviceIndex, $service := .Services}}{{if gt $serviceIndex 0}}
+
+{{end}}
+{{- $serviceBaseName := ternary (hasPrefix $service.Name $schemaPrefix) $service.Name (printf "%s%s" $schemaPrefix $service.Name) -}}
+{{- $serviceAPIState := dict "name" "" "selected" false -}}
+{{- range $_, $candidate := (list (printf "%sAPI" $serviceBaseName) (printf "%sServiceAPI" $serviceBaseName) (printf "%sWebRPCAPI" $serviceBaseName) (printf "%sGeneratedRPCAPI" $serviceBaseName) (printf "%sGeneratedRPCAPI%d" $serviceBaseName $serviceIndex)) -}}
+    {{- if not (get $serviceAPIState "selected") -}}
+        {{- $collisionState := dict "collision" false -}}
+        {{- if or (exists $reservedTypeNames $candidate) (exists $usedAPINames $candidate) -}}
+            {{- set $collisionState "collision" true -}}
+        {{- end -}}
+        {{- if not (get $collisionState "collision") -}}
+            {{- set $serviceAPIState "name" $candidate -}}
+            {{- set $serviceAPIState "selected" true -}}
+            {{- set $usedAPINames $candidate true -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- $serviceAPIName := get $serviceAPIState "name" -}}
+{{- $serviceClientState := dict "name" "" "selected" false -}}
+{{- range $_, $candidate := (list (printf "%sClient" $serviceBaseName) (printf "%sServiceClient" $serviceBaseName) (printf "%sWebRPCClient" $serviceBaseName) (printf "%sGeneratedRPCClient" $serviceBaseName) (printf "%sGeneratedRPCClient%d" $serviceBaseName $serviceIndex)) -}}
+    {{- if not (get $serviceClientState "selected") -}}
+        {{- $collisionState := dict "collision" false -}}
+        {{- if or (exists $reservedTypeNames $candidate) (exists $usedClientNames $candidate) -}}
+            {{- set $collisionState "collision" true -}}
+        {{- end -}}
+        {{- if not (get $collisionState "collision") -}}
+            {{- set $serviceClientState "name" $candidate -}}
+            {{- set $serviceClientState "selected" true -}}
+            {{- set $usedClientNames $candidate true -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- $serviceClientName := get $serviceClientState "name" -}}
+{{- $methodAPINames := dict -}}
+{{- $usedMethodNames := dict -}}
+{{- range $methodIndex, $method := $service.Methods -}}
+{{- $methodAPIState := dict "name" "" "selected" false -}}
+{{- range $_, $candidate := (list $method.Name (printf "%sMethod" $method.Name) (printf "%sRPC" $method.Name) (printf "%sGeneratedRPC" $method.Name)) -}}
+    {{- if not (get $methodAPIState "selected") -}}
+        {{- if not (or (exists $reservedTypeNames $candidate) (exists $usedMethodNames $candidate)) -}}
+            {{- set $methodAPIState "name" $candidate -}}
+            {{- set $methodAPIState "selected" true -}}
+            {{- set $usedMethodNames $candidate true -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- range $suffix := until 10000 -}}
+    {{- if not (get $methodAPIState "selected") -}}
+        {{- $candidate := printf "%sGeneratedRPC%d" $method.Name $suffix -}}
+        {{- if not (or (exists $reservedTypeNames $candidate) (exists $usedMethodNames $candidate)) -}}
+            {{- set $methodAPIState "name" $candidate -}}
+            {{- set $methodAPIState "selected" true -}}
+            {{- set $usedMethodNames $candidate true -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- if not (get $methodAPIState "selected") -}}
+    {{- fail (printf "unable to choose unique Swift API name for method %q" $method.Name) -}}
+{{- end -}}
+{{- set $methodAPINames (printf "%d" $methodIndex) (get $methodAPIState "name") -}}
+{{- end -}}
+{{$access}} enum {{$serviceAPIName}} {
+    {{$access}} static let basePath = "{{$basePath}}{{$service.Name}}"
+{{- range $methodIndex, $method := $service.Methods}}
+{{- $methodAPIName := get $methodAPINames (printf "%d" $methodIndex) }}
+
+    {{$access}} enum {{$methodAPIName}} {
+        {{$access}} static let path = "/{{$method.Name}}"
+        {{$access}} static let urlPath = "{{$basePath}}{{$service.Name}}/{{$method.Name}}"
+        {{- if and (not $method.Succinct) (gt (len $method.Inputs) 0) }}
+
+        {{$access}} struct Request: Codable, Sendable {
+            {{- range $_, $field := $method.Inputs}}
+                {{- $isExportable := true -}}
+                {{- range $meta := $field.Meta -}}
+                    {{- if exists $meta "json" -}}
+                        {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                            {{- $isExportable = false -}}
+                        {{- end -}}
+                    {{- end -}}
+                {{- end -}}
+                {{- if $isExportable }}
+            {{$access}} let {{template "fieldName" dict "Field" $field}}: {{template "type" dict "Type" $field.Type "TypeMap" $typeMap "WebrpcTarget" $.WebrpcTarget}}{{if $field.Optional}}?{{end}}
+                {{- end -}}
+            {{- end}}
+
+            {{$access}} init(
+                {{- $first := true -}}
+                {{- range $_, $field := $method.Inputs}}
+                    {{- $isExportable := true -}}
+                    {{- range $meta := $field.Meta -}}
+                        {{- if exists $meta "json" -}}
+                            {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                                {{- $isExportable = false -}}
+                            {{- end -}}
+                        {{- end -}}
+                    {{- end -}}
+                    {{- if $isExportable -}}
+                        {{- if not $first }}, {{end -}}
+                        {{- $first = false -}}
+                        {{template "fieldName" dict "Field" $field}}: {{template "type" dict "Type" $field.Type "TypeMap" $typeMap "WebrpcTarget" $.WebrpcTarget}}{{if $field.Optional}}? = nil{{end}}
+                    {{- end -}}
+                {{- end}}
+            ) {
+                {{- range $_, $field := $method.Inputs}}
+                    {{- $isExportable := true -}}
+                    {{- range $meta := $field.Meta -}}
+                        {{- if exists $meta "json" -}}
+                            {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                                {{- $isExportable = false -}}
+                            {{- end -}}
+                        {{- end -}}
+                    {{- end -}}
+                    {{- if $isExportable }}
+                self.{{template "fieldName" dict "Field" $field}} = {{template "fieldName" dict "Field" $field}}
+                    {{- end -}}
+                {{- end}}
+            }
+
+            {{- $hasCodingKeys := false -}}
+            {{- range $_, $field := $method.Inputs}}
+                {{- $isExportable := true -}}
+                {{- range $meta := $field.Meta -}}
+                    {{- if exists $meta "json" -}}
+                        {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                            {{- $isExportable = false -}}
+                        {{- end -}}
+                    {{- end -}}
+                {{- end -}}
+                {{- if $isExportable -}}
+                    {{- $hasCodingKeys = true -}}
+                {{- end -}}
+            {{- end}}
+            enum CodingKeys: {{if $hasCodingKeys}}String, {{end}}CodingKey {
+                {{- range $_, $field := $method.Inputs}}
+                    {{- $isExportable := true -}}
+                    {{- range $meta := $field.Meta -}}
+                        {{- if exists $meta "json" -}}
+                            {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                                {{- $isExportable = false -}}
+                            {{- end -}}
+                        {{- end -}}
+                    {{- end -}}
+                    {{- if $isExportable }}
+                case {{template "fieldName" dict "Field" $field}} = "{{template "codingKey" dict "Field" $field}}"
+                    {{- end -}}
+                {{- end}}
+            }
+        }
+        {{- end }}
+        {{- if and (not $method.Succinct) (gt (len $method.Outputs) 0) }}
+
+        {{$access}} struct Response: Codable, Sendable {
+            {{- range $_, $field := $method.Outputs}}
+                {{- $isExportable := true -}}
+                {{- range $meta := $field.Meta -}}
+                    {{- if exists $meta "json" -}}
+                        {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                            {{- $isExportable = false -}}
+                        {{- end -}}
+                    {{- end -}}
+                {{- end -}}
+                {{- if $isExportable }}
+            {{$access}} let {{template "fieldName" dict "Field" $field}}: {{template "type" dict "Type" $field.Type "TypeMap" $typeMap "WebrpcTarget" $.WebrpcTarget}}{{if $field.Optional}}?{{end}}
+                {{- end -}}
+            {{- end}}
+
+            {{$access}} init(
+                {{- $first := true -}}
+                {{- range $_, $field := $method.Outputs}}
+                    {{- $isExportable := true -}}
+                    {{- range $meta := $field.Meta -}}
+                        {{- if exists $meta "json" -}}
+                            {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                                {{- $isExportable = false -}}
+                            {{- end -}}
+                        {{- end -}}
+                    {{- end -}}
+                    {{- if $isExportable -}}
+                        {{- if not $first }}, {{end -}}
+                        {{- $first = false -}}
+                        {{template "fieldName" dict "Field" $field}}: {{template "type" dict "Type" $field.Type "TypeMap" $typeMap "WebrpcTarget" $.WebrpcTarget}}{{if $field.Optional}}? = nil{{end}}
+                    {{- end -}}
+                {{- end}}
+            ) {
+                {{- range $_, $field := $method.Outputs}}
+                    {{- $isExportable := true -}}
+                    {{- range $meta := $field.Meta -}}
+                        {{- if exists $meta "json" -}}
+                            {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                                {{- $isExportable = false -}}
+                            {{- end -}}
+                        {{- end -}}
+                    {{- end -}}
+                    {{- if $isExportable }}
+                self.{{template "fieldName" dict "Field" $field}} = {{template "fieldName" dict "Field" $field}}
+                    {{- end -}}
+                {{- end}}
+            }
+
+            {{- $hasCodingKeys := false -}}
+            {{- range $_, $field := $method.Outputs}}
+                {{- $isExportable := true -}}
+                {{- range $meta := $field.Meta -}}
+                    {{- if exists $meta "json" -}}
+                        {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                            {{- $isExportable = false -}}
+                        {{- end -}}
+                    {{- end -}}
+                {{- end -}}
+                {{- if $isExportable -}}
+                    {{- $hasCodingKeys = true -}}
+                {{- end -}}
+            {{- end}}
+            enum CodingKeys: {{if $hasCodingKeys}}String, {{end}}CodingKey {
+                {{- range $_, $field := $method.Outputs}}
+                    {{- $isExportable := true -}}
+                    {{- range $meta := $field.Meta -}}
+                        {{- if exists $meta "json" -}}
+                            {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                                {{- $isExportable = false -}}
+                            {{- end -}}
+                        {{- end -}}
+                    {{- end -}}
+                    {{- if $isExportable }}
+                case {{template "fieldName" dict "Field" $field}} = "{{template "codingKey" dict "Field" $field}}"
+                    {{- end -}}
+                {{- end}}
+            }
+        }
+        {{- end }}
+
+        {{- if eq (len $method.Inputs) 0 }}
+        {{$access}} static func encodeRequest(encoder _: JSONEncoder = WebRPCJSON.makeEncoder()) throws -> Data {
+            Data("{}".utf8)
+        }
+        {{- else }}
+        {{$access}} static func encodeRequest(
+            _ request: {{if $method.Succinct}}{{template "type" dict "Type" (index $method.Inputs 0).Type "TypeMap" $typeMap "WebrpcTarget" $.WebrpcTarget}}{{else}}Request{{end}},
+            encoder: JSONEncoder = WebRPCJSON.makeEncoder()
+        ) throws -> Data {
+            try encoder.encode(request)
+        }
+        {{- end }}
+        {{- if eq (len $method.Outputs) 0 }}
+
+        {{$access}} static func decodeResponse(_ data: Data, decoder _: JSONDecoder = WebRPCJSON.makeDecoder()) throws {
+            _ = data
+            return
+        }
+        {{- else }}
+
+        {{$access}} static func decodeResponse(
+            _ data: Data,
+            decoder: JSONDecoder = WebRPCJSON.makeDecoder()
+        ) throws -> {{template "methodOutputs" dict "Method" $method "ServiceAPIName" $serviceAPIName "MethodAPIName" $methodAPIName "TypeMap" $typeMap}} {
+            try decoder.decode({{template "methodOutputs" dict "Method" $method "ServiceAPIName" $serviceAPIName "MethodAPIName" $methodAPIName "TypeMap" $typeMap}}.self, from: data)
+        }
+        {{- end }}
+    }
+{{- end}}
+}
+
+{{$access}} struct {{$serviceClientName}}: Sendable {
+    {{$access}} let baseURL: String
+    {{$access}} let transport: any WebRPCTransport
+    {{$access}} let headers: @Sendable () -> [String: String]
+
+    {{$access}} init(
+        baseURL: String,
+        transport: any WebRPCTransport = URLSessionWebRPCTransport(),
+        headers: @escaping @Sendable () -> [String: String] = { [:] }
+    ) {
+        self.baseURL = baseURL
+        self.transport = transport
+        self.headers = headers
+    }
+    {{- range $methodIndex, $method := $service.Methods}}
+    {{- $methodAPIName := get $methodAPINames (printf "%d" $methodIndex) }}
+
+    {{$access}} func {{template "swiftLowerCamel" dict "Name" $method.Name}}({{template "methodInputs" dict "Method" $method "ServiceAPIName" $serviceAPIName "MethodAPIName" $methodAPIName "TypeMap" $typeMap}}) async throws{{if gt (len $method.Outputs) 0}} -> {{template "methodOutputs" dict "Method" $method "ServiceAPIName" $serviceAPIName "MethodAPIName" $methodAPIName "TypeMap" $typeMap}}{{end}} {
+        let body = try {{$serviceAPIName}}.{{$methodAPIName}}.encodeRequest({{if gt (len $method.Inputs) 0}}request{{end}})
+        let requestHeaders = makeWebRPCHeaders(
+            headers(),
+            includeWebRPCHeader: {{if eq (get $opts "webrpcHeader") true}}true{{else}}false{{end}}
+        )
+        {{- if eq (len $method.Outputs) 0 }}
+        _ = try await executeWebRPC(
+            baseURL: baseURL,
+            urlPath: {{$serviceAPIName}}.{{$methodAPIName}}.urlPath,
+            body: body,
+            transport: transport,
+            headers: requestHeaders,
+            decodeSuccess: {{$serviceAPIName}}.{{$methodAPIName}}.decodeResponse,
+        )
+        return
+        {{- else }}
+        return try await executeWebRPC(
+            baseURL: baseURL,
+            urlPath: {{$serviceAPIName}}.{{$methodAPIName}}.urlPath,
+            body: body,
+            transport: transport,
+            headers: requestHeaders,
+            decodeSuccess: {{$serviceAPIName}}.{{$methodAPIName}}.decodeResponse,
+        )
+        {{- end }}
+    }
+    {{- end}}
+}
+{{end}}
+{{- end}}
+{{end}}

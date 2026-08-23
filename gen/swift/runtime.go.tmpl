@@ -1,0 +1,465 @@
+{{define "runtime"}}
+
+{{- $webrpcErrors := .WebrpcErrors -}}
+{{- $schemaErrors := .SchemaErrors -}}
+{{- $opts := .Opts -}}
+{{- $access := get $opts "visibility" -}}
+{{- $static := ternary (ne (get $opts "namespace") "") "static " "" -}}
+
+{{$access}} {{$static}}let WEBRPC_HEADER = "Webrpc"
+{{$access}} {{$static}}let WEBRPC_HEADER_VALUE = "{{.WebrpcHeader}}"
+
+{{$access}} struct WebRPCGeneratedVersions: Sendable, Equatable {
+    {{$access}} let webrpcGenVersion: String
+    {{$access}} let codeGenName: String
+    {{$access}} let codeGenVersion: String
+    {{$access}} let schemaName: String
+    {{$access}} let schemaVersion: String
+
+    {{$access}} init(
+        webrpcGenVersion: String = "",
+        codeGenName: String = "",
+        codeGenVersion: String = "",
+        schemaName: String = "",
+        schemaVersion: String = ""
+    ) {
+        self.webrpcGenVersion = webrpcGenVersion
+        self.codeGenName = codeGenName
+        self.codeGenVersion = codeGenVersion
+        self.schemaName = schemaName
+        self.schemaVersion = schemaVersion
+    }
+
+    {{$access}} static let empty = WebRPCGeneratedVersions()
+}
+
+{{$access}} {{$static}}func versionFromHeader(_ headers: [String: String]) -> WebRPCGeneratedVersions {
+    guard let headerValue = webRPCHeaderValue(in: headers) else {
+        return .empty
+    }
+    return parseWebRPCGeneratedVersions(headerValue)
+}
+
+{{$access}} {{$static}}func versionFromHeader(_ response: WebRPCHTTPResponse) -> WebRPCGeneratedVersions {
+    versionFromHeader(response.headers)
+}
+
+private {{$static}}func webRPCHeaderValue(in headers: [String: String]) -> String? {
+    for (name, value) in headers {
+        if name.caseInsensitiveCompare(WEBRPC_HEADER) == .orderedSame {
+            return value
+        }
+    }
+    return nil
+}
+
+private {{$static}}func parseWebRPCGeneratedVersions(_ header: String) -> WebRPCGeneratedVersions {
+    let versions = header.split(separator: ";", omittingEmptySubsequences: false)
+    guard versions.count >= 3 else {
+        return .empty
+    }
+
+    let webrpcParts = versions[0].split(separator: "@", maxSplits: 1, omittingEmptySubsequences: false)
+    let codeGenParts = versions[1].split(separator: "@", maxSplits: 1, omittingEmptySubsequences: false)
+    let schemaParts = versions[2].split(separator: "@", maxSplits: 1, omittingEmptySubsequences: false)
+
+    return WebRPCGeneratedVersions(
+        webrpcGenVersion: webrpcParts.count > 1 ? String(webrpcParts[1]) : "",
+        codeGenName: codeGenParts.count > 0 ? String(codeGenParts[0]) : "",
+        codeGenVersion: codeGenParts.count > 1 ? String(codeGenParts[1]) : "",
+        schemaName: schemaParts.count > 0 ? String(schemaParts[0]) : "",
+        schemaVersion: schemaParts.count > 1 ? String(schemaParts[1]) : ""
+    )
+}
+
+private {{$static}}func makeWebRPCHeaders(
+    _ headers: [String: String],
+    includeWebRPCHeader: Bool
+) -> [String: String] {
+    var requestHeaders = headers
+    {{- if eq (get $opts "webrpcHeader") true }}
+    if includeWebRPCHeader {
+        requestHeaders[WEBRPC_HEADER] = WEBRPC_HEADER_VALUE
+    }
+    {{- else }}
+    _ = includeWebRPCHeader
+    {{- end }}
+    return requestHeaders
+}
+
+{{$access}} enum WebRPCJSON {
+    {{$access}} static func makeEncoder() -> JSONEncoder {
+        JSONEncoder()
+    }
+
+    {{$access}} static func makeDecoder() -> JSONDecoder {
+        JSONDecoder()
+    }
+}
+
+{{$access}} struct WebRPCNull: Codable, Sendable {
+    {{$access}} init() {}
+
+    {{$access}} init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        guard container.decodeNil() else {
+            throw DecodingError.typeMismatch(
+                WebRPCNull.self,
+                DecodingError.Context(
+                    codingPath: decoder.codingPath,
+                    debugDescription: "Expected null",
+                ),
+            )
+        }
+    }
+
+    {{$access}} func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encodeNil()
+    }
+}
+
+{{$access}} enum WebRPCJSONValue: Codable, Sendable {
+    case object([String: WebRPCJSONValue])
+    case array([WebRPCJSONValue])
+    case string(String)
+    case integer(Int64)
+    case unsignedInteger(UInt64)
+    case number(Double)
+    case bool(Bool)
+    case null
+
+    {{$access}} init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+
+        if container.decodeNil() {
+            self = .null
+        } else if let value = try? container.decode(Bool.self) {
+            self = .bool(value)
+        } else if let value = try? container.decode(Int64.self) {
+            self = .integer(value)
+        } else if let value = try? container.decode(UInt64.self) {
+            self = .unsignedInteger(value)
+        } else if let value = try? container.decode(Double.self) {
+            self = .number(value)
+        } else if let value = try? container.decode(String.self) {
+            self = .string(value)
+        } else if let value = try? container.decode([WebRPCJSONValue].self) {
+            self = .array(value)
+        } else if let value = try? container.decode([String: WebRPCJSONValue].self) {
+            self = .object(value)
+        } else {
+            throw DecodingError.dataCorruptedError(
+                in: container,
+                debugDescription: "Unsupported JSON value",
+            )
+        }
+    }
+
+    {{$access}} func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+
+        switch self {
+        case .object(let value):
+            try container.encode(value)
+        case .array(let value):
+            try container.encode(value)
+        case .string(let value):
+            try container.encode(value)
+        case .integer(let value):
+            try container.encode(value)
+        case .unsignedInteger(let value):
+            try container.encode(value)
+        case .number(let value):
+            try container.encode(value)
+        case .bool(let value):
+            try container.encode(value)
+        case .null:
+            try container.encodeNil()
+        }
+    }
+}
+
+{{$access}} protocol WebRPCEnumKey: Hashable, Sendable {
+    init(wireValue: String)
+    var wireValue: String { get }
+}
+
+{{$access}} struct WebRPCEnumMap<Key, Value>: Codable, Sendable
+where Key: WebRPCEnumKey, Value: Codable & Sendable {
+    {{$access}} var values: [Key: Value]
+
+    {{$access}} init(_ values: [Key: Value] = [:]) {
+        self.values = values
+    }
+
+    {{$access}} init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValues = try container.decode([String: Value].self)
+
+        var values: [Key: Value] = [:]
+        values.reserveCapacity(rawValues.count)
+
+        for (key, value) in rawValues {
+            values[Key(wireValue: key)] = value
+        }
+
+        self.values = values
+    }
+
+    {{$access}} func encode(to encoder: Encoder) throws {
+        let rawValues = Dictionary(uniqueKeysWithValues: values.map { ($0.key.wireValue, $0.value) })
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValues)
+    }
+}
+
+{{$access}} struct WebRPCHTTPResponse: Sendable {
+    {{$access}} let statusCode: Int
+    {{$access}} let body: Data
+    {{$access}} let headers: [String: String]
+
+    {{$access}} init(
+        statusCode: Int,
+        body: Data,
+        headers: [String: String] = [:]
+    ) {
+        self.statusCode = statusCode
+        self.body = body
+        self.headers = headers
+    }
+}
+
+{{$access}} protocol WebRPCTransport: Sendable {
+    func post(
+        baseURL: String,
+        path: String,
+        body: Data,
+        headers: [String: String]
+    ) async throws -> WebRPCHTTPResponse
+}
+
+{{$access}} struct WebRPCTransportError: Error, Sendable {
+    {{$access}} let message: String
+    {{$access}} let underlyingDescription: String?
+
+    {{$access}} init(message: String, underlyingDescription: String? = nil) {
+        self.message = message
+        self.underlyingDescription = underlyingDescription
+    }
+}
+
+{{$access}} struct URLSessionWebRPCTransport: WebRPCTransport, @unchecked Sendable {
+    {{$access}} let session: URLSession
+
+    {{$access}} init(session: URLSession = .shared) {
+        self.session = session
+    }
+
+    {{$access}} func post(
+        baseURL: String,
+        path: String,
+        body: Data,
+        headers: [String: String]
+    ) async throws -> WebRPCHTTPResponse {
+        guard let url = URL(string: joinWebRPCURL(baseURL: baseURL, path: path)) else {
+            throw WebRPCTransportError(message: "Invalid WebRPC URL")
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = body
+        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+
+        for (name, value) in headers {
+            request.setValue(value, forHTTPHeaderField: name)
+        }
+
+        do {
+            let (data, response) = try await session.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+            let responseHeaders = (httpResponse?.allHeaderFields ?? [:]).reduce(into: [String: String]()) { result, item in
+                guard let key = item.key as? String else {
+                    return
+                }
+                result[key] = String(describing: item.value)
+            }
+
+            return WebRPCHTTPResponse(
+                statusCode: httpResponse?.statusCode ?? 0,
+                body: data,
+                headers: responseHeaders,
+            )
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            throw WebRPCTransportError(
+                message: "WebRPC HTTP request failed",
+                underlyingDescription: String(describing: error),
+            )
+        }
+    }
+}
+
+private {{$static}}func joinWebRPCURL(baseURL: String, path: String) -> String {
+    baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/")) + "/" + path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+}
+
+{{$access}} {{$static}}func executeWebRPC<Response>(
+    baseURL: String,
+    urlPath: String,
+    body: Data,
+    transport: any WebRPCTransport,
+    headers: [String: String] = [:],
+    decodeSuccess: (Data, JSONDecoder) throws -> Response
+) async throws -> Response {
+    let response: WebRPCHTTPResponse
+    do {
+        response = try await transport.post(
+            baseURL: baseURL,
+            path: urlPath,
+            body: body,
+            headers: headers,
+        )
+    } catch is CancellationError {
+        throw CancellationError()
+    } catch let error as WebRPCTransportError {
+        throw error
+    } catch {
+        throw WebRPCTransportError(
+            message: "WebRPC request failed",
+            underlyingDescription: String(describing: error),
+        )
+    }
+
+    guard (200...299).contains(response.statusCode) else {
+        throw decodeWebRPCError(statusCode: response.statusCode, data: response.body)
+    }
+
+    do {
+        return try decodeSuccess(response.body, WebRPCJSON.makeDecoder())
+    } catch let error as WebRPCError {
+        throw error
+    } catch {
+        throw webRPCBadResponseError(
+            statusCode: response.statusCode,
+            data: response.body,
+            cause: String(describing: error)
+        )
+    }
+}
+
+{{$access}} enum WebRPCErrorKind: Sendable {
+    {{- range $_, $error := $webrpcErrors}}
+    case {{template "swiftLowerCamel" dict "Name" $error.Name}}
+    {{- end}}
+    {{- range $_, $error := $schemaErrors}}
+    case {{template "swiftLowerCamel" dict "Name" $error.Name}}
+    {{- end}}
+    case unknown
+
+    {{$access}} var code: Int {
+        switch self {
+        {{- range $_, $error := $webrpcErrors}}
+        case .{{template "swiftLowerCamel" dict "Name" $error.Name}}:
+            return {{$error.Code}}
+        {{- end}}
+        {{- range $_, $error := $schemaErrors}}
+        case .{{template "swiftLowerCamel" dict "Name" $error.Name}}:
+            return {{$error.Code}}
+        {{- end}}
+        case .unknown:
+            return -999
+        }
+    }
+
+    {{$access}} static func fromCode(_ code: Int) -> WebRPCErrorKind {
+        switch code {
+        {{- range $_, $error := $webrpcErrors}}
+        case {{$error.Code}}:
+            return .{{template "swiftLowerCamel" dict "Name" $error.Name}}
+        {{- end}}
+        {{- range $_, $error := $schemaErrors}}
+        case {{$error.Code}}:
+            return .{{template "swiftLowerCamel" dict "Name" $error.Name}}
+        {{- end}}
+        default:
+            return .unknown
+        }
+    }
+}
+
+{{$access}} struct WebRPCError: Error, Sendable {
+    {{$access}} let error: String
+    {{$access}} let code: Int
+    {{$access}} let message: String
+    {{$access}} let cause: String
+    {{$access}} let status: Int
+    {{$access}} let kind: WebRPCErrorKind
+
+    {{$access}} init(
+        error: String,
+        code: Int,
+        message: String,
+        cause: String,
+        status: Int,
+        kind: WebRPCErrorKind
+    ) {
+        self.error = error
+        self.code = code
+        self.message = message
+        self.cause = cause
+        self.status = status
+        self.kind = kind
+    }
+}
+
+private struct WebRPCErrorPayload: Decodable, Sendable {
+    let error: String?
+    let code: Int?
+    let msg: String?
+    let cause: String?
+    let status: Int?
+}
+
+{{$access}} {{$static}}func decodeWebRPCError(
+    statusCode: Int,
+    data: Data,
+    decoder: JSONDecoder = WebRPCJSON.makeDecoder()
+) -> WebRPCError {
+    do {
+        let payload = try decoder.decode(WebRPCErrorPayload.self, from: data)
+        let code = payload.code ?? WebRPCErrorKind.unknown.code
+        return WebRPCError(
+            error: payload.error ?? "WebrpcEndpoint",
+            code: code,
+            message: payload.msg ?? "endpoint error",
+            cause: payload.cause ?? "",
+            status: payload.status ?? statusCode,
+            kind: WebRPCErrorKind.fromCode(code),
+        )
+    } catch {
+        return webRPCBadResponseError(
+            statusCode: statusCode,
+            data: data,
+            cause: "Unable to decode error response"
+        )
+    }
+}
+
+private {{$static}}func webRPCBadResponseError(
+    statusCode: Int,
+    data: Data,
+    cause: String
+) -> WebRPCError {
+    let bodyText = String(data: data, encoding: .utf8) ?? "<non-utf8 body>"
+    return WebRPCError(
+        error: "WebrpcBadResponse",
+        code: WebRPCErrorKind.webrpcBadResponse.code,
+        message: "bad response",
+        cause: "\(cause): \(bodyText)",
+        status: statusCode,
+        kind: .webrpcBadResponse
+    )
+}
+{{end}}

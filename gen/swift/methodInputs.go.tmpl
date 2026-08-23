@@ -1,0 +1,10 @@
+{{- define "methodInputs" -}}
+
+{{- $method := .Method -}}
+{{- $serviceAPIName := .ServiceAPIName -}}
+{{- $methodAPIName := .MethodAPIName -}}
+
+{{- if gt (len $method.Inputs) 0 -}}
+_ request: {{- if $method.Succinct -}}{{template "type" dict "Type" (index $method.Inputs 0).Type "TypeMap" .TypeMap}}{{- else -}}{{$serviceAPIName}}.{{$methodAPIName}}.Request{{- end -}}
+{{- end -}}
+{{- end -}}

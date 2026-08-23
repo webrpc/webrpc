@@ -1,0 +1,194 @@
+{{define "types"}}
+
+{{- $typeMap := .TypeMap -}}
+{{- $types := .Types -}}
+{{- $access := get .Opts "visibility" -}}
+
+{{if $types}}
+// MARK: - Types
+{{range $_i, $type := $types}}{{if gt $_i 0}}
+
+{{end}}{{if isEnumType $type}}
+{{- $enumCaseNames := dict -}}
+{{- range $_, $field := $type.Fields -}}
+    {{- $candidate := $field.Name -}}
+    {{- $replacements := list
+        (dict "from" "HTTPS" "to" "Https")
+        (dict "from" "HTTP" "to" "Http")
+        (dict "from" "OAuth" "to" "Oauth")
+        (dict "from" "OIDC" "to" "Oidc")
+        (dict "from" "PKCE" "to" "Pkce")
+        (dict "from" "UUID" "to" "Uuid")
+        (dict "from" "JSON" "to" "Json")
+        (dict "from" "HTML" "to" "Html")
+        (dict "from" "XML" "to" "Xml")
+        (dict "from" "JWT" "to" "Jwt")
+        (dict "from" "URL" "to" "Url")
+        (dict "from" "URI" "to" "Uri")
+        (dict "from" "RPC" "to" "Rpc")
+        (dict "from" "API" "to" "Api")
+        (dict "from" "OTP" "to" "Otp")
+        (dict "from" "EOA" "to" "Eoa")
+        (dict "from" "ABI" "to" "Abi")
+        (dict "from" "SQL" "to" "Sql")
+        (dict "from" "ID" "to" "Id")
+    -}}
+    {{- range $replacement := $replacements -}}
+        {{- $candidate = replace (get $replacement "from") (get $replacement "to") $candidate -}}
+    {{- end -}}
+    {{- $candidate = camelCase $candidate -}}
+    {{- set $enumCaseNames $candidate true -}}
+{{- end -}}
+{{- $unknownCaseState := dict "name" "" "selected" false -}}
+{{- range $_, $candidate := (list "unknown" "unknownValue" "unrecognized" "unrecognizedValue" "unknownWireValue" "unrecognizedWireValue") -}}
+    {{- if not (get $unknownCaseState "selected") -}}
+        {{- if not (exists $enumCaseNames $candidate) -}}
+            {{- set $unknownCaseState "name" $candidate -}}
+            {{- set $unknownCaseState "selected" true -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- range $suffix := untilStep 1 10000 1 -}}
+    {{- if not (get $unknownCaseState "selected") -}}
+        {{- $candidate := printf "unknownWireValue%d" $suffix -}}
+        {{- if not (exists $enumCaseNames $candidate) -}}
+            {{- set $unknownCaseState "name" $candidate -}}
+            {{- set $unknownCaseState "selected" true -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- if not (get $unknownCaseState "selected") -}}
+    {{- fail (printf "unable to choose unique Swift unknown enum case for %q" $type.Name) -}}
+{{- end -}}
+{{- $unknownCaseName := get $unknownCaseState "name" -}}
+{{$access}} enum {{$type.Name}}: Codable, Hashable, Sendable, WebRPCEnumKey {
+    {{- range $_, $field := $type.Fields}}
+    case {{template "swiftLowerCamel" dict "Name" $field.Name}}
+    {{- end}}
+    case {{$unknownCaseName}}(String)
+
+    {{$access}} var wireValue: String {
+        switch self {
+        {{- range $_, $field := $type.Fields}}
+        case .{{template "swiftLowerCamel" dict "Name" $field.Name}}:
+            {{- if eq $type.Type.Expr "string" }}
+            return "{{$field.Value}}"
+            {{- else }}
+            return "{{$field.Name}}"
+            {{- end }}
+        {{- end}}
+        case .{{$unknownCaseName}}(let value):
+            return value
+        }
+    }
+
+    {{$access}} init(wireValue: String) {
+        switch wireValue {
+        {{- range $_, $field := $type.Fields}}
+            {{- if eq $type.Type.Expr "string" }}
+        case "{{$field.Value}}":
+            {{- else }}
+        case "{{$field.Name}}":
+            {{- end }}
+            self = .{{template "swiftLowerCamel" dict "Name" $field.Name}}
+        {{- end}}
+        default:
+            self = .{{$unknownCaseName}}(wireValue)
+        }
+    }
+
+    {{$access}} init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let value = try container.decode(String.self)
+        self = {{$type.Name}}(wireValue: value)
+    }
+
+    {{$access}} func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(wireValue)
+    }
+}
+{{else if isAliasType $type}}
+{{$access}} typealias {{$type.Name}} = {{template "type" dict "Type" $type.Type "TypeMap" $typeMap "WebrpcTarget" $.WebrpcTarget}}
+{{else if isStructType $type}}
+{{$access}} struct {{$type.Name}}: Codable, Sendable {
+    {{- range $_, $field := $type.Fields}}
+    {{- $isExportable := true -}}
+    {{- range $meta := $field.Meta -}}
+        {{- if exists $meta "json" -}}
+            {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                {{- $isExportable = false -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+    {{- if $isExportable }}
+    {{$access}} let {{template "fieldName" dict "Field" $field}}: {{template "type" dict "Type" $field.Type "TypeMap" $typeMap "WebrpcTarget" $.WebrpcTarget}}{{if $field.Optional}}?{{end}}
+    {{- end -}}
+    {{- end}}
+
+    {{$access}} init(
+        {{- $first := true -}}
+        {{- range $_, $field := $type.Fields}}
+            {{- $isExportable := true -}}
+            {{- range $meta := $field.Meta -}}
+                {{- if exists $meta "json" -}}
+                    {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                        {{- $isExportable = false -}}
+                    {{- end -}}
+                {{- end -}}
+            {{- end -}}
+            {{- if $isExportable -}}
+                {{- if not $first }}, {{end -}}
+                {{- $first = false -}}
+                {{template "fieldName" dict "Field" $field}}: {{template "type" dict "Type" $field.Type "TypeMap" $typeMap "WebrpcTarget" $.WebrpcTarget}}{{if $field.Optional}}? = nil{{end}}
+            {{- end -}}
+        {{- end}}
+    ) {
+        {{- range $_, $field := $type.Fields}}
+            {{- $isExportable := true -}}
+            {{- range $meta := $field.Meta -}}
+                {{- if exists $meta "json" -}}
+                    {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                        {{- $isExportable = false -}}
+                    {{- end -}}
+                {{- end -}}
+            {{- end -}}
+            {{- if $isExportable }}
+        self.{{template "fieldName" dict "Field" $field}} = {{template "fieldName" dict "Field" $field}}
+            {{- end -}}
+        {{- end}}
+    }
+
+    {{- $hasCodingKeys := false -}}
+    {{- range $_, $field := $type.Fields}}
+        {{- $isExportable := true -}}
+        {{- range $meta := $field.Meta -}}
+            {{- if exists $meta "json" -}}
+                {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                    {{- $isExportable = false -}}
+                {{- end -}}
+            {{- end -}}
+        {{- end -}}
+        {{- if $isExportable -}}
+            {{- $hasCodingKeys = true -}}
+        {{- end -}}
+    {{- end}}
+    enum CodingKeys: {{if $hasCodingKeys}}String, {{end}}CodingKey {
+        {{- range $_, $field := $type.Fields}}
+            {{- $isExportable := true -}}
+            {{- range $meta := $field.Meta -}}
+                {{- if exists $meta "json" -}}
+                    {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                        {{- $isExportable = false -}}
+                    {{- end -}}
+                {{- end -}}
+            {{- end -}}
+            {{- if $isExportable }}
+        case {{template "fieldName" dict "Field" $field}} = "{{template "codingKey" dict "Field" $field}}"
+            {{- end -}}
+        {{- end}}
+    }
+}
+{{end}}{{end}}
+{{end}}
+{{end}}
