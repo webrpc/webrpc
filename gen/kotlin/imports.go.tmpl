@@ -1,0 +1,30 @@
+{{define "imports"}}
+
+{{- $opts := .Opts -}}
+
+package {{ $opts.packageName }}
+
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+{{if $opts.client }}
+import kotlinx.coroutines.CancellationException
+import java.io.IOException
+    {{- if $opts.okhttpTransport }}
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+    {{- end}}
+{{- end}}
+{{end}}

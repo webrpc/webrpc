@@ -1,0 +1,135 @@
+{{- define "clientHelpers"}}
+{{- $json := .Json -}}
+{{- $opts := .Opts -}}
+
+//
+// Client helpers
+//
+
+// HTTPClient is the interface used to send HTTP requests. It is fulfilled by *http.Client.
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+// serviceURL joins addr (a full URL, e.g. "http://localhost:8080") with the
+// service path prefix. Malformed addrs fail on the first request.
+func serviceURL(addr, prefix string) string {
+	u, err := url.Parse(addr)
+	if err != nil || u.Host == "" {
+		return addr + prefix
+	}
+	u.RawQuery, u.Fragment = "", ""
+	return u.JoinPath(prefix).String()
+}
+
+// newRequest makes an http.Request with common headers.
+func newRequest(ctx context.Context, url string, reqBody io.Reader, contentType string) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", url, reqBody)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Accept", contentType)
+	req.Header.Set("Content-Type", contentType)
+	{{- if eq $opts.webrpcHeader true }}
+		req.Header.Set(WebrpcHeader, WebrpcHeaderValue)
+	{{- end }}
+	if headers, ok := HTTPRequestHeaders(ctx); ok {
+		for k := range headers {
+			for _, v := range headers[k] {
+				req.Header.Add(k, v)
+			}
+		}
+	}
+	return req, nil
+}
+
+// doHTTPRequestRaw makes a request and returns the open *http.Response; the caller must close its body.
+func doHTTPRequestRaw(ctx context.Context, client HTTPClient, url string, in, out interface{}) (*http.Response, error) {
+	reqBody, err := {{$json}}.Marshal(in)
+	if err != nil {
+		return nil, ErrWebrpcRequestFailed.WithCausef("failed to marshal JSON body: %w", err)
+	}
+	if err = ctx.Err(); err != nil {
+		return nil, ErrWebrpcRequestFailed.WithCausef("aborted because context was done: %w", err)
+	}
+
+	req, err := newRequest(ctx, url, bytes.NewBuffer(reqBody), "application/json")
+	if err != nil {
+		return nil, ErrWebrpcRequestFailed.WithCausef("could not build request: %w", err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, ErrWebrpcRequestFailed.WithCause(err)
+	}
+
+	if resp.StatusCode != 200 {
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to read server error response body: %w", err)
+		}
+
+		var rpcErr WebRPCError
+		if err := {{$json}}.Unmarshal(respBody, &rpcErr); err != nil {
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal server error: %w", err)
+		}
+		if rpcErr.Cause != "" {
+			rpcErr.cause = errors.New(rpcErr.Cause)
+		}
+		return nil, rpcErr
+	}
+
+	if out != nil {
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to read response body: %w", err)
+		}
+
+		err = {{$json}}.Unmarshal(respBody, &out)
+		if err != nil {
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal JSON response body: %w", err)
+		}
+	}
+
+	return resp, nil
+}
+
+func WithHTTPRequestHeaders(ctx context.Context, h http.Header) (context.Context, error) {
+	if _, ok := h["Accept"]; ok {
+		return nil, errors.New("provided header cannot set Accept")
+	}
+	if _, ok := h["Content-Type"]; ok {
+		return nil, errors.New("provided header cannot set Content-Type")
+	}
+
+	copied := make(http.Header, len(h))
+	for k, vv := range h {
+		if vv == nil {
+			copied[k] = nil
+			continue
+		}
+		copied[k] = make([]string, len(vv))
+		copy(copied[k], vv)
+	}
+
+	return context.WithValue(ctx, HTTPClientRequestHeadersCtxKey, copied), nil
+}
+
+func HTTPRequestHeaders(ctx context.Context) (http.Header, bool) {
+	h, ok := ctx.Value(HTTPClientRequestHeadersCtxKey).(http.Header)
+	return h, ok
+}
+
+// doHTTPRequest makes a request and closes the response body.
+func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out interface{}) error {
+	resp, err := doHTTPRequestRaw(ctx, client, url, in, out)
+	if resp != nil {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
+		}
+	}
+	return err
+}
+
+{{- end -}}

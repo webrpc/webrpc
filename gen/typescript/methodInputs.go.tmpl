@@ -1,0 +1,35 @@
+{{- define "methodInputs" -}}
+
+{{- $method := .Method -}}
+{{- $typeMap := .TypeMap -}}
+{{- $opts := .Opts -}}
+
+{{if $method.Succinct }}
+
+{{- if gt (len $method.Inputs) 0}}req: {{(index $method.Inputs 0).Type}}, {{end}}
+{{- if $method.StreamOutput -}}
+    options: WebrpcStreamOptions<{{(index $method.Outputs 0).Type}}>
+{{- else -}}
+    headers?: object, signal?: AbortSignal
+{{- end -}}
+
+{{else if $opts.compat }}
+
+{{- if gt (len $method.Inputs) 0}}req: {{$method.Name}}Args, {{end}}
+{{- if $method.StreamOutput -}}
+    options: WebrpcStreamOptions<{{$method.Name}}Return>
+{{- else -}}
+    headers?: object, signal?: AbortSignal
+{{- end -}}
+
+{{- else}}
+
+{{- if gt (len $method.Inputs) 0}}req: {{$method.Name}}Request, {{end}}
+{{- if $method.StreamOutput -}}
+    options: WebrpcStreamOptions<{{$method.Name}}Response>
+{{- else -}}
+    headers?: object, signal?: AbortSignal
+{{- end -}}
+{{- end -}}
+
+{{- end -}}

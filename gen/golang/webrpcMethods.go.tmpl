@@ -1,0 +1,90 @@
+{{define "webrpcMethods"}}
+{{- $services := .Services -}}
+{{- $basepath := .BasePath -}}
+
+type method struct  {
+	name string
+	service string
+	annotations map[string]string
+}
+
+func (m *method) Name() string { return m.name }
+func (m *method) Service() string { return m.service }
+func (m *method) Annotations() map[string]string { return m.annotations }
+func (m *method) Annotation(key string) string { return m.annotations[key] }
+func (m *method) HasAnnotation(key string) bool { _, ok := m.annotations[key]; return ok }
+
+var methods = map[string]*method{
+	{{- range $_, $service := $services -}}
+	{{- range $_, $method := $service.Methods }}
+	"{{$basepath}}{{$service.Name}}/{{$method.Name}}": {
+		name: "{{$method.Name}}",
+		service: "{{$service.Name}}",
+		annotations: map[string]string{ {{- range $_, $annotation := $method.Annotations -}}"{{$annotation.AnnotationType}}": "{{$annotation.Value}}", {{- end -}} },
+	},
+	{{- end -}}
+    {{ end }}
+}
+
+func MethodCtx(ctx context.Context) (*method, bool) {
+	req := RequestFromContext(ctx)
+	if req == nil {
+		return nil, false
+	}
+
+	m, ok := methods[req.URL.Path]
+    return m, ok
+}
+
+type Service string
+
+const (
+{{- range $_, $service := $services}}
+	Service{{$service.Name}} Service = "{{$service.Name}}"
+{{- end}}
+)
+
+// WebrpcMethods returns a copy of all methods, or only those for the given services.
+// For further filtering (e.g. by annotation), use maps.DeleteFunc on the result.
+func WebrpcMethods(services ...Service) map[string]*method {
+	if len(services) == 0 {
+		return maps.Clone(methods)
+	}
+	out := make(map[string]*method)
+	for path, m := range methods {
+		if slices.Contains(services, Service(m.service)) {
+			out[path] = m
+		}
+	}
+	return out
+}
+
+var WebRPCServices = map[string][]string{
+{{- range $_, $service := $services}}
+	"{{$service.Name}}": {
+		{{- range $_, $method := $service.Methods}}
+		"{{$method.Name}}",
+		{{- end}}
+	},
+{{- end}}
+}
+{{- if $services}}
+
+// Method pairs an RPC method's metadata with the server that handles it.
+// Handler is the server itself, which dispatches by request path.
+type Method struct {
+	*method
+	Path    string
+	Handler http.Handler
+}
+
+// methodsFor binds every method of service to the handler that serves it.
+func methodsFor(service Service, handler http.Handler) []Method {
+	var out []Method
+	for path, m := range WebrpcMethods(service) {
+		out = append(out, Method{method: m, Path: path, Handler: handler})
+	}
+	return out
+}
+{{- end}}
+{{end}}

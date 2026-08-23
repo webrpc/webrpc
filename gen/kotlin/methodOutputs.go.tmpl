@@ -1,0 +1,14 @@
+{{- define "methodOutputs" -}}
+
+{{- $method := .Method -}}
+{{- $serviceApiName := .ServiceApiName -}}
+{{- $methodNamespaceName := .MethodNamespaceName -}}
+
+{{- if eq (len $method.Outputs) 0 -}}
+Unit
+{{- else if $method.Succinct -}}
+{{(index $method.Outputs 0).Type}}
+{{- else -}}
+{{$serviceApiName}}.{{$methodNamespaceName}}.Response
+{{- end -}}
+{{- end}}

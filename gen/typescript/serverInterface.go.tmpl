@@ -1,0 +1,29 @@
+{{- define "serverInterface" -}}
+
+{{- $services := .Services -}}
+{{- $typeMap := .TypeMap -}}
+{{- $opts := .Opts -}}
+
+{{- if $services}}
+//
+// Server interface
+//
+
+{{- "\n" -}}{{ range $_, $service := $services }}
+export interface {{$service.Name}}Server<Context = unknown> {
+  {{- range $_, $method := $service.Methods}}
+  {{- if $method.Succinct }}
+  {{firstLetterToLower $method.Name}}(ctx: Context, req: {{(index $method.Inputs 0).Type}}): Promise<{{(index $method.Outputs 0).Type}}>
+  {{- else}}
+  {{- if $opts.compat }}
+  {{firstLetterToLower $method.Name}}(ctx: Context, req: {{$method.Name}}Args): Promise<{{$method.Name}}Return>
+  {{- else}}
+  {{firstLetterToLower $method.Name}}(ctx: Context, req: {{$method.Name}}Request): Promise<{{$method.Name}}Response>
+  {{- end -}}
+  {{- end}}
+  {{- end}}
+}
+{{- end}}
+
+{{- end -}}
+{{- end -}}

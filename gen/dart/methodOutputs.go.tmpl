@@ -1,0 +1,16 @@
+{{- define "methodOutputs" -}}
+
+{{- $method := .Method -}}
+{{- $typeMap := .TypeMap -}}
+
+{{- $nOut := len $method.Outputs -}}
+{{if eq $nOut 0 -}} void
+{{- else -}}
+({
+{{- range $i, $output := $method.Outputs -}}
+{{- if gt $i 0 -}}, {{end}}
+{{- template "type" dict "Type" $output.Type "TypeMap" $typeMap}} {{$output.Name -}}
+{{- end -}}
+})
+{{- end -}}
+{{- end -}}

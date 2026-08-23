@@ -1,0 +1,29 @@
+{{- define "type" -}}
+
+{{- $type := .Type -}}
+{{- $typeMap := .TypeMap -}}
+
+{{- if isMapType $type -}}
+    {{- $keyType := mapKeyType $type -}}
+    {{- $valueType := mapValueType $type -}}
+    {{- if and (isCoreType $keyType) (eq (printf "%v" $keyType) "string") -}}
+        [String: {{template "type" dict "Type" $valueType "TypeMap" $typeMap}}]
+    {{- else if isCoreType $keyType -}}
+        {{- stderrPrintf "%s generator error: unsupported Swift map key type %v; only string and enum keys are supported\n" .WebrpcTarget $keyType -}}
+        {{- exit 1 -}}
+    {{- else -}}
+        WebRPCEnumMap<{{$keyType}}, {{template "type" dict "Type" $valueType "TypeMap" $typeMap}}>
+    {{- end -}}
+{{- else if isListType $type -}}
+    {{- $elemType := listElemType $type -}}
+    {{- if and (isCoreType $elemType) (eq (printf "%v" $elemType) "byte") -}}
+        Data
+    {{- else -}}
+        [{{template "type" dict "Type" $elemType "TypeMap" $typeMap}}]
+    {{- end -}}
+{{- else if isCoreType $type -}}
+    {{- get $typeMap $type -}}
+{{- else -}}
+    {{$type}}
+{{- end -}}
+{{- end -}}

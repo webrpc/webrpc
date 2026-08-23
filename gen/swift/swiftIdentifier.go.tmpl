@@ -1,0 +1,32 @@
+{{- define "swiftLowerCamel" -}}
+{{- $name := .Name -}}
+
+{{- /* Normalize common initialisms before camel-casing. */ -}}
+{{- $replacements := list
+    (dict "from" "HTTPS" "to" "Https")
+    (dict "from" "HTTP" "to" "Http")
+    (dict "from" "OAuth" "to" "Oauth")
+    (dict "from" "OIDC" "to" "Oidc")
+    (dict "from" "PKCE" "to" "Pkce")
+    (dict "from" "UUID" "to" "Uuid")
+    (dict "from" "JSON" "to" "Json")
+    (dict "from" "HTML" "to" "Html")
+    (dict "from" "XML" "to" "Xml")
+    (dict "from" "JWT" "to" "Jwt")
+    (dict "from" "URL" "to" "Url")
+    (dict "from" "URI" "to" "Uri")
+    (dict "from" "RPC" "to" "Rpc")
+    (dict "from" "API" "to" "Api")
+    (dict "from" "OTP" "to" "Otp")
+    (dict "from" "EOA" "to" "Eoa")
+    (dict "from" "ABI" "to" "Abi")
+    (dict "from" "SQL" "to" "Sql")
+    (dict "from" "ID" "to" "Id")
+ -}}
+
+{{- range $replacement := $replacements -}}
+    {{- $name = replace (get $replacement "from") (get $replacement "to") $name -}}
+{{- end -}}
+
+{{- camelCase $name -}}
+{{- end -}}

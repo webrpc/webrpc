@@ -1,0 +1,30 @@
+{{- define "fieldType" -}}
+
+{{- $type := .Type -}}
+{{- $typeMap := .TypeMap -}}
+{{- $indent := .Indent -}}
+
+{{- if isMapType $type -}}
+
+type: object
+{{ $indent }}description: '{{$type}}'
+{{ $indent }}additionalProperties:
+{{ $indent }}  {{ template "fieldType" dict "Type" (mapValueType $type) "TypeMap" $typeMap "Indent" (print $indent "  ") }}
+
+{{- else if isListType $type -}}
+
+type: array
+{{ $indent }}description: '{{$type}}'
+{{ $indent }}items:
+{{ $indent }}  {{ template "fieldType" dict "Type" (listElemType $type) "TypeMap" $typeMap "Indent" (print $indent "  ") }}
+
+{{- else if isCoreType $type -}}
+
+type: {{ get $typeMap $type }}
+
+{{- else -}}
+
+$ref: '#/components/schemas/{{$type}}'
+
+{{- end -}}
+{{- end -}}

@@ -1,0 +1,27 @@
+{{- define "errorType" -}}
+{{- $error := . -}}
+
+    Error{{$error.Name}}:
+      type: object
+      required:
+        - error
+        - code
+        - msg
+        - status
+      properties:
+        error:
+          type: string
+          example: {{printf "%q" $error.Name}}
+        code:
+          type: number
+          example: {{$error.Code}}
+        msg:
+          type: string
+          example: {{printf "%q" $error.Message}}
+        cause:
+          type: string
+        status:
+          type: number
+          example: {{$error.HTTPStatus}}
+
+{{- end -}}

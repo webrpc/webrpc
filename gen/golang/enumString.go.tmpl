@@ -1,0 +1,52 @@
+{{- define "enumString" -}}
+    {{- $name := .Name -}}
+    {{- $type := .Type -}}
+    {{- $fields := .Fields -}}
+    {{- $opts := .Opts -}}
+
+    {{- if $opts.types -}}
+        type {{$name}} {{$type}}
+    {{- end }}
+
+    const (
+    {{- range $fields}}
+        {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}} {{$name}} = "{{.Value}}"
+    {{- end}}
+    )
+
+    //go:fix inline
+    const (
+    {{- range $fields}}
+        // Deprecated: Use {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}} instead.
+        {{template "enumLegacyConstName" dict "EnumName" $name "FieldName" .Name}} {{$name}} = {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}}
+    {{- end}}
+    )
+
+    var {{$name}}_values = []{{$name}}{
+    {{- range $fields}}
+        {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}},
+    {{- end}}
+    }
+
+    func (x {{$name}}) MarshalText() ([]byte, error) {
+    return []byte(x), nil
+    }
+
+    func (x *{{$name}}) UnmarshalText(b []byte) error {
+    *x = {{$name}}(string(b))
+    return nil
+    }
+
+    func (x *{{$name}}) Is(values ...{{$name}}) bool {
+    if x == nil {
+    return false
+    }
+    for _, v := range values {
+    if *x == v {
+    return true
+    }
+    }
+    return false
+    }
+
+{{- end -}}

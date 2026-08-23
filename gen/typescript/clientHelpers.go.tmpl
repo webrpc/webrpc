@@ -1,0 +1,51 @@
+{{- define "clientHelpers" -}}
+{{- $webrpcErrors := .WebrpcErrors -}}
+{{- $schemaErrors := .SchemaErrors -}}
+{{- $opts := .Opts -}}
+
+{{- "\n" -}}
+const createHttpRequest = (body: string = '{}', headers: object = {}, signal: AbortSignal | null = null): object => {
+  const reqHeaders: { [key: string]: string } = { ...headers, 'Content-Type': 'application/json' {{- if eq $opts.webrpcHeader true }}, [WebrpcHeader]: WebrpcHeaderValue{{ end }} }
+  return { method: 'POST', headers: reqHeaders, body, signal }
+}
+
+const buildResponse = (res: Response): Promise<any> => {
+  return res.text().then(text => {
+    let data
+    try {
+      data = JSON.parse(text)
+    } catch(error) {
+      throw WebrpcBadResponseError.new({
+        status: res.status,
+        cause: `JSON.parse(): ${error instanceof Error ? error.message : String(error)}: response text: ${text}`},
+      )
+    }
+    if (!res.ok) {
+      const code: number = (typeof data.code === 'number') ? data.code : 0
+      throw (webrpcErrorByCode[code] || WebrpcError).new(data)
+    }
+    return data
+  })
+}
+
+export type Fetch = (input: RequestInfo, init?: RequestInit) => Promise<Response>
+
+{{if $opts.streaming}}
+export interface WebrpcStreamOptions<T> extends WebrpcOptions {
+  onMessage: (message: T) => void;
+  onError: (error: WebrpcError, reconnect: () => void) => void;
+  onOpen?: () => void;
+  onClose?: () => void;
+}
+
+export interface WebrpcOptions {
+  headers?: HeadersInit;
+  signal?: AbortSignal;
+}
+
+export interface WebrpcStreamController {
+  abort: (reason?: any) => void;
+  closed: Promise<void>;
+}
+{{end}}
+{{end}}

@@ -1,0 +1,91 @@
+{{define "errors"}}
+{{- $webrpcErrors := .WebrpcErrors -}}
+{{- $schemaErrors := .SchemaErrors -}}
+{{- $opts := .Opts -}}
+//
+// Errors
+//
+
+type WebRPCError struct {
+	Name       string `json:"error"`
+	Code       int    `json:"code"`
+	Message    string `json:"msg"`
+	Cause      string `json:"cause,omitempty"`
+	HTTPStatus int    `json:"status"`
+	cause      error
+
+	{{- if $opts.errorStackTrace }}
+	{{- /* The below field is reflect-compatible with golang.org/x/xerrors.*/}}
+	frame      struct { frames [3]uintptr }
+	{{- end}}
+}
+
+var _ error = WebRPCError{}
+
+func (e WebRPCError) Error() string {
+	if e.cause != nil {
+		return fmt.Sprintf("%s %d: %s: %v", e.Name, e.Code, e.Message, e.cause)
+	}
+	return fmt.Sprintf("%s %d: %s", e.Name, e.Code, e.Message)
+}
+
+func (e WebRPCError) Is(target error) bool {
+	if target == nil {
+		return false
+	}
+	if rpcErr, ok := target.(WebRPCError); ok {
+		return rpcErr.Code == e.Code
+	}
+	return errors.Is(e.cause, target)
+}
+
+func (e WebRPCError) Unwrap() error {
+	return e.cause
+}
+
+func (e WebRPCError) WithCause(cause error) WebRPCError {
+	err := e
+	err.cause = cause
+	err.Cause = cause.Error()
+	{{- if $opts.errorStackTrace }}
+	runtime.Callers(1, err.frame.frames[:])
+	{{- end}}
+	return err
+}
+
+func (e WebRPCError) WithCausef(format string, args ...interface{}) WebRPCError {
+	cause := fmt.Errorf(format, args...)
+	err := e
+	err.cause = cause
+	err.Cause = cause.Error()
+	{{- if $opts.errorStackTrace }}
+	runtime.Callers(1, err.frame.frames[:])
+	{{- end}}
+	return err
+}
+
+{{- if $opts.errorStackTrace }}
+
+func (e WebRPCError) StackFrames() []uintptr {
+	return e.frame.frames[:]
+}
+{{- end }}
+
+// Webrpc errors
+var (
+{{- range $_, $error := $webrpcErrors}}
+	{{ printf "Err%s = WebRPCError{Code: %v, Name: %q, Message: %q, HTTPStatus: %v}" $error.Name $error.Code $error.Name $error.Message $error.HTTPStatus}}
+{{- end}}
+)
+
+{{- if len $schemaErrors }}
+
+// Schema errors
+var (
+{{- range $_, $error := $schemaErrors}}
+	{{ printf "Err%s = WebRPCError{Code: %v, Name: %q, Message: %q, HTTPStatus: %v}" $error.Name $error.Code $error.Name $error.Message $error.HTTPStatus}}
+{{- end}}
+)
+{{ end -}}
+
+{{- end -}}

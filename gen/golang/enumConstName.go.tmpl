@@ -1,0 +1,21 @@
+{{- define "enumConstName" -}}
+{{- $fieldName := .FieldName -}}
+{{- if contains "_" $fieldName -}}
+	{{- $fieldName = camelcase (toLower $fieldName) -}}
+{{- else if eq $fieldName (toUpper $fieldName) -}}
+	{{- $fieldName = camelcase (toLower $fieldName) -}}
+{{- else -}}
+	{{- $fieldName = firstLetterToUpper $fieldName -}}
+{{- end -}}
+{{- $fieldName = replace "Https" "HTTPS" $fieldName -}}
+{{- $fieldName = replace "Http" "HTTP" $fieldName -}}
+{{- $fieldName = replace "Uuid" "UUID" $fieldName -}}
+{{- $fieldName = replace "Api" "API" $fieldName -}}
+{{- $fieldName = replace "Url" "URL" $fieldName -}}
+{{- $fieldName = regexReplaceAll "Id($|[A-Z])" $fieldName "ID${1}" -}}
+{{- .EnumName }}{{ $fieldName -}}
+{{- end -}}
+
+{{- define "enumLegacyConstName" -}}
+{{- .EnumName }}_{{ .FieldName -}}
+{{- end -}}

@@ -1,0 +1,147 @@
+{{- define "serverInterface"}}
+{{- $services := .Services -}}
+{{- $keywordMap := .KeywordMap -}}
+{{- $typeMap := .TypeMap -}}
+{{- $typePrefix := .TypePrefix -}}
+{{- $json := .Json -}}
+{{- $opts := .Opts -}}
+
+{{- if $services -}}
+//
+// Server interface
+//
+
+{{ range $_, $service := $services -}}
+{{ if $opts.types -}}
+type {{$service.Name}}Server interface {
+	{{- range $_, $method := $service.Methods}}
+	{{- $deprecated := index $method.Annotations "deprecated" -}}
+	{{- if gt (len $method.Comments) 0 -}}
+		{{- range $_, $comment := $method.Comments }}
+			// {{ replaceAll $comment "\"" "'" }}
+		{{- end }}
+		{{- if $deprecated }}
+			//
+		{{- end }}
+	{{- end }}
+	{{- if $deprecated }}
+	// Deprecated: {{ $deprecated.Value }}
+	{{- end }}
+	{{ if eq $method.StreamOutput true -}}
+	{{$method.Name}}(ctx context.Context{{range $_, $input := $method.Inputs}}, {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}} {{template "field" dict "Name" $input.Name "Type" $input.Type "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "Optional" $input.Optional "TypeMeta" $input.Meta "Succinct" $method.Succinct}}{{end}}, stream {{$method.Name}}StreamWriter) error
+	{{- else -}}
+	{{$method.Name}}(ctx context.Context{{range $_, $input := $method.Inputs}}, {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}} {{template "field" dict "Name" $input.Name "Type" $input.Type "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "Optional" $input.Optional "TypeMeta" $input.Meta "Succinct" $method.Succinct}}{{end}}) {{if len .Outputs}}({{end}}{{range $i, $output := .Outputs}}{{template "field" dict "Name" $output.Name "Type" $output.Type "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "Optional" $output.Optional "TypeMeta" $output.Meta}}{{if lt $i (len $method.Outputs)}}, {{end}}{{end}}error{{if len $method.Outputs}}){{end}}
+	{{- end -}}
+
+	{{- end}}
+}
+{{- end }}
+
+{{- range $_, $method := $service.Methods }}
+{{ if eq $method.StreamOutput true }}
+type {{$method.Name}}StreamWriter interface {
+	{{ if $method.Succinct }}
+	{{- $output := index $method.Outputs 0 -}}
+	Write({{$output.Name}} ...{{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta}}) error
+	{{- else -}}
+	Write({{range $i, $output := $method.Outputs}}{{if gt $i 0}}, {{end}}{{$output.Name}} {{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta}}{{end}}) error
+	{{ end }}
+}
+{{- end }}
+{{- end }}
+
+{{- range $_, $method := $service.Methods}}
+{{- if eq $method.StreamOutput true }}
+type {{firstLetterToLower $method.Name}}StreamWriter struct {
+	streamWriter
+}
+
+{{ if $method.Succinct }}
+{{- $output := index $method.Outputs 0 -}}
+func (w *{{firstLetterToLower $method.Name}}StreamWriter) Write({{$output.Name}} ...{{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta}}) error {
+	out := make([]interface{}, len({{$output.Name}}))
+	for i, _ := range {{$output.Name}} {
+		out[i] = {{$output.Name}}[i]
+	}
+	return w.streamWriter.write(out...)
+}
+{{ else }}
+func (w *{{firstLetterToLower $method.Name}}StreamWriter) Write({{range $i, $output := $method.Outputs}}{{if gt $i 0}}, {{end}}{{$output.Name}} {{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta}}{{end}}) error {
+	out := struct {
+	{{- range $i, $output := $method.Outputs}}
+		Ret{{$i}} {{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta "JsonTags" true}}
+	{{- end}}
+	}{
+	{{- range $i, $output := $method.Outputs}}
+		Ret{{$i}}: {{$output.Name}},
+	{{- end}}
+	}
+
+	return w.streamWriter.write(out)
+}
+
+{{- end -}}{{- /* $method.Succinct */ -}}
+{{- end -}}{{- /* $method.StreamOutput true */ -}}
+
+{{- "\n" -}}
+{{- end }}
+{{- end }}
+
+{{- if $opts.streaming -}}
+
+type streamWriter struct {
+	mu sync.Mutex // Guards concurrent writes to w.
+	w  http.ResponseWriter
+	f  http.Flusher
+	e  jsonEncoder
+
+	sendError func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
+}
+
+type jsonEncoder interface {
+	Encode(v any) error
+}
+
+const StreamKeepAliveInterval = 10*time.Second
+
+func (w *streamWriter) keepAlive(ctx context.Context) {
+	for {
+		select {
+		case <-time.After(StreamKeepAliveInterval):
+			err := w.ping()
+			if err != nil {
+				return
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (w *streamWriter) ping() error {
+	w.mu.Lock()
+	_, err := w.w.Write([]byte("\n"))
+	w.f.Flush()
+	w.mu.Unlock()
+
+	return err
+}
+
+func (w *streamWriter) write(respPayload ...interface{}) error {
+	var err error
+	w.mu.Lock()
+	for _, respPayload := range respPayload {
+		err = w.e.Encode(respPayload)
+		if err != nil {
+			break
+		}
+	}
+	w.f.Flush()
+	w.mu.Unlock()
+
+	return err
+}
+{{- end }}
+
+{{- end -}}
+{{- end -}}

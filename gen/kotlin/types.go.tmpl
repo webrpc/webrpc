@@ -1,0 +1,118 @@
+{{define "types"}}
+
+{{- $typeMap := .TypeMap -}}
+{{- $types := .Types -}}
+
+// region Types
+{{if $types}}
+{{range $_i, $type := $types}}{{if gt $_i 0}}
+
+{{end}}{{if isEnumType $type}}
+{{- $enumFallbackState := dict "name" "" "selected" false -}}
+{{- $enumFieldNames := dict -}}
+{{- range $_, $field := $type.Fields -}}
+    {{- set $enumFieldNames $field.Name true -}}
+{{- end -}}
+{{- range $_, $candidate := (list "UNKNOWN_DEFAULT" "UNKNOWN_DEFAULT_FALLBACK") -}}
+    {{- if not (get $enumFallbackState "selected") -}}
+        {{- if not (exists $enumFieldNames $candidate) -}}
+            {{- set $enumFallbackState "name" $candidate -}}
+            {{- set $enumFallbackState "selected" true -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- if not (get $enumFallbackState "selected") -}}
+    {{- range $i := until 1000 -}}
+        {{- if not (get $enumFallbackState "selected") -}}
+            {{- $candidate := printf "UNKNOWN_DEFAULT_FALLBACK_%d" (add $i 1) -}}
+            {{- if not (exists $enumFieldNames $candidate) -}}
+                {{- set $enumFallbackState "name" $candidate -}}
+                {{- set $enumFallbackState "selected" true -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- if not (get $enumFallbackState "selected") -}}
+    {{- fail (printf "kotlin generator error: could not choose unknown fallback enum entry for %s after 1000 fallback attempts" $type.Name) -}}
+{{- end -}}
+{{- $enumFallbackName := get $enumFallbackState "name" -}}
+@Serializable(with = {{$type.Name}}Serializer::class)
+enum class {{$type.Name}}(val wireValue: String) {
+{{- range $_, $field := $type.Fields}}
+    {{- if eq $type.Type.Expr "string" }}
+    {{$field.Name}}("{{$field.Value}}"),
+    {{- else }}
+    {{$field.Name}}("{{$field.Name}}"),
+    {{- end }}
+{{- end}}
+    {{$enumFallbackName}}("UNKNOWN_DEFAULT");
+
+    companion object {
+        fun fromWireValue(value: String): {{$type.Name}} {
+            return values().find { it.wireValue == value } ?: {{$enumFallbackName}}
+        }
+    }
+}
+
+object {{$type.Name}}Serializer : KSerializer<{{$type.Name}}> {
+    override val descriptor: SerialDescriptor =
+        String.serializer().descriptor
+
+    override fun serialize(encoder: Encoder, value: {{$type.Name}}) {
+        encoder.encodeSerializableValue(
+            String.serializer(),
+            value.wireValue,
+        )
+    }
+
+    override fun deserialize(decoder: Decoder): {{$type.Name}} {
+        return {{$type.Name}}.fromWireValue(
+            decoder.decodeSerializableValue(
+                String.serializer(),
+            ),
+        )
+    }
+}
+{{else if isAliasType $type}}
+typealias {{$type.Name}} = {{template "type" dict "Type" $type.Type "TypeMap" $typeMap}}
+{{else if isStructType $type}}
+{{- $structHasExportableFields := dict "value" false -}}
+{{- range $_, $field := $type.Fields -}}
+    {{- $isExportable := true -}}
+    {{- range $meta := $field.Meta -}}
+        {{- if exists $meta "json" -}}
+            {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                {{- $isExportable = false -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+    {{- if $isExportable -}}
+        {{- set $structHasExportableFields "value" true -}}
+    {{- end -}}
+{{- end }}
+@Serializable
+{{ if get $structHasExportableFields "value" }}data class {{$type.Name}}(
+    {{- range $_, $field := $type.Fields}}
+
+    {{- $isExportable := true -}}
+    {{- range $meta := $field.Meta -}}
+        {{- if exists $meta "json" -}}
+            {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                {{- $isExportable = false}}
+            {{- end -}}
+        {{- end -}}
+    {{- end }}
+
+    {{- if $isExportable }}
+    @SerialName("{{template "codingKey" dict "Field" .}}")
+    val {{template "fieldName" dict "Field" .}}: {{template "type" dict "Type" $field.Type "TypeMap" $typeMap}}{{if .Optional}}? = null{{end}},
+    {{- end -}}
+    {{- end}}
+)
+{{ else }}class {{$type.Name}}
+{{ end -}}
+{{end}}{{end}}
+{{end}}
+
+// endregion
+{{end}}

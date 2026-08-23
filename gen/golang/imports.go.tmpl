@@ -1,0 +1,110 @@
+{{- define "imports" -}}
+{{- $types := .Types -}}
+{{- $opts := .Opts -}}
+
+{{- /* Map of import paths. */ -}}
+{{- $stdlibImports := dict -}}
+{{- set $stdlibImports "context" "" -}}
+{{- set $stdlibImports "errors" "" -}}
+{{- set $stdlibImports "fmt" "" -}}
+{{- set $stdlibImports "net/http" "" -}}
+{{- set $stdlibImports "strings" "" -}}
+
+{{- if eq $opts.json "stdlib" -}}
+	{{- set $stdlibImports "encoding/json" "" -}}
+{{- end -}}
+
+{{- if $opts.errorStackTrace }}
+	{{- set $stdlibImports "runtime" "" -}}
+{{- end -}}
+
+{{- if $opts.client }}
+	{{- set $stdlibImports "bytes" "" -}}
+	{{- set $stdlibImports "io" "" -}}
+	{{- set $stdlibImports "net/url" "" -}}
+{{- end -}}
+
+{{- if $opts.server }}
+	{{- set $stdlibImports "io" "" -}}
+	{{- set $stdlibImports "maps" "" -}}
+	{{- set $stdlibImports "slices" "" -}}
+
+	{{- if $opts.fixEmptyArrays }}
+		{{- set $stdlibImports "reflect" "" -}}
+	{{- end -}}
+{{- end -}}
+
+{{- if $opts.streaming -}}
+	{{- if $opts.server }}
+	{{- set $stdlibImports "sync" "" -}}
+	{{- set $stdlibImports "time" "" -}}
+	{{- end -}}
+	{{- if $opts.client }}
+	{{- set $stdlibImports "bufio" "" -}}
+	{{- end -}}
+{{- end -}}
+
+{{- /* Import "time" if there's at least one timestamp. */ -}}
+{{ if $opts.types -}}
+{{ if eq $opts.importTypesFrom "" -}}
+   {{- range $_, $type := $types -}}
+       {{- range $_, $field := $type.Fields -}}
+           {{- if $field.Type -}}
+               {{- if eq $field.Type.Expr "timestamp" -}}
+                   {{- set $stdlibImports "time" "" -}}
+               {{- end -}}
+           {{- end -}}
+       {{- end -}}
+   {{- end -}}
+{{- end -}}
+{{- end -}}
+
+import (
+
+{{- /* Print stdlib imports. */ -}}
+{{- range $import, $rename := $stdlibImports }}
+	{{if ne $rename ""}}{{$rename}} {{end}}"{{$import}}"
+{{- end -}}
+
+{{- /* Print custom type imports. */ -}}
+{{- $imports := dict -}}
+
+{{- if eq $opts.json "stdlib" -}}
+	{{- /* Already imported in the stdlib section. */ -}}
+{{- else if eq $opts.json "jsoniter" -}}
+	{{- set $imports "github.com/json-iterator/go" "" -}}
+{{- else if eq $opts.json "sonic" -}}
+	{{- set $imports "github.com/bytedance/sonic" "" -}}
+{{- else -}}
+	{{- set $imports $opts.json "json" -}}
+{{- end -}}
+
+{{- if ne $opts.importTypesFrom "" }}
+	{{- set $imports $opts.importTypesFrom "" -}}
+{{- else -}}
+	{{- range $_, $type := $types -}}
+		{{- /* TODO: We might need to loop through method args too. */ -}}
+		{{- range $meta := $type.Meta -}}
+				{{- if exists $meta "go.type.import" -}}
+					{{- set $imports (get $meta "go.type.import") "" -}}
+				{{- end -}}
+			{{- end -}}
+		{{- if $opts.types }}
+			{{- range $_, $field := $type.Fields -}}
+				{{- range $meta := $field.Meta -}}
+					{{- if exists $meta "go.type.import" -}}
+						{{- set $imports (get $meta "go.type.import") "" -}}
+					{{- end -}}
+				{{- end -}}
+			{{- end -}}
+		{{- end }}
+	{{- end -}}
+{{- end }}
+{{ range $import, $rename := $imports }}
+	{{- if not (exists $stdlibImports $import)}}
+	{{if ne $rename ""}}{{$rename}} {{end}}"{{$import}}"
+	{{- end }}
+{{- end }}
+)
+
+{{- end -}}

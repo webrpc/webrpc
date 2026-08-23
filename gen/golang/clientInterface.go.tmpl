@@ -1,0 +1,53 @@
+{{- define "clientInterface"}}
+{{- $services := .Services -}}
+{{- $keywordMap := .KeywordMap -}}
+{{- $typeMap := .TypeMap -}}
+{{- $typePrefix := .TypePrefix -}}
+{{- $json := .Json -}}
+{{- $opts := .Opts -}}
+
+{{- if $services -}}
+//
+// Client interface
+//
+
+{{ if and $services $opts.types -}}
+{{ range $_, $service := $services -}}
+type {{$service.Name}}Client interface {
+	{{- range $_, $method := $service.Methods}}
+	{{- $deprecated := index $method.Annotations "deprecated" -}}
+	{{- if gt (len $method.Comments) 0 }}
+		{{- range $_, $comment := $method.Comments }}
+			// {{ replaceAll $comment "\"" "'" }}
+		{{- end }}
+		{{- if $deprecated }}
+			//
+		{{- end }}
+	{{- end }}
+	{{- if $deprecated }}
+	// Deprecated: {{ $deprecated.Value }}
+	{{- end }}
+	{{ if eq $method.StreamOutput true -}}
+	{{$method.Name}}(ctx context.Context{{range $_, $input := $method.Inputs}}, {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}} {{template "field" dict "Name" $input.Name "Type" $input.Type "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "Optional" $input.Optional "TypeMeta" $input.Meta "Succinct" $method.Succinct}}{{end}}) ({{$method.Name}}StreamReader, error)
+	{{- else -}}
+	{{$method.Name}}(ctx context.Context{{range $_, $input := $method.Inputs}}, {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}} {{template "field" dict "Name" $input.Name "Type" $input.Type "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "Optional" $input.Optional "TypeMeta" $input.Meta "Succinct" $method.Succinct}}{{end}}) {{if len .Outputs}}({{end}}{{range $i, $output := .Outputs}}{{template "field" dict "Name" $output.Name "Type" $output.Type "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "Optional" $output.Optional "TypeMeta" $output.Meta}}{{if lt $i (len $method.Outputs)}}, {{end}}{{end}}error{{if len $method.Outputs}}){{end}}
+	{{- end -}}
+
+	{{- end}}
+}
+
+{{- range $_, $method := $service.Methods }}
+{{ if eq $method.StreamOutput true -}}
+type {{$method.Name}}StreamReader interface {
+	Read() ({{range $i, $output := $method.Outputs}}{{if gt $i 0}}, {{end}}{{$output.Name}} {{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta}}{{end}}, err error)
+}
+{{ end }}
+{{- end }}
+
+{{- "\n" -}}
+
+{{- end -}}
+{{- end -}}
+
+{{- end -}}
+{{- end -}}

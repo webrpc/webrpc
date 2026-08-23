@@ -1,0 +1,226 @@
+{{define "client"}}
+{{- $keywordMap := .KeywordMap -}}
+{{- $typeMap := .TypeMap -}}
+{{- $typePrefix := .TypePrefix -}}
+{{- $services := .Services -}}
+{{- $basepath := .BasePath -}}
+{{- $json := .Json -}}
+{{- $opts := .Opts }}
+
+{{- if $services -}}
+//
+// Client
+//
+
+{{range $services -}}
+const {{.Name}}PathPrefix = "{{$basepath}}{{.Name}}/"
+{{end}}
+
+{{- range $_, $service := $services -}}
+
+{{- $serviceNameClient := (printf "%sClient" ($service.Name | firstWordToLower)) }}
+{{- $ServiceNameClient := (printf "%sClient" ($service.Name | firstLetterToUpper)) }}
+type {{$serviceNameClient}} struct {
+	client HTTPClient
+	urls	 [{{len $service.Methods}}]string
+}
+
+func New{{$ServiceNameClient}}(addr string, client HTTPClient) {{$ServiceNameClient}} {
+	prefix := serviceURL(addr, {{$service.Name}}PathPrefix)
+	urls := [{{len $service.Methods}}]string{
+	{{- range $_, $method := $service.Methods}}
+		prefix + "{{$method.Name}}",
+	{{- end}}
+	}
+	return &{{$serviceNameClient}}{
+		client: client,
+		urls:	 urls,
+	}
+}
+
+{{- range $i, $method := $service.Methods -}}
+
+{{ if eq $method.StreamOutput false }}
+{{- if $method.Succinct }}
+{{- $input := index $method.Inputs 0 }}
+{{- $output := index $method.Outputs 0 }}
+
+func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context, {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}} {{template "field" dict "Name" $input.Name "Type" $input.Type "Optional" $input.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $input.Meta "Succinct" $method.Succinct}}) ({{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta}}, error) {
+	var out {{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta}}
+	err := doHTTPRequest(ctx, c.client, c.urls[{{$i}}], {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}, &out)
+	return out, err
+}
+{{- else }}
+
+func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context{{range $_, $input := $method.Inputs}}, {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}} {{template "field" dict "Name" $input.Name "Type" $input.Type "Optional" $input.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $input.Meta "Succinct" $method.Succinct}}{{end}}) {{if len $method.Outputs}}({{end}}{{range $i, $output := $method.Outputs}}{{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta}}{{if lt $i (len $method.Outputs)}}, {{end}}{{end}}error{{if len $method.Outputs}}){{end}} {
+	{{- $inputVar := "nil" -}}
+	{{- $outputVar := "nil" -}}
+	{{- if $method.Inputs | len }}
+	{{- $inputVar = "in"}}
+	in := struct {
+	{{- range $i, $input := $method.Inputs}}
+		Arg{{$i}} {{template "field" dict "Name" $input.Name "Type" $input.Type "Optional" $input.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $input.Meta "JsonTags" true}}
+	{{- end}}
+	}{ {{- range $i, $input := $method.Inputs}}{{if gt $i 0}}, {{end}}{{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}{{end}}}{{ "\n" }}
+	{{- end}}
+	{{- if $method.Outputs | len}}
+	{{- $outputVar = "&out"}}
+	out := struct {
+	{{- range $i, $output := $method.Outputs}}
+		Ret{{$i}} {{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta "JsonTags" true}}
+	{{- end}}
+	}{}{{ "\n" }}
+	{{- end }}
+	err := doHTTPRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}})
+
+	return {{range $i, $output := $method.Outputs}}out.Ret{{$i}}, {{end}}err
+}
+{{- end}}
+
+{{- else }}
+
+func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context{{range $_, $input := $method.Inputs}}, {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}} {{template "field" dict "Name" $input.Name "Type" $input.Type "Optional" $input.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $input.Meta "Succinct" $method.Succinct}}{{end}}) ({{$method.Name}}StreamReader, error) {
+	{{- $inputVar := "nil" -}}
+	{{- if $method.Inputs | len }}
+	{{- if $method.Succinct }}
+	{{- $inputVar = (index $method.Inputs 0).Name -}}
+	{{- else }}
+	{{- $inputVar = "in"}}
+	in := struct {
+	{{- range $i, $input := $method.Inputs}}
+		Arg{{$i}} {{template "field" dict "Name" $input.Name "Type" $input.Type "Optional" $input.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $input.Meta "JsonTags" true}}
+	{{- end}}
+	}{ {{- range $i, $input := $method.Inputs}}{{if gt $i 0}}, {{end}}{{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}{{end}}}{{ "\n" }}
+	{{- end}}
+	{{- end}}
+	resp, err := doHTTPRequestRaw(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, nil)
+	if err != nil {
+		if resp != nil {
+			resp.Body.Close()
+		}
+		return nil, err
+	}
+
+	buf := bufio.NewReader(resp.Body)
+	return &{{$method.Name | firstLetterToLower}}StreamReader{streamReader{ctx: ctx, c: resp.Body, r: buf}}, nil
+}
+
+type {{firstLetterToLower $method.Name}}StreamReader struct {
+	streamReader
+}
+
+{{ if $method.Succinct }}
+{{- $output := (index $method.Outputs 0) }}
+func (r *{{firstLetterToLower $method.Name}}StreamReader) Read() ({{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta}}, error) {
+	out := struct {
+		{{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta "JsonTags" false}}
+		WebRPCError *WebRPCError `json:"webrpcError"`
+	}{}
+
+	err := r.streamReader.read(&out)
+	if err != nil {
+		return nil, err
+	}
+
+	if out.WebRPCError != nil {
+		return nil, out.WebRPCError
+	}
+
+	return out.{{$output.Type}}, nil
+}
+{{ else }}
+func (r *{{firstLetterToLower $method.Name}}StreamReader) Read() ({{range $i, $output := $method.Outputs}}{{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta}}{{if lt $i (len $method.Outputs)}}{{end}}, {{end}}error) {
+	out := struct {
+	{{- range $i, $output := $method.Outputs}}
+		Ret{{$i}} {{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta "JsonTags" true}}
+	{{- end }}
+		WebRPCError *WebRPCError `json:"webrpcError"`
+	}{}
+
+	err := r.streamReader.read(&out)
+	if err != nil {
+		return {{range $i, $output := $method.Outputs}}out.Ret{{$i}}, {{end}}err
+	}
+
+	if out.WebRPCError != nil {
+		return {{range $i, $output := $method.Outputs}}out.Ret{{$i}}, {{end}}out.WebRPCError
+	}
+
+	return {{range $i, $output := $method.Outputs}}out.Ret{{$i}}, {{end}}nil
+}
+{{- end -}}
+{{- end -}}
+
+{{- end }}
+{{- end }}
+
+{{- if $opts.streaming }}
+
+type streamReader struct {
+	ctx context.Context
+	c   io.Closer
+	r   *bufio.Reader
+}
+
+func (r *streamReader) read(v interface {}) error {
+	for {
+		select {
+		case <-r.ctx.Done():
+			r.c.Close()
+			return ErrWebrpcClientAborted.WithCause(r.ctx.Err())
+		default:
+		}
+
+		line, err := r.r.ReadBytes('\n')
+		if err != nil {
+			return r.handleReadError(err)
+		}
+
+		// Eat newlines (keep-alive pings).
+		if len(line) == 1 && line[0] == '\n' {
+			continue
+		}
+
+		if err := {{$json}}.Unmarshal(line, &v); err != nil {
+			return r.handleReadError(err)
+		}
+		return nil
+	}
+}
+
+func (r *streamReader) handleReadError(err error) error {
+	defer r.c.Close()
+	if errors.Is(err, io.EOF) {
+		return ErrWebrpcStreamFinished.WithCause(err)
+	}
+	if errors.Is(err, io.ErrUnexpectedEOF) {
+		return ErrWebrpcStreamLost.WithCause(err)
+	}
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded){
+		return ErrWebrpcClientAborted.WithCause(err)
+	}
+	return ErrWebrpcBadResponse.WithCausef("reading stream: %w", err)
+}
+
+{{- end }}
+
+{{- end }}
+
+// Client is a unified client for every service of this API, all sharing the
+// same address and HTTP client: c.Users.Get(ctx, …). Skip it when services
+// need different transports (e.g. separate admin vs user credentials) — the
+// per-service constructors stay.
+type Client struct {
+{{- range $_, $service := $services}}
+	{{$service.Name}} {{$service.Name}}Client
+{{- end}}
+}
+
+func NewClient(addr string, client HTTPClient) *Client {
+	return &Client{
+{{- range $_, $service := $services}}
+		{{$service.Name}}: New{{firstLetterToUpper $service.Name}}Client(addr, client),
+{{- end}}
+	}
+}
+{{- end -}}

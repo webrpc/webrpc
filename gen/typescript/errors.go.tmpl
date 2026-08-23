@@ -1,0 +1,111 @@
+{{- define "errors" -}}
+{{- $webrpcErrors := .WebrpcErrors -}}
+{{- $schemaErrors := .SchemaErrors -}}
+{{- $opts := .Opts -}}
+
+//
+// Errors
+//
+
+type WebrpcErrorParams = { name?: string, code?: number, message?: string, status?: number, cause?: string }
+
+export class WebrpcError extends Error {
+  code: number
+  status: number
+
+  constructor(error: WebrpcErrorParams = {}) {
+    super(error.message)
+    this.name = error.name || 'WebrpcEndpointError'
+    this.code = typeof error.code === 'number' ? error.code : 0
+    this.message = error.message || `endpoint error`
+    this.status = typeof error.status === 'number' ? error.status : 400
+    if (error.cause !== undefined) this.cause = error.cause
+    Object.setPrototypeOf(this, WebrpcError.prototype)
+  }
+
+  static new(payload: any): WebrpcError {
+    return new this({ message: payload.message, code: payload.code, status: payload.status, cause: payload.cause })
+  }
+}
+
+{{ range $_, $error := $webrpcErrors}}
+export class {{$error.Name}}Error extends WebrpcError {
+  constructor(error: WebrpcErrorParams = {}) {
+    super(error)
+    this.name = error.name || '{{$error.Name}}'
+    this.code = typeof error.code === 'number' ? error.code : {{$error.Code}}
+    this.message = error.message || `{{$error.Message}}`
+    this.status = typeof error.status === 'number' ? error.status : {{$error.HTTPStatus}}
+    if (error.cause !== undefined) this.cause = error.cause
+    Object.setPrototypeOf(this, {{$error.Name}}Error.prototype)
+  }
+}
+{{ end }}
+
+//
+// Schema errors
+//
+{{ range $_, $error := $schemaErrors}}
+export class {{$error.Name}}Error extends WebrpcError {
+  constructor(error: WebrpcErrorParams = {}) {
+    super(error)
+    this.name = error.name || '{{$error.Name}}'
+    this.code = typeof error.code === 'number' ? error.code : {{$error.Code}}
+    this.message = error.message || `{{$error.Message}}`
+    this.status = typeof error.status === 'number' ? error.status : {{$error.HTTPStatus}}
+    if (error.cause !== undefined) this.cause = error.cause
+    Object.setPrototypeOf(this, {{$error.Name}}Error.prototype)
+  }
+}
+{{ end }}
+
+{{- if eq $opts.enumStyle "union"}}
+export const errors = {
+{{- range $_, $error := $webrpcErrors}}
+  {{$error.Name}}: '{{$error.Name}}',
+{{- end}}
+{{- range $_, $error := $schemaErrors}}
+  {{$error.Name}}: '{{$error.Name}}',
+{{- end}}
+} as const
+export type errors = (typeof errors)[keyof typeof errors]
+
+export const WebrpcErrorCodes = {
+{{- range $_, $error := $webrpcErrors}}
+  {{$error.Name}}: {{$error.Code}},
+{{- end }}
+{{- range $_, $error := $schemaErrors}}
+  {{$error.Name}}: {{$error.Code}},
+{{- end }}
+} as const
+export type WebrpcErrorCodes = (typeof WebrpcErrorCodes)[keyof typeof WebrpcErrorCodes]
+{{- else}}
+export enum errors {
+{{- range $_, $error := $webrpcErrors}}
+  {{$error.Name}} = '{{$error.Name}}',
+{{- end}}
+{{- range $_, $error := $schemaErrors}}
+  {{$error.Name}} = '{{$error.Name}}',
+{{- end}}
+}
+
+export enum WebrpcErrorCodes {
+{{- range $_, $error := $webrpcErrors}}
+  {{$error.Name}} = {{$error.Code}},
+{{- end }}
+{{- range $_, $error := $schemaErrors}}
+  {{$error.Name}} = {{$error.Code}},
+{{- end }}
+}
+{{- end}}
+
+export const webrpcErrorByCode: { [code: number]: any } = {
+{{- range $_, $error := $webrpcErrors}}
+  [{{$error.Code}}]: {{$error.Name}}Error,
+{{- end }}
+{{- range $_, $error := $schemaErrors}}
+  [{{$error.Code}}]: {{$error.Name}}Error,
+{{- end }}
+}
+
+{{end}}

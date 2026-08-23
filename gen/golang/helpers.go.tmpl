@@ -1,0 +1,96 @@
+{{define "helpers"}}
+{{ $opts := .Opts -}}
+
+//
+// Webrpc helpers
+//
+
+type contextKey struct {
+	name string
+}
+
+func (k *contextKey) String() string {
+	return "webrpc context value " + k.name
+}
+
+{{- if $opts.client}}
+var (
+	HTTPClientRequestHeadersCtxKey = &contextKey{"HTTPClientRequestHeaders"}
+)
+{{end}}
+
+{{- if $opts.server}}
+var (
+	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"}
+	MethodNameCtxKey  = &contextKey{"MethodName"} 
+	HTTPRequestCtxKey = &contextKey{"HTTPRequest"}
+	ServiceNameCtxKey = &contextKey{"ServiceName"}
+)
+
+func ServiceNameFromContext(ctx context.Context) string {
+	service, _ := ctx.Value(ServiceNameCtxKey).(string)
+	return service
+}
+
+func MethodNameFromContext(ctx context.Context) string {
+	method, _ := ctx.Value(MethodNameCtxKey).(string)
+	return method
+}
+
+func RequestFromContext(ctx context.Context) *http.Request {
+	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
+	return r
+}
+{{- end}}
+
+// Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...
+func PtrTo[T any](v T) *T { return &v }
+
+{{ if $opts.server}}
+func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
+	w, _ := ctx.Value(HTTPResponseWriterCtxKey).(http.ResponseWriter)
+	return w
+}
+{{- end}}
+
+{{- if and $opts.fixEmptyArrays $opts.server}}
+
+// Copied from https://github.com/golang-cz/nilslice
+func initializeNilSlices(obj interface{}) interface{} {
+	v := reflect.ValueOf(obj)
+	initializeNils(v)
+
+	return obj
+}
+
+func initializeNils(v reflect.Value) {
+	// Dereference pointer(s).
+	for v.Kind() == reflect.Ptr && !v.IsNil() {
+		v = v.Elem()
+	}
+
+	if v.Kind() == reflect.Slice {
+		// Initialize a nil slice.
+		if v.IsNil() && v.CanSet() {
+			v.Set(reflect.MakeSlice(v.Type(), 0, 0))
+			return
+		}
+
+		// Recursively iterate over slice items.
+		for i := 0; i < v.Len(); i++ {
+			item := v.Index(i)
+			initializeNils(item)
+		}
+	}
+
+	// Recursively iterate over struct fields.
+	if v.Kind() == reflect.Struct {
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Field(i)
+			initializeNils(field)
+		}
+	}
+}
+{{- end -}}
+
+{{- end -}}

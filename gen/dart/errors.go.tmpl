@@ -1,0 +1,116 @@
+{{define "errors"}}
+{{- /* Generates the classes for both base Webrpc errors and custom errors defined in the schema */ -}}
+
+{{- $rpcErrors := .WebrpcErrors -}}
+{{- $schemaErrors := .Errors -}}
+
+/// Unrecoverable errors representing an invalid use of the API, bad schema, or
+/// failure in the core of Webrpc (i.e. a bug).
+class WebrpcError extends Error {
+    WebrpcError._({
+        required this.id, 
+        required this.message, 
+        required this.httpStatus,
+    });
+    
+    factory WebrpcError.fromCode(int code) {
+        switch (code) {
+            {{- range $_, $_ := $rpcErrors}}
+            {{- $isError := (lt .HTTPStatus 500)}}
+            {{- if $isError}}
+            case {{.Code}}:
+                return WebrpcError._(
+                    id: ErrorId.{{firstLetterToLower .Name}}, 
+                    message: '{{.Message}}',
+                    httpStatus: {{.HTTPStatus}},
+                );
+            {{end -}}
+            {{end -}}
+
+            {{- range $_, $_ := $schemaErrors}}
+            {{- $isError := (lt .HTTPStatus 500)}}
+            {{- if $isError}}
+            case {{.Code}}:
+                return WebrpcError._(
+                    id: ErrorId.{{firstLetterToLower .Name}}, 
+                    message: '{{.Message}}',
+                    httpStatus: {{.HTTPStatus}},
+                );
+            {{end -}}
+            {{end}}
+            default:
+                throw ArgumentError.value(code, "code", "Unrecognized");
+        }
+    }
+
+    final ErrorId id;
+    final String message;
+    final int httpStatus;
+}
+
+/// Recoverable errors that should generally be caught, representing a
+/// bad state or temporary failure.
+class WebrpcException implements Exception {
+    WebrpcException._({
+        required this.id, 
+        required this.message, 
+        required this.httpStatus,
+    });
+    
+    factory WebrpcException.fromCode(int code) {
+        switch (code) {
+            {{- range $_, $_ := $rpcErrors}}
+            {{- $isError := (lt .HTTPStatus 500)}}
+            {{- if (not $isError)}}
+            case {{.Code}}:
+                return WebrpcException._(
+                    id: ErrorId.{{firstLetterToLower .Name}}, 
+                    message: '{{.Message}}',
+                    httpStatus: {{.HTTPStatus}},
+                );
+            {{end -}}
+            {{end -}}
+
+            {{- range $_, $_ := $schemaErrors}}
+            {{- $isError := (lt .HTTPStatus 500)}}
+            {{- if (not $isError)}}
+            case {{.Code}}:
+                return WebrpcException._(
+                    id: ErrorId.{{firstLetterToLower .Name}}, 
+                    message: '{{.Message}}',
+                    httpStatus: {{.HTTPStatus}},
+                );
+            {{end -}}
+            {{end}}
+            default:
+                throw ArgumentError.value(code, "code", "Unrecognized code $code");
+        }
+    }
+
+    final ErrorId id;
+    final String message;
+    final int httpStatus;
+}
+
+/// Unique ID of a custom schema error or base Webrpc error.
+enum ErrorId {
+    {{- range $i, $_ := $rpcErrors}}
+    {{firstLetterToLower .Name}}(code: {{.Code}}, name: '{{.Name}}')
+    {{- if (lt $i (lastIndex $rpcErrors))}},{{else if $schemaErrors}},{{else}};{{end}}
+    {{- end}}
+
+    {{- range $i, $_ := $schemaErrors}}
+    {{firstLetterToLower .Name}}(code: {{.Code}}, name: '{{.Name}}')
+    {{- ternary (lt $i (lastIndex $schemaErrors)) "," ";"}}
+    {{- end}}
+
+    const ErrorId({
+        required this.code,
+        required this.name,
+    });
+
+    final int code;
+    final String name;
+}
+
+{{end}}

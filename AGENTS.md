@@ -13,8 +13,8 @@ CLI). For helping a user *write RIDL schemas*, see `SKILL.md` instead.
 - `schema/` — schema model and parsers; `schema/ridl/` is the RIDL parser
 - `gen/` — template-driven generator core (code generators are Go templates)
 - `_examples/`, `tests/` — runnable examples and interop schema; generated output is checked in
-- Codegen templates live in **separate repos** (`webrpc/gen-golang`, `gen-typescript`, ...).
-  Template bugs are fixed there, not here.
+- Codegen templates live in **`gen/<target>` folders** (`gen/golang`, `gen/typescript`, ...)
+  and are embedded into the `webrpc-gen` binary via `go:embed`. Template bugs are fixed here.
 
 ## Commands
 
@@ -23,12 +23,11 @@ CLI). For helping a user *write RIDL schemas*, see `SKILL.md` instead.
 - `make generate` — regenerate all examples and tests using latest templates
 - `make diff` — fail if the working tree has changes (CI runs this after generate)
 - `make update-ridl-test-golden-examples` — refresh RIDL parser golden JSON files
-- `make dep-upgrade-templates` — bump all `gen-*` template dependencies
 
 ## Rules
 
 - Never hand-edit generated files (`*.gen.*`, generated output under `_examples/` and
-  `tests/`). Change the schema or the upstream `gen-*` template repo, then `make generate`.
+  `tests/`). Change the schema or the `gen/<target>` templates, then `make generate`.
 - After changing parser or schema code: `make generate && make diff` to confirm generated
   output is deterministic and intentional.
 - Golden files under `schema/ridl/_example/` are updated only via

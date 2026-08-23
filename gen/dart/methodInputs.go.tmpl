@@ -1,0 +1,10 @@
+{{- define "methodInputs" -}}
+
+{{- $method := .Method -}}
+{{- $typeMap := .TypeMap -}}
+
+{{- range $i, $input := $method.Inputs -}}
+{{- if gt $i 0 -}}, {{end}}
+{{- template "type" dict "Type" $input.Type "TypeMap" $typeMap}} {{$input.Name -}}
+{{- end -}}
+{{- end -}}

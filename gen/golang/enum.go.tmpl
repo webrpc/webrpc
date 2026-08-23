@@ -1,0 +1,68 @@
+{{- define "enum" -}}
+
+{{- $name := .Name -}}
+{{- $type := .Type -}}
+{{- $fields := .Fields -}}
+{{- $opts := .Opts -}}
+
+{{- if $opts.types -}}
+type {{$name}} {{$type}}
+{{- end }}
+
+const (
+{{- range $_, $field := $fields }}
+	{{- if gt (len $field.Comments) 0 -}}
+		{{- range $_, $comment := $field.Comments }}
+			// {{ replaceAll $comment "\"" "'" }}
+		{{- end }}
+	{{- end }}
+	{{template "enumConstName" dict "EnumName" $name "FieldName" .Name}} {{$name}} = {{$field.Value}}
+{{- end}}
+)
+
+//go:fix inline
+const (
+{{- range $_, $field := $fields }}
+	// Deprecated: Use {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}} instead.
+	{{template "enumLegacyConstName" dict "EnumName" $name "FieldName" .Name}} {{$name}} = {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}}
+{{- end}}
+)
+
+var {{$name}}_name = map[{{$name}}]string{
+{{- range $fields}}
+	{{template "enumConstName" dict "EnumName" $name "FieldName" .Name}}: "{{.Name}}",
+{{- end}}
+}
+
+var {{$name}}_value = map[string]{{$name}}{
+{{- range $fields}}
+	"{{.Name}}": {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}},
+{{- end}}
+}
+
+func (x {{$name}}) String() string {
+	return {{$name}}_name[x]
+}
+
+func (x {{$name}}) MarshalText() ([]byte, error) {
+	return []byte({{$name}}_name[x]), nil
+}
+
+func (x *{{$name}}) UnmarshalText(b []byte) error {
+	*x = {{$name}}({{$name}}_value[string(b)])
+	return nil
+}
+
+func (x *{{$name}}) Is(values ...{{$name}}) bool {
+	if x == nil {
+		return false
+	}
+	for _, v := range values {
+		if *x == v {
+			return true
+		}
+	}
+	return false
+}
+
+{{- end -}}

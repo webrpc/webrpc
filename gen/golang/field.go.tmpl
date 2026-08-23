@@ -1,0 +1,71 @@
+{{- define "field" -}}
+
+{{- $type := .Type -}}
+{{- $name := (coalesce .Name "") -}}
+{{- $fieldName := $name | firstLetterToUpper -}}
+{{- $keywordMap := .KeywordMap -}}
+{{- $typePrefix := .TypePrefix -}}
+{{- $typeMeta := .TypeMeta -}}
+{{- $typeMap := .TypeMap -}}
+{{- $optional := .Optional -}}
+{{- $printName := .PrintName -}}
+{{- $includeJsonTags := .JsonTags -}}
+{{- $includeStructTags := .StructTags -}}
+{{- $succinct := or .Succinct false -}}
+
+{{- $customType := "" -}}
+{{- $jsonTag := printf "json:%q" $name }}
+{{- $structTags := array -}}
+{{- range $meta := $typeMeta -}}
+    {{- if exists $meta "json" -}}
+        {{- $jsonTag = printf "json:%q" (get $meta "json") -}}
+    {{- end -}}
+    {{- if exists $meta "go.field.name" -}}
+        {{- $fieldName = get $meta "go.field.name" -}}
+    {{- end -}}
+    {{- if exists $meta "go.field.type" -}}
+        {{- $customType = get $meta "go.field.type" -}}
+    {{- end -}}
+    {{- if exists $meta "go.tag.json" -}}
+        {{- $jsonTag = printf "json:%q" (get $meta "go.tag.json") -}}
+    {{- end -}}
+    {{- range $metaKey, $metaValue := $meta -}}
+        {{- if and (hasPrefix $metaKey "go.tag.") (ne $metaKey "go.tag.json") -}}
+            {{- $structTags = append $structTags (printf "%s:%q" (trimPrefix $metaKey "go.tag.") $metaValue) -}}
+        {{- end -}}
+    {{- end -}}
+{{- end }}
+
+{{- if $printName}}{{"\t"}}{{$fieldName}} {{end -}}
+{{- if (ne $customType "") -}}
+
+    {{$customType}}
+
+{{- else if isMapType $type -}}
+
+    map[{{mapKeyType $type}}]{{template "field" dict "Name" $name "Type" (mapValueType $type) "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $typeMeta}}
+
+{{- else if isListType $type -}}
+
+    []{{template "field" dict "Name" $name "Type" (listElemType $type) "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $typeMeta}}
+
+{{- else if isCoreType $type -}}
+    {{if and $optional (ne (toString $type) "any")}}*{{end}}{{ get $typeMap $type }}
+
+{{- else -}}{{- /* structs, enums, aliases */ -}}
+    {{- if or (isEnumType $type) (isAliasType $type) -}}
+        {{if $optional}}*{{end}}{{$typePrefix}}{{$type}}
+    {{- else -}}
+        {{- if $succinct -}}
+            {{$typePrefix}}{{$type}}
+        {{- else -}}
+            *{{$typePrefix}}{{$type}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+
+{{- if $includeJsonTags -}}
+{{" "}}`{{$jsonTag}}{{if and $includeStructTags (len $structTags)}} {{join (sort $structTags) " "}}{{end}}`
+{{- end -}}
+
+{{- end -}}

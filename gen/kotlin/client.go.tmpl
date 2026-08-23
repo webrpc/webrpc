@@ -1,0 +1,242 @@
+{{define "client"}}
+
+{{- $basepath := .BasePath -}}
+{{- $schemaName := .SchemaName -}}
+{{- $schemaPrefix := pascalCase $schemaName -}}
+{{- $typeMap := .TypeMap -}}
+{{- $types := .Types -}}
+{{- $reservedTypeNames := dict -}}
+{{- range $_, $type := $types -}}
+    {{- set $reservedTypeNames $type.Name true -}}
+{{- end -}}
+{{- $usedTopLevelNames := dict -}}
+{{- range $_, $type := $types -}}
+    {{- set $usedTopLevelNames $type.Name true -}}
+{{- end -}}
+
+{{- if .Services -}}
+// region Service Metadata
+{{ range $serviceIndex, $service := .Services}}
+{{if gt $serviceIndex 0}}
+
+{{end}}
+{{- $serviceBaseName := ternary (hasPrefix $service.Name $schemaPrefix) $service.Name (printf "%s%s" $schemaPrefix $service.Name) -}}
+{{- $serviceApiState := dict "name" "" "selected" false -}}
+{{- range $_, $candidate := (list (printf "%sApi" $serviceBaseName) (printf "%sServiceApi" $serviceBaseName) (printf "%sWebRpcApi" $serviceBaseName) (printf "%sGeneratedRpcApi" $serviceBaseName)) -}}
+    {{- if not (get $serviceApiState "selected") -}}
+        {{- if not (exists $usedTopLevelNames $candidate) -}}
+            {{- set $serviceApiState "name" $candidate -}}
+            {{- set $serviceApiState "selected" true -}}
+            {{- set $usedTopLevelNames $candidate true -}}
+        {{- end -}}
+    {{- end -}}
+{{- end }}
+{{- if not (get $serviceApiState "selected") -}}
+    {{- range $i := until 1000 -}}
+        {{- if not (get $serviceApiState "selected") -}}
+            {{- $candidate := printf "%sGeneratedRpcApi%d" $serviceBaseName (add $i 1) -}}
+            {{- if not (exists $usedTopLevelNames $candidate) -}}
+                {{- set $serviceApiState "name" $candidate -}}
+                {{- set $serviceApiState "selected" true -}}
+                {{- set $usedTopLevelNames $candidate true -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- if not (get $serviceApiState "selected") -}}
+    {{- fail (printf "kotlin generator error: could not choose API name for service %s after 1000 fallback attempts" $service.Name) -}}
+{{- end -}}
+{{- $serviceApiName := get $serviceApiState "name" -}}
+{{- $serviceClientState := dict "name" "" "selected" false -}}
+{{- range $_, $candidate := (list (printf "%sClient" $serviceBaseName) (printf "%sServiceClient" $serviceBaseName) (printf "%sWebRpcClient" $serviceBaseName) (printf "%sGeneratedRpcClient" $serviceBaseName)) -}}
+    {{- if not (get $serviceClientState "selected") -}}
+        {{- if not (exists $usedTopLevelNames $candidate) -}}
+            {{- set $serviceClientState "name" $candidate -}}
+            {{- set $serviceClientState "selected" true -}}
+            {{- set $usedTopLevelNames $candidate true -}}
+        {{- end -}}
+    {{- end -}}
+{{- end }}
+{{- if not (get $serviceClientState "selected") -}}
+    {{- range $i := until 1000 -}}
+        {{- if not (get $serviceClientState "selected") -}}
+            {{- $candidate := printf "%sGeneratedRpcClient%d" $serviceBaseName (add $i 1) -}}
+            {{- if not (exists $usedTopLevelNames $candidate) -}}
+                {{- set $serviceClientState "name" $candidate -}}
+                {{- set $serviceClientState "selected" true -}}
+                {{- set $usedTopLevelNames $candidate true -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- if not (get $serviceClientState "selected") -}}
+    {{- fail (printf "kotlin generator error: could not choose client name for service %s after 1000 fallback attempts" $service.Name) -}}
+{{- end -}}
+{{- $serviceClientName := get $serviceClientState "name" -}}
+{{- $methodNamespaceNames := dict -}}
+{{- $usedMethodNamespaceNames := dict -}}
+{{- range $_, $method := $service.Methods -}}
+    {{- $methodNamespaceState := dict "name" "" "selected" false -}}
+    {{- range $_, $candidate := (list $method.Name (printf "%sMethod" $method.Name)) -}}
+        {{- if not (get $methodNamespaceState "selected") -}}
+            {{- if and (not (exists $reservedTypeNames $candidate)) (not (exists $usedMethodNamespaceNames $candidate)) -}}
+                {{- set $methodNamespaceState "name" $candidate -}}
+                {{- set $methodNamespaceState "selected" true -}}
+                {{- set $usedMethodNamespaceNames $candidate true -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+    {{- if not (get $methodNamespaceState "selected") -}}
+        {{- range $i := until 1000 -}}
+            {{- if not (get $methodNamespaceState "selected") -}}
+                {{- $candidate := printf "%sMethod%d" $method.Name (add $i 1) -}}
+                {{- if and (not (exists $reservedTypeNames $candidate)) (not (exists $usedMethodNamespaceNames $candidate)) -}}
+                    {{- set $methodNamespaceState "name" $candidate -}}
+                    {{- set $methodNamespaceState "selected" true -}}
+                    {{- set $usedMethodNamespaceNames $candidate true -}}
+                {{- end -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+    {{- if not (get $methodNamespaceState "selected") -}}
+        {{- fail (printf "kotlin generator error: could not choose method namespace name for service %s method %s after 1000 fallback attempts" $service.Name $method.Name) -}}
+    {{- end -}}
+    {{- set $methodNamespaceNames $method.Name (get $methodNamespaceState "name") -}}
+{{- end -}}
+object {{$serviceApiName}} {
+    const val basePath: String = "{{$basepath}}{{$service.Name}}"
+{{ range $_, $method := $service.Methods -}}
+{{ $methodNamespaceName := get $methodNamespaceNames $method.Name }}
+
+    object {{$methodNamespaceName}} {
+        const val path: String = "/{{$method.Name}}"
+        const val urlPath: String = "{{$basepath}}{{$service.Name}}/{{$method.Name}}"
+        {{- if and (not $method.Succinct) (gt (len $method.Inputs) 0) }}
+        {{- $requestHasExportableFields := dict "value" false -}}
+        {{- range $_, $field := $method.Inputs -}}
+            {{- $isExportable := true -}}
+            {{- range $meta := $field.Meta -}}
+                {{- if exists $meta "json" -}}
+                    {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                        {{- $isExportable = false -}}
+                    {{- end -}}
+                {{- end -}}
+            {{- end -}}
+            {{- if $isExportable -}}
+                {{- set $requestHasExportableFields "value" true -}}
+            {{- end -}}
+        {{- end }}
+
+        @Serializable
+{{ if get $requestHasExportableFields "value" }}        data class Request(
+            {{- range $_, $field := $method.Inputs}}
+                {{- $isExportable := true -}}
+                {{- range $meta := $field.Meta -}}
+                    {{- if exists $meta "json" -}}
+                        {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                            {{- $isExportable = false -}}
+                        {{- end -}}
+                    {{- end -}}
+                {{- end }}
+                {{- if $isExportable }}
+            @SerialName("{{template "codingKey" dict "Field" $field}}")
+            val {{template "fieldName" dict "Field" $field}}: {{template "type" dict "Type" $field.Type "TypeMap" $typeMap}}{{if $field.Optional}}? = null{{end}},
+                {{- end -}}
+            {{- end}}
+        )
+{{ else }}        class Request
+{{ end -}}
+        {{- end }}
+        {{- if and (not $method.Succinct) (gt (len $method.Outputs) 0) }}
+        {{- $responseHasExportableFields := dict "value" false -}}
+        {{- range $_, $field := $method.Outputs -}}
+            {{- $isExportable := true -}}
+            {{- range $meta := $field.Meta -}}
+                {{- if exists $meta "json" -}}
+                    {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                        {{- $isExportable = false -}}
+                    {{- end -}}
+                {{- end -}}
+            {{- end -}}
+            {{- if $isExportable -}}
+                {{- set $responseHasExportableFields "value" true -}}
+            {{- end -}}
+        {{- end }}
+
+        @Serializable
+{{ if get $responseHasExportableFields "value" }}        data class Response(
+            {{- range $_, $field := $method.Outputs}}
+                {{- $isExportable := true -}}
+                {{- range $meta := $field.Meta -}}
+                    {{- if exists $meta "json" -}}
+                        {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                            {{- $isExportable = false -}}
+                        {{- end -}}
+                    {{- end -}}
+                {{- end }}
+                {{- if $isExportable }}
+            @SerialName("{{template "codingKey" dict "Field" $field}}")
+            val {{template "fieldName" dict "Field" $field}}: {{template "type" dict "Type" $field.Type "TypeMap" $typeMap}}{{if $field.Optional}}? = null{{end}},
+                {{- end -}}
+            {{- end}}
+        )
+{{ else }}        class Response
+{{ end -}}
+        {{- end }}
+
+        {{- if eq (len $method.Inputs) 0 }}
+        @Suppress("UNUSED_PARAMETER")
+        {{- end }}
+        fun encodeRequest({{if gt (len $method.Inputs) 0}}request: {{if $method.Succinct}}{{(index $method.Inputs 0).Type}}{{else}}Request{{end}}, {{end}}json: Json = WebRpcJson): String {
+            {{- if eq (len $method.Inputs) 0 }}
+            return "{}"
+            {{- else }}
+            return json.encodeToString(request)
+            {{- end }}
+        }
+        {{- if eq (len $method.Outputs) 0 }}
+
+        @Suppress("UNUSED_PARAMETER")
+        fun decodeResponse(body: String, json: Json = WebRpcJson) {
+            return
+        }
+        {{- else }}
+
+        fun decodeResponse(body: String, json: Json = WebRpcJson): {{if $method.Succinct}}{{(index $method.Outputs 0).Type}}{{else}}Response{{end}} {
+            return json.decodeFromString(body)
+        }
+        {{- end }}
+    }
+{{- end}}
+}
+
+class {{$serviceClientName}}(
+    private val baseUrl: String,
+    private val transport: WebRpcTransport,
+    private val json: Json = WebRpcJson,
+    private val headers: () -> Map<String, String> = { emptyMap() },
+) {
+    {{- range $_, $method := $service.Methods}}
+    {{- $methodNamespaceName := get $methodNamespaceNames $method.Name }}
+
+    @Throws(WebRpcError::class, WebRpcTransportException::class)
+    suspend fun {{firstLetterToLower $method.Name}}({{template "methodInputs" dict "Method" $method "ServiceApiName" $serviceApiName "MethodNamespaceName" $methodNamespaceName}}){{if gt (len $method.Outputs) 0}}: {{template "methodOutputs" dict "Method" $method "ServiceApiName" $serviceApiName "MethodNamespaceName" $methodNamespaceName}}{{end}} {
+        return executeWebRpc(
+            baseUrl = baseUrl,
+            urlPath = {{$serviceApiName}}.{{$methodNamespaceName}}.urlPath,
+            body = {{$serviceApiName}}.{{$methodNamespaceName}}.encodeRequest({{if gt (len $method.Inputs) 0}}request, {{end}}json),
+            transport = transport,
+            headers = headers(),
+            json = json,
+            decodeSuccess = { body, decodeJson ->
+                {{$serviceApiName}}.{{$methodNamespaceName}}.decodeResponse(body, decodeJson)
+            },
+        )
+    }
+    {{- end}}
+}
+{{ end }}
+// endregion
+{{- end}}
+
+{{end}}

@@ -1,0 +1,172 @@
+{{define "clientHelpers"}}
+
+{{- $webrpcErrors := .WebrpcErrors -}}
+{{- $schemaErrors := .SchemaErrors -}}
+{{- $opts := .Opts -}}
+
+// region Runtime
+val WebRpcJson: Json = Json {
+    ignoreUnknownKeys = true
+}
+
+data class WebRpcHttpResponse(
+    val statusCode: Int,
+    val body: String,
+    val headers: Map<String, String> = emptyMap(),
+)
+
+interface WebRpcTransport {
+    suspend fun post(
+        baseUrl: String,
+        path: String,
+        body: String,
+        headers: Map<String, String> = emptyMap(),
+    ): WebRpcHttpResponse
+}
+
+class WebRpcTransportException(
+    message: String,
+    cause: Throwable? = null,
+) : IOException(message, cause)
+
+{{- if $opts.okhttpTransport }}
+class OkHttpWebRpcTransport(
+    private val okHttpClient: OkHttpClient = OkHttpClient(),
+) : WebRpcTransport {
+    override suspend fun post(
+        baseUrl: String,
+        path: String,
+        body: String,
+        headers: Map<String, String>,
+    ): WebRpcHttpResponse = withContext(Dispatchers.IO) {
+        val request = Request.Builder()
+            .url(joinUrl(baseUrl, path))
+            .post(body.toRequestBody(jsonMediaType))
+            .apply {
+                headers.forEach { (name, value) -> addHeader(name, value) }
+            }
+            .build()
+
+        try {
+            okHttpClient.newCall(request).execute().use { response ->
+                val responseBody = response.body?.string().orEmpty()
+                val responseHeaders = response.headers.toMultimap()
+                    .mapValues { (_, values) -> values.lastOrNull().orEmpty() }
+                WebRpcHttpResponse(
+                    statusCode = response.code,
+                    body = responseBody,
+                    headers = responseHeaders,
+                )
+            }
+        } catch (exception: IOException) {
+            throw WebRpcTransportException("WebRPC HTTP request failed", exception)
+        }
+    }
+
+    companion object {
+        private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
+    }
+}
+{{- end }}
+
+private fun joinUrl(baseUrl: String, path: String): String =
+    baseUrl.trimEnd('/') + "/" + path.trimStart('/')
+
+suspend inline fun <O> executeWebRpc(
+    baseUrl: String,
+    urlPath: String,
+    body: String,
+    transport: WebRpcTransport,
+    headers: Map<String, String> = emptyMap(),
+    json: Json = WebRpcJson,
+    crossinline decodeSuccess: (body: String, json: Json) -> O,
+): O {
+    val response = try {
+        transport.post(
+            baseUrl = baseUrl,
+            path = urlPath,
+            body = body,
+            headers = headers,
+        )
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: WebRpcTransportException) {
+        throw e
+    } catch (e: Throwable) {
+        throw WebRpcTransportException("WebRPC request failed", e)
+    }
+
+    if (response.statusCode !in 200..299) {
+        throw decodeWebRpcError(response.statusCode, response.body, json)
+    }
+
+    return decodeSuccess(response.body, json)
+}
+// endregion
+
+// region Errors
+enum class ErrorKind(val code: Int) {
+
+    {{- range $_, $error := $webrpcErrors}}
+    {{toUpper (snakeCase $error.Name)}}({{$error.Code}}),
+    {{- end }}
+    {{- range $_, $error := $schemaErrors}}
+    {{toUpper (snakeCase $error.Name)}}({{$error.Code}}),
+    {{- end }}
+    UNKNOWN(-999);
+
+    companion object {
+        fun fromCode(code: Int): ErrorKind {
+            return ErrorKind.values().find { it.code == code } ?: UNKNOWN
+        }
+    }
+}
+
+data class WebRpcError(
+    val error: String,
+    val code: Int,
+    override val message: String,
+    val causeString: String,
+    val status: Int,
+    val errorKind: ErrorKind = ErrorKind.fromCode(code),
+) : Exception(message)
+
+@Serializable
+private data class WebRpcErrorPayload(
+    @SerialName("error") val error: String? = null,
+    @SerialName("code") val code: Int? = null,
+    @SerialName("msg") val message: String? = null,
+    @SerialName("cause") val causeString: String? = null,
+    @SerialName("status") val status: Int? = null,
+)
+
+fun decodeWebRpcError(
+    statusCode: Int,
+    body: String,
+    json: Json = WebRpcJson,
+): WebRpcError {
+    return try {
+        val payload = json.decodeFromString<WebRpcErrorPayload>(body)
+        val code = payload.code ?: ErrorKind.UNKNOWN.code
+        WebRpcError(
+            error = payload.error ?: "WebrpcEndpoint",
+            code = code,
+            message = payload.message ?: "endpoint error",
+            causeString = payload.causeString.orEmpty(),
+            status = payload.status ?: statusCode,
+            errorKind = ErrorKind.fromCode(code),
+        )
+    } catch (_: Throwable) {
+        WebRpcError(
+            error = "WebrpcBadResponse",
+            code = ErrorKind.UNKNOWN.code,
+            message = "Unable to decode error response",
+            causeString = body,
+            status = statusCode,
+            errorKind = ErrorKind.UNKNOWN,
+        )
+    }
+}
+// endregion
+
+{{end}}
