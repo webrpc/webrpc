@@ -1,5 +1,9 @@
 export PATH = $(shell echo $$PWD/bin:$$PATH)
 
+# Version stamped into the binaries. Falls back to a dev version in
+# checkouts with no git tags (e.g. fork PR checkouts in CI).
+VERSION ?= $(shell git describe --tags 2>/dev/null || echo v0.0.0-dev)
+
 all:
 	@echo "****************************************"
 	@echo "**              webrpc                **"
@@ -11,16 +15,16 @@ all:
 
 # Build webrpc-gen
 build:
-	go build -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe --tags)" -o ./bin/webrpc-gen ./cmd/webrpc-gen
+	go build -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$(VERSION)" -o ./bin/webrpc-gen ./cmd/webrpc-gen
 
 # Build webrpc-test
 build-test:
-	go build -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe --tags)" -o ./bin/webrpc-test ./cmd/webrpc-test
+	go build -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$(VERSION)" -o ./bin/webrpc-test ./cmd/webrpc-test
 
 # Install webrpc-gen and webrpc-test binaries locally
 install:
-	go install -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe --tags)" ./cmd/webrpc-gen
-	go install -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$$(git describe --tags)" ./cmd/webrpc-test
+	go install -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$(VERSION)" ./cmd/webrpc-gen
+	go install -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=$(VERSION)" ./cmd/webrpc-test
 
 clean:
 	rm -rf ./bin
@@ -30,8 +34,8 @@ generate: build
 	go generate -v -x ./...
 	for i in _examples/*; do echo $$i; make -C $$i generate || exit 1; done
 	# Replace webrpc version in all generated files to avoid git conflicts.
-	git grep -l "$$(git describe --tags)" | xargs perl -i -pe "s/\@$$(git describe --tags)//g"
-	perl -i -ne "print unless /$$(git describe --tags)/" tests/schema/test.debug.gen.txt
+	git grep -l "$(VERSION)" | xargs perl -i -pe "s/\@$(VERSION)//g"
+	perl -i -ne "print unless /$(VERSION)/" tests/schema/test.debug.gen.txt
 
 # Upgrade Go dependencies
 dep-upgrade-all:

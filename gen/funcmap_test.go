@@ -35,6 +35,12 @@ func TestMinVersion(t *testing.T) {
 		{"v2.5.8", "v2.6.6", false},
 
 		{"v0.13.0-dev", "v0.13.0", true},
+
+		// Dev/untagged builds satisfy any minimum version.
+		{"", "v0.9.0", true},
+		{"unknown", "v0.9.0", true},
+		{"(devel)", "v0.9.0", true},
+		{"v0.0.0-dev", "v0.9.0", true},
 	}
 
 	for _, tc := range tt {
