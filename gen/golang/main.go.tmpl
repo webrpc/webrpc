@@ -87,6 +87,7 @@
 {{- set $typeMap "float64" "float64" -}}
 {{- set $typeMap "string" "string" -}}
 {{- set $typeMap "timestamp" "time.Time" -}}
+{{- set $typeMap "file" "*File" -}}
 
 {{- /* Determine if BigInt helpers are needed. */ -}}
 
@@ -103,6 +104,12 @@
 	{{- range $_, $method := $service.Methods -}}
 		{{ if eq $method.StreamOutput true -}}
 			{{- set $opts "streaming" true -}}
+		{{- end -}}
+		{{ if MethodHasFileUpload $method -}}
+			{{- set $opts "fileUpload" true -}}
+		{{- end -}}
+		{{ if MethodHasFileDownload $method -}}
+			{{- set $opts "fileDownload" true -}}
 		{{- end -}}
 	{{- end -}}
 {{- end }}
@@ -192,6 +199,10 @@ func WebRPCSchemaHash() string {
 
 {{- if $usesBigInts}}
 {{ template "bigintHelpers" dict "Schema" .WebRPCSchema "Services" .Services "Opts" $opts }}
+{{ end -}}
+
+{{- if or $opts.fileUpload $opts.fileDownload}}
+{{ template "fileHelpers" dict "Json" $json "Opts" $opts }}
 {{ end -}}
 
 {{/* Errors */}}

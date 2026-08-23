@@ -1,0 +1,10 @@
+webrpc = v1
+
+name = file-upload
+version = v1.0.0
+basepath = /rpc
+
+service FileService
+  - UploadAvatar(userId: uint64, avatar: file) => (size: uint64)
+  - UploadAttachments(userId: uint64, attachments: []file) => (count: uint32)
+  - DownloadAvatar(userId: uint64) => (avatar: file)
