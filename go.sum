@@ -214,8 +214,8 @@ github.com/webrpc/gen-golang v0.36.0 h1:WlxTpul9Vecwsoq1zy03xj8iF3dg7iROrnv/Y7dr
 github.com/webrpc/gen-golang v0.36.0/go.mod h1:NxGXwEKm7yzKHISAFhD09yExukocb2XYa/KarN2IXpM=
 github.com/webrpc/gen-javascript v0.16.0 h1:qvQOt25DOIFAbb3OODGzrxHIMgQm0EI5+c171vFQuPw=
 github.com/webrpc/gen-javascript v0.16.0/go.mod h1:5EhapSJgzbiWrIGlqzZN9Lg9mE9209wwX+Du2dgn4EU=
-github.com/webrpc/gen-kotlin v0.3.2 h1:8d8BVjrCrYU7tMPBrzn8ZEoeBsxfYmV3Pnll12uGQuc=
-github.com/webrpc/gen-kotlin v0.3.2/go.mod h1:tPuW8Ys0tqgUdUjAaVCDufhvV5IExsKBl/iVOj9/A34=
+github.com/webrpc/gen-kotlin v0.3.3 h1:XMZ8JoURimeKm57RjYASpeTYmyGgJDsv+NWmu5D55PI=
+github.com/webrpc/gen-kotlin v0.3.3/go.mod h1:tPuW8Ys0tqgUdUjAaVCDufhvV5IExsKBl/iVOj9/A34=
 github.com/webrpc/gen-openapi v0.18.0 h1:1DpmGgiWWG+ON8KXhUIrmdac63vTfxIA4sT79bpq/kc=
 github.com/webrpc/gen-openapi v0.18.0/go.mod h1:fwY3ylZmdiCr+WXjR8Ek8wm08CFRr2/GaXI7Zd/Ou4Y=
 github.com/webrpc/gen-typescript v0.30.0 h1:Qe1hA01+gPQSeA3mdAcYk4Xe6qcKEhvXckdJoXFUPFg=

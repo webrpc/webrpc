@@ -20,7 +20,7 @@ require (
 	github.com/webrpc/gen-dart v0.2.0
 	github.com/webrpc/gen-golang v0.36.0
 	github.com/webrpc/gen-javascript v0.16.0
-	github.com/webrpc/gen-kotlin v0.3.2
+	github.com/webrpc/gen-kotlin v0.3.3
 	github.com/webrpc/gen-openapi v0.18.0
 	github.com/webrpc/gen-typescript v0.30.0
 	golang.org/x/tools v0.46.0
