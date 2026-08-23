@@ -1,0 +1,48 @@
+{{define "fromJson"}}
+{{- /* Recursively builds objects from dynamic json */ -}}
+
+{{- $type := .Type}}
+{{- $typeMap := .TypeMap}}
+{{- $depth := (or .Depth 0)}}
+{{- $inPrefix := (or .InPrefix "v")}}
+{{- $outPrefix := (or .OutPrefix "r")}}
+{{- $optional := (or .Optional false)}}
+{{- $nIndents := (int (add $depth 2))}}
+{{- $ind := (repeat $nIndents "    ")}}
+
+{{- if isMapType $type}}
+{{$ind}}final {{template "type" dict "Type" $type "TypeMap" $typeMap}} {{$outPrefix}}{{$depth}} = {};
+{{$ind}}for (MapEntry e{{$depth}} in v{{$depth}}.entries) {
+{{$ind}}    final dynamic v{{add $depth 1}} = e{{$depth}}.value;
+{{/* JSON requires all object keys to be strings, so we must double decode any non-string map keys */}}
+            {{- if eq (mapKeyType $type) "string"}}
+{{$ind}}    final String k{{add $depth 1}} = e{{$depth}}.key;
+            {{- else}}
+{{$ind}}    final dynamic k{{add $depth 1}} = jsonDecode(e{{$depth}}.key);
+            {{- end}}
+{{$ind}}    {{- template "fromJson" dict "Type" (mapValueType $type) "TypeMap" $typeMap "Depth" (add $depth 1) "Optional" false "InPrefix" "v" "OutPrefix" "rv"}}
+{{$ind}}    {{- template "fromJson" dict "Type" (mapKeyType $type) "TypeMap" $typeMap "Depth" (add $depth 1) "Optional" false "InPrefix" "k" "OutPrefix" "rk"}}
+{{$ind}}    {{$outPrefix}}{{$depth}}[rk{{add $depth 1}}] = rv{{add $depth 1}};
+{{$ind}}}
+
+{{- else if isListType $type}}
+{{$ind}}final {{template "type" dict "Type" $type "TypeMap" $typeMap}} {{$outPrefix}}{{$depth}} = [];
+{{$ind}}for (dynamic {{$inPrefix}}{{add $depth 1}} in {{$inPrefix}}{{$depth}}) {
+{{$ind}}    {{- template "fromJson" dict "Type" (listElemType $type) "TypeMap" $typeMap "Depth" (add $depth 1) "Optional" false "InPrefix" $inPrefix "OutPrefix" $outPrefix}}
+{{$ind}}    {{$outPrefix}}{{$depth}}.add({{$outPrefix}}{{add $depth 1}});
+{{$ind}}}
+
+{{- else if isCoreType $type}}
+{{- if (eq (get $typeMap $type) "DateTime")}}
+{{$ind}}final {{$outPrefix}}{{$depth}} = {{ternary .Optional "_dateTimeFromJsonOptional" "_dateTimeFromJson"}}(v{{$depth}});
+{{- else if (eq (get $typeMap $type) "BigInt")}}
+{{$ind}}final {{$outPrefix}}{{$depth}} = {{ternary .Optional "_bigIntFromJsonOptional" "_bigIntFromJson"}}(v{{$depth}});
+{{- else}}
+{{$ind}}final {{get $typeMap $type}}{{if $optional}}?{{end}} {{$outPrefix}}{{$depth}} = _cast<{{get $typeMap $type}}{{if $optional}}?{{end}}>({{$inPrefix}}{{$depth}});
+{{- end}}
+
+{{- else}}
+{{$ind}}final {{$type}} {{$outPrefix}}{{$depth}} = {{$type}}.fromJson({{$inPrefix}}{{$depth}});
+
+{{- end -}}
+{{- end -}}

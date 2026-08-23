@@ -247,10 +247,9 @@ func targetUsage() string {
 	}
 	fmt.Fprintln(&b, "  -target=json (prints schema in JSON)")
 	fmt.Fprintln(&b, "  -target=debug (prints schema and template variables incl. Go type information)")
-	fmt.Fprintln(&b, "remote git repo:")
-	for _, target := range gen.EmbeddedTargetNames {
-		fmt.Fprintf(&b, "  -target=%s\n", gen.EmbeddedTargets[target].ImportTag)
-	}
+	fmt.Fprintln(&b, "remote git repo (any repo with *.go.tmpl files, optionally pinned to a tag):")
+	fmt.Fprintln(&b, "  -target=github.com/username/gen-mytemplate")
+	fmt.Fprintln(&b, "  -target=github.com/webrpc/gen-golang@v0.36.0")
 	fmt.Fprintln(&b, "local folder:")
 	fmt.Fprintln(&b, "  -target=../local-go-templates-on-disk")
 	fmt.Fprintln(&b, "  (see https://github.com/webrpc/webrpc/tree/master/gen)")

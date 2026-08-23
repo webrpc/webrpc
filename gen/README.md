@@ -26,6 +26,8 @@ The Go templates are used in many popular projects including [Hugo](https://gohu
 
 # Developing a new generator
 
+The officially supported generators live in this folder (`gen/golang`, `gen/typescript`, ...) and are embedded into the `webrpc-gen` binary via `go:embed`.
+
 `webrpc-gen` can be invoked against templates located in a local directory:
 ```
 webrpc-gen -schema=api.ridl -target=./local/directory

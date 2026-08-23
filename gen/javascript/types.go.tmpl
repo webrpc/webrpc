@@ -1,0 +1,72 @@
+{{define "types"}}
+
+{{- $opts := .Opts -}}
+{{- $types := .Types -}}
+
+//
+// Types
+//
+{{ if $types -}}
+{{range $_, $type := $types -}}
+
+{{if isEnumType $type -}}
+{{$enumName := .Name}}
+{{if $opts.exports}}export {{end}}var {{$enumName}};
+(function ({{$enumName}}) {
+{{- range $i, $field := .Fields}}
+  {{$enumName}}["{{$field.Name}}"] = "{{$field.Name}}"
+{{- end}}
+})({{$enumName}} || ({{$enumName}} = {}))
+{{end -}}
+
+{{- if isAliasType $type }}
+// type {{$type.Name}} = {{$type.Type}}
+{{end -}}
+
+{{- if isStructType $type }}
+{{if $opts.exports}}export {{end}}class {{.Name}} {
+  constructor(_data) {
+    this._data = {}
+    if (_data) {
+      {{- range $_, $field := $type.Fields -}}
+      {{- $isExportable := true -}}
+      {{- range $meta := $field.Meta -}}
+        {{- if exists $meta "json" -}}
+          {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+            {{- $isExportable = false}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+      {{- if $isExportable }}
+      this._data['{{template "fieldName" dict "Field" $field }}'] = _data['{{template "fieldName" dict "Field" $field }}']
+      {{- end -}}
+      {{end}}
+    }
+  }
+  {{ range $_, $field := $type.Fields -}}
+  {{- $isExportable := true -}}
+  {{- range $meta := $field.Meta -}}
+    {{- if exists $meta "json" -}}
+      {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+        {{- $isExportable = false}}
+      {{- end -}}
+    {{- end -}}
+  {{- end }}
+  {{- if $isExportable }}
+  get {{template "fieldName" dict "Field" $field }}() {
+    return this._data['{{template "fieldName" dict "Field" $field  }}']
+  }
+  set {{template "fieldName" dict "Field" $field }}(value) {
+    this._data['{{template "fieldName" dict "Field" $field }}'] = value
+  }
+  {{end}}
+  {{- end }}
+  toJSON() {
+    return this._data
+  }
+}
+{{end -}}
+{{end -}}
+{{end -}}
+
+{{end}}

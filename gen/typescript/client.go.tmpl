@@ -1,0 +1,107 @@
+{{- define "client" -}}
+
+{{- $basepath := .BasePath -}}
+{{- $services := .Services -}}
+{{- $typeMap := .TypeMap -}}
+{{- $opts := .Opts -}}
+
+{{- if .Services}}
+//
+// Client
+//
+
+{{- "\n" -}}{{- range $serviceIndex, $service := $services}}
+export class {{$service.Name}} implements {{$service.Name}}Client {
+  protected hostname: string
+  protected fetch: Fetch
+  protected path = '{{$basepath}}{{$service.Name}}/'
+
+  constructor(hostname: string, fetch: Fetch) {
+    this.hostname = hostname.replace(/\/*$/, '')
+    this.fetch = (input: RequestInfo, init?: RequestInit) => fetch(input, init)
+  }
+
+  private url(name: string): string {
+    return this.hostname + this.path + name
+  }
+  
+  queryKey = {
+  {{- range $i, $method := $service.Methods}}
+    {{- $methodReqName := "" -}}
+    {{- if $method.Succinct -}}
+      {{- $methodReqName = (index $method.Inputs 0).Type -}}
+    {{- else -}}
+      {{- if $opts.compat -}}
+        {{- $methodReqName = printf "%sArgs" $method.Name -}}
+      {{- else -}}
+        {{- $methodReqName = printf "%sRequest" $method.Name -}}
+      {{- end -}}
+    {{- end}}
+    {{firstLetterToLower .Name}}: ({{if .Inputs | len}}req: {{ $methodReqName}}{{end}}) => ['{{$service.Name}}', '{{firstWordToLower .Name}}'{{if .Inputs | len}}, req{{end}}] as const,
+  {{- end}}
+  }
+
+  {{- "\n" -}}{{- range $_, $method := $service.Methods}}
+  {{- $methodReqName := "" -}}
+  {{- $methodRespName := "" -}}
+  {{- if $method.Succinct -}}
+    {{- $methodReqName = (index $method.Inputs 0).Type -}}
+    {{- $methodRespName = (index $method.Outputs 0).Type -}}
+  {{- else -}}
+    {{- if $opts.compat -}}
+      {{- $methodReqName = printf "%sArgs" $method.Name -}}
+      {{- $methodRespName = printf "%sReturn" $method.Name -}}
+    {{- else -}}
+      {{- $methodReqName = printf "%sRequest" $method.Name -}}
+      {{- $methodRespName = printf "%sResponse" $method.Name -}}
+    {{- end -}}
+  {{- end}}
+  {{firstLetterToLower .Name}} = ({{template "methodInputs" dict "Method" . "Opts" $opts "TypeMap" $typeMap}}): {{if $method.StreamOutput}}WebrpcStreamController{{else}}{{if $method.Succinct}}Promise<{{(index $method.Outputs 0).Type}}>{{else}}Promise<{{$method.Name}}{{if $opts.compat}}Return{{else}}Response{{end}}>{{end}}{{end}} => {
+  {{- if $method.StreamOutput }}
+    const abortController = new AbortController()
+    const abortSignal = abortController.signal
+
+    if (options.signal) {
+      abortSignal.addEventListener("abort", () => abortController.abort(options.signal?.reason), {
+        signal: options.signal,
+      })
+    }
+
+    const _fetch = () => this.fetch(this.url('{{.Name}}'),
+      {{if .Inputs | len }}createHttpRequest(JsonEncode(req), options.headers, abortSignal){{- else}}createHttpRequest('{}', options.headers, options.signal){{end }}
+    ).then(async (res) => {
+      await sseResponse(res, options, _fetch)
+    }, (error) => {
+      options.onError(error, _fetch)
+    })
+
+    const resp = _fetch()
+    return {
+      abort: abortController.abort.bind(abortController),
+      closed: resp
+    }
+  }
+  {{- else }}
+    return this.fetch(
+      this.url('{{.Name}}'),
+      {{- if .Inputs | len }}
+      createHttpRequest(JsonEncode(req), headers, signal)).then((res) => {
+      {{- else }}
+      createHttpRequest('{}', headers, signal)).then((res) => {
+      {{- end }}
+      return buildResponse(res).then(_data => {
+        return JsonDecode<{{$methodRespName}}>(_data, '{{$methodRespName}}')
+      })
+    }, (error) => {
+      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error instanceof Error ? error.message : String(error)}` })
+    })
+  }
+{{end -}}
+{{end}}
+}
+{{- end -}}
+{{end -}}
+{{if $opts.streaming}}
+  {{template "sse"}}
+{{end}}
+{{- end -}}

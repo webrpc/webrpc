@@ -3,12 +3,6 @@ module github.com/webrpc/webrpc
 // Webrpc supports the two most recent major versions of Go.
 go 1.25.11
 
-// replace github.com/webrpc/gen-golang => ../gen-golang
-// replace github.com/webrpc/gen-typescript => ../gen-typescript
-// replace github.com/webrpc/gen-javascript => ../gen-javascript
-// replace github.com/webrpc/gen-openapi => ../gen-openapi
-// replace github.com/webrpc/gen-kotlin => ../gen-kotlin
-
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/davecgh/go-spew v1.1.1
@@ -17,12 +11,6 @@ require (
 	github.com/posener/gitfs v1.2.2
 	github.com/shurcooL/httpfs v0.0.0-20230704072500-f1e31cf0ba5c
 	github.com/stretchr/testify v1.11.1
-	github.com/webrpc/gen-dart v0.2.0
-	github.com/webrpc/gen-golang v0.36.0
-	github.com/webrpc/gen-javascript v0.16.0
-	github.com/webrpc/gen-kotlin v0.3.2
-	github.com/webrpc/gen-openapi v0.18.0
-	github.com/webrpc/gen-typescript v0.30.0
 	golang.org/x/tools v0.46.0
 )
 

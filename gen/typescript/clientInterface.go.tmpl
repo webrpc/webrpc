@@ -1,0 +1,38 @@
+{{- define "clientInterface" -}}
+
+{{- $services := .Services -}}
+{{- $typeMap := .TypeMap -}}
+{{- $opts := .Opts -}}
+
+{{- if $services}}
+//
+// Client interface
+//
+
+{{- "\n" -}}{{ range $_, $service := $services}}
+export interface {{$service.Name}}Client {
+{{- range $i, $method := $service.Methods}}
+  {{- $deprecated := index $method.Annotations "deprecated" -}}
+  {{- if gt (len $method.Comments) 0 }}
+  /**
+    {{- range $_, $comment := $method.Comments }}
+   * {{ replaceAll $comment "\"" "'" }}
+    {{- end }}
+    {{- if $deprecated }}
+   *
+   * @deprecated {{ $deprecated.Value }}
+    {{- end }}
+   */
+  {{- else if $deprecated }}
+  /**
+   * @deprecated {{ $deprecated.Value }}
+   */
+  {{- end }}
+  {{firstLetterToLower $method.Name}}({{template "methodInputs" dict "Method" $method "TypeMap" $typeMap "Opts" $opts}}): {{if $method.StreamOutput}}WebrpcStreamController{{else}}{{if $method.Succinct}}Promise<{{(index $method.Outputs 0).Type}}>{{else}}Promise<{{$method.Name}}{{if $opts.compat}}Return{{else}}Response{{end}}>{{end}}{{end}}
+  {{- if lt (add $i 1) (len $service.Methods)}}{{"\n"}}{{end}}
+{{- end}}
+}
+{{- end}}
+
+{{- end -}}
+{{- end -}}

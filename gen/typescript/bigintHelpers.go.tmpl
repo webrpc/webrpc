@@ -1,0 +1,134 @@
+{{- define "bigintHelpers" -}}
+{{- $schema := .Schema -}}
+{{- $services := .Services -}}
+{{- $opts := .Opts -}}
+{{- $usesBigInts := .UsesBigInts -}}
+
+{{- if $usesBigInts}}
+//
+// BigInt helpers
+//
+
+{{- if $opts.server }}
+const SERVICE_METHOD_TYPES: { [service: string]: { [method: string]: [string, string] } } = {
+{{- $svcCount := len $services -}}
+{{- $svcState := dict "i" 0 -}}
+{{- range $_, $service := $services }}
+  {{$service.Name}}: {
+    {{- $mCount := len $service.Methods -}}
+    {{- range $mi, $method := $service.Methods }}
+    {{$method.Name}}: [
+      {{- if $method.Succinct -}}
+        '{{ (index $method.Inputs 0).Type }}', '{{ (index $method.Outputs 0).Type }}'
+      {{- else -}}
+        {{- if $opts.compat -}}
+          '{{$method.Name}}Args', '{{$method.Name}}Return'
+        {{- else -}}
+          '{{$method.Name}}Request', '{{$method.Name}}Response'
+        {{- end -}}
+      {{- end -}}
+    ]{{ if lt (add $mi 1) $mCount }},{{ end }}
+    {{- end }}
+  }{{ $i := index $svcState "i" }}{{ if lt (add $i 1) $svcCount }},{{ end }}
+  {{- set $svcState "i" (add $i 1) -}}
+{{- end }}
+}
+{{- end }}
+
+const BIG_INT_FIELDS: { [typ: string]: (string | [string, string])[] } = {
+{{- $big := SchemaBigIntFieldsByType $schema $opts.compat }}
+{{- $n := len $big -}}
+{{- $state := dict "i" 0 -}}
+{{- range $typeName, $entries := $big }}
+  {{$typeName}}: [
+    {{- range $i, $e := $entries -}}
+      {{- if $i}}, {{end -}}
+      {{- if and (not (isString $e)) (eq (len $e) 2) -}}['{{ index $e 0 }}', '{{ index $e 1 }}']{{else}}'{{$e}}'{{end}}
+    {{- end -}}
+  ]{{ $i := index $state "i" }}{{ if lt (add $i 1) $n }},{{ end }}
+  {{- set $state "i" (add $i 1) -}}
+{{- end }}
+}
+
+// Decode in-place: mutate object graph; throw if expected numeric string is invalid.
+function decodeType(typ: string, obj: any): any {
+  if (obj == null || typeof obj !== 'object') return obj
+  const descs = BIG_INT_FIELDS[typ] || []
+  if (!descs.length) return obj
+  for (const d of descs) {
+    if (Array.isArray(d)) {
+      const [fieldName, nestedType] = d
+      if (fieldName.endsWith('[]')) {
+        const base = fieldName.slice(0, -2)
+        const arr = obj[base]
+        if (Array.isArray(arr)) {
+          for (let i = 0; i < arr.length; i++) arr[i] = decodeType(nestedType, arr[i])
+        }
+      } else if (obj[fieldName]) {
+        // Handle nestedType that might be an array type like 'Message[]'
+        if (nestedType.endsWith('[]')) {
+          const baseType = nestedType.slice(0, -2)
+          const arr = obj[fieldName]
+          if (Array.isArray(arr)) {
+            for (let i = 0; i < arr.length; i++) arr[i] = decodeType(baseType, arr[i])
+          }
+        } else {
+          obj[fieldName] = decodeType(nestedType, obj[fieldName])
+        }
+      }
+      continue
+    }
+    if (d.endsWith('[]')) {
+      const base = d.slice(0, -2)
+      const arr = obj[base]
+      if (Array.isArray(arr)) {
+        for (let i = 0; i < arr.length; i++) {
+          const v = arr[i]
+          if (typeof v === 'string') {
+            try { arr[i] = BigInt(v) } catch (e) { throw WebrpcBadResponseError.new({ cause: `Invalid bigint value for ${base}[${i}]: ${v}` }) }
+          }
+        }
+      }
+      continue
+    }
+    const v = obj[d]
+    if (typeof v === 'string') {
+      try { obj[d] = BigInt(v) } catch (e) { throw WebrpcBadResponseError.new({ cause: `Invalid bigint value for ${d}: ${v}` }) }
+    }
+  }
+  return obj
+}
+
+// Encode object to JSON with BigInts converted to decimal strings.
+export const JsonEncode = <T = any>(obj: T): string => {
+  return JSON.stringify(obj, (key, value) =>
+    typeof value === 'bigint' ? value.toString() : value
+  )
+}
+
+// Decode data (JSON string or already-parsed object) and convert declared BigInt string fields back to BigInt.
+export const JsonDecode = <T = any>(data: string | any, typ: string = ''): T => {
+  let parsed: any = data
+  if (typeof data === 'string') {
+    try { parsed = JSON.parse(data) } catch (err) {
+      throw WebrpcBadResponseError.new({ cause: `JsonDecode: JSON.parse failed: ${(err as Error).message}` })
+    }
+  }
+  return decodeType(typ, parsed) as T
+}
+{{- else}}
+{{- "\n\n" -}}export const JsonEncode = <T = any>(obj: T): string => {
+  return JSON.stringify(obj)
+}
+
+export const JsonDecode = <T = any>(data: string | any, _typ: string = ''): T => {
+  let parsed: any = data
+  if (typeof data === 'string') {
+    try { parsed = JSON.parse(data) } catch (err) {
+      throw WebrpcBadResponseError.new({ cause: `JsonDecode: JSON.parse failed: ${(err as Error).message}` })
+    }
+  }
+  return parsed as T
+}
+{{- end }}
+{{end -}}

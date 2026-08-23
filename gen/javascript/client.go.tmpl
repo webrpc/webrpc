@@ -1,0 +1,46 @@
+{{define "client"}}
+
+{{- $basepath := .BasePath -}}
+{{- $services := .Services -}}
+{{- $opts := .Opts -}}
+
+{{- if $services }}
+//
+// Client
+//
+{{ range $services }}
+{{if $opts.exports}}export {{end}}class {{.Name}} {
+  constructor(hostname, fetch) {
+    this.path = '{{$basepath}}{{.Name}}/'
+    this.hostname = hostname
+    this.fetch = (input, init) => fetch(input, init)
+  }
+
+  url(name) {
+    return this.hostname + this.path + name
+  }
+  {{range .Methods}}
+  {{firstLetterToLower .Name}} = ({{if len .Inputs}}args, {{end}}headers) => {
+    return this.fetch(
+      this.url('{{.Name}}'),
+      {{- if .Inputs | len}}
+      createHTTPRequest(args, headers)
+      {{- else}}
+      createHTTPRequest({}, headers)
+      {{- end}}
+    ).then((res) => {
+      return buildResponse(res).then(_data => {
+        return {
+        {{- $outputsCount := .Outputs|len -}}
+        {{- range $i, $output := .Outputs}}
+          {{if gt $i 0}}, {{end}}{{$output.Name}}: {{if isStructType $output.Type}}new {{$output.Type}}{{end}}(_data.{{$output.Name}})
+        {{- end}}
+        }
+      })
+    })
+  }
+  {{end}}
+}
+{{end -}}
+{{end -}}
+{{end}}

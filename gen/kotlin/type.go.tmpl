@@ -1,0 +1,28 @@
+{{- define "type" -}}
+
+{{- $type := .Type -}}
+{{- $typeMap := .TypeMap -}}
+
+{{- if isMapType $type -}}
+
+    Map<{{template "type" dict "Type" (mapKeyType $type) "TypeMap" $typeMap}}, {{template "type" dict "Type" (mapValueType $type) "TypeMap" $typeMap}}>
+
+{{- else if isListType $type -}}
+
+    {{- $elemType := listElemType $type -}}
+    {{- if and (isCoreType $elemType) (eq (printf "%v" $elemType) "byte") -}}
+        String
+    {{- else -}}
+        List<{{template "type" dict "Type" $elemType "TypeMap" $typeMap}}>
+    {{- end -}}
+
+{{- else if isCoreType $type -}}
+
+    {{get $typeMap $type}}
+
+{{- else -}}
+
+    {{$type}}
+
+{{- end -}}
+{{- end -}}

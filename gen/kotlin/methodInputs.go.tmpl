@@ -1,0 +1,10 @@
+{{- define "methodInputs" -}}
+
+{{- $method := .Method -}}
+{{- $serviceApiName := .ServiceApiName -}}
+{{- $methodNamespaceName := .MethodNamespaceName -}}
+
+{{- if gt (len $method.Inputs) 0 -}}
+request: {{- if $method.Succinct -}}{{(index $method.Inputs 0).Type}}{{- else -}}{{$serviceApiName}}.{{$methodNamespaceName}}.Request{{- end -}}
+{{- end -}}
+{{- end -}}

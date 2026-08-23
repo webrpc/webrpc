@@ -1,0 +1,38 @@
+{{- define "alias" -}}
+
+{{- $name := .Name -}}
+{{- $type := .Type -}}
+{{- $typeMap := .TypeMap -}}
+{{- $keywordMap := .KeywordMap -}}
+{{- $typePrefix := .TypePrefix -}}
+{{- $typeMeta := .TypeMeta -}}
+
+{{- $goType := "" -}}
+{{- $goAlias := "" -}}
+{{- $goImport := "" -}}
+{{- range $meta := $typeMeta -}}
+    {{- if exists $meta "go.type" -}}
+        {{- $goType = get $meta "go.type" -}}
+    {{- end -}}
+    {{- if exists $meta "go.alias" -}}
+        {{- $goAlias = get $meta "go.alias" -}}
+    {{- end -}}
+    {{- if exists $meta "go.type.import" -}}
+        {{- $goImport = get $meta "go.type.import" -}}
+    {{- end -}}
+{{- end }}
+
+{{- /* go.alias and go.type are mutually exclusive, go.alias takes precedence. */ -}}
+{{- if ne $goAlias "" -}}
+    {{- $goType = $goAlias -}}
+{{- end }}
+
+{{- /* If go.type/go.alias has no package prefix and go.type.import is set, prepend the package name. */ -}}
+{{- if and (ne $goType "") (ne $goImport "") (not (contains "." $goType)) -}}
+    {{- $goType = printf "%s.%s" (base $goImport) $goType -}}
+{{- end }}
+
+type {{$typePrefix}}{{$name}} {{if ne $goAlias ""}}= {{end}}{{if ne $goType ""}}{{$goType}}{{else -}}
+{{- template "field" dict "Type" $type "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $typeMeta -}}
+{{- end}}
+{{- end -}}

@@ -1,0 +1,6 @@
+{{- define "help" -}}
+  {{- range $k, $v := . -}}
+    {{- stderrPrintf "  -%v=%v\n" $k $v -}}
+  {{- end -}}
+  {{- stderrPrintf "See https://github.com/webrpc/gen-kotlin for more info.\n" -}}
+{{- end -}}

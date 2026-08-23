@@ -45,12 +45,12 @@ plugin for RIDL synx highlighting.
 
 | Generator                                              | Description                       | Schema | Client | Server |
 |--------------------------------------------------------|-----------------------------------|--------|--------|--------|
-| [golang](https://github.com/webrpc/gen-golang)         | Go 1.22+                          | v1     | ✅     | ✅     |
-| [typescript](https://github.com/webrpc/gen-typescript) | TypeScript (ES2022+)              | v1     | ✅     | ✅     |
-| [javascript](https://github.com/webrpc/gen-javascript) | JavaScript (ES6)                  | v1     | ✅     | ✅     |
-| [kotlin](https://github.com/webrpc/gen-kotlin)         | Kotlin (coroutines, kotlinx.serialization) | v1     | ✅     |        |
-| [dart](https://github.com/webrpc/gen-dart)             | Dart 3.1+                         | v1     | ✅     |        |
-| [openapi](https://github.com/webrpc/gen-openapi)       | OpenAPI 3.0.0 (Swagger)           | v1     | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview) | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview)  |
+| [golang](./gen/golang)         | Go 1.22+                          | v1     | ✅     | ✅     |
+| [typescript](./gen/typescript) | TypeScript (ES2022+)              | v1     | ✅     | ✅     |
+| [javascript](./gen/javascript) | JavaScript (ES6)                  | v1     | ✅     | ✅     |
+| [kotlin](./gen/kotlin)         | Kotlin (coroutines, kotlinx.serialization) | v1     | ✅     |        |
+| [dart](./gen/dart)             | Dart 3.1+                         | v1     | ✅     |        |
+| [openapi](./gen/openapi)       | OpenAPI 3.0.0 (Swagger)           | v1     | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview) | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview)  |
 
 ..contribute more! [webrpc generators](./gen/) are just Go templates (similar to [Hugo](https://gohugo.io/templates/) or [Helm](https://helm.sh/docs/chart_best_practices/templates/)).
 

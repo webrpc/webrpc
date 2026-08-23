@@ -1,0 +1,55 @@
+{{ define "serverHelpers" }}
+{{- $types := .Types -}}
+{{- $typeMap := .TypeMap }}
+
+//
+// Server type validators
+//
+
+const JS_TYPES = [
+    "bigint",
+    "boolean",
+    "function",
+    "number",
+    "object",
+    "string",
+    "symbol",
+    "undefined"
+]
+
+{{- "\n" -}}{{- range $_, $type := $types }}
+const validate{{ $type.Name }} = ({{if gt (len $type.Fields) 0}}value{{else}}_value{{end}}: any) => {
+  {{- range $_, $field := $type.Fields }}
+  {{- if $field.Optional }}
+  if ("{{template "fieldName" dict "Field" $field }}" in value && !validateType(value["{{template "fieldName" dict "Field" $field }}"], "{{template "jsType" dict "Type" (coalesce $field.Type $type.Type) "TypeMap" $typeMap}}")) {
+    return false
+  }
+  {{- else }}
+  if (!("{{template "fieldName" dict "Field" $field }}" in value) || !validateType(value["{{template "fieldName" dict "Field" $field }}"], "{{template "jsType" dict "Type" (coalesce $field.Type $type.Type) "TypeMap" $typeMap}}")) {
+    return false
+  }
+  {{- end }}
+{{- end }}
+  return true
+}
+{{end -}}
+
+{{- "\n" -}}
+const TYPE_VALIDATORS: { [type: string]: (value: any) => boolean } = {
+{{- range $_, $type := $types }}
+  {{ $type.Name }}: validate{{ $type.Name }},
+{{- end }}
+}
+
+const validateType = (value: any, type: string) => {
+  if (JS_TYPES.indexOf(type) > -1) {
+    return typeof value === type;
+  }
+  const validator = TYPE_VALIDATORS[type];
+  if (!validator) {
+    return false;
+  }
+  return validator(value)
+}
+
+{{- end}}

@@ -1,0 +1,93 @@
+{{- define "server" -}}
+
+{{- $basepath := .BasePath -}}
+{{- $services := .Services -}}
+{{- $typeMap := .TypeMap -}}
+{{- $usesBigInts := .UsesBigInts -}}
+
+{{- if $services}}
+//
+// Server handler
+//
+{{range $_, $service := $services }}
+export const serve{{$service.Name}}Rpc = async <Context>(service: {{$service.Name}}Server<Context>, ctx: Context, urlPath: string, body: any) => {
+  if (!urlPath.startsWith('{{$basepath}}')) return null
+  const parts = urlPath.split('/').filter(Boolean)
+  if (parts.length !== 3 || parts[0] !== 'rpc' || parts[1] !== '{{$service.Name}}') return null
+  const method = parts[2]!
+  try {
+    const result = await dispatch{{$service.Name}}Request(service, ctx, method, body)
+    return {
+      method,
+      status: 200,
+      headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
+      body: result ?? {}
+    }
+  } catch (err: any) {
+    if (err instanceof WebrpcError) {
+      const status = err.status || 400
+      return {
+        method,
+        status,
+        headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
+        body: err
+      }
+    } else {
+      return {
+        method,
+        status: 400,
+        headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
+        body: new WebrpcError({ message: err?.message })
+      }
+    }
+  }
+}
+
+const dispatch{{$service.Name}}Request = async <Context>(service: {{$service.Name}}Server<Context>, ctx: Context, method: string, body: any) => {
+  {{- if $usesBigInts}}
+  const methodTypes = SERVICE_METHOD_TYPES['{{$service.Name}}'][method]
+  if (!methodTypes) {
+    throw new WebrpcBadRouteError({ cause: 'method not found' })
+  }
+  const [reqType, respType] = methodTypes
+  const payload = reqType ? JsonDecode(body, reqType) : body
+  {{- else}}
+  let payload: any = body
+  {{- end}}
+  let result: any
+  switch (method) {
+  {{- range $_, $method := $service.Methods}}
+    case '{{$method.Name}}':
+    {{- range $_, $input := $method.Inputs }}
+      {{- if $method.Succinct }}
+      if (payload && !validateType(payload, "{{template "jsType" dict "Type" $input.Type "TypeMap" $typeMap}}")) {
+        throw new WebrpcBadRequestError({ cause: "invalid argument: {{ $input.Name }}" })
+      }
+      {{- else }}
+      {{- if not $input.Optional}}
+      if (!("{{ $input.Name }}" in payload)) {
+        throw new WebrpcBadRequestError({ cause: "missing argument `{{ $input.Name }}`" })
+      }
+      {{end}}
+      if ("{{ $input.Name }}" in payload && !validateType(payload["{{ $input.Name }}"], "{{template "jsType" dict "Type" $input.Type "TypeMap" $typeMap}}")) {
+        throw new WebrpcBadRequestError({ cause: "invalid argument: {{ $input.Name }}" })
+      }
+      {{- end}}
+      {{- end}}
+      result = await service.{{firstLetterToLower $method.Name}}(ctx, payload || {})
+      break
+  {{end}}
+    default:
+      throw new WebrpcBadRouteError({ cause: 'method not found' })
+  }
+
+  {{- if $usesBigInts}}
+  return respType ? encodeType(respType, result) : result
+  {{- else}}
+  return result
+  {{- end}}
+}
+
+{{- end}}
+{{end -}}
+{{end}}

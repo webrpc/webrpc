@@ -1,0 +1,160 @@
+{{define "types"}}
+
+{{- $typeMap := .TypeMap -}}
+{{- $types := .Types -}}
+{{- $services := .Services -}}
+
+{{if $types -}}
+{{range $_i, $type := $types -}}
+
+{{if isEnumType $type }}
+enum {{$type.Name}} {
+    {{- range $i, $field := $type.Fields}}
+    {{- if $i}},{{end}}
+    {{$field.Name}}
+    {{- end}};
+
+    factory {{.Name}}.fromJson(dynamic json) {
+        switch (json) {
+            {{- range $i, $field := $type.Fields}}
+            case '{{$field.Name}}':
+                return {{$type.Name}}.{{$field.Name}};
+            {{- end}}
+            default:
+                throw ArgumentError.value(json);
+        }
+    }
+
+    String toJson() {
+        return name;
+    }
+}
+{{end -}}
+
+{{- if isStructType $type }}
+class {{$type.Name}} implements JsonSerializable {
+    {{$type.Name}}({
+        {{- range $i, $field := $type.Fields}}
+        {{- if $i}},{{end}}
+        required this.{{template "fieldName" dict "Field" .}}
+        {{- end}}
+    });
+    {{range $_, $field := $type.Fields}}
+    {{- $isExportable := true -}}
+    {{- range $meta := $field.Meta -}}
+        {{- if exists $meta "json" -}}
+            {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                {{- $isExportable = false}}
+            {{- end -}}
+        {{- end -}}
+    {{- end }}
+    {{- if $isExportable }}
+    final {{template "type" dict "Type" $field.Type "TypeMap" $typeMap}}{{if .Optional}}?{{end}} {{template "fieldName" dict "Field" .}};
+    {{- end -}}
+    {{- end}}
+  
+    {{.Name}}.fromJson(Map<String, dynamic> json)
+        : {{range $i, $field := $type.Fields}}
+          {{- template "fieldName" dict "Field" .}} = _{{.Name}}(json['{{template "fieldName" dict "Field" .}}'])
+          {{- if lt $i (lastIndex $type.Fields)}},{{else}};{{end}}
+          {{end -}}
+  
+    {{range $i, $field := $type.Fields}}
+    static {{template "type" dict "Type" $field.Type "TypeMap" $typeMap}}{{if .Optional}}?{{end}} _{{.Name}}(dynamic v0) {
+        {{- if (and (isCoreType $field.Type) (eq (get $typeMap $field.Type) "Null"))}}
+        return null;
+        {{- else}}
+        {{- if .Optional}}
+        if (v0 == null) return null;
+        {{- else}}
+        if (v0 == null) throw WebrpcException.fromCode(ErrorId.webrpcBadResponse.code);
+        {{- end}}
+        {{- template "fromJson" dict "Type" $field.Type "TypeMap" $typeMap "Optional" .Optional}}
+        return r0;
+        {{- end}}
+    }
+    {{end -}}
+  
+    {{if true}}{{end}}
+    @override
+    Map<String, dynamic> toJson() {
+        return {
+            {{- range $i, $field := $type.Fields}}
+            '{{- template "fieldName" dict "Field" .}}': toJsonObject({{template "fieldName" dict "Field" .}}),
+            {{- end}}
+        };
+    }
+}
+{{end -}}
+{{end -}}
+{{end}}
+
+T _cast<T>(x) {
+    if ((x == null) && (null is T)) {
+        return x;
+    } else if (x is T) {
+        return x;
+    } else {
+        throw ArgumentError.value(x);
+    }
+}
+
+dynamic toJsonObject(dynamic v) {
+    if (v == null) return null;
+    if (v is DateTime) return v.toIso8601String();
+    if (v is BigInt) return v.toString();
+    // records are impossible to JSON serialize accurately because they do not
+    // retain runtime info about their structure
+    // see https://github.com/dart-lang/language/issues/2826
+    if (v is Record) return v.toString();
+    if (v is List) return v.map(toJsonObject).toList();
+    if (v is Map) return v.map((key, value) => MapEntry(key.toString(), toJsonObject(value)));
+    if (v is JsonSerializable) return v.toJson();
+    return v;
+}
+
+DateTime? _dateTimeFromJsonOptional(dynamic v0) {
+    if (v0 == null) return null;
+    return _dateTimeFromJson(v0);
+}
+
+DateTime _dateTimeFromJson(dynamic v0) {
+    if ((v0 != null) && (v0 is String)) {
+        return DateTime.parse(v0);
+    } else {
+        throw ArgumentError.value(v0, "v0", "Cannot parse to DateTime");
+    }
+}
+
+BigInt? _bigIntFromJsonOptional(dynamic v0) {
+    if (v0 == null) return null;
+    return _bigIntFromJson(v0);
+}
+
+BigInt _bigIntFromJson(dynamic v0) {
+    if (v0 is String) {
+        return BigInt.parse(v0);
+    } else if (v0 is int) {
+        return BigInt.from(v0);
+    } else {
+        throw ArgumentError.value(v0, "v0", "Required non-null BigInt");
+    }
+}
+
+abstract interface class JsonSerializable {
+    dynamic toJson();
+}
+
+{{if $services}}
+{{- range $_, $service := $services}}
+abstract interface class {{$service.Name}} {
+{{- range $_, $method := $service.Methods}}
+    Future<{{template "methodOutputs" dict "Method" . "TypeMap" $typeMap}}> {{firstLetterToLower .Name}}({{template "methodInputs" dict "Method" . "TypeMap" $typeMap}});
+{{- end}}
+}
+{{- end}}
+{{end -}}
+
+
+
+{{end}}

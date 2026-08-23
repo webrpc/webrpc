@@ -1,0 +1,130 @@
+{{define "client"}}
+
+{{- $typeMap := .TypeMap -}}
+{{- $opts := .Opts -}}
+{{- $basepath := .BasePath -}}
+{{- $services := .Services -}}
+
+{{- if $services }}
+
+{{- range $services }}
+class {{.Name}}Impl implements {{.Name}} {
+    {{.Name}}Impl(String hostname, [WebrpcHttpClient? httpClient])
+        : _baseUrl = '$hostname{{$basepath}}{{.Name}}/',
+          _httpClient = httpClient ?? _MainWebrpcHttpClient();
+
+    final String _baseUrl;
+    final WebrpcHttpClient _httpClient;
+
+    {{- range $_, $method := .Methods}}
+
+    @override
+    Future<{{template "methodOutputs" dict "Method" . "TypeMap" $typeMap}}> {{firstLetterToLower .Name}}({{template "methodInputs" dict "Method" . "TypeMap" $typeMap}}) async {
+        {{- if gt (len .Inputs) 0}}
+        final String body = jsonEncode(toJsonObject({
+        {{if true}}{{end}}
+        {{- range $i, $input := .Inputs -}}
+        {{indent 4 ""}}'{{$input.Name}}': {{$input.Name}},
+        {{end -}}
+        }));
+        {{else}}
+        final String? body = null;
+        {{end -}}
+        WebrpcHttpRequest request = WebrpcHttpRequest(
+            uri: _makeUri('{{.Name}}'),
+            headers: _makeHeaders(),
+            body: body,
+        );
+        final WebrpcHttpResponse response = await _httpClient.post(request);
+        
+        {{if eq (len $method.Outputs) 0 -}}
+        await _handleResponse(response);
+        {{- else -}}
+        await _handleResponse(response);
+        final Map<String, dynamic> json = jsonDecode(response.body);
+        return (
+        {{if true}}{{end}}
+        {{- range $i, $output := .Outputs -}}
+        {{if true}}    {{end}}{{$output.Name}}: _{{firstLetterToLower $method.Name}}{{firstLetterToUpper .Name}}(json['{{$output.Name}}']),
+        {{end -}}
+        );
+        {{- end}}
+    }
+
+    {{- range $i, $output := .Outputs}}
+    {{if true}}{{end}}
+    static {{template "type" dict "Type" $output.Type "TypeMap" $typeMap}}{{if .Optional}}?{{end}} _{{firstLetterToLower $method.Name}}{{firstLetterToUpper .Name}}(dynamic v0) {
+        {{- template "fromJson" dict "Type" $output.Type "TypeMap" $typeMap "Optional" .Optional}}
+        return r0;
+    }
+    {{- end}}
+    {{- end}}
+
+    Uri _makeUri(String name) {
+        return Uri.parse(_baseUrl + name);
+    }
+
+    static Map<String, Object> _makeHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        };
+    }
+
+    Future<void> _handleResponse(WebrpcHttpResponse response) async {
+        if (response.statusCode >= 400) {
+            try {
+                final Map<String, dynamic> json = jsonDecode(response.body);
+                final int webrpcErrorCode = json['code'];
+                if (response.statusCode >= 500) {
+                    throw WebrpcException.fromCode(webrpcErrorCode);
+
+                } else {
+                    throw WebrpcError.fromCode(webrpcErrorCode);
+                }
+            } on ArgumentError catch (_) {
+                // https://github.com/webrpc/webrpc/blob/master/gen/errors.go
+                throw WebrpcException.fromCode(-5);
+            }
+        }
+    }
+}
+{{- end -}}
+{{- end}}
+
+class _MainWebrpcHttpClient implements WebrpcHttpClient {
+  @override
+  Future<WebrpcHttpResponse> post(WebrpcHttpRequest request) async {
+    final http.Response response = await http.post(
+      request.uri,
+      body: request.body == null ? null : utf8.encode(request.body!),
+      headers: request.headers.map((key, value) => MapEntry(key, value.toString())),
+    );
+    return WebrpcHttpResponse(statusCode: response.statusCode, body: response.body);
+  }
+}
+
+abstract interface class WebrpcHttpClient {
+  Future<WebrpcHttpResponse> post(WebrpcHttpRequest request);
+}
+
+class WebrpcHttpRequest {
+  WebrpcHttpRequest({
+    required this.uri,
+    required this.headers,
+    required this.body,
+  });
+
+  final Uri uri;
+  final Map<String, Object> headers;
+  final String? body;
+}
+
+class WebrpcHttpResponse {
+  WebrpcHttpResponse({required this.statusCode, required this.body});
+
+  final int statusCode;
+  final String body;
+}
+
+{{- end -}}

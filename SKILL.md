@@ -125,4 +125,4 @@ webrpc-gen -schema=main.ridl -target=./schema/templates/validate-go -pkg=proto -
 
 ## References
 `_examples/golang-basics/example.ridl`, `schema/README.md`, `schema/ridl/README.md`.
-Official targets: `github.com/webrpc/gen-{golang,typescript,javascript,kotlin,dart,openapi}`.
+Official targets: `gen/{golang,typescript,javascript,kotlin,dart,openapi}` (embedded in `webrpc-gen`).

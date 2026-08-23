@@ -1,7 +1,6 @@
 package webrpc
 
 import (
-	_ "embed"
 	"os/exec"
 	"strings"
 )
@@ -39,8 +38,3 @@ func inferRuntimeVersion() string {
 
 	return "unknown"
 }
-
-// Embed go.mod file, so we can parse version of the embedded generators in the runtime.
-//
-//go:embed go.mod
-var GoModFile string

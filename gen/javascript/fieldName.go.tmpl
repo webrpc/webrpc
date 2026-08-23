@@ -1,0 +1,15 @@
+{{- define "fieldName" -}}
+{{- /* Prints field name while prioritizing "json" field meta */ -}}
+
+{{- $field := .Field -}}
+{{- $fieldName := $field.Name -}}
+
+{{- range $meta := $field.Meta -}} 
+    {{- if exists $meta "json" -}}
+    {{- $fieldName = get $meta "json" | split "," | first -}}
+    {{- end -}}
+{{- end -}}
+
+{{- $fieldName -}}
+
+{{- end -}}

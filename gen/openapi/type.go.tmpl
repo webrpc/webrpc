@@ -1,0 +1,33 @@
+{{- define "type" -}}
+
+{{- /* Required args */}}
+{{- $typeMap := .TypeMap -}}
+{{- $type := .Type -}}
+
+{{$type.Name}}:
+    {{- if isEnumType $type}}
+      type: string
+      {{if gt (len $type.Fields) 0 -}}
+      description: Represented as {{$type.Type}} on the server side
+      {{end -}}
+      enum:
+        {{- range $type.Fields}}
+        - {{.Name}}
+        {{- end -}}
+    {{else}}
+      type: object
+      {{- if gt (len $type.Fields) 0}}
+      {{- if gt (len $type.RequiredFields) 0}}
+      required:
+      {{- range $i, $field := $type.RequiredFields }}
+        - {{$field.Name}}
+      {{- end }}
+      {{- end }}
+      properties:
+      {{- end -}}
+      {{- range $i, $field := $type.Fields }}
+        {{$field.Name -}}:
+          {{ template "fieldType" dict "Type" $field.Type "TypeMap" $typeMap "Indent" "          " }}
+      {{- end -}}
+    {{- end -}}
+{{- end -}}

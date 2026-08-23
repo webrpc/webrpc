@@ -1,0 +1,85 @@
+{{- define "types" -}}
+
+{{- $typeMap := .TypeMap -}}
+{{- $types := .Types -}}
+{{- $services := .Services -}}
+{{- $opts := .Opts -}}
+
+//
+// Schema types
+//
+{{if $types -}}
+{{range $_i, $type := $types -}}
+
+{{if isEnumType $type }}
+{{- if eq $opts.enumStyle "union"}}
+export const {{$type.Name}} = {
+{{- range $i, $field := $type.Fields}}
+  {{- if eq $type.Type.Expr "string"}}
+  {{$field.Name}}: '{{$field.Value}}',
+  {{- else}}
+  {{$field.Name}}: '{{$field.Name}}',
+  {{- end}}
+{{- end}}
+} as const
+export type {{$type.Name}} = (typeof {{$type.Name}})[keyof typeof {{$type.Name}}]
+{{- else}}
+export enum {{$type.Name}} {
+{{- range $i, $field := $type.Fields}}
+  {{- if $i}},{{end}}
+  {{- if eq $type.Type.Expr "string"}}
+  {{$field.Name}} = '{{$field.Value}}'
+  {{- else}}
+  {{$field.Name}} = '{{$field.Name}}'
+  {{- end}}
+{{- end}}
+}
+{{- end}}
+{{end -}}
+
+{{- if isAliasType $type }}
+export type {{$type.Name}} = {{template "type" dict "Type" $type.Type "TypeMap" $typeMap}}
+{{end -}}
+
+{{- if isStructType $type }}
+export interface {{$type.Name}} {
+  {{- range $_, $field := $type.Fields}}
+  {{- $isExportable := true -}}
+  {{- range $meta := $field.Meta -}}
+    {{- if exists $meta "json" -}}
+      {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+        {{- $isExportable = false}}
+      {{- end -}}
+    {{- end -}}
+  {{- end }}
+  {{- if $isExportable }}
+  {{template "fieldName" dict "Field" .}}{{if .Optional}}?{{end}}: {{template "type" dict "Type" $field.Type "TypeMap" $typeMap}}
+  {{- end -}}
+  {{- end}}
+}
+{{end -}}
+{{- end -}}
+{{- end -}}
+
+{{/* Request/response generated types */}}
+{{- if $services}}
+{{- range $_, $service := $services}}
+{{range $_, $method := $service.Methods}}
+{{- if eq $method.Succinct false -}}
+export interface {{$method.Name}}{{if $opts.compat}}Args{{else}}Request{{end}} {
+{{- range $_, $input := $method.Inputs}}
+  {{$input.Name}}{{if $input.Optional}}?{{end}}: {{template "type" dict "Type" $input.Type "TypeMap" $typeMap}}
+{{- end}}
+}
+
+export interface {{$method.Name}}{{if $opts.compat}}Return{{else}}Response{{end}} {
+{{- range $_, $output := $method.Outputs}}
+  {{$output.Name}}{{if $output.Optional}}?{{end}}: {{template "type" dict "Type" $output.Type "TypeMap" $typeMap}}
+{{- end}}
+}
+{{end}}
+{{end -}}
+
+{{- end -}}
+{{- end -}}
+{{- end -}}
