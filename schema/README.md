@@ -16,6 +16,7 @@ Some example webrpc schemas:
     - [Floats](#floats)
     - [Strings](#strings)
     - [Timestamps (date/time)](#timestamps-datetime)
+    - [Files](#files)
   - [List](#list)
   - [Map](#map)
   - [Enum](#enum)
@@ -58,6 +59,16 @@ Some example webrpc schemas:
 ### Timestamps (date/time)
 
 - `timestamp` - for date/time (serialized to [ECMA Script ISO 8601 format](https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format): `YYYY-MM-DDTHH:mm:ss.sssZ`)
+
+
+### Files
+
+- `file` - for upload/download endpoints (transferred as raw bytes over the wire, not JSON)
+- `file` and `[]file` may be used only as:
+  * the type of a method input argument, or
+  * the type of a top-level field of a struct used as a method input
+- a method may return `file` only as its single output (a download method)
+- `file` is not allowed in nested structs, maps, aliases, or streaming methods
 
 
 ## List

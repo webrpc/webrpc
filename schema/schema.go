@@ -87,6 +87,10 @@ func (s *WebRPCSchema) Validate() error {
 		}
 	}
 
+	if err := s.validateFileTypeUsage(); err != nil {
+		return err
+	}
+
 	return nil
 }
 

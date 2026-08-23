@@ -1007,6 +1007,163 @@ func TestRIDLTypeAliasWithMeta(t *testing.T) {
 	assert.Equal(t, "uint64", s.Types[1].Meta[0]["go.type"])
 }
 
+func TestRIDLFileType(t *testing.T) {
+	{
+		// Valid placements: file/[]file inputs, input struct with top-level
+		// file fields, and a single file output.
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			struct UploadReportRequest
+				- title: string
+				- document: file
+				- attachments: []file
+
+			service FileService
+				- UploadAvatar(avatar: file) => (ok: bool)
+				- UploadAttachments(attachments: []file)
+				- UploadReport(req: UploadReportRequest) => (id: uint64)
+				- DownloadReport(id: uint64) => (report: file)
+		`
+		s, err := parseString(input)
+		require.NoError(t, err)
+
+		req := s.GetTypeByName("UploadReportRequest")
+		require.NotNil(t, req)
+		assert.Equal(t, "file", req.Fields[1].Type.String())
+		assert.Equal(t, "[]file", req.Fields[2].Type.String())
+
+		assert.Equal(t, "file", s.Services[0].Methods[0].Inputs[0].Type.String())
+		assert.Equal(t, "[]file", s.Services[0].Methods[1].Inputs[0].Type.String())
+		assert.Equal(t, "file", s.Services[0].Methods[3].Outputs[0].Type.String())
+	}
+
+	{
+		// []file is not a valid output.
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			service FileService
+				- DownloadAll() => (files: []file)
+		`
+		_, err := parseString(input)
+		assert.ErrorContains(t, err, "only a single 'file' output is allowed")
+	}
+
+	{
+		// file output cannot mix with other outputs.
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			service FileService
+				- Download() => (report: file, etag: string)
+		`
+		_, err := parseString(input)
+		assert.ErrorContains(t, err, "only output")
+	}
+
+	{
+		// file-carrying struct cannot be nested in another struct.
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			struct Payload
+				- data: file
+
+			struct Wrapper
+				- payload: Payload
+
+			service FileService
+				- Upload(req: Wrapper)
+		`
+		_, err := parseString(input)
+		assert.ErrorContains(t, err, "field 'payload' of struct 'Wrapper'")
+	}
+
+	{
+		// file-carrying struct cannot be used as an output.
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			struct Payload
+				- data: file
+
+			service FileService
+				- GetPayload() => (payload: Payload)
+		`
+		_, err := parseString(input)
+		assert.ErrorContains(t, err, "GetPayload")
+	}
+
+	{
+		// file cannot be used in maps.
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			service FileService
+				- Upload(files: map<string,file>)
+		`
+		_, err := parseString(input)
+		assert.ErrorContains(t, err, "invalid file placement")
+	}
+
+	{
+		// file cannot be nested deeper than a single list level.
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			service FileService
+				- Upload(files: [][]file)
+		`
+		_, err := parseString(input)
+		assert.ErrorContains(t, err, "invalid file placement")
+	}
+
+	{
+		// aliases cannot be declared over file.
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			type Upload: file
+
+			service FileService
+				- Ping()
+		`
+		_, err := parseString(input)
+		assert.ErrorContains(t, err, "alias 'Upload'")
+	}
+
+	{
+		// streaming methods cannot use files.
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			service FileService
+				- Upload(data: file) => stream (ok: bool)
+		`
+		_, err := parseString(input)
+		assert.ErrorContains(t, err, "streaming")
+	}
+}
+
 func TestRIDLTypeAliasUsage(t *testing.T) {
 	input := `
 		webrpc = v1
