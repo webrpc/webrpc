@@ -76,10 +76,11 @@ func TestUploadFilesOutOfOrderRead(t *testing.T) {
 	assert.Equal(t, uint32(2), count)
 }
 
-// TestUploadFilesWithoutJsonPart covers the lenient path for hand-rolled
-// clients that send only the file parts, with the documented names in order,
-// without the leading "json" part (and thus without the []file shape that
-// tells the server how many parts to expect).
+// TestUploadFilesWithoutJsonPart covers the wire format requirement for
+// []file methods: the leading "json" part must declare the []file argument
+// as an array with one null per file part, so the server knows how many
+// parts to expect and can keep them streaming. A request without that shape
+// is rejected with a clear HTTP 400 error.
 func TestUploadFilesWithoutJsonPart(t *testing.T) {
 	srv := httptest.NewServer(server.NewTestApiServer(&server.TestServer{}))
 	defer srv.Close()
@@ -100,6 +101,6 @@ func TestUploadFilesWithoutJsonPart(t *testing.T) {
 
 	respBody, err := io.ReadAll(resp.Body)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, resp.StatusCode, string(respBody))
-	assert.Equal(t, `{"count":2}`, string(respBody))
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, string(respBody))
+	assert.Contains(t, string(respBody), `must declare \"files\" as a JSON array with one null per file part`)
 }

@@ -6,7 +6,6 @@
 package server
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -1186,7 +1185,8 @@ func newMultipartUpload(r *http.Request, names ...string) (*multipartUpload, []b
 // known to be absent. The file's Body streams from the wire; see the wire
 // order NOTE on multipartUpload.
 func (u *multipartUpload) file(name string) (*File, error) {
-	s := u.addSlot(name, u.nextNamePos())
+	s := u.addSlot(name, u.namePos)
+	u.namePos++
 	if u.canBindNow(s) {
 		u.bind(s)
 		if u.err != nil {
@@ -1202,13 +1202,13 @@ func (u *multipartUpload) file(name string) (*File, error) {
 // files returns the files of the repeated multipart parts with the given
 // name, their Bodies streaming from the wire. decl is the field's value
 // decoded from the "json" part, whose length says how many parts to expect
-// ([]file is JSON-encoded as one null per file). Without that shape (no
-// "json" part, or a null field) the count is unknown, so the parts are read
-// into memory instead, bounded by the whole-request MaxUploadSize cap.
+// ([]file is JSON-encoded as one null per file). A request without that
+// shape is rejected: the declared count is what keeps the parts streaming.
 func (u *multipartUpload) files(name string, decl []*File) ([]*File, error) {
-	pos := u.nextNamePos()
+	pos := u.namePos
+	u.namePos++
 	if decl == nil {
-		return u.filesBuffered(name, pos)
+		return nil, fmt.Errorf("multipart part %q must declare %q as a JSON array with one null per file part", "json", name)
 	}
 	files := make([]*File, len(decl))
 	for i := range files {
@@ -1222,51 +1222,6 @@ func (u *multipartUpload) files(name string, decl []*File) ([]*File, error) {
 		files[i] = s.file
 	}
 	return files, nil
-}
-
-// filesBuffered collects the repeated parts with the given name by reading
-// them into memory: without the declared count the wire must be walked to
-// find where the group ends. Unread earlier files are buffered in passing;
-// later files stay streamable.
-func (u *multipartUpload) filesBuffered(name string, namePos int) ([]*File, error) {
-	for _, s := range u.slots {
-		if s.state == slotBound {
-			if err := s.buffer(); err != nil {
-				return nil, err
-			}
-		}
-	}
-	var files []*File
-	for {
-		part, err := u.peek()
-		if err == io.EOF {
-			return files, nil
-		}
-		if err != nil {
-			return nil, err
-		}
-		partName := part.FormName()
-		if partName == name {
-			file, err := bufferPart(u.claim())
-			if err != nil {
-				return nil, err
-			}
-			files = append(files, file)
-			continue
-		}
-		if s := u.pendingSlotNamed(partName); s != nil {
-			// An unread earlier file's part: buffer it in passing.
-			s.bindPart(u.claim())
-			if err := s.buffer(); err != nil {
-				return nil, err
-			}
-			continue
-		}
-		if u.expectsLater(partName, namePos) {
-			return files, nil // a later file's part: the group has ended
-		}
-		u.claim() // skip the unexpected part; the reader drains it
-	}
 }
 
 // peek parses the next part header without claiming it. The underlying
@@ -1300,12 +1255,6 @@ func (u *multipartUpload) claim() *multipart.Part {
 	part := u.pending
 	u.pending = nil
 	return part
-}
-
-func (u *multipartUpload) nextNamePos() int {
-	pos := u.namePos
-	u.namePos++
-	return pos
 }
 
 func (u *multipartUpload) addSlot(name string, namePos int) *uploadSlot {
@@ -1370,21 +1319,11 @@ func (u *multipartUpload) expectsLater(name string, namePos int) bool {
 	return false
 }
 
-func (u *multipartUpload) pendingSlotNamed(name string) *uploadSlot {
-	for _, s := range u.slots {
-		if s.state == slotPending && s.name == name {
-			return s
-		}
-	}
-	return nil
-}
-
 const (
-	slotPending  = iota // declared; its part not yet reached on the wire
-	slotBound           // bound to the wire part currently being read
-	slotBuffered        // read into memory; see files
-	slotDone            // fully read; Read returns io.EOF
-	slotFailed          // missing, drained unread, or errored; Read returns err
+	slotPending = iota // declared; its part not yet reached on the wire
+	slotBound          // bound to the wire part currently being read
+	slotDone           // fully read; Read returns io.EOF
+	slotFailed         // missing, drained unread, or errored; Read returns err
 )
 
 // uploadSlot is one expected file part; it is the io.ReadCloser behind its
@@ -1396,7 +1335,6 @@ type uploadSlot struct {
 	namePos int // position in u.names
 	file    *File
 	part    *multipart.Part
-	buf     *bytes.Reader
 	state   int
 	err     error
 }
@@ -1414,8 +1352,6 @@ func (s *uploadSlot) Read(p []byte) (int, error) {
 			s.fail(err)
 		}
 		return n, err
-	case slotBuffered:
-		return s.buf.Read(p)
 	case slotDone:
 		return 0, io.EOF
 	default: // slotFailed
@@ -1444,39 +1380,6 @@ func (s *uploadSlot) bindPart(part *multipart.Part) {
 	if contentType := part.Header.Get("Content-Type"); contentType != "" {
 		s.file.ContentType = contentType
 	}
-}
-
-// buffer reads the slot's part into memory and serves the Body from there.
-func (s *uploadSlot) buffer() error {
-	data, err := io.ReadAll(s.part)
-	if err != nil {
-		err = fmt.Errorf("failed to read multipart part %q: %w", s.name, err)
-		s.fail(err)
-		return err
-	}
-	s.part = nil
-	s.buf = bytes.NewReader(data)
-	s.state = slotBuffered
-	s.file.Size = int64(len(data))
-	return nil
-}
-
-// bufferPart reads a whole part into memory as a *File.
-func bufferPart(part *multipart.Part) (*File, error) {
-	data, err := io.ReadAll(part)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read multipart part %q: %w", part.FormName(), err)
-	}
-	contentType := part.Header.Get("Content-Type")
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	}
-	return &File{
-		Name:        part.FileName(),
-		ContentType: contentType,
-		Size:        int64(len(data)),
-		Body:        io.NopCloser(bytes.NewReader(data)),
-	}, nil
 }
 
 // serveFileResponse streams the file as the raw response body and closes it.

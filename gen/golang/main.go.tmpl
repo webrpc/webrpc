@@ -107,6 +107,13 @@
 		{{- end -}}
 		{{ if MethodHasFileUpload $method -}}
 			{{- set $opts "fileUpload" true -}}
+			{{- range $_, $part := MethodFileParts $method -}}
+				{{- if $part.Repeated -}}
+					{{- set $opts "fileUploadRepeated" true -}}
+				{{- else -}}
+					{{- set $opts "fileUploadSingle" true -}}
+				{{- end -}}
+			{{- end -}}
 		{{- end -}}
 		{{ if MethodHasFileDownload $method -}}
 			{{- set $opts "fileDownload" true -}}
