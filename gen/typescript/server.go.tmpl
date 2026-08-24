@@ -91,12 +91,9 @@ const dispatch{{$service.Name}}Request = async <Context>(service: {{$service.Nam
 
 {{- end}}
 {{"\n"}}
-const webrpcContentType = (request: Request): string => {
-  return (request.headers.get('Content-Type') || '').split(';')[0]!.trim().toLowerCase()
-}
-
 const webrpcRequestBodyText = async (request: Request): Promise<string> => {
-  if (webrpcContentType(request) !== 'application/json') {
+  const contentType = (request.headers.get('Content-Type') || '').split(';')[0]!.trim().toLowerCase()
+  if (contentType !== 'application/json') {
     throw new WebrpcBadRequestError({ cause: `unsupported Content-Type '${request.headers.get('Content-Type') || ''}' (only application/json is allowed)` })
   }
   return request.text()
@@ -141,7 +138,8 @@ const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }):
 {{- if $opts.fileUpload}}
 {{"\n"}}
 const webrpcUploadFormData = async (request: Request): Promise<FormData> => {
-  if (webrpcContentType(request) !== 'multipart/form-data') {
+  const contentType = (request.headers.get('Content-Type') || '').split(';')[0]!.trim().toLowerCase()
+  if (contentType !== 'multipart/form-data') {
     throw new WebrpcBadRequestError({ cause: `unsupported Content-Type '${request.headers.get('Content-Type') || ''}' (only multipart/form-data is allowed)` })
   }
   try {

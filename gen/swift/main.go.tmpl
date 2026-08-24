@@ -62,6 +62,9 @@
       {{- set $opts "fileDownload" true -}}
       {{- set $opts "fileType" true -}}
     {{- end -}}
+    {{- if and (MethodHasFileUpload $method) (MethodHasFileDownload $method) -}}
+      {{- set $opts "fileUploadDownload" true -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 {{- range $_, $type := .Types -}}

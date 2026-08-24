@@ -190,7 +190,7 @@ suspend fun executeWebRpcDownload(
 
     return decodeWebRpcFileResponse(response, json)
 }
-{{- if $opts.fileUpload }}
+{{- if $opts.fileUploadDownload }}
 
 suspend fun executeWebRpcUploadDownload(
     baseUrl: String,
