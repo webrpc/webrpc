@@ -177,7 +177,9 @@ const webrpcFormFiles = (form: FormData, name: string, args: any) => {
 {{- if $opts.fileDownload}}
 {{"\n"}}
 // webrpcFileResponse streams the file returned by a download method as the
-// raw response body, with the file's metadata carried in the headers.
+// raw response body, with the file's metadata carried in the headers. The
+// inline Content-Disposition lets browsers preview the file in place; its
+// filename still names the file on save-as.
 const webrpcFileResponse = (file: Blob | File): Response => {
   if (!(file instanceof Blob)) {
     return webrpcErrorResponse(new WebrpcBadResponseError({ cause: 'download method did not return a file' }))
@@ -185,26 +187,25 @@ const webrpcFileResponse = (file: Blob | File): Response => {
   const headers = new Headers({
     [WebrpcHeader]: WebrpcHeaderValue,
     'Content-Type': file.type || 'application/octet-stream',
-    'Content-Disposition': webrpcContentDisposition(file instanceof File ? file.name : ''),
     'Content-Length': String(file.size),
     'X-Content-Type-Options': 'nosniff',
   })
+  if (file instanceof File && file.name !== '') {
+    headers.set('Content-Disposition', webrpcContentDisposition(file.name))
+  }
   return new Response(file, { status: 200, headers })
 }
 
-// webrpcContentDisposition formats the attachment Content-Disposition header,
+// webrpcContentDisposition formats the inline Content-Disposition header,
 // escaping the filename per RFC 6266 / RFC 5987.
 const webrpcContentDisposition = (filename: string): string => {
-  if (filename === '') {
-    return 'attachment'
-  }
   if (/^[\x20-\x21\x23-\x5b\x5d-\x7e]*$/.test(filename)) {
-    return `attachment; filename="${filename}"`
+    return `inline; filename="${filename}"`
   }
   if (/^[\x20-\x7e]*$/.test(filename)) {
-    return `attachment; filename="${filename.replace(/([\\"])/g, '\\$1')}"`
+    return `inline; filename="${filename.replace(/([\\"])/g, '\\$1')}"`
   }
-  return `attachment; filename*=utf-8''${encodeURIComponent(filename)}`
+  return `inline; filename*=utf-8''${encodeURIComponent(filename)}`
 }
 {{- end}}
 {{end -}}

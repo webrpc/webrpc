@@ -1417,6 +1417,8 @@ func bufferPart(part *multipart.Part) (*File, error) {
 }
 
 // serveFileResponse streams the file as the raw response body and closes it.
+// The inline Content-Disposition lets browsers preview the file in place; its
+// filename still names the file on save-as.
 func serveFileResponse(w http.ResponseWriter, file *File) {
 	defer func() {
 		if file.Body != nil {
@@ -1431,9 +1433,7 @@ func serveFileResponse(w http.ResponseWriter, file *File) {
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	if file.Name != "" {
-		w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{"filename": file.Name}))
-	} else {
-		w.Header().Set("Content-Disposition", "attachment")
+		w.Header().Set("Content-Disposition", mime.FormatMediaType("inline", map[string]string{"filename": file.Name}))
 	}
 	if file.Size >= 0 {
 		w.Header().Set("Content-Length", strconv.FormatInt(file.Size, 10))
