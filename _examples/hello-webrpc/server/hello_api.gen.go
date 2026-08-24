@@ -194,8 +194,8 @@ func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "application/json":
 		if s.OnRequest != nil {
 			if err := s.OnRequest(w, r); err != nil {
-				rpcErr, ok := err.(WebRPCError)
-				if !ok {
+				var rpcErr WebRPCError
+				if !errors.As(err, &rpcErr) {
 					rpcErr = ErrWebrpcEndpoint.WithCause(err)
 				}
 				s.sendErrorJSON(w, r, rpcErr)
@@ -216,8 +216,8 @@ func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWrite
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.Ping(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -259,8 +259,8 @@ func (s *exampleService) serveGetUserJSON(ctx context.Context, w http.ResponseWr
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.GetUser(ctx, reqPayload.Arg0)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -302,8 +302,8 @@ func (s *exampleService) serveFindUsersJSON(ctx context.Context, w http.Response
 	// Call service method implementation.
 	ret0, ret1, err := s.ExampleServer.FindUsers(ctx, reqPayload.Arg0)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -355,8 +355,8 @@ func (s Server) Methods(opts *Options) []Method {
 }
 
 func RespondWithError(w http.ResponseWriter, err error) {
-	rpcErr, ok := err.(WebRPCError)
-	if !ok {
+	var rpcErr WebRPCError
+	if !errors.As(err, &rpcErr) {
 		rpcErr = ErrWebrpcEndpoint.WithCause(err)
 	}
 
