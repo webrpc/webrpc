@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
+	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -61,7 +65,11 @@ func startServer() error {
 	r.Handle("/admin/*", admin.NewAdminServer(&AdminServiceRPC{}))
 	r.Handle("/*", webrpcHandler)
 
-	return http.ListenAndServe(":4242", r)
+	addr := ":4242"
+	if port := os.Getenv("PORT"); port != "" {
+		addr = ":" + port
+	}
+	return http.ListenAndServe(addr, r)
 }
 
 type AdminServiceRPC struct{}
@@ -82,7 +90,16 @@ func (s *AdminServiceRPC) Version(ctx context.Context) (*admin.Version, error) {
 	}, nil
 }
 
-type ExampleServiceRPC struct{}
+type storedAvatar struct {
+	name        string
+	contentType string
+	data        []byte
+}
+
+type ExampleServiceRPC struct {
+	mu      sync.Mutex
+	avatars map[uint64]storedAvatar
+}
 
 func (s *ExampleServiceRPC) Ping(ctx context.Context) error {
 	return nil
@@ -162,5 +179,47 @@ func (s *ExampleServiceRPC) CountIntents(ctx context.Context, userID uint64) (ma
 		Intent_openSession:     1,
 		Intent_closeSession:    2,
 		Intent_validateSession: 3,
+	}, nil
+}
+
+// UploadAvatar receives the avatar as a *File parsed from the multipart
+// request body, alongside the JSON-encoded scalar fields of the request.
+func (s *ExampleServiceRPC) UploadAvatar(ctx context.Context, req UploadAvatarRequest) (*UploadAvatarResponse, error) {
+	if req.Avatar == nil {
+		return nil, ErrWebrpcBadRequest.WithCausef("missing avatar file")
+	}
+	defer req.Avatar.Body.Close()
+
+	data, err := io.ReadAll(req.Avatar.Body)
+	if err != nil {
+		return nil, ErrWebrpcBadRequest.WithCausef("failed to read avatar: %w", err)
+	}
+
+	s.mu.Lock()
+	if s.avatars == nil {
+		s.avatars = map[uint64]storedAvatar{}
+	}
+	s.avatars[req.UserId] = storedAvatar{name: req.Avatar.Name, contentType: req.Avatar.ContentType, data: data}
+	s.mu.Unlock()
+
+	return &UploadAvatarResponse{Size: uint64(len(data))}, nil
+}
+
+// DownloadAvatar returns a *File that is streamed to the client as the raw
+// response body, with the file's metadata in the response headers.
+func (s *ExampleServiceRPC) DownloadAvatar(ctx context.Context, req DownloadAvatarRequest) (*File, error) {
+	s.mu.Lock()
+	avatar, ok := s.avatars[req.UserId]
+	s.mu.Unlock()
+
+	if !ok {
+		return nil, ErrUserNotFound.WithCausef("no avatar for user %d", req.UserId)
+	}
+
+	return &File{
+		Name:        avatar.name,
+		ContentType: avatar.contentType,
+		Size:        int64(len(avatar.data)),
+		Body:        io.NopCloser(bytes.NewReader(avatar.data)),
 	}, nil
 }

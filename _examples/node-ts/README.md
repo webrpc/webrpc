@@ -30,8 +30,8 @@ the http service router (ie. none/hono/fastify) is different.
 The generated `serve<Service>Rpc(service, ctx, request)` entrypoint takes a
 web-standard `Request` and resolves to a web-standard `Response` (or `null`
 when the path doesn't match the service). In hono it plugs in directly
-(`serveExampleRpc(exampleService, c, c.req.raw)`); for node:http and fastify
-the examples include a small `IncomingMessage`/`ServerResponse` adapter.
+(`serveExampleRpc(exampleService, c, c.req.raw)`); for node:http the example
+includes a small `IncomingMessage`/`ServerResponse` adapter.
 
 The service also demonstrates the `file` core type: `uploadAvatar` receives
 the avatar as a native `File` parsed from the multipart request body, and

@@ -1,0 +1,15 @@
+{
+  "name": "webrpc-interop-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "End-to-end interoperability tests for the webrpc file core type: TypeScript and JavaScript clients vs Go and TypeScript servers.",
+  "scripts": {
+    "test": "tsx test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.8.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

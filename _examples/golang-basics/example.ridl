@@ -31,6 +31,10 @@ service Example
     @public
   - CountIntents(userId: uint64) => (count: map<Intent,uint32>)
 
+  - UploadAvatar(UploadAvatarRequest) => (UploadAvatarResponse)
+
+  - DownloadAvatar(DownloadAvatarRequest) => (file)
+
 service ExampleV2
   - Ping()
   - Status() => (status: bool)
@@ -119,6 +123,16 @@ struct GetUserResponse
   - code: uint32
   - user: User
   - profile: string
+
+struct UploadAvatarRequest
+  - userId: uint64
+  - avatar: file
+
+struct UploadAvatarResponse
+  - size: uint64
+
+struct DownloadAvatarRequest
+  - userId: uint64
 
 error 1000 UserNotFound     "User not found"      HTTP 404
 error 2000 Unauthorized     "Unauthorized access" HTTP 401

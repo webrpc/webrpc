@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -75,4 +77,36 @@ func TestGetUser(t *testing.T) {
 		assert.Equal(t, &User{ID: 123, Username: "joe"}, user)
 		assert.NoError(t, err)
 	}
+}
+
+func TestUploadDownloadAvatar(t *testing.T) {
+	ctx := context.Background()
+	content := []byte("not really a png \x00\x01\xff")
+
+	resp, err := client.UploadAvatar(ctx, UploadAvatarRequest{
+		UserId: 77,
+		Avatar: &File{
+			Name:        "me.png",
+			ContentType: "image/png",
+			Size:        int64(len(content)),
+			Body:        io.NopCloser(bytes.NewReader(content)),
+		},
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, uint64(len(content)), resp.Size)
+
+	avatar, err := client.DownloadAvatar(ctx, DownloadAvatarRequest{UserId: 77})
+	assert.NoError(t, err)
+	defer avatar.Body.Close()
+
+	data, err := io.ReadAll(avatar.Body)
+	assert.NoError(t, err)
+	assert.Equal(t, content, data)
+	assert.Equal(t, "me.png", avatar.Name)
+	assert.Equal(t, "image/png", avatar.ContentType)
+	assert.Equal(t, int64(len(content)), avatar.Size)
+
+	// Errors on download methods still arrive as the webrpc JSON error envelope.
+	_, err = client.DownloadAvatar(ctx, DownloadAvatarRequest{UserId: 999999})
+	assert.ErrorAs(t, err, &ErrUserNotFound)
 }
