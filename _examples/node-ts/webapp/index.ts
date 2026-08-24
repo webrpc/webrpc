@@ -93,6 +93,43 @@ async function onGetArticleClick(articleText: HTMLElement) {
 	}
 }
 
+async function onUploadAvatarClick(fileInput: HTMLInputElement, uploadText: HTMLElement) {
+	const file = fileInput.files?.[0]
+	if (!file) {
+		uploadText.textContent = 'pick a file first'
+		return
+	}
+	try {
+		// File inputs are typed Blob | File; the browser's File carries the
+		// filename and content type onto the wire.
+		const { size, name } = await example.uploadAvatar({ userId: 1, avatar: file })
+		uploadText.textContent = `uploaded ${name} (${size} bytes)`
+	} catch (error) {
+		if (error instanceof WebrpcError) {
+			console.error(error)
+			uploadText.textContent = `webrpc error: ${error.message}, cause: ${error.cause}`
+		} else {
+			console.error('unexpected error:', error)
+		}
+	}
+}
+
+async function onDownloadAvatarClick(downloadText: HTMLElement, img: HTMLImageElement) {
+	try {
+		// Download methods return a WebrpcFile: metadata plus the streamed body.
+		const avatar = await example.downloadAvatar({ userId: 1 })
+		downloadText.textContent = `downloaded ${avatar.name ?? '(unnamed)'} (${avatar.contentType}, ${avatar.size ?? '?'} bytes)`
+		img.src = URL.createObjectURL(await avatar.blob())
+	} catch (error) {
+		if (error instanceof WebrpcError) {
+			console.error(error)
+			downloadText.textContent = `webrpc error: ${error.message}, cause: ${error.cause}`
+		} else {
+			console.error('unexpected error:', error)
+		}
+	}
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 	const pingButton = document.getElementById('js-ping-btn')
 	const pingText = document.getElementById('js-ping-text')
@@ -125,5 +162,24 @@ document.addEventListener('DOMContentLoaded', () => {
 		console.log('error getting article HTML elements')
 	} else {
 		getArticleButton.addEventListener('click', () => { void onGetArticleClick(articleText) })
+	}
+
+	const avatarFileInput = document.getElementById('js-avatar-file')
+	const uploadAvatarButton = document.getElementById('js-upload-avatar-btn')
+	const uploadAvatarText = document.getElementById('js-upload-avatar-text')
+	const downloadAvatarButton = document.getElementById('js-download-avatar-btn')
+	const downloadAvatarText = document.getElementById('js-download-avatar-text')
+	const downloadAvatarImg = document.getElementById('js-download-avatar-img')
+
+	if (!(avatarFileInput instanceof HTMLInputElement) || !uploadAvatarButton || !uploadAvatarText) {
+		console.log('error getting avatar upload HTML elements')
+	} else {
+		uploadAvatarButton.addEventListener('click', () => { void onUploadAvatarClick(avatarFileInput, uploadAvatarText) })
+	}
+
+	if (!downloadAvatarButton || !downloadAvatarText || !(downloadAvatarImg instanceof HTMLImageElement)) {
+		console.log('error getting avatar download HTML elements')
+	} else {
+		downloadAvatarButton.addEventListener('click', () => { void onDownloadAvatarClick(downloadAvatarText, downloadAvatarImg) })
 	}
 })

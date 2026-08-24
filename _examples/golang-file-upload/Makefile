@@ -9,9 +9,16 @@ build:
 
 generate: build
 	webrpc-gen -schema=fileupload.ridl -target=golang -pkg=main -server -client -out=./fileupload.gen.go
+	webrpc-gen -schema=fileupload.ridl -target=typescript -client -out=./interop/client.gen.ts
+	webrpc-gen -schema=fileupload.ridl -target=typescript -server -out=./interop/server.gen.ts
 
 test:
 	go test -v -race ./...
+
+# End-to-end interoperability tests of the file upload/download wire contract
+# between the Go and TypeScript generators, in both directions.
+test-interop:
+	cd interop && pnpm install && pnpm test
 
 run:
 	go run .

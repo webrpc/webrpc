@@ -1,7 +1,10 @@
 import http, { IncomingMessage, ServerResponse } from 'node:http'
 import { HttpHandler, createHttpEntrypoint, createWebrpcServerHandler, RequestContext, composeHttpHandler, sendJson } from './helpers'
-import { Kind, ExampleServer, serveExampleRpc, WebrpcEndpointError } from './server.gen'
+import { Kind, ExampleServer, serveExampleRpc, WebrpcEndpointError, WebrpcBadRouteError } from './server.gen'
 import { withLogging, withTrace, withCors } from './middleware'
+
+// In-memory storage of the uploaded avatars.
+const avatars = new Map<number, File>()
 
 // ExampleServer RPC implementation of the webrpc service definition
 const exampleService: ExampleServer<RequestContext> = {
@@ -40,6 +43,25 @@ const exampleService: ExampleServer<RequestContext> = {
       content: `Hello, this is the content for article ${articleId}. (req ${ctx.reqId})`,
       largeNum: byBN * BigInt(2),
     }
+  },
+
+  // File upload: the avatar argument arrives as a native File parsed from the
+  // multipart/form-data request body.
+  async uploadAvatar(ctx, { userId, avatar }) {
+    const file = avatar instanceof File ? avatar : new File([avatar], `avatar-${userId}`, { type: avatar.type })
+    avatars.set(userId, file)
+    console.log(`stored avatar ${file.name} (${file.type}, ${file.size} bytes) for user ${userId} (req ${ctx.reqId})`)
+    return { size: file.size, name: file.name }
+  },
+
+  // File download: return a Blob or File; a File's name is sent to the client
+  // via the Content-Disposition header.
+  async downloadAvatar(_ctx, { userId }) {
+    const avatar = avatars.get(userId)
+    if (!avatar) {
+      throw new WebrpcBadRouteError({ cause: `no avatar for user ${userId}` })
+    }
+    return avatar
   }
 }
 
@@ -78,8 +100,8 @@ const routes = (): HttpHandler  => {
   return async (ctx: RequestContext, req: IncomingMessage, res: ServerResponse): Promise<void> => {
     const url = req.url
 
-    // First try RPC routing (/rpc/*)
-    if (url?.startsWith('/rpc/')) {
+    // First try RPC routing (/v1/*, the schema's basepath)
+    if (url?.startsWith('/v1/')) {
       await rpcHandler(ctx, req, res)
       return
     }

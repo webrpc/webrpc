@@ -3,13 +3,16 @@ import type { Context } from 'hono'
 import { serve } from '@hono/node-server'
 import { logger } from 'hono/logger'
 import { cors } from 'hono/cors'
-import { ExampleServer, serveExampleRpc, Kind, WebrpcEndpointError } from './server.gen'
+import { ExampleServer, serveExampleRpc, Kind, WebrpcEndpointError, WebrpcBadRouteError } from './server.gen'
 import { randomUUID } from 'node:crypto'
 
 
 // ---------------------------------------------------------------------------
 // Example rpc service
 // ---------------------------------------------------------------------------
+// In-memory storage of the uploaded avatars.
+const avatars = new Map<number, File>()
+
 // NOTE: you can also implement the service methods in a class.
 const exampleService: ExampleServer<RequestContext> = {
   async ping() {
@@ -45,6 +48,24 @@ const exampleService: ExampleServer<RequestContext> = {
       content: `Hello, this is the content for article ${articleId}. (req ${ctx.var.traceId})`,
       largeNum: byBN * BigInt(2),
     }
+  },
+
+  // File upload: the avatar argument arrives as a native File parsed from the
+  // multipart/form-data request body.
+  async uploadAvatar(_ctx, { userId, avatar }) {
+    const file = avatar instanceof File ? avatar : new File([avatar], `avatar-${userId}`, { type: avatar.type })
+    avatars.set(userId, file)
+    return { size: file.size, name: file.name }
+  },
+
+  // File download: return a Blob or File; a File's name is sent to the client
+  // via the Content-Disposition header.
+  async downloadAvatar(_ctx, { userId }) {
+    const avatar = avatars.get(userId)
+    if (!avatar) {
+      throw new WebrpcBadRouteError({ cause: `no avatar for user ${userId}` })
+    }
+    return avatar
   }
 }
 
@@ -92,14 +113,11 @@ app.get('/', (c: RequestContext) => c.text(`Hello world (req ${c.var.traceId})`)
 // Health route
 app.get('/health', (c: RequestContext) => c.json({ ok: true, time: new Date().toISOString(), traceId: c.var.traceId }))
 
-// RPC mount and entrypoint
-app.all('/rpc/*', async (ctx: RequestContext) => {
-  const body = await ctx.req.json().catch(() => ({}))
-  const result = await serveExampleRpc(exampleService, ctx, ctx.req.path, body)
-  if (result == null) return ctx.notFound()
-  for (const [k, v] of Object.entries(result.headers)) ctx.res.headers.set(k, String(v))
-  ctx.status(result.status as any)
-  return ctx.json(result.body)
+// RPC mount and entrypoint. Hono handlers already speak web-standard
+// Request/Response, so the generated webrpc handler plugs in directly.
+app.all('/v1/*', async (ctx: RequestContext) => {
+  const response = await serveExampleRpc(exampleService, ctx, ctx.req.raw)
+  return response ?? ctx.notFound()
 })
 
 // Start server

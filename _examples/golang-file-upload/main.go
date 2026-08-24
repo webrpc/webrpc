@@ -7,11 +7,27 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"sort"
 	"sync"
 )
 
 func main() {
-	err := startServer(":4242")
+	// `go run . client http://localhost:4243` runs the client test suite
+	// against a running FileService server instead (see interop/test.ts).
+	if len(os.Args) > 2 && os.Args[1] == "client" {
+		if err := runClientSuite(os.Args[2]); err != nil {
+			log.Fatal(err)
+		}
+		log.Println("go client suite: all tests passed")
+		return
+	}
+
+	addr := ":4242"
+	if port := os.Getenv("PORT"); port != "" {
+		addr = ":" + port
+	}
+	err := startServer(addr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -89,4 +105,43 @@ func (s *FileServiceRPC) DownloadAvatar(ctx context.Context, userId uint64) (*Fi
 		Size:        int64(len(avatar.data)),
 		Body:        io.NopCloser(bytes.NewReader(avatar.data)),
 	}, nil
+}
+
+func (s *FileServiceRPC) StampAvatar(ctx context.Context, userId uint64, stamp *File) (*File, error) {
+	if stamp == nil {
+		return nil, ErrWebrpcBadRequest.WithCausef("missing stamp file")
+	}
+	stampData, err := io.ReadAll(stamp.Body)
+	stamp.Body.Close()
+	if err != nil {
+		return nil, ErrWebrpcBadRequest.WithCausef("failed to read stamp: %w", err)
+	}
+
+	s.mu.Lock()
+	avatar, ok := s.avatars[userId]
+	s.mu.Unlock()
+
+	if !ok {
+		return nil, ErrWebrpcBadRoute.WithCausef("no avatar for user %d", userId)
+	}
+
+	stamped := append(append([]byte{}, avatar.data...), stampData...)
+	return &File{
+		Name:        "stamped-" + avatar.name,
+		ContentType: avatar.contentType,
+		Size:        int64(len(stamped)),
+		Body:        io.NopCloser(bytes.NewReader(stamped)),
+	}, nil
+}
+
+func (s *FileServiceRPC) ListAvatars(ctx context.Context) ([]uint64, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	userIds := make([]uint64, 0, len(s.avatars))
+	for userId := range s.avatars {
+		userIds = append(userIds, userId)
+	}
+	sort.Slice(userIds, func(i, j int) bool { return userIds[i] < userIds[j] })
+	return userIds, nil
 }

@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -39,14 +42,25 @@ func startServer() error {
 		w.Write([]byte("."))
 	})
 
-	webrpcHandler := NewExampleServer(&ExampleServiceRPC{})
+	webrpcHandler := NewExampleServer(&ExampleServiceRPC{
+		avatars: map[uint64]storedAvatar{},
+	})
 
 	r.Handle("/*", webrpcHandler)
 
 	return http.ListenAndServe(":3000", r)
 }
 
-type ExampleServiceRPC struct{}
+type ExampleServiceRPC struct {
+	mu      sync.Mutex
+	avatars map[uint64]storedAvatar
+}
+
+type storedAvatar struct {
+	name        string
+	contentType string
+	data        []byte
+}
 
 func (s *ExampleServiceRPC) Ping(ctx context.Context, counter *BigInt) error {
 	return nil
@@ -67,6 +81,41 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (uint32,
 			Amount: NewBigInt(5678),
 			Points: []BigInt{NewBigInt(100), NewBigInt(200), NewBigInt(300)},
 		},
+	}, nil
+}
+
+func (s *ExampleServiceRPC) UploadAvatar(ctx context.Context, userID uint64, avatar *File) (uint64, string, error) {
+	if avatar == nil {
+		return 0, "", ErrWebrpcBadRequest.WithCausef("missing avatar file")
+	}
+	defer avatar.Body.Close()
+
+	data, err := io.ReadAll(avatar.Body)
+	if err != nil {
+		return 0, "", ErrWebrpcBadRequest.WithCausef("failed to read avatar: %w", err)
+	}
+
+	s.mu.Lock()
+	s.avatars[userID] = storedAvatar{name: avatar.Name, contentType: avatar.ContentType, data: data}
+	s.mu.Unlock()
+
+	return uint64(len(data)), avatar.Name, nil
+}
+
+func (s *ExampleServiceRPC) DownloadAvatar(ctx context.Context, userID uint64) (*File, error) {
+	s.mu.Lock()
+	avatar, ok := s.avatars[userID]
+	s.mu.Unlock()
+
+	if !ok {
+		return nil, ErrWebrpcBadRoute.WithCausef("no avatar for user %d", userID)
+	}
+
+	return &File{
+		Name:        avatar.name,
+		ContentType: avatar.contentType,
+		Size:        int64(len(avatar.data)),
+		Body:        io.NopCloser(bytes.NewReader(avatar.data)),
 	}, nil
 }
 

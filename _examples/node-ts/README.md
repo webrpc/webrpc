@@ -21,10 +21,22 @@ You can find webrpc nodejs server examples in a variety of frameworks including:
 * ./server -- just vanilla nodejs (no framework)
 * ./server-hono -- built on hono library
 * ./server-fastify -- built on fastify library
+* ./server-go -- the same service implemented in Go (chi)
 
 Our recommendation is to use hono over fastify, as hono is much cleaner. The cool thing
 is that the server.gen.ts generated webrpc code is the same in all examples, its just
 the http service router (ie. none/hono/fastify) is different.
+
+The generated `serve<Service>Rpc(service, ctx, request)` entrypoint takes a
+web-standard `Request` and resolves to a web-standard `Response` (or `null`
+when the path doesn't match the service). In hono it plugs in directly
+(`serveExampleRpc(exampleService, c, c.req.raw)`); for node:http and fastify
+the examples include a small `IncomingMessage`/`ServerResponse` adapter.
+
+The service also demonstrates the `file` core type: `uploadAvatar` receives
+the avatar as a native `File` parsed from the multipart request body, and
+`downloadAvatar` returns a `Blob | File` that is streamed to the client with
+the file's metadata in the response headers.
 
 ## Notes
 
