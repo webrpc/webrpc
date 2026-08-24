@@ -22,6 +22,33 @@ interface WebRpcTransport {
         body: String,
         headers: Map<String, String> = emptyMap(),
     ): WebRpcHttpResponse
+{{- if $opts.fileUpload }}
+
+    // postMultipart makes a multipart/form-data request: a "json" part carrying
+    // [body] is sent first, followed by one part per file, streamed from
+    // [WebRpcFile.body] without buffering. Each file body is closed after the
+    // request is sent. The raw response is returned unconsumed; the caller
+    // owns closing it.
+    suspend fun postMultipart(
+        baseUrl: String,
+        path: String,
+        body: String,
+        files: List<WebRpcFilePart>,
+        headers: Map<String, String> = emptyMap(),
+    ): WebRpcHttpRawResponse
+{{- end }}
+{{- if $opts.fileDownload }}
+
+    // postRaw makes a JSON request like [post], but returns the raw response
+    // with its body left unconsumed as a byte stream, so binary file downloads
+    // are not buffered or corrupted. The caller owns closing the response.
+    suspend fun postRaw(
+        baseUrl: String,
+        path: String,
+        body: String,
+        headers: Map<String, String> = emptyMap(),
+    ): WebRpcHttpRawResponse
+{{- end }}
 }
 
 class WebRpcTransportException(
@@ -62,11 +89,105 @@ class OkHttpWebRpcTransport(
             throw WebRpcTransportException("WebRPC HTTP request failed", exception)
         }
     }
+{{- if $opts.fileUpload }}
+
+    override suspend fun postMultipart(
+        baseUrl: String,
+        path: String,
+        body: String,
+        files: List<WebRpcFilePart>,
+        headers: Map<String, String>,
+    ): WebRpcHttpRawResponse = withContext(Dispatchers.IO) {
+        val multipartBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("json", body)
+            .apply {
+                files.forEach { part ->
+                    addFormDataPart(
+                        part.name,
+                        part.file.name?.takeIf { it.isNotEmpty() } ?: part.name,
+                        part.file.toStreamingRequestBody(),
+                    )
+                }
+            }
+            .build()
+
+        val request = Request.Builder()
+            .url(joinUrl(baseUrl, path))
+            .post(multipartBody)
+            .apply {
+                headers.forEach { (name, value) -> addHeader(name, value) }
+            }
+            .build()
+
+        try {
+            executeRaw(request)
+        } finally {
+            files.forEach { part -> part.file.close() }
+        }
+    }
+{{- end }}
+{{- if $opts.fileDownload }}
+
+    override suspend fun postRaw(
+        baseUrl: String,
+        path: String,
+        body: String,
+        headers: Map<String, String>,
+    ): WebRpcHttpRawResponse = withContext(Dispatchers.IO) {
+        val request = Request.Builder()
+            .url(joinUrl(baseUrl, path))
+            .post(body.toRequestBody(jsonMediaType))
+            .apply {
+                headers.forEach { (name, value) -> addHeader(name, value) }
+            }
+            .build()
+
+        executeRaw(request)
+    }
+{{- end }}
+{{- if or $opts.fileUpload $opts.fileDownload }}
+
+    // executeRaw executes the request and returns the raw response without
+    // consuming its body; closing the returned response's body stream releases
+    // the underlying connection.
+    private fun executeRaw(request: Request): WebRpcHttpRawResponse {
+        val response = try {
+            okHttpClient.newCall(request).execute()
+        } catch (exception: IOException) {
+            throw WebRpcTransportException("WebRPC HTTP request failed", exception)
+        }
+        val responseHeaders = response.headers.toMultimap()
+            .mapValues { (_, values) -> values.lastOrNull().orEmpty() }
+        return WebRpcHttpRawResponse(
+            statusCode = response.code,
+            headers = responseHeaders,
+            body = response.body?.byteStream(),
+        )
+    }
+{{- end }}
 
     companion object {
         private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
     }
 }
+{{- if $opts.fileUpload }}
+
+// toStreamingRequestBody adapts a WebRpcFile to a one-shot OkHttp RequestBody
+// that streams the file content without buffering it in memory.
+private fun WebRpcFile.toStreamingRequestBody(): RequestBody {
+    val file = this
+    return object : RequestBody() {
+        override fun contentType(): MediaType? = file.contentType.toMediaTypeOrNull()
+        override fun contentLength(): Long = if (file.size >= 0) file.size else -1L
+        override fun isOneShot(): Boolean = true
+        override fun writeTo(sink: BufferedSink) {
+            val body = file.body ?: return
+            body.source().use { source -> sink.writeAll(source) }
+        }
+    }
+}
+{{- end }}
 {{- end }}
 
 private fun joinUrl(baseUrl: String, path: String): String =

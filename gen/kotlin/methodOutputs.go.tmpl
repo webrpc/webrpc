@@ -4,7 +4,9 @@
 {{- $serviceApiName := .ServiceApiName -}}
 {{- $methodNamespaceName := .MethodNamespaceName -}}
 
-{{- if eq (len $method.Outputs) 0 -}}
+{{- if MethodHasFileDownload $method -}}
+WebRpcFile
+{{- else if eq (len $method.Outputs) 0 -}}
 Unit
 {{- else if $method.Succinct -}}
 {{(index $method.Outputs 0).Type}}
