@@ -18,6 +18,11 @@ type: array
 {{ $indent }}items:
 {{ $indent }}  {{ template "fieldType" dict "Type" (listElemType $type) "TypeMap" $typeMap "Indent" (print $indent "  ") }}
 
+{{- else if eq (printf "%v" $type) "file" -}}
+
+type: string
+{{ $indent }}format: binary
+
 {{- else if isCoreType $type -}}
 
 type: {{ get $typeMap $type }}

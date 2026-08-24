@@ -57,6 +57,7 @@
 {{- set $typeMap "bigint" "number" -}}
 {{- set $typeMap "string" "string" -}}
 {{- set $typeMap "timestamp" "string" -}}
+{{- set $typeMap "file" "string" -}}
 {{- set $typeMap "map" "object" -}}
 {{- set $typeMap "[]" "array" -}}
 
@@ -109,12 +110,21 @@ components:
     {{- range $_, $service := $services}}
     {{- range $i, $method := $service.Methods}}
     {{- $isSuccinctInput := $method.Succinct -}}
-    {{- if not $isSuccinctInput }}
+    {{- /* File inputs are carried as multipart parts, not JSON: the Request
+         schema describes the JSON payload only (the "json" part of upload
+         methods), so `file` / `[]file` inputs are excluded from it. */ -}}
+    {{- $jsonInputs := array -}}
+    {{- range $_, $input := $method.Inputs -}}
+      {{- if and (ne (printf "%v" $input.Type) "file") (ne (printf "%v" $input.Type) "[]file") -}}
+        {{- $jsonInputs = append $jsonInputs $input -}}
+      {{- end -}}
+    {{- end -}}
+    {{- if and (not $isSuccinctInput) (or (not (MethodHasFileUpload $method)) (gt (len $jsonInputs) 0)) }}
     {{$service.Name}}_{{$method.Name}}_Request:
       type: object
-      {{- if gt (len $method.Inputs) 0 }}
+      {{- if gt (len $jsonInputs) 0 }}
       properties:
-        {{- range $_, $input := $method.Inputs}}
+        {{- range $_, $input := $jsonInputs}}
         {{$input.Name}}:
           {{ template "fieldType" dict "Type" $input.Type "TypeMap" $typeMap "Indent" "          " }}
         {{- end -}}
@@ -123,7 +133,7 @@ components:
     {{- end -}}
     {{- range $_, $method := .Methods}}
     {{- $isSuccinctOutput := $method.Succinct -}}
-    {{- if not $isSuccinctOutput }}
+    {{- if and (not $isSuccinctOutput) (not (MethodHasFileDownload $method)) }}
     {{$service.Name}}_{{$method.Name}}_Response:
       type: object
       {{- if gt (len $method.Outputs) 0 }}
@@ -142,6 +152,12 @@ paths:
   {{- range $_, $method := .Methods}}
   {{- $isSuccinctInput := $method.Succinct -}}
   {{- $isSuccinctOutput := $method.Succinct -}}
+  {{- $jsonInputs := array -}}
+  {{- range $_, $input := $method.Inputs -}}
+    {{- if and (ne (printf "%v" $input.Type) "file") (ne (printf "%v" $input.Type) "[]file") -}}
+      {{- $jsonInputs = append $jsonInputs $input -}}
+    {{- end -}}
+  {{- end -}}
   {{- $deprecated := index $method.Annotations "deprecated" }}
   {{$basepath}}{{$service.Name}}/{{$method.Name}}:
     post:
@@ -170,6 +186,46 @@ paths:
       {{- end }}
       requestBody:
         content:
+          {{- if MethodHasFileUpload $method }}
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                {{- if $isSuccinctInput }}
+                json:
+                  {{ template "fieldType" dict "Type" (index $method.Inputs 0).Type "TypeMap" $typeMap "Indent" "                  " }}
+                {{- else if gt (len $jsonInputs) 0 }}
+                json:
+                  $ref: '#/components/schemas/{{$service.Name}}_{{$method.Name}}_Request'
+                {{- end }}
+                {{- range $_, $part := MethodFileParts $method }}
+                {{$part.PartName}}:
+                  {{- if $part.Repeated }}
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  {{- else }}
+                  type: string
+                  format: binary
+                  {{- end }}
+                {{- end }}
+              {{- $required := array -}}
+              {{- if or $isSuccinctInput (gt (len $jsonInputs) 0) -}}
+                {{- $required = append $required "json" -}}
+              {{- end -}}
+              {{- range $_, $part := MethodFileParts $method -}}
+                {{- if and (eq $part.FieldName "") (not (index $method.Inputs $part.ArgIndex).Optional) -}}
+                  {{- $required = append $required $part.PartName -}}
+                {{- end -}}
+              {{- end -}}
+              {{- if gt (len $required) 0 }}
+              required:
+                {{- range $_, $name := $required }}
+                - {{$name}}
+                {{- end }}
+              {{- end }}
+          {{- else }}
           application/json:
             schema:
               {{- if and $isSuccinctInput (eq (len $method.Inputs) 1) }}
@@ -179,11 +235,17 @@ paths:
               {{- else }}
               $ref: '#/components/schemas/{{$service.Name}}_{{$method.Name}}_Request'
               {{- end }}
+          {{- end }}
       responses:
         '200':
           description: OK
           content:
-            {{- if eq $method.StreamOutput false }}
+            {{- if MethodHasFileDownload $method }}
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            {{- else if eq $method.StreamOutput false }}
             application/json:
               schema:
                 {{- if and $isSuccinctOutput (eq (len $method.Outputs) 1) }}
