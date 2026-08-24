@@ -22,10 +22,11 @@
   {{range .Methods}}
   {{firstLetterToLower .Name}} = ({{if len .Inputs}}args, {{end}}headers) => {
     {{- if MethodHasFileUpload .}}
+    {{- $succinct := .Succinct}}
     const form = new FormData()
     form.append('json', jsonEncodeUploadArgs(args))
     {{- range $_, $part := MethodFileParts .}}
-    appendFilePart{{if $part.Repeated}}s{{end}}(form, '{{$part.PartName}}', args.{{if ne $part.FieldName ""}}{{$part.ArgName}}?.{{end}}{{$part.PartName}})
+    appendFilePart{{if $part.Repeated}}s{{end}}(form, '{{$part.PartName}}', args.{{if and (ne $part.FieldName "") (not $succinct)}}{{$part.ArgName}}?.{{end}}{{$part.PartName}})
     {{- end}}
     return this.fetch(
       this.url('{{.Name}}'),
@@ -33,6 +34,10 @@
     ).then((res) => {
       {{- if MethodHasFileDownload .}}
       return buildFileResponse(res)
+      {{- else if $succinct}}
+      return buildResponse(res).then(_data => {
+        return new {{(index .Outputs 0).Type}}(_data)
+      })
       {{- else}}
       return buildResponse(res).then(_data => {
         return {

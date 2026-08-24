@@ -1162,6 +1162,29 @@ func TestRIDLFileType(t *testing.T) {
 		_, err := parseString(input)
 		assert.ErrorContains(t, err, "streaming")
 	}
+
+	{
+		// Succinct form: the file core type is allowed as a method's single
+		// download output.
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			struct DownloadAvatarRequest
+				- userId: uint64
+
+			service FileService
+				- DownloadAvatar(DownloadAvatarRequest) => (file)
+		`
+		s, err := parseString(input)
+		require.NoError(t, err)
+
+		m := s.Services[0].Methods[0]
+		assert.True(t, m.Succinct)
+		assert.Equal(t, "downloadAvatarRequest", m.Inputs[0].Name)
+		assert.Equal(t, "file", m.Outputs[0].Type.String())
+	}
 }
 
 func TestRIDLTypeAliasUsage(t *testing.T) {

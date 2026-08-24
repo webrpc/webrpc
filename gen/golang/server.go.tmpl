@@ -101,7 +101,7 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		{{- if MethodHasFileUpload $method }}
 		handler = s.serve{{$method.Name | firstLetterToUpper}}Multipart
 		expectedContentType = "multipart/form-data"
-		{{- else if and $method.Succinct (not $method.StreamOutput) }}
+		{{- else if and $method.Succinct (not $method.StreamOutput) (not (MethodHasFileDownload $method)) }}
 		handler = succinctHandler("{{$method.Name}}", s.{{$name}}Server.{{$method.Name}}, s.sendErrorJSON)
 		{{- else }}
 		handler = s.serve{{$method.Name | firstLetterToUpper}}JSON{{if $method.StreamOutput}}Stream{{end}}
@@ -278,7 +278,7 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}Multipart(ctx
 	{{- end}}
 	{{- end}}
 }
-{{- else if not $method.Succinct }}
+{{- else if or (not $method.Succinct) (MethodHasFileDownload $method) }}
 
 func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "{{$method.Name}}")
@@ -291,11 +291,16 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSON(ctx cont
 	}
 	defer r.Body.Close()
 
+	{{ if $method.Succinct -}}
+	{{- $input := index $method.Inputs 0 -}}
+	reqPayload := {{$typePrefix}}{{$input.Type}}{}
+	{{- else -}}
 	reqPayload := struct {
 	{{- range $i, $input := $method.Inputs}}
 		Arg{{$i}} {{template "field" dict "Name" $input.Name "Type" $input.Type "Optional" $input.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $input.Meta "JsonTags" true}}
 	{{- end}}
 	}{}
+	{{- end }}
 	if err := {{$json}}.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
@@ -303,7 +308,7 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSON(ctx cont
 	{{- end }}
 
 	// Call service method implementation.
-	{{range $i, $output := $method.Outputs}}ret{{$i}}, {{end}}err {{if or (eq (len $method.Inputs) 0) (gt (len $method.Outputs) 0)}}:{{end}}= s.{{$name}}Server.{{$method.Name}}(ctx{{range $i, $_ := $method.Inputs}}, reqPayload.Arg{{$i}}{{end}})
+	{{range $i, $output := $method.Outputs}}ret{{$i}}, {{end}}err {{if or (eq (len $method.Inputs) 0) (gt (len $method.Outputs) 0)}}:{{end}}= s.{{$name}}Server.{{$method.Name}}(ctx{{range $i, $_ := $method.Inputs}}, {{if $method.Succinct}}reqPayload{{else}}reqPayload.Arg{{$i}}{{end}}{{end}})
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {

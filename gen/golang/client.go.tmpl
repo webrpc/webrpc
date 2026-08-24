@@ -46,6 +46,29 @@ func New{{$ServiceNameClient}}(addr string, client HTTPClient) {{$ServiceNameCli
 {{- $output := index $method.Outputs 0 }}
 
 func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context, {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}} {{template "field" dict "Name" $input.Name "Type" $input.Type "Optional" $input.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $input.Meta "Succinct" $method.Succinct}}) ({{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta}}, error) {
+	{{- if MethodHasFileDownload $method }}
+	{{- if MethodHasFileUpload $method }}
+	parts := []filePart{}
+	{{- range $_, $part := MethodFileParts $method }}
+	{{- if $part.Repeated }}
+	parts = append(parts, filePart{name: "{{$part.PartName}}", files: {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}.{{$part.FieldName}}})
+	{{- else }}
+	parts = append(parts, filePart{name: "{{$part.PartName}}", files: []*File{ {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}.{{$part.FieldName}} }})
+	{{- end }}
+	{{- end }}
+	resp, err := doHTTPUploadRequestRaw(ctx, c.client, c.urls[{{$i}}], {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}, parts, nil)
+	{{- else }}
+	resp, err := doHTTPRequestRaw(ctx, c.client, c.urls[{{$i}}], {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}, nil)
+	{{- end }}
+	if err != nil {
+		if resp != nil {
+			resp.Body.Close()
+		}
+		return nil, err
+	}
+
+	return fileFromResponse(resp), nil
+	{{- else }}
 	var out {{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta}}
 	{{- if MethodHasFileUpload $method }}
 	parts := []filePart{}
@@ -61,6 +84,7 @@ func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context, {{$input.
 	err := doHTTPRequest(ctx, c.client, c.urls[{{$i}}], {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}, &out)
 	{{- end }}
 	return out, err
+	{{- end }}
 }
 {{- else }}
 
