@@ -237,6 +237,30 @@ where Key: WebRPCEnumKey, Value: Codable & Sendable {
         body: Data,
         headers: [String: String]
     ) async throws -> WebRPCHTTPResponse
+{{- if $opts.fileUpload }}
+
+    // postMultipart makes a multipart/form-data request: a "json" part
+    // carrying `body` (the JSON-encoded non-file arguments) is sent first,
+    // followed by one part per file.
+    func postMultipart(
+        baseURL: String,
+        path: String,
+        body: Data,
+        files: [WebRPCFilePart],
+        headers: [String: String]
+    ) async throws -> WebRPCHTTPResponse
+{{- end }}
+{{- if $opts.fileDownload }}
+
+    // postRaw makes a JSON request like post, but the successful response
+    // body is the raw (binary) file content rather than a JSON envelope.
+    func postRaw(
+        baseURL: String,
+        path: String,
+        body: Data,
+        headers: [String: String]
+    ) async throws -> WebRPCHTTPResponse
+{{- end }}
 }
 
 {{$access}} struct WebRPCTransportError: Error, Sendable {
@@ -299,11 +323,129 @@ where Key: WebRPCEnumKey, Value: Codable & Sendable {
             )
         }
     }
+{{- if $opts.fileUpload }}
+
+    {{$access}} func postMultipart(
+        baseURL: String,
+        path: String,
+        body: Data,
+        files: [WebRPCFilePart],
+        headers: [String: String]
+    ) async throws -> WebRPCHTTPResponse {
+        guard let url = URL(string: joinWebRPCURL(baseURL: baseURL, path: path)) else {
+            throw WebRPCTransportError(message: "Invalid WebRPC URL")
+        }
+
+        let boundary = "webrpc-" + UUID().uuidString
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = makeWebRPCMultipartBody(boundary: boundary, body: body, files: files)
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        for (name, value) in headers {
+            request.setValue(value, forHTTPHeaderField: name)
+        }
+
+        return try await executeRaw(request)
+    }
+{{- end }}
+{{- if $opts.fileDownload }}
+
+    {{$access}} func postRaw(
+        baseURL: String,
+        path: String,
+        body: Data,
+        headers: [String: String]
+    ) async throws -> WebRPCHTTPResponse {
+        guard let url = URL(string: joinWebRPCURL(baseURL: baseURL, path: path)) else {
+            throw WebRPCTransportError(message: "Invalid WebRPC URL")
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = body
+        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
+
+        for (name, value) in headers {
+            request.setValue(value, forHTTPHeaderField: name)
+        }
+
+        return try await executeRaw(request)
+    }
+{{- end }}
+{{- if or $opts.fileUpload $opts.fileDownload }}
+
+    private func executeRaw(_ request: URLRequest) async throws -> WebRPCHTTPResponse {
+        do {
+            let (data, response) = try await session.data(for: request)
+            let httpResponse = response as? HTTPURLResponse
+            let responseHeaders = (httpResponse?.allHeaderFields ?? [:]).reduce(into: [String: String]()) { result, item in
+                guard let key = item.key as? String else {
+                    return
+                }
+                result[key] = String(describing: item.value)
+            }
+
+            return WebRPCHTTPResponse(
+                statusCode: httpResponse?.statusCode ?? 0,
+                body: data,
+                headers: responseHeaders,
+            )
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            throw WebRPCTransportError(
+                message: "WebRPC HTTP request failed",
+                underlyingDescription: String(describing: error),
+            )
+        }
+    }
+{{- end }}
 }
 
 private {{$static}}func joinWebRPCURL(baseURL: String, path: String) -> String {
     baseURL.trimmingCharacters(in: CharacterSet(charactersIn: "/")) + "/" + path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
 }
+{{- if $opts.fileUpload }}
+
+// makeWebRPCMultipartBody builds a multipart/form-data request body: the
+// "json" part carrying the JSON-encoded non-file arguments is always first,
+// followed by one part per file ([]file arguments repeat the part name).
+private {{$static}}func makeWebRPCMultipartBody(boundary: String, body: Data, files: [WebRPCFilePart]) -> Data {
+    var data = Data()
+    data.append(Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"json\"\r\n\r\n".utf8))
+    data.append(body)
+    data.append(Data("\r\n".utf8))
+    for part in files {
+        let file = part.file
+        let fileName: String
+        if let name = file.name, !name.isEmpty {
+            fileName = name
+        } else {
+            fileName = part.name
+        }
+        let contentType = file.contentType.isEmpty ? "application/octet-stream" : file.contentType
+        data.append(Data("--\(boundary)\r\n".utf8))
+        data.append(Data("Content-Disposition: form-data; name=\"\(escapeWebRPCMultipartParam(part.name))\"; filename=\"\(escapeWebRPCMultipartParam(fileName))\"\r\n".utf8))
+        data.append(Data("Content-Type: \(contentType)\r\n\r\n".utf8))
+        if let content = file.data {
+            data.append(content)
+        }
+        data.append(Data("\r\n".utf8))
+    }
+    data.append(Data("--\(boundary)--\r\n".utf8))
+    return data
+}
+
+// escapeWebRPCMultipartParam escapes quotes and backslashes in multipart
+// header param values, mirroring mime/multipart.Writer.CreateFormFile.
+private {{$static}}func escapeWebRPCMultipartParam(_ value: String) -> String {
+    value
+        .replacingOccurrences(of: "\\", with: "\\\\")
+        .replacingOccurrences(of: "\"", with: "\\\"")
+}
+{{- end }}
 
 {{$access}} {{$static}}func executeWebRPC<Response>(
     baseURL: String,

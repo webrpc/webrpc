@@ -4,7 +4,9 @@
 {{- $serviceAPIName := .ServiceAPIName -}}
 {{- $methodAPIName := .MethodAPIName -}}
 
-{{- if eq (len $method.Outputs) 0 -}}
+{{- if MethodHasFileDownload $method -}}
+WebRPCFile
+{{- else if eq (len $method.Outputs) 0 -}}
 Void
 {{- else if $method.Succinct -}}
 {{template "type" dict "Type" (index $method.Outputs 0).Type "TypeMap" .TypeMap}}
