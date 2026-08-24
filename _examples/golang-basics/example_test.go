@@ -70,6 +70,15 @@ func TestGetUser(t *testing.T) {
 	}
 
 	{
+		// A joined WebRPCError must keep its typed status, not degrade to a generic endpoint error.
+		resp, err := client.GetUserV2(context.Background(), GetUserRequest{UserID: 1234})
+		assert.Nil(t, resp)
+		var werr WebRPCError
+		assert.ErrorAs(t, err, &werr)
+		assert.Equal(t, ErrUserNotFound.Code, werr.Code)
+	}
+
+	{
 		name, user, err := client.FindUser(context.Background(), &SearchFilter{Q: "joe"})
 		assert.Equal(t, "joe", name)
 		assert.Equal(t, &User{ID: 123, Username: "joe"}, user)
