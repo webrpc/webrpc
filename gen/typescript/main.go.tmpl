@@ -45,6 +45,19 @@
     {{ if eq $method.StreamOutput true -}}
       {{- set $opts "streaming" true -}}
     {{- end -}}
+    {{ if MethodHasFileUpload $method -}}
+      {{- set $opts "fileUpload" true -}}
+      {{- range $_, $part := MethodFileParts $method -}}
+        {{- if $part.Repeated -}}
+          {{- set $opts "fileUploadRepeated" true -}}
+        {{- else -}}
+          {{- set $opts "fileUploadSingle" true -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{ if MethodHasFileDownload $method -}}
+      {{- set $opts "fileDownload" true -}}
+    {{- end -}}
   {{- end -}}
 {{- end }}
 
@@ -69,6 +82,7 @@
 {{- set $typeMap "float64" "number" -}}
 {{- set $typeMap "string" "string" -}}
 {{- set $typeMap "timestamp" "string" -}}
+{{- set $typeMap "file" "Blob | File" -}}
 
 {{- $usesBigInts := SchemaBigIntFieldsByType .WebRPCSchema -}}
 
@@ -117,10 +131,14 @@ export const WebrpcSchemaHash = "{{.SchemaHash}}"
 
 {{- if $opts.server -}}
 {{template "server" dict "BasePath" .BasePath "Services" .Services "Opts" $opts "TypeMap" $typeMap "UsesBigInts" $usesBigInts}}
-{{template "serverHelpers" dict "Types" .Types "TypeMap" $typeMap}}
+{{template "serverHelpers" dict "Types" .Types "Opts" $opts "TypeMap" $typeMap}}
 {{- end -}}
 
 {{- "\n" -}}
+
+{{- if or $opts.fileUpload $opts.fileDownload -}}
+{{template "fileHelpers" dict "Opts" $opts}}
+{{- end -}}
 
 {{ template "bigintHelpers" dict "Schema" .WebRPCSchema "Services" .Services "Opts" $opts "UsesBigInts" $usesBigInts }}
 

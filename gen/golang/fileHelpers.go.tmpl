@@ -203,6 +203,10 @@ func doHTTPUploadRequest(ctx context.Context, client HTTPClient, url string, in 
 	return err
 }
 
+// multipartQuoteEscaper escapes quotes and backslashes in multipart header
+// param values, mirroring mime/multipart.Writer.CreateFormFile.
+var multipartQuoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
+
 // writeFilePart writes one file to the multipart body and closes its Body.
 func writeFilePart(writer *multipart.Writer, name string, file *File) error {
 	defer func() {
@@ -221,7 +225,11 @@ func writeFilePart(writer *multipart.Writer, name string, file *File) error {
 	}
 
 	header := make(textproto.MIMEHeader)
-	header.Set("Content-Disposition", mime.FormatMediaType("form-data", map[string]string{"name": name, "filename": fileName}))
+	// NOTE: the name and filename params are always quoted, like browsers and
+	// mime/multipart.Writer.CreateFormFile do; unquoted params are rejected by
+	// strict WHATWG multipart/form-data parsers (e.g. undici's request.formData()).
+	header.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+		multipartQuoteEscaper.Replace(name), multipartQuoteEscaper.Replace(fileName)))
 	header.Set("Content-Type", contentType)
 
 	part, err := writer.CreatePart(header)

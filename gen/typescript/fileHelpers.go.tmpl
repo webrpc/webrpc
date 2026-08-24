@@ -1,0 +1,107 @@
+{{- define "fileHelpers" -}}
+{{- $opts := .Opts -}}
+
+//
+// File helpers
+//
+
+{{- if and $opts.client $opts.fileUpload}}
+{{"\n"}}
+// JsonEncodeUploadArgs JSON-encodes upload method arguments for the leading
+// "json" multipart part. File (Blob) values are serialized as null: their
+// content travels in the dedicated multipart file parts instead.
+const JsonEncodeUploadArgs = <T = any>(obj: T): string => {
+  return JSON.stringify(obj, (_key, value) => {
+    if (typeof value === 'bigint') {
+      return value.toString()
+    }
+    return value instanceof Blob ? null : value
+  })
+}
+
+const createHttpUploadRequest = (form: FormData, headers: object = {}, signal: AbortSignal | null = null): object => {
+  // NOTE: no explicit Content-Type header; fetch() derives the multipart
+  // boundary from the FormData body.
+  const reqHeaders: { [key: string]: string } = { ...headers{{- if eq $opts.webrpcHeader true }}, [WebrpcHeader]: WebrpcHeaderValue{{ end }} }
+  return { method: 'POST', headers: reqHeaders, body: form, signal }
+}
+
+const appendFilePart = (form: FormData, name: string, file: Blob | File | null | undefined) => {
+  if (file == null) {
+    return
+  }
+  const filename = file instanceof File && file.name !== '' ? file.name : name
+  form.append(name, file, filename)
+}
+{{- if $opts.fileUploadRepeated}}
+
+const appendFileParts = (form: FormData, name: string, files: Array<Blob | File> | null | undefined) => {
+  for (const file of files ?? []) {
+    appendFilePart(form, name, file)
+  }
+}
+{{- end}}
+{{- end}}
+
+{{- if and $opts.client $opts.fileDownload}}
+{{"\n"}}
+// WebrpcFile is a file downloaded from a webrpc method, reconstructed from
+// the raw HTTP response. Read the content via body (streaming) or blob()
+// (buffered).
+export interface WebrpcFile {
+  // name is the filename from the Content-Disposition header, if any.
+  name?: string
+  // contentType is the MIME type as claimed by the server.
+  contentType: string
+  // size is the Content-Length of the file, if sent by the server.
+  size?: number
+  // body is the raw response body stream, or null when the response has no body.
+  body: ReadableStream<Uint8Array> | null
+  // blob buffers the entire body and returns it as a Blob.
+  blob(): Promise<Blob>
+}
+
+const buildFileResponse = async (res: Response): Promise<WebrpcFile> => {
+  if (!res.ok) {
+    await buildResponse(res) // throws the decoded webrpc error
+    throw WebrpcBadResponseError.new({ status: res.status, cause: `expected file response, got status: ${res.status}` })
+  }
+  const file: WebrpcFile = {
+    contentType: res.headers.get('Content-Type') || 'application/octet-stream',
+    body: res.body,
+    blob: () => res.blob(),
+  }
+  const name = fileNameFromContentDisposition(res.headers.get('Content-Disposition'))
+  if (name !== undefined) {
+    file.name = name
+  }
+  const contentLength = res.headers.get('Content-Length')
+  if (contentLength !== null && /^\d+$/.test(contentLength)) {
+    file.size = Number(contentLength)
+  }
+  return file
+}
+
+const fileNameFromContentDisposition = (header: string | null): string | undefined => {
+  if (!header) {
+    return undefined
+  }
+  // RFC 5987 extended parameter, e.g. filename*=utf-8''na%C3%AFve.png
+  const extended = header.match(/filename\*=utf-8''([^;]*)/i)
+  if (extended?.[1]) {
+    try {
+      return decodeURIComponent(extended[1].trim())
+    } catch {}
+  }
+  const quoted = header.match(/filename="((?:[^"\\]|\\.)*)"/)
+  if (quoted?.[1]) {
+    return quoted[1].replace(/\\(.)/g, '$1')
+  }
+  const plain = header.match(/filename=([^;]+)/)
+  if (plain?.[1]) {
+    return plain[1].trim()
+  }
+  return undefined
+}
+{{- end}}
+{{end -}}

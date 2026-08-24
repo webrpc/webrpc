@@ -14,9 +14,15 @@
            as an array would reject every well-formed request. */ -}}
     {{- if eq (printf "%v" (listElemType $type)) "byte" -}}
     string
+    {{- else if eq (printf "%v" (listElemType $type)) "file" -}}
+    file[]
     {{- else -}}
     {{template "type" dict "Type" (listElemType $type) "TypeMap" $typeMap}}[]
     {{- end -}}
+
+{{- else if eq (printf "%v" $type) "file" -}}
+
+    file
 
 {{- else if isCoreType $type -}}
 

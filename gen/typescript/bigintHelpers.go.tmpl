@@ -9,32 +9,6 @@
 // BigInt helpers
 //
 
-{{- if $opts.server }}
-const SERVICE_METHOD_TYPES: { [service: string]: { [method: string]: [string, string] } } = {
-{{- $svcCount := len $services -}}
-{{- $svcState := dict "i" 0 -}}
-{{- range $_, $service := $services }}
-  {{$service.Name}}: {
-    {{- $mCount := len $service.Methods -}}
-    {{- range $mi, $method := $service.Methods }}
-    {{$method.Name}}: [
-      {{- if $method.Succinct -}}
-        '{{ (index $method.Inputs 0).Type }}', '{{ (index $method.Outputs 0).Type }}'
-      {{- else -}}
-        {{- if $opts.compat -}}
-          '{{$method.Name}}Args', '{{$method.Name}}Return'
-        {{- else -}}
-          '{{$method.Name}}Request', '{{$method.Name}}Response'
-        {{- end -}}
-      {{- end -}}
-    ]{{ if lt (add $mi 1) $mCount }},{{ end }}
-    {{- end }}
-  }{{ $i := index $svcState "i" }}{{ if lt (add $i 1) $svcCount }},{{ end }}
-  {{- set $svcState "i" (add $i 1) -}}
-{{- end }}
-}
-{{- end }}
-
 const BIG_INT_FIELDS: { [typ: string]: (string | [string, string])[] } = {
 {{- $big := SchemaBigIntFieldsByType $schema $opts.compat }}
 {{- $n := len $big -}}
@@ -101,7 +75,7 @@ function decodeType(typ: string, obj: any): any {
 
 // Encode object to JSON with BigInts converted to decimal strings.
 export const JsonEncode = <T = any>(obj: T): string => {
-  return JSON.stringify(obj, (key, value) =>
+  return JSON.stringify(obj, (_key, value) =>
     typeof value === 'bigint' ? value.toString() : value
   )
 }

@@ -71,12 +71,14 @@ export interface {{$method.Name}}{{if $opts.compat}}Args{{else}}Request{{end}} {
   {{$input.Name}}{{if $input.Optional}}?{{end}}: {{template "type" dict "Type" $input.Type "TypeMap" $typeMap}}
 {{- end}}
 }
+{{- if not (MethodHasFileDownload $method)}}
 
 export interface {{$method.Name}}{{if $opts.compat}}Return{{else}}Response{{end}} {
 {{- range $_, $output := $method.Outputs}}
   {{$output.Name}}{{if $output.Optional}}?{{end}}: {{template "type" dict "Type" $output.Type "TypeMap" $typeMap}}
 {{- end}}
 }
+{{- end}}
 {{end}}
 {{end -}}
 

@@ -1,5 +1,6 @@
 {{ define "serverHelpers" }}
 {{- $types := .Types -}}
+{{- $opts := .Opts -}}
 {{- $typeMap := .TypeMap }}
 
 //
@@ -42,6 +43,14 @@ const TYPE_VALIDATORS: { [type: string]: (value: any) => boolean } = {
 }
 
 const validateType = (value: any, type: string) => {
+{{- if $opts.fileUpload }}
+  if (type === "file") {
+    return value instanceof Blob;
+  }
+  if (type === "file[]") {
+    return Array.isArray(value) && value.every((entry) => entry instanceof Blob);
+  }
+{{- end }}
   if (JS_TYPES.indexOf(type) > -1) {
     return typeof value === type;
   }
