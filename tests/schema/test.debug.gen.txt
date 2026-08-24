@@ -1322,7 +1322,7 @@
 		Services: ([]*schema.Service) (len=1 cap=1) {
 			(*schema.Service)({
 				Name: (string) (len=7) "TestApi",
-				Methods: ([]*schema.Method) (len=11 cap=16) {
+				Methods: ([]*schema.Method) (len=15 cap=16) {
 					(*schema.Method)({
 						Name: (string) (len=8) "GetEmpty",
 						Annotations: (schema.Annotations) {
@@ -3847,6 +3847,279 @@
 						Errors: ([]string) {
 						},
 						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=10) "UploadFile",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) (len=1 cap=1) {
+							(string) (len=16) "added in v0.46.0"
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Inputs: ([]*schema.MethodArgument) (len=2 cap=2) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "name",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 18,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							}),
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "data",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=4) "file",
+									Type: (schema.CoreType) 20,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "size",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "uint64",
+									Type: (schema.CoreType) 9,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=11) "UploadFiles",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=5) "files",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "[]file",
+									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)({
+										Elem: (*schema.VarType)({
+											Expr: (string) (len=4) "file",
+											Type: (schema.CoreType) 20,
+											Comments: ([]string) <nil>,
+											List: (*schema.VarListType)(<nil>),
+											Map: (*schema.VarMapType)(<nil>),
+											Struct: (*schema.VarStructType)(<nil>),
+											Enum: (*schema.VarEnumType)(<nil>),
+											Alias: (*schema.VarAliasType)(<nil>)
+										})
+									}),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=5) "count",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "uint32",
+									Type: (schema.CoreType) 8,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=12) "DownloadFile",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "name",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 18,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "data",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=4) "file",
+									Type: (schema.CoreType) 20,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=8) "EchoFile",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "data",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=4) "file",
+									Type: (schema.CoreType) 20,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "data",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=4) "file",
+									Type: (schema.CoreType) 20,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
 					})
 				},
 				Comments: ([]string) {
@@ -3855,7 +4128,7 @@
 			})
 		}
 	}),
-	SchemaHash: (string) (len=40) "846ba26b9f91c5e1a66ed2f84d38f98e7c0fb67a",
+	SchemaHash: (string) (len=40) "c1aad3dc8c1acd2a28854c82051cb9cfafe21945",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcHeader: (string) "",
 	WebrpcTarget: (string) (len=5) "debug",

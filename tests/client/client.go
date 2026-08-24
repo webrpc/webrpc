@@ -1,9 +1,11 @@
 package client
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -84,6 +86,9 @@ func RunTests(ctx context.Context, serverURL string) error {
 		errs = append(errs, fmt.Errorf("GetEnumMap(): expected 2 items, got %v", len(enumMap)))
 	}
 
+	fileErrs := testFiles(ctx, testApi)
+	errs = append(errs, fileErrs...)
+
 	schemaErrs := testSchemaErrors(ctx, testApi)
 	errs = append(errs, schemaErrs...)
 
@@ -97,6 +102,84 @@ func RunTests(ctx context.Context, serverURL string) error {
 	}
 
 	return nil
+}
+
+// File fixtures, shared with the server implementation. The content includes
+// non-UTF8 bytes to catch encoding bugs in file transports.
+var (
+	fixtureFileName     = "test.bin"
+	fixtureFileContent  = []byte("webrpc interop test file\x00\x01\x02\xff\xfe binary content")
+	fixtureFilesContent = [][]byte{
+		[]byte("first file"),
+		[]byte("second file\x00\xff"),
+	}
+)
+
+// newTestFile returns an in-memory file upload with the given content.
+func newTestFile(name string, content []byte) *File {
+	return &File{
+		Name:        name,
+		ContentType: "application/octet-stream",
+		Size:        int64(len(content)),
+		Body:        io.NopCloser(bytes.NewReader(content)),
+	}
+}
+
+// readFile drains and closes the given downloaded file.
+func readFile(file *File) ([]byte, error) {
+	if file == nil {
+		return nil, fmt.Errorf("file is nil")
+	}
+	defer file.Body.Close()
+
+	content, err := io.ReadAll(file.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+
+	return content, nil
+}
+
+func testFiles(ctx context.Context, testApi TestApiClient) []error {
+	var errs []error
+
+	size, err := testApi.UploadFile(ctx, fixtureFileName, newTestFile(fixtureFileName, fixtureFileContent))
+	if err != nil {
+		errs = append(errs, fmt.Errorf("UploadFile(): %w", err))
+	} else if size != uint64(len(fixtureFileContent)) {
+		errs = append(errs, fmt.Errorf("UploadFile(): expected size %v, got %v", len(fixtureFileContent), size))
+	}
+
+	files := make([]*File, 0, len(fixtureFilesContent))
+	for i, content := range fixtureFilesContent {
+		files = append(files, newTestFile(fmt.Sprintf("file-%v.bin", i), content))
+	}
+	count, err := testApi.UploadFiles(ctx, files)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("UploadFiles(): %w", err))
+	} else if count != uint32(len(fixtureFilesContent)) {
+		errs = append(errs, fmt.Errorf("UploadFiles(): expected count %v, got %v", len(fixtureFilesContent), count))
+	}
+
+	downloaded, err := testApi.DownloadFile(ctx, fixtureFileName)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("DownloadFile(): %w", err))
+	} else if content, readErr := readFile(downloaded); readErr != nil {
+		errs = append(errs, fmt.Errorf("DownloadFile(): %w", readErr))
+	} else if !bytes.Equal(fixtureFileContent, content) {
+		errs = append(errs, fmt.Errorf("DownloadFile(): expected content %q, got %q", fixtureFileContent, content))
+	}
+
+	echoed, err := testApi.EchoFile(ctx, newTestFile(fixtureFileName, fixtureFileContent))
+	if err != nil {
+		errs = append(errs, fmt.Errorf("EchoFile(): %w", err))
+	} else if content, readErr := readFile(echoed); readErr != nil {
+		errs = append(errs, fmt.Errorf("EchoFile(): %w", readErr))
+	} else if !bytes.Equal(fixtureFileContent, content) {
+		errs = append(errs, fmt.Errorf("EchoFile(): expected content %q, got %q", fixtureFileContent, content))
+	}
+
+	return errs
 }
 
 func testSchemaErrors(ctx context.Context, testApi TestApiClient) []error {
