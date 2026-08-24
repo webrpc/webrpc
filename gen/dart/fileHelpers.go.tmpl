@@ -1,0 +1,161 @@
+{{define "fileHelpers"}}
+{{- $opts := .Opts}}
+
+/// WebrpcFile is a file sent to (upload) or received from (download) a webrpc
+/// service.
+///
+/// Uploads: construct one with [WebrpcFile.fromBytes] or
+/// [WebrpcFile.fromStream] and pass it to the client method. The content is
+/// sent as one multipart part and [body] is consumed (streams are single use)
+/// when the request is sent. `dart:io` users can stream a file from disk with
+/// `WebrpcFile.fromStream(file.openRead(), name: 'a.png', size: await file.length())`.
+///
+/// Downloads: returned by the client method with [name], [contentType] and
+/// [size] parsed from the response headers, and [body] streaming the raw
+/// response body. Consume it via [body] (streaming) or [bytes] (buffered);
+/// either way the content can be read only once.
+///
+/// In JSON payloads a file field is always encoded as `null`: the content
+/// travels as a multipart part or as the raw response body instead.
+class WebrpcFile {
+    WebrpcFile({
+        this.name,
+        this.contentType = 'application/octet-stream',
+        this.size = -1,
+        this.body,
+    });
+
+    factory WebrpcFile.fromBytes(
+        List<int> bytes, {
+        String? name,
+        String contentType = 'application/octet-stream',
+    }) {
+        return WebrpcFile(
+            name: name,
+            contentType: contentType,
+            size: bytes.length,
+            body: Stream<List<int>>.value(bytes),
+        );
+    }
+
+    factory WebrpcFile.fromStream(
+        Stream<List<int>> stream, {
+        String? name,
+        String contentType = 'application/octet-stream',
+        int size = -1,
+    }) {
+        return WebrpcFile(
+            name: name,
+            contentType: contentType,
+            size: size,
+            body: stream,
+        );
+    }
+
+    /// Filename, when known.
+    final String? name;
+
+    /// MIME type as claimed by the sender.
+    final String contentType;
+
+    /// Content size in bytes, -1 when unknown.
+    final int size;
+
+    /// Single-use content stream; null when there is no content.
+    final Stream<List<int>>? body;
+
+    /// Buffers the entire [body] into memory. Single use, like [body].
+    Future<Uint8List> bytes() async {
+        final Stream<List<int>>? stream = body;
+        if (stream == null) return Uint8List(0);
+        final BytesBuilder builder = BytesBuilder(copy: false);
+        await for (final List<int> chunk in stream) {
+            builder.add(chunk);
+        }
+        return builder.takeBytes();
+    }
+}
+
+// Files are never carried in JSON payloads: the JSON value (typically null)
+// is discarded and an empty placeholder file is returned. File content
+// travels as a multipart part or as the raw response body instead.
+// ignore: unused_element
+WebrpcFile _webrpcFileFromJson(dynamic v0) {
+    return WebrpcFile();
+}
+
+// ignore: unused_element
+WebrpcFile? _webrpcFileFromJsonOptional(dynamic v0) {
+    if (v0 == null) return null;
+    return _webrpcFileFromJson(v0);
+}
+{{- if and $opts.client (or $opts.fileUpload $opts.fileDownload)}}
+
+// _readWebrpcRawResponse buffers the entire raw response body as an UTF-8
+// string, for responses carrying a JSON payload (upload responses and error
+// envelopes).
+Future<WebrpcHttpResponse> _readWebrpcRawResponse(WebrpcHttpRawResponse response) async {
+    final Stream<List<int>>? body = response.body;
+    final String text = body == null
+        ? ''
+        : await body.transform(const Utf8Decoder(allowMalformed: true)).join();
+    return WebrpcHttpResponse(statusCode: response.statusCode, body: text);
+}
+{{- end}}
+{{- if and $opts.client $opts.fileDownload}}
+
+// _webrpcFileFromRawResponse wraps a successful raw response as a WebrpcFile
+// streaming the response body, with the file metadata parsed from the
+// response headers.
+WebrpcFile _webrpcFileFromRawResponse(WebrpcHttpRawResponse response) {
+    final String contentType = _webrpcHeaderValue(response.headers, 'Content-Type') ?? '';
+    final String? contentLength = _webrpcHeaderValue(response.headers, 'Content-Length');
+    return WebrpcFile(
+        name: _webrpcFileNameFromContentDisposition(_webrpcHeaderValue(response.headers, 'Content-Disposition')),
+        contentType: contentType.isEmpty ? 'application/octet-stream' : contentType,
+        size: (contentLength != null && RegExp(r'^[0-9]+$').hasMatch(contentLength))
+            ? int.parse(contentLength)
+            : -1,
+        body: response.body,
+    );
+}
+
+String? _webrpcHeaderValue(Map<String, String> headers, String name) {
+    final String? exact = headers[name];
+    if (exact != null) return exact;
+    final String lowerName = name.toLowerCase();
+    for (final MapEntry<String, String> entry in headers.entries) {
+        if (entry.key.toLowerCase() == lowerName) return entry.value;
+    }
+    return null;
+}
+
+// _webrpcFileNameFromContentDisposition extracts the filename of a
+// Content-Disposition header: the RFC 5987 `filename*=utf-8''...` parameter
+// when present, then the quoted and plain `filename=` parameters.
+String? _webrpcFileNameFromContentDisposition(String? header) {
+    if (header == null || header.isEmpty) return null;
+    // RFC 5987 extended parameter, e.g. filename*=utf-8''na%C3%AFve.png
+    final String? extended = RegExp("filename\\*=utf-8''([^;]*)", caseSensitive: false)
+        .firstMatch(header)
+        ?.group(1)
+        ?.trim();
+    if (extended != null && extended.isNotEmpty) {
+        try {
+            return Uri.decodeComponent(extended);
+        } catch (_) {
+            // Malformed percent-encoding; fall back to the other parameters.
+        }
+    }
+    final String? quoted = RegExp(r'filename="((?:[^"\\]|\\.)*)"').firstMatch(header)?.group(1);
+    if (quoted != null && quoted.isNotEmpty) {
+        return quoted.replaceAllMapped(RegExp(r'\\(.)'), (Match m) => m.group(1)!);
+    }
+    final String? plain = RegExp('filename=([^;]+)').firstMatch(header)?.group(1)?.trim();
+    if (plain != null && plain.isNotEmpty) {
+        return plain;
+    }
+    return null;
+}
+{{- end}}
+{{end}}
