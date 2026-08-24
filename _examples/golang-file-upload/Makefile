@@ -11,6 +11,7 @@ generate: build
 	webrpc-gen -schema=fileupload.ridl -target=golang -pkg=main -server -client -out=./fileupload.gen.go
 	webrpc-gen -schema=fileupload.ridl -target=typescript -client -out=./interop/client.gen.ts
 	webrpc-gen -schema=fileupload.ridl -target=typescript -server -out=./interop/server.gen.ts
+	webrpc-gen -schema=fileupload.ridl -target=javascript -client -out=./interop/client.gen.mjs
 
 test:
 	go test -v -race ./...

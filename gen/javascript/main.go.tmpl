@@ -32,6 +32,33 @@
   {{- exit 1 -}}
 {{- end -}}
 
+{{- /* Scan the schema for methods using the file core type, and remember which
+       file helpers the client will need. The generated Express server cannot
+       parse multipart/form-data bodies or stream raw file responses without
+       new dependencies, so -server fails loudly on file methods rather than
+       emit broken code. */ -}}
+{{- range $_, $service := .Services -}}
+  {{- range $_, $method := $service.Methods -}}
+    {{- if or (MethodHasFileUpload $method) (MethodHasFileDownload $method) -}}
+      {{- if $opts.server -}}
+        {{- stderrPrintf "%s generator error: the JavaScript Express server does not support file upload/download endpoints yet (%s.%s uses the file type); generate the JavaScript client only (-client), or use the golang or typescript target to generate the server\n" $.WebrpcTarget $service.Name $method.Name -}}
+        {{- exit 1 -}}
+      {{- end -}}
+      {{- if MethodHasFileUpload $method -}}
+        {{- set $opts "fileUpload" true -}}
+        {{- range $_, $part := MethodFileParts $method -}}
+          {{- if $part.Repeated -}}
+            {{- set $opts "fileUploadRepeated" true -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+      {{- if MethodHasFileDownload $method -}}
+        {{- set $opts "fileDownload" true -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
 {{- /* Map webrpc core types to JS. */ -}}
 {{- $typeMap := dict }}
 {{- set $typeMap "null" "null" -}}
@@ -52,6 +79,7 @@
 {{- set $typeMap "float64" "number" -}}
 {{- set $typeMap "string" "string" -}}
 {{- set $typeMap "timestamp" "string" -}}
+{{- set $typeMap "file" "object" -}}
 
 // {{.SchemaName}} {{.SchemaVersion}}{{if $opts.schemaHash}} {{.SchemaHash}}{{end}}
 // --
@@ -74,6 +102,9 @@
 {{- if $opts.client}}
   {{template "client" dict "BasePath" .BasePath "Services" .Services "Opts" $opts}}
   {{template "client_helpers" .}}
+  {{- if or $opts.fileUpload $opts.fileDownload}}
+{{template "fileHelpers" dict "Opts" $opts}}
+  {{- end}}
 {{- end}}
 {{- if $opts.server}}
   {{template "server" dict "BasePath" .BasePath "Services" .Services "Opts" $opts "TypeMap" $typeMap}}

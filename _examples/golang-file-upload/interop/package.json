@@ -2,7 +2,7 @@
   "name": "file-upload-interop",
   "version": "1.0.0",
   "private": true,
-  "description": "End-to-end interoperability tests for the webrpc file core type: TypeScript client vs Go server, TypeScript client vs TypeScript server, and Go client vs TypeScript server.",
+  "description": "End-to-end interoperability tests for the webrpc file core type: TypeScript and JavaScript clients vs Go server, TypeScript and JavaScript clients vs TypeScript server, and Go client vs TypeScript server.",
   "scripts": {
     "start": "tsx serve.ts",
     "test": "tsx test.ts",

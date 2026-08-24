@@ -2,11 +2,13 @@
 //
 // Runs the same client test suite (plain JSON method, single file upload,
 // repeated []file upload, file download, combined upload + download, and the
-// JSON error envelope) in three directions:
+// JSON error envelope) in five directions:
 //
-//   1. TypeScript client -> Go server        (go run ..)
-//   2. TypeScript client -> TypeScript server (server.ts, in-process)
-//   3. Go client         -> TypeScript server (go run .. client <url>)
+//   1. TypeScript client -> Go server         (go run ..)
+//   2. JavaScript client -> Go server         (node client_suite.mjs, same instance)
+//   3. TypeScript client -> TypeScript server (server.ts, in-process)
+//   4. JavaScript client -> TypeScript server (node client_suite.mjs, same instance)
+//   5. Go client         -> TypeScript server (go run .. client <url>)
 //
 // Usage: pnpm test
 import assert from 'node:assert/strict'
@@ -127,20 +129,35 @@ const run = (name: string, cmd: string, args: string[], env: Record<string, stri
   return child
 }
 
+// runJsClientSuite runs the plain-JavaScript client test suite
+// (client_suite.mjs, using the generated client.gen.mjs) on stock Node
+// against a running FileService server at the given address. It uses its own
+// userId and relative assertions, so it can share a server instance with the
+// TypeScript clientSuite above.
+const runJsClientSuite = async (addr: string) => {
+  const child = spawn(process.execPath, ['client_suite.mjs', addr], {
+    stdio: ['ignore', 'inherit', 'inherit'],
+  })
+  const [exitCode] = (await once(child, 'exit')) as [number | null]
+  assert.equal(exitCode, 0, 'JavaScript client test suite failed')
+}
+
 const main = async () => {
-  // 1. TypeScript client vs the Go example server.
-  console.log('--- interop 1/3: TypeScript client -> Go server')
+  // 1. + 2. TypeScript and JavaScript clients vs the Go example server.
   const goServer = run('go server', 'go', ['run', '.'], { PORT: String(GO_SERVER_PORT) })
   try {
     await waitForServer(`http://localhost:${GO_SERVER_PORT}`)
+    console.log('--- interop 1/5: TypeScript client -> Go server')
     await clientSuite(`http://localhost:${GO_SERVER_PORT}`)
+    console.log('OK')
+    console.log('--- interop 2/5: JavaScript client -> Go server')
+    await runJsClientSuite(`http://localhost:${GO_SERVER_PORT}`)
   } finally {
     await stop(goServer)
   }
   console.log('OK')
 
-  // 2. TypeScript client vs the TypeScript server.
-  console.log('--- interop 2/3: TypeScript client -> TypeScript server')
+  // 3. + 4. TypeScript and JavaScript clients vs the TypeScript server.
   const tsServer = createFileServiceHttpServer()
   await new Promise<void>((resolve) => tsServer.listen(0, resolve))
   const tsAddress = tsServer.address()
@@ -148,11 +165,15 @@ const main = async () => {
     throw new Error('unexpected TypeScript server address')
   }
   const tsServerUrl = `http://localhost:${tsAddress.port}`
+  console.log('--- interop 3/5: TypeScript client -> TypeScript server')
   await clientSuite(tsServerUrl)
   console.log('OK')
+  console.log('--- interop 4/5: JavaScript client -> TypeScript server')
+  await runJsClientSuite(tsServerUrl)
+  console.log('OK')
 
-  // 3. Go client vs the TypeScript server (fresh service state).
-  console.log('--- interop 3/3: Go client -> TypeScript server')
+  // 5. Go client vs the TypeScript server (fresh service state).
+  console.log('--- interop 5/5: Go client -> TypeScript server')
   const tsServer2 = createFileServiceHttpServer()
   await new Promise<void>((resolve) => tsServer2.listen(0, resolve))
   const tsAddress2 = tsServer2.address()

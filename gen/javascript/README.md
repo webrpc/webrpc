@@ -49,6 +49,27 @@ Example:
 webrpc-gen -schema=example.ridl -target=javascript -server -client -exports=false -out=./example.gen.js
 ```
 
+## File uploads and downloads
+
+The generated client supports the webrpc `file` core type, mirroring the
+TypeScript client's behavior (without the types):
+
+* Upload methods (methods with `file` / `[]file` inputs) send a
+  `multipart/form-data` request built with `FormData`: a leading `json` part
+  carrying the JSON-encoded arguments (file fields serialized as `null`),
+  followed by one part per file (`[]file` is sent as repeated parts). Pass
+  `Blob` or `File` values as the file arguments.
+* Download methods (methods returning a single `file`) resolve to a plain
+  `{ name, contentType, size, body, blob() }` object reconstructed from the
+  raw HTTP response: `name`/`contentType`/`size` come from the response
+  headers, `body` is the raw `ReadableStream`, and `blob()` buffers the whole
+  body into a `Blob`. Errors still arrive as the webrpc JSON error envelope.
+
+The generated Express server does not support file endpoints yet: generating
+with `-server` from a schema with file methods fails at generation time with
+a clear error. Use the `golang` or `typescript` target to generate a server
+for such schemas.
+
 ## LICENSE
 
 [MIT LICENSE](./LICENSE)

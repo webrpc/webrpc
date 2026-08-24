@@ -54,13 +54,13 @@ You can also make strongly-typed requests through the generated Go client,
 as done in [./example_test.go](./example_test.go). Run the tests with
 `go test -v .`.
 
-## TypeScript interoperability
+## TypeScript and JavaScript interoperability
 
-The [./interop](./interop) folder generates a TypeScript client and a
-TypeScript server from the same schema and runs an end-to-end test suite of
-the file upload/download wire contract in all directions (TypeScript client
-vs Go server, TypeScript client vs TypeScript server, and Go client vs
-TypeScript server):
+The [./interop](./interop) folder generates a TypeScript client, a TypeScript
+server, and a plain-JavaScript client from the same schema and runs an
+end-to-end test suite of the file upload/download wire contract in all
+directions (TypeScript and JavaScript clients vs Go server, TypeScript and
+JavaScript clients vs TypeScript server, and Go client vs TypeScript server):
 
 * $ `make test-interop`
 
@@ -68,3 +68,9 @@ In generated TypeScript code, file inputs are typed `Blob | File`, download
 methods resolve to a `WebrpcFile` (metadata + streamed body), and server
 handlers receive native `File` objects and return a `Blob | File` from
 download methods.
+
+The generated JavaScript client mirrors the TypeScript client's behavior:
+file inputs are `Blob`/`File` values, and download methods resolve to a plain
+`{ name, contentType, size, body, blob() }` object. The JavaScript Express
+server does not support file endpoints yet; generating it from a schema with
+file methods fails with a clear error at generation time.
