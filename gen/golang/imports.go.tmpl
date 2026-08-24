@@ -52,6 +52,9 @@
 	{{- if $opts.client }}
 	{{- set $stdlibImports "net/textproto" "" -}}
 	{{- end -}}
+	{{- if $opts.server }}
+	{{- set $stdlibImports "bytes" "" -}}
+	{{- end -}}
 {{- end -}}
 
 {{- if $opts.fileDownload -}}

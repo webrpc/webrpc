@@ -166,13 +166,14 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}Multipart(ctx
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 
-	// Spool the parts (to memory, then to temporary files) so that every file
-	// is readable by the time the method implementation is called.
-	if err := r.ParseMultipartForm(multipartSpoolMemory); err != nil {
+	// Read the parts sequentially off the wire: the leading "json" part (it
+	// may be absent when the method has no non-file arguments) followed by
+	// the file parts, whose Bodies stream directly from the request body.
+	upload, jsonBody, err := newMultipartUpload(r{{range $_, $part := MethodFileParts $method}}, "{{$part.PartName}}"{{end}})
+	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to parse multipart form: %w", err))
 		return
 	}
-	defer r.MultipartForm.RemoveAll()
 
 	{{ if $method.Succinct -}}
 	{{- $input := index $method.Inputs 0 -}}
@@ -185,10 +186,8 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}Multipart(ctx
 	}{}
 	{{- end }}
 
-	// The "json" part carries the non-file arguments; it may be absent when
-	// the method has none.
-	if jsonValue := r.MultipartForm.Value["json"]; len(jsonValue) > 0 {
-		if err := {{$json}}.Unmarshal([]byte(jsonValue[0]), &reqPayload); err != nil {
+	if len(jsonBody) > 0 {
+		if err := {{$json}}.Unmarshal(jsonBody, &reqPayload); err != nil {
 			s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 			return
 		}
@@ -197,14 +196,14 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}Multipart(ctx
 	var formErr error
 	{{- range $_, $part := MethodFileParts $method }}
 	{{- if $method.Succinct }}
-	reqPayload.{{$part.FieldName}}, formErr = {{if $part.Repeated}}formFiles{{else}}formFile{{end}}(r.MultipartForm, "{{$part.PartName}}")
+	reqPayload.{{$part.FieldName}}, formErr = {{if $part.Repeated}}upload.files("{{$part.PartName}}", reqPayload.{{$part.FieldName}}){{else}}upload.file("{{$part.PartName}}"){{end}}
 	{{- else if eq $part.FieldName "" }}
-	reqPayload.Arg{{$part.ArgIndex}}, formErr = {{if $part.Repeated}}formFiles{{else}}formFile{{end}}(r.MultipartForm, "{{$part.PartName}}")
+	reqPayload.Arg{{$part.ArgIndex}}, formErr = {{if $part.Repeated}}upload.files("{{$part.PartName}}", reqPayload.Arg{{$part.ArgIndex}}){{else}}upload.file("{{$part.PartName}}"){{end}}
 	{{- else }}
 	if reqPayload.Arg{{$part.ArgIndex}} == nil {
 		reqPayload.Arg{{$part.ArgIndex}} = &{{$typePrefix}}{{$part.StructName}}{}
 	}
-	reqPayload.Arg{{$part.ArgIndex}}.{{$part.FieldName}}, formErr = {{if $part.Repeated}}formFiles{{else}}formFile{{end}}(r.MultipartForm, "{{$part.PartName}}")
+	reqPayload.Arg{{$part.ArgIndex}}.{{$part.FieldName}}, formErr = {{if $part.Repeated}}upload.files("{{$part.PartName}}", reqPayload.Arg{{$part.ArgIndex}}.{{$part.FieldName}}){{else}}upload.file("{{$part.PartName}}"){{end}}
 	{{- end }}
 	if formErr != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(formErr))
@@ -213,7 +212,7 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}Multipart(ctx
 	{{- end }}
 
 	// Call service method implementation.
-	{{range $i, $output := $method.Outputs}}ret{{$i}}, {{end}}err := s.{{$name}}Server.{{$method.Name}}(ctx{{range $i, $_ := $method.Inputs}}, {{if $method.Succinct}}reqPayload{{else}}reqPayload.Arg{{$i}}{{end}}{{end}})
+	{{range $i, $output := $method.Outputs}}ret{{$i}}, {{end}}err {{if gt (len $method.Outputs) 0}}:{{end}}= s.{{$name}}Server.{{$method.Name}}(ctx{{range $i, $_ := $method.Inputs}}, {{if $method.Succinct}}reqPayload{{else}}reqPayload.Arg{{$i}}{{end}}{{end}})
 	if err != nil {
 		rpcErr, ok := err.(WebRPCError)
 		if !ok {
