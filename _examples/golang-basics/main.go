@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -129,6 +130,11 @@ func (s *ExampleServiceRPC) GetUserV2(ctx context.Context, req GetUserRequest) (
 	}
 	if req.UserID == 31337 {
 		return nil, ErrUserNotFound.WithCausef("unknown user id %d", req.UserID)
+	}
+	if req.UserID == 1234 {
+		// A WebRPCError joined with a second error. The transport must recover
+		// the typed status through the join, not degrade to a generic endpoint error.
+		return nil, errors.Join(ErrUserNotFound.WithCausef("unknown user id %d", req.UserID), errors.New("secondary failure"))
 	}
 
 	kind := Kind_ADMIN

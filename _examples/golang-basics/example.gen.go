@@ -505,8 +505,8 @@ func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "application/json":
 		if s.OnRequest != nil {
 			if err := s.OnRequest(w, r); err != nil {
-				rpcErr, ok := err.(WebRPCError)
-				if !ok {
+				var rpcErr WebRPCError
+				if !errors.As(err, &rpcErr) {
 					rpcErr = ErrWebrpcEndpoint.WithCause(err)
 				}
 				s.sendErrorJSON(w, r, rpcErr)
@@ -527,8 +527,8 @@ func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWrite
 	// Call service method implementation.
 	err := s.ExampleServer.Ping(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -546,8 +546,8 @@ func (s *exampleService) serveStatusJSON(ctx context.Context, w http.ResponseWri
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.Status(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -574,8 +574,8 @@ func (s *exampleService) serveVersionJSON(ctx context.Context, w http.ResponseWr
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.Version(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -617,8 +617,8 @@ func (s *exampleService) serveFindUserJSON(ctx context.Context, w http.ResponseW
 	// Call service method implementation.
 	ret0, ret1, err := s.ExampleServer.FindUser(ctx, reqPayload.Arg0)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -646,8 +646,8 @@ func (s *exampleService) serveGetIntentsJSON(ctx context.Context, w http.Respons
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.GetIntents(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -689,8 +689,8 @@ func (s *exampleService) serveCountIntentsJSON(ctx context.Context, w http.Respo
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.CountIntents(ctx, reqPayload.Arg0)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -741,8 +741,8 @@ func (s Server) Methods(opts *Options) []Method {
 }
 
 func RespondWithError(w http.ResponseWriter, err error) {
-	rpcErr, ok := err.(WebRPCError)
-	if !ok {
+	var rpcErr WebRPCError
+	if !errors.As(err, &rpcErr) {
 		rpcErr = ErrWebrpcEndpoint.WithCause(err)
 	}
 
@@ -774,8 +774,8 @@ func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O
 
 		respPayload, err := fn(ctx, reqPayload)
 		if err != nil {
-			rpcErr, ok := err.(WebRPCError)
-			if !ok {
+			var rpcErr WebRPCError
+			if !errors.As(err, &rpcErr) {
 				rpcErr = ErrWebrpcEndpoint.WithCause(err)
 			}
 			sendError(w, r, rpcErr)
