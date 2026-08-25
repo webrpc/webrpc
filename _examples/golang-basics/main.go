@@ -205,6 +205,26 @@ func (s *ExampleServiceRPC) UploadAvatar(ctx context.Context, req UploadAvatarRe
 	return &UploadAvatarResponse{Size: uint64(len(data))}, nil
 }
 
+// DownloadAvatarWithMeta returns the avatar alongside metadata outputs. The
+// file streams as the raw response body; the remaining outputs are
+// JSON-encoded into the Webrpc-Response header.
+func (s *ExampleServiceRPC) DownloadAvatarWithMeta(ctx context.Context, userId uint64) (*File, uint64, string, error) {
+	s.mu.Lock()
+	avatar, ok := s.avatars[userId]
+	s.mu.Unlock()
+
+	if !ok {
+		return nil, 0, "", ErrUserNotFound.WithCausef("no avatar for user %d", userId)
+	}
+
+	return &File{
+		Name:        avatar.name,
+		ContentType: avatar.contentType,
+		Size:        int64(len(avatar.data)),
+		Body:        io.NopCloser(bytes.NewReader(avatar.data)),
+	}, uint64(len(avatar.data)), avatar.contentType, nil
+}
+
 // DownloadAvatar returns a *File that is streamed to the client as the raw
 // response body, with the file's metadata in the response headers.
 func (s *ExampleServiceRPC) DownloadAvatar(ctx context.Context, req DownloadAvatarRequest) (*File, error) {

@@ -43,6 +43,13 @@ const appendFileParts = (form: FormData, name: string, files: Array<Blob | File>
 {{- end}}
 {{- end}}
 
+{{- if $opts.fileDownloadMeta}}
+{{"\n"}}
+// FileResponseMetaHeader carries a download method's non-file outputs,
+// JSON-encoded, alongside the raw file in the response body.
+export const FileResponseMetaHeader = 'Webrpc-Response'
+{{- end}}
+
 {{- if and $opts.client $opts.fileDownload}}
 {{"\n"}}
 // WebrpcFile is a file downloaded from a webrpc method, reconstructed from
@@ -81,6 +88,21 @@ const buildFileResponse = async (res: Response): Promise<WebrpcFile> => {
   }
   return file
 }
+
+{{- if $opts.fileDownloadMeta}}
+
+// buildFileMetaResponse reconstructs a download method's response from the
+// raw file body plus the non-file outputs carried in the metadata header. A
+// response without that header yields zero-valued metadata rather than an
+// error, so a server that sends none still returns the file.
+const buildFileMetaResponse = async <T>(res: Response, fileField: string, typeName: string): Promise<T> => {
+  const file = await buildFileResponse(res)
+  const meta = res.headers.get(FileResponseMetaHeader)
+  const out: { [key: string]: any } = meta ? JsonDecode<any>(meta, typeName) : {}
+  out[fileField] = file
+  return out as T
+}
+{{- end}}
 
 const fileNameFromContentDisposition = (header: string | null): string | undefined => {
   if (!header) {

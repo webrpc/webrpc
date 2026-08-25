@@ -1322,7 +1322,7 @@
 		Services: ([]*schema.Service) (len=1 cap=1) {
 			(*schema.Service)({
 				Name: (string) (len=7) "TestApi",
-				Methods: ([]*schema.Method) (len=15 cap=16) {
+				Methods: ([]*schema.Method) (len=16 cap=16) {
 					(*schema.Method)({
 						Name: (string) (len=8) "GetEmpty",
 						Annotations: (schema.Annotations) {
@@ -4062,6 +4062,108 @@
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
+						Name: (string) (len=20) "DownloadFileWithMeta",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "name",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 18,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=3 cap=4) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "data",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=4) "file",
+									Type: (schema.CoreType) 20,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							}),
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "size",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "uint64",
+									Type: (schema.CoreType) 9,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							}),
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "etag",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 18,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
 						Name: (string) (len=8) "EchoFile",
 						Annotations: (schema.Annotations) {
 						},
@@ -4128,7 +4230,7 @@
 			})
 		}
 	}),
-	SchemaHash: (string) (len=40) "c1aad3dc8c1acd2a28854c82051cb9cfafe21945",
+	SchemaHash: (string) (len=40) "9ab2751a8c289cd8ab97df413110467a09a92603",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcHeader: (string) "",
 	WebrpcTarget: (string) (len=5) "debug",

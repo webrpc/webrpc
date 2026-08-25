@@ -55,6 +55,14 @@ const clientSuite = async (client: Example, userId: number) => {
   assert.equal(download.size, avatarBytes.length, 'downloaded avatar size mismatch')
   assert.deepEqual(await fileBytes(download), avatarBytes, 'downloaded avatar bytes mismatch')
 
+  // File download with metadata outputs: the file streams as the response
+  // body while the remaining outputs arrive in the Webrpc-Response header.
+  const withMeta = await client.downloadAvatarWithMeta({ userId })
+  assert.equal(withMeta.size, avatarBytes.length, 'downloadAvatarWithMeta size mismatch')
+  assert.equal(withMeta.contentType, 'image/png', 'downloadAvatarWithMeta contentType mismatch')
+  assert.equal(withMeta.avatar.contentType, 'image/png', 'downloadAvatarWithMeta file contentType mismatch')
+  assert.deepEqual(await fileBytes(withMeta.avatar), avatarBytes, 'downloadAvatarWithMeta bytes mismatch')
+
   // Errors still arrive as the standard webrpc JSON error envelope, even on
   // file download methods.
   await assert.rejects(
@@ -96,6 +104,16 @@ const createExampleService = (): ExampleServer => {
         throw new UserNotFoundError({ cause: `no avatar for user ${userId}` })
       }
       return avatar
+    },
+
+    // Download methods may also declare metadata outputs alongside the file;
+    // the generated handler puts them in the Webrpc-Response header.
+    async downloadAvatarWithMeta(_ctx, { userId }) {
+      const avatar = avatars.get(userId)
+      if (!avatar) {
+        throw new UserNotFoundError({ cause: `no avatar for user ${userId}` })
+      }
+      return { avatar, size: avatar.size, contentType: avatar.type }
     },
   }
 }

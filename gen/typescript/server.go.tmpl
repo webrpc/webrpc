@@ -78,7 +78,12 @@ const dispatch{{$service.Name}}Request = async <Context>(service: {{$service.Nam
       {{- end}}
       const result = await service.{{firstLetterToLower $method.Name}}(ctx, payload || {})
       {{- if MethodHasFileDownload $method }}
+      {{- if MethodHasFileDownloadMeta $method }}
+      {{- $fileOutput := index $method.Outputs (MethodDownloadFileIndex $method) }}
+      return webrpcFileResponse(result?.{{$fileOutput.Name}}, webrpcFileResponseMeta(result, '{{$fileOutput.Name}}'))
+      {{- else }}
       return webrpcFileResponse(result)
+      {{- end }}
       {{- else }}
       return webrpcJsonResponse(result ?? {})
       {{- end }}
@@ -178,7 +183,7 @@ const webrpcFormFiles = (form: FormData, name: string, args: any) => {
 // raw response body, with the file's metadata carried in the headers. The
 // inline Content-Disposition lets browsers preview the file in place; its
 // filename still names the file on save-as.
-const webrpcFileResponse = (file: Blob | File): Response => {
+const webrpcFileResponse = (file: Blob | File{{if $opts.fileDownloadMeta}} | undefined, meta?: string{{end}}): Response => {
   if (!(file instanceof Blob)) {
     return webrpcErrorResponse(new WebrpcBadResponseError({ cause: 'download method did not return a file' }))
   }
@@ -191,8 +196,43 @@ const webrpcFileResponse = (file: Blob | File): Response => {
   if (file instanceof File && file.name !== '') {
     headers.set('Content-Disposition', webrpcContentDisposition(file.name))
   }
+  {{- if $opts.fileDownloadMeta }}
+  if (meta !== undefined) {
+    headers.set(FileResponseMetaHeader, meta)
+  }
+  {{- end }}
   return new Response(file, { status: 200, headers })
 }
+{{- if $opts.fileDownloadMeta }}
+
+// MaxFileResponseMetaSize caps the JSON-encoded metadata of a download
+// method's non-file outputs. Servers, proxies and CDNs enforce their own
+// limits on the header block (commonly 8-16 KiB in total), so oversized
+// metadata is rejected at the source rather than silently truncated in
+// transit.
+const MaxFileResponseMetaSize = 4 << 10 // 4 KiB
+
+// webrpcFileResponseMeta JSON-encodes a download method's non-file outputs
+// for the metadata header. The file output itself is dropped: it travels as
+// the response body. Non-ASCII characters are escaped, since HTTP header
+// values are ASCII and raw UTF-8 in one is handled inconsistently across
+// proxies and HTTP clients.
+const webrpcFileResponseMeta = (result: any, fileField: string): string => {
+  const meta: { [key: string]: any } = {}
+  for (const key of Object.keys(result ?? {})) {
+    if (key !== fileField) {
+      meta[key] = result[key]
+    }
+  }
+  const json = JSON.stringify(meta, (_key, value) =>
+    typeof value === 'bigint' ? value.toString() : value
+  ).replace(/[\u007f-\uffff]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'))
+  if (json.length > MaxFileResponseMetaSize) {
+    throw new WebrpcBadResponseError({ cause: `response metadata is ${json.length} bytes, over the ${MaxFileResponseMetaSize} byte limit of the ${FileResponseMetaHeader} header` })
+  }
+  return json
+}
+{{- end }}
 
 // webrpcContentDisposition formats the inline Content-Disposition header,
 // escaping the filename per RFC 6266 / RFC 5987.

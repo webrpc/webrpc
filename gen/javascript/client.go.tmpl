@@ -33,7 +33,18 @@
       createHTTPUploadRequest(form, headers)
     ).then((res) => {
       {{- if MethodHasFileDownload .}}
+      {{- if MethodHasFileDownloadMeta .}}
+      {{- $fileIdx := MethodDownloadFileIndex . }}
+      return buildFileMetaResponse(res, '{{(index .Outputs $fileIdx).Name}}').then(_data => {
+        return {
+        {{- range $i, $output := .Outputs}}
+          {{if gt $i 0}}, {{end}}{{$output.Name}}: {{if eq $i $fileIdx}}_data.{{$output.Name}}{{else}}{{if isStructType $output.Type}}new {{$output.Type}}{{end}}(_data.{{$output.Name}}){{end}}
+        {{- end}}
+        }
+      })
+      {{- else}}
       return buildFileResponse(res)
+      {{- end}}
       {{- else if $succinct}}
       return buildResponse(res).then(_data => {
         return new {{(index .Outputs 0).Type}}(_data)
@@ -57,7 +68,18 @@
       createHTTPRequest({}, headers)
       {{- end}}
     ).then((res) => {
+      {{- if MethodHasFileDownloadMeta .}}
+      {{- $fileIdx := MethodDownloadFileIndex . }}
+      return buildFileMetaResponse(res, '{{(index .Outputs $fileIdx).Name}}').then(_data => {
+        return {
+        {{- range $i, $output := .Outputs}}
+          {{if gt $i 0}}, {{end}}{{$output.Name}}: {{if eq $i $fileIdx}}_data.{{$output.Name}}{{else}}{{if isStructType $output.Type}}new {{$output.Type}}{{end}}(_data.{{$output.Name}}){{end}}
+        {{- end}}
+        }
+      })
+      {{- else}}
       return buildFileResponse(res)
+      {{- end}}
     })
     {{- else}}
     return this.fetch(

@@ -24,13 +24,51 @@ func MethodHasFileUpload(m *Method) bool {
 	return len(MethodFileParts(m)) > 0
 }
 
-// MethodHasFileDownload returns true if the method returns a `file` as its
-// single output, and therefore responds with a raw file body.
+// MethodHasFileDownload returns true if the method returns a `file` output,
+// and therefore responds with a raw file body.
 func MethodHasFileDownload(m *Method) bool {
-	if m == nil || len(m.Outputs) != 1 || m.Outputs[0] == nil {
-		return false
+	return MethodDownloadFileIndex(m) >= 0
+}
+
+// MethodDownloadFileIndex returns the position of the method's `file` output
+// in its output list, or -1 when the method returns no file. The position is
+// what names the generated return value carrying the file body.
+func MethodDownloadFileIndex(m *Method) int {
+	if m == nil || m.StreamInput || m.StreamOutput {
+		return -1
 	}
-	return m.Outputs[0].Type != nil && m.Outputs[0].Type.Type == T_File
+	for i, out := range m.Outputs {
+		if out != nil && out.Type != nil && out.Type.Type == T_File {
+			return i
+		}
+	}
+	return -1
+}
+
+// MethodDownloadMetaOutputs returns a download method's non-file outputs, in
+// declaration order. They do not fit in the response body — that carries the
+// raw file — so they are JSON-encoded into the Webrpc-Response header
+// instead. Returns nil for methods that return no file.
+func MethodDownloadMetaOutputs(m *Method) []*MethodArgument {
+	fileIdx := MethodDownloadFileIndex(m)
+	if fileIdx < 0 {
+		return nil
+	}
+
+	var outputs []*MethodArgument
+	for i, out := range m.Outputs {
+		if i == fileIdx {
+			continue
+		}
+		outputs = append(outputs, out)
+	}
+	return outputs
+}
+
+// MethodHasFileDownloadMeta returns true if a download method carries
+// metadata outputs alongside the file body.
+func MethodHasFileDownloadMeta(m *Method) bool {
+	return len(MethodDownloadMetaOutputs(m)) > 0
 }
 
 // MethodFileParts returns the multipart file parts of a method's upload

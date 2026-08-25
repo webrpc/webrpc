@@ -1055,7 +1055,7 @@ func TestRIDLFileType(t *testing.T) {
 	}
 
 	{
-		// file output cannot mix with other outputs.
+		// A file output may carry metadata outputs alongside it.
 		input := `
 			webrpc = v1
 			version = v0.1.0
@@ -1065,7 +1065,21 @@ func TestRIDLFileType(t *testing.T) {
 				- Download() => (report: file, etag: string)
 		`
 		_, err := parseString(input)
-		assert.ErrorContains(t, err, "only output")
+		assert.NoError(t, err)
+	}
+
+	{
+		// ...but only one of the outputs may be a file.
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			service FileService
+				- Download() => (report: file, thumbnail: file)
+		`
+		_, err := parseString(input)
+		assert.ErrorContains(t, err, "more than one file output")
 	}
 
 	{

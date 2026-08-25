@@ -71,7 +71,28 @@ export interface {{$method.Name}}{{if $opts.compat}}Args{{else}}Request{{end}} {
   {{$input.Name}}{{if $input.Optional}}?{{end}}: {{template "type" dict "Type" $input.Type "TypeMap" $typeMap}}
 {{- end}}
 }
-{{- if not (MethodHasFileDownload $method)}}
+{{- if MethodHasFileDownloadMeta $method}}
+{{- /* The response body carries the raw file, so the remaining outputs ride
+     along in the Webrpc-Response header instead. The client receives the
+     downloaded file as a WebrpcFile, which only client builds declare; the
+     server returns a Blob or File. */}}
+{{- if $opts.client}}
+
+export interface {{$method.Name}}{{if $opts.compat}}Return{{else}}Response{{end}} {
+{{- range $_, $output := $method.Outputs}}
+  {{$output.Name}}{{if $output.Optional}}?{{end}}: {{if eq (printf "%v" $output.Type) "file"}}WebrpcFile{{else}}{{template "type" dict "Type" $output.Type "TypeMap" $typeMap}}{{end}}
+{{- end}}
+}
+{{- end}}
+{{- if $opts.server}}
+
+export interface {{$method.Name}}File{{if $opts.compat}}Return{{else}}Response{{end}} {
+{{- range $_, $output := $method.Outputs}}
+  {{$output.Name}}{{if $output.Optional}}?{{end}}: {{template "type" dict "Type" $output.Type "TypeMap" $typeMap}}
+{{- end}}
+}
+{{- end}}
+{{- else if not (MethodHasFileDownload $method)}}
 
 export interface {{$method.Name}}{{if $opts.compat}}Return{{else}}Response{{end}} {
 {{- range $_, $output := $method.Outputs}}

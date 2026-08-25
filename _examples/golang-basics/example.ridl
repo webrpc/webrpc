@@ -35,6 +35,8 @@ service Example
 
   - DownloadAvatar(DownloadAvatarRequest) => (file)
 
+  - DownloadAvatarWithMeta(userId: uint64) => (avatar: file, size: uint64, contentType: string)
+
 service ExampleV2
   - Ping()
   - Status() => (status: bool)

@@ -117,6 +117,9 @@
 		{{- end -}}
 		{{ if MethodHasFileDownload $method -}}
 			{{- set $opts "fileDownload" true -}}
+			{{- if MethodHasFileDownloadMeta $method -}}
+				{{- set $opts "fileDownloadMeta" true -}}
+			{{- end -}}
 		{{- end -}}
 	{{- end -}}
 {{- end }}

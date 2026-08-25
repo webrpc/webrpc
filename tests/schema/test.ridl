@@ -27,6 +27,7 @@ service TestApi
   - UploadFile(name: string, data: file) => (size: uint64)
   - UploadFiles(files: []file) => (count: uint32)
   - DownloadFile(name: string) => (data: file)
+  - DownloadFileWithMeta(name: string) => (data: file, size: uint64, etag: string)
   - EchoFile(data: file) => (data: file)
 
 struct Simple

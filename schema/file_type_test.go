@@ -75,6 +75,20 @@ func TestFileTypeValidPlacements(t *testing.T) {
 		}
 	`)
 	require.NoError(t, err)
+
+	// File output with metadata outputs alongside it.
+	_, err = parseFileTestSchema(t, ``, `
+		{
+			"name": "DownloadReportWithMeta",
+			"inputs": [{"name": "id", "type": "uint64"}],
+			"outputs": [
+				{"name": "report", "type": "file"},
+				{"name": "size", "type": "uint64"},
+				{"name": "etag", "type": "string"}
+			]
+		}
+	`)
+	require.NoError(t, err)
 }
 
 func TestFileTypeForbiddenPlacements(t *testing.T) {
@@ -89,19 +103,19 @@ func TestFileTypeForbiddenPlacements(t *testing.T) {
 	assert.ErrorContains(t, err, "DownloadAll")
 	assert.ErrorContains(t, err, "only a single 'file' output is allowed")
 
-	// file output mixed with other outputs.
+	// More than one file output.
 	_, err = parseFileTestSchema(t, ``, `
 		{
-			"name": "DownloadWithMeta",
+			"name": "DownloadTwo",
 			"inputs": [],
 			"outputs": [
 				{"name": "report", "type": "file"},
-				{"name": "etag", "type": "string"}
+				{"name": "thumbnail", "type": "file"}
 			]
 		}
 	`)
-	assert.ErrorContains(t, err, "DownloadWithMeta")
-	assert.ErrorContains(t, err, "only output")
+	assert.ErrorContains(t, err, "DownloadTwo")
+	assert.ErrorContains(t, err, "more than one file output")
 
 	// file-carrying struct used as a method output.
 	_, err = parseFileTestSchema(t, `
@@ -206,4 +220,65 @@ func TestFileTypeForbiddenPlacements(t *testing.T) {
 	`)
 	assert.ErrorContains(t, err, "StreamUpload")
 	assert.ErrorContains(t, err, "streaming")
+}
+
+func TestFileDownloadMetaHelpers(t *testing.T) {
+	s, err := parseFileTestSchema(t, ``, `
+		{
+			"name": "DownloadReport",
+			"inputs": [{"name": "id", "type": "uint64"}],
+			"outputs": [
+				{"name": "size", "type": "uint64"},
+				{"name": "report", "type": "file"},
+				{"name": "etag", "type": "string"}
+			]
+		},
+		{
+			"name": "DownloadPlain",
+			"inputs": [],
+			"outputs": [{"name": "report", "type": "file"}]
+		},
+		{
+			"name": "NoFile",
+			"inputs": [],
+			"outputs": [{"name": "ok", "type": "bool"}]
+		}
+	`)
+	require.NoError(t, err)
+
+	methods := map[string]*Method{}
+	for _, m := range s.Services[0].Methods {
+		methods[m.Name] = m
+	}
+
+	// The file output is found wherever it is declared, and the remaining
+	// outputs are returned as metadata in declaration order.
+	withMeta := methods["DownloadReport"]
+	assert.True(t, MethodHasFileDownload(withMeta))
+	assert.True(t, MethodHasFileDownloadMeta(withMeta))
+	assert.Equal(t, 1, MethodDownloadFileIndex(withMeta))
+	meta := MethodDownloadMetaOutputs(withMeta)
+	require.Len(t, meta, 2)
+	assert.Equal(t, "size", meta[0].Name)
+	assert.Equal(t, "etag", meta[1].Name)
+
+	// A lone file output carries no metadata.
+	plain := methods["DownloadPlain"]
+	assert.True(t, MethodHasFileDownload(plain))
+	assert.False(t, MethodHasFileDownloadMeta(plain))
+	assert.Equal(t, 0, MethodDownloadFileIndex(plain))
+	assert.Empty(t, MethodDownloadMetaOutputs(plain))
+
+	// A method without a file output is not a download method at all, so its
+	// outputs are not metadata.
+	noFile := methods["NoFile"]
+	assert.False(t, MethodHasFileDownload(noFile))
+	assert.False(t, MethodHasFileDownloadMeta(noFile))
+	assert.Equal(t, -1, MethodDownloadFileIndex(noFile))
+	assert.Empty(t, MethodDownloadMetaOutputs(noFile))
+
+	// Nil methods are handled without panicking.
+	assert.False(t, MethodHasFileDownload(nil))
+	assert.Equal(t, -1, MethodDownloadFileIndex(nil))
+	assert.Empty(t, MethodDownloadMetaOutputs(nil))
 }

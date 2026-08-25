@@ -164,6 +164,19 @@ func (c *TestServer) DownloadFile(ctx context.Context, name string) (*File, erro
 	}, nil
 }
 
+func (c *TestServer) DownloadFileWithMeta(ctx context.Context, name string) (*File, uint64, string, error) {
+	if name != fixtureFileName {
+		return nil, 0, "", ErrUnexpectedValue.WithCausef("%q:\n%s", "name", cmp.Diff(fixtureFileName, name))
+	}
+
+	return &File{
+		Name:        name,
+		ContentType: "application/octet-stream",
+		Size:        int64(len(fixtureFileContent)),
+		Body:        io.NopCloser(bytes.NewReader(fixtureFileContent)),
+	}, uint64(len(fixtureFileContent)), fixtureFileETag, nil
+}
+
 func (c *TestServer) EchoFile(ctx context.Context, data *File) (*File, error) {
 	content, err := readFile(data)
 	if err != nil {
@@ -267,7 +280,10 @@ var (
 
 	// File fixtures, shared with the client test expectations. The content
 	// includes non-UTF8 bytes to catch encoding bugs in file transports.
-	fixtureFileName     = "test.bin"
+	fixtureFileName = "test.bin"
+	// The ETag carries non-ASCII text, to catch encoding bugs in the
+	// Webrpc-Response header that carries a download method's metadata.
+	fixtureFileETag     = "\"na\u00efve-\U0001f600-etag\""
 	fixtureFileContent  = []byte("webrpc interop test file\x00\x01\x02\xff\xfe binary content")
 	fixtureFilesContent = [][]byte{
 		[]byte("first file"),

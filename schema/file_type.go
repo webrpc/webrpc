@@ -10,7 +10,9 @@ import (
 //   - the type of a method input argument, or
 //   - the type of a top-level field of a struct that is used as a method input.
 //
-// A method may return `file` only as its single output (a download method).
+// A method may return at most one `file` output (a download method). Any
+// remaining outputs are metadata: they are JSON-encoded into the
+// Webrpc-Response header instead of the body, which carries the raw file.
 // Everywhere else — nested structs, maps, aliases, list-of-list, streaming
 // methods, or file-carrying structs used outside of a method input — the
 // file type is forbidden.
@@ -64,11 +66,13 @@ func (s *WebRPCSchema) validateFileTypeUsage() error {
 				}
 			}
 
+			fileOutputs := 0
 			for _, out := range m.Outputs {
 				if out.Type.Type == T_File {
 					usesFile = true
-					if len(m.Outputs) > 1 {
-						return fmt.Errorf("schema error: method '%s' in service '%s' declares a file output alongside other outputs: a file must be the method's only output", m.Name, svc.Name)
+					fileOutputs++
+					if fileOutputs > 1 {
+						return fmt.Errorf("schema error: method '%s' in service '%s' declares more than one file output: a method may return at most one file", m.Name, svc.Name)
 					}
 					continue
 				}

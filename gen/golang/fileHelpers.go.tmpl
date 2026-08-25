@@ -282,6 +282,91 @@ func (s *uploadSlot) bindPart(part *multipart.Part) {
 }
 {{- end }}
 
+{{- if $opts.fileDownloadMeta }}
+
+// FileResponseMetaHeader carries a download method's non-file outputs,
+// JSON-encoded, alongside the raw file in the response body.
+const FileResponseMetaHeader = "Webrpc-Response"
+{{- end }}
+
+{{- if and $opts.fileDownloadMeta $opts.server }}
+
+// MaxFileResponseMetaSize caps the JSON-encoded metadata of a download
+// method's non-file outputs. Servers, proxies and CDNs enforce their own
+// limits on the header block (commonly 8-16 KiB in total), so oversized
+// metadata is rejected at the source rather than silently truncated in
+// transit. Metadata is for small values; anything larger belongs in a
+// separate method.
+const MaxFileResponseMetaSize = 4 << 10 // 4 KiB
+
+// setFileResponseMeta sets the metadata header of a download response.
+func setFileResponseMeta(w http.ResponseWriter, meta []byte) error {
+	meta = asciiJSON(meta)
+	if len(meta) > MaxFileResponseMetaSize {
+		return fmt.Errorf("response metadata is %v bytes, over the %v byte limit of the %v header", len(meta), MaxFileResponseMetaSize, FileResponseMetaHeader)
+	}
+	w.Header().Set(FileResponseMetaHeader, string(meta))
+	return nil
+}
+
+// asciiJSON rewrites every non-ASCII character of the JSON as a \uXXXX
+// escape. HTTP header values are ASCII, and non-ASCII bytes in one are
+// handled inconsistently across proxies and HTTP clients; the escapes are
+// still valid JSON and decode back to the original text in any parser.
+func asciiJSON(b []byte) []byte {
+	if isASCIIJSON(b) {
+		return b
+	}
+
+	out := make([]byte, 0, len(b)+16)
+	for _, r := range string(b) {
+		switch {
+		case r >= 0x20 && r < utf8.RuneSelf && r != 0x7f:
+			out = append(out, byte(r))
+		case r > 0xffff:
+			// Outside the BMP: encode as a UTF-16 surrogate pair.
+			r -= 0x10000
+			out = appendUnicodeEscape(out, 0xd800+(r>>10))
+			out = appendUnicodeEscape(out, 0xdc00+(r&0x3ff))
+		default:
+			out = appendUnicodeEscape(out, r)
+		}
+	}
+	return out
+}
+
+func isASCIIJSON(b []byte) bool {
+	for _, c := range b {
+		if c < 0x20 || c >= utf8.RuneSelf || c == 0x7f {
+			return false
+		}
+	}
+	return true
+}
+
+func appendUnicodeEscape(out []byte, r rune) []byte {
+	const hex = "0123456789abcdef"
+	return append(out, '\\', 'u', hex[(r>>12)&0xf], hex[(r>>8)&0xf], hex[(r>>4)&0xf], hex[r&0xf])
+}
+{{- end }}
+
+{{- if and $opts.fileDownloadMeta $opts.client }}
+
+// decodeFileResponseMeta decodes a download response's metadata header into
+// out. A response without the header leaves out untouched, so a server that
+// sends no metadata yields zero-valued outputs rather than an error.
+func decodeFileResponseMeta(resp *http.Response, out interface{}) error {
+	meta := resp.Header.Get(FileResponseMetaHeader)
+	if meta == "" {
+		return nil
+	}
+	if err := {{$json}}.Unmarshal([]byte(meta), out); err != nil {
+		return ErrWebrpcBadResponse.WithCausef("failed to unmarshal %v header: %w", FileResponseMetaHeader, err)
+	}
+	return nil
+}
+{{- end }}
+
 {{- if and $opts.fileDownload $opts.server }}
 
 // serveFileResponse streams the file as the raw response body and closes it.

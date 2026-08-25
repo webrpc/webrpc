@@ -64,6 +64,10 @@
 	{{- end -}}
 {{- end -}}
 
+{{- if and $opts.fileDownloadMeta $opts.server -}}
+	{{- set $stdlibImports "unicode/utf8" "" -}}
+{{- end -}}
+
 {{- /* Import "time" if there's at least one timestamp. */ -}}
 {{ if $opts.types -}}
 {{ if eq $opts.importTypesFrom "" -}}

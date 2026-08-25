@@ -133,12 +133,18 @@ components:
     {{- end -}}
     {{- range $_, $method := .Methods}}
     {{- $isSuccinctOutput := $method.Succinct -}}
-    {{- if and (not $isSuccinctOutput) (not (MethodHasFileDownload $method)) }}
+    {{- if and (not $isSuccinctOutput) (or (not (MethodHasFileDownload $method)) (MethodHasFileDownloadMeta $method)) }}
     {{$service.Name}}_{{$method.Name}}_Response:
       type: object
-      {{- if gt (len $method.Outputs) 0 }}
+      {{- $schemaOutputs := .Outputs -}}
+      {{- if MethodHasFileDownloadMeta $method -}}
+        {{- /* The file travels as the response body; only the remaining
+             outputs are described here, as the Webrpc-Response header. */ -}}
+        {{- $schemaOutputs = MethodDownloadMetaOutputs $method -}}
+      {{- end -}}
+      {{- if gt (len $schemaOutputs) 0 }}
       properties:
-        {{- range $_, $output := .Outputs}}
+        {{- range $_, $output := $schemaOutputs}}
         {{$output.Name}}:
           {{ template "fieldType" dict "Type" $output.Type "TypeMap" $typeMap "Indent" "          " }}
         {{- end -}}
@@ -239,6 +245,13 @@ paths:
       responses:
         '200':
           description: OK
+          {{- if MethodHasFileDownloadMeta $method }}
+          headers:
+            Webrpc-Response:
+              description: The method's non-file outputs, JSON-encoded. The response body carries the file itself.
+              schema:
+                $ref: '#/components/schemas/{{$service.Name}}_{{$method.Name}}_Response'
+          {{- end }}
           content:
             {{- if MethodHasFileDownload $method }}
             application/octet-stream:

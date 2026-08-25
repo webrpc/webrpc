@@ -223,12 +223,35 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}Multipart(ctx
 	}
 
 	{{- if MethodHasFileDownload $method }}
+	{{- $fileIdx := MethodDownloadFileIndex $method }}
 
-	if ret0 == nil {
+	if ret{{$fileIdx}} == nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("method {{$method.Name}} returned a nil file"))
 		return
 	}
-	serveFileResponse(w, ret0)
+	{{- if MethodHasFileDownloadMeta $method }}
+
+	{{- /* The response body carries the raw file, so the remaining outputs
+	     ride along in the Webrpc-Response header instead. */}}
+	metaPayload := struct {
+	{{- range $oi, $output := $method.Outputs}}
+	{{- if ne $oi $fileIdx}}
+		Ret{{$oi}} {{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta "JsonTags" true}}
+	{{- end}}
+	{{- end }}
+	}{ {{- range $oi, $_ := $method.Outputs}}{{if ne $oi $fileIdx}}ret{{$oi}}, {{end}}{{end -}} }
+
+	metaBody, err := {{$json}}.Marshal(metaPayload)
+	if err != nil {
+		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal response metadata: %w", err))
+		return
+	}
+	if err := setFileResponseMeta(w, metaBody); err != nil {
+		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCause(err))
+		return
+	}
+	{{- end }}
+	serveFileResponse(w, ret{{$fileIdx}})
 	{{- else if $method.Succinct }}
 
 	{{ if $opts.fixEmptyArrays -}}
@@ -318,12 +341,35 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSON(ctx cont
 	}
 
 	{{- if MethodHasFileDownload $method }}
+	{{- $fileIdx := MethodDownloadFileIndex $method }}
 
-	if ret0 == nil {
+	if ret{{$fileIdx}} == nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("method {{$method.Name}} returned a nil file"))
 		return
 	}
-	serveFileResponse(w, ret0)
+	{{- if MethodHasFileDownloadMeta $method }}
+
+	{{- /* The response body carries the raw file, so the remaining outputs
+	     ride along in the Webrpc-Response header instead. */}}
+	metaPayload := struct {
+	{{- range $oi, $output := $method.Outputs}}
+	{{- if ne $oi $fileIdx}}
+		Ret{{$oi}} {{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta "JsonTags" true}}
+	{{- end}}
+	{{- end }}
+	}{ {{- range $oi, $_ := $method.Outputs}}{{if ne $oi $fileIdx}}ret{{$oi}}, {{end}}{{end -}} }
+
+	metaBody, err := {{$json}}.Marshal(metaPayload)
+	if err != nil {
+		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal response metadata: %w", err))
+		return
+	}
+	if err := setFileResponseMeta(w, metaBody); err != nil {
+		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCause(err))
+		return
+	}
+	{{- end }}
+	serveFileResponse(w, ret{{$fileIdx}})
 	{{- else }}
 
 	{{- if gt (len $method.Outputs) 0}}

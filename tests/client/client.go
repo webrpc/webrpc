@@ -107,7 +107,10 @@ func RunTests(ctx context.Context, serverURL string) error {
 // File fixtures, shared with the server implementation. The content includes
 // non-UTF8 bytes to catch encoding bugs in file transports.
 var (
-	fixtureFileName     = "test.bin"
+	fixtureFileName = "test.bin"
+	// The ETag carries non-ASCII text, to catch encoding bugs in the
+	// Webrpc-Response header that carries a download method's metadata.
+	fixtureFileETag     = "\"na\u00efve-\U0001f600-etag\""
 	fixtureFileContent  = []byte("webrpc interop test file\x00\x01\x02\xff\xfe binary content")
 	fixtureFilesContent = [][]byte{
 		[]byte("first file"),
@@ -168,6 +171,23 @@ func testFiles(ctx context.Context, testApi TestApiClient) []error {
 		errs = append(errs, fmt.Errorf("DownloadFile(): %w", readErr))
 	} else if !bytes.Equal(fixtureFileContent, content) {
 		errs = append(errs, fmt.Errorf("DownloadFile(): expected content %q, got %q", fixtureFileContent, content))
+	}
+
+	metaFile, metaSize, metaETag, err := testApi.DownloadFileWithMeta(ctx, fixtureFileName)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("DownloadFileWithMeta(): %w", err))
+	} else {
+		if content, readErr := readFile(metaFile); readErr != nil {
+			errs = append(errs, fmt.Errorf("DownloadFileWithMeta(): %w", readErr))
+		} else if !bytes.Equal(fixtureFileContent, content) {
+			errs = append(errs, fmt.Errorf("DownloadFileWithMeta(): expected content %q, got %q", fixtureFileContent, content))
+		}
+		if metaSize != uint64(len(fixtureFileContent)) {
+			errs = append(errs, fmt.Errorf("DownloadFileWithMeta(): expected size %v, got %v", len(fixtureFileContent), metaSize))
+		}
+		if metaETag != fixtureFileETag {
+			errs = append(errs, fmt.Errorf("DownloadFileWithMeta(): expected etag %q, got %q", fixtureFileETag, metaETag))
+		}
 	}
 
 	echoed, err := testApi.EchoFile(ctx, newTestFile(fixtureFileName, fixtureFileContent))

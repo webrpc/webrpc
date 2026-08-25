@@ -56,7 +56,7 @@ export class {{$service.Name}} implements {{$service.Name}}Client {
       {{- $methodRespName = printf "%sResponse" $method.Name -}}
     {{- end -}}
   {{- end}}
-  {{firstLetterToLower .Name}} = ({{template "methodInputs" dict "Method" . "Opts" $opts "TypeMap" $typeMap}}): {{if $method.StreamOutput}}WebrpcStreamController{{else}}{{if MethodHasFileDownload $method}}Promise<WebrpcFile>{{else if $method.Succinct}}Promise<{{(index $method.Outputs 0).Type}}>{{else}}Promise<{{$method.Name}}{{if $opts.compat}}Return{{else}}Response{{end}}>{{end}}{{end}} => {
+  {{firstLetterToLower .Name}} = ({{template "methodInputs" dict "Method" . "Opts" $opts "TypeMap" $typeMap}}): {{if $method.StreamOutput}}WebrpcStreamController{{else}}{{if MethodHasFileDownloadMeta $method}}Promise<{{$method.Name}}{{if $opts.compat}}Return{{else}}Response{{end}}>{{else if MethodHasFileDownload $method}}Promise<WebrpcFile>{{else if $method.Succinct}}Promise<{{(index $method.Outputs 0).Type}}>{{else}}Promise<{{$method.Name}}{{if $opts.compat}}Return{{else}}Response{{end}}>{{end}}{{end}} => {
   {{- if $method.StreamOutput }}
     const abortController = new AbortController()
     const abortSignal = abortController.signal
@@ -92,7 +92,12 @@ export class {{$service.Name}} implements {{$service.Name}}Client {
       this.url('{{.Name}}'),
       createHttpUploadRequest(form, headers, signal)).then((res) => {
       {{- if MethodHasFileDownload $method }}
+      {{- if MethodHasFileDownloadMeta $method }}
+      {{- $fileOutput := index $method.Outputs (MethodDownloadFileIndex $method) }}
+      return buildFileMetaResponse<{{$methodRespName}}>(res, '{{$fileOutput.Name}}', '{{$methodRespName}}')
+      {{- else }}
       return buildFileResponse(res)
+      {{- end }}
       {{- else }}
       return buildResponse(res).then(_data => {
         return JsonDecode<{{$methodRespName}}>(_data, '{{$methodRespName}}')
@@ -109,7 +114,12 @@ export class {{$service.Name}} implements {{$service.Name}}Client {
       {{- else }}
       createHttpRequest('{}', headers, signal)).then((res) => {
       {{- end }}
+      {{- if MethodHasFileDownloadMeta $method }}
+      {{- $fileOutput := index $method.Outputs (MethodDownloadFileIndex $method) }}
+      return buildFileMetaResponse<{{$methodRespName}}>(res, '{{$fileOutput.Name}}', '{{$methodRespName}}')
+      {{- else }}
       return buildFileResponse(res)
+      {{- end }}
     }, (error) => {
       throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error instanceof Error ? error.message : String(error)}` })
     })

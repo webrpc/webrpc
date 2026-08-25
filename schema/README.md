@@ -67,8 +67,23 @@ Some example webrpc schemas:
 - `file` and `[]file` may be used only as:
   * the type of a method input argument, or
   * the type of a top-level field of a struct used as a method input
-- a method may return `file` only as its single output (a download method)
+- a method may return at most one `file` output (a download method)
+- a download method may declare metadata outputs alongside its file:
+
+  ```ridl
+  - DownloadAvatar(userId: uint64) => (avatar: file, size: uint64, etag: string)
+  ```
+
+  The response body carries the raw file, so the remaining outputs are
+  JSON-encoded into the `Webrpc-Response` header instead. Keep them small:
+  header limits are enforced by servers, proxies and CDNs, and generated
+  servers reject metadata over 4 KiB. Non-ASCII characters are escaped, since
+  HTTP header values are ASCII.
 - `file` is not allowed in nested structs, maps, aliases, or streaming methods
+
+Metadata outputs are supported by the golang, typescript and javascript
+targets. The kotlin, dart and swift clients support plain `file` downloads and
+fail at generation time on a download method that declares metadata.
 
 
 ## List

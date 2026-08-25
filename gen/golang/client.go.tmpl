@@ -91,6 +91,7 @@ func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context, {{$input.
 func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context{{range $_, $input := $method.Inputs}}, {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}} {{template "field" dict "Name" $input.Name "Type" $input.Type "Optional" $input.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $input.Meta "Succinct" $method.Succinct}}{{end}}) {{if len $method.Outputs}}({{end}}{{range $i, $output := $method.Outputs}}{{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta}}{{if lt $i (len $method.Outputs)}}, {{end}}{{end}}error{{if len $method.Outputs}}){{end}} {
 	{{- $inputVar := "nil" -}}
 	{{- $outputVar := "nil" -}}
+	{{- $fileIdx := MethodDownloadFileIndex $method -}}
 	{{- if $method.Inputs | len }}
 	{{- $inputVar = "in"}}
 	in := struct {
@@ -99,7 +100,17 @@ func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context{{range $_,
 	{{- end}}
 	}{ {{- range $i, $input := $method.Inputs}}{{if gt $i 0}}, {{end}}{{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}{{end}}}{{ "\n" }}
 	{{- end}}
-	{{- if and ($method.Outputs | len) (not (MethodHasFileDownload $method))}}
+	{{- if MethodHasFileDownloadMeta $method }}
+	{{- /* The response body carries the raw file, so the remaining outputs
+	     ride along in the Webrpc-Response header instead. */}}
+	out := struct {
+	{{- range $oi, $output := $method.Outputs}}
+	{{- if ne $oi $fileIdx}}
+		Ret{{$oi}} {{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta "JsonTags" true}}
+	{{- end}}
+	{{- end}}
+	}{}{{ "\n" }}
+	{{- else if and ($method.Outputs | len) (not (MethodHasFileDownload $method))}}
 	{{- $outputVar = "&out"}}
 	out := struct {
 	{{- range $i, $output := $method.Outputs}}
@@ -132,10 +143,17 @@ func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context{{range $_,
 		if resp != nil {
 			resp.Body.Close()
 		}
-		return nil, err
+		return {{range $oi, $_ := $method.Outputs}}{{if eq $oi $fileIdx}}nil{{else}}out.Ret{{$oi}}{{end}}, {{end}}err
 	}
+	{{- if MethodHasFileDownloadMeta $method }}
 
-	return fileFromResponse(resp), nil
+	if err := decodeFileResponseMeta(resp, &out); err != nil {
+		resp.Body.Close()
+		return {{range $oi, $_ := $method.Outputs}}{{if eq $oi $fileIdx}}nil{{else}}out.Ret{{$oi}}{{end}}, {{end}}err
+	}
+	{{- end }}
+
+	return {{range $oi, $_ := $method.Outputs}}{{if eq $oi $fileIdx}}fileFromResponse(resp){{else}}out.Ret{{$oi}}{{end}}, {{end}}nil
 	{{- else }}
 	err := doHTTPUploadRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, parts, {{$outputVar}})
 
@@ -147,10 +165,17 @@ func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context{{range $_,
 		if resp != nil {
 			resp.Body.Close()
 		}
-		return nil, err
+		return {{range $oi, $_ := $method.Outputs}}{{if eq $oi $fileIdx}}nil{{else}}out.Ret{{$oi}}{{end}}, {{end}}err
 	}
+	{{- if MethodHasFileDownloadMeta $method }}
 
-	return fileFromResponse(resp), nil
+	if err := decodeFileResponseMeta(resp, &out); err != nil {
+		resp.Body.Close()
+		return {{range $oi, $_ := $method.Outputs}}{{if eq $oi $fileIdx}}nil{{else}}out.Ret{{$oi}}{{end}}, {{end}}err
+	}
+	{{- end }}
+
+	return {{range $oi, $_ := $method.Outputs}}{{if eq $oi $fileIdx}}fileFromResponse(resp){{else}}out.Ret{{$oi}}{{end}}, {{end}}nil
 	{{- else }}
 	err := doHTTPRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}})
 

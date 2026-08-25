@@ -53,6 +53,9 @@
         {{- end -}}
       {{- end -}}
       {{- if MethodHasFileDownload $method -}}
+        {{- if MethodHasFileDownloadMeta $method -}}
+          {{- set $opts "fileDownloadMeta" true -}}
+        {{- end -}}
         {{- set $opts "fileDownload" true -}}
       {{- end -}}
     {{- end -}}

@@ -51,6 +51,25 @@ const appendFileParts = (form, name, files) => {
 //     body,        // raw response body stream (ReadableStream), or null
 //     blob()       // buffers the entire body and resolves to a Blob
 //   }
+{{- if $opts.fileDownloadMeta}}
+// FileResponseMetaHeader carries a download method's non-file outputs,
+// JSON-encoded, alongside the raw file in the response body.
+const FileResponseMetaHeader = 'Webrpc-Response'
+
+// buildFileMetaResponse reconstructs a download method's response from the
+// raw file body plus the non-file outputs carried in the metadata header. A
+// response without that header yields zero-valued metadata rather than an
+// error, so a server that sends none still returns the file.
+const buildFileMetaResponse = (res, fileField) => {
+  return buildFileResponse(res).then((file) => {
+    const header = res.headers.get(FileResponseMetaHeader)
+    const meta = header ? JSON.parse(header) : {}
+    meta[fileField] = file
+    return meta
+  })
+}
+
+{{end}}
 const buildFileResponse = (res) => {
   if (!res.ok) {
     return buildResponse(res).then(() => {

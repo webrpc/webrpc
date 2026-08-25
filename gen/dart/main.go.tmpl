@@ -36,6 +36,10 @@
       {{- set $opts "fileUpload" true -}}
       {{- set $opts "fileType" true -}}
     {{- end -}}
+    {{- if MethodHasFileDownloadMeta $method -}}
+    {{- stderrPrintf "%s generator error: %s.%s returns metadata outputs alongside its file, which the %s target does not support yet; the metadata travels in the Webrpc-Response header and only the golang and typescript targets decode it. Declare the file as the method's only output, or return the metadata from a separate method\n" $.WebrpcTarget $service.Name $method.Name $.WebrpcTarget -}}
+    {{- exit 1 -}}
+    {{- end -}}
     {{- if MethodHasFileDownload $method -}}
       {{- set $opts "fileDownload" true -}}
       {{- set $opts "fileType" true -}}
