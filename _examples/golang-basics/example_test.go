@@ -90,7 +90,7 @@ func TestUploadDownloadAvatar(t *testing.T) {
 
 	resp, err := client.UploadAvatar(ctx, UploadAvatarRequest{
 		UserId: 77,
-		Avatar: &File{
+		Avatar: &WebrpcFile{
 			Name:        "me.png",
 			ContentType: "image/png",
 			Size:        int64(len(content)),
@@ -175,7 +175,7 @@ func TestLargeStreamingUpload(t *testing.T) {
 	c := NewExampleClient(srv.URL, &http.Client{Timeout: 60 * time.Second})
 	resp, err := c.UploadAvatar(context.Background(), UploadAvatarRequest{
 		UserId: 1,
-		Avatar: &File{
+		Avatar: &WebrpcFile{
 			Name:        "big.bin",
 			ContentType: "application/octet-stream",
 			Size:        uploadSize,

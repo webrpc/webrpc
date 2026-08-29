@@ -117,7 +117,7 @@ func (c *TestServer) GetSchemaError(ctx context.Context, code int) error {
 	return nil
 }
 
-func (c *TestServer) UploadFile(ctx context.Context, name string, data *File) (uint64, error) {
+func (c *TestServer) UploadFile(ctx context.Context, name string, data *WebrpcFile) (uint64, error) {
 	if name != fixtureFileName {
 		return 0, ErrUnexpectedValue.WithCausef("%q:\n%s", "name", cmp.Diff(fixtureFileName, name))
 	}
@@ -133,7 +133,7 @@ func (c *TestServer) UploadFile(ctx context.Context, name string, data *File) (u
 	return uint64(len(content)), nil
 }
 
-func (c *TestServer) UploadFiles(ctx context.Context, files []*File) (uint32, error) {
+func (c *TestServer) UploadFiles(ctx context.Context, files []*WebrpcFile) (uint32, error) {
 	if len(files) != len(fixtureFilesContent) {
 		return 0, ErrUnexpectedValue.WithCausef("%q: expected %v files, got %v", "files", len(fixtureFilesContent), len(files))
 	}
@@ -151,12 +151,12 @@ func (c *TestServer) UploadFiles(ctx context.Context, files []*File) (uint32, er
 	return uint32(len(files)), nil
 }
 
-func (c *TestServer) DownloadFile(ctx context.Context, name string) (*File, error) {
+func (c *TestServer) DownloadFile(ctx context.Context, name string) (*WebrpcFile, error) {
 	if name != fixtureFileName {
 		return nil, ErrUnexpectedValue.WithCausef("%q:\n%s", "name", cmp.Diff(fixtureFileName, name))
 	}
 
-	return &File{
+	return &WebrpcFile{
 		Name:        name,
 		ContentType: "application/octet-stream",
 		Size:        int64(len(fixtureFileContent)),
@@ -164,13 +164,13 @@ func (c *TestServer) DownloadFile(ctx context.Context, name string) (*File, erro
 	}, nil
 }
 
-func (c *TestServer) EchoFile(ctx context.Context, data *File) (*File, error) {
+func (c *TestServer) EchoFile(ctx context.Context, data *WebrpcFile) (*WebrpcFile, error) {
 	content, err := readFile(data)
 	if err != nil {
 		return nil, err
 	}
 
-	return &File{
+	return &WebrpcFile{
 		Name:        data.Name,
 		ContentType: data.ContentType,
 		Size:        int64(len(content)),
@@ -179,7 +179,7 @@ func (c *TestServer) EchoFile(ctx context.Context, data *File) (*File, error) {
 }
 
 // readFile drains and closes the given uploaded file.
-func readFile(file *File) ([]byte, error) {
+func readFile(file *WebrpcFile) ([]byte, error) {
 	if file == nil {
 		return nil, ErrMissingArgument.WithCausef("file part is missing")
 	}

@@ -84,7 +84,7 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, userID uint64) (uint32,
 	}, nil
 }
 
-func (s *ExampleServiceRPC) UploadAvatar(ctx context.Context, userID uint64, avatar *File) (uint64, string, error) {
+func (s *ExampleServiceRPC) UploadAvatar(ctx context.Context, userID uint64, avatar *WebrpcFile) (uint64, string, error) {
 	if avatar == nil {
 		return 0, "", ErrWebrpcBadRequest.WithCausef("missing avatar file")
 	}
@@ -102,7 +102,7 @@ func (s *ExampleServiceRPC) UploadAvatar(ctx context.Context, userID uint64, ava
 	return uint64(len(data)), avatar.Name, nil
 }
 
-func (s *ExampleServiceRPC) DownloadAvatar(ctx context.Context, userID uint64) (*File, error) {
+func (s *ExampleServiceRPC) DownloadAvatar(ctx context.Context, userID uint64) (*WebrpcFile, error) {
 	s.mu.Lock()
 	avatar, ok := s.avatars[userID]
 	s.mu.Unlock()
@@ -111,7 +111,7 @@ func (s *ExampleServiceRPC) DownloadAvatar(ctx context.Context, userID uint64) (
 		return nil, ErrWebrpcBadRoute.WithCausef("no avatar for user %d", userID)
 	}
 
-	return &File{
+	return &WebrpcFile{
 		Name:        avatar.name,
 		ContentType: avatar.contentType,
 		Size:        int64(len(avatar.data)),

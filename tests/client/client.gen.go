@@ -53,10 +53,10 @@ type TestApiClient interface {
 	// added in v0.11.0
 	GetSchemaError(ctx context.Context, code int) error
 	// added in v0.46.0
-	UploadFile(ctx context.Context, name string, data *File) (uint64, error)
-	UploadFiles(ctx context.Context, files []*File) (uint32, error)
-	DownloadFile(ctx context.Context, name string) (*File, error)
-	EchoFile(ctx context.Context, data *File) (*File, error)
+	UploadFile(ctx context.Context, name string, data *WebrpcFile) (uint64, error)
+	UploadFiles(ctx context.Context, files []*WebrpcFile) (uint32, error)
+	DownloadFile(ctx context.Context, name string) (*WebrpcFile, error)
+	EchoFile(ctx context.Context, data *WebrpcFile) (*WebrpcFile, error)
 }
 
 //
@@ -349,10 +349,10 @@ func (c *testApiClient) GetSchemaError(ctx context.Context, code int) error {
 	return err
 }
 
-func (c *testApiClient) UploadFile(ctx context.Context, name string, data *File) (uint64, error) {
+func (c *testApiClient) UploadFile(ctx context.Context, name string, data *WebrpcFile) (uint64, error) {
 	in := struct {
-		Arg0 string `json:"name"`
-		Arg1 *File  `json:"data"`
+		Arg0 string      `json:"name"`
+		Arg1 *WebrpcFile `json:"data"`
 	}{name, data}
 
 	out := struct {
@@ -360,15 +360,15 @@ func (c *testApiClient) UploadFile(ctx context.Context, name string, data *File)
 	}{}
 
 	parts := []filePart{}
-	parts = append(parts, filePart{name: "data", files: []*File{data}})
+	parts = append(parts, filePart{name: "data", files: []*WebrpcFile{data}})
 	err := doHTTPUploadRequest(ctx, c.client, c.urls[11], in, parts, &out)
 
 	return out.Ret0, err
 }
 
-func (c *testApiClient) UploadFiles(ctx context.Context, files []*File) (uint32, error) {
+func (c *testApiClient) UploadFiles(ctx context.Context, files []*WebrpcFile) (uint32, error) {
 	in := struct {
-		Arg0 []*File `json:"files"`
+		Arg0 []*WebrpcFile `json:"files"`
 	}{files}
 
 	out := struct {
@@ -382,7 +382,7 @@ func (c *testApiClient) UploadFiles(ctx context.Context, files []*File) (uint32,
 	return out.Ret0, err
 }
 
-func (c *testApiClient) DownloadFile(ctx context.Context, name string) (*File, error) {
+func (c *testApiClient) DownloadFile(ctx context.Context, name string) (*WebrpcFile, error) {
 	in := struct {
 		Arg0 string `json:"name"`
 	}{name}
@@ -398,13 +398,13 @@ func (c *testApiClient) DownloadFile(ctx context.Context, name string) (*File, e
 	return fileFromResponse(resp), nil
 }
 
-func (c *testApiClient) EchoFile(ctx context.Context, data *File) (*File, error) {
+func (c *testApiClient) EchoFile(ctx context.Context, data *WebrpcFile) (*WebrpcFile, error) {
 	in := struct {
-		Arg0 *File `json:"data"`
+		Arg0 *WebrpcFile `json:"data"`
 	}{data}
 
 	parts := []filePart{}
-	parts = append(parts, filePart{name: "data", files: []*File{data}})
+	parts = append(parts, filePart{name: "data", files: []*WebrpcFile{data}})
 	resp, err := doHTTPUploadRequestRaw(ctx, c.client, c.urls[14], in, parts, nil)
 	if err != nil {
 		if resp != nil {
@@ -581,9 +581,9 @@ func PtrTo[T any](v T) *T { return &v }
 // File helpers
 //
 
-// File is a file transferred over multipart/form-data (upload methods) or as
-// a raw HTTP response body (download methods).
-type File struct {
+// WebrpcFile is a file transferred over multipart/form-data (upload methods)
+// or as a raw HTTP response body (download methods).
+type WebrpcFile struct {
 	Name        string // filename, optional
 	ContentType string // MIME type as claimed by the sender
 	Size        int64  // -1 when unknown
@@ -593,16 +593,16 @@ type File struct {
 // MarshalJSON implements json.Marshaler. Files are never carried in JSON
 // payloads; the field is emitted as null and the file content is transferred
 // as a multipart part or as the raw response body instead.
-func (f *File) MarshalJSON() ([]byte, error) { return []byte("null"), nil }
+func (f *WebrpcFile) MarshalJSON() ([]byte, error) { return []byte("null"), nil }
 
 // UnmarshalJSON implements json.Unmarshaler as a no-op; files are populated
 // from multipart parts, not from JSON payloads.
-func (f *File) UnmarshalJSON(b []byte) error { return nil }
+func (f *WebrpcFile) UnmarshalJSON(b []byte) error { return nil }
 
 // filePart is one file-carrying part of a multipart upload request body.
 type filePart struct {
 	name  string
-	files []*File
+	files []*WebrpcFile
 }
 
 // doHTTPUploadRequestRaw makes a multipart/form-data request and returns the
@@ -703,7 +703,7 @@ func doHTTPUploadRequest(ctx context.Context, client HTTPClient, url string, in 
 var multipartQuoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 
 // writeFilePart writes one file to the multipart body and closes its Body.
-func writeFilePart(writer *multipart.Writer, name string, file *File) error {
+func writeFilePart(writer *multipart.Writer, name string, file *WebrpcFile) error {
 	defer func() {
 		if file.Body != nil {
 			file.Body.Close()
@@ -738,10 +738,10 @@ func writeFilePart(writer *multipart.Writer, name string, file *File) error {
 	return err
 }
 
-// fileFromResponse wraps a raw HTTP response body as a *File. The caller is
-// responsible for closing the file's Body.
-func fileFromResponse(resp *http.Response) *File {
-	file := &File{
+// fileFromResponse wraps a raw HTTP response body as a *WebrpcFile. The
+// caller is responsible for closing the file's Body.
+func fileFromResponse(resp *http.Response) *WebrpcFile {
+	file := &WebrpcFile{
 		ContentType: resp.Header.Get("Content-Type"),
 		Size:        resp.ContentLength,
 		Body:        resp.Body,

@@ -182,7 +182,7 @@ func (s *ExampleServiceRPC) CountIntents(ctx context.Context, userID uint64) (ma
 	}, nil
 }
 
-// UploadAvatar receives the avatar as a *File parsed from the multipart
+// UploadAvatar receives the avatar as a *WebrpcFile parsed from the multipart
 // request body, alongside the JSON-encoded scalar fields of the request.
 func (s *ExampleServiceRPC) UploadAvatar(ctx context.Context, req UploadAvatarRequest) (*UploadAvatarResponse, error) {
 	if req.Avatar == nil {
@@ -205,9 +205,9 @@ func (s *ExampleServiceRPC) UploadAvatar(ctx context.Context, req UploadAvatarRe
 	return &UploadAvatarResponse{Size: uint64(len(data))}, nil
 }
 
-// DownloadAvatar returns a *File that is streamed to the client as the raw
+// DownloadAvatar returns a *WebrpcFile that is streamed to the client as the raw
 // response body, with the file's metadata in the response headers.
-func (s *ExampleServiceRPC) DownloadAvatar(ctx context.Context, req DownloadAvatarRequest) (*File, error) {
+func (s *ExampleServiceRPC) DownloadAvatar(ctx context.Context, req DownloadAvatarRequest) (*WebrpcFile, error) {
 	s.mu.Lock()
 	avatar, ok := s.avatars[req.UserId]
 	s.mu.Unlock()
@@ -216,7 +216,7 @@ func (s *ExampleServiceRPC) DownloadAvatar(ctx context.Context, req DownloadAvat
 		return nil, ErrUserNotFound.WithCausef("no avatar for user %d", req.UserId)
 	}
 
-	return &File{
+	return &WebrpcFile{
 		Name:        avatar.name,
 		ContentType: avatar.contentType,
 		Size:        int64(len(avatar.data)),

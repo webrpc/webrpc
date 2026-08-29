@@ -116,8 +116,8 @@ var (
 )
 
 // newTestFile returns an in-memory file upload with the given content.
-func newTestFile(name string, content []byte) *File {
-	return &File{
+func newTestFile(name string, content []byte) *WebrpcFile {
+	return &WebrpcFile{
 		Name:        name,
 		ContentType: "application/octet-stream",
 		Size:        int64(len(content)),
@@ -126,7 +126,7 @@ func newTestFile(name string, content []byte) *File {
 }
 
 // readFile drains and closes the given downloaded file.
-func readFile(file *File) ([]byte, error) {
+func readFile(file *WebrpcFile) ([]byte, error) {
 	if file == nil {
 		return nil, fmt.Errorf("file is nil")
 	}
@@ -150,7 +150,7 @@ func testFiles(ctx context.Context, testApi TestApiClient) []error {
 		errs = append(errs, fmt.Errorf("UploadFile(): expected size %v, got %v", len(fixtureFileContent), size))
 	}
 
-	files := make([]*File, 0, len(fixtureFilesContent))
+	files := make([]*WebrpcFile, 0, len(fixtureFilesContent))
 	for i, content := range fixtureFilesContent {
 		files = append(files, newTestFile(fmt.Sprintf("file-%v.bin", i), content))
 	}

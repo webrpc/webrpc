@@ -53,10 +53,10 @@ type TestApiServer interface {
 	// added in v0.11.0
 	GetSchemaError(ctx context.Context, code int) error
 	// added in v0.46.0
-	UploadFile(ctx context.Context, name string, data *File) (uint64, error)
-	UploadFiles(ctx context.Context, files []*File) (uint32, error)
-	DownloadFile(ctx context.Context, name string) (*File, error)
-	EchoFile(ctx context.Context, data *File) (*File, error)
+	UploadFile(ctx context.Context, name string, data *WebrpcFile) (uint64, error)
+	UploadFiles(ctx context.Context, files []*WebrpcFile) (uint32, error)
+	DownloadFile(ctx context.Context, name string) (*WebrpcFile, error)
+	EchoFile(ctx context.Context, data *WebrpcFile) (*WebrpcFile, error)
 }
 
 //
@@ -674,8 +674,8 @@ func (s *testApiService) serveUploadFileMultipart(ctx context.Context, w http.Re
 	}
 
 	reqPayload := struct {
-		Arg0 string `json:"name"`
-		Arg1 *File  `json:"data"`
+		Arg0 string      `json:"name"`
+		Arg1 *WebrpcFile `json:"data"`
 	}{}
 
 	if len(jsonBody) > 0 {
@@ -736,7 +736,7 @@ func (s *testApiService) serveUploadFilesMultipart(ctx context.Context, w http.R
 	}
 
 	reqPayload := struct {
-		Arg0 []*File `json:"files"`
+		Arg0 []*WebrpcFile `json:"files"`
 	}{}
 
 	if len(jsonBody) > 0 {
@@ -833,7 +833,7 @@ func (s *testApiService) serveEchoFileMultipart(ctx context.Context, w http.Resp
 	}
 
 	reqPayload := struct {
-		Arg0 *File `json:"data"`
+		Arg0 *WebrpcFile `json:"data"`
 	}{}
 
 	if len(jsonBody) > 0 {
@@ -1114,9 +1114,9 @@ func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
 // File helpers
 //
 
-// File is a file transferred over multipart/form-data (upload methods) or as
-// a raw HTTP response body (download methods).
-type File struct {
+// WebrpcFile is a file transferred over multipart/form-data (upload methods)
+// or as a raw HTTP response body (download methods).
+type WebrpcFile struct {
 	Name        string // filename, optional
 	ContentType string // MIME type as claimed by the sender
 	Size        int64  // -1 when unknown
@@ -1126,11 +1126,11 @@ type File struct {
 // MarshalJSON implements json.Marshaler. Files are never carried in JSON
 // payloads; the field is emitted as null and the file content is transferred
 // as a multipart part or as the raw response body instead.
-func (f *File) MarshalJSON() ([]byte, error) { return []byte("null"), nil }
+func (f *WebrpcFile) MarshalJSON() ([]byte, error) { return []byte("null"), nil }
 
 // UnmarshalJSON implements json.Unmarshaler as a no-op; files are populated
 // from multipart parts, not from JSON payloads.
-func (f *File) UnmarshalJSON(b []byte) error { return nil }
+func (f *WebrpcFile) UnmarshalJSON(b []byte) error { return nil }
 
 // DefaultMaxUploadSize caps multipart/form-data request bodies of file upload
 // methods when Options.MaxUploadSize is not set.
@@ -1184,7 +1184,7 @@ func newMultipartUpload(r *http.Request, names ...string) (*multipartUpload, []b
 // file returns the file of the named multipart part, or nil when the part is
 // known to be absent. The file's Body streams from the wire; see the wire
 // order NOTE on multipartUpload.
-func (u *multipartUpload) file(name string) (*File, error) {
+func (u *multipartUpload) file(name string) (*WebrpcFile, error) {
 	s := u.addSlot(name, u.namePos)
 	u.namePos++
 	if u.canBindNow(s) {
@@ -1204,13 +1204,13 @@ func (u *multipartUpload) file(name string) (*File, error) {
 // decoded from the "json" part, whose length says how many parts to expect
 // ([]file is JSON-encoded as one null per file). A request without that
 // shape is rejected: the declared count is what keeps the parts streaming.
-func (u *multipartUpload) files(name string, decl []*File) ([]*File, error) {
+func (u *multipartUpload) files(name string, decl []*WebrpcFile) ([]*WebrpcFile, error) {
 	pos := u.namePos
 	u.namePos++
 	if decl == nil {
 		return nil, fmt.Errorf("multipart part %q must declare %q as a JSON array with one null per file part", "json", name)
 	}
-	files := make([]*File, len(decl))
+	files := make([]*WebrpcFile, len(decl))
 	for i := range files {
 		s := u.addSlot(name, pos)
 		if u.canBindNow(s) {
@@ -1259,7 +1259,7 @@ func (u *multipartUpload) claim() *multipart.Part {
 
 func (u *multipartUpload) addSlot(name string, namePos int) *uploadSlot {
 	s := &uploadSlot{u: u, name: name, index: len(u.slots), namePos: namePos, state: slotPending}
-	s.file = &File{ContentType: "application/octet-stream", Size: -1, Body: s}
+	s.file = &WebrpcFile{ContentType: "application/octet-stream", Size: -1, Body: s}
 	u.slots = append(u.slots, s)
 	return s
 }
@@ -1327,13 +1327,13 @@ const (
 )
 
 // uploadSlot is one expected file part; it is the io.ReadCloser behind its
-// File's Body.
+// WebrpcFile's Body.
 type uploadSlot struct {
 	u       *multipartUpload
 	name    string
 	index   int // position in u.slots
 	namePos int // position in u.names
-	file    *File
+	file    *WebrpcFile
 	part    *multipart.Part
 	state   int
 	err     error
@@ -1385,7 +1385,7 @@ func (s *uploadSlot) bindPart(part *multipart.Part) {
 // serveFileResponse streams the file as the raw response body and closes it.
 // The inline Content-Disposition lets browsers preview the file in place; its
 // filename still names the file on save-as.
-func serveFileResponse(w http.ResponseWriter, file *File) {
+func serveFileResponse(w http.ResponseWriter, file *WebrpcFile) {
 	defer func() {
 		if file.Body != nil {
 			file.Body.Close()

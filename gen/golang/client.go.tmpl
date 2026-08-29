@@ -53,7 +53,7 @@ func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context, {{$input.
 	{{- if $part.Repeated }}
 	parts = append(parts, filePart{name: "{{$part.PartName}}", files: {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}.{{$part.FieldName}}})
 	{{- else }}
-	parts = append(parts, filePart{name: "{{$part.PartName}}", files: []*File{ {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}.{{$part.FieldName}} }})
+	parts = append(parts, filePart{name: "{{$part.PartName}}", files: []*WebrpcFile{ {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}.{{$part.FieldName}} }})
 	{{- end }}
 	{{- end }}
 	resp, err := doHTTPUploadRequestRaw(ctx, c.client, c.urls[{{$i}}], {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}, parts, nil)
@@ -76,7 +76,7 @@ func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context, {{$input.
 	{{- if $part.Repeated }}
 	parts = append(parts, filePart{name: "{{$part.PartName}}", files: {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}.{{$part.FieldName}}})
 	{{- else }}
-	parts = append(parts, filePart{name: "{{$part.PartName}}", files: []*File{ {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}.{{$part.FieldName}} }})
+	parts = append(parts, filePart{name: "{{$part.PartName}}", files: []*WebrpcFile{ {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}.{{$part.FieldName}} }})
 	{{- end }}
 	{{- end }}
 	err := doHTTPUploadRequest(ctx, c.client, c.urls[{{$i}}], {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}, parts, &out)
@@ -114,14 +114,14 @@ func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context{{range $_,
 	{{- if $part.Repeated }}
 	parts = append(parts, filePart{name: "{{$part.PartName}}", files: {{$part.ArgName}}{{if index $keywordMap $part.ArgName}}_{{end}}})
 	{{- else }}
-	parts = append(parts, filePart{name: "{{$part.PartName}}", files: []*File{ {{$part.ArgName}}{{if index $keywordMap $part.ArgName}}_{{end}} }})
+	parts = append(parts, filePart{name: "{{$part.PartName}}", files: []*WebrpcFile{ {{$part.ArgName}}{{if index $keywordMap $part.ArgName}}_{{end}} }})
 	{{- end }}
 	{{- else }}
 	if {{$part.ArgName}}{{if index $keywordMap $part.ArgName}}_{{end}} != nil {
 		{{- if $part.Repeated }}
 		parts = append(parts, filePart{name: "{{$part.PartName}}", files: {{$part.ArgName}}{{if index $keywordMap $part.ArgName}}_{{end}}.{{$part.FieldName}}})
 		{{- else }}
-		parts = append(parts, filePart{name: "{{$part.PartName}}", files: []*File{ {{$part.ArgName}}{{if index $keywordMap $part.ArgName}}_{{end}}.{{$part.FieldName}} }})
+		parts = append(parts, filePart{name: "{{$part.PartName}}", files: []*WebrpcFile{ {{$part.ArgName}}{{if index $keywordMap $part.ArgName}}_{{end}}.{{$part.FieldName}} }})
 		{{- end }}
 	}
 	{{- end }}

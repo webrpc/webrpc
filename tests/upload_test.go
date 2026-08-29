@@ -24,7 +24,7 @@ type outOfOrderTestServer struct {
 	*server.TestServer
 }
 
-func (s *outOfOrderTestServer) UploadFiles(ctx context.Context, files []*server.File) (uint32, error) {
+func (s *outOfOrderTestServer) UploadFiles(ctx context.Context, files []*server.WebrpcFile) (uint32, error) {
 	if len(files) != 2 {
 		return 0, fmt.Errorf("expected 2 files, got %v", len(files))
 	}
@@ -58,7 +58,7 @@ func TestUploadFilesOutOfOrderRead(t *testing.T) {
 	defer srv.Close()
 
 	api := client.NewTestApiClient(srv.URL, &http.Client{})
-	count, err := api.UploadFiles(context.Background(), []*client.File{
+	count, err := api.UploadFiles(context.Background(), []*client.WebrpcFile{
 		{
 			Name:        "first.txt",
 			ContentType: "text/plain",
