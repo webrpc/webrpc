@@ -5,7 +5,7 @@
 {{- $methodAPIName := .MethodAPIName -}}
 
 {{- if MethodHasFileDownload $method -}}
-WebRPCFile
+WebrpcFile
 {{- else if eq (len $method.Outputs) 0 -}}
 Void
 {{- else if $method.Succinct -}}

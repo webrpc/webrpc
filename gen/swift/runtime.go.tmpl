@@ -246,7 +246,7 @@ where Key: WebRPCEnumKey, Value: Codable & Sendable {
         baseURL: String,
         path: String,
         body: Data,
-        files: [WebRPCFilePart],
+        files: [WebrpcFilePart],
         headers: [String: String]
     ) async throws -> WebRPCHTTPResponse
 {{- end }}
@@ -329,7 +329,7 @@ where Key: WebRPCEnumKey, Value: Codable & Sendable {
         baseURL: String,
         path: String,
         body: Data,
-        files: [WebRPCFilePart],
+        files: [WebrpcFilePart],
         headers: [String: String]
     ) async throws -> WebRPCHTTPResponse {
         guard let url = URL(string: joinWebRPCURL(baseURL: baseURL, path: path)) else {
@@ -412,7 +412,7 @@ private {{$static}}func joinWebRPCURL(baseURL: String, path: String) -> String {
 // makeWebRPCMultipartBody builds a multipart/form-data request body: the
 // "json" part carrying the JSON-encoded non-file arguments is always first,
 // followed by one part per file ([]file arguments repeat the part name).
-private {{$static}}func makeWebRPCMultipartBody(boundary: String, body: Data, files: [WebRPCFilePart]) -> Data {
+private {{$static}}func makeWebRPCMultipartBody(boundary: String, body: Data, files: [WebrpcFilePart]) -> Data {
     var data = Data()
     data.append(Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"json\"\r\n\r\n".utf8))
     data.append(body)

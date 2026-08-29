@@ -281,8 +281,8 @@
 
         // fileParts collects the request's file arguments as multipart parts,
         // in the order they are sent on the wire (after the leading "json" part).
-        {{$access}} static func fileParts(_ request: {{if $method.Succinct}}{{template "type" dict "Type" (index $method.Inputs 0).Type "TypeMap" $typeMap "WebrpcTarget" $.WebrpcTarget}}{{else}}Request{{end}}) -> [WebRPCFilePart] {
-            var parts: [WebRPCFilePart] = []
+        {{$access}} static func fileParts(_ request: {{if $method.Succinct}}{{template "type" dict "Type" (index $method.Inputs 0).Type "TypeMap" $typeMap "WebrpcTarget" $.WebrpcTarget}}{{else}}Request{{end}}) -> [WebrpcFilePart] {
+            var parts: [WebrpcFilePart] = []
             {{- range $_, $input := $method.Inputs }}
             {{- $inputTypeExpr := printf "%v" $input.Type }}
             {{- $isExportable := true -}}
@@ -298,14 +298,14 @@
             {{- if eq $inputTypeExpr "file" }}
             {{- if $inputOptional }}
             if let file = request.{{template "fieldName" dict "Field" $input}} {
-                parts.append(WebRPCFilePart(name: "{{$input.Name}}", file: file))
+                parts.append(WebrpcFilePart(name: "{{$input.Name}}", file: file))
             }
             {{- else }}
-            parts.append(WebRPCFilePart(name: "{{$input.Name}}", file: request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}))
+            parts.append(WebrpcFilePart(name: "{{$input.Name}}", file: request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}))
             {{- end }}
             {{- else if eq $inputTypeExpr "[]file" }}
             for file in request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}{{if $inputOptional}} ?? []{{end}} {
-                parts.append(WebRPCFilePart(name: "{{$input.Name}}", file: file))
+                parts.append(WebrpcFilePart(name: "{{$input.Name}}", file: file))
             }
             {{- else if isStructType $input.Type }}
             {{- range $_, $field := $input.Type.Struct.Type.Fields }}
@@ -324,19 +324,19 @@
             {{- if eq $fieldTypeExpr "file" }}
             {{- if or $inputOptional $field.Optional }}
             if let file = request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}{{if $inputOptional}}?{{end}}.{{template "fieldName" dict "Field" $field}} {
-                parts.append(WebRPCFilePart(name: "{{$partName}}", file: file))
+                parts.append(WebrpcFilePart(name: "{{$partName}}", file: file))
             }
             {{- else }}
-            parts.append(WebRPCFilePart(name: "{{$partName}}", file: request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}.{{template "fieldName" dict "Field" $field}}))
+            parts.append(WebrpcFilePart(name: "{{$partName}}", file: request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}.{{template "fieldName" dict "Field" $field}}))
             {{- end }}
             {{- else }}
             {{- if or $inputOptional $field.Optional }}
             for file in request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}{{if $inputOptional}}?{{end}}.{{template "fieldName" dict "Field" $field}} ?? [] {
-                parts.append(WebRPCFilePart(name: "{{$partName}}", file: file))
+                parts.append(WebrpcFilePart(name: "{{$partName}}", file: file))
             }
             {{- else }}
             for file in request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}.{{template "fieldName" dict "Field" $field}} {
-                parts.append(WebRPCFilePart(name: "{{$partName}}", file: file))
+                parts.append(WebrpcFilePart(name: "{{$partName}}", file: file))
             }
             {{- end }}
             {{- end }}

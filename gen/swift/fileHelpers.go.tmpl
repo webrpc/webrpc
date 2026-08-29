@@ -4,7 +4,7 @@
 {{- $static := ternary (ne (get $opts "namespace") "") "static " "" }}
 // MARK: - File helpers
 
-// WebRPCFile is a file sent to (upload) or received from (download) a webrpc
+// WebrpcFile is a file sent to (upload) or received from (download) a webrpc
 // service.
 //
 // Uploads: construct one with init or fromData and pass it to the client
@@ -16,7 +16,7 @@
 //
 // In JSON payloads a file field is always encoded as `null`: the content
 // travels as a multipart part or as the raw response body instead.
-{{$access}} struct WebRPCFile: Codable, Sendable {
+{{$access}} struct WebrpcFile: Codable, Sendable {
     /// Filename, when known.
     {{$access}} let name: String?
 
@@ -45,8 +45,8 @@
         _ data: Data,
         name: String? = nil,
         contentType: String = "application/octet-stream"
-    ) -> WebRPCFile {
-        WebRPCFile(name: name, contentType: contentType, size: Int64(data.count), data: data)
+    ) -> WebrpcFile {
+        WebrpcFile(name: name, contentType: contentType, size: Int64(data.count), data: data)
     }
 
     // Files are never carried in JSON payloads: the JSON value (typically
@@ -64,14 +64,14 @@
 }
 {{- if $opts.fileUpload }}
 
-// WebRPCFilePart is one file-carrying part of a multipart upload request
+// WebrpcFilePart is one file-carrying part of a multipart upload request
 // body. Repeated ([]file) arguments produce one part per file, all sharing
 // the same part name.
-{{$access}} struct WebRPCFilePart: Sendable {
+{{$access}} struct WebrpcFilePart: Sendable {
     {{$access}} let name: String
-    {{$access}} let file: WebRPCFile
+    {{$access}} let file: WebrpcFile
 
-    {{$access}} init(name: String, file: WebRPCFile) {
+    {{$access}} init(name: String, file: WebrpcFile) {
         self.name = name
         self.file = file
     }
@@ -81,7 +81,7 @@
     baseURL: String,
     urlPath: String,
     body: Data,
-    files: [WebRPCFilePart],
+    files: [WebrpcFilePart],
     transport: any WebRPCTransport,
     headers: [String: String] = [:],
     decodeSuccess: (Data, JSONDecoder) throws -> Response
@@ -131,7 +131,7 @@
     body: Data,
     transport: any WebRPCTransport,
     headers: [String: String] = [:]
-) async throws -> WebRPCFile {
+) async throws -> WebrpcFile {
     let response: WebRPCHTTPResponse
     do {
         response = try await transport.postRaw(
@@ -151,7 +151,7 @@
         )
     }
 
-    return try decodeWebRPCFileResponse(response)
+    return try decodeWebrpcFileResponse(response)
 }
 {{- if $opts.fileUploadDownload }}
 
@@ -159,10 +159,10 @@
     baseURL: String,
     urlPath: String,
     body: Data,
-    files: [WebRPCFilePart],
+    files: [WebrpcFilePart],
     transport: any WebRPCTransport,
     headers: [String: String] = [:]
-) async throws -> WebRPCFile {
+) async throws -> WebrpcFile {
     let response: WebRPCHTTPResponse
     do {
         response = try await transport.postMultipart(
@@ -183,20 +183,20 @@
         )
     }
 
-    return try decodeWebRPCFileResponse(response)
+    return try decodeWebrpcFileResponse(response)
 }
 {{- end }}
 
-// decodeWebRPCFileResponse wraps a successful raw response as a WebRPCFile
+// decodeWebrpcFileResponse wraps a successful raw response as a WebrpcFile
 // carrying the response body, or throws the decoded WebRPCError carried by a
 // non-2xx response.
-private {{$static}}func decodeWebRPCFileResponse(_ response: WebRPCHTTPResponse) throws -> WebRPCFile {
+private {{$static}}func decodeWebrpcFileResponse(_ response: WebRPCHTTPResponse) throws -> WebrpcFile {
     guard (200...299).contains(response.statusCode) else {
         throw decodeWebRPCError(statusCode: response.statusCode, data: response.body)
     }
 
     let contentType = webRPCResponseHeader(response.headers, "Content-Type") ?? ""
-    return WebRPCFile(
+    return WebrpcFile(
         name: webRPCFileNameFromContentDisposition(webRPCResponseHeader(response.headers, "Content-Disposition")),
         contentType: contentType.isEmpty ? "application/octet-stream" : contentType,
         size: Int64(response.body.count),
