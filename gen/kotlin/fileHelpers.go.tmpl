@@ -5,7 +5,7 @@
 // region File helpers
 
 /**
- * WebRpcFile is a file sent to (upload) or received from (download) a webrpc
+ * WebrpcFile is a file sent to (upload) or received from (download) a webrpc
  * service.
  *
  * Uploads: construct one with [fromFile], [fromBytes] or [fromStream] and pass
@@ -22,8 +22,8 @@
  * In JSON payloads a file field is always encoded as `null`: the content
  * travels as a multipart part or as the raw response body instead.
  */
-@Serializable(with = WebRpcFileSerializer::class)
-class WebRpcFile(
+@Serializable(with = WebrpcFileSerializer::class)
+class WebrpcFile(
     /** filename, when known */
     val name: String? = null,
     /** MIME type as claimed by the sender */
@@ -46,7 +46,7 @@ class WebRpcFile(
             file: File,
             contentType: String = "application/octet-stream",
             name: String = file.name,
-        ): WebRpcFile = WebRpcFile(
+        ): WebrpcFile = WebrpcFile(
             name = name,
             contentType = contentType,
             size = file.length(),
@@ -57,7 +57,7 @@ class WebRpcFile(
             bytes: ByteArray,
             name: String? = null,
             contentType: String = "application/octet-stream",
-        ): WebRpcFile = WebRpcFile(
+        ): WebrpcFile = WebrpcFile(
             name = name,
             contentType = contentType,
             size = bytes.size.toLong(),
@@ -69,7 +69,7 @@ class WebRpcFile(
             name: String? = null,
             contentType: String = "application/octet-stream",
             size: Long = -1L,
-        ): WebRpcFile = WebRpcFile(
+        ): WebrpcFile = WebrpcFile(
             name = name,
             contentType = contentType,
             size = size,
@@ -78,19 +78,19 @@ class WebRpcFile(
     }
 }
 
-// WebRpcFileSerializer encodes a file as JSON null: files are never carried in
+// WebrpcFileSerializer encodes a file as JSON null: files are never carried in
 // JSON payloads, their content travels as a multipart part or as the raw
 // response body instead. Decoding consumes and discards the JSON value.
-object WebRpcFileSerializer : KSerializer<WebRpcFile> {
+object WebrpcFileSerializer : KSerializer<WebrpcFile> {
     override val descriptor: SerialDescriptor = JsonElement.serializer().descriptor
 
-    override fun serialize(encoder: Encoder, value: WebRpcFile) {
+    override fun serialize(encoder: Encoder, value: WebrpcFile) {
         encoder.encodeSerializableValue(JsonElement.serializer(), JsonNull)
     }
 
-    override fun deserialize(decoder: Decoder): WebRpcFile {
+    override fun deserialize(decoder: Decoder): WebrpcFile {
         decoder.decodeSerializableValue(JsonElement.serializer())
-        return WebRpcFile()
+        return WebrpcFile()
     }
 }
 {{- if and $opts.client (or $opts.fileUpload $opts.fileDownload) }}
@@ -121,19 +121,19 @@ suspend fun readWebRpcResponseBody(response: WebRpcHttpRawResponse): String =
 {{- end }}
 {{- if and $opts.client $opts.fileUpload }}
 
-// WebRpcFilePart is one file-carrying part of a multipart upload request body.
+// WebrpcFilePart is one file-carrying part of a multipart upload request body.
 // Repeated ([]file) arguments produce one part per file, all sharing the same
 // part name.
-data class WebRpcFilePart(
+data class WebrpcFilePart(
     val name: String,
-    val file: WebRpcFile,
+    val file: WebrpcFile,
 )
 
 suspend inline fun <O> executeWebRpcUpload(
     baseUrl: String,
     urlPath: String,
     body: String,
-    files: List<WebRpcFilePart>,
+    files: List<WebrpcFilePart>,
     transport: WebRpcTransport,
     headers: Map<String, String> = emptyMap(),
     json: Json = WebRpcJson,
@@ -172,7 +172,7 @@ suspend fun executeWebRpcDownload(
     transport: WebRpcTransport,
     headers: Map<String, String> = emptyMap(),
     json: Json = WebRpcJson,
-): WebRpcFile {
+): WebrpcFile {
     val response = try {
         transport.postRaw(
             baseUrl = baseUrl,
@@ -188,7 +188,7 @@ suspend fun executeWebRpcDownload(
         throw WebRpcTransportException("WebRPC request failed", e)
     }
 
-    return decodeWebRpcFileResponse(response, json)
+    return decodeWebrpcFileResponse(response, json)
 }
 {{- if $opts.fileUploadDownload }}
 
@@ -196,11 +196,11 @@ suspend fun executeWebRpcUploadDownload(
     baseUrl: String,
     urlPath: String,
     body: String,
-    files: List<WebRpcFilePart>,
+    files: List<WebrpcFilePart>,
     transport: WebRpcTransport,
     headers: Map<String, String> = emptyMap(),
     json: Json = WebRpcJson,
-): WebRpcFile {
+): WebrpcFile {
     val response = try {
         transport.postMultipart(
             baseUrl = baseUrl,
@@ -217,20 +217,20 @@ suspend fun executeWebRpcUploadDownload(
         throw WebRpcTransportException("WebRPC request failed", e)
     }
 
-    return decodeWebRpcFileResponse(response, json)
+    return decodeWebrpcFileResponse(response, json)
 }
 {{- end }}
 
-// decodeWebRpcFileResponse wraps a successful raw response as a WebRpcFile
+// decodeWebrpcFileResponse wraps a successful raw response as a WebrpcFile
 // streaming the response body, or throws the decoded WebRpcError carried by a
 // non-2xx response.
-private suspend fun decodeWebRpcFileResponse(response: WebRpcHttpRawResponse, json: Json): WebRpcFile {
+private suspend fun decodeWebrpcFileResponse(response: WebRpcHttpRawResponse, json: Json): WebrpcFile {
     if (response.statusCode !in 200..299) {
         throw decodeWebRpcError(response.statusCode, readWebRpcResponseBody(response), json)
     }
 
     val contentType = webRpcResponseHeader(response.headers, "Content-Type").orEmpty()
-    return WebRpcFile(
+    return WebrpcFile(
         name = fileNameFromContentDisposition(webRpcResponseHeader(response.headers, "Content-Disposition")),
         contentType = contentType.ifEmpty { "application/octet-stream" },
         size = webRpcResponseHeader(response.headers, "Content-Length")

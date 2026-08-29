@@ -26,14 +26,14 @@ interface WebRpcTransport {
 
     // postMultipart makes a multipart/form-data request: a "json" part carrying
     // [body] is sent first, followed by one part per file, streamed from
-    // [WebRpcFile.body] without buffering. Each file body is closed after the
+    // [WebrpcFile.body] without buffering. Each file body is closed after the
     // request is sent. The raw response is returned unconsumed; the caller
     // owns closing it.
     suspend fun postMultipart(
         baseUrl: String,
         path: String,
         body: String,
-        files: List<WebRpcFilePart>,
+        files: List<WebrpcFilePart>,
         headers: Map<String, String> = emptyMap(),
     ): WebRpcHttpRawResponse
 {{- end }}
@@ -95,7 +95,7 @@ class OkHttpWebRpcTransport(
         baseUrl: String,
         path: String,
         body: String,
-        files: List<WebRpcFilePart>,
+        files: List<WebrpcFilePart>,
         headers: Map<String, String>,
     ): WebRpcHttpRawResponse = withContext(Dispatchers.IO) {
         val multipartBody = MultipartBody.Builder()
@@ -173,9 +173,9 @@ class OkHttpWebRpcTransport(
 }
 {{- if $opts.fileUpload }}
 
-// toStreamingRequestBody adapts a WebRpcFile to a one-shot OkHttp RequestBody
+// toStreamingRequestBody adapts a WebrpcFile to a one-shot OkHttp RequestBody
 // that streams the file content without buffering it in memory.
-private fun WebRpcFile.toStreamingRequestBody(): RequestBody {
+private fun WebrpcFile.toStreamingRequestBody(): RequestBody {
     val file = this
     return object : RequestBody() {
         override fun contentType(): MediaType? = file.contentType.toMediaTypeOrNull()

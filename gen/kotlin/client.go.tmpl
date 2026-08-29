@@ -212,7 +212,7 @@ object {{$serviceApiName}} {
 
         // fileParts collects the request's file arguments as multipart parts,
         // in the order they are sent on the wire (after the leading "json" part).
-        fun fileParts(request: {{if $method.Succinct}}{{(index $method.Inputs 0).Type}}{{else}}Request{{end}}): List<WebRpcFilePart> = buildList<WebRpcFilePart> {
+        fun fileParts(request: {{if $method.Succinct}}{{(index $method.Inputs 0).Type}}{{else}}Request{{end}}): List<WebrpcFilePart> = buildList<WebrpcFilePart> {
             {{- range $_, $input := $method.Inputs }}
             {{- $inputTypeExpr := printf "%v" $input.Type }}
             {{- $isExportable := true -}}
@@ -227,12 +227,12 @@ object {{$serviceApiName}} {
             {{- if $isExportable }}
             {{- if eq $inputTypeExpr "file" }}
             {{- if $inputOptional }}
-            request.{{template "fieldName" dict "Field" $input}}?.let { add(WebRpcFilePart("{{$input.Name}}", it)) }
+            request.{{template "fieldName" dict "Field" $input}}?.let { add(WebrpcFilePart("{{$input.Name}}", it)) }
             {{- else }}
-            add(WebRpcFilePart("{{$input.Name}}", request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}))
+            add(WebrpcFilePart("{{$input.Name}}", request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}))
             {{- end }}
             {{- else if eq $inputTypeExpr "[]file" }}
-            request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}{{if $inputOptional}}?{{end}}.forEach { add(WebRpcFilePart("{{$input.Name}}", it)) }
+            request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}{{if $inputOptional}}?{{end}}.forEach { add(WebrpcFilePart("{{$input.Name}}", it)) }
             {{- else if isStructType $input.Type }}
             {{- range $_, $field := $input.Type.Struct.Type.Fields }}
             {{- $fieldTypeExpr := printf "%v" $field.Type }}
@@ -249,15 +249,15 @@ object {{$serviceApiName}} {
             {{- if ne $partName "-" }}
             {{- if eq $fieldTypeExpr "file" }}
             {{- if or $inputOptional $field.Optional }}
-            request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}{{if $inputOptional}}?{{end}}.{{template "fieldName" dict "Field" $field}}?.let { add(WebRpcFilePart("{{$partName}}", it)) }
+            request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}{{if $inputOptional}}?{{end}}.{{template "fieldName" dict "Field" $field}}?.let { add(WebrpcFilePart("{{$partName}}", it)) }
             {{- else }}
-            add(WebRpcFilePart("{{$partName}}", request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}.{{template "fieldName" dict "Field" $field}}))
+            add(WebrpcFilePart("{{$partName}}", request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}.{{template "fieldName" dict "Field" $field}}))
             {{- end }}
             {{- else }}
             {{- if or $inputOptional $field.Optional }}
-            request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}{{if $inputOptional}}?{{end}}.{{template "fieldName" dict "Field" $field}}?.forEach { add(WebRpcFilePart("{{$partName}}", it)) }
+            request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}{{if $inputOptional}}?{{end}}.{{template "fieldName" dict "Field" $field}}?.forEach { add(WebrpcFilePart("{{$partName}}", it)) }
             {{- else }}
-            request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}.{{template "fieldName" dict "Field" $field}}.forEach { add(WebRpcFilePart("{{$partName}}", it)) }
+            request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}.{{template "fieldName" dict "Field" $field}}.forEach { add(WebrpcFilePart("{{$partName}}", it)) }
             {{- end }}
             {{- end }}
             {{- end }}
