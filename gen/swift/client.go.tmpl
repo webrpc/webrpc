@@ -166,7 +166,7 @@
             }
         }
         {{- end }}
-        {{- if and (not $method.Succinct) (gt (len $method.Outputs) 0) }}
+        {{- if and (not $method.Succinct) (gt (len $method.Outputs) 0) (not (MethodHasFileDownload $method)) }}
 
         {{$access}} struct Response: Codable, Sendable {
             {{- range $_, $field := $method.Outputs}}
@@ -260,6 +260,7 @@
             try encoder.encode(request)
         }
         {{- end }}
+        {{- if not (MethodHasFileDownload $method) }}
         {{- if eq (len $method.Outputs) 0 }}
 
         {{$access}} static func decodeResponse(_ data: Data, decoder _: JSONDecoder = WebRPCJSON.makeDecoder()) throws {
@@ -273,6 +274,79 @@
             decoder: JSONDecoder = WebRPCJSON.makeDecoder()
         ) throws -> {{template "methodOutputs" dict "Method" $method "ServiceAPIName" $serviceAPIName "MethodAPIName" $methodAPIName "TypeMap" $typeMap}} {
             try decoder.decode({{template "methodOutputs" dict "Method" $method "ServiceAPIName" $serviceAPIName "MethodAPIName" $methodAPIName "TypeMap" $typeMap}}.self, from: data)
+        }
+        {{- end }}
+        {{- end }}
+        {{- if MethodHasFileUpload $method }}
+
+        // fileParts collects the request's file arguments as multipart parts,
+        // in the order they are sent on the wire (after the leading "json" part).
+        {{$access}} static func fileParts(_ request: {{if $method.Succinct}}{{template "type" dict "Type" (index $method.Inputs 0).Type "TypeMap" $typeMap "WebrpcTarget" $.WebrpcTarget}}{{else}}Request{{end}}) -> [WebrpcFilePart] {
+            var parts: [WebrpcFilePart] = []
+            {{- range $_, $input := $method.Inputs }}
+            {{- $inputTypeExpr := printf "%v" $input.Type }}
+            {{- $isExportable := true -}}
+            {{- range $meta := $input.Meta -}}
+                {{- if exists $meta "json" -}}
+                    {{- if eq (printf "%v" (get $meta "json")) "-" -}}
+                        {{- $isExportable = false -}}
+                    {{- end -}}
+                {{- end -}}
+            {{- end -}}
+            {{- $inputOptional := and $input.Optional (not $method.Succinct) -}}
+            {{- if $isExportable }}
+            {{- if eq $inputTypeExpr "file" }}
+            {{- if $inputOptional }}
+            if let file = request.{{template "fieldName" dict "Field" $input}} {
+                parts.append(WebrpcFilePart(name: "{{$input.Name}}", file: file))
+            }
+            {{- else }}
+            parts.append(WebrpcFilePart(name: "{{$input.Name}}", file: request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}))
+            {{- end }}
+            {{- else if eq $inputTypeExpr "[]file" }}
+            for file in request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}{{if $inputOptional}} ?? []{{end}} {
+                parts.append(WebrpcFilePart(name: "{{$input.Name}}", file: file))
+            }
+            {{- else if isStructType $input.Type }}
+            {{- range $_, $field := $input.Type.Struct.Type.Fields }}
+            {{- $fieldTypeExpr := printf "%v" $field.Type }}
+            {{- if or (eq $fieldTypeExpr "file") (eq $fieldTypeExpr "[]file") }}
+            {{- $partName := $field.Name }}
+            {{- range $meta := $field.Meta -}}
+                {{- if exists $meta "json" -}}
+                    {{- $partName = get $meta "json" | split "," | first -}}
+                {{- end -}}
+                {{- if exists $meta "go.tag.json" -}}
+                    {{- $partName = get $meta "go.tag.json" | split "," | first -}}
+                {{- end -}}
+            {{- end -}}
+            {{- if ne $partName "-" }}
+            {{- if eq $fieldTypeExpr "file" }}
+            {{- if or $inputOptional $field.Optional }}
+            if let file = request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}{{if $inputOptional}}?{{end}}.{{template "fieldName" dict "Field" $field}} {
+                parts.append(WebrpcFilePart(name: "{{$partName}}", file: file))
+            }
+            {{- else }}
+            parts.append(WebrpcFilePart(name: "{{$partName}}", file: request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}.{{template "fieldName" dict "Field" $field}}))
+            {{- end }}
+            {{- else }}
+            {{- if or $inputOptional $field.Optional }}
+            for file in request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}{{if $inputOptional}}?{{end}}.{{template "fieldName" dict "Field" $field}} ?? [] {
+                parts.append(WebrpcFilePart(name: "{{$partName}}", file: file))
+            }
+            {{- else }}
+            for file in request{{if not $method.Succinct}}.{{template "fieldName" dict "Field" $input}}{{end}}.{{template "fieldName" dict "Field" $field}} {
+                parts.append(WebrpcFilePart(name: "{{$partName}}", file: file))
+            }
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            return parts
         }
         {{- end }}
     }
@@ -302,7 +376,47 @@
             headers(),
             includeWebRPCHeader: {{if eq (get $opts "webrpcHeader") true}}true{{else}}false{{end}}
         )
+        {{- if and (MethodHasFileUpload $method) (MethodHasFileDownload $method) }}
+        return try await executeWebRPCUploadDownload(
+            baseURL: baseURL,
+            urlPath: {{$serviceAPIName}}.{{$methodAPIName}}.urlPath,
+            body: body,
+            files: {{$serviceAPIName}}.{{$methodAPIName}}.fileParts(request),
+            transport: transport,
+            headers: requestHeaders
+        )
+        {{- else if MethodHasFileUpload $method }}
         {{- if eq (len $method.Outputs) 0 }}
+        _ = try await executeWebRPCUpload(
+            baseURL: baseURL,
+            urlPath: {{$serviceAPIName}}.{{$methodAPIName}}.urlPath,
+            body: body,
+            files: {{$serviceAPIName}}.{{$methodAPIName}}.fileParts(request),
+            transport: transport,
+            headers: requestHeaders,
+            decodeSuccess: {{$serviceAPIName}}.{{$methodAPIName}}.decodeResponse
+        )
+        return
+        {{- else }}
+        return try await executeWebRPCUpload(
+            baseURL: baseURL,
+            urlPath: {{$serviceAPIName}}.{{$methodAPIName}}.urlPath,
+            body: body,
+            files: {{$serviceAPIName}}.{{$methodAPIName}}.fileParts(request),
+            transport: transport,
+            headers: requestHeaders,
+            decodeSuccess: {{$serviceAPIName}}.{{$methodAPIName}}.decodeResponse
+        )
+        {{- end }}
+        {{- else if MethodHasFileDownload $method }}
+        return try await executeWebRPCDownload(
+            baseURL: baseURL,
+            urlPath: {{$serviceAPIName}}.{{$methodAPIName}}.urlPath,
+            body: body,
+            transport: transport,
+            headers: requestHeaders
+        )
+        {{- else if eq (len $method.Outputs) 0 }}
         _ = try await executeWebRPC(
             baseURL: baseURL,
             urlPath: {{$serviceAPIName}}.{{$methodAPIName}}.urlPath,

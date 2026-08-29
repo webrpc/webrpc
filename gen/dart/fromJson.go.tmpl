@@ -37,6 +37,8 @@
 {{$ind}}final {{$outPrefix}}{{$depth}} = {{ternary .Optional "_dateTimeFromJsonOptional" "_dateTimeFromJson"}}(v{{$depth}});
 {{- else if (eq (get $typeMap $type) "BigInt")}}
 {{$ind}}final {{$outPrefix}}{{$depth}} = {{ternary .Optional "_bigIntFromJsonOptional" "_bigIntFromJson"}}(v{{$depth}});
+{{- else if (eq (get $typeMap $type) "WebrpcFile")}}
+{{$ind}}final {{$outPrefix}}{{$depth}} = {{ternary .Optional "_webrpcFileFromJsonOptional" "_webrpcFileFromJson"}}({{$inPrefix}}{{$depth}});
 {{- else}}
 {{$ind}}final {{get $typeMap $type}}{{if $optional}}?{{end}} {{$outPrefix}}{{$depth}} = _cast<{{get $typeMap $type}}{{if $optional}}?{{end}}>({{$inPrefix}}{{$depth}});
 {{- end}}

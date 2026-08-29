@@ -12,12 +12,12 @@ format:
 
 generate: build
 	webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -service="Example" -out=./example.gen.go
-	webrpc-gen -schema=example.ridl -target=golang -pkg=admin -server -client -service="Admin" -ignore="@deprecated" -out=./admin/admin.gen.go
+	webrpc-gen -schema=example.ridl -target=golang -pkg=admin -server -client -service="Admin" -methodTreeShake -ignore="@deprecated" -out=./admin/admin.gen.go
 	webrpc-gen -schema=example.ridl -target=golang -pkg=internal -server -client -service="Example,Admin" -ignore="@public,@deprecated" -out=./internal/internal.gen.go
 
 generate-local-templates: build
 	webrpc-gen -schema=example.ridl -target=golang -pkg=main -server -client -service="Example" -ignore="@deprecated" -out=./example.gen.go
-	webrpc-gen -schema=example.ridl -target=golang -pkg=admin -server -client -service="Admin" -ignore="@deprecated" -out=./admin/admin.gen.go
+	webrpc-gen -schema=example.ridl -target=golang -pkg=admin -server -client -service="Admin" -methodTreeShake -ignore="@deprecated" -out=./admin/admin.gen.go
 	webrpc-gen -schema=example.ridl -target=golang -pkg=internal -server -client -service="Example,Admin" -ignore="@public,@deprecated" -out=./internal/internal.gen.go
 
 test:

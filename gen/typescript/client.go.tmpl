@@ -56,7 +56,7 @@ export class {{$service.Name}} implements {{$service.Name}}Client {
       {{- $methodRespName = printf "%sResponse" $method.Name -}}
     {{- end -}}
   {{- end}}
-  {{firstLetterToLower .Name}} = ({{template "methodInputs" dict "Method" . "Opts" $opts "TypeMap" $typeMap}}): {{if $method.StreamOutput}}WebrpcStreamController{{else}}{{if $method.Succinct}}Promise<{{(index $method.Outputs 0).Type}}>{{else}}Promise<{{$method.Name}}{{if $opts.compat}}Return{{else}}Response{{end}}>{{end}}{{end}} => {
+  {{firstLetterToLower .Name}} = ({{template "methodInputs" dict "Method" . "Opts" $opts "TypeMap" $typeMap}}): {{if $method.StreamOutput}}WebrpcStreamController{{else}}{{if MethodHasFileDownload $method}}Promise<WebrpcFile>{{else if $method.Succinct}}Promise<{{(index $method.Outputs 0).Type}}>{{else}}Promise<{{$method.Name}}{{if $opts.compat}}Return{{else}}Response{{end}}>{{end}}{{end}} => {
   {{- if $method.StreamOutput }}
     const abortController = new AbortController()
     const abortSignal = abortController.signal
@@ -82,6 +82,38 @@ export class {{$service.Name}} implements {{$service.Name}}Client {
     }
   }
   {{- else }}
+  {{- if MethodHasFileUpload $method }}
+    const form = new FormData()
+    form.append('json', JsonEncodeUploadArgs(req))
+    {{- range $_, $part := MethodFileParts $method }}
+    appendFilePart{{if $part.Repeated}}s{{end}}(form, '{{$part.PartName}}', req.{{if and (ne $part.FieldName "") (not $method.Succinct)}}{{$part.ArgName}}?.{{end}}{{$part.PartName}})
+    {{- end }}
+    return this.fetch(
+      this.url('{{.Name}}'),
+      createHttpUploadRequest(form, headers, signal)).then((res) => {
+      {{- if MethodHasFileDownload $method }}
+      return buildFileResponse(res)
+      {{- else }}
+      return buildResponse(res).then(_data => {
+        return JsonDecode<{{$methodRespName}}>(_data, '{{$methodRespName}}')
+      })
+      {{- end }}
+    }, (error) => {
+      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error instanceof Error ? error.message : String(error)}` })
+    })
+  {{- else if MethodHasFileDownload $method }}
+    return this.fetch(
+      this.url('{{.Name}}'),
+      {{- if .Inputs | len }}
+      createHttpRequest(JsonEncode(req), headers, signal)).then((res) => {
+      {{- else }}
+      createHttpRequest('{}', headers, signal)).then((res) => {
+      {{- end }}
+      return buildFileResponse(res)
+    }, (error) => {
+      throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error instanceof Error ? error.message : String(error)}` })
+    })
+  {{- else }}
     return this.fetch(
       this.url('{{.Name}}'),
       {{- if .Inputs | len }}
@@ -95,6 +127,7 @@ export class {{$service.Name}} implements {{$service.Name}}Client {
     }, (error) => {
       throw WebrpcRequestFailedError.new({ cause: `fetch(): ${error instanceof Error ? error.message : String(error)}` })
     })
+  {{- end }}
   }
 {{end -}}
 {{end}}

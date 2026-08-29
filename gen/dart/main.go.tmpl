@@ -29,6 +29,29 @@
   {{- end -}}
 {{- end }}
 
+{{- /* Detect file upload/download methods and file-carrying struct types. */ -}}
+{{- range $_, $service := .Services -}}
+  {{- range $_, $method := $service.Methods -}}
+    {{- if MethodHasFileUpload $method -}}
+      {{- set $opts "fileUpload" true -}}
+      {{- set $opts "fileType" true -}}
+    {{- end -}}
+    {{- if MethodHasFileDownload $method -}}
+      {{- set $opts "fileDownload" true -}}
+      {{- set $opts "fileType" true -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- range $_, $type := .Types -}}
+  {{- if isStructType $type -}}
+    {{- range $_, $field := $type.Fields -}}
+      {{- if or (eq (printf "%v" $field.Type) "file") (eq (printf "%v" $field.Type) "[]file") -}}
+        {{- set $opts "fileType" true -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
 {{- /* Map webrpc core types to Dart. */ -}}
 {{- $typeMap := dict }}
 {{- set $typeMap "null" "Null" -}}
@@ -49,6 +72,7 @@
 {{- set $typeMap "float64" "double" -}}
 {{- set $typeMap "string" "String" -}}
 {{- set $typeMap "timestamp" "DateTime" -}}
+{{- set $typeMap "file" "WebrpcFile" -}}
 {{- set $typeMap "map" "Map" -}}
 {{- set $typeMap "[]" "List" -}}
 
@@ -63,7 +87,15 @@
 {{- if $opts.client}}
 import 'dart:convert';
 import 'dart:async';
+{{- if $opts.fileType}}
+import 'dart:typed_data';
+{{- end}}
 import 'package:http/http.dart' as http;
+{{- if $opts.fileUpload}}
+import 'package:http_parser/http_parser.dart' show MediaType;
+{{- end}}
+{{- else if $opts.fileType}}
+import 'dart:typed_data';
 {{- end}}
 
 /// WebRPC description and code-gen version
@@ -84,7 +116,10 @@ const webRPCSchemaHash = "{{.SchemaHash}}";
 {{- exit 1 -}}
 {{- end}}
 
-{{template "types" dict "Types" .Types "Services" .Services "TypeMap" $typeMap}}
+{{template "types" dict "Types" .Types "Services" .Services "TypeMap" $typeMap "Opts" $opts}}
+{{- if $opts.fileType}}
+{{template "fileHelpers" dict "Opts" $opts}}
+{{- end}}
 {{template "errors" dict "WebrpcErrors" .WebrpcErrors "Errors" .Errors}}
 
 {{- end}}

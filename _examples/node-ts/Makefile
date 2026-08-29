@@ -10,6 +10,7 @@ generate:
 	webrpc-gen -schema=service.ridl -target=typescript -server -out=./server/server.gen.ts
 	webrpc-gen -schema=service.ridl -target=typescript -server -out=./server-hono/server.gen.ts
 	webrpc-gen -schema=service.ridl -target=typescript -client -out=./webapp/client.gen.ts
+	make -C server-go generate
 
 generate-server:
 	webrpc-gen -schema=service.ridl -target=../../../gen-typescript -server -out=./server/server.gen.ts

@@ -124,6 +124,11 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		// Schema bigint analysis + helpers
 		"SchemaUsesBigInts":        schema.SchemaUsesBigInts,        // v0.30.0
 		"SchemaBigIntFieldsByType": schema.SchemaBigIntFieldsByType, // v0.30.0
+
+		// Schema file upload/download analysis + helpers
+		"MethodHasFileUpload":   schema.MethodHasFileUpload,   // v0.46.0
+		"MethodHasFileDownload": schema.MethodHasFileDownload, // v0.46.0
+		"MethodFileParts":       schema.MethodFileParts,       // v0.46.0
 	}
 
 	for k, v := range extra {

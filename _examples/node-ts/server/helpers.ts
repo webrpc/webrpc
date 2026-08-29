@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import { Readable } from 'node:stream'
+import { pipeline } from 'node:stream/promises'
 import { randomUUID } from 'node:crypto'
-import { WebrpcHeader, WebrpcHeaderValue } from './server.gen'
 
 export type HttpHandler<C = RequestContext> = (ctx: C, req: IncomingMessage, res: ServerResponse) => Promise<void>
 
@@ -13,7 +14,7 @@ export interface RequestContext {
 
   // AbortSignal that fires if client disconnects or server cancels work
   abort: AbortSignal
-  
+
   // Arbitrary key/value bag for middleware & handlers
   data: Map<string, unknown>
   set<T = unknown>(key: string, value: T): void
@@ -51,15 +52,9 @@ export const createRequestContext = (req: IncomingMessage, res: ServerResponse):
   return ctx
 }
 
-// Function that, given a service + ctx + url + body, either handles the RPC and returns a result, or null if pattern mismatch.
-export type ServeWebrpcFn<S, C extends RequestContext> = (service: S, ctx: C, urlPath: string, body: any) => Promise<WebrpcResult | null>
-
-export interface WebrpcResult {
-  method: string
-  status: number
-  headers: Record<string, string>
-  body: any
-}
+// Function that, given a service + ctx + web-standard Request, either handles
+// the RPC and returns a web-standard Response, or null on pattern mismatch.
+export type ServeWebrpcFn<S, C extends RequestContext> = (service: S, ctx: C, request: Request) => Promise<Response | null>
 
 export const createHttpEntrypoint = (handler: HttpHandler) => {
   return async (req: IncomingMessage, res: ServerResponse) => {
@@ -91,69 +86,62 @@ export const createHttpEntrypoint = (handler: HttpHandler) => {
 
 export const createWebrpcServerHandler = <S, C extends RequestContext>(service: S, serveRpc: ServeWebrpcFn<S, C>): HttpHandler<C> => {
   return async (ctx: C, req: IncomingMessage, res: ServerResponse): Promise<void> => {
-    const url = req.url || ''
-    if (!url.startsWith('/rpc/')) return // not our RPC route; caller will continue
+    // Adapt node:http to the web-standard Request the generated webrpc
+    // handler consumes. The generated handler reads and parses the body
+    // itself (JSON, or multipart/form-data for file upload methods).
+    const request = toWebRequest(req, ctx.abort)
 
-    // Accept both GET & POST/PUT/PATCH for simplicity (GET => empty object)
-    const methodVerb = (req.method || 'GET').toUpperCase()
-    let rawBody = ''
-    if (methodVerb === 'POST') {
-      rawBody = await new Promise<string>((resolve, reject) => {
-        let data = ''
-        const onData = (chunk: Buffer) => { data += chunk.toString('utf8') }
-        const onEnd = () => { cleanup(); resolve(data) }
-        const onError = (err: Error) => { cleanup(); reject(err) }
-        const onAborted = () => { cleanup(); reject(new Error('request aborted')) }
-
-        const cleanup = () => {
-          req.off('data', onData)
-          req.off('end', onEnd)
-          req.off('error', onError)
-          req.off('aborted', onAborted)
-        }
-
-        req.on('data', onData)
-        req.on('end', onEnd)
-        req.on('error', onError)
-        req.on('aborted', onAborted)
-
-        // If already aborted before listeners attached
-        if ((req as any).aborted || ctx.abort.aborted) {
-          cleanup()
-          reject(new Error('request aborted'))
-        }
-      })
+    const response = await serveRpc(service, ctx, request)
+    if (response == null) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' })
+      res.end('Not Found\n')
+      return
     }
 
-    let parsed: any = {}
-    if (rawBody.length > 0) {
-      try {
-        parsed = JSON.parse(rawBody)
-      } catch (e: any) {
-        const status = 400
-        const body = { msg: 'invalid JSON body', status, code: '' }
-        res.writeHead(status, { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' })
-        res.end(JSON.stringify(body))
-        return
-      }
+    await sendWebResponse(res, response)
+  }
+}
+
+// toWebRequest adapts a node:http IncomingMessage to a web-standard Request,
+// streaming the request body.
+export const toWebRequest = (req: IncomingMessage, signal?: AbortSignal): Request => {
+  const method = (req.method || 'GET').toUpperCase()
+  const headers = new Headers()
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (value === undefined) continue
+    if (Array.isArray(value)) {
+      for (const v of value) headers.append(key, v)
+    } else {
+      headers.set(key, value)
     }
+  }
+  const init: RequestInit & { duplex?: 'half' } = { method, headers, signal: signal ?? null }
+  if (method !== 'GET' && method !== 'HEAD') {
+    init.body = Readable.toWeb(req) as unknown as BodyInit
+    init.duplex = 'half'
+  }
+  return new Request(`http://${req.headers.host || 'localhost'}${req.url || '/'}`, init)
+}
 
-    const result = await serveRpc(service, ctx, url, parsed)
-    if (result == null) return // pattern mismatch (shouldn't happen due to prefix check)
-
-    const payload = JSON.stringify(result.body ?? {})
-    res.writeHead(result.status, {
-      ...result.headers,
-      'Content-Length': Buffer.byteLength(payload)
-    })
-    res.end(payload)
+// sendWebResponse writes a web-standard Response to a node:http
+// ServerResponse, streaming the response body.
+export const sendWebResponse = async (res: ServerResponse, response: Response): Promise<void> => {
+  const headers: Record<string, string> = {}
+  response.headers.forEach((value, key) => {
+    headers[key] = value
+  })
+  res.writeHead(response.status, headers)
+  if (response.body) {
+    await pipeline(Readable.fromWeb(response.body as unknown as import('node:stream/web').ReadableStream), res)
+  } else {
+    res.end()
   }
 }
 
 // Generic middleware composer. Applies middleware array in order so that
 // composeHttpHandler([a, b], h) => a(b(h)).
 export const composeHttpHandler = <C = RequestContext>(
-  middleware: Array<(next: HttpHandler<C>) => HttpHandler<C>>, 
+  middleware: Array<(next: HttpHandler<C>) => HttpHandler<C>>,
   handler: HttpHandler<C>
 ): HttpHandler<C> => {
   return middleware.reduceRight<HttpHandler<C>>((acc, mw) => mw(acc), handler)

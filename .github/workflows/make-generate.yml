@@ -10,6 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.head_ref }}
           fetch-tags: true
           fetch-depth: 20
@@ -21,6 +22,11 @@ jobs:
       - run: make generate
 
       - name: Commit back
+        # Skip on fork PRs: the git-commit action clones the BASE repo
+        # (GITHUB_REPOSITORY) and pushes with a repo secret, neither of which
+        # works for forks — it would just re-commit the PR's own delta vs
+        # master and fail to push. `make generate` above still validates forks.
+        if: github.event.pull_request.head.repo.full_name == github.repository
         uses: 0xsequence/actions/git-commit@v0.0.5
         env:
           API_TOKEN_GITHUB: ${{ secrets.GH_TOKEN_GIT_COMMIT }}

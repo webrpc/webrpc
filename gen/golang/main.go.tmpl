@@ -87,6 +87,7 @@
 {{- set $typeMap "float64" "float64" -}}
 {{- set $typeMap "string" "string" -}}
 {{- set $typeMap "timestamp" "time.Time" -}}
+{{- set $typeMap "file" "*WebrpcFile" -}}
 
 {{- /* Determine if BigInt helpers are needed. */ -}}
 
@@ -103,6 +104,33 @@
 	{{- range $_, $method := $service.Methods -}}
 		{{ if eq $method.StreamOutput true -}}
 			{{- set $opts "streaming" true -}}
+		{{- end -}}
+		{{ if MethodHasFileUpload $method -}}
+			{{- set $opts "fileUpload" true -}}
+			{{- set $opts "fileType" true -}}
+			{{- range $_, $part := MethodFileParts $method -}}
+				{{- if $part.Repeated -}}
+					{{- set $opts "fileUploadRepeated" true -}}
+				{{- else -}}
+					{{- set $opts "fileUploadSingle" true -}}
+				{{- end -}}
+			{{- end -}}
+		{{- end -}}
+		{{ if MethodHasFileDownload $method -}}
+			{{- set $opts "fileDownload" true -}}
+			{{- set $opts "fileType" true -}}
+		{{- end -}}
+	{{- end -}}
+{{- end -}}
+
+{{- /* The file type is also needed by struct fields that are never a method
+       argument, so scan the schema types too. */ -}}
+{{- range $_, $type := .Types -}}
+	{{- if isStructType $type -}}
+		{{- range $_, $field := $type.Fields -}}
+			{{- if or (eq (printf "%v" $field.Type) "file") (eq (printf "%v" $field.Type) "[]file") -}}
+				{{- set $opts "fileType" true -}}
+			{{- end -}}
 		{{- end -}}
 	{{- end -}}
 {{- end }}
@@ -162,6 +190,12 @@ func WebRPCSchemaHash() string {
 {{/* Schema types */}}
 {{- if eq $opts.importTypesFrom "" }}
 {{ template "types" dict "Services" .Services "Types" .Types "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "Opts" $opts }}
+
+{{- /* The file type is a schema type: it must be emitted even when only types
+       are generated, independently of the client/server file helpers. */ -}}
+{{- if and $opts.types $opts.fileType }}
+{{ template "fileType" }}
+{{ end -}}
 {{ end -}}
 
 {{- "\n" -}}
@@ -192,6 +226,10 @@ func WebRPCSchemaHash() string {
 
 {{- if $usesBigInts}}
 {{ template "bigintHelpers" dict "Schema" .WebRPCSchema "Services" .Services "Opts" $opts }}
+{{ end -}}
+
+{{- if or $opts.fileUpload $opts.fileDownload}}
+{{ template "fileHelpers" dict "Json" $json "Opts" $opts "TypePrefix" $typePrefix }}
 {{ end -}}
 
 {{/* Errors */}}

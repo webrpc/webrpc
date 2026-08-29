@@ -1,0 +1,266 @@
+{{define "fileHelpers"}}
+{{- $opts := .Opts -}}
+{{- $access := get $opts "visibility" -}}
+{{- $static := ternary (ne (get $opts "namespace") "") "static " "" }}
+// MARK: - File helpers
+
+// WebrpcFile is a file sent to (upload) or received from (download) a webrpc
+// service.
+//
+// Uploads: construct one with init or fromData and pass it to the client
+// method. The content is sent as one multipart part; the request body is
+// fully buffered in memory.
+//
+// Downloads: returned by the client method with name, contentType and size
+// parsed from the response, and the content buffered in `data`.
+//
+// In JSON payloads a file field is always encoded as `null`: the content
+// travels as a multipart part or as the raw response body instead.
+{{$access}} struct WebrpcFile: Codable, Sendable {
+    /// Filename, when known.
+    {{$access}} let name: String?
+
+    /// MIME type as claimed by the sender.
+    {{$access}} let contentType: String
+
+    /// Content size in bytes, -1 when unknown.
+    {{$access}} let size: Int64
+
+    /// Buffered content; nil when there is no content.
+    {{$access}} let data: Data?
+
+    {{$access}} init(
+        name: String? = nil,
+        contentType: String = "application/octet-stream",
+        size: Int64 = -1,
+        data: Data? = nil
+    ) {
+        self.name = name
+        self.contentType = contentType
+        self.size = size
+        self.data = data
+    }
+
+    {{$access}} static func fromData(
+        _ data: Data,
+        name: String? = nil,
+        contentType: String = "application/octet-stream"
+    ) -> WebrpcFile {
+        WebrpcFile(name: name, contentType: contentType, size: Int64(data.count), data: data)
+    }
+
+    // Files are never carried in JSON payloads: the JSON value (typically
+    // null) is ignored and an empty placeholder file is produced. The content
+    // travels as a multipart part or as the raw response body instead.
+    {{$access}} init(from decoder: Decoder) throws {
+        self.init()
+    }
+
+    // Files are always encoded as JSON null.
+    {{$access}} func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encodeNil()
+    }
+}
+{{- if $opts.fileUpload }}
+
+// WebrpcFilePart is one file-carrying part of a multipart upload request
+// body. Repeated ([]file) arguments produce one part per file, all sharing
+// the same part name.
+{{$access}} struct WebrpcFilePart: Sendable {
+    {{$access}} let name: String
+    {{$access}} let file: WebrpcFile
+
+    {{$access}} init(name: String, file: WebrpcFile) {
+        self.name = name
+        self.file = file
+    }
+}
+
+{{$access}} {{$static}}func executeWebRPCUpload<Response>(
+    baseURL: String,
+    urlPath: String,
+    body: Data,
+    files: [WebrpcFilePart],
+    transport: any WebRPCTransport,
+    headers: [String: String] = [:],
+    decodeSuccess: (Data, JSONDecoder) throws -> Response
+) async throws -> Response {
+    let response: WebRPCHTTPResponse
+    do {
+        response = try await transport.postMultipart(
+            baseURL: baseURL,
+            path: urlPath,
+            body: body,
+            files: files,
+            headers: headers,
+        )
+    } catch is CancellationError {
+        throw CancellationError()
+    } catch let error as WebRPCTransportError {
+        throw error
+    } catch {
+        throw WebRPCTransportError(
+            message: "WebRPC request failed",
+            underlyingDescription: String(describing: error),
+        )
+    }
+
+    guard (200...299).contains(response.statusCode) else {
+        throw decodeWebRPCError(statusCode: response.statusCode, data: response.body)
+    }
+
+    do {
+        return try decodeSuccess(response.body, WebRPCJSON.makeDecoder())
+    } catch let error as WebRPCError {
+        throw error
+    } catch {
+        throw webRPCBadResponseError(
+            statusCode: response.statusCode,
+            data: response.body,
+            cause: String(describing: error)
+        )
+    }
+}
+{{- end }}
+{{- if $opts.fileDownload }}
+
+{{$access}} {{$static}}func executeWebRPCDownload(
+    baseURL: String,
+    urlPath: String,
+    body: Data,
+    transport: any WebRPCTransport,
+    headers: [String: String] = [:]
+) async throws -> WebrpcFile {
+    let response: WebRPCHTTPResponse
+    do {
+        response = try await transport.postRaw(
+            baseURL: baseURL,
+            path: urlPath,
+            body: body,
+            headers: headers,
+        )
+    } catch is CancellationError {
+        throw CancellationError()
+    } catch let error as WebRPCTransportError {
+        throw error
+    } catch {
+        throw WebRPCTransportError(
+            message: "WebRPC request failed",
+            underlyingDescription: String(describing: error),
+        )
+    }
+
+    return try decodeWebrpcFileResponse(response)
+}
+{{- if $opts.fileUploadDownload }}
+
+{{$access}} {{$static}}func executeWebRPCUploadDownload(
+    baseURL: String,
+    urlPath: String,
+    body: Data,
+    files: [WebrpcFilePart],
+    transport: any WebRPCTransport,
+    headers: [String: String] = [:]
+) async throws -> WebrpcFile {
+    let response: WebRPCHTTPResponse
+    do {
+        response = try await transport.postMultipart(
+            baseURL: baseURL,
+            path: urlPath,
+            body: body,
+            files: files,
+            headers: headers,
+        )
+    } catch is CancellationError {
+        throw CancellationError()
+    } catch let error as WebRPCTransportError {
+        throw error
+    } catch {
+        throw WebRPCTransportError(
+            message: "WebRPC request failed",
+            underlyingDescription: String(describing: error),
+        )
+    }
+
+    return try decodeWebrpcFileResponse(response)
+}
+{{- end }}
+
+// decodeWebrpcFileResponse wraps a successful raw response as a WebrpcFile
+// carrying the response body, or throws the decoded WebRPCError carried by a
+// non-2xx response.
+private {{$static}}func decodeWebrpcFileResponse(_ response: WebRPCHTTPResponse) throws -> WebrpcFile {
+    guard (200...299).contains(response.statusCode) else {
+        throw decodeWebRPCError(statusCode: response.statusCode, data: response.body)
+    }
+
+    let contentType = webRPCResponseHeader(response.headers, "Content-Type") ?? ""
+    return WebrpcFile(
+        name: webRPCFileNameFromContentDisposition(webRPCResponseHeader(response.headers, "Content-Disposition")),
+        contentType: contentType.isEmpty ? "application/octet-stream" : contentType,
+        size: Int64(response.body.count),
+        data: response.body
+    )
+}
+
+private {{$static}}func webRPCResponseHeader(_ headers: [String: String], _ name: String) -> String? {
+    if let value = headers[name] {
+        return value
+    }
+    return headers.first { $0.key.caseInsensitiveCompare(name) == .orderedSame }?.value
+}
+
+// webRPCFileNameFromContentDisposition extracts the filename of a
+// Content-Disposition header: the RFC 5987 `filename*=utf-8''...` parameter
+// when present, then the quoted and plain `filename=` parameters.
+private {{$static}}func webRPCFileNameFromContentDisposition(_ header: String?) -> String? {
+    guard let header, !header.isEmpty else {
+        return nil
+    }
+
+    // RFC 5987 extended parameter, e.g. filename*=utf-8''na%C3%AFve.png
+    if let markerRange = header.range(of: "filename*=utf-8''", options: [.caseInsensitive]) {
+        let value = String(header[markerRange.upperBound...].prefix(while: { $0 != ";" }))
+            .trimmingCharacters(in: .whitespaces)
+        if !value.isEmpty, let decoded = value.removingPercentEncoding {
+            return decoded
+        }
+    }
+
+    // Quoted parameter, e.g. filename="na\"ive.png"
+    if let markerRange = header.range(of: "filename=\"") {
+        var name = ""
+        var escaped = false
+        var closed = false
+        for character in header[markerRange.upperBound...] {
+            if escaped {
+                name.append(character)
+                escaped = false
+            } else if character == "\\" {
+                escaped = true
+            } else if character == "\"" {
+                closed = true
+                break
+            } else {
+                name.append(character)
+            }
+        }
+        if closed, !name.isEmpty {
+            return name
+        }
+    }
+
+    // Plain parameter, e.g. filename=naive.png
+    if let markerRange = header.range(of: "filename=") {
+        let value = String(header[markerRange.upperBound...].prefix(while: { $0 != ";" }))
+            .trimmingCharacters(in: .whitespaces)
+        if !value.isEmpty, !value.hasPrefix("\"") {
+            return value
+        }
+    }
+
+    return nil
+}
+{{- end }}
+{{end}}

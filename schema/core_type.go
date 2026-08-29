@@ -36,6 +36,8 @@ const (
 
 	T_Timestamp
 
+	T_File
+
 	T_List
 	T_Map
 
@@ -70,6 +72,8 @@ var CoreTypeToString = map[CoreType]string{
 	T_String: "string",
 
 	T_Timestamp: "timestamp",
+
+	T_File: "file",
 
 	T_Map:  "map",
 	T_List: "[]",
@@ -106,6 +110,8 @@ var CoreTypeFromString = map[string]CoreType{
 	"string": T_String,
 
 	"timestamp": T_Timestamp,
+
+	"file": T_File,
 
 	"map": T_Map,
 	"[]":  T_List,

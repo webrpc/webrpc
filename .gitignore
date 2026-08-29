@@ -18,3 +18,4 @@ vendor/**/*
 !vendor/**/LICENSE*
 !vendor/**/COPYING*
 vendor/**/*_test.go
+node_modules/

@@ -14,6 +14,12 @@ service Example
   # Get article by id.
   - GetArticle(GetArticleRequest) => (GetArticleResponse)
 
+  # UploadAvatar stores an avatar image for the user (file upload).
+  - UploadAvatar(userId: uint64, avatar: file) => (size: uint64, name: string)
+
+  # DownloadAvatar returns the user's stored avatar image (file download).
+  - DownloadAvatar(userId: uint64) => (avatar: file)
+
 struct User
   - ID: uint64
     + json = id

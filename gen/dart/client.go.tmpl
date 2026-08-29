@@ -8,6 +8,12 @@
 {{- if $services }}
 
 {{- range $services }}
+{{- $serviceHasUpload := false -}}
+{{- $serviceHasDownload := false -}}
+{{- range $_, $m := .Methods -}}
+{{- if MethodHasFileUpload $m -}}{{- $serviceHasUpload = true -}}{{- end -}}
+{{- if MethodHasFileDownload $m -}}{{- $serviceHasDownload = true -}}{{- end -}}
+{{- end}}
 class {{.Name}}Impl implements {{.Name}} {
     {{.Name}}Impl(String hostname, [WebrpcHttpClient? httpClient])
         : _baseUrl = '$hostname{{$basepath}}{{.Name}}/',
@@ -30,6 +36,81 @@ class {{.Name}}Impl implements {{.Name}} {
         {{else}}
         final String? body = null;
         {{end -}}
+        {{- if MethodHasFileUpload $method -}}
+        final List<WebrpcFilePart> files = [
+        {{- range $_, $input := .Inputs}}
+        {{- $inputTypeExpr := printf "%v" $input.Type}}
+        {{- if eq $inputTypeExpr "file"}}
+            WebrpcFilePart('{{$input.Name}}', {{$input.Name}}),
+        {{- else if eq $inputTypeExpr "[]file"}}
+            ...{{$input.Name}}.map((WebrpcFile f) => WebrpcFilePart('{{$input.Name}}', f)),
+        {{- else if isStructType $input.Type}}
+        {{- range $_, $field := $input.Type.Struct.Type.Fields}}
+        {{- $fieldTypeExpr := printf "%v" $field.Type}}
+        {{- if or (eq $fieldTypeExpr "file") (eq $fieldTypeExpr "[]file")}}
+        {{- $partName := $field.Name}}
+        {{- range $meta := $field.Meta -}}
+            {{- if exists $meta "json" -}}
+                {{- $partName = get $meta "json" | split "," | first -}}
+            {{- end -}}
+            {{- if exists $meta "go.tag.json" -}}
+                {{- $partName = get $meta "go.tag.json" | split "," | first -}}
+            {{- end -}}
+        {{- end -}}
+        {{- if ne $partName "-"}}
+        {{- if eq $fieldTypeExpr "file"}}
+        {{- if $field.Optional}}
+            if ({{$input.Name}}.{{template "fieldName" dict "Field" $field}} != null) WebrpcFilePart('{{$partName}}', {{$input.Name}}.{{template "fieldName" dict "Field" $field}}!),
+        {{- else}}
+            WebrpcFilePart('{{$partName}}', {{$input.Name}}.{{template "fieldName" dict "Field" $field}}),
+        {{- end}}
+        {{- else}}
+        {{- if $field.Optional}}
+            ...?{{$input.Name}}.{{template "fieldName" dict "Field" $field}}?.map((WebrpcFile f) => WebrpcFilePart('{{$partName}}', f)),
+        {{- else}}
+            ...{{$input.Name}}.{{template "fieldName" dict "Field" $field}}.map((WebrpcFile f) => WebrpcFilePart('{{$partName}}', f)),
+        {{- end}}
+        {{- end}}
+        {{- end}}
+        {{- end}}
+        {{- end}}
+        {{- end}}
+        {{- end}}
+        ];
+        final WebrpcHttpMultipartRequest request = WebrpcHttpMultipartRequest(
+            uri: _makeUri('{{.Name}}'),
+            headers: _makeMultipartHeaders(),
+            body: body,
+            files: files,
+        );
+        final WebrpcHttpRawResponse rawResponse = await _httpClient.postMultipart(request);
+        {{- if MethodHasFileDownload $method}}
+        return ({{(index .Outputs 0).Name}}: await _handleFileResponse(rawResponse));
+        {{- else}}
+        final WebrpcHttpResponse response = await _readWebrpcRawResponse(rawResponse);
+        
+        {{if eq (len $method.Outputs) 0 -}}
+        await _handleResponse(response);
+        {{- else -}}
+        await _handleResponse(response);
+        final Map<String, dynamic> json = jsonDecode(response.body);
+        return (
+        {{if true}}{{end}}
+        {{- range $i, $output := .Outputs -}}
+        {{if true}}    {{end}}{{$output.Name}}: _{{firstLetterToLower $method.Name}}{{firstLetterToUpper .Name}}(json['{{$output.Name}}']),
+        {{end -}}
+        );
+        {{- end}}
+        {{- end}}
+        {{- else if MethodHasFileDownload $method -}}
+        WebrpcHttpRequest request = WebrpcHttpRequest(
+            uri: _makeUri('{{.Name}}'),
+            headers: _makeHeaders(),
+            body: body,
+        );
+        final WebrpcHttpRawResponse rawResponse = await _httpClient.postRaw(request);
+        return ({{(index .Outputs 0).Name}}: await _handleFileResponse(rawResponse));
+        {{- else -}}
         WebrpcHttpRequest request = WebrpcHttpRequest(
             uri: _makeUri('{{.Name}}'),
             headers: _makeHeaders(),
@@ -49,14 +130,17 @@ class {{.Name}}Impl implements {{.Name}} {
         {{end -}}
         );
         {{- end}}
+        {{- end}}
     }
 
+    {{- if not (MethodHasFileDownload $method)}}
     {{- range $i, $output := .Outputs}}
     {{if true}}{{end}}
     static {{template "type" dict "Type" $output.Type "TypeMap" $typeMap}}{{if .Optional}}?{{end}} _{{firstLetterToLower $method.Name}}{{firstLetterToUpper .Name}}(dynamic v0) {
         {{- template "fromJson" dict "Type" $output.Type "TypeMap" $typeMap "Optional" .Optional}}
         return r0;
     }
+    {{- end}}
     {{- end}}
     {{- end}}
 
@@ -88,6 +172,26 @@ class {{.Name}}Impl implements {{.Name}} {
             }
         }
     }
+{{- if $serviceHasUpload}}
+
+    static Map<String, Object> _makeMultipartHeaders() {
+        return {
+            'Accept': 'application/json',
+        };
+    }
+{{- end}}
+{{- if $serviceHasDownload}}
+
+    // _handleFileResponse throws the webrpc error carried by a non-2xx raw
+    // response, or wraps the successful response as a WebrpcFile streaming
+    // the response body.
+    Future<WebrpcFile> _handleFileResponse(WebrpcHttpRawResponse response) async {
+        if (response.statusCode >= 400) {
+            await _handleResponse(await _readWebrpcRawResponse(response));
+        }
+        return _webrpcFileFromRawResponse(response);
+    }
+{{- end}}
 }
 {{- end -}}
 {{- end}}
@@ -102,10 +206,74 @@ class _MainWebrpcHttpClient implements WebrpcHttpClient {
     );
     return WebrpcHttpResponse(statusCode: response.statusCode, body: response.body);
   }
+{{- if $opts.fileUpload}}
+
+  @override
+  Future<WebrpcHttpRawResponse> postMultipart(WebrpcHttpMultipartRequest request) async {
+    final http.MultipartRequest multipartRequest = http.MultipartRequest('POST', request.uri);
+    request.headers.forEach((key, value) => multipartRequest.headers[key] = value.toString());
+    // The "json" part with the JSON-encoded arguments is always sent first:
+    // http.MultipartRequest writes its fields before its files.
+    multipartRequest.fields['json'] = request.body;
+    for (final WebrpcFilePart part in request.files) {
+      final WebrpcFile file = part.file;
+      final String? name = file.name;
+      final String filename = (name == null || name.isEmpty) ? part.name : name;
+      final MediaType contentType = _mediaType(file.contentType);
+      final Stream<List<int>>? fileBody = file.body;
+      if (fileBody == null) {
+        multipartRequest.files.add(http.MultipartFile.fromBytes(part.name, const <int>[], filename: filename, contentType: contentType));
+      } else if (file.size >= 0) {
+        multipartRequest.files.add(http.MultipartFile(part.name, fileBody, file.size, filename: filename, contentType: contentType));
+      } else {
+        // http.MultipartFile requires a length up front, so content of
+        // unknown size is buffered into memory.
+        multipartRequest.files.add(http.MultipartFile.fromBytes(part.name, await file.bytes(), filename: filename, contentType: contentType));
+      }
+    }
+    final http.StreamedResponse response = await multipartRequest.send();
+    return WebrpcHttpRawResponse(statusCode: response.statusCode, headers: response.headers, body: response.stream);
+  }
+
+  static MediaType _mediaType(String contentType) {
+    try {
+      return MediaType.parse(contentType.isEmpty ? 'application/octet-stream' : contentType);
+    } on FormatException {
+      return MediaType('application', 'octet-stream');
+    }
+  }
+{{- end}}
+{{- if $opts.fileDownload}}
+
+  @override
+  Future<WebrpcHttpRawResponse> postRaw(WebrpcHttpRequest request) async {
+    final http.Request httpRequest = http.Request('POST', request.uri);
+    request.headers.forEach((key, value) => httpRequest.headers[key] = value.toString());
+    if (request.body != null) {
+      httpRequest.bodyBytes = utf8.encode(request.body!);
+    }
+    final http.StreamedResponse response = await httpRequest.send();
+    return WebrpcHttpRawResponse(statusCode: response.statusCode, headers: response.headers, body: response.stream);
+  }
+{{- end}}
 }
 
 abstract interface class WebrpcHttpClient {
   Future<WebrpcHttpResponse> post(WebrpcHttpRequest request);
+{{- if $opts.fileUpload}}
+
+  /// Makes a multipart/form-data request: a "json" part carrying
+  /// [WebrpcHttpMultipartRequest.body] is sent first, followed by one part
+  /// per file. The raw response is returned with its body unconsumed.
+  Future<WebrpcHttpRawResponse> postMultipart(WebrpcHttpMultipartRequest request);
+{{- end}}
+{{- if $opts.fileDownload}}
+
+  /// Makes a JSON request like [post], but returns the raw response with its
+  /// body left unconsumed as a byte stream, so binary file downloads are not
+  /// buffered or corrupted.
+  Future<WebrpcHttpRawResponse> postRaw(WebrpcHttpRequest request);
+{{- end}}
 }
 
 class WebrpcHttpRequest {
@@ -126,5 +294,50 @@ class WebrpcHttpResponse {
   final int statusCode;
   final String body;
 }
+{{- if or $opts.fileUpload $opts.fileDownload}}
+
+/// WebrpcHttpRawResponse is an HTTP response whose body is kept as a raw byte
+/// stream, so binary file content can be consumed without buffering.
+class WebrpcHttpRawResponse {
+  WebrpcHttpRawResponse({
+    required this.statusCode,
+    this.headers = const {},
+    this.body,
+  });
+
+  final int statusCode;
+  final Map<String, String> headers;
+  final Stream<List<int>>? body;
+}
+{{- end}}
+{{- if $opts.fileUpload}}
+
+/// WebrpcFilePart is one file-carrying part of a multipart upload request
+/// body. Repeated ([]file) arguments produce one part per file, all sharing
+/// the same part name.
+class WebrpcFilePart {
+  WebrpcFilePart(this.name, this.file);
+
+  final String name;
+  final WebrpcFile file;
+}
+
+class WebrpcHttpMultipartRequest {
+  WebrpcHttpMultipartRequest({
+    required this.uri,
+    required this.headers,
+    required this.body,
+    required this.files,
+  });
+
+  final Uri uri;
+  final Map<String, Object> headers;
+
+  /// JSON-encoded non-file arguments, sent as the leading "json" part.
+  final String body;
+
+  final List<WebrpcFilePart> files;
+}
+{{- end}}
 
 {{- end -}}

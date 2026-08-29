@@ -21,6 +21,45 @@
   }
   {{range .Methods}}
   {{firstLetterToLower .Name}} = ({{if len .Inputs}}args, {{end}}headers) => {
+    {{- if MethodHasFileUpload .}}
+    {{- $succinct := .Succinct}}
+    const form = new FormData()
+    form.append('json', jsonEncodeUploadArgs(args))
+    {{- range $_, $part := MethodFileParts .}}
+    appendFilePart{{if $part.Repeated}}s{{end}}(form, '{{$part.PartName}}', args.{{if and (ne $part.FieldName "") (not $succinct)}}{{$part.ArgName}}?.{{end}}{{$part.PartName}})
+    {{- end}}
+    return this.fetch(
+      this.url('{{.Name}}'),
+      createHTTPUploadRequest(form, headers)
+    ).then((res) => {
+      {{- if MethodHasFileDownload .}}
+      return buildFileResponse(res)
+      {{- else if $succinct}}
+      return buildResponse(res).then(_data => {
+        return new {{(index .Outputs 0).Type}}(_data)
+      })
+      {{- else}}
+      return buildResponse(res).then(_data => {
+        return {
+        {{- range $i, $output := .Outputs}}
+          {{if gt $i 0}}, {{end}}{{$output.Name}}: {{if isStructType $output.Type}}new {{$output.Type}}{{end}}(_data.{{$output.Name}})
+        {{- end}}
+        }
+      })
+      {{- end}}
+    })
+    {{- else if MethodHasFileDownload .}}
+    return this.fetch(
+      this.url('{{.Name}}'),
+      {{- if .Inputs | len}}
+      createHTTPRequest(args, headers)
+      {{- else}}
+      createHTTPRequest({}, headers)
+      {{- end}}
+    ).then((res) => {
+      return buildFileResponse(res)
+    })
+    {{- else}}
     return this.fetch(
       this.url('{{.Name}}'),
       {{- if .Inputs | len}}
@@ -38,6 +77,7 @@
         }
       })
     })
+    {{- end}}
   }
   {{end}}
 }

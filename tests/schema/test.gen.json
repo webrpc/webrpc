@@ -429,6 +429,89 @@
       }
      ],
      "outputs": []
+    },
+    {
+     "name": "UploadFile",
+     "annotations": {},
+     "comments": [
+      "added in v0.46.0"
+     ],
+     "inputs": [
+      {
+       "name": "name",
+       "type": "string",
+       "optional": false
+      },
+      {
+       "name": "data",
+       "type": "file",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "size",
+       "type": "uint64",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "UploadFiles",
+     "annotations": {},
+     "comments": [],
+     "inputs": [
+      {
+       "name": "files",
+       "type": "[]file",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "count",
+       "type": "uint32",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "DownloadFile",
+     "annotations": {},
+     "comments": [],
+     "inputs": [
+      {
+       "name": "name",
+       "type": "string",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "data",
+       "type": "file",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "EchoFile",
+     "annotations": {},
+     "comments": [],
+     "inputs": [
+      {
+       "name": "data",
+       "type": "file",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "data",
+       "type": "file",
+       "optional": false
+      }
+     ]
     }
    ],
    "comments": []

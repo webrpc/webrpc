@@ -1,0 +1,98 @@
+{{- define "fileHelpers" -}}
+{{- $opts := .Opts -}}
+
+//
+// File helpers
+//
+
+{{- if $opts.fileUpload}}
+{{"\n"}}
+// jsonEncodeUploadArgs JSON-encodes upload method arguments for the leading
+// "json" multipart part. File (Blob) values are serialized as null: their
+// content travels in the dedicated multipart file parts instead.
+const jsonEncodeUploadArgs = (obj = {}) => {
+  return JSON.stringify(obj || {}, (_key, value) => {
+    return value instanceof Blob ? null : value
+  })
+}
+
+const createHTTPUploadRequest = (form, headers = {}) => {
+  // NOTE: no explicit Content-Type header; fetch() derives the multipart
+  // boundary from the FormData body.
+  return { method: 'POST', headers: { ...headers }, body: form }
+}
+
+const appendFilePart = (form, name, file) => {
+  if (file == null) {
+    return
+  }
+  const filename = file instanceof File && file.name !== '' ? file.name : name
+  form.append(name, file, filename)
+}
+{{- if $opts.fileUploadRepeated}}
+
+const appendFileParts = (form, name, files) => {
+  for (const file of files || []) {
+    appendFilePart(form, name, file)
+  }
+}
+{{- end}}
+{{- end}}
+
+{{- if $opts.fileDownload}}
+{{"\n"}}
+// buildFileResponse reconstructs a file downloaded from a webrpc method as a
+// plain object from the raw HTTP response:
+//
+//   {
+//     name,        // filename from the Content-Disposition header, if any
+//     contentType, // MIME type as claimed by the server
+//     size,        // Content-Length of the file, if sent by the server
+//     body,        // raw response body stream (ReadableStream), or null
+//     blob()       // buffers the entire body and resolves to a Blob
+//   }
+const buildFileResponse = (res) => {
+  if (!res.ok) {
+    return buildResponse(res).then(() => {
+      throw { code: 'unknown', msg: `expected file response, got status: ${res.status}`, status: res.status }
+    })
+  }
+  const file = {
+    contentType: res.headers.get('Content-Type') || 'application/octet-stream',
+    body: res.body,
+    blob: () => res.blob()
+  }
+  const name = fileNameFromContentDisposition(res.headers.get('Content-Disposition'))
+  if (name !== undefined) {
+    file.name = name
+  }
+  const contentLength = res.headers.get('Content-Length')
+  if (contentLength !== null && /^\d+$/.test(contentLength)) {
+    file.size = Number(contentLength)
+  }
+  return Promise.resolve(file)
+}
+
+const fileNameFromContentDisposition = (header) => {
+  if (!header) {
+    return undefined
+  }
+  // RFC 5987 extended parameter, e.g. filename*=utf-8''na%C3%AFve.png
+  const extended = header.match(/filename\*=utf-8''([^;]*)/i)
+  if (extended && extended[1]) {
+    try {
+      return decodeURIComponent(extended[1].trim())
+    } catch (err) {}
+  }
+  const quoted = header.match(/filename="((?:[^"\\]|\\.)*)"/)
+  if (quoted && quoted[1]) {
+    return quoted[1].replace(/\\(.)/g, '$1')
+  }
+  const plain = header.match(/filename=([^;]+)/)
+  if (plain && plain[1]) {
+    return plain[1].trim()
+  }
+  return undefined
+}
+{{- end}}
+{{end -}}

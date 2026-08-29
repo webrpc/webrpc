@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -116,6 +117,82 @@ func (c *TestServer) GetSchemaError(ctx context.Context, code int) error {
 	return nil
 }
 
+func (c *TestServer) UploadFile(ctx context.Context, name string, data *WebrpcFile) (uint64, error) {
+	if name != fixtureFileName {
+		return 0, ErrUnexpectedValue.WithCausef("%q:\n%s", "name", cmp.Diff(fixtureFileName, name))
+	}
+
+	content, err := readFile(data)
+	if err != nil {
+		return 0, err
+	}
+	if !bytes.Equal(fixtureFileContent, content) {
+		return 0, ErrUnexpectedValue.WithCausef("%q:\n%s", "data", cmp.Diff(fixtureFileContent, content))
+	}
+
+	return uint64(len(content)), nil
+}
+
+func (c *TestServer) UploadFiles(ctx context.Context, files []*WebrpcFile) (uint32, error) {
+	if len(files) != len(fixtureFilesContent) {
+		return 0, ErrUnexpectedValue.WithCausef("%q: expected %v files, got %v", "files", len(fixtureFilesContent), len(files))
+	}
+
+	for i, file := range files {
+		content, err := readFile(file)
+		if err != nil {
+			return 0, err
+		}
+		if !bytes.Equal(fixtureFilesContent[i], content) {
+			return 0, ErrUnexpectedValue.WithCausef("%q[%v]:\n%s", "files", i, cmp.Diff(fixtureFilesContent[i], content))
+		}
+	}
+
+	return uint32(len(files)), nil
+}
+
+func (c *TestServer) DownloadFile(ctx context.Context, name string) (*WebrpcFile, error) {
+	if name != fixtureFileName {
+		return nil, ErrUnexpectedValue.WithCausef("%q:\n%s", "name", cmp.Diff(fixtureFileName, name))
+	}
+
+	return &WebrpcFile{
+		Name:        name,
+		ContentType: "application/octet-stream",
+		Size:        int64(len(fixtureFileContent)),
+		Body:        io.NopCloser(bytes.NewReader(fixtureFileContent)),
+	}, nil
+}
+
+func (c *TestServer) EchoFile(ctx context.Context, data *WebrpcFile) (*WebrpcFile, error) {
+	content, err := readFile(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &WebrpcFile{
+		Name:        data.Name,
+		ContentType: data.ContentType,
+		Size:        int64(len(content)),
+		Body:        io.NopCloser(bytes.NewReader(content)),
+	}, nil
+}
+
+// readFile drains and closes the given uploaded file.
+func readFile(file *WebrpcFile) ([]byte, error) {
+	if file == nil {
+		return nil, ErrMissingArgument.WithCausef("file part is missing")
+	}
+	defer file.Body.Close()
+
+	content, err := io.ReadAll(file.Body)
+	if err != nil {
+		return nil, ErrWebrpcBadRequest.WithCausef("failed to read file: %w", err)
+	}
+
+	return content, nil
+}
+
 // Fixtures
 var (
 	fixtureOne = Simple{
@@ -186,6 +263,15 @@ var (
 	fixtureEnums = EnumData{
 		Dict: map[Access]uint64{Access_READ: 1, Access_WRITE: 2},
 		List: []Status{Status_AVAILABLE, Status_NOT_AVAILABLE},
+	}
+
+	// File fixtures, shared with the client test expectations. The content
+	// includes non-UTF8 bytes to catch encoding bugs in file transports.
+	fixtureFileName     = "test.bin"
+	fixtureFileContent  = []byte("webrpc interop test file\x00\x01\x02\xff\xfe binary content")
+	fixtureFilesContent = [][]byte{
+		[]byte("first file"),
+		[]byte("second file\x00\xff"),
 	}
 )
 

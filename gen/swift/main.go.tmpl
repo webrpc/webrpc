@@ -51,6 +51,32 @@
   {{- end -}}
 {{- end -}}
 
+{{- /* Detect file upload/download methods and file-carrying struct types. */ -}}
+{{- range $_, $service := .Services -}}
+  {{- range $_, $method := $service.Methods -}}
+    {{- if MethodHasFileUpload $method -}}
+      {{- set $opts "fileUpload" true -}}
+      {{- set $opts "fileType" true -}}
+    {{- end -}}
+    {{- if MethodHasFileDownload $method -}}
+      {{- set $opts "fileDownload" true -}}
+      {{- set $opts "fileType" true -}}
+    {{- end -}}
+    {{- if and (MethodHasFileUpload $method) (MethodHasFileDownload $method) -}}
+      {{- set $opts "fileUploadDownload" true -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- range $_, $type := .Types -}}
+  {{- if isStructType $type -}}
+    {{- range $_, $field := $type.Fields -}}
+      {{- if or (eq (printf "%v" $field.Type) "file") (eq (printf "%v" $field.Type) "[]file") -}}
+        {{- set $opts "fileType" true -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
 {{- $typeMap := dict -}}
 {{- set $typeMap "null" "WebRPCNull" -}}
 {{- set $typeMap "any" "WebRPCJSONValue" -}}
@@ -71,6 +97,7 @@
 {{- set $typeMap "float64" "Double" -}}
 {{- set $typeMap "string" "String" -}}
 {{- set $typeMap "timestamp" "String" -}}
+{{- set $typeMap "file" "WebrpcFile" -}}
 
 {{template "imports" dict "Opts" $opts}}
 // {{.SchemaName}} {{.SchemaVersion}}{{if $opts.schemaHash}} {{.SchemaHash}}{{end}}
@@ -92,6 +119,9 @@
 {{- end }}
 
 {{template "runtime" dict "WebrpcErrors" .WebrpcErrors "SchemaErrors" .Errors "WebrpcHeader" .WebrpcHeader "Opts" $opts}}
+{{- if $opts.fileType}}
+{{template "fileHelpers" dict "Opts" $opts}}
+{{- end}}
 
 {{template "types" dict "Types" .Types "TypeMap" $typeMap "WebrpcTarget" .WebrpcTarget "Opts" $opts}}
 

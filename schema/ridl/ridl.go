@@ -434,6 +434,24 @@ func buildArgumentsList(s *schema.WebRPCSchema, args []*ArgumentNode) ([]*schema
 		node := args[0].inlineStruct
 		structName := node.tok.val
 
+		// The file core type is allowed in succinct form as a method's single
+		// download output, e.g. DownloadAvatar(DownloadAvatarRequest) => (file)
+		if ct, ok := schema.CoreTypeFromString[structName]; ok && ct == schema.T_File {
+			var varType schema.VarType
+			err := schema.ParseVarTypeExpr(s, structName, &varType)
+			if err != nil {
+				return nil, true, fmt.Errorf("parsing argument %v: %w", structName, err)
+			}
+
+			output = append(output, &schema.MethodArgument{
+				Name:     structName,
+				Type:     &varType,
+				Optional: false,
+			})
+
+			return output, true, nil
+		}
+
 		typ := s.GetTypeByName(structName)
 		if typ == nil {
 			return nil, true, fmt.Errorf("unknown type for succinct definition of '%s'", structName)

@@ -3,6 +3,7 @@
 {{- $typeMap := .TypeMap -}}
 {{- $types := .Types -}}
 {{- $services := .Services -}}
+{{- $opts := .Opts -}}
 
 {{if $types -}}
 {{range $_i, $type := $types -}}
@@ -66,7 +67,7 @@ class {{$type.Name}} implements JsonSerializable {
         {{- else}}
         {{- if .Optional}}
         if (v0 == null) return null;
-        {{- else}}
+        {{- else if not (and (isCoreType $field.Type) (eq (printf "%v" $field.Type) "file"))}}
         if (v0 == null) throw WebrpcException.fromCode(ErrorId.webrpcBadResponse.code);
         {{- end}}
         {{- template "fromJson" dict "Type" $field.Type "TypeMap" $typeMap "Optional" .Optional}}
@@ -101,6 +102,11 @@ T _cast<T>(x) {
 
 dynamic toJsonObject(dynamic v) {
     if (v == null) return null;
+{{- if $opts.fileType}}
+    // Files are never carried in JSON payloads: the field is encoded as null
+    // and the file content travels as a multipart part instead.
+    if (v is WebrpcFile) return null;
+{{- end}}
     if (v is DateTime) return v.toIso8601String();
     if (v is BigInt) return v.toString();
     // records are impossible to JSON serialize accurately because they do not

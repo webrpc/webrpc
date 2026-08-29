@@ -5,7 +5,13 @@
 
 {{- if isMapType $type -}}
 
+    {{- /* An index signature key must be string or number; enum (and other
+           named) key types need a mapped type instead. */ -}}
+    {{- if isCoreType (mapKeyType $type) -}}
     {[key: {{template "type" dict "Type" (mapKeyType $type) "TypeMap" $typeMap}}]: {{template "type" dict "Type" (mapValueType $type) "TypeMap" $typeMap}}}
+    {{- else -}}
+    {[key in {{template "type" dict "Type" (mapKeyType $type) "TypeMap" $typeMap}}]?: {{template "type" dict "Type" (mapValueType $type) "TypeMap" $typeMap}}}
+    {{- end -}}
 
 {{- else if isListType $type -}}
 

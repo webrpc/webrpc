@@ -1,0 +1,487 @@
+{{define "fileType" -}}
+
+//
+// File type
+//
+
+// WebrpcFile is a file transferred over multipart/form-data (upload methods)
+// or as a raw HTTP response body (download methods).
+type WebrpcFile struct {
+	Name        string // filename, optional
+	ContentType string // MIME type as claimed by the sender
+	Size        int64  // -1 when unknown
+	Body        io.ReadCloser
+}
+
+// MarshalJSON implements json.Marshaler. Files are never carried in JSON
+// payloads; the field is emitted as null and the file content is transferred
+// as a multipart part or as the raw response body instead.
+func (f *WebrpcFile) MarshalJSON() ([]byte, error) { return []byte("null"), nil }
+
+// UnmarshalJSON implements json.Unmarshaler as a no-op; files are populated
+// from multipart parts, not from JSON payloads.
+func (f *WebrpcFile) UnmarshalJSON(b []byte) error { return nil }
+{{- end -}}
+
+{{define "fileHelpers"}}
+{{- $json := .Json -}}
+{{- $opts := .Opts -}}
+{{- $file := printf "%sWebrpcFile" .TypePrefix -}}
+
+//
+// File helpers
+//
+{{- if and $opts.fileUpload $opts.server }}
+
+// DefaultMaxUploadSize caps multipart/form-data request bodies of file upload
+// methods when Options.MaxUploadSize is not set.
+const DefaultMaxUploadSize int64 = 32 << 20 // 32 MiB
+
+// NOTE: Uploaded files stream directly from the multipart request body; they
+// are never spooled to memory or disk. Parts arrive in wire order (the "json"
+// part first, then one part per file, a []file as repeated parts), so file
+// Bodies must be read in the order the files appear in the method arguments:
+// reading a file's Body auto-drains any unread file before it (whose Body
+// then returns an error), and a file's Name/ContentType are populated once
+// the wire reaches its part. Methods with a single file are unaffected.
+type multipartUpload struct {
+	reader  *multipart.Reader
+	names   []string        // expected file part names, in wire order
+	slots   []*uploadSlot   // file slots handed out, in wire order
+	namePos int             // number of file/files calls made so far
+	pending *multipart.Part // parsed-but-unclaimed next part
+	eof     bool            // the wire has no more parts
+	err     error           // sticky wire error
+}
+
+// newMultipartUpload wraps the request body's multipart reader and consumes
+// the leading "json" part carrying the JSON-encoded non-file arguments; a
+// request without one (e.g. for a method with no non-file arguments) is
+// tolerated. names lists the file part names the method expects, in order.
+func newMultipartUpload(r *http.Request, names ...string) (*multipartUpload, []byte, error) {
+	reader, err := r.MultipartReader()
+	if err != nil {
+		return nil, nil, err
+	}
+	u := &multipartUpload{reader: reader, names: names}
+	part, err := u.peek()
+	if err == io.EOF {
+		return u, nil, nil
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+	if part.FormName() != "json" {
+		return u, nil, nil
+	}
+	u.claim()
+	jsonBody, err := io.ReadAll(part)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to read multipart part %q: %w", "json", err)
+	}
+	return u, jsonBody, nil
+}
+
+{{- if $opts.fileUploadSingle }}
+
+// file returns the file of the named multipart part, or nil when the part is
+// known to be absent. The file's Body streams from the wire; see the wire
+// order NOTE on multipartUpload.
+func (u *multipartUpload) file(name string) (*{{$file}}, error) {
+	s := u.addSlot(name, u.namePos)
+	u.namePos++
+	if u.canBindNow(s) {
+		u.bind(s)
+		if u.err != nil {
+			return nil, u.err
+		}
+		if s.state == slotFailed {
+			return nil, nil // absent
+		}
+	}
+	return s.file, nil
+}
+{{- end }}
+{{- if $opts.fileUploadRepeated }}
+
+// files returns the files of the repeated multipart parts with the given
+// name, their Bodies streaming from the wire. decl is the field's value
+// decoded from the "json" part, whose length says how many parts to expect
+// ([]file is JSON-encoded as one null per file). A request without that
+// shape is rejected: the declared count is what keeps the parts streaming.
+func (u *multipartUpload) files(name string, decl []*{{$file}}) ([]*{{$file}}, error) {
+	pos := u.namePos
+	u.namePos++
+	if decl == nil {
+		return nil, fmt.Errorf("multipart part %q must declare %q as a JSON array with one null per file part", "json", name)
+	}
+	files := make([]*{{$file}}, len(decl))
+	for i := range files {
+		s := u.addSlot(name, pos)
+		if u.canBindNow(s) {
+			u.bind(s)
+			if u.err != nil {
+				return nil, u.err
+			}
+		}
+		files[i] = s.file
+	}
+	return files, nil
+}
+{{- end }}
+
+// peek parses the next part header without claiming it. The underlying
+// reader finishes the part it last returned, so callers must first finalize
+// any slot still bound to it.
+func (u *multipartUpload) peek() (*multipart.Part, error) {
+	if u.err != nil {
+		return nil, u.err
+	}
+	if u.pending != nil {
+		return u.pending, nil
+	}
+	if u.eof {
+		return nil, io.EOF
+	}
+	part, err := u.reader.NextPart()
+	if err == io.EOF {
+		u.eof = true
+		return nil, io.EOF
+	}
+	if err != nil {
+		u.err = fmt.Errorf("failed to read multipart form: %w", err)
+		return nil, u.err
+	}
+	u.pending = part
+	return part, nil
+}
+
+// claim takes ownership of the peeked part.
+func (u *multipartUpload) claim() *multipart.Part {
+	part := u.pending
+	u.pending = nil
+	return part
+}
+
+func (u *multipartUpload) addSlot(name string, namePos int) *uploadSlot {
+	s := &uploadSlot{u: u, name: name, index: len(u.slots), namePos: namePos, state: slotPending}
+	s.file = &{{$file}}{ContentType: "application/octet-stream", Size: -1, Body: s}
+	u.slots = append(u.slots, s)
+	return s
+}
+
+// canBindNow reports whether the wire can advance to this slot without
+// draining an unread file.
+func (u *multipartUpload) canBindNow(target *uploadSlot) bool {
+	for _, s := range u.slots[:target.index] {
+		if s.state == slotPending || s.state == slotBound {
+			return false
+		}
+	}
+	return true
+}
+
+// bind advances the wire to the slot's part: unread earlier files are
+// finalized (their parts drained by the reader), unexpected parts are
+// skipped, and the slot is bound to its part or marked missing.
+func (u *multipartUpload) bind(target *uploadSlot) {
+	for _, s := range u.slots[:target.index] {
+		if s.state == slotPending || s.state == slotBound {
+			s.fail(fmt.Errorf("multipart file %q was drained before being read: upload file bodies must be read in wire order", s.name))
+		}
+	}
+	for {
+		part, err := u.peek()
+		if err == io.EOF {
+			target.fail(fmt.Errorf("multipart part %q is missing", target.name))
+			return
+		}
+		if err != nil {
+			target.fail(err)
+			return
+		}
+		name := part.FormName()
+		if name == target.name {
+			target.bindPart(u.claim())
+			return
+		}
+		if u.expectsLater(name, target.namePos) {
+			// The part belongs to a later file: this one is missing.
+			target.fail(fmt.Errorf("multipart part %q is missing", target.name))
+			return
+		}
+		u.claim() // skip the unexpected part; the reader drains it
+	}
+}
+
+// expectsLater reports whether a file part with this name is expected later
+// on the wire.
+func (u *multipartUpload) expectsLater(name string, namePos int) bool {
+	for _, expected := range u.names[namePos+1:] {
+		if expected == name {
+			return true
+		}
+	}
+	return false
+}
+
+const (
+	slotPending = iota // declared; its part not yet reached on the wire
+	slotBound          // bound to the wire part currently being read
+	slotDone           // fully read; Read returns io.EOF
+	slotFailed         // missing, drained unread, or errored; Read returns err
+)
+
+// uploadSlot is one expected file part; it is the io.ReadCloser behind its
+// WebrpcFile's Body.
+type uploadSlot struct {
+	u       *multipartUpload
+	name    string
+	index   int // position in u.slots
+	namePos int // position in u.names
+	file    *{{$file}}
+	part    *multipart.Part
+	state   int
+	err     error
+}
+
+func (s *uploadSlot) Read(p []byte) (int, error) {
+	if s.state == slotPending {
+		s.u.bind(s)
+	}
+	switch s.state {
+	case slotBound:
+		n, err := s.part.Read(p)
+		if err == io.EOF {
+			s.state = slotDone
+		} else if err != nil {
+			s.fail(err)
+		}
+		return n, err
+	case slotDone:
+		return 0, io.EOF
+	default: // slotFailed
+		return 0, s.err
+	}
+}
+
+// Close finalizes the file; its unread bytes are drained off the wire when a
+// later file binds.
+func (s *uploadSlot) Close() error {
+	if s.state == slotPending || s.state == slotBound {
+		s.fail(fmt.Errorf("multipart file %q: body is closed", s.name))
+	}
+	return nil
+}
+
+func (s *uploadSlot) fail(err error) {
+	s.state = slotFailed
+	s.err = err
+}
+
+func (s *uploadSlot) bindPart(part *multipart.Part) {
+	s.part = part
+	s.state = slotBound
+	s.file.Name = part.FileName()
+	if contentType := part.Header.Get("Content-Type"); contentType != "" {
+		s.file.ContentType = contentType
+	}
+}
+{{- end }}
+
+{{- if and $opts.fileDownload $opts.server }}
+
+// serveFileResponse streams the file as the raw response body and closes it.
+// The inline Content-Disposition lets browsers preview the file in place; its
+// filename still names the file on save-as.
+func serveFileResponse(w http.ResponseWriter, file *{{$file}}) {
+	defer func() {
+		if file.Body != nil {
+			file.Body.Close()
+		}
+	}()
+
+	contentType := file.ContentType
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	if file.Name != "" {
+		w.Header().Set("Content-Disposition", mime.FormatMediaType("inline", map[string]string{"filename": file.Name}))
+	}
+	if file.Size >= 0 {
+		w.Header().Set("Content-Length", strconv.FormatInt(file.Size, 10))
+	}
+	w.WriteHeader(http.StatusOK)
+	if file.Body != nil {
+		io.Copy(w, file.Body)
+	}
+}
+{{- end }}
+
+{{- if and $opts.fileUpload $opts.client }}
+
+// filePart is one file-carrying part of a multipart upload request body.
+type filePart struct {
+	name  string
+	files []*{{$file}}
+}
+
+// doHTTPUploadRequestRaw makes a multipart/form-data request and returns the
+// open *http.Response; the caller must close its body. The "json" part with
+// the JSON-encoded non-file arguments is sent first, followed by one part per
+// file, and the body is streamed (files are not buffered in memory).
+func doHTTPUploadRequestRaw(ctx context.Context, client HTTPClient, url string, in interface{}, parts []filePart, out interface{}) (*http.Response, error) {
+	jsonBody, err := {{$json}}.Marshal(in)
+	if err != nil {
+		return nil, ErrWebrpcRequestFailed.WithCausef("failed to marshal JSON body: %w", err)
+	}
+	if err = ctx.Err(); err != nil {
+		return nil, ErrWebrpcRequestFailed.WithCausef("aborted because context was done: %w", err)
+	}
+
+	pr, pw := io.Pipe()
+	writer := multipart.NewWriter(pw)
+	go func() {
+		pw.CloseWithError(func() error {
+			jsonPart, err := writer.CreateFormField("json")
+			if err != nil {
+				return err
+			}
+			if _, err := jsonPart.Write(jsonBody); err != nil {
+				return err
+			}
+			for _, part := range parts {
+				for _, file := range part.files {
+					if file == nil {
+						continue
+					}
+					if err := writeFilePart(writer, part.name, file); err != nil {
+						return err
+					}
+				}
+			}
+			return writer.Close()
+		}())
+	}()
+
+	req, err := newRequest(ctx, url, pr, writer.FormDataContentType())
+	if err != nil {
+		return nil, ErrWebrpcRequestFailed.WithCausef("could not build request: %w", err)
+	}
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, ErrWebrpcRequestFailed.WithCause(err)
+	}
+
+	if resp.StatusCode != 200 {
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to read server error response body: %w", err)
+		}
+
+		var rpcErr WebRPCError
+		if err := {{$json}}.Unmarshal(respBody, &rpcErr); err != nil {
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal server error: %w", err)
+		}
+		if rpcErr.Cause != "" {
+			rpcErr.cause = errors.New(rpcErr.Cause)
+		}
+		return nil, rpcErr
+	}
+
+	if out != nil {
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to read response body: %w", err)
+		}
+
+		err = {{$json}}.Unmarshal(respBody, &out)
+		if err != nil {
+			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal JSON response body: %w", err)
+		}
+	}
+
+	return resp, nil
+}
+
+// doHTTPUploadRequest makes a multipart/form-data request and closes the
+// response body.
+func doHTTPUploadRequest(ctx context.Context, client HTTPClient, url string, in interface{}, parts []filePart, out interface{}) error {
+	resp, err := doHTTPUploadRequestRaw(ctx, client, url, in, parts, out)
+	if resp != nil {
+		cerr := resp.Body.Close()
+		if err == nil && cerr != nil {
+			err = ErrWebrpcRequestFailed.WithCausef("failed to close response body: %w", cerr)
+		}
+	}
+	return err
+}
+
+// multipartQuoteEscaper escapes quotes and backslashes in multipart header
+// param values, mirroring mime/multipart.Writer.CreateFormFile.
+var multipartQuoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
+
+// writeFilePart writes one file to the multipart body and closes its Body.
+func writeFilePart(writer *multipart.Writer, name string, file *{{$file}}) error {
+	defer func() {
+		if file.Body != nil {
+			file.Body.Close()
+		}
+	}()
+
+	fileName := file.Name
+	if fileName == "" {
+		fileName = name
+	}
+	contentType := file.ContentType
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+
+	header := make(textproto.MIMEHeader)
+	// NOTE: the name and filename params are always quoted, like browsers and
+	// mime/multipart.Writer.CreateFormFile do; unquoted params are rejected by
+	// strict WHATWG multipart/form-data parsers (e.g. undici's request.formData()).
+	header.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+		multipartQuoteEscaper.Replace(name), multipartQuoteEscaper.Replace(fileName)))
+	header.Set("Content-Type", contentType)
+
+	part, err := writer.CreatePart(header)
+	if err != nil {
+		return err
+	}
+	if file.Body == nil {
+		return nil
+	}
+	_, err = io.Copy(part, file.Body)
+	return err
+}
+{{- end }}
+
+{{- if and $opts.fileDownload $opts.client }}
+
+// fileFromResponse wraps a raw HTTP response body as a *WebrpcFile. The
+// caller is responsible for closing the file's Body.
+func fileFromResponse(resp *http.Response) *{{$file}} {
+	file := &{{$file}}{
+		ContentType: resp.Header.Get("Content-Type"),
+		Size:        resp.ContentLength,
+		Body:        resp.Body,
+	}
+	if file.ContentType == "" {
+		file.ContentType = "application/octet-stream"
+	}
+	if disposition := resp.Header.Get("Content-Disposition"); disposition != "" {
+		if _, params, err := mime.ParseMediaType(disposition); err == nil {
+			file.Name = params["filename"]
+		}
+	}
+	return file
+}
+{{- end }}
+
+{{- end -}}

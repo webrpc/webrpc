@@ -32,6 +32,12 @@ func exit(code int) error {
 }
 
 func minVersion(version string, minVersion string) bool {
+	// Dev builds (e.g. built from a checkout with no git tags, or without
+	// ldflags version stamping) are assumed to satisfy any minimum version.
+	if isDevVersion(version) {
+		return true
+	}
+
 	major, minor, err := parseMajorMinorVersion(version)
 	if err != nil {
 		panic(fmt.Sprintf("minVersion: unexpected version %q", version))
@@ -51,6 +57,18 @@ func minVersion(version string, minVersion string) bool {
 	}
 
 	return true
+}
+
+// isDevVersion returns true for version strings produced by dev/untagged
+// builds: "" or "unknown" (no ldflags stamping and no git tags to infer
+// from), "(devel)" (Go module build info), and "v0.0.0-dev" (Makefile
+// fallback when git describe fails).
+func isDevVersion(version string) bool {
+	switch version {
+	case "", "unknown", "(devel)":
+		return true
+	}
+	return strings.HasPrefix(version, "v0.0.0-")
 }
 
 func parseMajorMinorVersion(version string) (major int, minor int, err error) {

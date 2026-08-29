@@ -28,6 +28,11 @@ type WebRPCServer interface {
 type Options struct {
 	OnError func(r *http.Request, rpcErr *WebRPCError)
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
+{{- if $opts.fileUpload }}
+	// MaxUploadSize caps multipart/form-data request bodies of file upload
+	// methods. Defaults to DefaultMaxUploadSize when zero.
+	MaxUploadSize int64
+{{- end }}
 }
 
 {{/* Service servers */}}
@@ -35,12 +40,21 @@ type Options struct {
 
 {{- range $_, $service := $services}}
 {{- $name := $service.Name -}}
+{{- $serviceHasUpload := false -}}
+{{- range $_, $method := $service.Methods -}}
+{{- if MethodHasFileUpload $method -}}
+{{- $serviceHasUpload = true -}}
+{{- end -}}
+{{- end -}}
 {{ $serviceName := (printf "%sService" (firstWordToLower $service.Name)) }}
 
 type {{$serviceName}} struct {
 	{{$typePrefix}}{{$service.Name}}Server
 	OnError func(r *http.Request, rpcErr *WebRPCError)
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
+{{- if $serviceHasUpload }}
+	MaxUploadSize int64
+{{- end }}
 }
 
 func New{{firstLetterToUpper $service.Name}}Server(svc {{$typePrefix}}{{.Name}}Server, options ...*Options) *{{$serviceName}} {
@@ -50,6 +64,9 @@ func New{{firstLetterToUpper $service.Name}}Server(svc {{$typePrefix}}{{.Name}}S
 	if len(options) > 0 && options[0] != nil {
 		server.OnError = options[0].OnError
 		server.OnRequest = options[0].OnRequest
+{{- if $serviceHasUpload }}
+		server.MaxUploadSize = options[0].MaxUploadSize
+{{- end }}
 	}
 	return server
 }
@@ -75,10 +92,16 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r = r.WithContext(ctx)
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
+{{- if $serviceHasUpload }}
+	expectedContentType := "application/json"
+{{- end }}
 	switch r.URL.Path {
 	{{- range $_, $method := $service.Methods}}
 	case "{{$basepath}}{{$name}}/{{$method.Name}}":
-		{{- if and $method.Succinct (not $method.StreamOutput) }}
+		{{- if MethodHasFileUpload $method }}
+		handler = s.serve{{$method.Name | firstLetterToUpper}}Multipart
+		expectedContentType = "multipart/form-data"
+		{{- else if and $method.Succinct (not $method.StreamOutput) (not (MethodHasFileDownload $method)) }}
 		handler = succinctHandler("{{$method.Name}}", s.{{$name}}Server.{{$method.Name}}, s.sendErrorJSON)
 		{{- else }}
 		handler = s.serve{{$method.Name | firstLetterToUpper}}JSON{{if $method.StreamOutput}}Stream{{end}}
@@ -104,7 +127,11 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	contentType = strings.TrimSpace(strings.ToLower(contentType))
 
 	switch contentType {
+{{- if $serviceHasUpload }}
+	case expectedContentType:
+{{- else }}
 	case "application/json":
+{{- end }}
 		if s.OnRequest != nil {
 			if err := s.OnRequest(w, r); err != nil {
 				var rpcErr WebRPCError
@@ -118,38 +145,74 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		handler(ctx, w, r)
 	default:
+{{- if $serviceHasUpload }}
+		err := ErrWebrpcBadRequest.WithCausef("unsupported Content-Type %q (only %s is allowed)", r.Header.Get("Content-Type"), expectedContentType)
+{{- else }}
 		err := ErrWebrpcBadRequest.WithCausef("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type"))
+{{- end }}
 		s.sendErrorJSON(w, r, err)
 	}
 }
 {{- range $_, $method := $service.Methods}}
 {{- if eq $method.StreamOutput false }}
-{{- if not $method.Succinct }}
+{{- if MethodHasFileUpload $method }}
 
-func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}Multipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "{{$method.Name}}")
 
-	{{ if gt (len $method.Inputs) 0 -}}
-	reqBody, err := io.ReadAll(r.Body)
+	maxUploadSize := s.MaxUploadSize
+	if maxUploadSize <= 0 {
+		maxUploadSize = DefaultMaxUploadSize
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+
+	// Read the parts sequentially off the wire: the leading "json" part (it
+	// may be absent when the method has no non-file arguments) followed by
+	// the file parts, whose Bodies stream directly from the request body.
+	upload, jsonBody, err := newMultipartUpload(r{{range $_, $part := MethodFileParts $method}}, "{{$part.PartName}}"{{end}})
 	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to parse multipart form: %w", err))
 		return
 	}
-	defer r.Body.Close()
 
+	{{ if $method.Succinct -}}
+	{{- $input := index $method.Inputs 0 -}}
+	reqPayload := {{$typePrefix}}{{$input.Type}}{}
+	{{- else -}}
 	reqPayload := struct {
 	{{- range $i, $input := $method.Inputs}}
 		Arg{{$i}} {{template "field" dict "Name" $input.Name "Type" $input.Type "Optional" $input.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $input.Meta "JsonTags" true}}
 	{{- end}}
 	}{}
-	if err := {{$json}}.Unmarshal(reqBody, &reqPayload); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
+	{{- end }}
+
+	if len(jsonBody) > 0 {
+		if err := {{$json}}.Unmarshal(jsonBody, &reqPayload); err != nil {
+			s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
+			return
+		}
+	}
+
+	var formErr error
+	{{- range $_, $part := MethodFileParts $method }}
+	{{- if $method.Succinct }}
+	reqPayload.{{$part.FieldName}}, formErr = {{if $part.Repeated}}upload.files("{{$part.PartName}}", reqPayload.{{$part.FieldName}}){{else}}upload.file("{{$part.PartName}}"){{end}}
+	{{- else if eq $part.FieldName "" }}
+	reqPayload.Arg{{$part.ArgIndex}}, formErr = {{if $part.Repeated}}upload.files("{{$part.PartName}}", reqPayload.Arg{{$part.ArgIndex}}){{else}}upload.file("{{$part.PartName}}"){{end}}
+	{{- else }}
+	if reqPayload.Arg{{$part.ArgIndex}} == nil {
+		reqPayload.Arg{{$part.ArgIndex}} = &{{$typePrefix}}{{$part.StructName}}{}
+	}
+	reqPayload.Arg{{$part.ArgIndex}}.{{$part.FieldName}}, formErr = {{if $part.Repeated}}upload.files("{{$part.PartName}}", reqPayload.Arg{{$part.ArgIndex}}.{{$part.FieldName}}){{else}}upload.file("{{$part.PartName}}"){{end}}
+	{{- end }}
+	if formErr != nil {
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCause(formErr))
 		return
 	}
 	{{- end }}
 
 	// Call service method implementation.
-	{{range $i, $output := $method.Outputs}}ret{{$i}}, {{end}}err {{if or (eq (len $method.Inputs) 0) (gt (len $method.Outputs) 0)}}:{{end}}= s.{{$name}}Server.{{$method.Name}}(ctx{{range $i, $_ := $method.Inputs}}, reqPayload.Arg{{$i}}{{end}})
+	{{range $i, $output := $method.Outputs}}ret{{$i}}, {{end}}err {{if gt (len $method.Outputs) 0}}:{{end}}= s.{{$name}}Server.{{$method.Name}}(ctx{{range $i, $_ := $method.Inputs}}, {{if $method.Succinct}}reqPayload{{else}}reqPayload.Arg{{$i}}{{end}}{{end}})
 	if err != nil {
 		var rpcErr WebRPCError
 		if !errors.As(err, &rpcErr) {
@@ -158,6 +221,30 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSON(ctx cont
 		s.sendErrorJSON(w, r, rpcErr)
 		return
 	}
+
+	{{- if MethodHasFileDownload $method }}
+
+	if ret0 == nil {
+		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("method {{$method.Name}} returned a nil file"))
+		return
+	}
+	serveFileResponse(w, ret0)
+	{{- else if $method.Succinct }}
+
+	{{ if $opts.fixEmptyArrays -}}
+	respBody, err := {{$json}}.Marshal(initializeNilSlices(ret0))
+	{{ else -}}
+	respBody, err := {{$json}}.Marshal(ret0)
+	{{ end -}}
+	if err != nil {
+		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(respBody)
+	{{- else }}
 
 	{{- if gt (len $method.Outputs) 0}}
 
@@ -188,8 +275,89 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSON(ctx cont
 	{{- else }}
 	w.Write([]byte("{}"))
 	{{- end}}
+	{{- end}}
 }
-{{- end}}{{/* if not Succinct */}}
+{{- else if or (not $method.Succinct) (MethodHasFileDownload $method) }}
+
+func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	ctx = context.WithValue(ctx, MethodNameCtxKey, "{{$method.Name}}")
+
+	{{ if gt (len $method.Inputs) 0 -}}
+	reqBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+		return
+	}
+	defer r.Body.Close()
+
+	{{ if $method.Succinct -}}
+	{{- $input := index $method.Inputs 0 -}}
+	reqPayload := {{$typePrefix}}{{$input.Type}}{}
+	{{- else -}}
+	reqPayload := struct {
+	{{- range $i, $input := $method.Inputs}}
+		Arg{{$i}} {{template "field" dict "Name" $input.Name "Type" $input.Type "Optional" $input.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $input.Meta "JsonTags" true}}
+	{{- end}}
+	}{}
+	{{- end }}
+	if err := {{$json}}.Unmarshal(reqBody, &reqPayload); err != nil {
+		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
+		return
+	}
+	{{- end }}
+
+	// Call service method implementation.
+	{{range $i, $output := $method.Outputs}}ret{{$i}}, {{end}}err {{if or (eq (len $method.Inputs) 0) (gt (len $method.Outputs) 0)}}:{{end}}= s.{{$name}}Server.{{$method.Name}}(ctx{{range $i, $_ := $method.Inputs}}, {{if $method.Succinct}}reqPayload{{else}}reqPayload.Arg{{$i}}{{end}}{{end}})
+	if err != nil {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
+			rpcErr = ErrWebrpcEndpoint.WithCause(err)
+		}
+		s.sendErrorJSON(w, r, rpcErr)
+		return
+	}
+
+	{{- if MethodHasFileDownload $method }}
+
+	if ret0 == nil {
+		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("method {{$method.Name}} returned a nil file"))
+		return
+	}
+	serveFileResponse(w, ret0)
+	{{- else }}
+
+	{{- if gt (len $method.Outputs) 0}}
+
+	respPayload := struct {
+	{{- range $i, $output := $method.Outputs}}
+		Ret{{$i}} {{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta "JsonTags" true}}
+	{{- end }}
+	}{ {{- range $i, $_ := $method.Outputs}}{{if gt $i 0}}, {{end}}ret{{$i}}{{end}}}
+	{{- end }}
+
+	{{- if $method.Outputs | len}}
+	{{ if $opts.fixEmptyArrays -}}
+	respBody, err := {{$json}}.Marshal(initializeNilSlices(respPayload))
+	{{ else -}}
+	respBody, err := {{$json}}.Marshal(respPayload)
+	{{ end -}}
+	if err != nil {
+		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
+		return
+	}
+	{{- end}}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	{{- if $method.Outputs | len}}
+	w.Write(respBody)
+	{{- else }}
+	w.Write([]byte("{}"))
+	{{- end}}
+	{{- end}}{{/* if MethodHasFileDownload */}}
+}
+{{- end}}{{/* if MethodHasFileUpload / not Succinct */}}
 {{- else }}{{/* StreamOutput = true */}}
 
 func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSONStream(ctx context.Context, w http.ResponseWriter, r *http.Request) {

@@ -44,6 +44,31 @@
 	{{- end -}}
 {{- end -}}
 
+{{- /* WebrpcFile.Body is an io.ReadCloser; needed even in a types-only file. */ -}}
+{{- if and $opts.fileType $opts.types (eq $opts.importTypesFrom "") -}}
+	{{- set $stdlibImports "io" "" -}}
+{{- end -}}
+
+{{- if $opts.fileUpload -}}
+	{{- if or $opts.client $opts.server }}
+	{{- set $stdlibImports "io" "" -}}
+	{{- set $stdlibImports "mime/multipart" "" -}}
+	{{- end -}}
+	{{- if $opts.client }}
+	{{- set $stdlibImports "net/textproto" "" -}}
+	{{- end -}}
+{{- end -}}
+
+{{- if $opts.fileDownload -}}
+	{{- if or $opts.client $opts.server }}
+	{{- set $stdlibImports "io" "" -}}
+	{{- set $stdlibImports "mime" "" -}}
+	{{- end -}}
+	{{- if $opts.server }}
+	{{- set $stdlibImports "strconv" "" -}}
+	{{- end -}}
+{{- end -}}
+
 {{- /* Import "time" if there's at least one timestamp. */ -}}
 {{ if $opts.types -}}
 {{ if eq $opts.importTypesFrom "" -}}
