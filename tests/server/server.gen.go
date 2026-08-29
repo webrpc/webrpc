@@ -717,8 +717,8 @@ func (s *testApiService) serveUploadFileMultipart(ctx context.Context, w http.Re
 	// Call service method implementation.
 	ret0, err := s.TestApiServer.UploadFile(ctx, reqPayload.Arg0, reqPayload.Arg1)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -778,8 +778,8 @@ func (s *testApiService) serveUploadFilesMultipart(ctx context.Context, w http.R
 	// Call service method implementation.
 	ret0, err := s.TestApiServer.UploadFiles(ctx, reqPayload.Arg0)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -821,8 +821,8 @@ func (s *testApiService) serveDownloadFileJSON(ctx context.Context, w http.Respo
 	// Call service method implementation.
 	ret0, err := s.TestApiServer.DownloadFile(ctx, reqPayload.Arg0)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -875,8 +875,8 @@ func (s *testApiService) serveEchoFileMultipart(ctx context.Context, w http.Resp
 	// Call service method implementation.
 	ret0, err := s.TestApiServer.EchoFile(ctx, reqPayload.Arg0)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)

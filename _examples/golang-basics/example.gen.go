@@ -824,8 +824,8 @@ func (s *exampleService) serveUploadAvatarMultipart(ctx context.Context, w http.
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.UploadAvatar(ctx, reqPayload)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -862,8 +862,8 @@ func (s *exampleService) serveDownloadAvatarJSON(ctx context.Context, w http.Res
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.DownloadAvatar(ctx, reqPayload)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)

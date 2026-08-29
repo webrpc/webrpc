@@ -380,8 +380,8 @@ func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case expectedContentType:
 		if s.OnRequest != nil {
 			if err := s.OnRequest(w, r); err != nil {
-				rpcErr, ok := err.(WebRPCError)
-				if !ok {
+				var rpcErr WebRPCError
+				if !errors.As(err, &rpcErr) {
 					rpcErr = ErrWebrpcEndpoint.WithCause(err)
 				}
 				s.sendErrorJSON(w, r, rpcErr)
@@ -417,8 +417,8 @@ func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWrite
 	// Call service method implementation.
 	err = s.ExampleServer.Ping(ctx, reqPayload.Arg0)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -451,8 +451,8 @@ func (s *exampleService) serveGetUserJSON(ctx context.Context, w http.ResponseWr
 	// Call service method implementation.
 	ret0, ret1, err := s.ExampleServer.GetUser(ctx, reqPayload.Arg0)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -514,8 +514,8 @@ func (s *exampleService) serveUploadAvatarMultipart(ctx context.Context, w http.
 	// Call service method implementation.
 	ret0, ret1, err := s.ExampleServer.UploadAvatar(ctx, reqPayload.Arg0, reqPayload.Arg1)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -558,8 +558,8 @@ func (s *exampleService) serveDownloadAvatarJSON(ctx context.Context, w http.Res
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.DownloadAvatar(ctx, reqPayload.Arg0)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -603,8 +603,8 @@ func (s Server) Methods(opts *Options) []Method {
 }
 
 func RespondWithError(w http.ResponseWriter, err error) {
-	rpcErr, ok := err.(WebRPCError)
-	if !ok {
+	var rpcErr WebRPCError
+	if !errors.As(err, &rpcErr) {
 		rpcErr = ErrWebrpcEndpoint.WithCause(err)
 	}
 
@@ -636,8 +636,8 @@ func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O
 
 		respPayload, err := fn(ctx, reqPayload)
 		if err != nil {
-			rpcErr, ok := err.(WebRPCError)
-			if !ok {
+			var rpcErr WebRPCError
+			if !errors.As(err, &rpcErr) {
 				rpcErr = ErrWebrpcEndpoint.WithCause(err)
 			}
 			sendError(w, r, rpcErr)
