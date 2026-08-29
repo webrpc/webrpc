@@ -553,8 +553,8 @@ func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case expectedContentType:
 		if s.OnRequest != nil {
 			if err := s.OnRequest(w, r); err != nil {
-				rpcErr, ok := err.(WebRPCError)
-				if !ok {
+				var rpcErr WebRPCError
+				if !errors.As(err, &rpcErr) {
 					rpcErr = ErrWebrpcEndpoint.WithCause(err)
 				}
 				s.sendErrorJSON(w, r, rpcErr)
@@ -575,8 +575,8 @@ func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWrite
 	// Call service method implementation.
 	err := s.ExampleServer.Ping(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -594,8 +594,8 @@ func (s *exampleService) serveStatusJSON(ctx context.Context, w http.ResponseWri
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.Status(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -622,8 +622,8 @@ func (s *exampleService) serveVersionJSON(ctx context.Context, w http.ResponseWr
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.Version(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -812,8 +812,8 @@ func (s *adminService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "application/json":
 		if s.OnRequest != nil {
 			if err := s.OnRequest(w, r); err != nil {
-				rpcErr, ok := err.(WebRPCError)
-				if !ok {
+				var rpcErr WebRPCError
+				if !errors.As(err, &rpcErr) {
 					rpcErr = ErrWebrpcEndpoint.WithCause(err)
 				}
 				s.sendErrorJSON(w, r, rpcErr)
@@ -834,8 +834,8 @@ func (s *adminService) serveStatusJSON(ctx context.Context, w http.ResponseWrite
 	// Call service method implementation.
 	ret0, err := s.AdminServer.Status(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -862,8 +862,8 @@ func (s *adminService) serveVersionJSON(ctx context.Context, w http.ResponseWrit
 	// Call service method implementation.
 	ret0, err := s.AdminServer.Version(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -916,8 +916,8 @@ func (s Server) Methods(opts *Options) []Method {
 }
 
 func RespondWithError(w http.ResponseWriter, err error) {
-	rpcErr, ok := err.(WebRPCError)
-	if !ok {
+	var rpcErr WebRPCError
+	if !errors.As(err, &rpcErr) {
 		rpcErr = ErrWebrpcEndpoint.WithCause(err)
 	}
 

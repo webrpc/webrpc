@@ -343,8 +343,8 @@ func (s *testApiService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case expectedContentType:
 		if s.OnRequest != nil {
 			if err := s.OnRequest(w, r); err != nil {
-				rpcErr, ok := err.(WebRPCError)
-				if !ok {
+				var rpcErr WebRPCError
+				if !errors.As(err, &rpcErr) {
 					rpcErr = ErrWebrpcEndpoint.WithCause(err)
 				}
 				s.sendErrorJSON(w, r, rpcErr)
@@ -365,8 +365,8 @@ func (s *testApiService) serveGetEmptyJSON(ctx context.Context, w http.ResponseW
 	// Call service method implementation.
 	err := s.TestApiServer.GetEmpty(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -384,8 +384,8 @@ func (s *testApiService) serveGetErrorJSON(ctx context.Context, w http.ResponseW
 	// Call service method implementation.
 	err := s.TestApiServer.GetError(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -403,8 +403,8 @@ func (s *testApiService) serveGetOneJSON(ctx context.Context, w http.ResponseWri
 	// Call service method implementation.
 	ret0, err := s.TestApiServer.GetOne(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -446,8 +446,8 @@ func (s *testApiService) serveSendOneJSON(ctx context.Context, w http.ResponseWr
 	// Call service method implementation.
 	err = s.TestApiServer.SendOne(ctx, reqPayload.Arg0)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -465,8 +465,8 @@ func (s *testApiService) serveGetMultiJSON(ctx context.Context, w http.ResponseW
 	// Call service method implementation.
 	ret0, ret1, ret2, err := s.TestApiServer.GetMulti(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -512,8 +512,8 @@ func (s *testApiService) serveSendMultiJSON(ctx context.Context, w http.Response
 	// Call service method implementation.
 	err = s.TestApiServer.SendMulti(ctx, reqPayload.Arg0, reqPayload.Arg1, reqPayload.Arg2)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -531,8 +531,8 @@ func (s *testApiService) serveGetComplexJSON(ctx context.Context, w http.Respons
 	// Call service method implementation.
 	ret0, err := s.TestApiServer.GetComplex(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -574,8 +574,8 @@ func (s *testApiService) serveSendComplexJSON(ctx context.Context, w http.Respon
 	// Call service method implementation.
 	err = s.TestApiServer.SendComplex(ctx, reqPayload.Arg0)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -593,8 +593,8 @@ func (s *testApiService) serveGetEnumListJSON(ctx context.Context, w http.Respon
 	// Call service method implementation.
 	ret0, err := s.TestApiServer.GetEnumList(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -621,8 +621,8 @@ func (s *testApiService) serveGetEnumMapJSON(ctx context.Context, w http.Respons
 	// Call service method implementation.
 	ret0, err := s.TestApiServer.GetEnumMap(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -664,8 +664,8 @@ func (s *testApiService) serveGetSchemaErrorJSON(ctx context.Context, w http.Res
 	// Call service method implementation.
 	err = s.TestApiServer.GetSchemaError(ctx, reqPayload.Arg0)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -920,8 +920,8 @@ func (s Server) Methods(opts *Options) []Method {
 }
 
 func RespondWithError(w http.ResponseWriter, err error) {
-	rpcErr, ok := err.(WebRPCError)
-	if !ok {
+	var rpcErr WebRPCError
+	if !errors.As(err, &rpcErr) {
 		rpcErr = ErrWebrpcEndpoint.WithCause(err)
 	}
 

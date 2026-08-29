@@ -214,8 +214,8 @@ func (s *adminService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "application/json":
 		if s.OnRequest != nil {
 			if err := s.OnRequest(w, r); err != nil {
-				rpcErr, ok := err.(WebRPCError)
-				if !ok {
+				var rpcErr WebRPCError
+				if !errors.As(err, &rpcErr) {
 					rpcErr = ErrWebrpcEndpoint.WithCause(err)
 				}
 				s.sendErrorJSON(w, r, rpcErr)
@@ -236,8 +236,8 @@ func (s *adminService) serveAuthJSON(ctx context.Context, w http.ResponseWriter,
 	// Call service method implementation.
 	ret0, ret1, err := s.AdminServer.Auth(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -265,8 +265,8 @@ func (s *adminService) serveStatusJSON(ctx context.Context, w http.ResponseWrite
 	// Call service method implementation.
 	ret0, err := s.AdminServer.Status(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -293,8 +293,8 @@ func (s *adminService) serveVersionJSON(ctx context.Context, w http.ResponseWrit
 	// Call service method implementation.
 	ret0, err := s.AdminServer.Version(ctx)
 	if err != nil {
-		rpcErr, ok := err.(WebRPCError)
-		if !ok {
+		var rpcErr WebRPCError
+		if !errors.As(err, &rpcErr) {
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		s.sendErrorJSON(w, r, rpcErr)
@@ -345,8 +345,8 @@ func (s Server) Methods(opts *Options) []Method {
 }
 
 func RespondWithError(w http.ResponseWriter, err error) {
-	rpcErr, ok := err.(WebRPCError)
-	if !ok {
+	var rpcErr WebRPCError
+	if !errors.As(err, &rpcErr) {
 		rpcErr = ErrWebrpcEndpoint.WithCause(err)
 	}
 
