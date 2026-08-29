@@ -208,6 +208,28 @@ type EnumData struct {
 }
 
 //
+// File type
+//
+
+// WebrpcFile is a file transferred over multipart/form-data (upload methods)
+// or as a raw HTTP response body (download methods).
+type WebrpcFile struct {
+	Name        string // filename, optional
+	ContentType string // MIME type as claimed by the sender
+	Size        int64  // -1 when unknown
+	Body        io.ReadCloser
+}
+
+// MarshalJSON implements json.Marshaler. Files are never carried in JSON
+// payloads; the field is emitted as null and the file content is transferred
+// as a multipart part or as the raw response body instead.
+func (f *WebrpcFile) MarshalJSON() ([]byte, error) { return []byte("null"), nil }
+
+// UnmarshalJSON implements json.Unmarshaler as a no-op; files are populated
+// from multipart parts, not from JSON payloads.
+func (f *WebrpcFile) UnmarshalJSON(b []byte) error { return nil }
+
+//
 // Client
 //
 
@@ -580,24 +602,6 @@ func PtrTo[T any](v T) *T { return &v }
 //
 // File helpers
 //
-
-// WebrpcFile is a file transferred over multipart/form-data (upload methods)
-// or as a raw HTTP response body (download methods).
-type WebrpcFile struct {
-	Name        string // filename, optional
-	ContentType string // MIME type as claimed by the sender
-	Size        int64  // -1 when unknown
-	Body        io.ReadCloser
-}
-
-// MarshalJSON implements json.Marshaler. Files are never carried in JSON
-// payloads; the field is emitted as null and the file content is transferred
-// as a multipart part or as the raw response body instead.
-func (f *WebrpcFile) MarshalJSON() ([]byte, error) { return []byte("null"), nil }
-
-// UnmarshalJSON implements json.Unmarshaler as a no-op; files are populated
-// from multipart parts, not from JSON payloads.
-func (f *WebrpcFile) UnmarshalJSON(b []byte) error { return nil }
 
 // filePart is one file-carrying part of a multipart upload request body.
 type filePart struct {

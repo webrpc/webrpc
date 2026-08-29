@@ -44,6 +44,11 @@
 	{{- end -}}
 {{- end -}}
 
+{{- /* WebrpcFile.Body is an io.ReadCloser; needed even in a types-only file. */ -}}
+{{- if and $opts.fileType $opts.types (eq $opts.importTypesFrom "") -}}
+	{{- set $stdlibImports "io" "" -}}
+{{- end -}}
+
 {{- if $opts.fileUpload -}}
 	{{- if or $opts.client $opts.server }}
 	{{- set $stdlibImports "io" "" -}}

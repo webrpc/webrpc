@@ -50,8 +50,13 @@
     []{{template "field" dict "Name" $name "Type" (listElemType $type) "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $typeMeta}}
 
 {{- else if isCoreType $type -}}
-    {{- /* file is already a pointer type, no extra indirection when optional */ -}}
-    {{if and $optional (ne (toString $type) "any") (ne (toString $type) "file")}}*{{end}}{{ get $typeMap $type }}
+    {{- if eq (toString $type) "file" -}}
+        {{- /* file is already a pointer type, no extra indirection when optional;
+               the type itself may live in another package (-importTypesFrom) */ -}}
+        *{{$typePrefix}}{{trimPrefix (get $typeMap $type) "*"}}
+    {{- else -}}
+        {{if and $optional (ne (toString $type) "any")}}*{{end}}{{ get $typeMap $type }}
+    {{- end -}}
 
 {{- else -}}{{- /* structs, enums, aliases */ -}}
     {{- if or (isEnumType $type) (isAliasType $type) -}}
