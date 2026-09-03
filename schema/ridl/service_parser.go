@@ -12,13 +12,8 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 		}()
 
 		// check for annotation duplicates
-		annotations := make(map[string]struct{})
-		for _, ann := range sn.methodAnnotations {
-			if _, ok := annotations[ann.AnnotationType().String()]; ok {
-				return p.stateError(fmt.Errorf("duplicate annotation type: %v", ann.AnnotationType()))
-			}
-
-			annotations[ann.AnnotationType().String()] = struct{}{}
+		if err := checkDuplicateAnnotations(sn.methodAnnotations); err != nil {
+			return p.stateError(err)
 		}
 		// - <name>([arguments]) [=> [([ return values ])]]
 		matches, err := p.match(tokenDash, tokenWhitespace, tokenWord)

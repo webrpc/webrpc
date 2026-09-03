@@ -64,6 +64,67 @@ type Version struct {
 	SchemaHash    string `json:"schemaHash"`
 }
 
+type webrpcType struct {
+	name        string
+	kind        string
+	annotations map[string]string
+	fields      map[string]*webrpcTypeField
+}
+
+type webrpcTypeField struct {
+	name        string
+	fieldType   string
+	annotations map[string]string
+}
+
+func (t *webrpcType) Name() string                   { return t.name }
+func (t *webrpcType) Kind() string                   { return t.kind }
+func (t *webrpcType) Annotations() map[string]string { return t.annotations }
+func (t *webrpcType) Annotation(key string) string   { return t.annotations[key] }
+func (t *webrpcType) HasAnnotation(key string) bool  { _, ok := t.annotations[key]; return ok }
+func (t *webrpcType) Field(name string) (*webrpcTypeField, bool) {
+	f, ok := t.fields[name]
+	return f, ok
+}
+
+func (f *webrpcTypeField) Name() string                   { return f.name }
+func (f *webrpcTypeField) Type() string                   { return f.fieldType }
+func (f *webrpcTypeField) Annotations() map[string]string { return f.annotations }
+func (f *webrpcTypeField) Annotation(key string) string   { return f.annotations[key] }
+func (f *webrpcTypeField) HasAnnotation(key string) bool  { _, ok := f.annotations[key]; return ok }
+
+var webrpcTypes = map[string]*webrpcType{
+	"Version": {
+		name:        "Version",
+		kind:        "struct",
+		annotations: map[string]string{},
+		fields: map[string]*webrpcTypeField{
+			"webrpcVersion": {
+				name:        "webrpcVersion",
+				fieldType:   "string",
+				annotations: map[string]string{},
+			},
+			"schemaVersion": {
+				name:        "schemaVersion",
+				fieldType:   "string",
+				annotations: map[string]string{},
+			},
+			"schemaHash": {
+				name:        "schemaHash",
+				fieldType:   "string",
+				annotations: map[string]string{},
+			},
+		},
+	},
+}
+
+// WebrpcType returns the schema type descriptor for the given type name,
+// including its annotations and the annotations of each of its fields.
+func WebrpcType(name string) (*webrpcType, bool) {
+	t, ok := webrpcTypes[name]
+	return t, ok
+}
+
 //
 // Client
 //

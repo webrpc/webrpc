@@ -86,6 +86,7 @@ struct User
     + json = USERNAME
     + go.tag.db = username
 
+  @private
   - role: string
     + go.tag.db = -
 
@@ -95,6 +96,7 @@ struct User
   - intent: Intent
     + json = intent
 
+@internal
 struct SearchFilter
   - q: string
 

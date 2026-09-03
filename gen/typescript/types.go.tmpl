@@ -38,10 +38,22 @@ export enum {{$type.Name}} {
 {{end -}}
 
 {{- if isAliasType $type }}
+{{- $deprecated := index $type.Annotations "deprecated" }}
+{{- if $deprecated }}
+/**
+ * @deprecated {{ $deprecated.Value }}
+ */
+{{- end }}
 export type {{$type.Name}} = {{template "type" dict "Type" $type.Type "TypeMap" $typeMap}}
 {{end -}}
 
 {{- if isStructType $type }}
+{{- $deprecated := index $type.Annotations "deprecated" }}
+{{- if $deprecated }}
+/**
+ * @deprecated {{ $deprecated.Value }}
+ */
+{{- end }}
 export interface {{$type.Name}} {
   {{- range $_, $field := $type.Fields}}
   {{- $isExportable := true -}}
@@ -53,6 +65,12 @@ export interface {{$type.Name}} {
     {{- end -}}
   {{- end }}
   {{- if $isExportable }}
+  {{- $fieldDeprecated := index $field.Annotations "deprecated" }}
+  {{- if $fieldDeprecated }}
+  /**
+   * @deprecated {{ $fieldDeprecated.Value }}
+   */
+  {{- end }}
   {{template "fieldName" dict "Field" .}}{{if .Optional}}?{{end}}: {{template "type" dict "Type" $field.Type "TypeMap" $typeMap}}
   {{- end -}}
   {{- end}}

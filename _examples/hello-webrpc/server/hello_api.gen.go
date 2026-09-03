@@ -113,6 +113,111 @@ type Page struct {
 	Num uint32 `json:"num"`
 }
 
+type webrpcType struct {
+	name        string
+	kind        string
+	annotations map[string]string
+	fields      map[string]*webrpcTypeField
+}
+
+type webrpcTypeField struct {
+	name        string
+	fieldType   string
+	annotations map[string]string
+}
+
+func (t *webrpcType) Name() string                   { return t.name }
+func (t *webrpcType) Kind() string                   { return t.kind }
+func (t *webrpcType) Annotations() map[string]string { return t.annotations }
+func (t *webrpcType) Annotation(key string) string   { return t.annotations[key] }
+func (t *webrpcType) HasAnnotation(key string) bool  { _, ok := t.annotations[key]; return ok }
+func (t *webrpcType) Field(name string) (*webrpcTypeField, bool) {
+	f, ok := t.fields[name]
+	return f, ok
+}
+
+func (f *webrpcTypeField) Name() string                   { return f.name }
+func (f *webrpcTypeField) Type() string                   { return f.fieldType }
+func (f *webrpcTypeField) Annotations() map[string]string { return f.annotations }
+func (f *webrpcTypeField) Annotation(key string) string   { return f.annotations[key] }
+func (f *webrpcTypeField) HasAnnotation(key string) bool  { _, ok := f.annotations[key]; return ok }
+
+var webrpcTypes = map[string]*webrpcType{
+	"Kind": {
+		name:        "Kind",
+		kind:        "enum",
+		annotations: map[string]string{},
+		fields: map[string]*webrpcTypeField{
+			"USER": {
+				name:        "USER",
+				fieldType:   "",
+				annotations: map[string]string{},
+			},
+			"ADMIN": {
+				name:        "ADMIN",
+				fieldType:   "",
+				annotations: map[string]string{},
+			},
+		},
+	},
+	"User": {
+		name:        "User",
+		kind:        "struct",
+		annotations: map[string]string{},
+		fields: map[string]*webrpcTypeField{
+			"ID": {
+				name:        "ID",
+				fieldType:   "uint64",
+				annotations: map[string]string{},
+			},
+			"username": {
+				name:        "username",
+				fieldType:   "string",
+				annotations: map[string]string{},
+			},
+			"role": {
+				name:        "role",
+				fieldType:   "Kind",
+				annotations: map[string]string{},
+			},
+			"meta": {
+				name:        "meta",
+				fieldType:   "map<string,any>",
+				annotations: map[string]string{},
+			},
+			"internalID": {
+				name:        "internalID",
+				fieldType:   "uint64",
+				annotations: map[string]string{},
+			},
+			"createdAt": {
+				name:        "createdAt",
+				fieldType:   "timestamp",
+				annotations: map[string]string{},
+			},
+		},
+	},
+	"Page": {
+		name:        "Page",
+		kind:        "struct",
+		annotations: map[string]string{},
+		fields: map[string]*webrpcTypeField{
+			"num": {
+				name:        "num",
+				fieldType:   "uint32",
+				annotations: map[string]string{},
+			},
+		},
+	},
+}
+
+// WebrpcType returns the schema type descriptor for the given type name,
+// including its annotations and the annotations of each of its fields.
+func WebrpcType(name string) (*webrpcType, bool) {
+	t, ok := webrpcTypes[name]
+	return t, ok
+}
+
 //
 // Server
 //

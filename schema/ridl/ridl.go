@@ -212,18 +212,20 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	// pushing enums (1st pass)
 	for _, line := range q.root.Enums() {
 		s.Types = append(s.Types, &schema.Type{
-			Kind:   schemaTypeKindEnum,
-			Name:   line.Name().String(),
-			Fields: []*schema.TypeField{},
+			Kind:        schemaTypeKindEnum,
+			Name:        line.Name().String(),
+			Fields:      []*schema.TypeField{},
+			Annotations: buildAnnotations(line.Annotations()),
 		})
 	}
 
 	// pushing types (1st pass)
 	for _, line := range q.root.Structs() {
 		s.Types = append(s.Types, &schema.Type{
-			Kind:     schemaTypeKindStruct,
-			Name:     line.Name().String(),
-			Comments: parseComment(line.Comment()),
+			Kind:        schemaTypeKindStruct,
+			Name:        line.Name().String(),
+			Comments:    parseComment(line.Comment()),
+			Annotations: buildAnnotations(line.Annotations()),
 		})
 	}
 
@@ -341,7 +343,8 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				TypeExtra: schema.TypeExtra{
 					Optional: def.Optional(),
 				},
-				Comments: parseComment(def.Comment()),
+				Comments:    parseComment(def.Comment()),
+				Annotations: buildAnnotations(def.Annotations()),
 			}
 			for _, meta := range def.Meta() {
 				key, val := meta.Left().String(), meta.Right().String()
@@ -389,7 +392,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				Outputs:      outputs,
 				Errors:       methodErrors,
 				Comments:     parseComment(method.Comment()),
-				Annotations:  buildAnnotations(method),
+				Annotations:  buildAnnotations(method.Annotations()),
 				Succinct:     succinctInput && succinctOutput,
 			}
 
@@ -502,10 +505,10 @@ func parseComment(comment string) []string {
 	return strings.Split(comment, "\n")
 }
 
-func buildAnnotations(method *MethodNode) schema.Annotations {
+func buildAnnotations(anns []*AnnotationNode) schema.Annotations {
 	annotations := make(map[string]*schema.Annotation)
 
-	for _, a := range method.Annotations() {
+	for _, a := range anns {
 		an := &schema.Annotation{
 			AnnotationType: a.AnnotationType().String(),
 		}

@@ -207,6 +207,207 @@ type EnumData struct {
 	List []Status          `json:"list"`
 }
 
+type webrpcType struct {
+	name        string
+	kind        string
+	annotations map[string]string
+	fields      map[string]*webrpcTypeField
+}
+
+type webrpcTypeField struct {
+	name        string
+	fieldType   string
+	annotations map[string]string
+}
+
+func (t *webrpcType) Name() string                   { return t.name }
+func (t *webrpcType) Kind() string                   { return t.kind }
+func (t *webrpcType) Annotations() map[string]string { return t.annotations }
+func (t *webrpcType) Annotation(key string) string   { return t.annotations[key] }
+func (t *webrpcType) HasAnnotation(key string) bool  { _, ok := t.annotations[key]; return ok }
+func (t *webrpcType) Field(name string) (*webrpcTypeField, bool) {
+	f, ok := t.fields[name]
+	return f, ok
+}
+
+func (f *webrpcTypeField) Name() string                   { return f.name }
+func (f *webrpcTypeField) Type() string                   { return f.fieldType }
+func (f *webrpcTypeField) Annotations() map[string]string { return f.annotations }
+func (f *webrpcTypeField) Annotation(key string) string   { return f.annotations[key] }
+func (f *webrpcTypeField) HasAnnotation(key string) bool  { _, ok := f.annotations[key]; return ok }
+
+var webrpcTypes = map[string]*webrpcType{
+	"Status": {
+		name:        "Status",
+		kind:        "enum",
+		annotations: map[string]string{},
+		fields: map[string]*webrpcTypeField{
+			"AVAILABLE": {
+				name:        "AVAILABLE",
+				fieldType:   "",
+				annotations: map[string]string{},
+			},
+			"NOT_AVAILABLE": {
+				name:        "NOT_AVAILABLE",
+				fieldType:   "",
+				annotations: map[string]string{},
+			},
+		},
+	},
+	"Access": {
+		name:        "Access",
+		kind:        "enum",
+		annotations: map[string]string{},
+		fields: map[string]*webrpcTypeField{
+			"NONE": {
+				name:        "NONE",
+				fieldType:   "",
+				annotations: map[string]string{},
+			},
+			"READ": {
+				name:        "READ",
+				fieldType:   "",
+				annotations: map[string]string{},
+			},
+			"WRITE": {
+				name:        "WRITE",
+				fieldType:   "",
+				annotations: map[string]string{},
+			},
+			"ADMIN": {
+				name:        "ADMIN",
+				fieldType:   "",
+				annotations: map[string]string{},
+			},
+			"OWNER": {
+				name:        "OWNER",
+				fieldType:   "",
+				annotations: map[string]string{},
+			},
+		},
+	},
+	"Simple": {
+		name:        "Simple",
+		kind:        "struct",
+		annotations: map[string]string{},
+		fields: map[string]*webrpcTypeField{
+			"id": {
+				name:        "id",
+				fieldType:   "int",
+				annotations: map[string]string{},
+			},
+			"name": {
+				name:        "name",
+				fieldType:   "string",
+				annotations: map[string]string{},
+			},
+		},
+	},
+	"User": {
+		name:        "User",
+		kind:        "struct",
+		annotations: map[string]string{},
+		fields: map[string]*webrpcTypeField{
+			"id": {
+				name:        "id",
+				fieldType:   "uint64",
+				annotations: map[string]string{},
+			},
+			"username": {
+				name:        "username",
+				fieldType:   "string",
+				annotations: map[string]string{},
+			},
+			"role": {
+				name:        "role",
+				fieldType:   "string",
+				annotations: map[string]string{},
+			},
+		},
+	},
+	"Complex": {
+		name:        "Complex",
+		kind:        "struct",
+		annotations: map[string]string{},
+		fields: map[string]*webrpcTypeField{
+			"meta": {
+				name:        "meta",
+				fieldType:   "map<string,any>",
+				annotations: map[string]string{},
+			},
+			"metaNestedExample": {
+				name:        "metaNestedExample",
+				fieldType:   "map<string,map<string,uint32>>",
+				annotations: map[string]string{},
+			},
+			"namesList": {
+				name:        "namesList",
+				fieldType:   "[]string",
+				annotations: map[string]string{},
+			},
+			"numsList": {
+				name:        "numsList",
+				fieldType:   "[]int64",
+				annotations: map[string]string{},
+			},
+			"doubleArray": {
+				name:        "doubleArray",
+				fieldType:   "[][]string",
+				annotations: map[string]string{},
+			},
+			"listOfMaps": {
+				name:        "listOfMaps",
+				fieldType:   "[]map<string,uint32>",
+				annotations: map[string]string{},
+			},
+			"listOfUsers": {
+				name:        "listOfUsers",
+				fieldType:   "[]User",
+				annotations: map[string]string{},
+			},
+			"mapOfUsers": {
+				name:        "mapOfUsers",
+				fieldType:   "map<string,User>",
+				annotations: map[string]string{},
+			},
+			"user": {
+				name:        "user",
+				fieldType:   "User",
+				annotations: map[string]string{},
+			},
+			"status": {
+				name:        "status",
+				fieldType:   "Status",
+				annotations: map[string]string{},
+			},
+		},
+	},
+	"EnumData": {
+		name:        "EnumData",
+		kind:        "struct",
+		annotations: map[string]string{},
+		fields: map[string]*webrpcTypeField{
+			"dict": {
+				name:        "dict",
+				fieldType:   "map<Access,uint64>",
+				annotations: map[string]string{},
+			},
+			"list": {
+				name:        "list",
+				fieldType:   "[]Status",
+				annotations: map[string]string{},
+			},
+		},
+	},
+}
+
+// WebrpcType returns the schema type descriptor for the given type name,
+// including its annotations and the annotations of each of its fields.
+func WebrpcType(name string) (*webrpcType, bool) {
+	t, ok := webrpcTypes[name]
+	return t, ok
+}
+
 //
 // File type
 //

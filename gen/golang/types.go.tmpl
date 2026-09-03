@@ -20,19 +20,33 @@
 {{ end -}}
 
 {{- if and (eq $type.Kind "alias") $opts.types }}
+{{- $deprecated := index $type.Annotations "deprecated" }}
 {{- if gt (len $type.Comments) 0 }}
 	{{- range $_, $comment := $type.Comments }}
 		// {{ replaceAll $comment "\"" "'" }}
 	{{- end }}
+	{{- if $deprecated }}
+		//
+	{{- end }}
+{{- end }}
+{{- if $deprecated }}
+// Deprecated: {{ $deprecated.Value }}
 {{- end }}
 {{template "alias" dict "Name" $type.Name "Type" $type.Type "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $type.Meta}}
 {{ end -}}
 
 {{- if and (eq $type.Kind "struct") $opts.types }}
+{{- $deprecated := index $type.Annotations "deprecated" }}
 {{- if gt (len $type.Comments) 0 }}
 	{{- range $_, $comment := $type.Comments }}
 		// {{ replaceAll $comment "\"" "'" }}
 	{{- end }}
+	{{- if $deprecated }}
+		//
+	{{- end }}
+{{- end }}
+{{- if $deprecated }}
+// Deprecated: {{ $deprecated.Value }}
 {{- end }}
 {{template "struct" dict "Name" $type.Name "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "Fields" $type.Fields}}
 {{ end -}}
