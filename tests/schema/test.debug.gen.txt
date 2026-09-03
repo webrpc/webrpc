@@ -4104,6 +4104,7 @@
 						Annotations: (schema.Annotations) {
 						},
 						Comments: ([]string) (len=1 cap=1) {
+							(string) (len=16) "added in v0.46.0"
 						},
 						Succinct: (bool) false,
 						StreamInput: (bool) false,
