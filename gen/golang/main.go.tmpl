@@ -190,6 +190,7 @@ func WebRPCSchemaHash() string {
 {{/* Schema types */}}
 {{- if eq $opts.importTypesFrom "" }}
 {{ template "types" dict "Services" .Services "Types" .Types "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "Opts" $opts }}
+{{ template "webrpcTypes" dict "Types" .Types }}
 
 {{- /* The file type is a schema type: it must be emitted even when only types
        are generated, independently of the client/server file helpers. */ -}}

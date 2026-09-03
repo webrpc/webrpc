@@ -56,6 +56,9 @@ func parserStateEnumDefinition(et *EnumNode) parserState {
 }
 
 func parserStateEnum(p *parser) parserState {
+	annotations := p.pendingAnnotations
+	p.pendingAnnotations = nil
+
 	// enum <name>: <type>[<# comment>]
 	matches, err := p.match(tokenWord, tokenWhitespace, tokenWord, tokenColon, tokenWhitespace, tokenWord, tokenEOL)
 	if err != nil {
@@ -67,10 +70,11 @@ func parserStateEnum(p *parser) parserState {
 	}
 
 	return parserStateEnumDefinition(&EnumNode{
-		name:     newTokenNode(matches[2]),
-		enumType: newTokenNode(matches[5]),
-		values:   []*DefinitionNode{},
-		comment:  parseComments(p.comments, matches[0].line),
-		line:     matches[0].line,
+		name:        newTokenNode(matches[2]),
+		enumType:    newTokenNode(matches[5]),
+		values:      []*DefinitionNode{},
+		annotations: annotations,
+		comment:     parseComments(p.comments, matches[0].line),
+		line:        matches[0].line,
 	})
 }

@@ -151,12 +151,17 @@ type DefinitionNode struct {
 
 	optional bool
 
-	meta    []*DefinitionNode
-	comment string
+	meta        []*DefinitionNode
+	annotations []*AnnotationNode
+	comment     string
 }
 
 func (dn DefinitionNode) Meta() []*DefinitionNode {
 	return dn.meta
+}
+
+func (dn DefinitionNode) Annotations() []*AnnotationNode {
+	return dn.annotations
 }
 
 func (dn DefinitionNode) Type() NodeType {
@@ -239,11 +244,12 @@ func (in ImportNode) Type() NodeType {
 type EnumNode struct {
 	node
 
-	name     *TokenNode
-	enumType *TokenNode
-	values   []*DefinitionNode
-	comment  string
-	line     int
+	name        *TokenNode
+	enumType    *TokenNode
+	values      []*DefinitionNode
+	annotations []*AnnotationNode
+	comment     string
+	line        int
 }
 
 func (en EnumNode) Type() NodeType {
@@ -252,6 +258,10 @@ func (en EnumNode) Type() NodeType {
 
 func (en EnumNode) Name() *TokenNode {
 	return en.name
+}
+
+func (en EnumNode) Annotations() []*AnnotationNode {
+	return en.annotations
 }
 
 func (en EnumNode) TypeName() *TokenNode {
@@ -271,6 +281,12 @@ type StructNode struct {
 	fields  []*DefinitionNode
 	comment string
 	line    int
+
+	annotations []*AnnotationNode
+
+	// fieldAnnotations buffers @tag lines seen above the field currently
+	// being parsed; it is attached to the field and cleared once consumed.
+	fieldAnnotations []*AnnotationNode
 }
 
 func (mn StructNode) Name() *TokenNode {
@@ -283,6 +299,10 @@ func (mn *StructNode) Type() NodeType {
 
 func (mn *StructNode) Fields() []*DefinitionNode {
 	return mn.fields
+}
+
+func (mn *StructNode) Annotations() []*AnnotationNode {
+	return mn.annotations
 }
 
 func (mn *StructNode) Comment() string { return mn.comment }

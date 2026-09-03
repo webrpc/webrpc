@@ -46,6 +46,10 @@ type parser struct {
 	comments map[int]string
 
 	root RootNode
+
+	// pendingAnnotations buffers @tag lines seen above a top-level
+	// definition (struct/enum); it is attached and cleared once consumed.
+	pendingAnnotations []*AnnotationNode
 }
 
 func newParser(file string, src []byte) (*parser, error) {
@@ -393,6 +397,10 @@ func parserStateDeclaration(p *parser) parserState {
 		return p.stateError(errUnexpectedToken)
 	}
 
+	if len(p.pendingAnnotations) > 0 && word.val != wordStruct && word.val != wordEnum {
+		return p.stateError(fmt.Errorf("annotations are only supported above 'struct' and 'enum' definitions"))
+	}
+
 	switch word.val {
 	case wordWebRPC, wordName, wordVersion, wordBasepath:
 		// <word> = <value> # optional comment
@@ -446,6 +454,17 @@ func parserDefaultState(p *parser) parserState {
 
 	case tokenHash:
 		return parserStateComment
+
+	case tokenAt:
+		anns, err := parseAnnotations(p)
+		if err != nil {
+			return p.stateError(err)
+		}
+		p.pendingAnnotations = append(p.pendingAnnotations, anns...)
+		if err := checkDuplicateAnnotations(p.pendingAnnotations); err != nil {
+			return p.stateError(err)
+		}
+		return parserDefaultState
 
 	case tokenEOF:
 		return parserStateEOF

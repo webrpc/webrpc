@@ -30,6 +30,18 @@ func expectNumber(tok *token, value string) error {
 	return nil
 }
 
+func checkDuplicateAnnotations(anns []*AnnotationNode) error {
+	seen := map[string]struct{}{}
+	for _, ann := range anns {
+		key := ann.AnnotationType().String()
+		if _, ok := seen[key]; ok {
+			return fmt.Errorf("duplicate annotation type: %v", key)
+		}
+		seen[key] = struct{}{}
+	}
+	return nil
+}
+
 func unescapeString(in string) (string, error) {
 	size := len(in)
 	out := ""

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"sort"
 	"strings"
 )
 
@@ -334,6 +335,176 @@ func IgnoreMethodsWithAnnotations(s *WebRPCSchema, annotations map[string]string
 		}
 
 		s.Services[i].Methods = methods
+	}
+
+	return s
+}
+
+// annotationsMatch reports whether ann contains at least one annotation
+// matching the given filter, where filter is a map of annotation name to
+// value (empty value means match by annotation type only, regardless of value).
+func annotationsMatch(ann Annotations, filter map[string]string) bool {
+	for name, value := range filter {
+		a, ok := ann[name]
+		if !ok {
+			continue
+		}
+
+		trimmedValue := strings.Trim(value, " ")
+		if trimmedValue == "" {
+			// match annotation types only
+			if name == a.AnnotationType {
+				return true
+			}
+		} else {
+			// match @key:value
+			if name == a.AnnotationType && value == a.Value {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// referencingTypeOrMethodNames returns the names of types (aliases, struct/enum
+// fields) and service methods that reference the type named targetName,
+// excluding excludeType itself.
+func referencingTypeOrMethodNames(s *WebRPCSchema, targetName string, excludeType *Type) []string {
+	var checkVarType func(vt *VarType) bool
+	checkVarType = func(vt *VarType) bool {
+		if vt == nil {
+			return false
+		}
+		if vt.List != nil && checkVarType(vt.List.Elem) {
+			return true
+		}
+		if vt.Map != nil && (checkVarType(vt.Map.Key) || checkVarType(vt.Map.Value)) {
+			return true
+		}
+		if vt.Struct != nil && vt.Struct.Type != nil && vt.Struct.Type.Name == targetName {
+			return true
+		}
+		if vt.Enum != nil && vt.Enum.Type != nil && vt.Enum.Type.Name == targetName {
+			return true
+		}
+		return false
+	}
+
+	referrers := map[string]struct{}{}
+
+	for _, t := range s.Types {
+		if t == excludeType {
+			continue
+		}
+		if t.Type != nil && checkVarType(t.Type) {
+			referrers[t.Name] = struct{}{}
+		}
+		for _, f := range t.Fields {
+			if checkVarType(f.Type) {
+				referrers[t.Name] = struct{}{}
+			}
+		}
+	}
+
+	for _, srv := range s.Services {
+		for _, m := range srv.Methods {
+			for _, in := range m.Inputs {
+				if checkVarType(in.Type) {
+					referrers[srv.Name+"."+m.Name+"()"] = struct{}{}
+				}
+			}
+			for _, out := range m.Outputs {
+				if checkVarType(out.Type) {
+					referrers[srv.Name+"."+m.Name+"()"] = struct{}{}
+				}
+			}
+		}
+	}
+
+	names := make([]string, 0, len(referrers))
+	for name := range referrers {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	return names
+}
+
+// filterTypesWithAnnotations keeps types in s.Types for which keep(t) returns true.
+// Removing a type that is still referenced elsewhere in the schema is a hard error.
+func filterTypesWithAnnotations(s *WebRPCSchema, keep func(t *Type) bool) (*WebRPCSchema, error) {
+	if s == nil {
+		return nil, nil
+	}
+
+	var kept []*Type
+	for _, t := range s.Types {
+		if keep(t) {
+			kept = append(kept, t)
+			continue
+		}
+
+		if refs := referencingTypeOrMethodNames(s, t.Name, t); len(refs) > 0 {
+			return nil, fmt.Errorf("schema error: cannot ignore/exclude type '%s' via annotation, it is still referenced by: %s", t.Name, strings.Join(refs, ", "))
+		}
+	}
+	s.Types = kept
+
+	return s, nil
+}
+
+// MatchTypesWithAnnotations keeps only the types matching one of the given annotations.
+// It is a hard error to exclude a type that is still referenced elsewhere in the schema.
+func MatchTypesWithAnnotations(s *WebRPCSchema, annotations map[string]string) (*WebRPCSchema, error) {
+	return filterTypesWithAnnotations(s, func(t *Type) bool {
+		return annotationsMatch(t.Annotations, annotations)
+	})
+}
+
+// IgnoreTypesWithAnnotations removes types matching one of the given annotations.
+// It is a hard error to ignore a type that is still referenced elsewhere in the schema.
+func IgnoreTypesWithAnnotations(s *WebRPCSchema, annotations map[string]string) (*WebRPCSchema, error) {
+	return filterTypesWithAnnotations(s, func(t *Type) bool {
+		return !annotationsMatch(t.Annotations, annotations)
+	})
+}
+
+// MatchTypeFieldsWithAnnotations keeps, on every type, only the fields matching
+// one of the given annotations.
+func MatchTypeFieldsWithAnnotations(s *WebRPCSchema, annotations map[string]string) *WebRPCSchema {
+	if s == nil {
+		return nil
+	}
+
+	for _, t := range s.Types {
+		var fields []*TypeField
+		for _, f := range t.Fields {
+			if annotationsMatch(f.Annotations, annotations) {
+				fields = append(fields, f)
+			}
+		}
+		t.Fields = fields
+	}
+
+	return s
+}
+
+// IgnoreTypeFieldsWithAnnotations removes, from every type, the fields matching
+// one of the given annotations.
+func IgnoreTypeFieldsWithAnnotations(s *WebRPCSchema, annotations map[string]string) *WebRPCSchema {
+	if s == nil {
+		return nil
+	}
+
+	for _, t := range s.Types {
+		var fields []*TypeField
+		for _, f := range t.Fields {
+			if !annotationsMatch(f.Annotations, annotations) {
+				fields = append(fields, f)
+			}
+		}
+		t.Fields = fields
 	}
 
 	return s

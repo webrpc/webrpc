@@ -72,9 +72,11 @@ func parserStateStructFieldDefinition(mn *StructNode) parserState {
 		}
 
 		field := &DefinitionNode{
-			leftNode: newTokenNode(matches[2]),
-			comment:  parseComments(p.comments, matches[0].line),
+			leftNode:    newTokenNode(matches[2]),
+			comment:     parseComments(p.comments, matches[0].line),
+			annotations: mn.fieldAnnotations,
 		}
+		mn.fieldAnnotations = nil
 
 		// ?
 		_, err = p.match(tokenQuestionMark)
@@ -113,10 +115,27 @@ func parserStateStructField(mn *StructNode) parserState {
 		case tokenHash:
 			p.continueUntilEOL()
 
+		case tokenAt:
+			anns, err := parseAnnotations(p)
+			if err != nil {
+				return p.stateError(err)
+			}
+			mn.fieldAnnotations = append(mn.fieldAnnotations, anns...)
+			if err := checkDuplicateAnnotations(mn.fieldAnnotations); err != nil {
+				return p.stateError(err)
+			}
+
 		case tokenDash:
 			return parserStateStructFieldDefinition(mn)
 
 		default:
+			// Any buffered @tag lines here aren't for a field of this struct
+			// (no "- name: type" followed them) — they belong to whatever
+			// top-level definition comes next.
+			if len(mn.fieldAnnotations) > 0 {
+				p.pendingAnnotations = append(p.pendingAnnotations, mn.fieldAnnotations...)
+				mn.fieldAnnotations = nil
+			}
 			p.emit(mn)
 			return parserDefaultState
 
@@ -127,6 +146,9 @@ func parserStateStructField(mn *StructNode) parserState {
 }
 
 func parserStateStruct(p *parser) parserState {
+	annotations := p.pendingAnnotations
+	p.pendingAnnotations = nil
+
 	// struct <name>
 	matches, err := p.match(tokenWord, tokenWhitespace, tokenWord)
 	if err != nil {
@@ -138,9 +160,10 @@ func parserStateStruct(p *parser) parserState {
 	}
 
 	return parserStateStructField(&StructNode{
-		name:    newTokenNode(matches[2]),
-		fields:  []*DefinitionNode{},
-		comment: parseComments(p.comments, matches[0].line),
-		line:    matches[0].line,
+		name:        newTokenNode(matches[2]),
+		fields:      []*DefinitionNode{},
+		comment:     parseComments(p.comments, matches[0].line),
+		line:        matches[0].line,
+		annotations: annotations,
 	})
 }

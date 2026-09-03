@@ -98,6 +98,13 @@ func main() {
 		}
 
 		s = schema.IgnoreMethodsWithAnnotations(s, ignoreAnnotations)
+		s = schema.IgnoreTypeFieldsWithAnnotations(s, ignoreAnnotations)
+
+		s, err = schema.IgnoreTypesWithAnnotations(s, ignoreAnnotations)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	if *matchFlag != "" {
@@ -108,6 +115,13 @@ func main() {
 		}
 
 		s = schema.MatchMethodsWithAnnotations(s, matchAnnotations)
+		s = schema.MatchTypeFieldsWithAnnotations(s, matchAnnotations)
+
+		s, err = schema.MatchTypesWithAnnotations(s, matchAnnotations)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	config := &gen.Config{
