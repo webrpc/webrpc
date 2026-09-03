@@ -2,7 +2,11 @@
 
 {{- /* Options with default values. */ -}}
 {{- $opts := dict -}}
-{{- set $opts "title" (default .Opts.title (print (index .Services 0).Name " API")) -}}
+{{- if .Services -}}
+  {{- set $opts "title" (default .Opts.title (print (index .Services 0).Name " API")) -}}
+{{- else -}}
+  {{- set $opts "title" (default .Opts.title "API") -}}
+{{- end -}}
 {{- set $opts "apiVersion" (default .Opts.apiVersion "") -}}
 {{- set $opts "serverUrl" (default .Opts.serverUrl "") -}}
 {{- set $opts "serverDescription" (default .Opts.serverDescription "") -}}
@@ -147,6 +151,7 @@ components:
     {{- end -}}
     {{- end}}
 
+{{- if .Services }}
 paths:
 {{- range $_, $service := .Services -}}
   {{- range $_, $method := .Methods}}
@@ -302,5 +307,8 @@ paths:
                 {{- end -}}
                 {{- end }}
   {{- end -}}
+{{- end -}}
+{{- else }}
+paths: {}
 {{- end -}}
 {{- end -}}
