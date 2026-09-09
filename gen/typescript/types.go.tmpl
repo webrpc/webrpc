@@ -18,7 +18,7 @@ export const {{$type.Name}} = {
   {{- if eq $type.Type.Expr "string"}}
   {{$field.Name}}: '{{$field.Value}}',
   {{- else}}
-  {{$field.Name}}: '{{$field.Name}}',
+  {{$field.Name}}: '{{enumWireValue $field}}',
   {{- end}}
 {{- end}}
 } as const
@@ -30,7 +30,7 @@ export enum {{$type.Name}} {
   {{- if eq $type.Type.Expr "string"}}
   {{$field.Name}} = '{{$field.Value}}'
   {{- else}}
-  {{$field.Name}} = '{{$field.Name}}'
+  {{$field.Name}} = '{{enumWireValue $field}}'
   {{- end}}
 {{- end}}
 }

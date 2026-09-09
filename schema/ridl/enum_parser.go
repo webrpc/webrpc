@@ -16,7 +16,69 @@ func parserStateEnumExplicitValue(en *EnumNode, dn *DefinitionNode) parserState 
 
 		en.values = append(en.values, dn)
 
-		return parserStateEnumDefinition(en)
+		return parserStateEnumValueMeta(en)
+	}
+}
+
+func parserStateEnumValueMetaDefinition(en *EnumNode) parserState {
+	return func(p *parser) parserState {
+		// add to latest value
+		value := en.values[len(en.values)-1]
+
+		// + <tag.name> = value
+		_, err := p.match(tokenPlusSign, tokenWhitespace)
+		if err != nil {
+			return p.stateError(err)
+		}
+
+		// tag
+		left, err := p.expectMetadataKey()
+		if err != nil {
+			return p.stateError(err)
+		}
+
+		// =
+		_, err = p.match(tokenWhitespace, tokenEqual, tokenWhitespace)
+		if err != nil {
+			return p.stateError(err)
+		}
+
+		// - or value
+		right, err := p.expectMetadataValue()
+		if err != nil {
+			return p.stateError(err)
+		}
+
+		value.meta = append(value.meta, &DefinitionNode{
+			leftNode:  newTokenNode(left),
+			rightNode: newTokenNode(right),
+		})
+
+		return parserStateEnumValueMeta(en)
+	}
+}
+
+func parserStateEnumValueMeta(en *EnumNode) parserState {
+	return func(p *parser) parserState {
+		tok := p.cursor()
+
+		switch tok.tt {
+
+		case tokenNewLine, tokenWhitespace:
+			p.next()
+
+		case tokenHash:
+			p.continueUntilEOL()
+
+		case tokenPlusSign:
+			return parserStateEnumValueMetaDefinition(en)
+
+		default:
+			return parserStateEnumDefinition(en)
+
+		}
+
+		return parserStateEnumValueMeta(en)
 	}
 }
 

@@ -18,7 +18,11 @@ enum {{$type.Name}} {
     factory {{.Name}}.fromJson(dynamic json) {
         switch (json) {
             {{- range $i, $field := $type.Fields}}
-            case '{{$field.Name}}':
+            {{- if eq $type.Type.Expr "string"}}
+            case '{{$field.Value}}':
+            {{- else}}
+            case '{{enumWireValue $field}}':
+            {{- end}}
                 return {{$type.Name}}.{{$field.Name}};
             {{- end}}
             default:
@@ -27,7 +31,16 @@ enum {{$type.Name}} {
     }
 
     String toJson() {
-        return name;
+        switch (this) {
+            {{- range $i, $field := $type.Fields}}
+            case {{$type.Name}}.{{$field.Name}}:
+                {{- if eq $type.Type.Expr "string"}}
+                return '{{$field.Value}}';
+                {{- else}}
+                return '{{enumWireValue $field}}';
+                {{- end}}
+            {{- end}}
+        }
     }
 }
 {{end -}}

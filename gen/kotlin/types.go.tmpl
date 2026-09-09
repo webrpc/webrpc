@@ -42,7 +42,7 @@ enum class {{$type.Name}}(val wireValue: String) {
     {{- if eq $type.Type.Expr "string" }}
     {{$field.Name}}("{{$field.Value}}"),
     {{- else }}
-    {{$field.Name}}("{{$field.Name}}"),
+    {{$field.Name}}("{{enumWireValue $field}}"),
     {{- end }}
 {{- end}}
     {{$enumFallbackName}}("UNKNOWN_DEFAULT");

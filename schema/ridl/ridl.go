@@ -296,6 +296,12 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				},
 				Comments: parseComment(def.Comment()),
 			}
+			for _, meta := range def.Meta() {
+				key, val := meta.Left().String(), meta.Right().String()
+				elems.Meta = append(elems.Meta, schema.TypeFieldMeta{
+					key: val,
+				})
+			}
 
 			enumDef.Fields = append(enumDef.Fields, elems)
 		}
