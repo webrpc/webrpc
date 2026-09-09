@@ -127,7 +127,7 @@ func (s *ExampleServiceRPC) GetUser(ctx context.Context, req GetUserRequest) (*G
 		return nil, ErrUserNotFound.WithCausef("unknown user id %d", req.UserID)
 	}
 
-	kind := Kind_ADMIN
+	kind := KindAdmin
 	intent := Intent_openSession
 
 	return &GetUserResponse{
@@ -154,7 +154,7 @@ func (s *ExampleServiceRPC) GetUserV2(ctx context.Context, req GetUserRequest) (
 		return nil, errors.Join(ErrUserNotFound.WithCausef("unknown user id %d", req.UserID), errors.New("secondary failure"))
 	}
 
-	kind := Kind_ADMIN
+	kind := KindAdmin
 	intent := Intent_openSession
 
 	return &GetUserResponse{

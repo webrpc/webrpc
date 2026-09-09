@@ -54,6 +54,23 @@ func isEnumType(v interface{}) bool {
 	}
 }
 
+// enumWireValue returns the string an enum field marshals as: its
+// + json meta override if present, else the field's own name (the
+// pre-existing behavior every language generator used before + json
+// existed). schema/type.go rejects + json on a string enum (its Value is
+// already the wire string there), so this only ever changes behavior for
+// int-backed enums.
+func enumWireValue(field *schema.TypeField) string {
+	for _, meta := range field.Meta {
+		if jsonValue, ok := meta["json"]; ok {
+			if s, ok := jsonValue.(string); ok {
+				return s
+			}
+		}
+	}
+	return field.Name
+}
+
 // Returns true if given type is alias.
 func isAliasType(v interface{}) bool {
 	switch t := v.(type) {

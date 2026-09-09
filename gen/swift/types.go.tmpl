@@ -74,7 +74,7 @@
             {{- if eq $type.Type.Expr "string" }}
             return "{{$field.Value}}"
             {{- else }}
-            return "{{$field.Name}}"
+            return "{{enumWireValue $field}}"
             {{- end }}
         {{- end}}
         case .{{$unknownCaseName}}(let value):
@@ -88,7 +88,7 @@
             {{- if eq $type.Type.Expr "string" }}
         case "{{$field.Value}}":
             {{- else }}
-        case "{{$field.Name}}":
+        case "{{enumWireValue $field}}":
             {{- end }}
             self = .{{template "swiftLowerCamel" dict "Name" $field.Name}}
         {{- end}}

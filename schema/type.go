@@ -126,7 +126,16 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 
 	// For enums only, ensure all field types are the same
 	if t.Kind == TypeKind_Enum {
+		// ensure enum type is one of the allowed types.. aka integer
+		fieldType := t.Type
+		validCoreTypes := append(VarIntegerCoreTypes, T_String)
+		if !isValidVarType(fieldType.String(), validCoreTypes) {
+			return fmt.Errorf("schema error: enum '%s' field '%s' is invalid. must be an integer type", t.Name, fieldType.String())
+		}
+		isStringEnum := fieldType.String() == T_String.String()
+
 		// ensure enum fields have value key set
+		jsonValueList := map[string]string{}
 		for _, field := range t.Fields {
 			if field.Value == "" {
 				return fmt.Errorf("schema error: enum '%s' with field '%s' is missing value", t.Name, field.Name)
@@ -134,13 +143,37 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 			if field.Type != nil {
 				return fmt.Errorf("schema error: enum '%s' with field '%s', must omit 'type'", t.Name, field.Name)
 			}
-		}
 
-		// ensure enum type is one of the allowed types.. aka integer
-		fieldType := t.Type
-		validCoreTypes := append(VarIntegerCoreTypes, T_String)
-		if !isValidVarType(fieldType.String(), validCoreTypes) {
-			return fmt.Errorf("schema error: enum '%s' field '%s' is invalid. must be an integer type", t.Name, fieldType.String())
+			// Verify json meta format, as it overrides the field's own name
+			// as the wire string in generated String()/MarshalText()/
+			// UnmarshalText() helpers (int-backed enums only — a string enum
+			// already carries its wire value in Value, so + json on one is
+			// redundant and rejected). Unlike a struct field's json meta,
+			// this is not a Go identifier, so it is not run through
+			// IsValidArgName — it may contain dots, etc.
+			for _, meta := range field.Meta {
+				jsonMeta, ok := meta["json"]
+				if !ok {
+					continue
+				}
+
+				if isStringEnum {
+					return fmt.Errorf("schema error: enum '%s' field '%s' has a 'json' meta, but is a string enum — its value is already the wire string, remove the redundant + json", t.Name, field.Name)
+				}
+
+				jsonMetaString, ok := jsonMeta.(string)
+				if !ok {
+					return fmt.Errorf("schema error: invalid json type '%T' in enum '%s' field '%s': must be string", jsonMeta, t.Name, field.Name)
+				}
+				if jsonMetaString == "" {
+					return fmt.Errorf("schema error: empty json value in enum '%s' field '%s'", t.Name, field.Name)
+				}
+
+				if existing, ok := jsonValueList[jsonMetaString]; ok {
+					return fmt.Errorf("schema error: detected duplicate json value '%s' in enum '%s' fields '%s' and '%s'", jsonMetaString, t.Name, existing, field.Name)
+				}
+				jsonValueList[jsonMetaString] = field.Name
+			}
 		}
 	}
 

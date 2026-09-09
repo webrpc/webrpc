@@ -14,7 +14,11 @@
 {{if $opts.exports}}export {{end}}var {{$enumName}};
 (function ({{$enumName}}) {
 {{- range $i, $field := .Fields}}
-  {{$enumName}}["{{$field.Name}}"] = "{{$field.Name}}"
+  {{- if eq $type.Type.Expr "string"}}
+  {{$enumName}}["{{$field.Name}}"] = "{{$field.Value}}"
+  {{- else}}
+  {{$enumName}}["{{$field.Name}}"] = "{{enumWireValue $field}}"
+  {{- end}}
 {{- end}}
 })({{$enumName}} || ({{$enumName}} = {}))
 {{end -}}

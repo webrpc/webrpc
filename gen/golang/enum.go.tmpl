@@ -30,13 +30,13 @@ const (
 
 var {{$name}}_name = map[{{$name}}]string{
 {{- range $fields}}
-	{{template "enumConstName" dict "EnumName" $name "FieldName" .Name}}: "{{.Name}}",
+	{{template "enumConstName" dict "EnumName" $name "FieldName" .Name}}: "{{enumWireValue .}}",
 {{- end}}
 }
 
 var {{$name}}_value = map[string]{{$name}}{
 {{- range $fields}}
-	"{{.Name}}": {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}},
+	"{{enumWireValue .}}": {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}},
 {{- end}}
 }
 

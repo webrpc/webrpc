@@ -12,7 +12,11 @@
       {{end -}}
       enum:
         {{- range $type.Fields}}
-        - {{.Name}}
+        {{- if eq $type.Type.Expr "string"}}
+        - {{.Value}}
+        {{- else}}
+        - {{enumWireValue .}}
+        {{- end}}
         {{- end -}}
     {{- else if isAliasType $type}}
       {{ template "fieldType" dict "Type" $type.Type "TypeMap" $typeMap "Indent" "      " }}
