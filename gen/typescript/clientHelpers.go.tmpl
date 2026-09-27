@@ -9,6 +9,36 @@ const createHttpRequest = (body: string = '{}', headers: object = {}, signal: Ab
   return { method: 'POST', headers: reqHeaders, body, signal }
 }
 
+{{- if $opts.restRoutes }}
+
+// createHttpRestRequest returns the fetch() arguments of a REST route call:
+// request fields named by {param} placeholders fill the path, the others go
+// to the query string (GET/DELETE/QUERY) or the JSON body.
+const createHttpRestRequest = (hostname: string, method: string, path: string, req: object, headers: object = {}, signal: AbortSignal | null = null): [string, object] => {
+  const fields: { [key: string]: any } = JSON.parse(JsonEncode(req))
+  const hasBody = method === 'POST' || method === 'PUT' || method === 'PATCH'
+  const query = new URLSearchParams()
+  path = path.replace(/\{(\w+)\}/g, (_, name) => {
+    const value = fields[name]
+    delete fields[name]
+    return encodeURIComponent(String(value))
+  })
+  if (!hasBody) {
+    for (const [name, value] of Object.entries(fields)) {
+      for (const v of Array.isArray(value) ? value : value == null ? [] : [value]) {
+        query.append(name, String(v))
+      }
+    }
+  }
+  const qs = query.toString()
+  const reqHeaders: { [key: string]: string } = { ...headers {{- if eq $opts.webrpcHeader true }}, [WebrpcHeader]: WebrpcHeaderValue{{ end }} }
+  if (hasBody) {
+    reqHeaders['Content-Type'] = 'application/json'
+  }
+  return [hostname + path + (qs ? '?' + qs : ''), { method, headers: reqHeaders, body: hasBody ? JsonEncode(req) : undefined, signal }]
+}
+{{- end }}
+
 const buildResponse = (res: Response): Promise<any> => {
   return res.text().then(text => {
     let data

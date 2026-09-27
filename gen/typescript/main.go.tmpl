@@ -58,6 +58,9 @@
     {{ if MethodHasFileDownload $method -}}
       {{- set $opts "fileDownload" true -}}
     {{- end -}}
+    {{ if MethodHasRoute $method -}}
+      {{- set $opts "restRoutes" true -}}
+    {{- end -}}
   {{- end -}}
 {{- end }}
 

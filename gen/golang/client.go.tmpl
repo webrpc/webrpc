@@ -25,11 +25,19 @@ type {{$serviceNameClient}} struct {
 	urls	 [{{len $service.Methods}}]string
 }
 
+{{- $serviceHasRPC := false -}}
+{{- range $_, $method := $service.Methods -}}
+{{- if not (MethodHasRoute $method) -}}
+{{- $serviceHasRPC = true -}}
+{{- end -}}
+{{- end }}
 func New{{$ServiceNameClient}}(addr string, client HTTPClient) {{$ServiceNameClient}} {
+	{{- if $serviceHasRPC }}
 	prefix := serviceURL(addr, {{$service.Name}}PathPrefix)
+	{{- end }}
 	urls := [{{len $service.Methods}}]string{
 	{{- range $_, $method := $service.Methods}}
-		prefix + "{{$method.Name}}",
+		{{if MethodHasRoute $method}}serviceURL(addr, "{{MethodRoutePath $method}}"){{else}}prefix + "{{$method.Name}}"{{end}},
 	{{- end}}
 	}
 	return &{{$serviceNameClient}}{
@@ -81,7 +89,7 @@ func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context, {{$input.
 	{{- end }}
 	err := doHTTPUploadRequest(ctx, c.client, c.urls[{{$i}}], {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}, parts, &out)
 	{{- else }}
-	err := doHTTPRequest(ctx, c.client, c.urls[{{$i}}], {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}, &out)
+	err := doHTTPRequest(ctx, {{if MethodHasRoute $method}}restClient{c.client, "{{MethodRouteVerb $method}}"}{{else}}c.client{{end}}, c.urls[{{$i}}], {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}, &out)
 	{{- end }}
 	return out, err
 	{{- end }}
@@ -152,7 +160,7 @@ func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context{{range $_,
 
 	return fileFromResponse(resp), nil
 	{{- else }}
-	err := doHTTPRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}})
+	err := doHTTPRequest(ctx, {{if MethodHasRoute $method}}restClient{c.client, "{{MethodRouteVerb $method}}"}{{else}}c.client{{end}}, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}})
 
 	return {{range $i, $output := $method.Outputs}}out.Ret{{$i}}, {{end}}err
 	{{- end }}
