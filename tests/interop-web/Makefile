@@ -13,6 +13,7 @@ generate: build
 	webrpc-gen -schema=$(RIDL) -target=typescript -client -service=Example -out=./client.gen.ts
 	webrpc-gen -schema=$(RIDL) -target=typescript -server -service=Example -out=./server.gen.ts
 	webrpc-gen -schema=$(RIDL) -target=javascript -client -service=Example -out=./client.gen.mjs
+	webrpc-gen -schema=./validate.ridl -target=typescript -server -out=./validate.gen.ts
 
 # End-to-end interoperability tests of the file upload/download wire contract
 # between the Go and TypeScript/JavaScript generators.

@@ -17,7 +17,7 @@
     {{- else if eq (printf "%v" (listElemType $type)) "file" -}}
     file[]
     {{- else -}}
-    {{template "type" dict "Type" (listElemType $type) "TypeMap" $typeMap}}[]
+    {{template "jsType" dict "Type" (listElemType $type) "TypeMap" $typeMap}}[]
     {{- end -}}
 
 {{- else if eq (printf "%v" $type) "file" -}}

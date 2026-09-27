@@ -68,7 +68,7 @@ const clientSuite = async (client: Example, userId: number) => {
 // mirroring the Go implementation in the golang-basics example.
 const createExampleService = (): ExampleServer => {
   const avatars = new Map<number, File>()
-  const user = { id: 1, USERNAME: 'hihi', role: 'user', kind: Kind.ADMIN, intent: Intent.openSession }
+  const user = { id: 1, USERNAME: 'hihi', role: 'user', kind: Kind.Admin, intent: Intent.openSession }
 
   return {
     async ping() { return {} },
