@@ -115,11 +115,15 @@ export class {{$service.Name}} implements {{$service.Name}}Client {
     })
   {{- else }}
     return this.fetch(
+      {{- if MethodHasRoute $method }}
+      ...createHttpRestRequest(this.hostname, '{{MethodRouteVerb $method}}', '{{MethodRoutePath $method}}', {{if .Inputs | len}}req{{else}}{}{{end}}, headers, signal)).then((res) => {
+      {{- else }}
       this.url('{{.Name}}'),
       {{- if .Inputs | len }}
       createHttpRequest(JsonEncode(req), headers, signal)).then((res) => {
       {{- else }}
       createHttpRequest('{}', headers, signal)).then((res) => {
+      {{- end }}
       {{- end }}
       return buildResponse(res).then(_data => {
         return JsonDecode<{{$methodRespName}}>(_data, '{{$methodRespName}}')

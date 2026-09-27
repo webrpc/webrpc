@@ -20,6 +20,7 @@ const (
 	wordService  = "service"
 	wordStream   = "stream"
 	wordErrors   = "errors"
+	wordPath     = "path"
 	wordBasepath = "basepath"
 	wordVersion  = "version"
 	wordType     = "type"
@@ -255,6 +256,25 @@ loop:
 		default:
 			break loop
 		}
+	}
+
+	return composedValue(tokens)
+}
+
+// expectRoutePath reads a REST route path template such as /users/{userId},
+// composed of slashes, words (which may contain '-' and '~'), dots, and the
+// '{' / '}' param braces (lexed as tokenExtra).
+func (p *parser) expectRoutePath() (*token, error) {
+	tokens := []*token{}
+
+	for {
+		tok := p.cursor()
+		isBrace := tok.tt == tokenExtra && (tok.val == "{" || tok.val == "}")
+		if tok.tt != tokenSlash && tok.tt != tokenWord && tok.tt != tokenDot && !isBrace {
+			break
+		}
+		tokens = append(tokens, tok)
+		p.next()
 	}
 
 	return composedValue(tokens)

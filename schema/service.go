@@ -7,6 +7,7 @@ import (
 
 type Service struct {
 	Name     string    `json:"name"`
+	Path     string    `json:"path,omitempty"` // optional REST path prefix, composed as {basepath}{service.path}{method.path}
 	Methods  []*Method `json:"methods"`
 	Comments []string  `json:"comments"`
 
@@ -22,6 +23,8 @@ type Method struct {
 	StreamInput  bool `json:"streamInput,omitempty"`
 	StreamOutput bool `json:"streamOutput,omitempty"`
 	Proxy        bool `json:"-"` // TODO: actual implementation
+
+	Route *MethodRoute `json:"route,omitempty"` // optional REST route, e.g. GET /{userId}
 
 	Inputs  []*MethodArgument `json:"inputs"`
 	Outputs []*MethodArgument `json:"outputs"`

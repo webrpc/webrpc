@@ -32,6 +32,11 @@
 	{{- if $opts.fixEmptyArrays }}
 		{{- set $stdlibImports "reflect" "" -}}
 	{{- end -}}
+
+	{{- if $opts.restRoutes }}
+		{{- set $stdlibImports "bytes" "" -}}
+		{{- set $stdlibImports "strconv" "" -}}
+	{{- end -}}
 {{- end -}}
 
 {{- if $opts.streaming -}}

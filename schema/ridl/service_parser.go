@@ -1,6 +1,10 @@
 package ridl
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/webrpc/webrpc/schema"
+)
 
 func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 	return func(p *parser) parserState {
@@ -105,6 +109,7 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 		}
 
 		// Check for optional errors clause
+		pos := p.pos
 		matches, err = p.match(tokenWhitespace, tokenWord)
 		if err == nil && matches[1].val == wordErrors {
 			// Parse bar-separated list of error names
@@ -113,6 +118,8 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 				return p.stateError(err)
 			}
 			mn.errors = errorNames
+		} else {
+			p.pos = pos // not an errors clause, e.g. a route line on the next line
 		}
 
 		sn.methods = append(sn.methods, mn)
@@ -146,6 +153,26 @@ func parserStateServiceMethod(s *ServiceNode) parserState {
 			state := parseStateServiceMethodDefinition(s)
 			return state
 
+		case tokenWord:
+			switch {
+			case tok.val == wordPath:
+				// path = /users
+				if err := parseServicePath(p, s); err != nil {
+					return p.stateError(err)
+				}
+
+			case schema.IsRouteVerb(tok.val):
+				// GET /{userId}, a REST route for the preceding method
+				if err := parseMethodRoute(p, s); err != nil {
+					return p.stateError(err)
+				}
+
+			default:
+				// any other word ends the service block
+				p.emit(s)
+				return parserDefaultState
+			}
+
 		default:
 			p.emit(s)
 			return parserDefaultState
@@ -154,6 +181,61 @@ func parserStateServiceMethod(s *ServiceNode) parserState {
 
 		return parserStateServiceMethod(s)
 	}
+}
+
+// parseServicePath parses the optional `path = /users` service definition.
+func parseServicePath(p *parser, s *ServiceNode) error {
+	if s.path != nil {
+		return fmt.Errorf("service path was previously declared")
+	}
+	if len(s.methods) > 0 {
+		return fmt.Errorf("service path must be declared before the service methods")
+	}
+
+	if _, err := p.match(tokenWord, tokenWhitespace, tokenEqual, tokenWhitespace); err != nil {
+		return err
+	}
+
+	pathToken, err := p.expectRoutePath()
+	if err != nil {
+		return fmt.Errorf("expecting service path value: %w", err)
+	}
+	if err := p.expectOptionalCommentOrEOL(); err != nil {
+		return err
+	}
+
+	s.path = newTokenNode(pathToken)
+	return nil
+}
+
+// parseMethodRoute parses a REST route line, e.g. `GET /{userId}`, and
+// attaches it to the method defined just above it.
+func parseMethodRoute(p *parser, s *ServiceNode) error {
+	matches, err := p.match(tokenWord, tokenWhitespace)
+	if err != nil {
+		return err
+	}
+	verb := matches[0]
+
+	if len(s.methods) == 0 {
+		return fmt.Errorf("route '%s' must be declared under a service method", verb.val)
+	}
+	mn := s.methods[len(s.methods)-1]
+	if mn.HasRoute() {
+		return fmt.Errorf("method '%s' already declares a route", mn.Name().String())
+	}
+
+	pathToken, err := p.expectRoutePath()
+	if err != nil {
+		return fmt.Errorf("expecting route path after '%s': %w", verb.val, err)
+	}
+	if err := p.expectOptionalCommentOrEOL(); err != nil {
+		return err
+	}
+
+	mn.routeVerb = newTokenNode(verb)
+	mn.routePath = newTokenNode(pathToken)
+	return nil
 }
 
 func parserStateService(p *parser) parserState {

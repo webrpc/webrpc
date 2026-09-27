@@ -48,6 +48,94 @@
   },
   {
    "kind": "struct",
+   "name": "Item",
+   "fields": [
+    {
+     "name": "id",
+     "type": "uint64"
+    },
+    {
+     "name": "name",
+     "type": "string"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "GetItemRequest",
+   "fields": [
+    {
+     "name": "id",
+     "type": "uint64"
+    },
+    {
+     "name": "details",
+     "type": "bool",
+     "optional": true
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "GetItemResponse",
+   "fields": [
+    {
+     "name": "item",
+     "type": "Item"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "ListItemsRequest",
+   "fields": [
+    {
+     "name": "q",
+     "type": "string",
+     "optional": true
+    },
+    {
+     "name": "tags",
+     "type": "[]string"
+    },
+    {
+     "name": "limit",
+     "type": "uint32"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "ListItemsResponse",
+   "fields": [
+    {
+     "name": "items",
+     "type": "[]Item"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "CreateItemRequest",
+   "fields": [
+    {
+     "name": "item",
+     "type": "Item"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
+   "name": "CreateItemResponse",
+   "fields": [
+    {
+     "name": "item",
+     "type": "Item"
+    }
+   ]
+  },
+  {
+   "kind": "struct",
    "name": "Simple",
    "fields": [
     {
@@ -515,6 +603,299 @@
     }
    ],
    "comments": []
+  },
+  {
+   "name": "TestApiRest",
+   "path": "/items",
+   "methods": [
+    {
+     "name": "GetItem",
+     "annotations": {},
+     "comments": [],
+     "succinct": true,
+     "route": {
+      "verb": "GET",
+      "path": "/{id}"
+     },
+     "inputs": [
+      {
+       "name": "getItemRequest",
+       "type": "GetItemRequest",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "getItemResponse",
+       "type": "GetItemResponse",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "ListItems",
+     "annotations": {},
+     "comments": [],
+     "succinct": true,
+     "route": {
+      "verb": "GET",
+      "path": "/"
+     },
+     "inputs": [
+      {
+       "name": "listItemsRequest",
+       "type": "ListItemsRequest",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "listItemsResponse",
+       "type": "ListItemsResponse",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "CreateItem",
+     "annotations": {},
+     "comments": [],
+     "succinct": true,
+     "route": {
+      "verb": "POST",
+      "path": "/"
+     },
+     "inputs": [
+      {
+       "name": "createItemRequest",
+       "type": "CreateItemRequest",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "createItemResponse",
+       "type": "CreateItemResponse",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "UpdateItem",
+     "annotations": {},
+     "comments": [],
+     "route": {
+      "verb": "PUT",
+      "path": "/{id}"
+     },
+     "inputs": [
+      {
+       "name": "id",
+       "type": "uint64",
+       "optional": false
+      },
+      {
+       "name": "name",
+       "type": "string",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "item",
+       "type": "Item",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "PatchItem",
+     "annotations": {},
+     "comments": [],
+     "route": {
+      "verb": "PATCH",
+      "path": "/{id}"
+     },
+     "inputs": [
+      {
+       "name": "id",
+       "type": "uint64",
+       "optional": false
+      },
+      {
+       "name": "name",
+       "type": "string",
+       "optional": true
+      }
+     ],
+     "outputs": [
+      {
+       "name": "item",
+       "type": "Item",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "DeleteItem",
+     "annotations": {},
+     "comments": [],
+     "route": {
+      "verb": "DELETE",
+      "path": "/{id}"
+     },
+     "inputs": [
+      {
+       "name": "id",
+       "type": "uint64",
+       "optional": false
+      }
+     ],
+     "outputs": []
+    },
+    {
+     "name": "QueryItems",
+     "annotations": {},
+     "comments": [],
+     "route": {
+      "verb": "QUERY",
+      "path": "/search"
+     },
+     "inputs": [
+      {
+       "name": "q",
+       "type": "string",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "items",
+       "type": "[]Item",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "EchoParams",
+     "annotations": {},
+     "comments": [],
+     "route": {
+      "verb": "GET",
+      "path": "/echo/params"
+     },
+     "inputs": [
+      {
+       "name": "str",
+       "type": "string",
+       "optional": false
+      },
+      {
+       "name": "num",
+       "type": "int64",
+       "optional": false
+      },
+      {
+       "name": "flag",
+       "type": "bool",
+       "optional": false
+      },
+      {
+       "name": "fl",
+       "type": "float64",
+       "optional": false
+      },
+      {
+       "name": "ts",
+       "type": "timestamp",
+       "optional": false
+      },
+      {
+       "name": "status",
+       "type": "Status",
+       "optional": false
+      },
+      {
+       "name": "tags",
+       "type": "[]string",
+       "optional": false
+      },
+      {
+       "name": "opt",
+       "type": "string",
+       "optional": true
+      }
+     ],
+     "outputs": [
+      {
+       "name": "echo",
+       "type": "string",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "GetChild",
+     "annotations": {},
+     "comments": [],
+     "route": {
+      "verb": "GET",
+      "path": "/{id}/children/{childId}"
+     },
+     "inputs": [
+      {
+       "name": "id",
+       "type": "uint64",
+       "optional": false
+      },
+      {
+       "name": "childId",
+       "type": "uint64",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "path",
+       "type": "string",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "ResetItems",
+     "annotations": {},
+     "comments": [],
+     "route": {
+      "verb": "POST",
+      "path": "/reset"
+     },
+     "inputs": [],
+     "outputs": []
+    },
+    {
+     "name": "RpcMethod",
+     "annotations": {},
+     "comments": [],
+     "inputs": [
+      {
+       "name": "id",
+       "type": "uint64",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "item",
+       "type": "Item",
+       "optional": false
+      }
+     ]
+    }
+   ],
+   "comments": [
+    "added in v0.47.0 (REST routes)"
+   ]
   }
  ]
 }

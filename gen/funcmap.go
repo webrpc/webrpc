@@ -130,6 +130,12 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"MethodHasFileUpload":   schema.MethodHasFileUpload,   // v0.46.0
 		"MethodHasFileDownload": schema.MethodHasFileDownload, // v0.46.0
 		"MethodFileParts":       schema.MethodFileParts,       // v0.46.0
+
+		// Schema REST route analysis + helpers
+		"MethodHasRoute":    schema.MethodHasRoute,    // v0.47.0
+		"MethodRouteVerb":   schema.MethodRouteVerb,   // v0.47.0
+		"MethodRoutePath":   schema.MethodRoutePath,   // v0.47.0
+		"MethodRouteParams": schema.MethodRouteParams, // v0.47.0
 	}
 
 	for k, v := range extra {

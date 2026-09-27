@@ -41,9 +41,13 @@ type Options struct {
 {{- range $_, $service := $services}}
 {{- $name := $service.Name -}}
 {{- $serviceHasUpload := false -}}
+{{- $serviceHasRoutes := false -}}
 {{- range $_, $method := $service.Methods -}}
 {{- if MethodHasFileUpload $method -}}
 {{- $serviceHasUpload = true -}}
+{{- end -}}
+{{- if MethodHasRoute $method -}}
+{{- $serviceHasRoutes = true -}}
 {{- end -}}
 {{- end -}}
 {{ $serviceName := (printf "%sService" (firstWordToLower $service.Name)) }}
@@ -54,6 +58,9 @@ type {{$serviceName}} struct {
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
 {{- if $serviceHasUpload }}
 	MaxUploadSize int64
+{{- end }}
+{{- if $serviceHasRoutes }}
+	restMux *http.ServeMux
 {{- end }}
 }
 
@@ -68,12 +75,28 @@ func New{{firstLetterToUpper $service.Name}}Server(svc {{$typePrefix}}{{.Name}}S
 		server.MaxUploadSize = options[0].MaxUploadSize
 {{- end }}
 	}
+{{- if $serviceHasRoutes }}
+	server.restMux = newRestMux(server.serveRPC, server.sendErrorJSON, []restRoute{
+	{{- range $_, $method := $service.Methods}}
+	{{- if MethodHasRoute $method}}
+		{"{{MethodRouteVerb $method}} {{MethodRoutePath $method}}", "{{$basepath}}{{$name}}/{{$method.Name}}", {{with MethodRouteParams $method}}[]string{ {{- range $i, $p := .}}{{if $i}}, {{end}}"{{$p.Name}}{{if $p.Optional}}?{{end}}: {{if $p.Repeated}}[]{{end}}{{$p.TypeExpr}}"{{end -}} }{{else}}nil{{end}}},
+	{{- end}}
+	{{- end}}
+	})
+{{- end }}
 	return server
 }
 
 func (s *{{$serviceName}}) Methods() []Method { return methodsFor(Service{{$service.Name}}, s) }
 
+{{- if $serviceHasRoutes }}
+
 func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	serveRest(s.restMux, w, r, s.serveRPC, s.sendErrorJSON)
+}
+{{- end }}
+
+func (s *{{$serviceName}}) {{if $serviceHasRoutes}}serveRPC{{else}}ServeHTTP{{end}}(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		// In case of a panic, serve a HTTP 500 error and then panic.
 		if rr := recover(); rr != nil {

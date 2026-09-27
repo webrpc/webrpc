@@ -29,6 +29,57 @@ service TestApi
   - DownloadFile(name: string) => (data: file)
   - EchoFile(data: file) => (data: file)
 
+# added in v0.47.0 (REST routes)
+service TestApiRest
+  path = /items
+
+  - GetItem(GetItemRequest) => (GetItemResponse)
+      GET /{id}
+  - ListItems(ListItemsRequest) => (ListItemsResponse)
+      GET /
+  - CreateItem(CreateItemRequest) => (CreateItemResponse)
+      POST /
+  - UpdateItem(id: uint64, name: string) => (item: Item)
+      PUT /{id}
+  - PatchItem(id: uint64, name?: string) => (item: Item)
+      PATCH /{id}
+  - DeleteItem(id: uint64)
+      DELETE /{id}
+  - QueryItems(q: string) => (items: []Item)
+      QUERY /search
+  - EchoParams(str: string, num: int64, flag: bool, fl: float64, ts: timestamp, status: Status, tags: []string, opt?: string) => (echo: string)
+      GET /echo/params
+  - GetChild(id: uint64, childId: uint64) => (path: string)
+      GET /{id}/children/{childId}
+  - ResetItems()
+      POST /reset
+  - RpcMethod(id: uint64) => (item: Item)
+
+struct Item
+  - id: uint64
+  - name: string
+
+struct GetItemRequest
+  - id: uint64
+  - details?: bool
+
+struct GetItemResponse
+  - item: Item
+
+struct ListItemsRequest
+  - q?: string
+  - tags: []string
+  - limit: uint32
+
+struct ListItemsResponse
+  - items: []Item
+
+struct CreateItemRequest
+  - item: Item
+
+struct CreateItemResponse
+  - item: Item
+
 struct Simple
   - id: int
   - name: string
