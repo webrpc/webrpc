@@ -19,6 +19,11 @@ const JS_TYPES = [
 ]
 
 {{- "\n" -}}{{- range $_, $type := $types }}
+{{- if isEnumType $type }}
+const validate{{ $type.Name }} = ({{if gt (len $type.Fields) 0}}value{{else}}_value{{end}}: any): boolean => {
+  return {{range $i, $field := $type.Fields}}{{if $i}} || {{end}}value === '{{if eq $type.Type.Expr "string"}}{{$field.Value}}{{else}}{{enumWireValue $field}}{{end}}'{{else}}false{{end}}
+}
+{{else}}
 const validate{{ $type.Name }} = ({{if gt (len $type.Fields) 0}}value{{else}}_value{{end}}: any) => {
   {{- range $_, $field := $type.Fields }}
   {{- if $field.Optional }}
@@ -34,6 +39,7 @@ const validate{{ $type.Name }} = ({{if gt (len $type.Fields) 0}}value{{else}}_va
   return true
 }
 {{end -}}
+{{end -}}
 
 {{- "\n" -}}
 const TYPE_VALIDATORS: { [type: string]: (value: any) => boolean } = {
@@ -42,7 +48,7 @@ const TYPE_VALIDATORS: { [type: string]: (value: any) => boolean } = {
 {{- end }}
 }
 
-const validateType = (value: any, type: string) => {
+const validateType = (value: any, type: string): boolean => {
 {{- if $opts.fileUpload }}
   if (type === "file") {
     return value instanceof Blob;
@@ -51,6 +57,13 @@ const validateType = (value: any, type: string) => {
     return Array.isArray(value) && value.every((entry) => entry instanceof Blob);
   }
 {{- end }}
+  if (type === "any") {
+    return true;
+  }
+  if (type.endsWith("[]")) {
+    const elemType = type.slice(0, -2);
+    return Array.isArray(value) && value.every((elem) => validateType(elem, elemType));
+  }
   if (JS_TYPES.indexOf(type) > -1) {
     return typeof value === type;
   }

@@ -400,47 +400,20 @@ const JS_TYPES = [
     "undefined"
 ]
 
-const validateKind = (value: any) => {
-  if (!("USER" in value) || !validateType(value["USER"], "number")) {
-    return false
-  }
-  if (!("ADMIN" in value) || !validateType(value["ADMIN"], "number")) {
-    return false
-  }
-  return true
+const validateKind = (value: any): boolean => {
+  return value === 'USER' || value === 'ADMIN'
 }
 
-const validateIntent = (value: any) => {
-  if (!("openSession" in value) || !validateType(value["openSession"], "string")) {
-    return false
-  }
-  if (!("closeSession" in value) || !validateType(value["closeSession"], "string")) {
-    return false
-  }
-  if (!("validateSession" in value) || !validateType(value["validateSession"], "string")) {
-    return false
-  }
-  return true
+const validateIntent = (value: any): boolean => {
+  return value === 'openSession' || value === 'closeSession' || value === 'validateSession'
 }
 
-const validateProtocolVersion = (value: any) => {
-  if (!("v1" in value) || !validateType(value["v1"], "string")) {
-    return false
-  }
-  if (!("v1_5" in value) || !validateType(value["v1_5"], "string")) {
-    return false
-  }
-  return true
+const validateProtocolVersion = (value: any): boolean => {
+  return value === 'v1' || value === 'v1.5'
 }
 
-const validateCountry = (value: any) => {
-  if (!("US" in value) || !validateType(value["US"], "string")) {
-    return false
-  }
-  if (!("CA" in value) || !validateType(value["CA"], "string")) {
-    return false
-  }
-  return true
+const validateCountry = (value: any): boolean => {
+  return value === 'United States' || value === 'Canada'
 }
 
 const validateEmpty = (_value: any) => {
@@ -499,10 +472,10 @@ const validateComplexType = (value: any) => {
   if (!("numsList" in value) || !validateType(value["numsList"], "number[]")) {
     return false
   }
-  if (!("doubleArray" in value) || !validateType(value["doubleArray"], "Array<string>[]")) {
+  if (!("doubleArray" in value) || !validateType(value["doubleArray"], "string[][]")) {
     return false
   }
-  if (!("listOfMaps" in value) || !validateType(value["listOfMaps"], "{[key: string]: number}[]")) {
+  if (!("listOfMaps" in value) || !validateType(value["listOfMaps"], "object[]")) {
     return false
   }
   if (!("listOfUsers" in value) || !validateType(value["listOfUsers"], "User[]")) {
@@ -581,12 +554,19 @@ const TYPE_VALIDATORS: { [type: string]: (value: any) => boolean } = {
   DownloadAvatarRequest: validateDownloadAvatarRequest,
 }
 
-const validateType = (value: any, type: string) => {
+const validateType = (value: any, type: string): boolean => {
   if (type === "file") {
     return value instanceof Blob;
   }
   if (type === "file[]") {
     return Array.isArray(value) && value.every((entry) => entry instanceof Blob);
+  }
+  if (type === "any") {
+    return true;
+  }
+  if (type.endsWith("[]")) {
+    const elemType = type.slice(0, -2);
+    return Array.isArray(value) && value.every((elem) => validateType(elem, elemType));
   }
   if (JS_TYPES.indexOf(type) > -1) {
     return typeof value === type;

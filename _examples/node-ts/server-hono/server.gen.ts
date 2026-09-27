@@ -312,14 +312,8 @@ const JS_TYPES = [
     "undefined"
 ]
 
-const validateKind = (value: any) => {
-  if (!("USER" in value) || !validateType(value["USER"], "number")) {
-    return false
-  }
-  if (!("ADMIN" in value) || !validateType(value["ADMIN"], "number")) {
-    return false
-  }
-  return true
+const validateKind = (value: any): boolean => {
+  return value === 'USER' || value === 'ADMIN'
 }
 
 const validateUser = (value: any) => {
@@ -402,12 +396,19 @@ const TYPE_VALIDATORS: { [type: string]: (value: any) => boolean } = {
   GetArticleResponse: validateGetArticleResponse,
 }
 
-const validateType = (value: any, type: string) => {
+const validateType = (value: any, type: string): boolean => {
   if (type === "file") {
     return value instanceof Blob;
   }
   if (type === "file[]") {
     return Array.isArray(value) && value.every((entry) => entry instanceof Blob);
+  }
+  if (type === "any") {
+    return true;
+  }
+  if (type.endsWith("[]")) {
+    const elemType = type.slice(0, -2);
+    return Array.isArray(value) && value.every((elem) => validateType(elem, elemType));
   }
   if (JS_TYPES.indexOf(type) > -1) {
     return typeof value === type;

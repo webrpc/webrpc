@@ -1,0 +1,34 @@
+webrpc = v1
+
+name = validate
+version = v1.0.0
+basepath = /rpc
+
+service Validate
+  - Check(CheckRequest) => (CheckResponse)
+
+enum Empty: uint32
+
+enum Kind: uint32
+  - User
+    + json = USER
+  - Admin
+    + json = ADMIN
+
+enum Tier: string
+  - Free = "free"
+  - Pro = "pro"
+
+struct Item
+  - id: uint64
+
+struct CheckRequest
+  - kinds: []Kind
+  - tiers: []Tier
+  - matrix: [][]string
+  - maps: []map<string,string>
+  - items: []Item
+  - anything: any
+
+struct CheckResponse
+  - ok: bool

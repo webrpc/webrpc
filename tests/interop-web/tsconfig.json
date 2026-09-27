@@ -5,6 +5,7 @@
     "moduleResolution": "NodeNext",
     "strict": true,
     "noUncheckedIndexedAccess": true,
+    "noUnusedParameters": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "types": ["node"]

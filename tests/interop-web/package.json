@@ -4,7 +4,7 @@
   "private": true,
   "description": "End-to-end interoperability tests for the webrpc file core type: TypeScript and JavaScript clients vs Go and TypeScript servers.",
   "scripts": {
-    "test": "tsx test.ts",
+    "test": "tsc --noEmit && tsx test.ts && tsx validate-test.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
