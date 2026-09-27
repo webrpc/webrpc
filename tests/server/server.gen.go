@@ -1561,18 +1561,8 @@ var methods = map[string]*method{
 		service:     "TestApi",
 		annotations: map[string]string{},
 	},
-	"/rpc/TestApiRest/GetItem": {
-		name:        "GetItem",
-		service:     "TestApiRest",
-		annotations: map[string]string{},
-	},
 	"GET /rpc/items/{id}": {
 		name:        "GetItem",
-		service:     "TestApiRest",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApiRest/ListItems": {
-		name:        "ListItems",
 		service:     "TestApiRest",
 		annotations: map[string]string{},
 	},
@@ -1581,18 +1571,8 @@ var methods = map[string]*method{
 		service:     "TestApiRest",
 		annotations: map[string]string{},
 	},
-	"/rpc/TestApiRest/CreateItem": {
-		name:        "CreateItem",
-		service:     "TestApiRest",
-		annotations: map[string]string{},
-	},
 	"POST /rpc/items": {
 		name:        "CreateItem",
-		service:     "TestApiRest",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApiRest/UpdateItem": {
-		name:        "UpdateItem",
 		service:     "TestApiRest",
 		annotations: map[string]string{},
 	},
@@ -1601,18 +1581,8 @@ var methods = map[string]*method{
 		service:     "TestApiRest",
 		annotations: map[string]string{},
 	},
-	"/rpc/TestApiRest/PatchItem": {
-		name:        "PatchItem",
-		service:     "TestApiRest",
-		annotations: map[string]string{},
-	},
 	"PATCH /rpc/items/{id}": {
 		name:        "PatchItem",
-		service:     "TestApiRest",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApiRest/DeleteItem": {
-		name:        "DeleteItem",
 		service:     "TestApiRest",
 		annotations: map[string]string{},
 	},
@@ -1621,18 +1591,8 @@ var methods = map[string]*method{
 		service:     "TestApiRest",
 		annotations: map[string]string{},
 	},
-	"/rpc/TestApiRest/QueryItems": {
-		name:        "QueryItems",
-		service:     "TestApiRest",
-		annotations: map[string]string{},
-	},
 	"QUERY /rpc/items/search": {
 		name:        "QueryItems",
-		service:     "TestApiRest",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApiRest/EchoParams": {
-		name:        "EchoParams",
 		service:     "TestApiRest",
 		annotations: map[string]string{},
 	},
@@ -1641,18 +1601,8 @@ var methods = map[string]*method{
 		service:     "TestApiRest",
 		annotations: map[string]string{},
 	},
-	"/rpc/TestApiRest/GetChild": {
-		name:        "GetChild",
-		service:     "TestApiRest",
-		annotations: map[string]string{},
-	},
 	"GET /rpc/items/{id}/children/{childId}": {
 		name:        "GetChild",
-		service:     "TestApiRest",
-		annotations: map[string]string{},
-	},
-	"/rpc/TestApiRest/ResetItems": {
-		name:        "ResetItems",
 		service:     "TestApiRest",
 		annotations: map[string]string{},
 	},
@@ -1675,6 +1625,9 @@ func MethodCtx(ctx context.Context) (*method, bool) {
 	}
 
 	m, ok := methods[req.URL.Path]
+	if !ok {
+		m, ok = methods[req.Pattern] // REST route, e.g. "GET /users/{id}"
+	}
 	return m, ok
 }
 
@@ -1809,10 +1762,14 @@ type restRoute struct {
 }
 
 // newRestMux serves each route as its webrpc method: POST rpcPath with the
-// path and query params merged into the JSON body.
+// path and query params merged into the JSON body. A routed method answers
+// only on its route, so its rpcPath is not found.
 func newRestMux(serveRPC http.HandlerFunc, sendError func(http.ResponseWriter, *http.Request, WebRPCError), routes []restRoute) *http.ServeMux {
 	mux := http.NewServeMux()
 	for _, route := range routes {
+		mux.HandleFunc(route.rpcPath, func(w http.ResponseWriter, r *http.Request) {
+			sendError(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
+		})
 		mux.HandleFunc(route.pattern, func(w http.ResponseWriter, r *http.Request) {
 			body, err := restRequestBody(r, route.params)
 			if err != nil {

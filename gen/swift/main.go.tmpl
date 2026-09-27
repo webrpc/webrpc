@@ -51,6 +51,16 @@
   {{- end -}}
 {{- end -}}
 
+{{- /* A routed method answers only on its REST route: fail instead of calling its RPC path. */ -}}
+{{- range $_, $service := .Services -}}
+  {{- range $_, $method := $service.Methods -}}
+    {{- if MethodHasRoute $method -}}
+      {{- stderrPrintf "%s generator error: the Swift target does not support REST routes yet (%s.%s declares '%s %s'); use the golang or typescript target\n" $.WebrpcTarget $service.Name $method.Name (MethodRouteVerb $method) (MethodRoutePath $method) -}}
+      {{- exit 1 -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
 {{- /* Detect file upload/download methods and file-carrying struct types. */ -}}
 {{- range $_, $service := .Services -}}
   {{- range $_, $method := $service.Methods -}}

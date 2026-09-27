@@ -460,6 +460,10 @@ type WebrpcRestRoute = { method: string, path: string, rpcPath: string, params: 
 // Returns null when no route path matches, or an error Response.
 const webrpcRestToRpcRequest = async (routes: WebrpcRestRoute[], request: Request): Promise<Request | Response | null> => {
   const url = new URL(request.url)
+  // A routed method answers only on its route.
+  if (routes.some((route) => route.rpcPath === url.pathname)) {
+    return webrpcErrorResponse(new WebrpcBadRouteError({ cause: `no webrpc method defined for path ${url.pathname}` }))
+  }
   const segments = url.pathname.split('/').filter((s) => s !== '')
   const allowed: string[] = []
   let match: { route: WebrpcRestRoute, pathParams: { [name: string]: string }, static: number } | undefined
@@ -558,11 +562,11 @@ const JS_TYPES = [
     "undefined"
 ]
 
-const validateStatus = (value: any) => {
+const validateStatus = (value: any): boolean => {
   return value === 'AVAILABLE' || value === 'NOT_AVAILABLE'
 }
 
-const validateAccess = (value: any) => {
+const validateAccess = (value: any): boolean => {
   return value === 'NONE' || value === 'READ' || value === 'WRITE' || value === 'ADMIN' || value === 'OWNER'
 }
 
@@ -663,10 +667,10 @@ const validateComplex = (value: any) => {
   if (!("numsList" in value) || !validateType(value["numsList"], "number[]")) {
     return false
   }
-  if (!("doubleArray" in value) || !validateType(value["doubleArray"], "Array<string>[]")) {
+  if (!("doubleArray" in value) || !validateType(value["doubleArray"], "string[][]")) {
     return false
   }
-  if (!("listOfMaps" in value) || !validateType(value["listOfMaps"], "{[key: string]: number}[]")) {
+  if (!("listOfMaps" in value) || !validateType(value["listOfMaps"], "object[]")) {
     return false
   }
   if (!("listOfUsers" in value) || !validateType(value["listOfUsers"], "User[]")) {
@@ -711,6 +715,9 @@ const TYPE_VALIDATORS: { [type: string]: (value: any) => boolean } = {
 }
 
 const validateType = (value: any, type: string): boolean => {
+  if (type === "any") {
+    return true;
+  }
   if (type.endsWith("[]")) {
     const elemType = type.slice(0, -2);
     return Array.isArray(value) && value.every((elem) => validateType(elem, elemType));

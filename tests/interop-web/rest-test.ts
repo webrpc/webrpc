@@ -213,14 +213,14 @@ const restSuite = async (addr: string) => {
   const { item: rpcItem } = await api.rpcMethod({ id: 7 })
   assert.equal(rpcItem.name, 'carol', 'rpcMethod name mismatch')
 
-  // A routed method also keeps its default webrpc path.
+  // A routed method answers only on its REST route.
   const viaRpc = await fetch(`${addr}/rpc/TestApiRest/GetItem`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: '{"id": 7}',
   })
-  assert.equal(viaRpc.status, 200, 'routed method must stay reachable via its RPC path')
-  assert.equal((await viaRpc.json()).item.name, 'carol', 'RPC path item mismatch')
+  assert.equal(viaRpc.status, 404, 'routed method must not answer on its RPC path')
+  await viaRpc.body?.cancel()
 
   // DELETE /rpc/items/{id}.
   await api.deleteItem({ id: 7 })
