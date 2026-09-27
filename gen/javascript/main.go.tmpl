@@ -32,6 +32,16 @@
   {{- exit 1 -}}
 {{- end -}}
 
+{{- /* A routed method answers only on its REST route: fail instead of calling its RPC path. */ -}}
+{{- range $_, $service := .Services -}}
+  {{- range $_, $method := $service.Methods -}}
+    {{- if MethodHasRoute $method -}}
+      {{- stderrPrintf "%s generator error: the JavaScript target does not support REST routes yet (%s.%s declares '%s %s'); use the golang or typescript target\n" $.WebrpcTarget $service.Name $method.Name (MethodRouteVerb $method) (MethodRoutePath $method) -}}
+      {{- exit 1 -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
 {{- /* Scan the schema for methods using the file core type, and remember which
        file helpers the client will need. The generated Express server cannot
        parse multipart/form-data bodies or stream raw file responses without
@@ -39,10 +49,6 @@
        emit broken code. */ -}}
 {{- range $_, $service := .Services -}}
   {{- range $_, $method := $service.Methods -}}
-    {{- if and $opts.server (MethodHasRoute $method) -}}
-      {{- stderrPrintf "%s generator error: the JavaScript Express server does not support REST routes yet (%s.%s declares '%s %s'); generate the JavaScript client only (-client), or use the golang or typescript target to generate the server\n" $.WebrpcTarget $service.Name $method.Name (MethodRouteVerb $method) (MethodRoutePath $method) -}}
-      {{- exit 1 -}}
-    {{- end -}}
     {{- if or (MethodHasFileUpload $method) (MethodHasFileDownload $method) -}}
       {{- if $opts.server -}}
         {{- stderrPrintf "%s generator error: the JavaScript Express server does not support file upload/download endpoints yet (%s.%s uses the file type); generate the JavaScript client only (-client), or use the golang or typescript target to generate the server\n" $.WebrpcTarget $service.Name $method.Name -}}

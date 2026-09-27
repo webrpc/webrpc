@@ -168,6 +168,10 @@ type WebrpcRestRoute = { method: string, path: string, rpcPath: string, params: 
 // Returns null when no route path matches, or an error Response.
 const webrpcRestToRpcRequest = async (routes: WebrpcRestRoute[], request: Request): Promise<Request | Response | null> => {
   const url = new URL(request.url)
+  // A routed method answers only on its route.
+  if (routes.some((route) => route.rpcPath === url.pathname)) {
+    return webrpcErrorResponse(new WebrpcBadRouteError({ cause: `no webrpc method defined for path ${url.pathname}` }))
+  }
   const segments = url.pathname.split('/').filter((s) => s !== '')
   const allowed: string[] = []
   let match: { route: WebrpcRestRoute, pathParams: { [name: string]: string }, static: number } | undefined

@@ -12,8 +12,8 @@ type RouteParam struct {
 	Repeated bool // []scalar query param, sent as repeated keys
 }
 
-// MethodHasRoute returns true if the method declares a REST route, served in
-// addition to its default webrpc path (POST {basepath}{Service}/{Method}).
+// MethodHasRoute returns true if the method declares a REST route, served
+// instead of its default webrpc path (POST {basepath}{Service}/{Method}).
 func MethodHasRoute(m *Method) bool {
 	return m != nil && m.Route != nil
 }

@@ -76,10 +76,14 @@ type restRoute struct {
 }
 
 // newRestMux serves each route as its webrpc method: POST rpcPath with the
-// path and query params merged into the JSON body.
+// path and query params merged into the JSON body. A routed method answers
+// only on its route, so its rpcPath is not found.
 func newRestMux(serveRPC http.HandlerFunc, sendError func(http.ResponseWriter, *http.Request, WebRPCError), routes []restRoute) *http.ServeMux {
 	mux := http.NewServeMux()
 	for _, route := range routes {
+		mux.HandleFunc(route.rpcPath, func(w http.ResponseWriter, r *http.Request) {
+			sendError(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
+		})
 		mux.HandleFunc(route.pattern, func(w http.ResponseWriter, r *http.Request) {
 			body, err := restRequestBody(r, route.params)
 			if err != nil {

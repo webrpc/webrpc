@@ -8,8 +8,8 @@ import (
 )
 
 // MethodRoute is a method's optional REST route, declared in RIDL as a bare
-// `VERB /relative/path` line under the method. It is served in addition to
-// the default webrpc path (POST {basepath}{Service}/{Method}).
+// `VERB /relative/path` line under the method. It replaces the default
+// webrpc path (POST {basepath}{Service}/{Method}).
 type MethodRoute struct {
 	Verb string `json:"verb"` // GET, POST, PUT, PATCH, DELETE or QUERY
 	Path string `json:"path"` // path template relative to {basepath}{service.path}, e.g. /{userId}/friends
@@ -164,7 +164,7 @@ func (s *WebRPCSchema) validateRoutes() error {
 	}
 
 	for i, r := range routes {
-		// Every method keeps its default webrpc path, so a route overlapping one is ambiguous.
+		// Default webrpc paths, routed or not, share the REST mux (http.ServeMux conflict).
 		for _, d := range defaults {
 			if overlap, _, _ := compareRouteSegments(r.segments, d.segments); overlap {
 				return fmt.Errorf("schema error: route '%s %s' of method '%s' overlaps the default webrpc dispatch path '%s' of method '%s'", r.verb, r.path, r.id, d.path, d.id)

@@ -112,15 +112,14 @@ func RunRESTTests(ctx context.Context, serverURL string) error {
 		errs = append(errs, fmt.Errorf("RpcMethod(): unexpected response %+v", item))
 	}
 
-	// A routed method also keeps its default webrpc path.
+	// A routed method answers only on its REST route.
 	resp, err := http.Post(serverURL+"/rpc/TestApiRest/GetItem", "application/json", strings.NewReader(`{"id": 7}`))
 	if err != nil {
 		errs = append(errs, fmt.Errorf("POST /rpc/TestApiRest/GetItem: %w", err))
 	} else {
-		body, _ := io.ReadAll(resp.Body)
 		resp.Body.Close()
-		if resp.StatusCode != http.StatusOK || !strings.Contains(string(body), `"name":"carol"`) {
-			errs = append(errs, fmt.Errorf("POST /rpc/TestApiRest/GetItem: expected 200 with item, got %d %s", resp.StatusCode, body))
+		if resp.StatusCode != http.StatusNotFound {
+			errs = append(errs, fmt.Errorf("POST /rpc/TestApiRest/GetItem: expected 404, got %d", resp.StatusCode))
 		}
 	}
 
