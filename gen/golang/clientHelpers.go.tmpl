@@ -132,4 +132,65 @@ func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out i
 	return err
 }
 
+{{- if $opts.restRoutes }}
+
+// restClient sends webrpc requests to a REST route: request fields named by
+// {param} placeholders fill the URL path, the others go to the query string
+// (GET/DELETE/QUERY) or stay in the JSON body.
+type restClient struct {
+	HTTPClient
+	method string
+}
+
+func (c restClient) Do(req *http.Request) (*http.Response, error) {
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		return nil, err
+	}
+	fields := map[string]webrpcRawJSON{}
+	if err := {{$json}}.Unmarshal(body, &fields); err != nil {
+		return nil, err
+	}
+
+	u, query := req.URL.String(), url.Values{}
+	for name, raw := range fields {
+		if placeholder := "%7B" + name + "%7D"; strings.Contains(u, placeholder) {
+			u = strings.ReplaceAll(u, placeholder, url.PathEscape(restParamString(raw)))
+		} else if !restHasBody(c.method) && string(raw) != "null" {
+			var list []webrpcRawJSON
+			if {{$json}}.Unmarshal(raw, &list) != nil {
+				list = []webrpcRawJSON{raw}
+			}
+			for _, v := range list {
+				query.Add(name, restParamString(v))
+			}
+		}
+	}
+	if len(query) > 0 {
+		u += "?" + query.Encode()
+	}
+	if req.URL, err = url.Parse(u); err != nil {
+		return nil, err
+	}
+
+	req.Method = c.method
+	if restHasBody(c.method) {
+		req.Body = io.NopCloser(bytes.NewReader(body))
+	} else {
+		req.Body, req.ContentLength = http.NoBody, 0
+		req.Header.Del("Content-Type")
+	}
+	return c.HTTPClient.Do(req)
+}
+
+// restParamString renders a JSON value as a URL param: strings unquoted, the rest verbatim.
+func restParamString(raw webrpcRawJSON) string {
+	var s string
+	if {{$json}}.Unmarshal(raw, &s) == nil {
+		return s
+	}
+	return string(raw)
+}
+{{- end }}
+
 {{- end -}}

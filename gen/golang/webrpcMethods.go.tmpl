@@ -1,6 +1,14 @@
 {{define "webrpcMethods"}}
 {{- $services := .Services -}}
 {{- $basepath := .BasePath -}}
+{{- $hasRoutes := false -}}
+{{- range $_, $service := $services -}}
+{{- range $_, $method := $service.Methods -}}
+{{- if MethodHasRoute $method -}}
+{{- $hasRoutes = true -}}
+{{- end -}}
+{{- end -}}
+{{- end }}
 
 type method struct  {
 	name string
@@ -17,7 +25,7 @@ func (m *method) HasAnnotation(key string) bool { _, ok := m.annotations[key]; r
 var methods = map[string]*method{
 	{{- range $_, $service := $services -}}
 	{{- range $_, $method := $service.Methods }}
-	"{{$basepath}}{{$service.Name}}/{{$method.Name}}": {
+	"{{if MethodHasRoute $method}}{{MethodRouteVerb $method}} {{MethodRoutePath $method}}{{else}}{{$basepath}}{{$service.Name}}/{{$method.Name}}{{end}}": {
 		name: "{{$method.Name}}",
 		service: "{{$service.Name}}",
 		annotations: map[string]string{ {{- range $_, $annotation := $method.Annotations -}}"{{$annotation.AnnotationType}}": "{{$annotation.Value}}", {{- end -}} },
@@ -33,6 +41,11 @@ func MethodCtx(ctx context.Context) (*method, bool) {
 	}
 
 	m, ok := methods[req.URL.Path]
+	{{- if $hasRoutes }}
+	if !ok {
+		m, ok = methods[req.Pattern] // REST route, e.g. "GET /users/{id}"
+	}
+	{{- end }}
     return m, ok
 }
 

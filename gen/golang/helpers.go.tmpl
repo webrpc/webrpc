@@ -1,5 +1,6 @@
 {{define "helpers"}}
 {{ $opts := .Opts -}}
+{{- $json := .Json -}}
 
 //
 // Webrpc helpers
@@ -50,6 +51,160 @@ func PtrTo[T any](v T) *T { return &v }
 func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
 	w, _ := ctx.Value(HTTPResponseWriterCtxKey).(http.ResponseWriter)
 	return w
+}
+{{- end}}
+
+{{- if $opts.restRoutes}}
+
+// webrpcRawJSON is json.RawMessage for any -json library.
+type webrpcRawJSON []byte
+
+func (r webrpcRawJSON) MarshalJSON() ([]byte, error) { return r, nil }
+func (r *webrpcRawJSON) UnmarshalJSON(b []byte) error { *r = append((*r)[:0], b...); return nil }
+
+func restHasBody(method string) bool { return method == "POST" || method == "PUT" || method == "PATCH" }
+{{- end}}
+
+{{- if and $opts.restRoutes $opts.server}}
+
+// restRoute serves a REST route pattern as the webrpc method at rpcPath. Params
+// bind path and query params to request fields, in RIDL syntax: "tags?: []string".
+type restRoute struct {
+	pattern string
+	rpcPath string
+	params  []string
+}
+
+// newRestMux serves each route as its webrpc method: POST rpcPath with the
+// path and query params merged into the JSON body. A routed method answers
+// only on its route, so its rpcPath is not found.
+func newRestMux(serveRPC http.HandlerFunc, sendError func(http.ResponseWriter, *http.Request, WebRPCError), routes []restRoute) *http.ServeMux {
+	mux := http.NewServeMux()
+	for _, route := range routes {
+		mux.HandleFunc(route.rpcPath, func(w http.ResponseWriter, r *http.Request) {
+			sendError(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
+		})
+		mux.HandleFunc(route.pattern, func(w http.ResponseWriter, r *http.Request) {
+			body, err := restRequestBody(r, route.params)
+			if err != nil {
+				sendError(w, r, ErrWebrpcBadRequest.WithCause(err))
+				return
+			}
+
+			rpcReq := r.Clone(r.Context())
+			rpcReq.Method = "POST"
+			rpcReq.URL.Path, rpcReq.URL.RawPath = route.rpcPath, ""
+			rpcReq.Header.Set("Content-Type", "application/json")
+			rpcReq.Body = io.NopCloser(bytes.NewReader(body))
+			rpcReq.ContentLength = int64(len(body))
+			serveRPC(w, rpcReq)
+		})
+	}
+	return mux
+}
+
+// serveRest serves REST routes registered on mux and everything else with serveRPC.
+func serveRest(mux *http.ServeMux, w http.ResponseWriter, r *http.Request, serveRPC http.HandlerFunc, sendError func(http.ResponseWriter, *http.Request, WebRPCError)) {
+	if _, pattern := mux.Handler(r); pattern != "" {
+		mux.ServeHTTP(w, r)
+		return
+	}
+
+	var allowed []string
+	probe := r.WithContext(r.Context())
+	for _, method := range []string{"GET", "POST", "PUT", "PATCH", "DELETE", "QUERY"} {
+		probe.Method = method
+		if _, pattern := mux.Handler(probe); pattern != "" {
+			allowed = append(allowed, method)
+		}
+	}
+	if len(allowed) == 0 {
+		serveRPC(w, r)
+		return
+	}
+	w.Header().Set("Allow", strings.Join(allowed, ", ")) // RFC 9110.
+	sendError(w, r, ErrWebrpcBadMethod.WithCausef("unsupported HTTP method %v (allowed: %v)", r.Method, strings.Join(allowed, ", ")))
+}
+
+// restRequestBody builds the webrpc JSON request: body, then path params, then query params.
+func restRequestBody(r *http.Request, params []string) ([]byte, error) {
+	fields := map[string]webrpcRawJSON{}
+	if restHasBody(r.Method) {
+		// Requiring JSON forces a CORS preflight, so cross-site form posts can't reach handlers.
+		contentType, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";")
+		if !strings.EqualFold(strings.TrimSpace(contentType), "application/json") {
+			return nil, fmt.Errorf("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type"))
+		}
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read request data: %w", err)
+		}
+		if len(body) > 0 {
+			if err := {{$json}}.Unmarshal(body, &fields); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal request data: %w", err)
+			}
+		}
+	}
+
+	query := r.URL.Query()
+	for _, param := range params {
+		name, typ, _ := strings.Cut(param, ": ")
+		name, optional := strings.CutSuffix(name, "?")
+		typ, repeated := strings.CutPrefix(typ, "[]")
+
+		kind, values := "query", query[name]
+		if strings.Contains(r.Pattern, "{"+name+"}") {
+			kind, values = "path", []string{r.PathValue(name)}
+		}
+		if len(values) == 0 {
+			if !optional && !repeated {
+				return nil, fmt.Errorf("missing %s param '%s'", kind, name)
+			}
+			continue
+		}
+
+		list := make([]webrpcRawJSON, len(values))
+		for i, v := range values {
+			raw, err := restParamJSON(v, typ)
+			if err != nil {
+				return nil, fmt.Errorf("invalid %s param '%s': %q is not a valid %s", kind, name, v, typ)
+			}
+			list[i] = raw
+		}
+		if !repeated {
+			fields[name] = list[0]
+			continue
+		}
+		raw, err := {{$json}}.Marshal(list)
+		if err != nil {
+			return nil, err
+		}
+		fields[name] = raw
+	}
+	return {{$json}}.Marshal(fields)
+}
+
+// restParamJSON converts a path/query param string into the field's JSON value.
+func restParamJSON(val, typ string) ([]byte, error) {
+	switch {
+	case typ == "bool":
+		v, err := strconv.ParseBool(val)
+		return strconv.AppendBool(nil, v), err
+	case strings.HasPrefix(typ, "int"):
+		v, err := strconv.ParseInt(val, 10, 64)
+		return strconv.AppendInt(nil, v, 10), err
+	case strings.HasPrefix(typ, "uint"):
+		v, err := strconv.ParseUint(val, 10, 64)
+		return strconv.AppendUint(nil, v, 10), err
+	case strings.HasPrefix(typ, "float"):
+		v, err := strconv.ParseFloat(val, 64)
+		if err != nil {
+			return nil, err
+		}
+		return {{$json}}.Marshal(v)
+	default:
+		return {{$json}}.Marshal(val)
+	}
 }
 {{- end}}
 

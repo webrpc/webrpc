@@ -10,10 +10,21 @@
 // Server handler
 //
 {{range $_, $service := $services }}
+{{- $serviceHasRoutes := false -}}
+{{- range $_, $method := $service.Methods -}}
+{{- if MethodHasRoute $method -}}
+{{- $serviceHasRoutes = true -}}
+{{- end -}}
+{{- end }}
 // serve{{$service.Name}}Rpc dispatches a web-standard Request to the {{$service.Name}} service
 // and returns a web-standard Response, or null when the request path does not
 // belong to this service (so the caller can try other routes).
 export const serve{{$service.Name}}Rpc = async <Context>(service: {{$service.Name}}Server<Context>, ctx: Context, request: Request): Promise<Response | null> => {
+  {{- if $serviceHasRoutes }}
+  const rest = await webrpcRestToRpcRequest({{firstLetterToLower $service.Name}}RestRoutes, request)
+  if (rest instanceof Response) return rest
+  if (rest) request = rest
+  {{- end }}
   const pathname = new URL(request.url).pathname
   if (!pathname.startsWith('{{$basepath}}{{$service.Name}}/')) return null
   const method = pathname.slice('{{$basepath}}{{$service.Name}}/'.length)
@@ -29,6 +40,17 @@ export const serve{{$service.Name}}Rpc = async <Context>(service: {{$service.Nam
     return webrpcErrorResponse(err)
   }
 }
+
+{{- if $serviceHasRoutes }}
+
+const {{firstLetterToLower $service.Name}}RestRoutes: WebrpcRestRoute[] = [
+{{- range $_, $method := $service.Methods}}
+{{- if MethodHasRoute $method}}
+  { method: '{{MethodRouteVerb $method}}', path: '{{MethodRoutePath $method}}', rpcPath: '{{$basepath}}{{$service.Name}}/{{$method.Name}}', params: [{{range $i, $p := MethodRouteParams $method}}{{if $i}}, {{end}}'{{$p.Name}}{{if $p.Optional}}?{{end}}: {{if $p.Repeated}}[]{{end}}{{$p.TypeExpr}}'{{end}}] },
+{{- end}}
+{{- end}}
+]
+{{- end }}
 
 const dispatch{{$service.Name}}Request = async <Context>(service: {{$service.Name}}Server<Context>, ctx: Context, method: string, request: Request): Promise<Response> => {
   switch (method) {
@@ -134,6 +156,103 @@ const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }):
     headers: { ...headers, [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
   })
 }
+
+{{- if $opts.restRoutes}}
+{{"\n"}}
+// WebrpcRestRoute serves a REST route as the webrpc method at rpcPath. Params
+// bind path and query params to request fields, in RIDL syntax: 'tags?: []string'.
+type WebrpcRestRoute = { method: string, path: string, rpcPath: string, params: string[] }
+
+// webrpcRestToRpcRequest rewrites a REST route request into its webrpc method
+// request: POST rpcPath with path and query params merged into the JSON body.
+// Returns null when no route path matches, or an error Response.
+const webrpcRestToRpcRequest = async (routes: WebrpcRestRoute[], request: Request): Promise<Request | Response | null> => {
+  const url = new URL(request.url)
+  // A routed method answers only on its route.
+  if (routes.some((route) => route.rpcPath === url.pathname)) {
+    return webrpcErrorResponse(new WebrpcBadRouteError({ cause: `no webrpc method defined for path ${url.pathname}` }))
+  }
+  const segments = url.pathname.split('/').filter((s) => s !== '')
+  const allowed: string[] = []
+  let match: { route: WebrpcRestRoute, pathParams: { [name: string]: string }, static: number } | undefined
+  for (const route of routes) {
+    const pathParams = webrpcMatchRestPath(route.path, segments)
+    if (!pathParams) continue
+    allowed.push(route.method)
+    // Static segments beat params, e.g. /items/search over /items/{id}.
+    const staticCount = segments.length - Object.keys(pathParams).length
+    if (route.method === request.method && (!match || staticCount > match.static)) {
+      match = { route, pathParams, static: staticCount }
+    }
+  }
+  if (!match) {
+    return allowed.length === 0 ? null : webrpcErrorResponse(new WebrpcBadMethodError({ cause: `unsupported HTTP method ${request.method} (allowed: ${allowed.join(', ')})` }), { Allow: allowed.join(', ') })
+  }
+
+  try {
+    const { route, pathParams } = match
+    const hasBody = route.method === 'POST' || route.method === 'PUT' || route.method === 'PATCH'
+    const payload: any = hasBody ? webrpcParseRequestBody(await webrpcRequestBodyText(request), '') : {}
+    for (const param of route.params) {
+      const [, name, optional, repeated, type] = param.match(/^(\w+)(\??): (\[\])?(\w+)$/)!
+      const kind = name! in pathParams ? 'path' : 'query'
+      const values = kind === 'path' ? [pathParams[name!]!] : url.searchParams.getAll(name!)
+      if (values.length === 0) {
+        if (repeated && !optional) payload[name!] = []
+        else if (!optional) throw new WebrpcBadRequestError({ cause: `missing ${kind} param '${name}'` })
+        continue
+      }
+      const coerced = values.map((v) => {
+        const value = webrpcRestParam(v, type!)
+        if (value === undefined) throw new WebrpcBadRequestError({ cause: `invalid ${kind} param '${name}': "${v}" is not a valid ${type}` })
+        return value
+      })
+      payload[name!] = repeated ? coerced : coerced[0]
+    }
+
+    const headers = new Headers(request.headers)
+    headers.set('Content-Type', 'application/json')
+    return new Request(new URL(route.rpcPath, url), { method: 'POST', headers, body: JSON.stringify(payload) })
+  } catch (err) {
+    return webrpcErrorResponse(err)
+  }
+}
+
+// webrpcMatchRestPath returns the decoded path params if segments match the path template.
+const webrpcMatchRestPath = (path: string, segments: string[]): { [name: string]: string } | null => {
+  const parts = path.split('/').filter((s) => s !== '')
+  if (parts.length !== segments.length) return null
+  const params: { [name: string]: string } = {}
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i]!
+    if (!part.startsWith('{')) {
+      if (part !== segments[i]) return null
+      continue
+    }
+    try {
+      params[part.slice(1, -1)] = decodeURIComponent(segments[i]!)
+    } catch {
+      return null
+    }
+  }
+  return params
+}
+
+// webrpcRestParam converts a path/query param string to the field's type, or undefined if invalid.
+const webrpcRestParam = (value: string, type: string): any => {
+  if (type === 'bool') {
+    return value === 'true' ? true : value === 'false' ? false : undefined
+  }
+  if (/^u?int/.test(type)) {
+    return (type.startsWith('u') ? /^\d+$/ : /^-?\d+$/).test(value) ? Number(value) : undefined
+  }
+  if (type.startsWith('float')) {
+    const n = Number(value)
+    return value.trim() !== '' && Number.isFinite(n) ? n : undefined
+  }
+  return value
+}
+{{- end}}
 
 {{- if $opts.fileUpload}}
 {{"\n"}}

@@ -2,6 +2,7 @@
 export PATH = $(shell echo $$PWD/../../bin:$$PATH)
 
 RIDL = ../../_examples/golang-basics/example.ridl
+REST_RIDL = ../schema/test.ridl
 
 all:
 	@awk -F'[ :]' '!/^all:/ && /^([A-z_-]+):/ {print "make " $$1}' Makefile
@@ -14,6 +15,8 @@ generate: build
 	webrpc-gen -schema=$(RIDL) -target=typescript -server -service=Example -out=./server.gen.ts
 	webrpc-gen -schema=$(RIDL) -target=javascript -client -service=Example -out=./client.gen.mjs
 	webrpc-gen -schema=./validate.ridl -target=typescript -server -out=./validate.gen.ts
+	webrpc-gen -schema=$(REST_RIDL) -target=typescript -client -service=TestApiRest -out=./restClient.gen.ts
+	webrpc-gen -schema=$(REST_RIDL) -target=typescript -server -service=TestApiRest -out=./restServer.gen.ts
 
 # End-to-end interoperability tests of the file upload/download wire contract
 # between the Go and TypeScript/JavaScript generators.

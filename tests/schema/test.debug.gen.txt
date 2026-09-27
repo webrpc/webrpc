@@ -4,7 +4,7 @@
 		SchemaName: (string) (len=4) "Test",
 		SchemaVersion: (string) (len=6) "v1.0.0",
 		BasePath: (string) (len=5) "/rpc/",
-		Types: ([]*schema.Type) (len=6 cap=8) {
+		Types: ([]*schema.Type) (len=13 cap=16) {
 			(*schema.Type)({
 				Kind: (string) (len=4) "enum",
 				Name: (string) (len=6) "Status",
@@ -125,6 +125,570 @@
 					Meta: ([]schema.TypeFieldMeta) <nil>
 				},
 				Comments: ([]string) <nil>
+			}),
+			(*schema.Type)({
+				Kind: (string) (len=6) "struct",
+				Name: (string) (len=4) "Item",
+				Type: (*schema.VarType)(<nil>),
+				Fields: ([]*schema.TypeField) (len=2 cap=2) {
+					(*schema.TypeField)({
+						Comments: ([]string) {
+						},
+						Name: (string) (len=2) "id",
+						Type: (*schema.VarType)({
+							Expr: (string) (len=6) "uint64",
+							Type: (schema.CoreType) 9,
+							Comments: ([]string) <nil>,
+							List: (*schema.VarListType)(<nil>),
+							Map: (*schema.VarMapType)(<nil>),
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>),
+							Alias: (*schema.VarAliasType)(<nil>)
+						}),
+						TypeExtra: (schema.TypeExtra) {
+							Optional: (bool) false,
+							Value: (string) "",
+							Meta: ([]schema.TypeFieldMeta) <nil>
+						}
+					}),
+					(*schema.TypeField)({
+						Comments: ([]string) {
+						},
+						Name: (string) (len=4) "name",
+						Type: (*schema.VarType)({
+							Expr: (string) (len=6) "string",
+							Type: (schema.CoreType) 18,
+							Comments: ([]string) <nil>,
+							List: (*schema.VarListType)(<nil>),
+							Map: (*schema.VarMapType)(<nil>),
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>),
+							Alias: (*schema.VarAliasType)(<nil>)
+						}),
+						TypeExtra: (schema.TypeExtra) {
+							Optional: (bool) false,
+							Value: (string) "",
+							Meta: ([]schema.TypeFieldMeta) <nil>
+						}
+					})
+				},
+				TypeExtra: (schema.TypeExtra) {
+					Optional: (bool) false,
+					Value: (string) "",
+					Meta: ([]schema.TypeFieldMeta) <nil>
+				},
+				Comments: ([]string) {
+				}
+			}),
+			(*schema.Type)({
+				Kind: (string) (len=6) "struct",
+				Name: (string) (len=14) "GetItemRequest",
+				Type: (*schema.VarType)(<nil>),
+				Fields: ([]*schema.TypeField) (len=2 cap=2) {
+					(*schema.TypeField)({
+						Comments: ([]string) {
+						},
+						Name: (string) (len=2) "id",
+						Type: (*schema.VarType)({
+							Expr: (string) (len=6) "uint64",
+							Type: (schema.CoreType) 9,
+							Comments: ([]string) <nil>,
+							List: (*schema.VarListType)(<nil>),
+							Map: (*schema.VarMapType)(<nil>),
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>),
+							Alias: (*schema.VarAliasType)(<nil>)
+						}),
+						TypeExtra: (schema.TypeExtra) {
+							Optional: (bool) false,
+							Value: (string) "",
+							Meta: ([]schema.TypeFieldMeta) <nil>
+						}
+					}),
+					(*schema.TypeField)({
+						Comments: ([]string) {
+						},
+						Name: (string) (len=7) "details",
+						Type: (*schema.VarType)({
+							Expr: (string) (len=4) "bool",
+							Type: (schema.CoreType) 4,
+							Comments: ([]string) <nil>,
+							List: (*schema.VarListType)(<nil>),
+							Map: (*schema.VarMapType)(<nil>),
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>),
+							Alias: (*schema.VarAliasType)(<nil>)
+						}),
+						TypeExtra: (schema.TypeExtra) {
+							Optional: (bool) true,
+							Value: (string) "",
+							Meta: ([]schema.TypeFieldMeta) <nil>
+						}
+					})
+				},
+				TypeExtra: (schema.TypeExtra) {
+					Optional: (bool) false,
+					Value: (string) "",
+					Meta: ([]schema.TypeFieldMeta) <nil>
+				},
+				Comments: ([]string) {
+				}
+			}),
+			(*schema.Type)({
+				Kind: (string) (len=6) "struct",
+				Name: (string) (len=15) "GetItemResponse",
+				Type: (*schema.VarType)(<nil>),
+				Fields: ([]*schema.TypeField) (len=1 cap=1) {
+					(*schema.TypeField)({
+						Comments: ([]string) {
+						},
+						Name: (string) (len=4) "item",
+						Type: (*schema.VarType)({
+							Expr: (string) (len=4) "Item",
+							Type: (schema.CoreType) 23,
+							Comments: ([]string) <nil>,
+							List: (*schema.VarListType)(<nil>),
+							Map: (*schema.VarMapType)(<nil>),
+							Struct: (*schema.VarStructType)({
+								Name: (string) (len=4) "Item",
+								Type: (*schema.Type)({
+									Kind: (string) (len=6) "struct",
+									Name: (string) (len=4) "Item",
+									Type: (*schema.VarType)(<nil>),
+									Fields: ([]*schema.TypeField) (len=2 cap=2) {
+										(*schema.TypeField)({
+											Comments: ([]string) {
+											},
+											Name: (string) (len=2) "id",
+											Type: (*schema.VarType)({
+												Expr: (string) (len=6) "uint64",
+												Type: (schema.CoreType) 9,
+												Comments: ([]string) <nil>,
+												List: (*schema.VarListType)(<nil>),
+												Map: (*schema.VarMapType)(<nil>),
+												Struct: (*schema.VarStructType)(<nil>),
+												Enum: (*schema.VarEnumType)(<nil>),
+												Alias: (*schema.VarAliasType)(<nil>)
+											}),
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											}
+										}),
+										(*schema.TypeField)({
+											Comments: ([]string) {
+											},
+											Name: (string) (len=4) "name",
+											Type: (*schema.VarType)({
+												Expr: (string) (len=6) "string",
+												Type: (schema.CoreType) 18,
+												Comments: ([]string) <nil>,
+												List: (*schema.VarListType)(<nil>),
+												Map: (*schema.VarMapType)(<nil>),
+												Struct: (*schema.VarStructType)(<nil>),
+												Enum: (*schema.VarEnumType)(<nil>),
+												Alias: (*schema.VarAliasType)(<nil>)
+											}),
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											}
+										})
+									},
+									TypeExtra: (schema.TypeExtra) {
+										Optional: (bool) false,
+										Value: (string) "",
+										Meta: ([]schema.TypeFieldMeta) <nil>
+									},
+									Comments: ([]string) {
+									}
+								})
+							}),
+							Enum: (*schema.VarEnumType)(<nil>),
+							Alias: (*schema.VarAliasType)(<nil>)
+						}),
+						TypeExtra: (schema.TypeExtra) {
+							Optional: (bool) false,
+							Value: (string) "",
+							Meta: ([]schema.TypeFieldMeta) <nil>
+						}
+					})
+				},
+				TypeExtra: (schema.TypeExtra) {
+					Optional: (bool) false,
+					Value: (string) "",
+					Meta: ([]schema.TypeFieldMeta) <nil>
+				},
+				Comments: ([]string) {
+				}
+			}),
+			(*schema.Type)({
+				Kind: (string) (len=6) "struct",
+				Name: (string) (len=16) "ListItemsRequest",
+				Type: (*schema.VarType)(<nil>),
+				Fields: ([]*schema.TypeField) (len=3 cap=4) {
+					(*schema.TypeField)({
+						Comments: ([]string) {
+						},
+						Name: (string) (len=1) "q",
+						Type: (*schema.VarType)({
+							Expr: (string) (len=6) "string",
+							Type: (schema.CoreType) 18,
+							Comments: ([]string) <nil>,
+							List: (*schema.VarListType)(<nil>),
+							Map: (*schema.VarMapType)(<nil>),
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>),
+							Alias: (*schema.VarAliasType)(<nil>)
+						}),
+						TypeExtra: (schema.TypeExtra) {
+							Optional: (bool) true,
+							Value: (string) "",
+							Meta: ([]schema.TypeFieldMeta) <nil>
+						}
+					}),
+					(*schema.TypeField)({
+						Comments: ([]string) {
+						},
+						Name: (string) (len=4) "tags",
+						Type: (*schema.VarType)({
+							Expr: (string) (len=8) "[]string",
+							Type: (schema.CoreType) 21,
+							Comments: ([]string) <nil>,
+							List: (*schema.VarListType)({
+								Elem: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 18,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								})
+							}),
+							Map: (*schema.VarMapType)(<nil>),
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>),
+							Alias: (*schema.VarAliasType)(<nil>)
+						}),
+						TypeExtra: (schema.TypeExtra) {
+							Optional: (bool) false,
+							Value: (string) "",
+							Meta: ([]schema.TypeFieldMeta) <nil>
+						}
+					}),
+					(*schema.TypeField)({
+						Comments: ([]string) {
+						},
+						Name: (string) (len=5) "limit",
+						Type: (*schema.VarType)({
+							Expr: (string) (len=6) "uint32",
+							Type: (schema.CoreType) 8,
+							Comments: ([]string) <nil>,
+							List: (*schema.VarListType)(<nil>),
+							Map: (*schema.VarMapType)(<nil>),
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>),
+							Alias: (*schema.VarAliasType)(<nil>)
+						}),
+						TypeExtra: (schema.TypeExtra) {
+							Optional: (bool) false,
+							Value: (string) "",
+							Meta: ([]schema.TypeFieldMeta) <nil>
+						}
+					})
+				},
+				TypeExtra: (schema.TypeExtra) {
+					Optional: (bool) false,
+					Value: (string) "",
+					Meta: ([]schema.TypeFieldMeta) <nil>
+				},
+				Comments: ([]string) {
+				}
+			}),
+			(*schema.Type)({
+				Kind: (string) (len=6) "struct",
+				Name: (string) (len=17) "ListItemsResponse",
+				Type: (*schema.VarType)(<nil>),
+				Fields: ([]*schema.TypeField) (len=1 cap=1) {
+					(*schema.TypeField)({
+						Comments: ([]string) {
+						},
+						Name: (string) (len=5) "items",
+						Type: (*schema.VarType)({
+							Expr: (string) (len=6) "[]Item",
+							Type: (schema.CoreType) 21,
+							Comments: ([]string) <nil>,
+							List: (*schema.VarListType)({
+								Elem: (*schema.VarType)({
+									Expr: (string) (len=4) "Item",
+									Type: (schema.CoreType) 23,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)({
+										Name: (string) (len=4) "Item",
+										Type: (*schema.Type)({
+											Kind: (string) (len=6) "struct",
+											Name: (string) (len=4) "Item",
+											Type: (*schema.VarType)(<nil>),
+											Fields: ([]*schema.TypeField) (len=2 cap=2) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=2) "id",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "uint64",
+														Type: (schema.CoreType) 9,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=4) "name",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "string",
+														Type: (schema.CoreType) 18,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
+											}
+										})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								})
+							}),
+							Map: (*schema.VarMapType)(<nil>),
+							Struct: (*schema.VarStructType)(<nil>),
+							Enum: (*schema.VarEnumType)(<nil>),
+							Alias: (*schema.VarAliasType)(<nil>)
+						}),
+						TypeExtra: (schema.TypeExtra) {
+							Optional: (bool) false,
+							Value: (string) "",
+							Meta: ([]schema.TypeFieldMeta) <nil>
+						}
+					})
+				},
+				TypeExtra: (schema.TypeExtra) {
+					Optional: (bool) false,
+					Value: (string) "",
+					Meta: ([]schema.TypeFieldMeta) <nil>
+				},
+				Comments: ([]string) {
+				}
+			}),
+			(*schema.Type)({
+				Kind: (string) (len=6) "struct",
+				Name: (string) (len=17) "CreateItemRequest",
+				Type: (*schema.VarType)(<nil>),
+				Fields: ([]*schema.TypeField) (len=1 cap=1) {
+					(*schema.TypeField)({
+						Comments: ([]string) {
+						},
+						Name: (string) (len=4) "item",
+						Type: (*schema.VarType)({
+							Expr: (string) (len=4) "Item",
+							Type: (schema.CoreType) 23,
+							Comments: ([]string) <nil>,
+							List: (*schema.VarListType)(<nil>),
+							Map: (*schema.VarMapType)(<nil>),
+							Struct: (*schema.VarStructType)({
+								Name: (string) (len=4) "Item",
+								Type: (*schema.Type)({
+									Kind: (string) (len=6) "struct",
+									Name: (string) (len=4) "Item",
+									Type: (*schema.VarType)(<nil>),
+									Fields: ([]*schema.TypeField) (len=2 cap=2) {
+										(*schema.TypeField)({
+											Comments: ([]string) {
+											},
+											Name: (string) (len=2) "id",
+											Type: (*schema.VarType)({
+												Expr: (string) (len=6) "uint64",
+												Type: (schema.CoreType) 9,
+												Comments: ([]string) <nil>,
+												List: (*schema.VarListType)(<nil>),
+												Map: (*schema.VarMapType)(<nil>),
+												Struct: (*schema.VarStructType)(<nil>),
+												Enum: (*schema.VarEnumType)(<nil>),
+												Alias: (*schema.VarAliasType)(<nil>)
+											}),
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											}
+										}),
+										(*schema.TypeField)({
+											Comments: ([]string) {
+											},
+											Name: (string) (len=4) "name",
+											Type: (*schema.VarType)({
+												Expr: (string) (len=6) "string",
+												Type: (schema.CoreType) 18,
+												Comments: ([]string) <nil>,
+												List: (*schema.VarListType)(<nil>),
+												Map: (*schema.VarMapType)(<nil>),
+												Struct: (*schema.VarStructType)(<nil>),
+												Enum: (*schema.VarEnumType)(<nil>),
+												Alias: (*schema.VarAliasType)(<nil>)
+											}),
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											}
+										})
+									},
+									TypeExtra: (schema.TypeExtra) {
+										Optional: (bool) false,
+										Value: (string) "",
+										Meta: ([]schema.TypeFieldMeta) <nil>
+									},
+									Comments: ([]string) {
+									}
+								})
+							}),
+							Enum: (*schema.VarEnumType)(<nil>),
+							Alias: (*schema.VarAliasType)(<nil>)
+						}),
+						TypeExtra: (schema.TypeExtra) {
+							Optional: (bool) false,
+							Value: (string) "",
+							Meta: ([]schema.TypeFieldMeta) <nil>
+						}
+					})
+				},
+				TypeExtra: (schema.TypeExtra) {
+					Optional: (bool) false,
+					Value: (string) "",
+					Meta: ([]schema.TypeFieldMeta) <nil>
+				},
+				Comments: ([]string) {
+				}
+			}),
+			(*schema.Type)({
+				Kind: (string) (len=6) "struct",
+				Name: (string) (len=18) "CreateItemResponse",
+				Type: (*schema.VarType)(<nil>),
+				Fields: ([]*schema.TypeField) (len=1 cap=1) {
+					(*schema.TypeField)({
+						Comments: ([]string) {
+						},
+						Name: (string) (len=4) "item",
+						Type: (*schema.VarType)({
+							Expr: (string) (len=4) "Item",
+							Type: (schema.CoreType) 23,
+							Comments: ([]string) <nil>,
+							List: (*schema.VarListType)(<nil>),
+							Map: (*schema.VarMapType)(<nil>),
+							Struct: (*schema.VarStructType)({
+								Name: (string) (len=4) "Item",
+								Type: (*schema.Type)({
+									Kind: (string) (len=6) "struct",
+									Name: (string) (len=4) "Item",
+									Type: (*schema.VarType)(<nil>),
+									Fields: ([]*schema.TypeField) (len=2 cap=2) {
+										(*schema.TypeField)({
+											Comments: ([]string) {
+											},
+											Name: (string) (len=2) "id",
+											Type: (*schema.VarType)({
+												Expr: (string) (len=6) "uint64",
+												Type: (schema.CoreType) 9,
+												Comments: ([]string) <nil>,
+												List: (*schema.VarListType)(<nil>),
+												Map: (*schema.VarMapType)(<nil>),
+												Struct: (*schema.VarStructType)(<nil>),
+												Enum: (*schema.VarEnumType)(<nil>),
+												Alias: (*schema.VarAliasType)(<nil>)
+											}),
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											}
+										}),
+										(*schema.TypeField)({
+											Comments: ([]string) {
+											},
+											Name: (string) (len=4) "name",
+											Type: (*schema.VarType)({
+												Expr: (string) (len=6) "string",
+												Type: (schema.CoreType) 18,
+												Comments: ([]string) <nil>,
+												List: (*schema.VarListType)(<nil>),
+												Map: (*schema.VarMapType)(<nil>),
+												Struct: (*schema.VarStructType)(<nil>),
+												Enum: (*schema.VarEnumType)(<nil>),
+												Alias: (*schema.VarAliasType)(<nil>)
+											}),
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											}
+										})
+									},
+									TypeExtra: (schema.TypeExtra) {
+										Optional: (bool) false,
+										Value: (string) "",
+										Meta: ([]schema.TypeFieldMeta) <nil>
+									},
+									Comments: ([]string) {
+									}
+								})
+							}),
+							Enum: (*schema.VarEnumType)(<nil>),
+							Alias: (*schema.VarAliasType)(<nil>)
+						}),
+						TypeExtra: (schema.TypeExtra) {
+							Optional: (bool) false,
+							Value: (string) "",
+							Meta: ([]schema.TypeFieldMeta) <nil>
+						}
+					})
+				},
+				TypeExtra: (schema.TypeExtra) {
+					Optional: (bool) false,
+					Value: (string) "",
+					Meta: ([]schema.TypeFieldMeta) <nil>
+				},
+				Comments: ([]string) {
+				}
 			}),
 			(*schema.Type)({
 				Kind: (string) (len=6) "struct",
@@ -1319,9 +1883,10 @@
 				HTTPStatus: (int) 400
 			})
 		},
-		Services: ([]*schema.Service) (len=1 cap=1) {
+		Services: ([]*schema.Service) (len=2 cap=2) {
 			(*schema.Service)({
 				Name: (string) (len=7) "TestApi",
+				Path: (string) "",
 				Methods: ([]*schema.Method) (len=15 cap=16) {
 					(*schema.Method)({
 						Name: (string) (len=8) "GetEmpty",
@@ -1333,6 +1898,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) {
 						},
 						Outputs: ([]*schema.MethodArgument) {
@@ -1351,6 +1917,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) {
 						},
 						Outputs: ([]*schema.MethodArgument) {
@@ -1369,6 +1936,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) {
 						},
 						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
@@ -1464,6 +2032,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
 							(*schema.MethodArgument)({
 								Name: (string) (len=3) "one",
@@ -1559,6 +2128,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) {
 						},
 						Outputs: ([]*schema.MethodArgument) (len=3 cap=4) {
@@ -1808,6 +2378,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) (len=3 cap=4) {
 							(*schema.MethodArgument)({
 								Name: (string) (len=3) "one",
@@ -2057,6 +2628,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) {
 						},
 						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
@@ -2820,6 +3392,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
 							(*schema.MethodArgument)({
 								Name: (string) (len=7) "complex",
@@ -3583,6 +4156,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) {
 						},
 						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
@@ -3679,6 +4253,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) {
 						},
 						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
@@ -3819,6 +4394,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
 							(*schema.MethodArgument)({
 								Name: (string) (len=4) "code",
@@ -3859,6 +4435,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) (len=2 cap=2) {
 							(*schema.MethodArgument)({
 								Name: (string) (len=4) "name",
@@ -3940,6 +4517,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
 							(*schema.MethodArgument)({
 								Name: (string) (len=5) "files",
@@ -4011,6 +4589,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
 							(*schema.MethodArgument)({
 								Name: (string) (len=4) "name",
@@ -4071,6 +4650,7 @@
 						StreamInput: (bool) false,
 						StreamOutput: (bool) false,
 						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
 						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
 							(*schema.MethodArgument)({
 								Name: (string) (len=4) "data",
@@ -4125,10 +4705,1682 @@
 				Comments: ([]string) {
 				},
 				Schema: (*schema.WebRPCSchema)(<already shown>)
+			}),
+			(*schema.Service)({
+				Name: (string) (len=11) "TestApiRest",
+				Path: (string) (len=6) "/items",
+				Methods: ([]*schema.Method) (len=11 cap=16) {
+					(*schema.Method)({
+						Name: (string) (len=7) "GetItem",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) true,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)({
+							Verb: (string) (len=3) "GET",
+							Path: (string) (len=5) "/{id}"
+						}),
+						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=14) "getItemRequest",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=14) "GetItemRequest",
+									Type: (schema.CoreType) 23,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)({
+										Name: (string) (len=14) "GetItemRequest",
+										Type: (*schema.Type)({
+											Kind: (string) (len=6) "struct",
+											Name: (string) (len=14) "GetItemRequest",
+											Type: (*schema.VarType)(<nil>),
+											Fields: ([]*schema.TypeField) (len=2 cap=2) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=2) "id",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "uint64",
+														Type: (schema.CoreType) 9,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=7) "details",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=4) "bool",
+														Type: (schema.CoreType) 4,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) true,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
+											}
+										})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=15) "getItemResponse",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=15) "GetItemResponse",
+									Type: (schema.CoreType) 23,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)({
+										Name: (string) (len=15) "GetItemResponse",
+										Type: (*schema.Type)({
+											Kind: (string) (len=6) "struct",
+											Name: (string) (len=15) "GetItemResponse",
+											Type: (*schema.VarType)(<nil>),
+											Fields: ([]*schema.TypeField) (len=1 cap=1) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=4) "item",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=4) "Item",
+														Type: (schema.CoreType) 23,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)({
+															Name: (string) (len=4) "Item",
+															Type: (*schema.Type)({
+																Kind: (string) (len=6) "struct",
+																Name: (string) (len=4) "Item",
+																Type: (*schema.VarType)(<nil>),
+																Fields: ([]*schema.TypeField) (len=2 cap=2) {
+																	(*schema.TypeField)({
+																		Comments: ([]string) {
+																		},
+																		Name: (string) (len=2) "id",
+																		Type: (*schema.VarType)({
+																			Expr: (string) (len=6) "uint64",
+																			Type: (schema.CoreType) 9,
+																			Comments: ([]string) <nil>,
+																			List: (*schema.VarListType)(<nil>),
+																			Map: (*schema.VarMapType)(<nil>),
+																			Struct: (*schema.VarStructType)(<nil>),
+																			Enum: (*schema.VarEnumType)(<nil>),
+																			Alias: (*schema.VarAliasType)(<nil>)
+																		}),
+																		TypeExtra: (schema.TypeExtra) {
+																			Optional: (bool) false,
+																			Value: (string) "",
+																			Meta: ([]schema.TypeFieldMeta) <nil>
+																		}
+																	}),
+																	(*schema.TypeField)({
+																		Comments: ([]string) {
+																		},
+																		Name: (string) (len=4) "name",
+																		Type: (*schema.VarType)({
+																			Expr: (string) (len=6) "string",
+																			Type: (schema.CoreType) 18,
+																			Comments: ([]string) <nil>,
+																			List: (*schema.VarListType)(<nil>),
+																			Map: (*schema.VarMapType)(<nil>),
+																			Struct: (*schema.VarStructType)(<nil>),
+																			Enum: (*schema.VarEnumType)(<nil>),
+																			Alias: (*schema.VarAliasType)(<nil>)
+																		}),
+																		TypeExtra: (schema.TypeExtra) {
+																			Optional: (bool) false,
+																			Value: (string) "",
+																			Meta: ([]schema.TypeFieldMeta) <nil>
+																		}
+																	})
+																},
+																TypeExtra: (schema.TypeExtra) {
+																	Optional: (bool) false,
+																	Value: (string) "",
+																	Meta: ([]schema.TypeFieldMeta) <nil>
+																},
+																Comments: ([]string) {
+																}
+															})
+														}),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
+											}
+										})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=9) "ListItems",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) true,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)({
+							Verb: (string) (len=3) "GET",
+							Path: (string) (len=1) "/"
+						}),
+						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=16) "listItemsRequest",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=16) "ListItemsRequest",
+									Type: (schema.CoreType) 23,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)({
+										Name: (string) (len=16) "ListItemsRequest",
+										Type: (*schema.Type)({
+											Kind: (string) (len=6) "struct",
+											Name: (string) (len=16) "ListItemsRequest",
+											Type: (*schema.VarType)(<nil>),
+											Fields: ([]*schema.TypeField) (len=3 cap=4) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=1) "q",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "string",
+														Type: (schema.CoreType) 18,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) true,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=4) "tags",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=8) "[]string",
+														Type: (schema.CoreType) 21,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)({
+															Elem: (*schema.VarType)({
+																Expr: (string) (len=6) "string",
+																Type: (schema.CoreType) 18,
+																Comments: ([]string) <nil>,
+																List: (*schema.VarListType)(<nil>),
+																Map: (*schema.VarMapType)(<nil>),
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>),
+																Alias: (*schema.VarAliasType)(<nil>)
+															})
+														}),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=5) "limit",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "uint32",
+														Type: (schema.CoreType) 8,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
+											}
+										})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=17) "listItemsResponse",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=17) "ListItemsResponse",
+									Type: (schema.CoreType) 23,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)({
+										Name: (string) (len=17) "ListItemsResponse",
+										Type: (*schema.Type)({
+											Kind: (string) (len=6) "struct",
+											Name: (string) (len=17) "ListItemsResponse",
+											Type: (*schema.VarType)(<nil>),
+											Fields: ([]*schema.TypeField) (len=1 cap=1) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=5) "items",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "[]Item",
+														Type: (schema.CoreType) 21,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)({
+															Elem: (*schema.VarType)({
+																Expr: (string) (len=4) "Item",
+																Type: (schema.CoreType) 23,
+																Comments: ([]string) <nil>,
+																List: (*schema.VarListType)(<nil>),
+																Map: (*schema.VarMapType)(<nil>),
+																Struct: (*schema.VarStructType)({
+																	Name: (string) (len=4) "Item",
+																	Type: (*schema.Type)({
+																		Kind: (string) (len=6) "struct",
+																		Name: (string) (len=4) "Item",
+																		Type: (*schema.VarType)(<nil>),
+																		Fields: ([]*schema.TypeField) (len=2 cap=2) {
+																			(*schema.TypeField)({
+																				Comments: ([]string) {
+																				},
+																				Name: (string) (len=2) "id",
+																				Type: (*schema.VarType)({
+																					Expr: (string) (len=6) "uint64",
+																					Type: (schema.CoreType) 9,
+																					Comments: ([]string) <nil>,
+																					List: (*schema.VarListType)(<nil>),
+																					Map: (*schema.VarMapType)(<nil>),
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>),
+																					Alias: (*schema.VarAliasType)(<nil>)
+																				}),
+																				TypeExtra: (schema.TypeExtra) {
+																					Optional: (bool) false,
+																					Value: (string) "",
+																					Meta: ([]schema.TypeFieldMeta) <nil>
+																				}
+																			}),
+																			(*schema.TypeField)({
+																				Comments: ([]string) {
+																				},
+																				Name: (string) (len=4) "name",
+																				Type: (*schema.VarType)({
+																					Expr: (string) (len=6) "string",
+																					Type: (schema.CoreType) 18,
+																					Comments: ([]string) <nil>,
+																					List: (*schema.VarListType)(<nil>),
+																					Map: (*schema.VarMapType)(<nil>),
+																					Struct: (*schema.VarStructType)(<nil>),
+																					Enum: (*schema.VarEnumType)(<nil>),
+																					Alias: (*schema.VarAliasType)(<nil>)
+																				}),
+																				TypeExtra: (schema.TypeExtra) {
+																					Optional: (bool) false,
+																					Value: (string) "",
+																					Meta: ([]schema.TypeFieldMeta) <nil>
+																				}
+																			})
+																		},
+																		TypeExtra: (schema.TypeExtra) {
+																			Optional: (bool) false,
+																			Value: (string) "",
+																			Meta: ([]schema.TypeFieldMeta) <nil>
+																		},
+																		Comments: ([]string) {
+																		}
+																	})
+																}),
+																Enum: (*schema.VarEnumType)(<nil>),
+																Alias: (*schema.VarAliasType)(<nil>)
+															})
+														}),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
+											}
+										})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=10) "CreateItem",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) true,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)({
+							Verb: (string) (len=4) "POST",
+							Path: (string) (len=1) "/"
+						}),
+						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=17) "createItemRequest",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=17) "CreateItemRequest",
+									Type: (schema.CoreType) 23,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)({
+										Name: (string) (len=17) "CreateItemRequest",
+										Type: (*schema.Type)({
+											Kind: (string) (len=6) "struct",
+											Name: (string) (len=17) "CreateItemRequest",
+											Type: (*schema.VarType)(<nil>),
+											Fields: ([]*schema.TypeField) (len=1 cap=1) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=4) "item",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=4) "Item",
+														Type: (schema.CoreType) 23,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)({
+															Name: (string) (len=4) "Item",
+															Type: (*schema.Type)({
+																Kind: (string) (len=6) "struct",
+																Name: (string) (len=4) "Item",
+																Type: (*schema.VarType)(<nil>),
+																Fields: ([]*schema.TypeField) (len=2 cap=2) {
+																	(*schema.TypeField)({
+																		Comments: ([]string) {
+																		},
+																		Name: (string) (len=2) "id",
+																		Type: (*schema.VarType)({
+																			Expr: (string) (len=6) "uint64",
+																			Type: (schema.CoreType) 9,
+																			Comments: ([]string) <nil>,
+																			List: (*schema.VarListType)(<nil>),
+																			Map: (*schema.VarMapType)(<nil>),
+																			Struct: (*schema.VarStructType)(<nil>),
+																			Enum: (*schema.VarEnumType)(<nil>),
+																			Alias: (*schema.VarAliasType)(<nil>)
+																		}),
+																		TypeExtra: (schema.TypeExtra) {
+																			Optional: (bool) false,
+																			Value: (string) "",
+																			Meta: ([]schema.TypeFieldMeta) <nil>
+																		}
+																	}),
+																	(*schema.TypeField)({
+																		Comments: ([]string) {
+																		},
+																		Name: (string) (len=4) "name",
+																		Type: (*schema.VarType)({
+																			Expr: (string) (len=6) "string",
+																			Type: (schema.CoreType) 18,
+																			Comments: ([]string) <nil>,
+																			List: (*schema.VarListType)(<nil>),
+																			Map: (*schema.VarMapType)(<nil>),
+																			Struct: (*schema.VarStructType)(<nil>),
+																			Enum: (*schema.VarEnumType)(<nil>),
+																			Alias: (*schema.VarAliasType)(<nil>)
+																		}),
+																		TypeExtra: (schema.TypeExtra) {
+																			Optional: (bool) false,
+																			Value: (string) "",
+																			Meta: ([]schema.TypeFieldMeta) <nil>
+																		}
+																	})
+																},
+																TypeExtra: (schema.TypeExtra) {
+																	Optional: (bool) false,
+																	Value: (string) "",
+																	Meta: ([]schema.TypeFieldMeta) <nil>
+																},
+																Comments: ([]string) {
+																}
+															})
+														}),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
+											}
+										})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=18) "createItemResponse",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=18) "CreateItemResponse",
+									Type: (schema.CoreType) 23,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)({
+										Name: (string) (len=18) "CreateItemResponse",
+										Type: (*schema.Type)({
+											Kind: (string) (len=6) "struct",
+											Name: (string) (len=18) "CreateItemResponse",
+											Type: (*schema.VarType)(<nil>),
+											Fields: ([]*schema.TypeField) (len=1 cap=1) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=4) "item",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=4) "Item",
+														Type: (schema.CoreType) 23,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)({
+															Name: (string) (len=4) "Item",
+															Type: (*schema.Type)({
+																Kind: (string) (len=6) "struct",
+																Name: (string) (len=4) "Item",
+																Type: (*schema.VarType)(<nil>),
+																Fields: ([]*schema.TypeField) (len=2 cap=2) {
+																	(*schema.TypeField)({
+																		Comments: ([]string) {
+																		},
+																		Name: (string) (len=2) "id",
+																		Type: (*schema.VarType)({
+																			Expr: (string) (len=6) "uint64",
+																			Type: (schema.CoreType) 9,
+																			Comments: ([]string) <nil>,
+																			List: (*schema.VarListType)(<nil>),
+																			Map: (*schema.VarMapType)(<nil>),
+																			Struct: (*schema.VarStructType)(<nil>),
+																			Enum: (*schema.VarEnumType)(<nil>),
+																			Alias: (*schema.VarAliasType)(<nil>)
+																		}),
+																		TypeExtra: (schema.TypeExtra) {
+																			Optional: (bool) false,
+																			Value: (string) "",
+																			Meta: ([]schema.TypeFieldMeta) <nil>
+																		}
+																	}),
+																	(*schema.TypeField)({
+																		Comments: ([]string) {
+																		},
+																		Name: (string) (len=4) "name",
+																		Type: (*schema.VarType)({
+																			Expr: (string) (len=6) "string",
+																			Type: (schema.CoreType) 18,
+																			Comments: ([]string) <nil>,
+																			List: (*schema.VarListType)(<nil>),
+																			Map: (*schema.VarMapType)(<nil>),
+																			Struct: (*schema.VarStructType)(<nil>),
+																			Enum: (*schema.VarEnumType)(<nil>),
+																			Alias: (*schema.VarAliasType)(<nil>)
+																		}),
+																		TypeExtra: (schema.TypeExtra) {
+																			Optional: (bool) false,
+																			Value: (string) "",
+																			Meta: ([]schema.TypeFieldMeta) <nil>
+																		}
+																	})
+																},
+																TypeExtra: (schema.TypeExtra) {
+																	Optional: (bool) false,
+																	Value: (string) "",
+																	Meta: ([]schema.TypeFieldMeta) <nil>
+																},
+																Comments: ([]string) {
+																}
+															})
+														}),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
+											}
+										})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=10) "UpdateItem",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)({
+							Verb: (string) (len=3) "PUT",
+							Path: (string) (len=5) "/{id}"
+						}),
+						Inputs: ([]*schema.MethodArgument) (len=2 cap=2) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=2) "id",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "uint64",
+									Type: (schema.CoreType) 9,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							}),
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "name",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 18,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "item",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=4) "Item",
+									Type: (schema.CoreType) 23,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)({
+										Name: (string) (len=4) "Item",
+										Type: (*schema.Type)({
+											Kind: (string) (len=6) "struct",
+											Name: (string) (len=4) "Item",
+											Type: (*schema.VarType)(<nil>),
+											Fields: ([]*schema.TypeField) (len=2 cap=2) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=2) "id",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "uint64",
+														Type: (schema.CoreType) 9,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=4) "name",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "string",
+														Type: (schema.CoreType) 18,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
+											}
+										})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=9) "PatchItem",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)({
+							Verb: (string) (len=5) "PATCH",
+							Path: (string) (len=5) "/{id}"
+						}),
+						Inputs: ([]*schema.MethodArgument) (len=2 cap=2) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=2) "id",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "uint64",
+									Type: (schema.CoreType) 9,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							}),
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "name",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 18,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) true,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "item",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=4) "Item",
+									Type: (schema.CoreType) 23,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)({
+										Name: (string) (len=4) "Item",
+										Type: (*schema.Type)({
+											Kind: (string) (len=6) "struct",
+											Name: (string) (len=4) "Item",
+											Type: (*schema.VarType)(<nil>),
+											Fields: ([]*schema.TypeField) (len=2 cap=2) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=2) "id",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "uint64",
+														Type: (schema.CoreType) 9,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=4) "name",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "string",
+														Type: (schema.CoreType) 18,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
+											}
+										})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=10) "DeleteItem",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)({
+							Verb: (string) (len=6) "DELETE",
+							Path: (string) (len=5) "/{id}"
+						}),
+						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=2) "id",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "uint64",
+									Type: (schema.CoreType) 9,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) {
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=10) "QueryItems",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)({
+							Verb: (string) (len=5) "QUERY",
+							Path: (string) (len=7) "/search"
+						}),
+						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=1) "q",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 18,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=5) "items",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "[]Item",
+									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)({
+										Elem: (*schema.VarType)({
+											Expr: (string) (len=4) "Item",
+											Type: (schema.CoreType) 23,
+											Comments: ([]string) <nil>,
+											List: (*schema.VarListType)(<nil>),
+											Map: (*schema.VarMapType)(<nil>),
+											Struct: (*schema.VarStructType)({
+												Name: (string) (len=4) "Item",
+												Type: (*schema.Type)({
+													Kind: (string) (len=6) "struct",
+													Name: (string) (len=4) "Item",
+													Type: (*schema.VarType)(<nil>),
+													Fields: ([]*schema.TypeField) (len=2 cap=2) {
+														(*schema.TypeField)({
+															Comments: ([]string) {
+															},
+															Name: (string) (len=2) "id",
+															Type: (*schema.VarType)({
+																Expr: (string) (len=6) "uint64",
+																Type: (schema.CoreType) 9,
+																Comments: ([]string) <nil>,
+																List: (*schema.VarListType)(<nil>),
+																Map: (*schema.VarMapType)(<nil>),
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>),
+																Alias: (*schema.VarAliasType)(<nil>)
+															}),
+															TypeExtra: (schema.TypeExtra) {
+																Optional: (bool) false,
+																Value: (string) "",
+																Meta: ([]schema.TypeFieldMeta) <nil>
+															}
+														}),
+														(*schema.TypeField)({
+															Comments: ([]string) {
+															},
+															Name: (string) (len=4) "name",
+															Type: (*schema.VarType)({
+																Expr: (string) (len=6) "string",
+																Type: (schema.CoreType) 18,
+																Comments: ([]string) <nil>,
+																List: (*schema.VarListType)(<nil>),
+																Map: (*schema.VarMapType)(<nil>),
+																Struct: (*schema.VarStructType)(<nil>),
+																Enum: (*schema.VarEnumType)(<nil>),
+																Alias: (*schema.VarAliasType)(<nil>)
+															}),
+															TypeExtra: (schema.TypeExtra) {
+																Optional: (bool) false,
+																Value: (string) "",
+																Meta: ([]schema.TypeFieldMeta) <nil>
+															}
+														})
+													},
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													},
+													Comments: ([]string) {
+													}
+												})
+											}),
+											Enum: (*schema.VarEnumType)(<nil>),
+											Alias: (*schema.VarAliasType)(<nil>)
+										})
+									}),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=10) "EchoParams",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)({
+							Verb: (string) (len=3) "GET",
+							Path: (string) (len=12) "/echo/params"
+						}),
+						Inputs: ([]*schema.MethodArgument) (len=8 cap=8) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=3) "str",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 18,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							}),
+							(*schema.MethodArgument)({
+								Name: (string) (len=3) "num",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=5) "int64",
+									Type: (schema.CoreType) 14,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							}),
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "flag",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=4) "bool",
+									Type: (schema.CoreType) 4,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							}),
+							(*schema.MethodArgument)({
+								Name: (string) (len=2) "fl",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=7) "float64",
+									Type: (schema.CoreType) 17,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							}),
+							(*schema.MethodArgument)({
+								Name: (string) (len=2) "ts",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=9) "timestamp",
+									Type: (schema.CoreType) 19,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							}),
+							(*schema.MethodArgument)({
+								Name: (string) (len=6) "status",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "Status",
+									Type: (schema.CoreType) 24,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)({
+										Name: (string) (len=6) "Status",
+										Type: (*schema.Type)({
+											Kind: (string) (len=4) "enum",
+											Name: (string) (len=6) "Status",
+											Type: (*schema.VarType)({
+												Expr: (string) (len=6) "uint32",
+												Type: (schema.CoreType) 8,
+												Comments: ([]string) <nil>,
+												List: (*schema.VarListType)(<nil>),
+												Map: (*schema.VarMapType)(<nil>),
+												Struct: (*schema.VarStructType)(<nil>),
+												Enum: (*schema.VarEnumType)(<nil>),
+												Alias: (*schema.VarAliasType)(<nil>)
+											}),
+											Fields: ([]*schema.TypeField) (len=2 cap=2) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=9) "AVAILABLE",
+													Type: (*schema.VarType)(<nil>),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) (len=1) "0",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=13) "NOT_AVAILABLE",
+													Type: (*schema.VarType)(<nil>),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) (len=1) "1",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) <nil>
+										})
+									}),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							}),
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "tags",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=8) "[]string",
+									Type: (schema.CoreType) 21,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)({
+										Elem: (*schema.VarType)({
+											Expr: (string) (len=6) "string",
+											Type: (schema.CoreType) 18,
+											Comments: ([]string) <nil>,
+											List: (*schema.VarListType)(<nil>),
+											Map: (*schema.VarMapType)(<nil>),
+											Struct: (*schema.VarStructType)(<nil>),
+											Enum: (*schema.VarEnumType)(<nil>),
+											Alias: (*schema.VarAliasType)(<nil>)
+										})
+									}),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							}),
+							(*schema.MethodArgument)({
+								Name: (string) (len=3) "opt",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 18,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) true,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "echo",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 18,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=8) "GetChild",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)({
+							Verb: (string) (len=3) "GET",
+							Path: (string) (len=24) "/{id}/children/{childId}"
+						}),
+						Inputs: ([]*schema.MethodArgument) (len=2 cap=2) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=2) "id",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "uint64",
+									Type: (schema.CoreType) 9,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							}),
+							(*schema.MethodArgument)({
+								Name: (string) (len=7) "childId",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "uint64",
+									Type: (schema.CoreType) 9,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "path",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 18,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=10) "ResetItems",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)({
+							Verb: (string) (len=4) "POST",
+							Path: (string) (len=6) "/reset"
+						}),
+						Inputs: ([]*schema.MethodArgument) {
+						},
+						Outputs: ([]*schema.MethodArgument) {
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
+						Name: (string) (len=9) "RpcMethod",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Route: (*schema.MethodRoute)(<nil>),
+						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=2) "id",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "uint64",
+									Type: (schema.CoreType) 9,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "item",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=4) "Item",
+									Type: (schema.CoreType) 23,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)({
+										Name: (string) (len=4) "Item",
+										Type: (*schema.Type)({
+											Kind: (string) (len=6) "struct",
+											Name: (string) (len=4) "Item",
+											Type: (*schema.VarType)(<nil>),
+											Fields: ([]*schema.TypeField) (len=2 cap=2) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=2) "id",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "uint64",
+														Type: (schema.CoreType) 9,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=4) "name",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "string",
+														Type: (schema.CoreType) 18,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
+											}
+										})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					})
+				},
+				Comments: ([]string) (len=1 cap=1) {
+					(string) (len=30) "added in v0.47.0 (REST routes)"
+				},
+				Schema: (*schema.WebRPCSchema)(<already shown>)
 			})
 		}
 	}),
-	SchemaHash: (string) (len=40) "c1aad3dc8c1acd2a28854c82051cb9cfafe21945",
+	SchemaHash: (string) (len=40) "071aae83501bb087ab48b4db888a2ed9c25afb40",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcHeader: (string) "",
 	WebrpcTarget: (string) (len=5) "debug",
