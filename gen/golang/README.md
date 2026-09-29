@@ -35,6 +35,7 @@ Change any of the following values by passing `-option="Value"` CLI flag to `web
 | `-errorStackTrace`    | `false`   | enables error stack traces                                                  | v0.14.0  |
 | `-webrpcHeader=false` | `true`    | enable client send webrpc version in http headers                           | v0.16.0  |
 | `-schemaHash=false`   | `true`    | don't emit schema hash + version helper funcs (avoids merge conflicts)      | v0.30.0  |
+| `-strictEnums`        | `false`   | integer enums: unknown names decode to a reserved invalid value, not the zero value; adds `IsValid()` | v0.48.0  |
 
 Example:
 ```

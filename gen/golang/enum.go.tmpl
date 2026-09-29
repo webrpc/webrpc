@@ -4,6 +4,23 @@
 {{- $type := .Type -}}
 {{- $fields := .Fields -}}
 {{- $opts := .Opts -}}
+{{- $typeName := printf "%v" $type -}}
+
+{{- /* -strictEnums: an unknown name decodes to the type's maximum value, which must not be declared. */ -}}
+{{- $invalidExpr := dict "uint8" "^uint8(0)" "uint16" "^uint16(0)" "uint32" "^uint32(0)" "uint64" "^uint64(0)" "uint" "^uint(0)" "int8" "int8(^uint8(0) >> 1)" "int16" "int16(^uint16(0) >> 1)" "int32" "int32(^uint32(0) >> 1)" "int64" "int64(^uint64(0) >> 1)" "int" "int(^uint(0) >> 1)" -}}
+{{- $invalidValue := dict "uint8" "255" "uint16" "65535" "uint32" "4294967295" "uint64" "18446744073709551615" "uint" "18446744073709551615" "int8" "127" "int16" "32767" "int32" "2147483647" "int64" "9223372036854775807" "int" "9223372036854775807" -}}
+{{- if $opts.strictEnums -}}
+  {{- if not (exists $invalidExpr $typeName) -}}
+    {{- stderrPrintf "-strictEnums: enum %v has unsupported type %v\n" $name $typeName -}}
+    {{- exit 1 -}}
+  {{- end -}}
+  {{- range $_, $field := $fields -}}
+    {{- if eq (printf "%v" $field.Value) (get $invalidValue $typeName) -}}
+      {{- stderrPrintf "-strictEnums: enum %v value %v = %v is reserved for unknown names\n" $name $field.Name $field.Value -}}
+      {{- exit 1 -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
 
 {{- if $opts.types -}}
 type {{$name}} {{$type}}
@@ -44,6 +61,33 @@ func (x {{$name}}) String() string {
 	return {{$name}}_name[x]
 }
 
+{{- if $opts.strictEnums }}
+
+func (x {{$name}}) MarshalText() ([]byte, error) {
+	name, ok := {{$name}}_name[x]
+	if !ok {
+		return nil, fmt.Errorf("{{$name}}: invalid value %d", x)
+	}
+	return []byte(name), nil
+}
+
+func (x *{{$name}}) UnmarshalText(b []byte) error {
+	v, ok := {{$name}}_value[string(b)]
+	if !ok {
+		v = {{$name}}({{get $invalidExpr $typeName}})
+	}
+	*x = v
+	return nil
+}
+
+// IsValid reports whether x is a declared {{$name}} value. An unknown name
+// decodes to a reserved invalid value, never to a declared one.
+func (x {{$name}}) IsValid() bool {
+	_, ok := {{$name}}_name[x]
+	return ok
+}
+{{- else }}
+
 func (x {{$name}}) MarshalText() ([]byte, error) {
 	return []byte({{$name}}_name[x]), nil
 }
@@ -52,6 +96,7 @@ func (x *{{$name}}) UnmarshalText(b []byte) error {
 	*x = {{$name}}({{$name}}_value[string(b)])
 	return nil
 }
+{{- end }}
 
 func (x *{{$name}}) Is(values ...{{$name}}) bool {
 	if x == nil {

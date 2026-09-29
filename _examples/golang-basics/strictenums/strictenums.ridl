@@ -1,0 +1,20 @@
+webrpc = v1
+
+name = strictenums
+version = v0.0.1
+
+# The zero value is a real status, so without -strictEnums an unknown name
+# would silently decode to "active".
+enum Status: uint8
+  - active    = 0
+  - archived  = 1
+  - suspended = 2
+
+enum Level: int8
+  - low  = 0
+  - high = 1
+
+struct Project
+  - id: uint64
+  - status: Status
+  - level: Level

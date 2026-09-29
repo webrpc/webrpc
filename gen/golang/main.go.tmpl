@@ -9,6 +9,7 @@
 {{- set $opts "json" (default .Opts.json "stdlib") -}}
 {{- set $opts "importTypesFrom" (default .Opts.importTypesFrom "" ) -}}
 {{- set $opts "fixEmptyArrays" (ternary (in .Opts.fixEmptyArrays "" "true") true false) -}}
+{{- set $opts "strictEnums" (ternary (in .Opts.strictEnums "" "true") true false) -}}
 {{- set $opts "errorStackTrace" (ternary (in .Opts.errorStackTrace "" "true") true false) -}}
 {{- set $opts "webrpcHeader" (ternary (eq (default .Opts.webrpcHeader "true") "false") false true) -}}
 {{- set $opts "schemaHash" (ternary (eq (default .Opts.schemaHash "true") "false") false true) -}}
