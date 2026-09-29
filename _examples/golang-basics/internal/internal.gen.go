@@ -76,9 +76,6 @@ type AdminServer interface {
 // Schema types
 //
 
-// ErrInvalidEnum is wrapped by every Parse<Enum> error.
-var ErrInvalidEnum = errors.New("invalid enum")
-
 type Kind uint32
 
 const (
@@ -94,46 +91,47 @@ const (
 	Kind_Admin Kind = KindAdmin
 )
 
-var enumKindName = map[Kind]string{
+var Kind_name = map[Kind]string{
 	KindUser:  "USER",
 	KindAdmin: "ADMIN",
 }
 
-var enumKindValue = map[string]Kind{
+var Kind_value = map[string]Kind{
 	"USER":  KindUser,
 	"ADMIN": KindAdmin,
 }
 
-func KindValues() []Kind {
+func (x Kind) String() string {
+	return Kind_name[x]
+}
+
+func (x Kind) IsValid() bool {
+	_, ok := Kind_name[x]
+	return ok
+}
+
+func (Kind) Values() []Kind {
 	return []Kind{
 		KindUser,
 		KindAdmin,
 	}
 }
 
-func (x Kind) String() string {
-	return enumKindName[x]
-}
-
-func (x Kind) IsValid() bool {
-	_, ok := enumKindName[x]
-	return ok
-}
-
-func ParseKind(s string) (Kind, error) {
-	x, ok := enumKindValue[s]
+func (x *Kind) Parse(s string) error {
+	v, ok := Kind_value[s]
 	if !ok {
-		return 0, fmt.Errorf("%w Kind %q", ErrInvalidEnum, s)
+		return fmt.Errorf("invalid enum Kind %q", s)
 	}
-	return x, nil
+	*x = v
+	return nil
 }
 
 func (x Kind) MarshalText() ([]byte, error) {
-	return []byte(enumKindName[x]), nil
+	return []byte(Kind_name[x]), nil
 }
 
 func (x *Kind) UnmarshalText(b []byte) error {
-	*x = Kind(enumKindValue[string(b)])
+	*x = Kind(Kind_value[string(b)])
 	return nil
 }
 
@@ -167,12 +165,10 @@ const (
 	Intent_validateSession Intent = IntentValidateSession
 )
 
-func IntentValues() []Intent {
-	return []Intent{
-		IntentOpenSession,
-		IntentCloseSession,
-		IntentValidateSession,
-	}
+var Intent_values = []Intent{
+	IntentOpenSession,
+	IntentCloseSession,
+	IntentValidateSession,
 }
 
 func (x Intent) IsValid() bool {
@@ -183,12 +179,21 @@ func (x Intent) IsValid() bool {
 	return false
 }
 
-func ParseIntent(s string) (Intent, error) {
-	x := Intent(s)
-	if !x.IsValid() {
-		return "", fmt.Errorf("%w Intent %q", ErrInvalidEnum, s)
+func (Intent) Values() []Intent {
+	return []Intent{
+		IntentOpenSession,
+		IntentCloseSession,
+		IntentValidateSession,
 	}
-	return x, nil
+}
+
+func (x *Intent) Parse(s string) error {
+	v := Intent(s)
+	if !v.IsValid() {
+		return fmt.Errorf("invalid enum Intent %q", s)
+	}
+	*x = v
+	return nil
 }
 
 func (x Intent) MarshalText() ([]byte, error) {
@@ -227,11 +232,9 @@ const (
 	ProtocolVersion_v1_5 ProtocolVersion = ProtocolVersionV15
 )
 
-func ProtocolVersionValues() []ProtocolVersion {
-	return []ProtocolVersion{
-		ProtocolVersionV1,
-		ProtocolVersionV15,
-	}
+var ProtocolVersion_values = []ProtocolVersion{
+	ProtocolVersionV1,
+	ProtocolVersionV15,
 }
 
 func (x ProtocolVersion) IsValid() bool {
@@ -242,12 +245,20 @@ func (x ProtocolVersion) IsValid() bool {
 	return false
 }
 
-func ParseProtocolVersion(s string) (ProtocolVersion, error) {
-	x := ProtocolVersion(s)
-	if !x.IsValid() {
-		return "", fmt.Errorf("%w ProtocolVersion %q", ErrInvalidEnum, s)
+func (ProtocolVersion) Values() []ProtocolVersion {
+	return []ProtocolVersion{
+		ProtocolVersionV1,
+		ProtocolVersionV15,
 	}
-	return x, nil
+}
+
+func (x *ProtocolVersion) Parse(s string) error {
+	v := ProtocolVersion(s)
+	if !v.IsValid() {
+		return fmt.Errorf("invalid enum ProtocolVersion %q", s)
+	}
+	*x = v
+	return nil
 }
 
 func (x ProtocolVersion) MarshalText() ([]byte, error) {
@@ -286,11 +297,9 @@ const (
 	Country_CA Country = CountryCa
 )
 
-func CountryValues() []Country {
-	return []Country{
-		CountryUs,
-		CountryCa,
-	}
+var Country_values = []Country{
+	CountryUs,
+	CountryCa,
 }
 
 func (x Country) IsValid() bool {
@@ -301,12 +310,20 @@ func (x Country) IsValid() bool {
 	return false
 }
 
-func ParseCountry(s string) (Country, error) {
-	x := Country(s)
-	if !x.IsValid() {
-		return "", fmt.Errorf("%w Country %q", ErrInvalidEnum, s)
+func (Country) Values() []Country {
+	return []Country{
+		CountryUs,
+		CountryCa,
 	}
-	return x, nil
+}
+
+func (x *Country) Parse(s string) error {
+	v := Country(s)
+	if !v.IsValid() {
+		return fmt.Errorf("invalid enum Country %q", s)
+	}
+	*x = v
+	return nil
 }
 
 func (x Country) MarshalText() ([]byte, error) {

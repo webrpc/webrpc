@@ -58,9 +58,6 @@ type ExampleAPIServer interface {
 // Schema types
 //
 
-// ErrInvalidEnum is wrapped by every Parse<Enum> error.
-var ErrInvalidEnum = errors.New("invalid enum")
-
 type User struct {
 	Username string `json:"username"`
 	Age      uint32 `json:"age"`
@@ -81,46 +78,47 @@ const (
 	Location_NEW_YORK Location = LocationNewYork
 )
 
-var enumLocationName = map[Location]string{
+var Location_name = map[Location]string{
 	LocationToronto: "TORONTO",
 	LocationNewYork: "NEW_YORK",
 }
 
-var enumLocationValue = map[string]Location{
+var Location_value = map[string]Location{
 	"TORONTO":  LocationToronto,
 	"NEW_YORK": LocationNewYork,
 }
 
-func LocationValues() []Location {
+func (x Location) String() string {
+	return Location_name[x]
+}
+
+func (x Location) IsValid() bool {
+	_, ok := Location_name[x]
+	return ok
+}
+
+func (Location) Values() []Location {
 	return []Location{
 		LocationToronto,
 		LocationNewYork,
 	}
 }
 
-func (x Location) String() string {
-	return enumLocationName[x]
-}
-
-func (x Location) IsValid() bool {
-	_, ok := enumLocationName[x]
-	return ok
-}
-
-func ParseLocation(s string) (Location, error) {
-	x, ok := enumLocationValue[s]
+func (x *Location) Parse(s string) error {
+	v, ok := Location_value[s]
 	if !ok {
-		return 0, fmt.Errorf("%w Location %q", ErrInvalidEnum, s)
+		return fmt.Errorf("invalid enum Location %q", s)
 	}
-	return x, nil
+	*x = v
+	return nil
 }
 
 func (x Location) MarshalText() ([]byte, error) {
-	return []byte(enumLocationName[x]), nil
+	return []byte(Location_name[x]), nil
 }
 
 func (x *Location) UnmarshalText(b []byte) error {
-	*x = Location(enumLocationValue[string(b)])
+	*x = Location(Location_value[string(b)])
 	return nil
 }
 

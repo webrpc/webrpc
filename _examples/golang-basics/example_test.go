@@ -210,15 +210,15 @@ func multipartTempFiles(t *testing.T) []string {
 }
 
 func TestEnumParse(t *testing.T) {
-	kind, err := ParseKind("ADMIN")
-	assert.NoError(t, err)
+	var kind Kind
+	assert.NoError(t, kind.Parse("ADMIN"))
 	assert.Equal(t, KindAdmin, kind)
-	_, err = ParseKind("Admin")
-	assert.ErrorIs(t, err, ErrInvalidEnum)
+	assert.Error(t, kind.Parse("Admin"))
+	assert.Equal(t, KindAdmin, kind)
 
-	version, err := ParseProtocolVersion("v1.5")
-	assert.NoError(t, err)
+	var version ProtocolVersion
+	assert.NoError(t, version.Parse("v1.5"))
 	assert.Equal(t, ProtocolVersion("v1.5"), version)
-	_, err = ParseProtocolVersion("v1_5")
-	assert.ErrorIs(t, err, ErrInvalidEnum)
+	assert.Error(t, version.Parse("v1_5"))
+	assert.Len(t, ProtocolVersion("").Values(), 2)
 }

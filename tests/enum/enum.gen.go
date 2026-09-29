@@ -6,16 +6,12 @@
 package enum
 
 import (
-	"errors"
 	"fmt"
 )
 
 //
 // Schema types
 //
-
-// ErrInvalidEnum is wrapped by every Parse<Enum> error.
-var ErrInvalidEnum = errors.New("invalid enum")
 
 type Status uint32
 
@@ -32,46 +28,47 @@ const (
 	Status_NOT_AVAILABLE Status = StatusNotAvailable
 )
 
-var enumStatusName = map[Status]string{
+var Status_name = map[Status]string{
 	StatusAvailable:    "AVAILABLE",
 	StatusNotAvailable: "NOT_AVAILABLE",
 }
 
-var enumStatusValue = map[string]Status{
+var Status_value = map[string]Status{
 	"AVAILABLE":     StatusAvailable,
 	"NOT_AVAILABLE": StatusNotAvailable,
 }
 
-func StatusValues() []Status {
+func (x Status) String() string {
+	return Status_name[x]
+}
+
+func (x Status) IsValid() bool {
+	_, ok := Status_name[x]
+	return ok
+}
+
+func (Status) Values() []Status {
 	return []Status{
 		StatusAvailable,
 		StatusNotAvailable,
 	}
 }
 
-func (x Status) String() string {
-	return enumStatusName[x]
-}
-
-func (x Status) IsValid() bool {
-	_, ok := enumStatusName[x]
-	return ok
-}
-
-func ParseStatus(s string) (Status, error) {
-	x, ok := enumStatusValue[s]
+func (x *Status) Parse(s string) error {
+	v, ok := Status_value[s]
 	if !ok {
-		return 0, fmt.Errorf("%w Status %q", ErrInvalidEnum, s)
+		return fmt.Errorf("invalid enum Status %q", s)
 	}
-	return x, nil
+	*x = v
+	return nil
 }
 
 func (x Status) MarshalText() ([]byte, error) {
-	return []byte(enumStatusName[x]), nil
+	return []byte(Status_name[x]), nil
 }
 
 func (x *Status) UnmarshalText(b []byte) error {
-	*x = Status(enumStatusValue[string(b)])
+	*x = Status(Status_value[string(b)])
 	return nil
 }
 
@@ -102,46 +99,47 @@ const (
 	Kind_Admin Kind = KindAdmin
 )
 
-var enumKindName = map[Kind]string{
+var Kind_name = map[Kind]string{
 	KindUser:  "USER",
 	KindAdmin: "ADMIN",
 }
 
-var enumKindValue = map[string]Kind{
+var Kind_value = map[string]Kind{
 	"USER":  KindUser,
 	"ADMIN": KindAdmin,
 }
 
-func KindValues() []Kind {
+func (x Kind) String() string {
+	return Kind_name[x]
+}
+
+func (x Kind) IsValid() bool {
+	_, ok := Kind_name[x]
+	return ok
+}
+
+func (Kind) Values() []Kind {
 	return []Kind{
 		KindUser,
 		KindAdmin,
 	}
 }
 
-func (x Kind) String() string {
-	return enumKindName[x]
-}
-
-func (x Kind) IsValid() bool {
-	_, ok := enumKindName[x]
-	return ok
-}
-
-func ParseKind(s string) (Kind, error) {
-	x, ok := enumKindValue[s]
+func (x *Kind) Parse(s string) error {
+	v, ok := Kind_value[s]
 	if !ok {
-		return 0, fmt.Errorf("%w Kind %q", ErrInvalidEnum, s)
+		return fmt.Errorf("invalid enum Kind %q", s)
 	}
-	return x, nil
+	*x = v
+	return nil
 }
 
 func (x Kind) MarshalText() ([]byte, error) {
-	return []byte(enumKindName[x]), nil
+	return []byte(Kind_name[x]), nil
 }
 
 func (x *Kind) UnmarshalText(b []byte) error {
-	*x = Kind(enumKindValue[string(b)])
+	*x = Kind(Kind_value[string(b)])
 	return nil
 }
 
@@ -172,11 +170,9 @@ const (
 	Tier_Pro Tier = TierPro
 )
 
-func TierValues() []Tier {
-	return []Tier{
-		TierFree,
-		TierPro,
-	}
+var Tier_values = []Tier{
+	TierFree,
+	TierPro,
 }
 
 func (x Tier) IsValid() bool {
@@ -187,12 +183,20 @@ func (x Tier) IsValid() bool {
 	return false
 }
 
-func ParseTier(s string) (Tier, error) {
-	x := Tier(s)
-	if !x.IsValid() {
-		return "", fmt.Errorf("%w Tier %q", ErrInvalidEnum, s)
+func (Tier) Values() []Tier {
+	return []Tier{
+		TierFree,
+		TierPro,
 	}
-	return x, nil
+}
+
+func (x *Tier) Parse(s string) error {
+	v := Tier(s)
+	if !v.IsValid() {
+		return fmt.Errorf("invalid enum Tier %q", s)
+	}
+	*x = v
+	return nil
 }
 
 func (x Tier) MarshalText() ([]byte, error) {
@@ -223,20 +227,23 @@ const ()
 //go:fix inline
 const ()
 
-func EmptyValues() []Empty {
-	return []Empty{}
-}
+var Empty_values = []Empty{}
 
 func (x Empty) IsValid() bool {
 	return false
 }
 
-func ParseEmpty(s string) (Empty, error) {
-	x := Empty(s)
-	if !x.IsValid() {
-		return "", fmt.Errorf("%w Empty %q", ErrInvalidEnum, s)
+func (Empty) Values() []Empty {
+	return []Empty{}
+}
+
+func (x *Empty) Parse(s string) error {
+	v := Empty(s)
+	if !v.IsValid() {
+		return fmt.Errorf("invalid enum Empty %q", s)
 	}
-	return x, nil
+	*x = v
+	return nil
 }
 
 func (x Empty) MarshalText() ([]byte, error) {

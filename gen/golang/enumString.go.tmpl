@@ -22,12 +22,10 @@
     {{- end}}
     )
 
-    func {{$name}}Values() []{{$name}} {
-    return []{{$name}}{
+    var {{$name}}_values = []{{$name}}{
     {{- range $fields}}
         {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}},
     {{- end}}
-    }
     }
 
     func (x {{$name}}) IsValid() bool {
@@ -40,12 +38,21 @@
     return false
     }
 
-    func Parse{{$name}}(s string) ({{$name}}, error) {
-    x := {{$name}}(s)
-    if !x.IsValid() {
-    return "", fmt.Errorf("%w {{$name}} %q", ErrInvalidEnum, s)
+    func ({{$name}}) Values() []{{$name}} {
+    return []{{$name}}{
+    {{- range $fields}}
+        {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}},
+    {{- end}}
     }
-    return x, nil
+    }
+
+    func (x *{{$name}}) Parse(s string) error {
+    v := {{$name}}(s)
+    if !v.IsValid() {
+    return fmt.Errorf("invalid enum {{$name}} %q", s)
+    }
+    *x = v
+    return nil
     }
 
     func (x {{$name}}) MarshalText() ([]byte, error) {

@@ -28,19 +28,28 @@ const (
 {{- end}}
 )
 
-var enum{{$name}}Name = map[{{$name}}]string{
+var {{$name}}_name = map[{{$name}}]string{
 {{- range $fields}}
 	{{template "enumConstName" dict "EnumName" $name "FieldName" .Name}}: "{{enumWireValue .}}",
 {{- end}}
 }
 
-var enum{{$name}}Value = map[string]{{$name}}{
+var {{$name}}_value = map[string]{{$name}}{
 {{- range $fields}}
 	"{{enumWireValue .}}": {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}},
 {{- end}}
 }
 
-func {{$name}}Values() []{{$name}} {
+func (x {{$name}}) String() string {
+	return {{$name}}_name[x]
+}
+
+func (x {{$name}}) IsValid() bool {
+	_, ok := {{$name}}_name[x]
+	return ok
+}
+
+func ({{$name}}) Values() []{{$name}} {
 	return []{{$name}}{
 {{- range $fields}}
 		{{template "enumConstName" dict "EnumName" $name "FieldName" .Name}},
@@ -48,29 +57,21 @@ func {{$name}}Values() []{{$name}} {
 	}
 }
 
-func (x {{$name}}) String() string {
-	return enum{{$name}}Name[x]
-}
-
-func (x {{$name}}) IsValid() bool {
-	_, ok := enum{{$name}}Name[x]
-	return ok
-}
-
-func Parse{{$name}}(s string) ({{$name}}, error) {
-	x, ok := enum{{$name}}Value[s]
+func (x *{{$name}}) Parse(s string) error {
+	v, ok := {{$name}}_value[s]
 	if !ok {
-		return 0, fmt.Errorf("%w {{$name}} %q", ErrInvalidEnum, s)
+		return fmt.Errorf("invalid enum {{$name}} %q", s)
 	}
-	return x, nil
+	*x = v
+	return nil
 }
 
 func (x {{$name}}) MarshalText() ([]byte, error) {
-	return []byte(enum{{$name}}Name[x]), nil
+	return []byte({{$name}}_name[x]), nil
 }
 
 func (x *{{$name}}) UnmarshalText(b []byte) error {
-	*x = {{$name}}(enum{{$name}}Value[string(b)])
+	*x = {{$name}}({{$name}}_value[string(b)])
 	return nil
 }
 
