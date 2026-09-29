@@ -44,6 +44,28 @@ func (x {{$name}}) String() string {
 	return {{$name}}_name[x]
 }
 
+func (x {{$name}}) IsValid() bool {
+	_, ok := {{$name}}_name[x]
+	return ok
+}
+
+func ({{$name}}) Values() []{{$name}} {
+	return []{{$name}}{
+{{- range $fields}}
+		{{template "enumConstName" dict "EnumName" $name "FieldName" .Name}},
+{{- end}}
+	}
+}
+
+func (x *{{$name}}) Parse(s string) error {
+	v, ok := {{$name}}_value[s]
+	if !ok {
+		return fmt.Errorf("invalid enum {{$name}} %q", s)
+	}
+	*x = v
+	return nil
+}
+
 func (x {{$name}}) MarshalText() ([]byte, error) {
 	return []byte({{$name}}_name[x]), nil
 }

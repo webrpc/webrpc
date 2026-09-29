@@ -92,6 +92,27 @@ func (x Status) String() string {
 	return Status_name[x]
 }
 
+func (x Status) IsValid() bool {
+	_, ok := Status_name[x]
+	return ok
+}
+
+func (Status) Values() []Status {
+	return []Status{
+		StatusAvailable,
+		StatusNotAvailable,
+	}
+}
+
+func (x *Status) Parse(s string) error {
+	v, ok := Status_value[s]
+	if !ok {
+		return fmt.Errorf("invalid enum Status %q", s)
+	}
+	*x = v
+	return nil
+}
+
 func (x Status) MarshalText() ([]byte, error) {
 	return []byte(Status_name[x]), nil
 }
@@ -155,6 +176,30 @@ var Access_value = map[string]Access{
 
 func (x Access) String() string {
 	return Access_name[x]
+}
+
+func (x Access) IsValid() bool {
+	_, ok := Access_name[x]
+	return ok
+}
+
+func (Access) Values() []Access {
+	return []Access{
+		AccessNone,
+		AccessRead,
+		AccessWrite,
+		AccessAdmin,
+		AccessOwner,
+	}
+}
+
+func (x *Access) Parse(s string) error {
+	v, ok := Access_value[s]
+	if !ok {
+		return fmt.Errorf("invalid enum Access %q", s)
+	}
+	*x = v
+	return nil
 }
 
 func (x Access) MarshalText() ([]byte, error) {
