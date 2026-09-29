@@ -63,6 +63,9 @@ type TestApiClient interface {
 // Schema types
 //
 
+// ErrInvalidEnum is wrapped by every Parse<Enum> error.
+var ErrInvalidEnum = errors.New("invalid enum")
+
 type Status uint32
 
 const (
@@ -78,26 +81,46 @@ const (
 	Status_NOT_AVAILABLE Status = StatusNotAvailable
 )
 
-var Status_name = map[Status]string{
+var enumStatusName = map[Status]string{
 	StatusAvailable:    "AVAILABLE",
 	StatusNotAvailable: "NOT_AVAILABLE",
 }
 
-var Status_value = map[string]Status{
+var enumStatusValue = map[string]Status{
 	"AVAILABLE":     StatusAvailable,
 	"NOT_AVAILABLE": StatusNotAvailable,
 }
 
+func StatusValues() []Status {
+	return []Status{
+		StatusAvailable,
+		StatusNotAvailable,
+	}
+}
+
 func (x Status) String() string {
-	return Status_name[x]
+	return enumStatusName[x]
+}
+
+func (x Status) IsValid() bool {
+	_, ok := enumStatusName[x]
+	return ok
+}
+
+func ParseStatus(s string) (Status, error) {
+	x, ok := enumStatusValue[s]
+	if !ok {
+		return 0, fmt.Errorf("%w Status %q", ErrInvalidEnum, s)
+	}
+	return x, nil
 }
 
 func (x Status) MarshalText() ([]byte, error) {
-	return []byte(Status_name[x]), nil
+	return []byte(enumStatusName[x]), nil
 }
 
 func (x *Status) UnmarshalText(b []byte) error {
-	*x = Status(Status_value[string(b)])
+	*x = Status(enumStatusValue[string(b)])
 	return nil
 }
 
@@ -137,7 +160,7 @@ const (
 	Access_OWNER Access = AccessOwner
 )
 
-var Access_name = map[Access]string{
+var enumAccessName = map[Access]string{
 	AccessNone:  "NONE",
 	AccessRead:  "READ",
 	AccessWrite: "WRITE",
@@ -145,7 +168,7 @@ var Access_name = map[Access]string{
 	AccessOwner: "OWNER",
 }
 
-var Access_value = map[string]Access{
+var enumAccessValue = map[string]Access{
 	"NONE":  AccessNone,
 	"READ":  AccessRead,
 	"WRITE": AccessWrite,
@@ -153,16 +176,39 @@ var Access_value = map[string]Access{
 	"OWNER": AccessOwner,
 }
 
+func AccessValues() []Access {
+	return []Access{
+		AccessNone,
+		AccessRead,
+		AccessWrite,
+		AccessAdmin,
+		AccessOwner,
+	}
+}
+
 func (x Access) String() string {
-	return Access_name[x]
+	return enumAccessName[x]
+}
+
+func (x Access) IsValid() bool {
+	_, ok := enumAccessName[x]
+	return ok
+}
+
+func ParseAccess(s string) (Access, error) {
+	x, ok := enumAccessValue[s]
+	if !ok {
+		return 0, fmt.Errorf("%w Access %q", ErrInvalidEnum, s)
+	}
+	return x, nil
 }
 
 func (x Access) MarshalText() ([]byte, error) {
-	return []byte(Access_name[x]), nil
+	return []byte(enumAccessName[x]), nil
 }
 
 func (x *Access) UnmarshalText(b []byte) error {
-	*x = Access(Access_value[string(b)])
+	*x = Access(enumAccessValue[string(b)])
 	return nil
 }
 

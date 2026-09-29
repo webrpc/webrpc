@@ -22,10 +22,30 @@
     {{- end}}
     )
 
-    var {{$name}}_values = []{{$name}}{
+    func {{$name}}Values() []{{$name}} {
+    return []{{$name}}{
     {{- range $fields}}
         {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}},
     {{- end}}
+    }
+    }
+
+    func (x {{$name}}) IsValid() bool {
+    {{- if $fields }}
+    switch x {
+    case {{range $i, $field := $fields}}{{if $i}}, {{end}}{{template "enumConstName" dict "EnumName" $name "FieldName" $field.Name}}{{end}}:
+    return true
+    }
+    {{- end }}
+    return false
+    }
+
+    func Parse{{$name}}(s string) ({{$name}}, error) {
+    x := {{$name}}(s)
+    if !x.IsValid() {
+    return "", fmt.Errorf("%w {{$name}} %q", ErrInvalidEnum, s)
+    }
+    return x, nil
     }
 
     func (x {{$name}}) MarshalText() ([]byte, error) {

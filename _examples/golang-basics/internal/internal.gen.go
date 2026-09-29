@@ -76,6 +76,9 @@ type AdminServer interface {
 // Schema types
 //
 
+// ErrInvalidEnum is wrapped by every Parse<Enum> error.
+var ErrInvalidEnum = errors.New("invalid enum")
+
 type Kind uint32
 
 const (
@@ -91,26 +94,46 @@ const (
 	Kind_Admin Kind = KindAdmin
 )
 
-var Kind_name = map[Kind]string{
+var enumKindName = map[Kind]string{
 	KindUser:  "USER",
 	KindAdmin: "ADMIN",
 }
 
-var Kind_value = map[string]Kind{
+var enumKindValue = map[string]Kind{
 	"USER":  KindUser,
 	"ADMIN": KindAdmin,
 }
 
+func KindValues() []Kind {
+	return []Kind{
+		KindUser,
+		KindAdmin,
+	}
+}
+
 func (x Kind) String() string {
-	return Kind_name[x]
+	return enumKindName[x]
+}
+
+func (x Kind) IsValid() bool {
+	_, ok := enumKindName[x]
+	return ok
+}
+
+func ParseKind(s string) (Kind, error) {
+	x, ok := enumKindValue[s]
+	if !ok {
+		return 0, fmt.Errorf("%w Kind %q", ErrInvalidEnum, s)
+	}
+	return x, nil
 }
 
 func (x Kind) MarshalText() ([]byte, error) {
-	return []byte(Kind_name[x]), nil
+	return []byte(enumKindName[x]), nil
 }
 
 func (x *Kind) UnmarshalText(b []byte) error {
-	*x = Kind(Kind_value[string(b)])
+	*x = Kind(enumKindValue[string(b)])
 	return nil
 }
 
@@ -144,10 +167,28 @@ const (
 	Intent_validateSession Intent = IntentValidateSession
 )
 
-var Intent_values = []Intent{
-	IntentOpenSession,
-	IntentCloseSession,
-	IntentValidateSession,
+func IntentValues() []Intent {
+	return []Intent{
+		IntentOpenSession,
+		IntentCloseSession,
+		IntentValidateSession,
+	}
+}
+
+func (x Intent) IsValid() bool {
+	switch x {
+	case IntentOpenSession, IntentCloseSession, IntentValidateSession:
+		return true
+	}
+	return false
+}
+
+func ParseIntent(s string) (Intent, error) {
+	x := Intent(s)
+	if !x.IsValid() {
+		return "", fmt.Errorf("%w Intent %q", ErrInvalidEnum, s)
+	}
+	return x, nil
 }
 
 func (x Intent) MarshalText() ([]byte, error) {
@@ -186,9 +227,27 @@ const (
 	ProtocolVersion_v1_5 ProtocolVersion = ProtocolVersionV15
 )
 
-var ProtocolVersion_values = []ProtocolVersion{
-	ProtocolVersionV1,
-	ProtocolVersionV15,
+func ProtocolVersionValues() []ProtocolVersion {
+	return []ProtocolVersion{
+		ProtocolVersionV1,
+		ProtocolVersionV15,
+	}
+}
+
+func (x ProtocolVersion) IsValid() bool {
+	switch x {
+	case ProtocolVersionV1, ProtocolVersionV15:
+		return true
+	}
+	return false
+}
+
+func ParseProtocolVersion(s string) (ProtocolVersion, error) {
+	x := ProtocolVersion(s)
+	if !x.IsValid() {
+		return "", fmt.Errorf("%w ProtocolVersion %q", ErrInvalidEnum, s)
+	}
+	return x, nil
 }
 
 func (x ProtocolVersion) MarshalText() ([]byte, error) {
@@ -227,9 +286,27 @@ const (
 	Country_CA Country = CountryCa
 )
 
-var Country_values = []Country{
-	CountryUs,
-	CountryCa,
+func CountryValues() []Country {
+	return []Country{
+		CountryUs,
+		CountryCa,
+	}
+}
+
+func (x Country) IsValid() bool {
+	switch x {
+	case CountryUs, CountryCa:
+		return true
+	}
+	return false
+}
+
+func ParseCountry(s string) (Country, error) {
+	x := Country(s)
+	if !x.IsValid() {
+		return "", fmt.Errorf("%w Country %q", ErrInvalidEnum, s)
+	}
+	return x, nil
 }
 
 func (x Country) MarshalText() ([]byte, error) {

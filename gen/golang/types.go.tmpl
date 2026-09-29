@@ -9,6 +9,13 @@
 //
 // Schema types
 //
+{{- $hasEnums := false -}}
+{{- range $_, $type := $types -}}{{- if eq $type.Kind "enum" -}}{{- $hasEnums = true -}}{{- end -}}{{- end -}}
+{{- if $hasEnums }}
+
+// ErrInvalidEnum is wrapped by every Parse<Enum> error.
+var ErrInvalidEnum = errors.New("invalid enum")
+{{- end }}
 {{ range $_, $type := $types -}}
 
 {{- if eq $type.Kind "enum" }}

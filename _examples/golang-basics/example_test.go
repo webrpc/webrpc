@@ -58,7 +58,7 @@ func TestGetUser(t *testing.T) {
 		arg1 := map[string]string{"a": "1"}
 		resp, err := client.GetUserV2(context.Background(), GetUserRequest{UserID: 12, Prefs: arg1})
 		intent := Intent_openSession
-		kind := Kind_ADMIN
+		kind := KindAdmin
 
 		assert.Equal(t, uint32(200), resp.Code)
 		assert.Equal(t, &User{ID: 12, Username: "hihi", Intent: intent, Kind: kind}, resp.User)
@@ -207,4 +207,18 @@ func multipartTempFiles(t *testing.T) []string {
 	files, err := filepath.Glob(filepath.Join(os.TempDir(), "multipart-*"))
 	assert.NoError(t, err)
 	return files
+}
+
+func TestEnumParse(t *testing.T) {
+	kind, err := ParseKind("ADMIN")
+	assert.NoError(t, err)
+	assert.Equal(t, KindAdmin, kind)
+	_, err = ParseKind("Admin")
+	assert.ErrorIs(t, err, ErrInvalidEnum)
+
+	version, err := ParseProtocolVersion("v1.5")
+	assert.NoError(t, err)
+	assert.Equal(t, ProtocolVersion("v1.5"), version)
+	_, err = ParseProtocolVersion("v1_5")
+	assert.ErrorIs(t, err, ErrInvalidEnum)
 }

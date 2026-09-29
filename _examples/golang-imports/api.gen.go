@@ -58,6 +58,9 @@ type ExampleAPIServer interface {
 // Schema types
 //
 
+// ErrInvalidEnum is wrapped by every Parse<Enum> error.
+var ErrInvalidEnum = errors.New("invalid enum")
+
 type User struct {
 	Username string `json:"username"`
 	Age      uint32 `json:"age"`
@@ -78,26 +81,46 @@ const (
 	Location_NEW_YORK Location = LocationNewYork
 )
 
-var Location_name = map[Location]string{
+var enumLocationName = map[Location]string{
 	LocationToronto: "TORONTO",
 	LocationNewYork: "NEW_YORK",
 }
 
-var Location_value = map[string]Location{
+var enumLocationValue = map[string]Location{
 	"TORONTO":  LocationToronto,
 	"NEW_YORK": LocationNewYork,
 }
 
+func LocationValues() []Location {
+	return []Location{
+		LocationToronto,
+		LocationNewYork,
+	}
+}
+
 func (x Location) String() string {
-	return Location_name[x]
+	return enumLocationName[x]
+}
+
+func (x Location) IsValid() bool {
+	_, ok := enumLocationName[x]
+	return ok
+}
+
+func ParseLocation(s string) (Location, error) {
+	x, ok := enumLocationValue[s]
+	if !ok {
+		return 0, fmt.Errorf("%w Location %q", ErrInvalidEnum, s)
+	}
+	return x, nil
 }
 
 func (x Location) MarshalText() ([]byte, error) {
-	return []byte(Location_name[x]), nil
+	return []byte(enumLocationName[x]), nil
 }
 
 func (x *Location) UnmarshalText(b []byte) error {
-	*x = Location(Location_value[string(b)])
+	*x = Location(enumLocationValue[string(b)])
 	return nil
 }
 
