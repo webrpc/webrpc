@@ -113,9 +113,11 @@ Opt-in, behind a template option `-apiVersionHeader=true` (default `false` at fi
 
 - With REST routes, should method annotations drive deprecation? For example,
   `@deprecated:2026-01-15` and `@sunset:2026-07-01` would make generated servers send
-  `Deprecation` (RFC 9745, `@<unix>`) and `Sunset` (RFC 8594) in the same form as
-  [go-chi/chi#1195](https://github.com/go-chi/chi/pull/1195), and OpenAPI would mark the operation
-  `deprecated: true`. That might be a separate proposal.
+  `Deprecation` (RFC 9745, `@<unix>`) and `Sunset` (RFC 8594), and OpenAPI would mark the
+  operation `deprecated: true`. chi [v5.5.0](https://github.com/go-chi/chi/releases/tag/v5.5.0)
+  now ships `middleware.Deprecation` and `middleware.Sunset`, so generated servers should emit the
+  same values. Servers already on chi can use that middleware directly today. That might be a
+  separate proposal.
 
 - Should the token be `webrpc/<target>@<target version>`, `webrpc@<webrpc-gen version>`, or both?
   The `Webrpc` header carries both today.
