@@ -35,7 +35,7 @@ for usage analytics, and later pins behaviour to the version.
 ## Format
 
 ```
-Api-Version = api-version *( OWS ";" OWS token )
+Api-Version = api-version *( ";" token )
 token       = name "@" version          ; name may contain "/", e.g. webrpc/typescript
 ```
 
