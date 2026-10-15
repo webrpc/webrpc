@@ -17,6 +17,8 @@ generate: build
 	webrpc-gen -schema=./validate.ridl -target=typescript -server -out=./validate.gen.ts
 	webrpc-gen -schema=$(REST_RIDL) -target=typescript -client -service=TestApiRest -out=./restClient.gen.ts
 	webrpc-gen -schema=$(REST_RIDL) -target=typescript -server -service=TestApiRest -out=./restServer.gen.ts
+	webrpc-gen -schema=./rest-params.ridl -target=typescript -client -service=ParamRest -out=./paramRestClient.gen.ts
+	webrpc-gen -schema=./rest-params.ridl -target=typescript -server -service=ParamRest -out=./paramRestServer.gen.ts
 
 # End-to-end interoperability tests of the file upload/download wire contract
 # between the Go and TypeScript/JavaScript generators.

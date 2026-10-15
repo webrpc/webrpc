@@ -11,17 +11,33 @@ const createHttpRequest = (body: string = '{}', headers: object = {}, signal: Ab
 
 {{- if $opts.restRoutes }}
 
+// isDotPathSegment reports whether a path param would be an empty or dot segment once decoded.
+const isDotPathSegment = (segment: string): boolean => {
+  let decoded = segment
+  try {
+    decoded = decodeURIComponent(segment)
+  } catch {
+    // Not percent-encoded: compare the raw value.
+  }
+  return decoded === '' || decoded === '.' || decoded === '..'
+}
+
 // createHttpRestRequest returns the fetch() arguments of a REST route call:
 // request fields named by {param} placeholders fill the path, the others go
-// to the query string (GET/DELETE/QUERY) or the JSON body.
+// to the query string (GET/DELETE) or the JSON body (POST/PUT/PATCH/QUERY).
 const createHttpRestRequest = (hostname: string, method: string, path: string, req: object, headers: object = {}, signal: AbortSignal | null = null): [string, object] => {
   const fields: { [key: string]: any } = JSON.parse(JsonEncode(req))
-  const hasBody = method === 'POST' || method === 'PUT' || method === 'PATCH'
+  const hasBody = method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'QUERY'
   const query = new URLSearchParams()
+  // One replace pass over the template, so a substituted value is never re-expanded.
   path = path.replace(/\{(\w+)\}/g, (_, name) => {
-    const value = fields[name]
+    const value = String(fields[name])
     delete fields[name]
-    return encodeURIComponent(String(value))
+    // A dot segment is normalized away by URL parsers, and encoding cannot fix it.
+    if (isDotPathSegment(value)) {
+      throw WebrpcBadRequestError.new({ cause: `invalid path param '${name}': "${value}" is not a valid path segment` })
+    }
+    return encodeURIComponent(value)
   })
   if (!hasBody) {
     for (const [name, value] of Object.entries(fields)) {

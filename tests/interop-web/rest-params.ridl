@@ -1,0 +1,15 @@
+webrpc = v1
+
+name = ParamRest
+version = v1.0.0
+basepath = /rpc
+
+# TypeScript-only REST cases: sized integer bounds, bool spellings, and
+# field names that collide with Object.prototype members.
+service ParamRest
+  path = /params
+
+  - Probe(constructor: string, toString?: string, i8: int8, u8: uint8, i32: int32, flag: bool) => (echo: string)
+      GET /probe
+  - Make(constructor: string) => (echo: string)
+      POST /make
