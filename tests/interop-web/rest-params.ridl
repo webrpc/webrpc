@@ -6,6 +6,16 @@ basepath = /rpc
 
 # TypeScript-only REST cases: sized integer bounds, bool spellings, and
 # field names that collide with Object.prototype members.
+#
+# Search binds a query param whose JSON name differs from its field name.
+struct SearchRequest
+  - term: string
+  - dashed?: string
+    + json = dashed_term
+
+struct SearchResponse
+  - echo: string
+
 service ParamRest
   path = /params
 
@@ -13,3 +23,9 @@ service ParamRest
       GET /probe
   - Make(constructor: string) => (echo: string)
       POST /make
+  - Tag(name: string) => (echo: string)
+      GET /tags/{name}
+  - Numbers(f32: float32, f64: float64, ts: timestamp) => (echo: string)
+      GET /numbers
+  - Search(SearchRequest) => (SearchResponse)
+      GET /search

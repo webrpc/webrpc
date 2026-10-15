@@ -195,21 +195,24 @@ export interface RpcMethodResponse {
 // and returns a web-standard Response, or null when the request path does not
 // belong to this service (so the caller can try other routes).
 export const serveTestApiRestRpc = async <Context>(service: TestApiRestServer<Context>, ctx: Context, request: Request): Promise<Response | null> => {
-  const rest = webrpcRestRoute(testApiRestRestRoutes, request)
-  if (rest instanceof Response) return rest
-  if (rest) {
-    try {
-      const data = await webrpcRestData(rest.route, rest.pathParams, request)
-      const response = await dispatchTestApiRestRequest(service, ctx, rest.route.name, request, data)
-      return request.method === 'HEAD' ? webrpcHeadResponse(response) : response
-    } catch (err) {
-      return webrpcErrorResponse(err)
+  const pathname = new URL(request.url).pathname
+  const method = pathname.startsWith('/rpc/TestApiRest/') ? pathname.slice('/rpc/TestApiRest/'.length) : ''
+  const rpcPath = method !== '' && !method.includes('/')
+  // A plain RPC POST skips the REST probe; a routed method's RPC path still gets webrpcRestRoute's 404.
+  if (!(request.method === 'POST' && rpcPath && !testApiRestRestRoutes.some((route) => route.rpcPath === pathname))) {
+    const rest = webrpcRestRoute(testApiRestRestRoutes, request)
+    if (rest instanceof Response) return rest
+    if (rest) {
+      try {
+        const data = await webrpcRestData(rest.route, rest.pathParams, request)
+        const response = await dispatchTestApiRestRequest(service, ctx, rest.route.name, request, data)
+        return request.method === 'HEAD' ? webrpcHeadResponse(response) : response
+      } catch (err) {
+        return webrpcErrorResponse(err)
+      }
     }
   }
-  const pathname = new URL(request.url).pathname
-  if (!pathname.startsWith('/rpc/TestApiRest/')) return null
-  const method = pathname.slice('/rpc/TestApiRest/'.length)
-  if (method === '' || method.includes('/')) return null
+  if (!rpcPath) return null
 
   if (request.method !== 'POST') {
     return webrpcErrorResponse(new WebrpcBadMethodError({ cause: `unsupported HTTP method ${request.method} (only POST is allowed)` }), { Allow: 'POST' })
@@ -223,16 +226,16 @@ export const serveTestApiRestRpc = async <Context>(service: TestApiRestServer<Co
 }
 
 const testApiRestRestRoutes: WebrpcRestRoute[] = [
-  { method: 'GET', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/GetItem', name: 'GetItem', params: ['id: uint64', 'details?: bool'] },
-  { method: 'GET', path: '/rpc/items', rpcPath: '/rpc/TestApiRest/ListItems', name: 'ListItems', params: ['q?: string', 'tags: []string', 'limit: uint32'] },
-  { method: 'POST', path: '/rpc/items', rpcPath: '/rpc/TestApiRest/CreateItem', name: 'CreateItem', params: [] },
-  { method: 'PUT', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/UpdateItem', name: 'UpdateItem', params: ['id: uint64'] },
-  { method: 'PATCH', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/PatchItem', name: 'PatchItem', params: ['id: uint64'] },
-  { method: 'DELETE', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/DeleteItem', name: 'DeleteItem', params: ['id: uint64'] },
-  { method: 'QUERY', path: '/rpc/items/search', rpcPath: '/rpc/TestApiRest/QueryItems', name: 'QueryItems', params: [] },
-  { method: 'GET', path: '/rpc/items/echo/params', rpcPath: '/rpc/TestApiRest/EchoParams', name: 'EchoParams', params: ['str: string', 'num: int64', 'flag: bool', 'fl: float64', 'ts: timestamp', 'status: Status', 'tags: []string', 'opt?: string'] },
-  { method: 'GET', path: '/rpc/items/{id}/children/{childId}', rpcPath: '/rpc/TestApiRest/GetChild', name: 'GetChild', params: ['id: uint64', 'childId: uint64'] },
-  { method: 'POST', path: '/rpc/items/reset', rpcPath: '/rpc/TestApiRest/ResetItems', name: 'ResetItems', params: [] },
+  { method: 'GET', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/GetItem', name: 'GetItem', hasBody: false, params: [{ name: 'id', type: 'uint64', optional: false, list: false }, { name: 'details', type: 'bool', optional: true, list: false }] },
+  { method: 'GET', path: '/rpc/items', rpcPath: '/rpc/TestApiRest/ListItems', name: 'ListItems', hasBody: false, params: [{ name: 'q', type: 'string', optional: true, list: false }, { name: 'tags', type: 'string', optional: false, list: true }, { name: 'limit', type: 'uint32', optional: false, list: false }] },
+  { method: 'POST', path: '/rpc/items', rpcPath: '/rpc/TestApiRest/CreateItem', name: 'CreateItem', hasBody: true, params: [] },
+  { method: 'PUT', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/UpdateItem', name: 'UpdateItem', hasBody: true, params: [{ name: 'id', type: 'uint64', optional: false, list: false }] },
+  { method: 'PATCH', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/PatchItem', name: 'PatchItem', hasBody: true, params: [{ name: 'id', type: 'uint64', optional: false, list: false }] },
+  { method: 'DELETE', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/DeleteItem', name: 'DeleteItem', hasBody: false, params: [{ name: 'id', type: 'uint64', optional: false, list: false }] },
+  { method: 'QUERY', path: '/rpc/items/search', rpcPath: '/rpc/TestApiRest/QueryItems', name: 'QueryItems', hasBody: true, params: [] },
+  { method: 'GET', path: '/rpc/items/echo/params', rpcPath: '/rpc/TestApiRest/EchoParams', name: 'EchoParams', hasBody: false, params: [{ name: 'str', type: 'string', optional: false, list: false }, { name: 'num', type: 'int64', optional: false, list: false }, { name: 'flag', type: 'bool', optional: false, list: false }, { name: 'fl', type: 'float64', optional: false, list: false }, { name: 'ts', type: 'timestamp', optional: false, list: false }, { name: 'status', type: 'Status', optional: false, list: false }, { name: 'tags', type: 'string', optional: false, list: true }, { name: 'opt', type: 'string', optional: true, list: false }] },
+  { method: 'GET', path: '/rpc/items/{id}/children/{childId}', rpcPath: '/rpc/TestApiRest/GetChild', name: 'GetChild', hasBody: false, params: [{ name: 'id', type: 'uint64', optional: false, list: false }, { name: 'childId', type: 'uint64', optional: false, list: false }] },
+  { method: 'POST', path: '/rpc/items/reset', rpcPath: '/rpc/TestApiRest/ResetItems', name: 'ResetItems', hasBody: true, params: [] },
 ]
 
 const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Context>, ctx: Context, method: string, request: Request, data?: { [key: string]: any }): Promise<Response> => {
@@ -422,23 +425,6 @@ const webrpcRequestBodyText = async (request: Request): Promise<string> => {
   return request.text()
 }
 
-const webrpcParseRequestBody = (body: unknown, typ: string): any => {
-  if (typeof body !== 'string' || body === '') {
-    return {}
-  }
-  let data: any
-  try {
-    data = JSON.parse(body)
-  } catch (err) {
-    throw new WebrpcBadRequestError({ cause: `failed to unmarshal request data: ${err instanceof Error ? err.message : String(err)}` })
-  }
-  try {
-    return JsonDecode(data, typ) ?? {}
-  } catch (err) {
-    throw new WebrpcBadRequestError({ cause: `failed to unmarshal request data: ${err instanceof WebrpcError ? String(err.cause ?? err.message) : err instanceof Error ? err.message : String(err)}` })
-  }
-}
-
 const webrpcJsonResponse = (data: any): Response => {
   return new Response(JsonEncode(data), {
     status: 200,
@@ -459,15 +445,14 @@ const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }):
 }
 
 
-// WebrpcRestRoute serves a REST route as the webrpc method name. Params bind
-// path and query params to request fields, in RIDL syntax: 'tags?: []string'.
-type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, params: string[] }
+// Routes are generated data, so the server never parses RIDL param strings.
+type WebrpcRestParam = { name: string, type: string, optional: boolean, list: boolean }
+
+type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, hasBody: boolean, params: WebrpcRestParam[] }
 
 type WebrpcRestMatch = { route: WebrpcRestRoute, pathParams: Map<string, string> }
 
-// webrpcRestRoute matches the request against the routes. It returns the
-// matched route, an error Response (wrong verb or a routed method's RPC path),
-// or null when no route path matches (so the caller can try the RPC path).
+// Null lets the caller try the RPC path; a routed method's RPC path gets a 404.
 const webrpcRestRoute = (routes: WebrpcRestRoute[], request: Request): WebrpcRestMatch | Response | null => {
   const url = new URL(request.url)
   // A routed method answers only on its route.
@@ -497,33 +482,29 @@ const webrpcRestRoute = (routes: WebrpcRestRoute[], request: Request): WebrpcRes
   return { route: match.route, pathParams: match.pathParams }
 }
 
-// webrpcRestData builds the webrpc request data of a REST route: the JSON body
-// (body verbs only), then path params, then query params overwrite it.
+// Body first, then path params, then query params; later sources win.
 const webrpcRestData = async (route: WebrpcRestRoute, pathParams: Map<string, string>, request: Request): Promise<{ [key: string]: any }> => {
   const url = new URL(request.url)
-  const hasBody = route.method === 'POST' || route.method === 'PUT' || route.method === 'PATCH' || route.method === 'QUERY'
-  const data: { [key: string]: any } = hasBody ? webrpcJsonBody(await webrpcRequestBodyText(request)) : {}
-  for (const param of route.params) {
-    const [, name, optional, repeated, type] = param.match(/^(\w+)(\??): (\[\])?(\w+)$/)!
-    const kind = pathParams.has(name!) ? 'path' : 'query'
-    const values = kind === 'path' ? [pathParams.get(name!)!] : url.searchParams.getAll(name!)
+  const data: { [key: string]: any } = route.hasBody ? webrpcJsonBody(await webrpcRequestBodyText(request)) : {}
+  for (const { name, type, optional, list } of route.params) {
+    const kind = pathParams.has(name) ? 'path' : 'query'
+    const values = kind === 'path' ? [pathParams.get(name)!] : url.searchParams.getAll(name)
     if (values.length === 0) {
-      if (repeated && !optional) data[name!] = []
+      if (list && !optional) data[name] = []
       else if (!optional) throw new WebrpcBadRequestError({ cause: `missing ${kind} param '${name}'` })
       continue
     }
     const coerced = values.map((v) => {
-      const value = webrpcRestParam(v, type!)
+      const value = webrpcRestParam(v, type)
       if (value === undefined) throw new WebrpcBadRequestError({ cause: `invalid ${kind} param '${name}': "${v}" is not a valid ${type}` })
       return value
     })
-    data[name!] = repeated ? coerced : coerced[0]
+    data[name] = list ? coerced : coerced[0]
   }
   return data
 }
 
-// webrpcMatchRestPath returns the decoded path params if segments match the path template.
-// Segments are compared after percent-decoding; empty segments never match.
+// Decode before comparing so an encoded fixed segment matches; empty segments never match.
 const webrpcMatchRestPath = (path: string, segments: string[]): Map<string, string> | null => {
   const parts = path.slice(1).split('/')
   if (parts.length !== segments.length) return null
@@ -556,8 +537,22 @@ const webrpcIntRanges: { [type: string]: [number, number] } = {
   uint32: [0, 4294967295],
 }
 
-// webrpcRestParam converts a path/query param string to the field's type, or undefined if invalid.
-// Bools follow strconv.ParseBool and integers follow strconv.ParseInt/ParseUint, as in the Go server.
+// Matches time.Parse(time.RFC3339): uppercase T and Z, a zone, and a real calendar date.
+const webrpcIsRfc3339 = (value: string): boolean => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})([.,]\d+)?(Z|[+-](\d{2}):(\d{2}))$/.exec(value)
+  if (!m) return false
+  const year = Number(m[1])
+  const month = Number(m[2])
+  const day = Number(m[3])
+  if (month < 1 || month > 12) return false
+  const leap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
+  const daysInMonth = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]!
+  if (day < 1 || day > daysInMonth) return false
+  if (Number(m[4]) > 23 || Number(m[5]) > 59 || Number(m[6]) > 59) return false
+  return m[8] === 'Z' || (Number(m[9]) <= 24 && Number(m[10]) <= 60)
+}
+
+// Parses a param like the Go server (strconv, TextUnmarshaler); undefined if invalid.
 const webrpcRestParam = (value: string, type: string): any => {
   if (type === 'bool') {
     if (['1', 't', 'T', 'TRUE', 'true', 'True'].includes(value)) return true
@@ -571,9 +566,12 @@ const webrpcRestParam = (value: string, type: string): any => {
     return Number.isSafeInteger(n) && n >= min && n <= max ? n : undefined
   }
   if (type.startsWith('float')) {
+    if (!/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(value)) return undefined
     const n = Number(value)
-    return value.trim() !== '' && Number.isFinite(n) ? n : undefined
+    const max = type === 'float32' ? 3.4028234663852886e38 : Number.MAX_VALUE
+    return Number.isFinite(n) && Math.abs(n) <= max ? n : undefined
   }
+  if (type === 'timestamp') return webrpcIsRfc3339(value) ? value : undefined
   return value
 }
 
@@ -607,7 +605,6 @@ const webrpcDecodeRequest = (data: { [key: string]: any }, typ: string): any => 
   }
 }
 
-// webrpcHeadResponse answers HEAD like GET, without the body.
 const webrpcHeadResponse = (response: Response): Response => new Response(null, { status: response.status, headers: response.headers })
 
 

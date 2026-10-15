@@ -230,7 +230,7 @@ export class TestApiRest implements TestApiRestClient {
 
   getItem = async (req: GetItemRequest, headers?: object, signal?: AbortSignal): Promise<GetItemResponse> => {
     return this.fetch(
-      ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items/{id}', req, headers, signal)).then((res) => {
+      ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items/{id}', false, req, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return JsonDecode<GetItemResponse>(_data, 'GetItemResponse')
       })
@@ -241,7 +241,7 @@ export class TestApiRest implements TestApiRestClient {
 
   listItems = async (req: ListItemsRequest, headers?: object, signal?: AbortSignal): Promise<ListItemsResponse> => {
     return this.fetch(
-      ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items', req, headers, signal)).then((res) => {
+      ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items', false, req, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return JsonDecode<ListItemsResponse>(_data, 'ListItemsResponse')
       })
@@ -252,7 +252,7 @@ export class TestApiRest implements TestApiRestClient {
 
   createItem = async (req: CreateItemRequest, headers?: object, signal?: AbortSignal): Promise<CreateItemResponse> => {
     return this.fetch(
-      ...createHttpRestRequest(this.hostname, 'POST', '/rpc/items', req, headers, signal)).then((res) => {
+      ...createHttpRestRequest(this.hostname, 'POST', '/rpc/items', true, req, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return JsonDecode<CreateItemResponse>(_data, 'CreateItemResponse')
       })
@@ -263,7 +263,7 @@ export class TestApiRest implements TestApiRestClient {
 
   updateItem = async (req: UpdateItemRequest, headers?: object, signal?: AbortSignal): Promise<UpdateItemResponse> => {
     return this.fetch(
-      ...createHttpRestRequest(this.hostname, 'PUT', '/rpc/items/{id}', req, headers, signal)).then((res) => {
+      ...createHttpRestRequest(this.hostname, 'PUT', '/rpc/items/{id}', true, req, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return JsonDecode<UpdateItemResponse>(_data, 'UpdateItemResponse')
       })
@@ -274,7 +274,7 @@ export class TestApiRest implements TestApiRestClient {
 
   patchItem = async (req: PatchItemRequest, headers?: object, signal?: AbortSignal): Promise<PatchItemResponse> => {
     return this.fetch(
-      ...createHttpRestRequest(this.hostname, 'PATCH', '/rpc/items/{id}', req, headers, signal)).then((res) => {
+      ...createHttpRestRequest(this.hostname, 'PATCH', '/rpc/items/{id}', true, req, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return JsonDecode<PatchItemResponse>(_data, 'PatchItemResponse')
       })
@@ -285,7 +285,7 @@ export class TestApiRest implements TestApiRestClient {
 
   deleteItem = async (req: DeleteItemRequest, headers?: object, signal?: AbortSignal): Promise<DeleteItemResponse> => {
     return this.fetch(
-      ...createHttpRestRequest(this.hostname, 'DELETE', '/rpc/items/{id}', req, headers, signal)).then((res) => {
+      ...createHttpRestRequest(this.hostname, 'DELETE', '/rpc/items/{id}', false, req, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return JsonDecode<DeleteItemResponse>(_data, 'DeleteItemResponse')
       })
@@ -296,7 +296,7 @@ export class TestApiRest implements TestApiRestClient {
 
   queryItems = async (req: QueryItemsRequest, headers?: object, signal?: AbortSignal): Promise<QueryItemsResponse> => {
     return this.fetch(
-      ...createHttpRestRequest(this.hostname, 'QUERY', '/rpc/items/search', req, headers, signal)).then((res) => {
+      ...createHttpRestRequest(this.hostname, 'QUERY', '/rpc/items/search', true, req, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return JsonDecode<QueryItemsResponse>(_data, 'QueryItemsResponse')
       })
@@ -307,7 +307,7 @@ export class TestApiRest implements TestApiRestClient {
 
   echoParams = async (req: EchoParamsRequest, headers?: object, signal?: AbortSignal): Promise<EchoParamsResponse> => {
     return this.fetch(
-      ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items/echo/params', req, headers, signal)).then((res) => {
+      ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items/echo/params', false, req, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return JsonDecode<EchoParamsResponse>(_data, 'EchoParamsResponse')
       })
@@ -318,7 +318,7 @@ export class TestApiRest implements TestApiRestClient {
 
   getChild = async (req: GetChildRequest, headers?: object, signal?: AbortSignal): Promise<GetChildResponse> => {
     return this.fetch(
-      ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items/{id}/children/{childId}', req, headers, signal)).then((res) => {
+      ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items/{id}/children/{childId}', false, req, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return JsonDecode<GetChildResponse>(_data, 'GetChildResponse')
       })
@@ -329,7 +329,7 @@ export class TestApiRest implements TestApiRestClient {
 
   resetItems = async (headers?: object, signal?: AbortSignal): Promise<ResetItemsResponse> => {
     return this.fetch(
-      ...createHttpRestRequest(this.hostname, 'POST', '/rpc/items/reset', {}, headers, signal)).then((res) => {
+      ...createHttpRestRequest(this.hostname, 'POST', '/rpc/items/reset', true, {}, headers, signal)).then((res) => {
       return buildResponse(res).then(_data => {
         return JsonDecode<ResetItemsResponse>(_data, 'ResetItemsResponse')
       })
@@ -357,23 +357,12 @@ const createHttpRequest = (body: string = '{}', headers: object = {}, signal: Ab
   return { method: 'POST', headers: reqHeaders, body, signal }
 }
 
-// isDotPathSegment reports whether a path param would be an empty or dot segment once decoded.
-const isDotPathSegment = (segment: string): boolean => {
-  let decoded = segment
-  try {
-    decoded = decodeURIComponent(segment)
-  } catch {
-    // Not percent-encoded: compare the raw value.
-  }
-  return decoded === '' || decoded === '.' || decoded === '..'
-}
+// Checks the raw value: decoding would wrongly reject an encoded "%2e%2e", which is sent safely.
+const isDotPathSegment = (segment: string): boolean => segment === '' || segment === '.' || segment === '..'
 
-// createHttpRestRequest returns the fetch() arguments of a REST route call:
-// request fields named by {param} placeholders fill the path, the others go
-// to the query string (GET/DELETE) or the JSON body (POST/PUT/PATCH/QUERY).
-const createHttpRestRequest = (hostname: string, method: string, path: string, req: object, headers: object = {}, signal: AbortSignal | null = null): [string, object] => {
+// Path fields fill the template; the rest go to the query string, or to the JSON body for body verbs.
+const createHttpRestRequest = (hostname: string, method: string, path: string, hasBody: boolean, req: object, headers: object = {}, signal: AbortSignal | null = null): [string, object] => {
   const fields: { [key: string]: any } = JSON.parse(JsonEncode(req))
-  const hasBody = method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'QUERY'
   const query = new URLSearchParams()
   // One replace pass over the template, so a substituted value is never re-expanded.
   path = path.replace(/\{(\w+)\}/g, (_, name) => {

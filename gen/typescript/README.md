@@ -142,6 +142,8 @@ The full route is `{basepath}{service.path}{method.path}`, here `GET /api/users/
 - `HEAD` is served by `GET` routes, without a body.
 - A 405 response sets `Allow`, and it lists `HEAD` next to `GET`.
 - A bad path param returns 400, e.g. `invalid path param 'id'`.
+- Timestamp params must be RFC 3339 with an uppercase `T` and `Z`, as in Go. `2026-02-30T...` returns 400.
+- Float params must be finite decimals. `0x10`, `NaN` and `Inf` return 400, and a `float32` above its max returns 400.
 - A missing required query param returns 400, e.g. `missing query param 'limit'`.
 - Integer params are range-checked per type. `int8` value `300` returns 400.
 - 64-bit integer params must be safe integers (`Number.isSafeInteger`). Larger values return 400.

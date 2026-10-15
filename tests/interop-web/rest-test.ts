@@ -22,7 +22,7 @@ import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { TestApiRest, Status, WebrpcBadRequestError } from './restClient.gen'
 import { TestApiRestServer, Item, UnexpectedValueError, serveTestApiRestRpc } from './restServer.gen'
-import { ParamRest } from './paramRestClient.gen'
+import { ParamRest, WebrpcBadRequestError as ParamBadRequestError } from './paramRestClient.gen'
 import { ParamRestServer, serveParamRestRpc } from './paramRestServer.gen'
 
 // Go REST server and client, built by `make build-test` and found on PATH.
@@ -148,6 +148,15 @@ const createParamService = (): ParamRestServer => ({
   async make(_ctx, { constructor: name }) {
     return { echo: name }
   },
+  async tag(_ctx, { name }) {
+    return { echo: name }
+  },
+  async numbers(_ctx, args) {
+    return { echo: JSON.stringify(args) }
+  },
+  async search(_ctx, args) {
+    return { echo: JSON.stringify(args) }
+  },
 })
 
 const createHttpServer = (handle: (request: Request) => Promise<Response | null>): http.Server => {
@@ -246,6 +255,17 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   assert.equal(viaRpc.status, 404, 'routed method must not answer on its RPC path')
   await viaRpc.body?.cancel()
 
+  // The RPC path of a plain method accepts only POST; GET gets 405, not a REST match.
+  if (server === 'typescript') {
+    const routedGet = await fetch(`${addr}/rpc/TestApiRest/GetItem`)
+    assert.equal(routedGet.status, 404, 'a routed RPC path must 404 for GET too')
+    await routedGet.body?.cancel()
+    const plainGet = await fetch(`${addr}/rpc/TestApiRest/RpcMethod`)
+    assert.equal(plainGet.status, 405, 'a plain RPC path must reject GET')
+    assert.equal(plainGet.headers.get('Allow'), 'POST')
+    await plainGet.body?.cancel()
+  }
+
   // HEAD answers like GET, without a body.
   const head = await fetch(`${addr}/rpc/items/7`, { method: 'HEAD' })
   assert.equal(head.status, 200, 'HEAD on a GET route must succeed')
@@ -330,7 +350,7 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
 
   // The client rejects path values that are empty or dot segments before sending anything.
   const before = sent.length
-  for (const id of ['.', '..', '', '%2E', '%2e%2E']) {
+  for (const id of ['.', '..', '']) {
     await assert.rejects(recorded.getItem({ id: id as unknown as number }), WebrpcBadRequestError, `path value "${id}" must be rejected`)
   }
   assert.equal(sent.length, before, 'dot and empty path values must not be sent')
@@ -457,6 +477,47 @@ const paramSuite = async (addr: string) => {
   assert.match(await make.text(), /missing argument `constructor`/)
   const made = await api.make({ constructor: 'm' })
   assert.equal(made.echo, 'm')
+
+  // A path value is one decoded segment, so an encoded %2e%2e is a literal name.
+  const tagged = await api.tag({ name: '%2e%2e' })
+  assert.equal(tagged.echo, '%2e%2e', 'an encoded dot segment must round-trip')
+  for (const name of ['.', '..', '']) {
+    await assert.rejects(api.tag({ name }), ParamBadRequestError, `path value "${name}" must be rejected`)
+  }
+
+  // Floats are finite decimals; float32 is bounded by its max, float64 only by finiteness.
+  const numbers = (overrides: { [key: string]: string }) =>
+    fetch(`${addr}/rpc/params/numbers?${new URLSearchParams({ f32: '1.5', f64: '1.5', ts: '2026-09-03T12:30:15Z', ...overrides })}`)
+  const acceptedNumbers: [string, string][] = [['f32', '1'], ['f32', '1.'], ['f32', '.5'], ['f32', '-1.5e3'], ['f32', '+2E-4'], ['f32', '3.4028234663852886e38'], ['f64', '1e308']]
+  for (const [key, value] of acceptedNumbers) {
+    const res = await numbers({ [key]: value })
+    assert.equal(res.status, 200, `${key}=${value} must be accepted`)
+    await res.body?.cancel()
+  }
+  const rejectedNumbers: [string, string][] = [['f32', '0x10'], ['f32', ' 1 '], ['f32', '1e'], ['f32', 'NaN'], ['f32', 'Inf'], ['f32', '1_0'], ['f32', '3.5e38'], ['f64', '0x10'], ['f64', '1e400']]
+  for (const [key, value] of rejectedNumbers) {
+    const res = await numbers({ [key]: value })
+    assert.equal(res.status, 400, `${key}=${JSON.stringify(value)} must be rejected`)
+    assert.match(await res.text(), new RegExp(`invalid query param '${key}'`))
+  }
+
+  // Timestamps are RFC 3339 as in Go: a real date, uppercase T and Z, and a zone.
+  for (const ts of ['2026-09-03T12:30:15.123Z', '2024-02-29T00:00:00+05:30', '2026-09-03T12:30:15-00:00']) {
+    const res = await numbers({ ts })
+    assert.equal(res.status, 200, `ts=${ts} must be accepted`)
+    await res.body?.cancel()
+  }
+  for (const ts of ['2026-02-30T00:00:00Z', '2026-02-29T00:00:00Z', '2026-04-31T00:00:00Z', '2026-13-01T00:00:00Z', '2026-09-03T24:00:00Z', '2026-09-03T23:59:60Z', '2026-09-03 12:30:15Z', '2026-09-03T12:30:15z', '2026-09-03T12:30:15', '2026-09-03T12:30Z', '2026-09-03T12:30:15+25:00']) {
+    const res = await numbers({ ts })
+    assert.equal(res.status, 400, `ts=${ts} must be rejected`)
+    assert.match(await res.text(), /invalid query param 'ts'/)
+  }
+
+  // A query field binds by its JSON name, dashed_term, which is also its TS field name.
+  const searched = await api.search({ term: 't', dashed_term: 'd' })
+  assert.deepEqual(JSON.parse(searched.echo), { term: 't', dashed_term: 'd' }, 'dashed_term must bind')
+  const wire = await fetch(`${addr}/rpc/params/search?term=t&dashed=x`)
+  assert.deepEqual(JSON.parse((await wire.json()).echo), { term: 't' }, 'the RIDL field name must not bind')
 }
 
 const waitForServer = async (addr: string, timeoutMs = 60_000) => {

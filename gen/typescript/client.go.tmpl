@@ -116,7 +116,7 @@ export class {{$service.Name}} implements {{$service.Name}}Client {
   {{- else }}
     return this.fetch(
       {{- if MethodHasRoute $method }}
-      ...createHttpRestRequest(this.hostname, '{{MethodRouteVerb $method}}', '{{MethodRoutePath $method}}', {{if .Inputs | len}}req{{else}}{}{{end}}, headers, signal)).then((res) => {
+      ...createHttpRestRequest(this.hostname, '{{MethodRouteVerb $method}}', '{{MethodRoutePath $method}}', {{if MethodRouteHasBody $method}}true{{else}}false{{end}}, {{if .Inputs | len}}req{{else}}{}{{end}}, headers, signal)).then((res) => {
       {{- else }}
       this.url('{{.Name}}'),
       {{- if .Inputs | len }}

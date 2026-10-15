@@ -11,23 +11,12 @@ const createHttpRequest = (body: string = '{}', headers: object = {}, signal: Ab
 
 {{- if $opts.restRoutes }}
 
-// isDotPathSegment reports whether a path param would be an empty or dot segment once decoded.
-const isDotPathSegment = (segment: string): boolean => {
-  let decoded = segment
-  try {
-    decoded = decodeURIComponent(segment)
-  } catch {
-    // Not percent-encoded: compare the raw value.
-  }
-  return decoded === '' || decoded === '.' || decoded === '..'
-}
+// Checks the raw value: decoding would wrongly reject an encoded "%2e%2e", which is sent safely.
+const isDotPathSegment = (segment: string): boolean => segment === '' || segment === '.' || segment === '..'
 
-// createHttpRestRequest returns the fetch() arguments of a REST route call:
-// request fields named by {param} placeholders fill the path, the others go
-// to the query string (GET/DELETE) or the JSON body (POST/PUT/PATCH/QUERY).
-const createHttpRestRequest = (hostname: string, method: string, path: string, req: object, headers: object = {}, signal: AbortSignal | null = null): [string, object] => {
+// Path fields fill the template; the rest go to the query string, or to the JSON body for body verbs.
+const createHttpRestRequest = (hostname: string, method: string, path: string, hasBody: boolean, req: object, headers: object = {}, signal: AbortSignal | null = null): [string, object] => {
   const fields: { [key: string]: any } = JSON.parse(JsonEncode(req))
-  const hasBody = method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'QUERY'
   const query = new URLSearchParams()
   // One replace pass over the template, so a substituted value is never re-expanded.
   path = path.replace(/\{(\w+)\}/g, (_, name) => {
