@@ -2,6 +2,7 @@ package schema
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -293,7 +294,7 @@ func TestRouteInvalidSchemas(t *testing.T) {
 			wantErr: "only scalars and scalar arrays are supported in GET requests",
 		},
 		{
-			name:  "struct array query param in QUERY",
+			name:  "struct array body field in QUERY is allowed",
 			types: userTypes,
 			services: `{
 				"name": "Users",
@@ -304,7 +305,155 @@ func TestRouteInvalidSchemas(t *testing.T) {
 					"outputs": []
 				}]
 			}`,
-			wantErr: "only scalars and scalar arrays are supported in QUERY requests",
+		},
+		{
+			name: "dot-dot segment in route",
+			services: `{
+				"name": "Items",
+				"methods": [{
+					"name": "Lookup",
+					"route": {"verb": "GET", "path": "/items/../lookup"},
+					"inputs": [],
+					"outputs": []
+				}]
+			}`,
+			wantErr: "dot segments are not allowed",
+		},
+		{
+			name: "single-dot segment in route",
+			services: `{
+				"name": "Items",
+				"methods": [{
+					"name": "Lookup",
+					"route": {"verb": "GET", "path": "/items/./lookup"},
+					"inputs": [],
+					"outputs": []
+				}]
+			}`,
+			wantErr: "dot segments are not allowed",
+		},
+		{
+			name: "dot-dot segment in service path",
+			services: `{
+				"name": "Items",
+				"path": "/../items",
+				"methods": [{
+					"name": "Lookup",
+					"route": {"verb": "GET", "path": "/lookup"},
+					"inputs": [],
+					"outputs": []
+				}]
+			}`,
+			wantErr: "dot segments are not allowed",
+		},
+		{
+			name: "triple-dot segment is a plain name",
+			services: `{
+				"name": "Items",
+				"methods": [{
+					"name": "Lookup",
+					"route": {"verb": "GET", "path": "/items/.../lookup"},
+					"inputs": [],
+					"outputs": []
+				}]
+			}`,
+		},
+		{
+			name:     "root route conflicts with default dispatch path under root basepath",
+			basePath: "/",
+			services: `{
+				"name": "S",
+				"path": "/",
+				"methods": [
+					{
+						"name": "G",
+						"route": {"verb": "GET", "path": "/"},
+						"inputs": [],
+						"outputs": []
+					},
+					{
+						"name": "Other",
+						"inputs": [],
+						"outputs": []
+					}
+				]
+			}`,
+			wantErr: "overlaps the default webrpc dispatch path '/S/Other'",
+		},
+		{
+			name:     "root route with root basepath and no other default paths is allowed",
+			basePath: "/",
+			services: `{
+				"name": "S",
+				"path": "/",
+				"methods": [{
+					"name": "G",
+					"route": {"verb": "GET", "path": "/"},
+					"inputs": [],
+					"outputs": []
+				}]
+			}`,
+		},
+		{
+			name:     "root route overlaps param route of another service",
+			basePath: "/",
+			services: `{
+				"name": "S",
+				"path": "/",
+				"methods": [{
+					"name": "G",
+					"route": {"verb": "GET", "path": "/"},
+					"inputs": [],
+					"outputs": []
+				}]
+			},
+			{
+				"name": "T",
+				"path": "/t",
+				"methods": [{
+					"name": "H",
+					"route": {"verb": "GET", "path": "/{id}"},
+					"inputs": [{"name": "id", "type": "string"}],
+					"outputs": []
+				}]
+			}`,
+			wantErr: "cannot overlap across services",
+		},
+		{
+			name:     "routed method's own default path is not checked",
+			basePath: "/",
+			services: `{
+				"name": "Repos",
+				"path": "/",
+				"methods": [{
+					"name": "GetRepo",
+					"route": {"verb": "GET", "path": "/{org}/{repo}"},
+					"inputs": [{"name": "org", "type": "string"}, {"name": "repo", "type": "string"}],
+					"outputs": [{"name": "name", "type": "string"}]
+				}]
+			}`,
+		},
+		{
+			name:     "unrouted method's default path is still checked against routes",
+			basePath: "/",
+			services: `{
+				"name": "Repos",
+				"path": "/",
+				"methods": [
+					{
+						"name": "GetRepo",
+						"route": {"verb": "GET", "path": "/{org}/{repo}"},
+						"inputs": [{"name": "org", "type": "string"}, {"name": "repo", "type": "string"}],
+						"outputs": []
+					},
+					{
+						"name": "Ping",
+						"inputs": [],
+						"outputs": []
+					}
+				]
+			}`,
+			wantErr: "overlaps the default webrpc dispatch path '/Repos/Ping' of method 'Repos.Ping'",
 		},
 		{
 			name:  "struct body field in POST is allowed",
@@ -575,6 +724,55 @@ func TestRouteInvalidSchemas(t *testing.T) {
 			assert.Contains(t, err.Error(), tc.wantErr)
 		})
 	}
+}
+
+func TestRouteQueryVerbHasBody(t *testing.T) {
+	s, err := parseRouteTestSchema(t, "/api", userTypes, `
+		{
+			"name": "Users",
+			"methods": [
+				{
+					"name": "Find",
+					"succinct": true,
+					"route": {"verb": "QUERY", "path": "/users"},
+					"inputs": [{"name": "req", "type": "ListUsersRequest"}],
+					"outputs": []
+				},
+				{
+					"name": "Get",
+					"route": {"verb": "GET", "path": "/{userId}"},
+					"inputs": [{"name": "userId", "type": "uint64"}],
+					"outputs": []
+				}
+			]
+		}
+	`)
+	require.NoError(t, err)
+
+	find := s.Services[0].Methods[0]
+	assert.True(t, MethodRouteHasBody(find))
+	assert.Equal(t, "QUERY", MethodRouteVerb(find))
+	assert.Empty(t, MethodRouteParams(find), "QUERY body fields are not query params")
+
+	get := s.Services[0].Methods[1]
+	assert.False(t, MethodRouteHasBody(get))
+	assert.False(t, MethodRouteHasBody(&Method{}))
+}
+
+// http.ServeMux panics when a method-less pattern like "/S/G" and a "GET /" subtree
+// pattern are registered together: the basis for the root-route overlap rule.
+func TestRootRouteConflictsWithServeMux(t *testing.T) {
+	register := func(patterns ...string) (panicked bool) {
+		defer func() { panicked = recover() != nil }()
+		mux := http.NewServeMux()
+		for _, p := range patterns {
+			mux.HandleFunc(p, func(http.ResponseWriter, *http.Request) {})
+		}
+		return false
+	}
+	assert.True(t, register("GET /", "/S/G"))
+	assert.True(t, register("/S/G", "POST /"))
+	assert.False(t, register("GET /S/Other", "/S/G"))
 }
 
 func TestJoinRoutePath(t *testing.T) {

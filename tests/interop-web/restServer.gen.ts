@@ -221,7 +221,7 @@ const testApiRestRestRoutes: WebrpcRestRoute[] = [
   { method: 'PUT', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/UpdateItem', params: ['id: uint64'] },
   { method: 'PATCH', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/PatchItem', params: ['id: uint64'] },
   { method: 'DELETE', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/DeleteItem', params: ['id: uint64'] },
-  { method: 'QUERY', path: '/rpc/items/search', rpcPath: '/rpc/TestApiRest/QueryItems', params: ['q: string'] },
+  { method: 'QUERY', path: '/rpc/items/search', rpcPath: '/rpc/TestApiRest/QueryItems', params: [] },
   { method: 'GET', path: '/rpc/items/echo/params', rpcPath: '/rpc/TestApiRest/EchoParams', params: ['str: string', 'num: int64', 'flag: bool', 'fl: float64', 'ts: timestamp', 'status: Status', 'tags: []string', 'opt?: string'] },
   { method: 'GET', path: '/rpc/items/{id}/children/{childId}', rpcPath: '/rpc/TestApiRest/GetChild', params: ['id: uint64', 'childId: uint64'] },
   { method: 'POST', path: '/rpc/items/reset', rpcPath: '/rpc/TestApiRest/ResetItems', params: [] },

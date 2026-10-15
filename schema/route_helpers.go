@@ -1,7 +1,7 @@
 package schema
 
 // RouteParam is a request field bound to a path param (when the route path
-// template contains "{Name}") or else to a query param (GET/DELETE/QUERY).
+// template contains "{Name}") or else to a query param (GET/DELETE).
 //
 // This type is used as a template helper for adding REST route support in
 // various codegen targets.
@@ -26,6 +26,12 @@ func MethodRouteVerb(m *Method) string {
 	return m.Route.Verb
 }
 
+// MethodRouteHasBody reports whether the route's non-path fields travel in the
+// JSON body (POST/PUT/PATCH/QUERY) rather than the query string (GET/DELETE).
+func MethodRouteHasBody(m *Method) bool {
+	return MethodHasRoute(m) && routeVerbHasBody(m.Route.Verb)
+}
+
 // MethodRoutePath returns the full route path template, composed as
 // {basepath}{service.path}{method.path} and normalized (leading slash, no
 // trailing slash).
@@ -45,8 +51,8 @@ func MethodRoutePath(m *Method) string {
 }
 
 // MethodRouteParams returns the request fields bound to the route's path
-// params and, for GET/DELETE/QUERY routes, to its query params — in request
-// field order. Body verbs send all other fields in the JSON body.
+// params and, for GET/DELETE routes, to its query params — in request field
+// order. Body verbs (see MethodRouteHasBody) send all other fields in the body.
 func MethodRouteParams(m *Method) []*RouteParam {
 	if !MethodHasRoute(m) {
 		return nil

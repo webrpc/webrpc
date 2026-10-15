@@ -1,6 +1,7 @@
 package ridl
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -137,6 +138,40 @@ service Users
 	assert.Equal(t, "QUERY", s.Services[0].Methods[0].Route.Verb)
 }
 
+func TestRIDLRouteQueryVerbCarriesBody(t *testing.T) {
+	_, err := parseRouteRIDL(t, routeRIDLHeader+`
+service Users
+  path = /users
+
+  - Search(CreateUserRequest) => (CreateUserResponse)
+      QUERY /search
+`)
+	require.NoError(t, err)
+}
+
+func TestRIDLRoutedMethodReplacesDefaultPath(t *testing.T) {
+	_, err := parseRouteRIDL(t, routeRIDLHeader+`
+service Repos
+  path = /
+  - GetRepo(org: string, repo: string) => (name: string)
+      GET /{org}/{repo}
+`)
+	require.NoError(t, err)
+}
+
+func TestRIDLRootRouteConflictsWithDefaultPath(t *testing.T) {
+	header := strings.Replace(routeRIDLHeader, "basepath = /api", "basepath = /", 1)
+	_, err := parseRouteRIDL(t, header+`
+service S
+  path = /
+  - G() => ()
+      GET /
+  - Other() => ()
+`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "overlaps the default webrpc dispatch path '/S/Other'")
+}
+
 func TestRIDLRouteErrors(t *testing.T) {
 	tt := []struct {
 		name    string
@@ -181,6 +216,15 @@ service Users
   path = /users
 `,
 			wantErr: "must be declared before the service methods",
+		},
+		{
+			name: "dot-dot segment in route",
+			input: routeRIDLHeader + `
+service Items
+  - Lookup() => ()
+      GET /items/../lookup
+`,
+			wantErr: "dot segments are not allowed",
 		},
 		{
 			name: "route on stream method",

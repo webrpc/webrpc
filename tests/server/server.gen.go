@@ -972,7 +972,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 		{"PUT /rpc/items/{id}", "/rpc/TestApiRest/UpdateItem", []string{"id: uint64"}},
 		{"PATCH /rpc/items/{id}", "/rpc/TestApiRest/PatchItem", []string{"id: uint64"}},
 		{"DELETE /rpc/items/{id}", "/rpc/TestApiRest/DeleteItem", []string{"id: uint64"}},
-		{"QUERY /rpc/items/search", "/rpc/TestApiRest/QueryItems", []string{"q: string"}},
+		{"QUERY /rpc/items/search", "/rpc/TestApiRest/QueryItems", nil},
 		{"GET /rpc/items/echo/params", "/rpc/TestApiRest/EchoParams", []string{"str: string", "num: int64", "flag: bool", "fl: float64", "ts: timestamp", "status: Status", "tags: []string", "opt?: string"}},
 		{"GET /rpc/items/{id}/children/{childId}", "/rpc/TestApiRest/GetChild", []string{"id: uint64", "childId: uint64"}},
 		{"POST /rpc/items/reset", "/rpc/TestApiRest/ResetItems", nil},

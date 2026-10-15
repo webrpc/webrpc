@@ -16,7 +16,7 @@ type MethodRoute struct {
 }
 
 // RouteVerbs are the HTTP verbs allowed on a method route. QUERY (RFC draft,
-// a body-less safe method) shares the GET/DELETE binding rules.
+// a safe method with a request body) shares the POST/PUT/PATCH binding rules.
 var RouteVerbs = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "QUERY"}
 
 func IsRouteVerb(s string) bool {
@@ -24,9 +24,9 @@ func IsRouteVerb(s string) bool {
 }
 
 // routeVerbHasBody reports whether request fields not consumed by path params
-// travel in the JSON body (POST/PUT/PATCH) or as query params (GET/DELETE/QUERY).
+// travel in the JSON body (POST/PUT/PATCH/QUERY) or as query params (GET/DELETE).
 func routeVerbHasBody(verb string) bool {
-	return verb == "POST" || verb == "PUT" || verb == "PATCH"
+	return verb == "POST" || verb == "PUT" || verb == "PATCH" || verb == "QUERY"
 }
 
 var (
@@ -66,6 +66,9 @@ func validateRoutePathSyntax(path string) ([]string, error) {
 
 	var params []string
 	for _, seg := range routePathSegments(path) {
+		if seg == "." || seg == ".." {
+			return nil, fmt.Errorf("path %q has invalid segment %q: dot segments are not allowed", path, seg)
+		}
 		if name, ok := strings.CutPrefix(seg, "{"); ok {
 			if name, ok = strings.CutSuffix(name, "}"); !ok || !routeParamNameRexp.MatchString(name) {
 				return nil, fmt.Errorf("path %q has invalid param segment %q", path, seg)
@@ -150,9 +153,10 @@ func (s *WebRPCSchema) validateRoutes() error {
 		}
 		for _, m := range svc.Methods {
 			id := fmt.Sprintf("%s.%s", svc.Name, m.Name)
-			defaultPath := JoinRoutePath(s.BasePath, svc.Name, m.Name)
-			defaults = append(defaults, declaredRoute{id: id, service: svc.Name, path: defaultPath, segments: routePathSegments(defaultPath)})
 			if m.Route == nil {
+				// A routed method replaces its default RPC path, so only unrouted methods own one.
+				defaultPath := JoinRoutePath(s.BasePath, svc.Name, m.Name)
+				defaults = append(defaults, declaredRoute{id: id, service: svc.Name, path: defaultPath, segments: routePathSegments(defaultPath)})
 				continue
 			}
 			if err := s.validateMethodRoute(svc, m); err != nil {
@@ -164,7 +168,7 @@ func (s *WebRPCSchema) validateRoutes() error {
 	}
 
 	for i, r := range routes {
-		// Default webrpc paths, routed or not, share the REST mux (http.ServeMux conflict).
+		// Unrouted methods' default webrpc paths share the REST mux (http.ServeMux conflict).
 		for _, d := range defaults {
 			if overlap, _, _ := compareRouteSegments(r.segments, d.segments); overlap {
 				return fmt.Errorf("schema error: route '%s %s' of method '%s' overlaps the default webrpc dispatch path '%s' of method '%s'", r.verb, r.path, r.id, d.path, d.id)
@@ -201,6 +205,14 @@ func (s *WebRPCSchema) validateRoutes() error {
 // request path, and whether each one has a static segment where the other has
 // a param (i.e. is more specific at some position).
 func compareRouteSegments(a, b []string) (overlap, aMoreStatic, bMoreStatic bool) {
+	// A route normalized to "/" is a subtree pattern in http.ServeMux: it matches
+	// every path, so it overlaps any non-root path and is less specific than it.
+	if len(a) == 0 && len(b) > 0 {
+		return true, false, true
+	}
+	if len(b) == 0 && len(a) > 0 {
+		return true, true, false
+	}
 	if len(a) != len(b) {
 		return false, false, false
 	}
@@ -276,8 +288,8 @@ func (s *WebRPCSchema) validateMethodRoute(svc *Service, m *Method) error {
 		}
 	}
 
-	// GET/DELETE/QUERY requests have no body: every field not consumed by a
-	// path param is sent as a query param, and must be a scalar or []scalar.
+	// GET/DELETE requests have no body: every field not consumed by a path
+	// param is sent as a query param, and must be a scalar or []scalar.
 	if !routeVerbHasBody(route.Verb) {
 		for _, f := range fields {
 			if seenParams[f.name] {
