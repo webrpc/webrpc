@@ -45,7 +45,7 @@ plugin for RIDL synx highlighting.
 
 | Generator                                              | Description                       | Schema | Client | Server |
 |--------------------------------------------------------|-----------------------------------|--------|--------|--------|
-| [golang](./gen/golang)         | Go 1.22+                          | v1     | ✅     | ✅     |
+| [golang](./gen/golang)         | Go 1.23+                          | v1     | ✅     | ✅     |
 | [typescript](./gen/typescript) | TypeScript (ES2022+)              | v1     | ✅     | ✅     |
 | [javascript](./gen/javascript) | JavaScript (ES6)                  | v1     | ✅     | ✅     |
 | [kotlin](./gen/kotlin)         | Kotlin (coroutines, kotlinx.serialization) | v1     | ✅     |        |
