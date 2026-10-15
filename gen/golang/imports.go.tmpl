@@ -19,7 +19,7 @@
 {{- end -}}
 
 {{- if $opts.client }}
-	{{- set $stdlibImports "bytes" "" -}}
+	{{- set $stdlibImports "encoding" "" -}}
 	{{- set $stdlibImports "io" "" -}}
 	{{- set $stdlibImports "net/url" "" -}}
 {{- end -}}
@@ -34,7 +34,7 @@
 	{{- end -}}
 
 	{{- if $opts.restRoutes }}
-		{{- set $stdlibImports "bytes" "" -}}
+		{{- set $stdlibImports "encoding" "" -}}
 		{{- set $stdlibImports "strconv" "" -}}
 	{{- end -}}
 {{- end -}}

@@ -6,8 +6,8 @@
 package server
 
 import (
-	"bytes"
 	"context"
+	"encoding"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -965,28 +965,142 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 		server.OnError = options[0].OnError
 		server.OnRequest = options[0].OnRequest
 	}
-	server.restMux = newRestMux(server.serveRPC, server.sendErrorJSON, []restRoute{
-		{"GET /rpc/items/{id}", "/rpc/TestApiRest/GetItem", []string{"id: uint64", "details?: bool"}},
-		{"GET /rpc/items", "/rpc/TestApiRest/ListItems", []string{"q?: string", "tags: []string", "limit: uint32"}},
-		{"POST /rpc/items", "/rpc/TestApiRest/CreateItem", nil},
-		{"PUT /rpc/items/{id}", "/rpc/TestApiRest/UpdateItem", []string{"id: uint64"}},
-		{"PATCH /rpc/items/{id}", "/rpc/TestApiRest/PatchItem", []string{"id: uint64"}},
-		{"DELETE /rpc/items/{id}", "/rpc/TestApiRest/DeleteItem", []string{"id: uint64"}},
-		{"QUERY /rpc/items/search", "/rpc/TestApiRest/QueryItems", nil},
-		{"GET /rpc/items/echo/params", "/rpc/TestApiRest/EchoParams", []string{"str: string", "num: int64", "flag: bool", "fl: float64", "ts: timestamp", "status: Status", "tags: []string", "opt?: string"}},
-		{"GET /rpc/items/{id}/children/{childId}", "/rpc/TestApiRest/GetChild", []string{"id: uint64", "childId: uint64"}},
-		{"POST /rpc/items/reset", "/rpc/TestApiRest/ResetItems", nil},
-	})
+	server.restMux = http.NewServeMux()
+	server.restMux.Handle("GET /rpc/items/{id}", restHandler("GetItem", false,
+		server.TestApiRestServer.GetItem,
+		func(p *restParams, req *GetItemRequest) error {
+			if err := restPath(p, "id", &req.Id, restUint); err != nil {
+				return err
+			}
+			if err := restQueryOpt(p, "details", &req.Details, restBool); err != nil {
+				return err
+			}
+			return nil
+		},
+		server.sendErrorJSON, &server.OnRequest))
+	server.restMux.Handle("GET /rpc/items", restHandler("ListItems", false,
+		server.TestApiRestServer.ListItems,
+		func(p *restParams, req *ListItemsRequest) error {
+			if err := restQueryOpt(p, "q", &req.Q, restString); err != nil {
+				return err
+			}
+			if err := restQueryList(p, "tags", &req.Tags, restString, false); err != nil {
+				return err
+			}
+			if err := restQuery(p, "limit", &req.Limit, restUint); err != nil {
+				return err
+			}
+			return nil
+		},
+		server.sendErrorJSON, &server.OnRequest))
+	server.restMux.Handle("POST /rpc/items", restHandler("CreateItem", true,
+		server.TestApiRestServer.CreateItem,
+		nil,
+		server.sendErrorJSON, &server.OnRequest))
+	server.restMux.Handle("PUT /rpc/items/{id}", restHandler("UpdateItem", true,
+		func(ctx context.Context, req testApiRestServiceUpdateItemArgs) (testApiRestServiceUpdateItemResult, error) {
+			ret0, err := server.TestApiRestServer.UpdateItem(ctx, req.Arg0, req.Arg1)
+			return testApiRestServiceUpdateItemResult{Ret0: ret0}, err
+		},
+		func(p *restParams, req *testApiRestServiceUpdateItemArgs) error {
+			if err := restPath(p, "id", &req.Arg0, restUint); err != nil {
+				return err
+			}
+			return nil
+		},
+		server.sendErrorJSON, &server.OnRequest))
+	server.restMux.Handle("PATCH /rpc/items/{id}", restHandler("PatchItem", true,
+		func(ctx context.Context, req testApiRestServicePatchItemArgs) (testApiRestServicePatchItemResult, error) {
+			ret0, err := server.TestApiRestServer.PatchItem(ctx, req.Arg0, req.Arg1)
+			return testApiRestServicePatchItemResult{Ret0: ret0}, err
+		},
+		func(p *restParams, req *testApiRestServicePatchItemArgs) error {
+			if err := restPath(p, "id", &req.Arg0, restUint); err != nil {
+				return err
+			}
+			return nil
+		},
+		server.sendErrorJSON, &server.OnRequest))
+	server.restMux.Handle("DELETE /rpc/items/{id}", restHandler("DeleteItem", false,
+		func(ctx context.Context, req testApiRestServiceDeleteItemArgs) (testApiRestServiceDeleteItemResult, error) {
+			err := server.TestApiRestServer.DeleteItem(ctx, req.Arg0)
+			return testApiRestServiceDeleteItemResult{}, err
+		},
+		func(p *restParams, req *testApiRestServiceDeleteItemArgs) error {
+			if err := restPath(p, "id", &req.Arg0, restUint); err != nil {
+				return err
+			}
+			return nil
+		},
+		server.sendErrorJSON, &server.OnRequest))
+	server.restMux.Handle("QUERY /rpc/items/search", restHandler("QueryItems", true,
+		func(ctx context.Context, req testApiRestServiceQueryItemsArgs) (testApiRestServiceQueryItemsResult, error) {
+			ret0, err := server.TestApiRestServer.QueryItems(ctx, req.Arg0)
+			return testApiRestServiceQueryItemsResult{Ret0: ret0}, err
+		},
+		nil,
+		server.sendErrorJSON, &server.OnRequest))
+	server.restMux.Handle("GET /rpc/items/echo/params", restHandler("EchoParams", false,
+		func(ctx context.Context, req testApiRestServiceEchoParamsArgs) (testApiRestServiceEchoParamsResult, error) {
+			ret0, err := server.TestApiRestServer.EchoParams(ctx, req.Arg0, req.Arg1, req.Arg2, req.Arg3, req.Arg4, req.Arg5, req.Arg6, req.Arg7)
+			return testApiRestServiceEchoParamsResult{Ret0: ret0}, err
+		},
+		func(p *restParams, req *testApiRestServiceEchoParamsArgs) error {
+			if err := restQuery(p, "str", &req.Arg0, restString); err != nil {
+				return err
+			}
+			if err := restQuery(p, "num", &req.Arg1, restInt); err != nil {
+				return err
+			}
+			if err := restQuery(p, "flag", &req.Arg2, restBool); err != nil {
+				return err
+			}
+			if err := restQuery(p, "fl", &req.Arg3, restFloat); err != nil {
+				return err
+			}
+			if err := restQuery(p, "ts", &req.Arg4, restText); err != nil {
+				return err
+			}
+			if err := restQuery(p, "status", &req.Arg5, restText); err != nil {
+				return err
+			}
+			if err := restQueryList(p, "tags", &req.Arg6, restString, false); err != nil {
+				return err
+			}
+			if err := restQueryOpt(p, "opt", &req.Arg7, restString); err != nil {
+				return err
+			}
+			return nil
+		},
+		server.sendErrorJSON, &server.OnRequest))
+	server.restMux.Handle("GET /rpc/items/{id}/children/{childId}", restHandler("GetChild", false,
+		func(ctx context.Context, req testApiRestServiceGetChildArgs) (testApiRestServiceGetChildResult, error) {
+			ret0, err := server.TestApiRestServer.GetChild(ctx, req.Arg0, req.Arg1)
+			return testApiRestServiceGetChildResult{Ret0: ret0}, err
+		},
+		func(p *restParams, req *testApiRestServiceGetChildArgs) error {
+			if err := restPath(p, "id", &req.Arg0, restUint); err != nil {
+				return err
+			}
+			if err := restPath(p, "childId", &req.Arg1, restUint); err != nil {
+				return err
+			}
+			return nil
+		},
+		server.sendErrorJSON, &server.OnRequest))
+	server.restMux.Handle("POST /rpc/items/reset", restHandler("ResetItems", true,
+		func(ctx context.Context, req testApiRestServiceResetItemsArgs) (testApiRestServiceResetItemsResult, error) {
+			err := server.TestApiRestServer.ResetItems(ctx)
+			return testApiRestServiceResetItemsResult{}, err
+		},
+		nil,
+		server.sendErrorJSON, &server.OnRequest))
 	return server
 }
 
 func (s *testApiRestService) Methods() []Method { return methodsFor(ServiceTestApiRest, s) }
 
 func (s *testApiRestService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	serveRest(s.restMux, w, r, s.serveRPC, s.sendErrorJSON)
-}
-
-func (s *testApiRestService) serveRPC(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		// In case of a panic, serve a HTTP 500 error and then panic.
 		if rr := recover(); rr != nil {
@@ -1006,31 +1120,10 @@ func (s *testApiRestService) serveRPC(w http.ResponseWriter, r *http.Request) {
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	switch r.URL.Path {
-	case "/rpc/TestApiRest/GetItem":
-		handler = succinctHandler("GetItem", s.TestApiRestServer.GetItem, s.sendErrorJSON)
-	case "/rpc/TestApiRest/ListItems":
-		handler = succinctHandler("ListItems", s.TestApiRestServer.ListItems, s.sendErrorJSON)
-	case "/rpc/TestApiRest/CreateItem":
-		handler = succinctHandler("CreateItem", s.TestApiRestServer.CreateItem, s.sendErrorJSON)
-	case "/rpc/TestApiRest/UpdateItem":
-		handler = s.serveUpdateItemJSON
-	case "/rpc/TestApiRest/PatchItem":
-		handler = s.servePatchItemJSON
-	case "/rpc/TestApiRest/DeleteItem":
-		handler = s.serveDeleteItemJSON
-	case "/rpc/TestApiRest/QueryItems":
-		handler = s.serveQueryItemsJSON
-	case "/rpc/TestApiRest/EchoParams":
-		handler = s.serveEchoParamsJSON
-	case "/rpc/TestApiRest/GetChild":
-		handler = s.serveGetChildJSON
-	case "/rpc/TestApiRest/ResetItems":
-		handler = s.serveResetItemsJSON
 	case "/rpc/TestApiRest/RpcMethod":
 		handler = s.serveRpcMethodJSON
 	default:
-		err := ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path)
-		s.sendErrorJSON(w, r, err)
+		serveRest(s.restMux, w, r, s.sendErrorJSON)
 		return
 	}
 
@@ -1065,284 +1158,6 @@ func (s *testApiRestService) serveRPC(w http.ResponseWriter, r *http.Request) {
 		err := ErrWebrpcBadRequest.WithCausef("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type"))
 		s.sendErrorJSON(w, r, err)
 	}
-}
-
-func (s *testApiRestService) serveUpdateItemJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "UpdateItem")
-
-	reqBody, err := io.ReadAll(r.Body)
-	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
-		return
-	}
-	defer r.Body.Close()
-
-	reqPayload := struct {
-		Arg0 uint64 `json:"id"`
-		Arg1 string `json:"name"`
-	}{}
-	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
-		return
-	}
-
-	// Call service method implementation.
-	ret0, err := s.TestApiRestServer.UpdateItem(ctx, reqPayload.Arg0, reqPayload.Arg1)
-	if err != nil {
-		var rpcErr WebRPCError
-		if !errors.As(err, &rpcErr) {
-			rpcErr = ErrWebrpcEndpoint.WithCause(err)
-		}
-		s.sendErrorJSON(w, r, rpcErr)
-		return
-	}
-
-	respPayload := struct {
-		Ret0 *Item `json:"item"`
-	}{ret0}
-	respBody, err := json.Marshal(respPayload)
-	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(respBody)
-}
-
-func (s *testApiRestService) servePatchItemJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "PatchItem")
-
-	reqBody, err := io.ReadAll(r.Body)
-	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
-		return
-	}
-	defer r.Body.Close()
-
-	reqPayload := struct {
-		Arg0 uint64  `json:"id"`
-		Arg1 *string `json:"name"`
-	}{}
-	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
-		return
-	}
-
-	// Call service method implementation.
-	ret0, err := s.TestApiRestServer.PatchItem(ctx, reqPayload.Arg0, reqPayload.Arg1)
-	if err != nil {
-		var rpcErr WebRPCError
-		if !errors.As(err, &rpcErr) {
-			rpcErr = ErrWebrpcEndpoint.WithCause(err)
-		}
-		s.sendErrorJSON(w, r, rpcErr)
-		return
-	}
-
-	respPayload := struct {
-		Ret0 *Item `json:"item"`
-	}{ret0}
-	respBody, err := json.Marshal(respPayload)
-	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(respBody)
-}
-
-func (s *testApiRestService) serveDeleteItemJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "DeleteItem")
-
-	reqBody, err := io.ReadAll(r.Body)
-	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
-		return
-	}
-	defer r.Body.Close()
-
-	reqPayload := struct {
-		Arg0 uint64 `json:"id"`
-	}{}
-	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
-		return
-	}
-
-	// Call service method implementation.
-	err = s.TestApiRestServer.DeleteItem(ctx, reqPayload.Arg0)
-	if err != nil {
-		var rpcErr WebRPCError
-		if !errors.As(err, &rpcErr) {
-			rpcErr = ErrWebrpcEndpoint.WithCause(err)
-		}
-		s.sendErrorJSON(w, r, rpcErr)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("{}"))
-}
-
-func (s *testApiRestService) serveQueryItemsJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "QueryItems")
-
-	reqBody, err := io.ReadAll(r.Body)
-	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
-		return
-	}
-	defer r.Body.Close()
-
-	reqPayload := struct {
-		Arg0 string `json:"q"`
-	}{}
-	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
-		return
-	}
-
-	// Call service method implementation.
-	ret0, err := s.TestApiRestServer.QueryItems(ctx, reqPayload.Arg0)
-	if err != nil {
-		var rpcErr WebRPCError
-		if !errors.As(err, &rpcErr) {
-			rpcErr = ErrWebrpcEndpoint.WithCause(err)
-		}
-		s.sendErrorJSON(w, r, rpcErr)
-		return
-	}
-
-	respPayload := struct {
-		Ret0 []*Item `json:"items"`
-	}{ret0}
-	respBody, err := json.Marshal(respPayload)
-	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(respBody)
-}
-
-func (s *testApiRestService) serveEchoParamsJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "EchoParams")
-
-	reqBody, err := io.ReadAll(r.Body)
-	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
-		return
-	}
-	defer r.Body.Close()
-
-	reqPayload := struct {
-		Arg0 string    `json:"str"`
-		Arg1 int64     `json:"num"`
-		Arg2 bool      `json:"flag"`
-		Arg3 float64   `json:"fl"`
-		Arg4 time.Time `json:"ts"`
-		Arg5 Status    `json:"status"`
-		Arg6 []string  `json:"tags"`
-		Arg7 *string   `json:"opt"`
-	}{}
-	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
-		return
-	}
-
-	// Call service method implementation.
-	ret0, err := s.TestApiRestServer.EchoParams(ctx, reqPayload.Arg0, reqPayload.Arg1, reqPayload.Arg2, reqPayload.Arg3, reqPayload.Arg4, reqPayload.Arg5, reqPayload.Arg6, reqPayload.Arg7)
-	if err != nil {
-		var rpcErr WebRPCError
-		if !errors.As(err, &rpcErr) {
-			rpcErr = ErrWebrpcEndpoint.WithCause(err)
-		}
-		s.sendErrorJSON(w, r, rpcErr)
-		return
-	}
-
-	respPayload := struct {
-		Ret0 string `json:"echo"`
-	}{ret0}
-	respBody, err := json.Marshal(respPayload)
-	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(respBody)
-}
-
-func (s *testApiRestService) serveGetChildJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetChild")
-
-	reqBody, err := io.ReadAll(r.Body)
-	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
-		return
-	}
-	defer r.Body.Close()
-
-	reqPayload := struct {
-		Arg0 uint64 `json:"id"`
-		Arg1 uint64 `json:"childId"`
-	}{}
-	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
-		return
-	}
-
-	// Call service method implementation.
-	ret0, err := s.TestApiRestServer.GetChild(ctx, reqPayload.Arg0, reqPayload.Arg1)
-	if err != nil {
-		var rpcErr WebRPCError
-		if !errors.As(err, &rpcErr) {
-			rpcErr = ErrWebrpcEndpoint.WithCause(err)
-		}
-		s.sendErrorJSON(w, r, rpcErr)
-		return
-	}
-
-	respPayload := struct {
-		Ret0 string `json:"path"`
-	}{ret0}
-	respBody, err := json.Marshal(respPayload)
-	if err != nil {
-		s.sendErrorJSON(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(respBody)
-}
-
-func (s *testApiRestService) serveResetItemsJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "ResetItems")
-
-	// Call service method implementation.
-	err := s.TestApiRestServer.ResetItems(ctx)
-	if err != nil {
-		var rpcErr WebRPCError
-		if !errors.As(err, &rpcErr) {
-			rpcErr = ErrWebrpcEndpoint.WithCause(err)
-		}
-		s.sendErrorJSON(w, r, rpcErr)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("{}"))
 }
 
 func (s *testApiRestService) serveRpcMethodJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -1388,6 +1203,69 @@ func (s *testApiRestService) serveRpcMethodJSON(ctx context.Context, w http.Resp
 	w.Write(respBody)
 }
 
+type testApiRestServiceUpdateItemArgs struct {
+	Arg0 uint64 `json:"id"`
+	Arg1 string `json:"name"`
+}
+
+type testApiRestServiceUpdateItemResult struct {
+	Ret0 *Item `json:"item"`
+}
+
+type testApiRestServicePatchItemArgs struct {
+	Arg0 uint64  `json:"id"`
+	Arg1 *string `json:"name"`
+}
+
+type testApiRestServicePatchItemResult struct {
+	Ret0 *Item `json:"item"`
+}
+
+type testApiRestServiceDeleteItemArgs struct {
+	Arg0 uint64 `json:"id"`
+}
+
+type testApiRestServiceDeleteItemResult struct {
+}
+
+type testApiRestServiceQueryItemsArgs struct {
+	Arg0 string `json:"q"`
+}
+
+type testApiRestServiceQueryItemsResult struct {
+	Ret0 []*Item `json:"items"`
+}
+
+type testApiRestServiceEchoParamsArgs struct {
+	Arg0 string    `json:"str"`
+	Arg1 int64     `json:"num"`
+	Arg2 bool      `json:"flag"`
+	Arg3 float64   `json:"fl"`
+	Arg4 time.Time `json:"ts"`
+	Arg5 Status    `json:"status"`
+	Arg6 []string  `json:"tags"`
+	Arg7 *string   `json:"opt"`
+}
+
+type testApiRestServiceEchoParamsResult struct {
+	Ret0 string `json:"echo"`
+}
+
+type testApiRestServiceGetChildArgs struct {
+	Arg0 uint64 `json:"id"`
+	Arg1 uint64 `json:"childId"`
+}
+
+type testApiRestServiceGetChildResult struct {
+	Ret0 string `json:"path"`
+}
+
+type testApiRestServiceResetItemsArgs struct {
+}
+
+type testApiRestServiceResetItemsResult struct {
+}
+
 func (s *testApiRestService) sendErrorJSON(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError) {
 	if s.OnError != nil {
 		s.OnError(r, &rpcErr)
@@ -1430,47 +1308,6 @@ func RespondWithError(w http.ResponseWriter, err error) {
 
 	respBody, _ := json.Marshal(rpcErr)
 	w.Write(respBody)
-}
-
-type sendErrorFunc func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
-
-func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O, error), sendError sendErrorFunc) func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
-
-		reqBody, err := io.ReadAll(r.Body)
-		if err != nil {
-			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
-			return
-		}
-		defer r.Body.Close()
-
-		var reqPayload I
-		if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
-			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
-			return
-		}
-
-		respPayload, err := fn(ctx, reqPayload)
-		if err != nil {
-			var rpcErr WebRPCError
-			if !errors.As(err, &rpcErr) {
-				rpcErr = ErrWebrpcEndpoint.WithCause(err)
-			}
-			sendError(w, r, rpcErr)
-			return
-		}
-
-		respBody, err := json.Marshal(respPayload)
-		if err != nil {
-			sendError(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(respBody)
-	}
 }
 
 type method struct {
@@ -1751,146 +1588,241 @@ type webrpcRawJSON []byte
 func (r webrpcRawJSON) MarshalJSON() ([]byte, error)  { return r, nil }
 func (r *webrpcRawJSON) UnmarshalJSON(b []byte) error { *r = append((*r)[:0], b...); return nil }
 
-func restHasBody(method string) bool { return method == "POST" || method == "PUT" || method == "PATCH" }
-
-// restRoute serves a REST route pattern as the webrpc method at rpcPath. Params
-// bind path and query params to request fields, in RIDL syntax: "tags?: []string".
-type restRoute struct {
-	pattern string
-	rpcPath string
-	params  []string
+func restHasBody(method string) bool {
+	return method == "POST" || method == "PUT" || method == "PATCH" || method == "QUERY"
 }
 
-// newRestMux serves each route as its webrpc method: POST rpcPath with the
-// path and query params merged into the JSON body. A routed method answers
-// only on its route, so its rpcPath is not found.
-func newRestMux(serveRPC http.HandlerFunc, sendError func(http.ResponseWriter, *http.Request, WebRPCError), routes []restRoute) *http.ServeMux {
-	mux := http.NewServeMux()
-	for _, route := range routes {
-		mux.HandleFunc(route.rpcPath, func(w http.ResponseWriter, r *http.Request) {
-			sendError(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
-		})
-		mux.HandleFunc(route.pattern, func(w http.ResponseWriter, r *http.Request) {
-			body, err := restRequestBody(r, route.params)
+// restParams holds the route params of one REST request. The query string is parsed on first use.
+type restParams struct {
+	r     *http.Request
+	query map[string][]string
+}
+
+func (p *restParams) values() map[string][]string {
+	if p.query == nil && p.r.URL.RawQuery != "" {
+		p.query = p.r.URL.Query()
+	}
+	return p.query
+}
+
+// restHandler serves one REST route. It decodes the JSON body (body verbs), binds
+// path params and then query params onto the request, and calls fn.
+func restHandler[I, O any](method string, hasBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Pattern is set on the request that ServeMux matched, so store that request.
+		ctx := context.WithValue(r.Context(), HTTPRequestCtxKey, r)
+		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
+		r = r.WithContext(ctx)
+
+		if hasBody {
+			// Requiring JSON forces a CORS preflight, so cross-site form posts can't reach handlers.
+			contentType, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";")
+			if !strings.EqualFold(strings.TrimSpace(contentType), "application/json") {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type")))
+				return
+			}
+		}
+
+		if onRequest != nil && *onRequest != nil {
+			if err := (*onRequest)(w, r); err != nil {
+				var rpcErr WebRPCError
+				if !errors.As(err, &rpcErr) {
+					rpcErr = ErrWebrpcEndpoint.WithCause(err)
+				}
+				sendError(w, r, rpcErr)
+				return
+			}
+		}
+
+		var req I
+		if hasBody {
+			body, err := io.ReadAll(r.Body)
 			if err != nil {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+				return
+			}
+			// A "null" or empty body leaves the struct unchanged.
+			if len(body) > 0 {
+				if err := json.Unmarshal(body, &req); err != nil {
+					sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
+					return
+				}
+			}
+		}
+
+		if bind != nil {
+			if err := bind(&restParams{r: r}, &req); err != nil {
 				sendError(w, r, ErrWebrpcBadRequest.WithCause(err))
 				return
 			}
+		}
 
-			rpcReq := r.Clone(r.Context())
-			rpcReq.Method = "POST"
-			rpcReq.URL.Path, rpcReq.URL.RawPath = route.rpcPath, ""
-			rpcReq.Header.Set("Content-Type", "application/json")
-			rpcReq.Body = io.NopCloser(bytes.NewReader(body))
-			rpcReq.ContentLength = int64(len(body))
-			serveRPC(w, rpcReq)
-		})
+		out, err := fn(ctx, req)
+		if err != nil {
+			var rpcErr WebRPCError
+			if !errors.As(err, &rpcErr) {
+				rpcErr = ErrWebrpcEndpoint.WithCause(err)
+			}
+			sendError(w, r, rpcErr)
+			return
+		}
+
+		respBody, err := json.Marshal(out)
+		if err != nil {
+			sendError(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
+			return
+		}
+
+		w.Header()["Content-Type"] = restJSONContentType
+		w.WriteHeader(http.StatusOK)
+		w.Write(respBody)
 	}
-	return mux
 }
 
-// serveRest serves REST routes registered on mux and everything else with serveRPC.
-func serveRest(mux *http.ServeMux, w http.ResponseWriter, r *http.Request, serveRPC http.HandlerFunc, sendError func(http.ResponseWriter, *http.Request, WebRPCError)) {
+// restJSONContentType is shared by all responses, so it must never be mutated.
+var restJSONContentType = []string{"application/json"}
+
+// serveRest serves the REST routes of mux. Requests it does not match get a webrpc error.
+func serveRest(mux *http.ServeMux, w http.ResponseWriter, r *http.Request, sendError func(http.ResponseWriter, *http.Request, WebRPCError)) {
+	// ServeMux redirects these paths instead of matching them.
+	if strings.Contains(r.URL.Path, "//") || strings.Contains(r.URL.Path, "/./") || strings.Contains(r.URL.Path, "/../") || strings.HasSuffix(r.URL.Path, "/.") || strings.HasSuffix(r.URL.Path, "/..") {
+		sendError(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
+		return
+	}
 	if _, pattern := mux.Handler(r); pattern != "" {
 		mux.ServeHTTP(w, r)
 		return
 	}
 
 	var allowed []string
-	probe := r.WithContext(r.Context())
+	probe := *r
 	for _, method := range []string{"GET", "POST", "PUT", "PATCH", "DELETE", "QUERY"} {
 		probe.Method = method
-		if _, pattern := mux.Handler(probe); pattern != "" {
+		if _, pattern := mux.Handler(&probe); pattern != "" {
 			allowed = append(allowed, method)
+			if method == "GET" {
+				allowed = append(allowed, "HEAD") // ServeMux also matches HEAD on GET patterns.
+			}
 		}
 	}
 	if len(allowed) == 0 {
-		serveRPC(w, r)
+		sendError(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
 		return
 	}
 	w.Header().Set("Allow", strings.Join(allowed, ", ")) // RFC 9110.
 	sendError(w, r, ErrWebrpcBadMethod.WithCausef("unsupported HTTP method %v (allowed: %v)", r.Method, strings.Join(allowed, ", ")))
 }
 
-// restRequestBody builds the webrpc JSON request: body, then path params, then query params.
-func restRequestBody(r *http.Request, params []string) ([]byte, error) {
-	fields := map[string]webrpcRawJSON{}
-	if restHasBody(r.Method) {
-		// Requiring JSON forces a CORS preflight, so cross-site form posts can't reach handlers.
-		contentType, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";")
-		if !strings.EqualFold(strings.TrimSpace(contentType), "application/json") {
-			return nil, fmt.Errorf("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type"))
-		}
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read request data: %w", err)
-		}
-		if len(body) > 0 {
-			if err := json.Unmarshal(body, &fields); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal request data: %w", err)
-			}
-		}
+// restSet parses one raw param value into dst.
+func restSet[T any](kind, name, raw string, dst *T, parse func(string) (T, error)) error {
+	v, err := parse(raw)
+	if err != nil {
+		return fmt.Errorf("invalid %s param '%s': %q is not a valid %T", kind, name, raw, *new(T))
 	}
-
-	query := r.URL.Query()
-	for _, param := range params {
-		name, typ, _ := strings.Cut(param, ": ")
-		name, optional := strings.CutSuffix(name, "?")
-		typ, repeated := strings.CutPrefix(typ, "[]")
-
-		kind, values := "query", query[name]
-		if strings.Contains(r.Pattern, "{"+name+"}") {
-			kind, values = "path", []string{r.PathValue(name)}
-		}
-		if len(values) == 0 {
-			if !optional && !repeated {
-				return nil, fmt.Errorf("missing %s param '%s'", kind, name)
-			}
-			continue
-		}
-
-		list := make([]webrpcRawJSON, len(values))
-		for i, v := range values {
-			raw, err := restParamJSON(v, typ)
-			if err != nil {
-				return nil, fmt.Errorf("invalid %s param '%s': %q is not a valid %s", kind, name, v, typ)
-			}
-			list[i] = raw
-		}
-		if !repeated {
-			fields[name] = list[0]
-			continue
-		}
-		raw, err := json.Marshal(list)
-		if err != nil {
-			return nil, err
-		}
-		fields[name] = raw
-	}
-	return json.Marshal(fields)
+	*dst = v
+	return nil
 }
 
-// restParamJSON converts a path/query param string into the field's JSON value.
-func restParamJSON(val, typ string) ([]byte, error) {
-	switch {
-	case typ == "bool":
-		v, err := strconv.ParseBool(val)
-		return strconv.AppendBool(nil, v), err
-	case strings.HasPrefix(typ, "int"):
-		v, err := strconv.ParseInt(val, 10, 64)
-		return strconv.AppendInt(nil, v, 10), err
-	case strings.HasPrefix(typ, "uint"):
-		v, err := strconv.ParseUint(val, 10, 64)
-		return strconv.AppendUint(nil, v, 10), err
-	case strings.HasPrefix(typ, "float"):
-		v, err := strconv.ParseFloat(val, 64)
-		if err != nil {
-			return nil, err
-		}
-		return json.Marshal(v)
-	default:
-		return json.Marshal(val)
+func restPath[T any](p *restParams, name string, dst *T, parse func(string) (T, error)) error {
+	return restSet("path", name, p.r.PathValue(name), dst, parse)
+}
+
+// restQuery binds a required scalar query param.
+func restQuery[T any](p *restParams, name string, dst *T, parse func(string) (T, error)) error {
+	vals := p.values()[name]
+	if len(vals) == 0 {
+		return fmt.Errorf("missing query param '%s'", name)
 	}
+	return restSet("query", name, vals[0], dst, parse)
+}
+
+// restQueryOpt binds an optional scalar query param to a pointer field.
+func restQueryOpt[T any](p *restParams, name string, dst **T, parse func(string) (T, error)) error {
+	vals := p.values()[name]
+	if len(vals) == 0 {
+		return nil
+	}
+	var v T
+	if err := restSet("query", name, vals[0], &v, parse); err != nil {
+		return err
+	}
+	*dst = &v
+	return nil
+}
+
+// restQueryMaybe binds an optional query param to a field that is not a pointer.
+func restQueryMaybe[T any](p *restParams, name string, dst *T, parse func(string) (T, error)) error {
+	vals := p.values()[name]
+	if len(vals) == 0 {
+		return nil
+	}
+	return restSet("query", name, vals[0], dst, parse)
+}
+
+// restQueryList binds a []T query param, sent as repeated keys. A required list
+// with no keys binds to an empty, non-nil slice.
+func restQueryList[T any](p *restParams, name string, dst *[]T, parse func(string) (T, error), optional bool) error {
+	vals := p.values()[name]
+	if len(vals) == 0 {
+		if !optional {
+			*dst = []T{}
+		}
+		return nil
+	}
+	list := make([]T, len(vals))
+	for i, raw := range vals {
+		if err := restSet("query", name, raw, &list[i], parse); err != nil {
+			return err
+		}
+	}
+	*dst = list
+	return nil
+}
+
+func restString[T ~string](s string) (T, error) { return T(s), nil }
+
+func restBool[T ~bool](s string) (T, error) {
+	v, err := strconv.ParseBool(s)
+	return T(v), err
+}
+
+// restInt and restUint reject values that overflow T.
+func restInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string) (T, error) {
+	v, err := strconv.ParseInt(s, 10, 64)
+	if err == nil && int64(T(v)) != v {
+		err = strconv.ErrRange
+	}
+	return T(v), err
+}
+
+func restUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string) (T, error) {
+	v, err := strconv.ParseUint(s, 10, 64)
+	if err == nil && uint64(T(v)) != v {
+		err = strconv.ErrRange
+	}
+	return T(v), err
+}
+
+func restFloat[T ~float32 | ~float64](s string) (T, error) {
+	v, err := strconv.ParseFloat(s, 64)
+	return T(v), err
+}
+
+// restText parses enums and timestamps with their encoding.TextUnmarshaler.
+func restText[T any, PT interface {
+	*T
+	encoding.TextUnmarshaler
+}](s string) (T, error) {
+	var v T
+	err := PT(&v).UnmarshalText([]byte(s))
+	return v, err
+}
+
+// restJSON parses fields with a go.field.type override.
+func restJSON[T any](s string) (T, error) {
+	var v T
+	err := json.Unmarshal([]byte(s), &v)
+	return v, err
 }
 
 //

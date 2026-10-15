@@ -10,7 +10,7 @@
 {{- $hasSuccinct := false -}}
 {{- range $_, $service := $services -}}
 {{- range $_, $method := $service.Methods -}}
-{{- if and $method.Succinct (not $method.StreamOutput) -}}
+{{- if and $method.Succinct (not $method.StreamOutput) (not (MethodHasRoute $method)) -}}
 {{- $hasSuccinct = true -}}
 {{- end -}}
 {{- end -}}
@@ -76,27 +76,90 @@ func New{{firstLetterToUpper $service.Name}}Server(svc {{$typePrefix}}{{.Name}}S
 {{- end }}
 	}
 {{- if $serviceHasRoutes }}
-	server.restMux = newRestMux(server.serveRPC, server.sendErrorJSON, []restRoute{
+	server.restMux = http.NewServeMux()
 	{{- range $_, $method := $service.Methods}}
 	{{- if MethodHasRoute $method}}
-		{"{{MethodRouteVerb $method}} {{MethodRoutePath $method}}", "{{$basepath}}{{$name}}/{{$method.Name}}", {{with MethodRouteParams $method}}[]string{ {{- range $i, $p := .}}{{if $i}}, {{end}}"{{$p.Name}}{{if $p.Optional}}?{{end}}: {{if $p.Repeated}}[]{{end}}{{$p.TypeExpr}}"{{end -}} }{{else}}nil{{end}}},
+	{{- $routePath := MethodRoutePath $method}}
+	{{- $params := MethodRouteParams $method}}
+	{{- $argsType := printf "%s%sArgs" $serviceName (firstLetterToUpper $method.Name)}}
+	{{- $resType := printf "%s%sResult" $serviceName (firstLetterToUpper $method.Name)}}
+	{{- $reqType := $argsType}}
+	{{- if $method.Succinct}}{{$reqType = printf "%s%s" $typePrefix (index $method.Inputs 0).Type}}{{end}}
+	server.restMux.Handle("{{MethodRouteVerb $method}} {{$routePath}}", restHandler("{{$method.Name}}", {{MethodRouteHasBody $method}},
+	{{- if $method.Succinct}}
+		server.{{$name}}Server.{{$method.Name}},
+	{{- else}}
+		func(ctx context.Context, req {{$argsType}}) ({{$resType}}, error) {
+			{{range $i, $_ := $method.Outputs}}ret{{$i}}, {{end}}err := server.{{$name}}Server.{{$method.Name}}(ctx{{range $i, $_ := $method.Inputs}}, req.Arg{{$i}}{{end}})
+			return {{$resType}}{ {{- range $i, $_ := $method.Outputs}}{{if $i}}, {{end}}Ret{{$i}}: ret{{$i}}{{end}} }, err
+		},
+	{{- end}}
+	{{- if $params}}
+		func(p *restParams, req *{{$reqType}}) error {
+		{{- range $_, $param := $params}}
+			{{- $expr := ""}}
+			{{- $matchCustom := ""}}
+			{{- if $method.Succinct}}
+				{{- range $_, $f := (index $method.Inputs 0).Type.Struct.Type.Fields}}
+					{{- $jn := $f.Name}}
+					{{- $gn := firstLetterToUpper $f.Name}}
+					{{- $custom := ""}}
+					{{- range $_, $meta := $f.Meta}}
+						{{- if exists $meta "json"}}{{$jn = get $meta "json"}}{{end}}
+						{{- if exists $meta "go.tag.json"}}{{$jn = get $meta "go.tag.json"}}{{end}}
+						{{- if exists $meta "go.field.name"}}{{$gn = get $meta "go.field.name"}}{{end}}
+						{{- if exists $meta "go.field.type"}}{{$custom = get $meta "go.field.type"}}{{end}}
+					{{- end}}
+					{{- if eq $jn $param.Name}}{{$expr = $gn}}{{$matchCustom = $custom}}{{end}}
+				{{- end}}
+			{{- else}}
+				{{- range $i, $in := $method.Inputs}}
+					{{- if eq $in.Name $param.Name}}
+						{{- $expr = printf "Arg%d" $i}}
+						{{- range $_, $meta := $in.Meta}}{{if exists $meta "go.field.type"}}{{$matchCustom = get $meta "go.field.type"}}{{end}}{{end}}
+					{{- end}}
+				{{- end}}
+			{{- end}}
+			{{- $isPath := ne (replaceAll $routePath (printf "{%s}" $param.Name) "") $routePath}}
+			{{- $parser := "restText"}}
+			{{- if $matchCustom}}{{$parser = "restJSON"}}{{else if eq $param.TypeExpr "string"}}{{$parser = "restString"}}{{else if eq $param.TypeExpr "bool"}}{{$parser = "restBool"}}{{else if hasPrefix $param.TypeExpr "uint"}}{{$parser = "restUint"}}{{else if hasPrefix $param.TypeExpr "int"}}{{$parser = "restInt"}}{{else if hasPrefix $param.TypeExpr "float"}}{{$parser = "restFloat"}}{{end}}
+			{{- if $isPath}}
+			if err := restPath(p, "{{$param.Name}}", &req.{{$expr}}, {{$parser}}); err != nil {
+				return err
+			}
+			{{- else if $param.Repeated}}
+			if err := restQueryList(p, "{{$param.Name}}", &req.{{$expr}}, {{$parser}}, {{$param.Optional}}); err != nil {
+				return err
+			}
+			{{- else if and $param.Optional $matchCustom}}
+			if err := restQueryMaybe(p, "{{$param.Name}}", &req.{{$expr}}, {{$parser}}); err != nil {
+				return err
+			}
+			{{- else if $param.Optional}}
+			if err := restQueryOpt(p, "{{$param.Name}}", &req.{{$expr}}, {{$parser}}); err != nil {
+				return err
+			}
+			{{- else}}
+			if err := restQuery(p, "{{$param.Name}}", &req.{{$expr}}, {{$parser}}); err != nil {
+				return err
+			}
+			{{- end}}
+		{{- end}}
+			return nil
+		},
+	{{- else}}
+		nil,
+	{{- end}}
+		server.sendErrorJSON, &server.OnRequest))
 	{{- end}}
 	{{- end}}
-	})
 {{- end }}
 	return server
 }
 
 func (s *{{$serviceName}}) Methods() []Method { return methodsFor(Service{{$service.Name}}, s) }
 
-{{- if $serviceHasRoutes }}
-
 func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	serveRest(s.restMux, w, r, s.serveRPC, s.sendErrorJSON)
-}
-{{- end }}
-
-func (s *{{$serviceName}}) {{if $serviceHasRoutes}}serveRPC{{else}}ServeHTTP{{end}}(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		// In case of a panic, serve a HTTP 500 error and then panic.
 		if rr := recover(); rr != nil {
@@ -120,6 +183,7 @@ func (s *{{$serviceName}}) {{if $serviceHasRoutes}}serveRPC{{else}}ServeHTTP{{en
 {{- end }}
 	switch r.URL.Path {
 	{{- range $_, $method := $service.Methods}}
+	{{- if not (MethodHasRoute $method)}}
 	case "{{$basepath}}{{$name}}/{{$method.Name}}":
 		{{- if MethodHasFileUpload $method }}
 		handler = s.serve{{$method.Name | firstLetterToUpper}}Multipart
@@ -129,11 +193,17 @@ func (s *{{$serviceName}}) {{if $serviceHasRoutes}}serveRPC{{else}}ServeHTTP{{en
 		{{- else }}
 		handler = s.serve{{$method.Name | firstLetterToUpper}}JSON{{if $method.StreamOutput}}Stream{{end}}
 		{{- end }}
+		{{- end}}
 	{{- end}}
 	default:
+		{{- if $serviceHasRoutes }}
+		serveRest(s.restMux, w, r, s.sendErrorJSON)
+		return
+		{{- else }}
 		err := ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path)
 		s.sendErrorJSON(w, r, err)
 		return
+		{{- end }}
 	}
 
 	if r.Method != "POST" {
@@ -177,6 +247,7 @@ func (s *{{$serviceName}}) {{if $serviceHasRoutes}}serveRPC{{else}}ServeHTTP{{en
 	}
 }
 {{- range $_, $method := $service.Methods}}
+{{- if not (MethodHasRoute $method)}}
 {{- if eq $method.StreamOutput false }}
 {{- if MethodHasFileUpload $method }}
 
@@ -448,6 +519,24 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSONStream(ct
 		streamWriter.mu.Unlock()
 		return
 	}
+}
+{{- end}}
+{{- end}}
+{{- end}}
+
+{{- range $_, $method := $service.Methods}}
+{{- if and (MethodHasRoute $method) (not $method.Succinct)}}
+
+type {{$serviceName}}{{firstLetterToUpper $method.Name}}Args struct {
+{{- range $i, $input := $method.Inputs}}
+	Arg{{$i}} {{template "field" dict "Name" $input.Name "Type" $input.Type "Optional" $input.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $input.Meta "JsonTags" true}}
+{{- end}}
+}
+
+type {{$serviceName}}{{firstLetterToUpper $method.Name}}Result struct {
+{{- range $i, $output := $method.Outputs}}
+	Ret{{$i}} {{template "field" dict "Name" $output.Name "Type" $output.Type "Optional" $output.Optional "TypeMap" $typeMap "KeywordMap" $keywordMap "TypePrefix" $typePrefix "TypeMeta" $output.Meta "JsonTags" true}}
+{{- end}}
 }
 {{- end}}
 {{- end}}

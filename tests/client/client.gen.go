@@ -867,7 +867,9 @@ type webrpcRawJSON []byte
 func (r webrpcRawJSON) MarshalJSON() ([]byte, error)  { return r, nil }
 func (r *webrpcRawJSON) UnmarshalJSON(b []byte) error { *r = append((*r)[:0], b...); return nil }
 
-func restHasBody(method string) bool { return method == "POST" || method == "PUT" || method == "PATCH" }
+func restHasBody(method string) bool {
+	return method == "POST" || method == "PUT" || method == "PATCH" || method == "QUERY"
+}
 
 //
 // File helpers
