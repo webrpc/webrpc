@@ -9,18 +9,24 @@
 // the QUERY verb, static-over-param route precedence, the coexisting plain
 // RPC method, and the error envelope (405 with Allow, 400 coercion, 404).
 //
-// Go client <-> Go server is covered by TestRESTInteroperability in tests/.
+// The matrix also runs the TypeScript client against the Go REST server
+// (webrpc-test -server -rest) and the Go client (webrpc-test -client -rest)
+// against this TypeScript server. Go <-> Go is TestRESTInteroperability in tests/.
 //
 // Usage: make test (or: npm install && npm test)
 import assert from 'node:assert/strict'
+import { ChildProcess, spawn } from 'node:child_process'
 import http from 'node:http'
 import { once } from 'node:events'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { TestApiRest, Status, WebrpcBadRequestError } from './restClient.gen'
-import { TestApiRestServer, Item, serveTestApiRestRpc } from './restServer.gen'
+import { TestApiRestServer, Item, UnexpectedValueError, serveTestApiRestRpc } from './restServer.gen'
 import { ParamRest } from './paramRestClient.gen'
 import { ParamRestServer, serveParamRestRpc } from './paramRestServer.gen'
+
+// Go REST server and client, built by `make build-test` and found on PATH.
+const GO_REST_SERVER_PORT = 14245
 
 // createRestService is a TypeScript implementation of the TestApiRest
 // service, mirroring the Go implementation in tests/server/rest.go.
@@ -31,7 +37,7 @@ const createRestService = (): TestApiRestServer => {
     async getItem(_ctx, { id, details }) {
       const item = items.get(id)
       if (!item) {
-        throw new Error(`no item ${id}`)
+        throw new UnexpectedValueError({ cause: `no item ${id}` })
       }
       return { item: { ...item, name: details ? `${item.name} (details)` : item.name } }
     },
@@ -49,7 +55,7 @@ const createRestService = (): TestApiRestServer => {
     async updateItem(_ctx, { id, name }) {
       const item = items.get(id)
       if (!item) {
-        throw new Error(`no item ${id}`)
+        throw new UnexpectedValueError({ cause: `no item ${id}` })
       }
       item.name = name
       return { item }
@@ -58,7 +64,7 @@ const createRestService = (): TestApiRestServer => {
     async patchItem(_ctx, { id, name }) {
       const item = items.get(id)
       if (!item) {
-        throw new Error(`no item ${id}`)
+        throw new UnexpectedValueError({ cause: `no item ${id}` })
       }
       if (name !== undefined) {
         item.name = name
@@ -68,7 +74,7 @@ const createRestService = (): TestApiRestServer => {
 
     async deleteItem(_ctx, { id }) {
       if (!items.delete(id)) {
-        throw new Error(`no item ${id}`)
+        throw new UnexpectedValueError({ cause: `no item ${id}` })
       }
       return {}
     },
@@ -94,7 +100,7 @@ const createRestService = (): TestApiRestServer => {
     async rpcMethod(_ctx, { id }) {
       const item = items.get(id)
       if (!item) {
-        throw new Error(`no item ${id}`)
+        throw new UnexpectedValueError({ cause: `no item ${id}` })
       }
       return { item }
     },
@@ -170,7 +176,11 @@ const createHttpServer = (handle: (request: Request) => Promise<Response | null>
 const echoQuery = (overrides: { [key: string]: string } = {}): string =>
   new URLSearchParams({ str: 's', num: '1', flag: 'true', fl: '1.5', ts: '2026-09-03T12:30:15Z', status: 'NOT_AVAILABLE', tags: 'x', ...overrides }).toString()
 
-const restSuite = async (addr: string) => {
+// restSuite runs the REST suite against a server. The server is the TypeScript
+// one, or the Go one (-rest). Both must agree on status codes and error names.
+// Where they differ by design, the check is per server: Go's 64-bit integers
+// cover the full range, TypeScript's are limited to safe integers.
+const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   const api = new TestApiRest(addr, fetch)
 
   // POST /rpc/items — request fields in the JSON body.
@@ -253,10 +263,15 @@ const restSuite = async (addr: string) => {
   assert.equal(encodedFixed.status, 200, 'a percent-encoded fixed segment must match')
   await encodedFixed.body?.cancel()
 
-  // Path and query values are range-checked like the Go server (uint64, uint32, int64).
+  // Path and query values are range-checked (uint64, uint32, int64).
   const overflow = await fetch(`${addr}/rpc/items/18446744073709551615`)
   assert.equal(overflow.status, 400)
-  assert.match(await overflow.text(), /invalid path param 'id'/)
+  if (server === 'typescript') {
+    assert.match(await overflow.text(), /invalid path param 'id'/)
+  } else {
+    // Go accepts any uint64; the id is then not found, which is also a 400.
+    await overflow.body?.cancel()
+  }
   const limitMax = await fetch(`${addr}/rpc/items?tags=a&limit=4294967295`)
   assert.equal(limitMax.status, 200, 'uint32 max must be accepted')
   await limitMax.body?.cancel()
@@ -267,22 +282,32 @@ const restSuite = async (addr: string) => {
   assert.equal(numMax.status, 200, 'the largest safe int64 must be accepted')
   assert.match(String((await numMax.json()).echo), /num=9007199254740991 /)
   const numUnsafe = await fetch(`${addr}/rpc/items/echo/params?${echoQuery({ num: '9007199254740993' })}`)
-  assert.equal(numUnsafe.status, 400)
-  assert.match(await numUnsafe.text(), /invalid query param 'num'/)
+  if (server === 'typescript') {
+    assert.equal(numUnsafe.status, 400)
+    assert.match(await numUnsafe.text(), /invalid query param 'num'/)
+  } else {
+    assert.equal(numUnsafe.status, 200, 'Go int64 takes values beyond the safe integer range')
+    await numUnsafe.body?.cancel()
+  }
 
   // A missing required list binds as an empty list, not an error.
   const noTags = await fetch(`${addr}/rpc/items?limit=1`)
   assert.equal(noTags.status, 200, 'a missing required list must not fail')
   assert.equal((await noTags.json()).items[0]?.name, 'q=false tags=[] limit=1')
 
-  // A JSON body that is not an object is a 400, not a crash.
-  const nullBody = await fetch(`${addr}/rpc/items/7`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: 'null',
-  })
-  assert.equal(nullBody.status, 400, 'a null JSON body must return 400')
-  assert.match(await nullBody.text(), /must be a JSON object/)
+  // A JSON null body is read as {}, like Go; other non-object bodies are a 400.
+  const patchWith = (body: string) =>
+    fetch(`${addr}/rpc/items/7`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body })
+  const nullPatch = await patchWith('null')
+  const emptyPatch = await patchWith('{}')
+  assert.equal(nullPatch.status, 200, 'a null JSON body must succeed')
+  assert.equal(emptyPatch.status, 200, 'an empty JSON object must succeed')
+  assert.deepEqual(await nullPatch.json(), await emptyPatch.json(), 'a null body must behave like {}')
+  for (const body of ['[]', '5', '"x"']) {
+    const res = await patchWith(body)
+    assert.equal(res.status, 400, `a ${body} JSON body must return 400`)
+    assert.equal((await res.json()).error, 'WebrpcBadRequest', `a ${body} JSON body must be WebrpcBadRequest`)
+  }
 
   // Allow lists HEAD wherever GET is allowed.
   const allowHead = await fetch(`${addr}/rpc/items/7`, {
@@ -434,6 +459,47 @@ const paramSuite = async (addr: string) => {
   assert.equal(made.echo, 'm')
 }
 
+const waitForServer = async (addr: string, timeoutMs = 60_000) => {
+  const deadline = Date.now() + timeoutMs
+  for (;;) {
+    try {
+      await fetch(addr, { method: 'HEAD' })
+      return
+    } catch {
+      if (Date.now() > deadline) {
+        throw new Error(`server at ${addr} did not come up within ${timeoutMs}ms`)
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
+  }
+}
+
+// runWebrpcTest runs the Go webrpc-test binary and fails on a non-zero exit.
+const runWebrpcTest = async (args: string[]) => {
+  const child = spawn('webrpc-test', args, { stdio: 'inherit' })
+  const [code] = await once(child, 'exit')
+  if (code !== 0) {
+    throw new Error(`webrpc-test ${args.join(' ')} exited with ${code}`)
+  }
+}
+
+// withGoRestServer runs the Go REST test server for the duration of fn.
+const withGoRestServer = async (fn: (url: string) => Promise<void>) => {
+  const goServer: ChildProcess = spawn('webrpc-test', ['-server', '-rest', `-port=${GO_REST_SERVER_PORT}`, '-timeout=10m'], {
+    stdio: ['ignore', 'inherit', 'inherit'],
+  })
+  try {
+    const url = `http://127.0.0.1:${GO_REST_SERVER_PORT}`
+    await waitForServer(url)
+    await fn(url)
+  } finally {
+    if (goServer.exitCode === null) {
+      goServer.kill('SIGKILL')
+      await once(goServer, 'exit')
+    }
+  }
+}
+
 const main = async () => {
   const restService = createRestService()
   const paramService = createParamService()
@@ -447,10 +513,19 @@ const main = async () => {
 
   try {
     console.log('==> TypeScript client -> TypeScript server (REST routes)')
-    await restSuite(`http://127.0.0.1:${tsAddr.port}`)
+    await restSuite(`http://127.0.0.1:${tsAddr.port}`, 'typescript')
     console.log('    OK')
     console.log('==> TypeScript client -> TypeScript server (REST param parsing)')
     await paramSuite(`http://127.0.0.1:${paramAddr.port}`)
+    console.log('    OK')
+
+    console.log('==> TypeScript client -> Go server (REST routes)')
+    await withGoRestServer(async (goServerUrl) => restSuite(goServerUrl, 'go'))
+    console.log('    OK')
+
+    // The Go client runs its own REST suite against the TypeScript server.
+    console.log('==> Go client -> TypeScript server (REST routes)')
+    await runWebrpcTest(['-client', '-rest', '-skipNullOptional', `-url=http://127.0.0.1:${tsAddr.port}`])
     console.log('    OK')
   } finally {
     tsServer.close()

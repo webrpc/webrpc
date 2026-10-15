@@ -10,6 +10,9 @@ all:
 build:
 	make -C ../../ build
 
+build-test:
+	make -C ../../ build-test
+
 generate: build
 	webrpc-gen -schema=$(RIDL) -target=typescript -client -service=Example -out=./client.gen.ts
 	webrpc-gen -schema=$(RIDL) -target=typescript -server -service=Example -out=./server.gen.ts
@@ -22,6 +25,6 @@ generate: build
 
 # End-to-end interoperability tests of the file upload/download wire contract
 # between the Go and TypeScript/JavaScript generators.
-test:
-	npm install --no-audit --no-fund --no-package-lock
+test: build-test
+	npm install --no-audit --no-fund --no-package-lock --include=optional
 	npm test

@@ -138,7 +138,7 @@ The full route is `{basepath}{service.path}{method.path}`, here `GET /api/users/
 - An optional list missing from the query stays `undefined`.
 - Body verbs require `Content-Type: application/json`, even with an empty body.
 - Other content types get 400. This blocks cross-site `text/plain` posts, which skip CORS preflight.
-- A body of `null` returns 400.
+- A body of `null` is read as `{}`, as in Go. Other non-object bodies return 400.
 - `HEAD` is served by `GET` routes, without a body.
 - A 405 response sets `Allow`, and it lists `HEAD` next to `GET`.
 - A bad path param returns 400, e.g. `invalid path param 'id'`.

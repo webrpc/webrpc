@@ -25,13 +25,16 @@ var (
 	printJSON   = flags.Bool("printJSON", false, "print schema in JSON")
 
 	// webrpc-test -client -url=http://localhost:9988
-	clientFlags   = flag.NewFlagSet("webrpc-test -client", flag.ExitOnError)
-	clientUrlFlag = clientFlags.String("url", "http://localhost:9988", "run client against given server URL")
+	clientFlags                = flag.NewFlagSet("webrpc-test -client", flag.ExitOnError)
+	clientUrlFlag              = clientFlags.String("url", "http://localhost:9988", "run client against given server URL")
+	clientRestFlag             = clientFlags.Bool("rest", false, "run the REST routes suite (TestApiRest) instead")
+	clientSkipNullOptionalFlag = clientFlags.Bool("skipNullOptional", false, "REST suite: skip the explicit-null optional field case (known TS server difference)")
 
 	// webrpc-test -server -port=9988 -timeout=1m
 	serverFlags       = flag.NewFlagSet("webrpc-test -server", flag.ExitOnError)
 	serverPortFlag    = serverFlags.Int("port", 9988, "run server at given port")
 	serverTimeoutFlag = serverFlags.Duration("timeout", time.Minute, "exit after given timeout")
+	serverRestFlag    = serverFlags.Bool("rest", false, "serve the REST routes suite (TestApiRest) instead")
 
 	// webrpc-test -waitForServer -url=http://localhost:9988 -timeout=1m
 	waitFlags       = flag.NewFlagSet("webrpc-test -waitForServer", flag.ExitOnError)
@@ -62,7 +65,12 @@ func main() {
 			os.Exit(1)
 		}
 
-		if err := client.RunTests(context.Background(), *clientUrlFlag); err != nil {
+		run := func(ctx context.Context, url string) error { return client.RunTests(ctx, url) }
+		if *clientRestFlag {
+			opts := client.RESTOptions{SkipNullOptional: *clientSkipNullOptionalFlag}
+			run = func(ctx context.Context, url string) error { return client.RunRESTTestsWith(ctx, url, opts) }
+		}
+		if err := run(context.Background(), *clientUrlFlag); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -73,7 +81,11 @@ func main() {
 			os.Exit(1)
 		}
 
-		server, err := server.RunTestServer(fmt.Sprintf("0.0.0.0:%v", *serverPortFlag), *serverTimeoutFlag)
+		run := server.RunTestServer
+		if *serverRestFlag {
+			run = server.RunRESTTestServer
+		}
+		server, err := run(fmt.Sprintf("0.0.0.0:%v", *serverPortFlag), *serverTimeoutFlag)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)

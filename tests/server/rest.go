@@ -121,7 +121,7 @@ func (s *TestRESTServer) EchoParams(ctx context.Context, str string, num int64, 
 	if opt != nil {
 		optStr = *opt
 	}
-	return fmt.Sprintf("str=%s num=%d flag=%v fl=%v ts=%s status=%d tags=%v opt=%s",
+	return fmt.Sprintf("str=%s num=%d flag=%v fl=%v ts=%s status=%s tags=%v opt=%s",
 		str, num, flag, fl, ts.UTC().Format(time.RFC3339), status, tags, optStr), nil
 }
 

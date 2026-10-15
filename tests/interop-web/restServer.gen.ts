@@ -588,7 +588,11 @@ const webrpcJsonBody = (body: string): { [key: string]: any } => {
   } catch (err) {
     throw new WebrpcBadRequestError({ cause: `failed to unmarshal request data: ${err instanceof Error ? err.message : String(err)}` })
   }
-  if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+  // null is read as {}, like Go's encoding/json unmarshal into a struct.
+  if (data === null) {
+    return {}
+  }
+  if (typeof data !== 'object' || Array.isArray(data)) {
     throw new WebrpcBadRequestError({ cause: 'request data must be a JSON object' })
   }
   return data
