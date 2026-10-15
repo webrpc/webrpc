@@ -526,7 +526,7 @@ func (c *testApiRestClient) GetItem(ctx context.Context, getItemRequest GetItemR
 	}
 	u, err := ub.build(c.base, "/rpc/items/{id}")
 	if err == nil {
-		err = doRESTRequest(ctx, c.client, "GET", u, getItemRequest, &out)
+		err = doRESTRequest(ctx, c.client, "GET", u, false, getItemRequest, &out)
 	}
 	return out, err
 }
@@ -543,7 +543,7 @@ func (c *testApiRestClient) ListItems(ctx context.Context, listItemsRequest List
 	ub.addQuery("limit", restFormatUint(listItemsRequest.Limit))
 	u, err := ub.build(c.base, "/rpc/items")
 	if err == nil {
-		err = doRESTRequest(ctx, c.client, "GET", u, listItemsRequest, &out)
+		err = doRESTRequest(ctx, c.client, "GET", u, false, listItemsRequest, &out)
 	}
 	return out, err
 }
@@ -553,7 +553,7 @@ func (c *testApiRestClient) CreateItem(ctx context.Context, createItemRequest Cr
 	var ub restURL
 	u, err := ub.build(c.base, "/rpc/items")
 	if err == nil {
-		err = doRESTRequest(ctx, c.client, "POST", u, createItemRequest, &out)
+		err = doRESTRequest(ctx, c.client, "POST", u, true, createItemRequest, &out)
 	}
 	return out, err
 }
@@ -572,7 +572,7 @@ func (c *testApiRestClient) UpdateItem(ctx context.Context, id uint64, name stri
 	ub.setPath("id", restFormatUint(id))
 	u, err := ub.build(c.base, "/rpc/items/{id}")
 	if err == nil {
-		err = doRESTRequest(ctx, c.client, "PUT", u, in, &out)
+		err = doRESTRequest(ctx, c.client, "PUT", u, true, in, &out)
 	}
 
 	return out.Ret0, err
@@ -592,7 +592,7 @@ func (c *testApiRestClient) PatchItem(ctx context.Context, id uint64, name *stri
 	ub.setPath("id", restFormatUint(id))
 	u, err := ub.build(c.base, "/rpc/items/{id}")
 	if err == nil {
-		err = doRESTRequest(ctx, c.client, "PATCH", u, in, &out)
+		err = doRESTRequest(ctx, c.client, "PATCH", u, true, in, &out)
 	}
 
 	return out.Ret0, err
@@ -607,7 +607,7 @@ func (c *testApiRestClient) DeleteItem(ctx context.Context, id uint64) error {
 	ub.setPath("id", restFormatUint(id))
 	u, err := ub.build(c.base, "/rpc/items/{id}")
 	if err == nil {
-		err = doRESTRequest(ctx, c.client, "DELETE", u, in, nil)
+		err = doRESTRequest(ctx, c.client, "DELETE", u, false, in, nil)
 	}
 
 	return err
@@ -625,7 +625,7 @@ func (c *testApiRestClient) QueryItems(ctx context.Context, q string) ([]*Item, 
 	var ub restURL
 	u, err := ub.build(c.base, "/rpc/items/search")
 	if err == nil {
-		err = doRESTRequest(ctx, c.client, "QUERY", u, in, &out)
+		err = doRESTRequest(ctx, c.client, "QUERY", u, true, in, &out)
 	}
 
 	return out.Ret0, err
@@ -662,7 +662,7 @@ func (c *testApiRestClient) EchoParams(ctx context.Context, str string, num int6
 	}
 	u, err := ub.build(c.base, "/rpc/items/echo/params")
 	if err == nil {
-		err = doRESTRequest(ctx, c.client, "GET", u, in, &out)
+		err = doRESTRequest(ctx, c.client, "GET", u, false, in, &out)
 	}
 
 	return out.Ret0, err
@@ -683,7 +683,7 @@ func (c *testApiRestClient) GetChild(ctx context.Context, id uint64, childId uin
 	ub.setPath("childId", restFormatUint(childId))
 	u, err := ub.build(c.base, "/rpc/items/{id}/children/{childId}")
 	if err == nil {
-		err = doRESTRequest(ctx, c.client, "GET", u, in, &out)
+		err = doRESTRequest(ctx, c.client, "GET", u, false, in, &out)
 	}
 
 	return out.Ret0, err
@@ -693,7 +693,7 @@ func (c *testApiRestClient) ResetItems(ctx context.Context) error {
 	var ub restURL
 	u, err := ub.build(c.base, "/rpc/items/reset")
 	if err == nil {
-		err = doRESTRequest(ctx, c.client, "POST", u, nil, nil)
+		err = doRESTRequest(ctx, c.client, "POST", u, true, nil, nil)
 	}
 
 	return err
@@ -882,9 +882,13 @@ func (u *restURL) setPathText(name string, v encoding.TextMarshaler) { u.setPath
 
 func (u *restURL) addQueryText(name string, v encoding.TextMarshaler) { u.addQuery(name, u.text(v)) }
 
-func (u *restURL) setPathJSON(name string, v any) { u.setPath(name, u.json(v)) }
+func (u *restURL) setPathCustom(name string, v any) { u.setPath(name, u.custom(v)) }
 
-func (u *restURL) addQueryJSON(name string, v any) { u.addQuery(name, u.json(v)) }
+func (u *restURL) addQueryCustom(name string, v any) { u.addQuery(name, u.custom(v)) }
+
+func (u *restURL) setPathCustomString(name string, v any) { u.setPath(name, u.customString(v)) }
+
+func (u *restURL) addQueryCustomString(name string, v any) { u.addQuery(name, u.customString(v)) }
 
 func (u *restURL) text(v encoding.TextMarshaler) string {
 	b, err := v.MarshalText()
@@ -900,6 +904,30 @@ func (u *restURL) json(v any) string {
 		u.err = ErrWebrpcRequestFailed.WithCausef("failed to marshal URL param: %w", err)
 	}
 	return string(b)
+}
+
+// custom renders a go.field.type override: MarshalText if implemented, else JSON.
+func (u *restURL) custom(v any) string {
+	if m, ok := v.(encoding.TextMarshaler); ok {
+		return u.text(m)
+	}
+	return u.json(v)
+}
+
+// customString renders a string-typed override: MarshalText if implemented, else its JSON string value.
+func (u *restURL) customString(v any) string {
+	if m, ok := v.(encoding.TextMarshaler); ok {
+		return u.text(m)
+	}
+	b, err := json.Marshal(v)
+	var s string
+	if err == nil {
+		err = json.Unmarshal(b, &s)
+	}
+	if err != nil && u.err == nil {
+		u.err = ErrWebrpcRequestFailed.WithCausef("failed to marshal URL param: %w", err)
+	}
+	return s
 }
 
 // build expands {name} placeholders in one pass, so a value is never scanned again.
@@ -954,10 +982,10 @@ func restFormatFloat[T ~float32 | ~float64](v T) string {
 	return strconv.FormatFloat(float64(v), 'g', -1, 64)
 }
 
-// doRESTRequest sends a REST request and decodes the response into out; only body verbs (POST, PUT, PATCH, QUERY) send in.
-func doRESTRequest(ctx context.Context, client HTTPClient, method, rawURL string, in, out interface{}) error {
+// doRESTRequest sends a REST request and decodes the response into out.
+func doRESTRequest(ctx context.Context, client HTTPClient, method, rawURL string, hasBody bool, in, out interface{}) error {
 	var body io.Reader
-	if restHasBody(method) {
+	if hasBody {
 		reqBody, err := json.Marshal(in)
 		if err != nil {
 			return ErrWebrpcRequestFailed.WithCausef("failed to marshal JSON body: %w", err)
@@ -1031,16 +1059,6 @@ var (
 
 // Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...
 func PtrTo[T any](v T) *T { return &v }
-
-// webrpcRawJSON is json.RawMessage for any -json library.
-type webrpcRawJSON []byte
-
-func (r webrpcRawJSON) MarshalJSON() ([]byte, error)  { return r, nil }
-func (r *webrpcRawJSON) UnmarshalJSON(b []byte) error { *r = append((*r)[:0], b...); return nil }
-
-func restHasBody(method string) bool {
-	return method == "POST" || method == "PUT" || method == "PATCH" || method == "QUERY"
-}
 
 //
 // File helpers

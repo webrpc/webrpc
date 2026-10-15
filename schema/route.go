@@ -205,14 +205,6 @@ func (s *WebRPCSchema) validateRoutes() error {
 // request path, and whether each one has a static segment where the other has
 // a param (i.e. is more specific at some position).
 func compareRouteSegments(a, b []string) (overlap, aMoreStatic, bMoreStatic bool) {
-	// A route normalized to "/" is a subtree pattern in http.ServeMux: it matches
-	// every path, so it overlaps any non-root path and is less specific than it.
-	if len(a) == 0 && len(b) > 0 {
-		return true, false, true
-	}
-	if len(b) == 0 && len(a) > 0 {
-		return true, true, false
-	}
 	if len(a) != len(b) {
 		return false, false, false
 	}

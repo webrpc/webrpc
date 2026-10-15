@@ -28,16 +28,11 @@ func (s *TestRESTServer) GetItem(ctx context.Context, req GetItemRequest) (*GetI
 	if !ok {
 		return nil, ErrUnexpectedValue.WithCausef("no item %d", req.Id)
 	}
-	// One allocation for the response and its copied item.
-	resp := &struct {
-		GetItemResponse
-		item Item
-	}{item: *item}
+	copied := *item
 	if req.Details != nil && *req.Details {
-		resp.item.Name += " (details)"
+		copied.Name += " (details)"
 	}
-	resp.Item = &resp.item
-	return &resp.GetItemResponse, nil
+	return &GetItemResponse{Item: &copied}, nil
 }
 
 func (s *TestRESTServer) ListItems(ctx context.Context, req ListItemsRequest) (*ListItemsResponse, error) {

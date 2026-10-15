@@ -135,6 +135,7 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"MethodHasRoute":     schema.MethodHasRoute,     // v0.47.0
 		"MethodRouteVerb":    schema.MethodRouteVerb,    // v0.47.0
 		"MethodRoutePath":    schema.MethodRoutePath,    // v0.47.0
+		"MethodRoutePattern": schema.MethodRoutePattern, // v0.47.0
 		"MethodRouteParams":  schema.MethodRouteParams,  // v0.47.0
 		"MethodRouteHasBody": schema.MethodRouteHasBody, // v0.47.0
 	}

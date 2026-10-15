@@ -369,7 +369,7 @@ var ub restURL
 {{- end }}
 {{- end }}
 {{- $kind := "Text" }}
-{{- if $matchCustom }}{{ $kind = "JSON" }}
+{{- if $matchCustom }}{{ $kind = "Custom" }}{{ if eq $param.TypeExpr "string" }}{{ $kind = "CustomString" }}{{ end }}
 {{- else if eq $param.TypeExpr "string" }}{{ $kind = "String" }}
 {{- else if eq $param.TypeExpr "bool" }}{{ $kind = "Bool" }}
 {{- else if hasPrefix $param.TypeExpr "uint" }}{{ $kind = "Uint" }}
@@ -377,7 +377,7 @@ var ub restURL
 {{- else if hasPrefix $param.TypeExpr "float" }}{{ $kind = "Float" }}
 {{- end }}
 {{- $suffix := "" }}
-{{- if eq $kind "Text" }}{{ $suffix = "Text" }}{{ else if eq $kind "JSON" }}{{ $suffix = "JSON" }}{{ end }}
+{{- if eq $kind "Text" }}{{ $suffix = "Text" }}{{ else if eq $kind "Custom" }}{{ $suffix = "Custom" }}{{ else if eq $kind "CustomString" }}{{ $suffix = "CustomString" }}{{ end }}
 {{- $isPath := ne (replaceAll $routePath (printf "{%s}" $param.Name) "") $routePath }}
 {{- if $isPath }}
 ub.setPath{{$suffix}}("{{$param.Name}}", {{if $suffix}}{{$expr}}{{else}}restFormat{{$kind}}({{$expr}}){{end}})
@@ -385,7 +385,7 @@ ub.setPath{{$suffix}}("{{$param.Name}}", {{if $suffix}}{{$expr}}{{else}}restForm
 for _, v := range {{$expr}} {
 	ub.addQuery{{$suffix}}("{{$param.Name}}", {{if $suffix}}v{{else}}restFormat{{$kind}}(v){{end}})
 }
-{{- else if $param.Optional }}
+{{- else if and $param.Optional (not $matchCustom) }}
 if {{$expr}} != nil {
 	ub.addQuery{{$suffix}}("{{$param.Name}}", {{if $suffix}}*{{$expr}}{{else}}restFormat{{$kind}}(*{{$expr}}){{end}})
 }
@@ -395,6 +395,6 @@ ub.addQuery{{$suffix}}("{{$param.Name}}", {{if $suffix}}{{$expr}}{{else}}restFor
 {{- end }}
 u, err := ub.build(c.base, "{{$routePath}}")
 if err == nil {
-	err = doRESTRequest(ctx, c.client, "{{MethodRouteVerb $method}}", u, {{.In}}, {{.Out}})
+	err = doRESTRequest(ctx, c.client, "{{MethodRouteVerb $method}}", u, {{MethodRouteHasBody $method}}, {{.In}}, {{.Out}})
 }
 {{- end}}

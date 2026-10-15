@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"maps"
+	"math"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 )
 
 // WebRPC description and code-gen version
@@ -969,10 +971,10 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 	server.restMux.Handle("GET /rpc/items/{id}", restHandler("GetItem", false,
 		server.TestApiRestServer.GetItem,
 		func(p *restParams, req *GetItemRequest) error {
-			if err := restPath(p, "id", &req.Id, restUint); err != nil {
+			if err := restPath(p, "id", "uint64", &req.Id, restUint); err != nil {
 				return err
 			}
-			if err := restQueryOpt(p, "details", &req.Details, restBool); err != nil {
+			if err := restQueryOpt(p, "details", "bool", &req.Details, restBool); err != nil {
 				return err
 			}
 			return nil
@@ -981,13 +983,13 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 	server.restMux.Handle("GET /rpc/items", restHandler("ListItems", false,
 		server.TestApiRestServer.ListItems,
 		func(p *restParams, req *ListItemsRequest) error {
-			if err := restQueryOpt(p, "q", &req.Q, restString); err != nil {
+			if err := restQueryOpt(p, "q", "string", &req.Q, restString); err != nil {
 				return err
 			}
-			if err := restQueryList(p, "tags", &req.Tags, restString, false); err != nil {
+			if err := restQueryList(p, "tags", "string", &req.Tags, restString, false); err != nil {
 				return err
 			}
-			if err := restQuery(p, "limit", &req.Limit, restUint); err != nil {
+			if err := restQuery(p, "limit", "uint32", &req.Limit, restUint); err != nil {
 				return err
 			}
 			return nil
@@ -1003,7 +1005,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return testApiRestServiceUpdateItemResult{Ret0: ret0}, err
 		},
 		func(p *restParams, req *testApiRestServiceUpdateItemArgs) error {
-			if err := restPath(p, "id", &req.Arg0, restUint); err != nil {
+			if err := restPath(p, "id", "uint64", &req.Arg0, restUint); err != nil {
 				return err
 			}
 			return nil
@@ -1015,7 +1017,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return testApiRestServicePatchItemResult{Ret0: ret0}, err
 		},
 		func(p *restParams, req *testApiRestServicePatchItemArgs) error {
-			if err := restPath(p, "id", &req.Arg0, restUint); err != nil {
+			if err := restPath(p, "id", "uint64", &req.Arg0, restUint); err != nil {
 				return err
 			}
 			return nil
@@ -1027,7 +1029,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return testApiRestServiceDeleteItemResult{}, err
 		},
 		func(p *restParams, req *testApiRestServiceDeleteItemArgs) error {
-			if err := restPath(p, "id", &req.Arg0, restUint); err != nil {
+			if err := restPath(p, "id", "uint64", &req.Arg0, restUint); err != nil {
 				return err
 			}
 			return nil
@@ -1046,28 +1048,28 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return testApiRestServiceEchoParamsResult{Ret0: ret0}, err
 		},
 		func(p *restParams, req *testApiRestServiceEchoParamsArgs) error {
-			if err := restQuery(p, "str", &req.Arg0, restString); err != nil {
+			if err := restQuery(p, "str", "string", &req.Arg0, restString); err != nil {
 				return err
 			}
-			if err := restQuery(p, "num", &req.Arg1, restInt); err != nil {
+			if err := restQuery(p, "num", "int64", &req.Arg1, restInt); err != nil {
 				return err
 			}
-			if err := restQuery(p, "flag", &req.Arg2, restBool); err != nil {
+			if err := restQuery(p, "flag", "bool", &req.Arg2, restBool); err != nil {
 				return err
 			}
-			if err := restQuery(p, "fl", &req.Arg3, restFloat); err != nil {
+			if err := restQuery(p, "fl", "float64", &req.Arg3, restFloat); err != nil {
 				return err
 			}
-			if err := restQuery(p, "ts", &req.Arg4, restText); err != nil {
+			if err := restQuery(p, "ts", "timestamp", &req.Arg4, restText); err != nil {
 				return err
 			}
-			if err := restQuery(p, "status", &req.Arg5, restText); err != nil {
+			if err := restQuery(p, "status", "Status", &req.Arg5, restText); err != nil {
 				return err
 			}
-			if err := restQueryList(p, "tags", &req.Arg6, restString, false); err != nil {
+			if err := restQueryList(p, "tags", "string", &req.Arg6, restString, false); err != nil {
 				return err
 			}
-			if err := restQueryOpt(p, "opt", &req.Arg7, restString); err != nil {
+			if err := restQueryOpt(p, "opt", "string", &req.Arg7, restString); err != nil {
 				return err
 			}
 			return nil
@@ -1079,10 +1081,10 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return testApiRestServiceGetChildResult{Ret0: ret0}, err
 		},
 		func(p *restParams, req *testApiRestServiceGetChildArgs) error {
-			if err := restPath(p, "id", &req.Arg0, restUint); err != nil {
+			if err := restPath(p, "id", "uint64", &req.Arg0, restUint); err != nil {
 				return err
 			}
-			if err := restPath(p, "childId", &req.Arg1, restUint); err != nil {
+			if err := restPath(p, "childId", "uint64", &req.Arg1, restUint); err != nil {
 				return err
 			}
 			return nil
@@ -1095,6 +1097,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest))
+	server.restMux.Handle("/", restMiss(server.restMux, server.sendErrorJSON))
 	return server
 }
 
@@ -1582,17 +1585,7 @@ func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
 	return w
 }
 
-// webrpcRawJSON is json.RawMessage for any -json library.
-type webrpcRawJSON []byte
-
-func (r webrpcRawJSON) MarshalJSON() ([]byte, error)  { return r, nil }
-func (r *webrpcRawJSON) UnmarshalJSON(b []byte) error { *r = append((*r)[:0], b...); return nil }
-
-func restHasBody(method string) bool {
-	return method == "POST" || method == "PUT" || method == "PATCH" || method == "QUERY"
-}
-
-// restParams holds the route params of one REST request. The query string is parsed on first use.
+// restParams holds one REST request's params; the query string is parsed on first use.
 type restParams struct {
 	r     *http.Request
 	query map[string][]string
@@ -1605,11 +1598,10 @@ func (p *restParams) values() map[string][]string {
 	return p.query
 }
 
-// restHandler serves one REST route. It decodes the JSON body (body verbs), binds
-// path params and then query params onto the request, and calls fn.
+// restHandler runs one REST route: body decode, param binding, then fn.
 func restHandler[I, O any](method string, hasBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Pattern is set on the request that ServeMux matched, so store that request.
+		// ServeMux set Pattern and path values on r, so keep that request in the context.
 		ctx := context.WithValue(r.Context(), HTTPRequestCtxKey, r)
 		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
 		r = r.WithContext(ctx)
@@ -1673,77 +1665,79 @@ func restHandler[I, O any](method string, hasBody bool, fn func(context.Context,
 			return
 		}
 
-		w.Header()["Content-Type"] = restJSONContentType
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(respBody)
-	}
-}
-
-// restJSONContentType is shared by all responses, so it must never be mutated.
-var restJSONContentType = []string{"application/json"}
-
-// serveRest serves the REST routes of mux. Requests it does not match get a webrpc error.
-func serveRest(mux *http.ServeMux, w http.ResponseWriter, r *http.Request, sendError func(http.ResponseWriter, *http.Request, WebRPCError)) {
-	// ServeMux redirects these paths instead of matching them.
-	if strings.Contains(r.URL.Path, "//") || strings.Contains(r.URL.Path, "/./") || strings.Contains(r.URL.Path, "/../") || strings.HasSuffix(r.URL.Path, "/.") || strings.HasSuffix(r.URL.Path, "/..") {
-		sendError(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
-		return
-	}
-	if _, pattern := mux.Handler(r); pattern != "" {
-		mux.ServeHTTP(w, r)
-		return
-	}
-
-	var allowed []string
-	probe := *r
-	for _, method := range []string{"GET", "POST", "PUT", "PATCH", "DELETE", "QUERY"} {
-		probe.Method = method
-		if _, pattern := mux.Handler(&probe); pattern != "" {
-			allowed = append(allowed, method)
-			if method == "GET" {
-				allowed = append(allowed, "HEAD") // ServeMux also matches HEAD on GET patterns.
-			}
+		if r.Method != "HEAD" { // HEAD gets the GET status and headers, but no body.
+			w.Write(respBody)
 		}
 	}
-	if len(allowed) == 0 {
+}
+
+// serveRest serves the REST routes of mux; the mux's "/" catch-all answers misses.
+func serveRest(mux *http.ServeMux, w http.ResponseWriter, r *http.Request, sendError func(http.ResponseWriter, *http.Request, WebRPCError)) {
+	// ServeMux would redirect these paths; webrpc answers them with 404 instead.
+	p := r.URL.EscapedPath()
+	if strings.Contains(p, "//") || strings.Contains(p, "/./") || strings.Contains(p, "/../") || strings.HasSuffix(p, "/.") || strings.HasSuffix(p, "/..") {
 		sendError(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
 		return
 	}
-	w.Header().Set("Allow", strings.Join(allowed, ", ")) // RFC 9110.
-	sendError(w, r, ErrWebrpcBadMethod.WithCausef("unsupported HTTP method %v (allowed: %v)", r.Method, strings.Join(allowed, ", ")))
+	mux.ServeHTTP(w, r)
 }
 
-// restSet parses one raw param value into dst.
-func restSet[T any](kind, name, raw string, dst *T, parse func(string) (T, error)) error {
+// restMiss answers requests no route matched: 405 with Allow, or 404.
+func restMiss(mux *http.ServeMux, sendError func(http.ResponseWriter, *http.Request, WebRPCError)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var allowed []string
+		probe := *r
+		for _, method := range []string{"GET", "POST", "PUT", "PATCH", "DELETE", "QUERY"} {
+			probe.Method = method
+			// The "/" catch-all matches every request, so it is not a route.
+			if _, pattern := mux.Handler(&probe); pattern != "" && pattern != "/" {
+				allowed = append(allowed, method)
+				if method == "GET" {
+					allowed = append(allowed, "HEAD") // ServeMux also matches HEAD on GET patterns.
+				}
+			}
+		}
+		if len(allowed) == 0 {
+			sendError(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
+			return
+		}
+		w.Header().Set("Allow", strings.Join(allowed, ", ")) // RFC 9110.
+		sendError(w, r, ErrWebrpcBadMethod.WithCausef("unsupported HTTP method %v (allowed: %v)", r.Method, strings.Join(allowed, ", ")))
+	}
+}
+
+// restSet parses one raw param value into dst; typ is the RIDL type named in the error.
+func restSet[T any](kind, name, typ, raw string, dst *T, parse func(string) (T, error)) error {
 	v, err := parse(raw)
 	if err != nil {
-		return fmt.Errorf("invalid %s param '%s': %q is not a valid %T", kind, name, raw, *new(T))
+		return fmt.Errorf("invalid %s param '%s': %q is not a valid %s", kind, name, raw, typ)
 	}
 	*dst = v
 	return nil
 }
 
-func restPath[T any](p *restParams, name string, dst *T, parse func(string) (T, error)) error {
-	return restSet("path", name, p.r.PathValue(name), dst, parse)
+func restPath[T any](p *restParams, name, typ string, dst *T, parse func(string) (T, error)) error {
+	return restSet("path", name, typ, p.r.PathValue(name), dst, parse)
 }
 
-// restQuery binds a required scalar query param.
-func restQuery[T any](p *restParams, name string, dst *T, parse func(string) (T, error)) error {
+func restQuery[T any](p *restParams, name, typ string, dst *T, parse func(string) (T, error)) error {
 	vals := p.values()[name]
 	if len(vals) == 0 {
 		return fmt.Errorf("missing query param '%s'", name)
 	}
-	return restSet("query", name, vals[0], dst, parse)
+	return restSet("query", name, typ, vals[0], dst, parse)
 }
 
 // restQueryOpt binds an optional scalar query param to a pointer field.
-func restQueryOpt[T any](p *restParams, name string, dst **T, parse func(string) (T, error)) error {
+func restQueryOpt[T any](p *restParams, name, typ string, dst **T, parse func(string) (T, error)) error {
 	vals := p.values()[name]
 	if len(vals) == 0 {
 		return nil
 	}
 	var v T
-	if err := restSet("query", name, vals[0], &v, parse); err != nil {
+	if err := restSet("query", name, typ, vals[0], &v, parse); err != nil {
 		return err
 	}
 	*dst = &v
@@ -1751,17 +1745,16 @@ func restQueryOpt[T any](p *restParams, name string, dst **T, parse func(string)
 }
 
 // restQueryMaybe binds an optional query param to a field that is not a pointer.
-func restQueryMaybe[T any](p *restParams, name string, dst *T, parse func(string) (T, error)) error {
+func restQueryMaybe[T any](p *restParams, name, typ string, dst *T, parse func(string) (T, error)) error {
 	vals := p.values()[name]
 	if len(vals) == 0 {
 		return nil
 	}
-	return restSet("query", name, vals[0], dst, parse)
+	return restSet("query", name, typ, vals[0], dst, parse)
 }
 
-// restQueryList binds a []T query param, sent as repeated keys. A required list
-// with no keys binds to an empty, non-nil slice.
-func restQueryList[T any](p *restParams, name string, dst *[]T, parse func(string) (T, error), optional bool) error {
+// restQueryList binds a []T query param; a required list with no keys is empty, not nil.
+func restQueryList[T any](p *restParams, name, typ string, dst *[]T, parse func(string) (T, error), optional bool) error {
 	vals := p.values()[name]
 	if len(vals) == 0 {
 		if !optional {
@@ -1771,7 +1764,7 @@ func restQueryList[T any](p *restParams, name string, dst *[]T, parse func(strin
 	}
 	list := make([]T, len(vals))
 	for i, raw := range vals {
-		if err := restSet("query", name, raw, &list[i], parse); err != nil {
+		if err := restSet("query", name, typ, raw, &list[i], parse); err != nil {
 			return err
 		}
 	}
@@ -1803,8 +1796,13 @@ func restUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string) (T, erro
 	return T(v), err
 }
 
+// restFloat parses at T's bit size and rejects NaN and infinities.
 func restFloat[T ~float32 | ~float64](s string) (T, error) {
-	v, err := strconv.ParseFloat(s, 64)
+	var zero T
+	v, err := strconv.ParseFloat(s, int(unsafe.Sizeof(zero))*8)
+	if err == nil && (math.IsNaN(v) || math.IsInf(v, 0)) {
+		err = errors.New("not a finite number")
+	}
 	return T(v), err
 }
 
@@ -1818,11 +1816,27 @@ func restText[T any, PT interface {
 	return v, err
 }
 
-// restJSON parses fields with a go.field.type override.
+// restJSON parses a go.field.type override: UnmarshalText if implemented, else JSON.
 func restJSON[T any](s string) (T, error) {
 	var v T
+	if u, ok := any(&v).(encoding.TextUnmarshaler); ok {
+		return v, u.UnmarshalText([]byte(s))
+	}
 	err := json.Unmarshal([]byte(s), &v)
 	return v, err
+}
+
+// restJSONString parses a string-typed override; without UnmarshalText the raw value is a JSON string.
+func restJSONString[T any](s string) (T, error) {
+	if _, ok := any(new(T)).(encoding.TextUnmarshaler); !ok {
+		quoted, err := json.Marshal(s)
+		if err != nil {
+			var zero T
+			return zero, err
+		}
+		s = string(quoted)
+	}
+	return restJSON[T](s)
 }
 
 //

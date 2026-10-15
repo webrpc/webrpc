@@ -159,7 +159,7 @@ service Repos
 	require.NoError(t, err)
 }
 
-func TestRIDLRootRouteConflictsWithDefaultPath(t *testing.T) {
+func TestRIDLExactRootRouteDoesNotConflictWithDefaultPath(t *testing.T) {
 	header := strings.Replace(routeRIDLHeader, "basepath = /api", "basepath = /", 1)
 	_, err := parseRouteRIDL(t, header+`
 service S
@@ -168,8 +168,7 @@ service S
       GET /
   - Other() => ()
 `)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "overlaps the default webrpc dispatch path '/S/Other'")
+	require.NoError(t, err)
 }
 
 func TestRIDLRouteErrors(t *testing.T) {

@@ -586,7 +586,7 @@ const main = async () => {
 
     // The Go client runs its own REST suite against the TypeScript server.
     console.log('==> Go client -> TypeScript server (REST routes)')
-    await runWebrpcTest(['-client', '-rest', '-skipNullOptional', `-url=http://127.0.0.1:${tsAddr.port}`])
+    await runWebrpcTest(['-client', '-rest', '-skip=PatchItem(nil)', `-url=http://127.0.0.1:${tsAddr.port}`])
     console.log('    OK')
   } finally {
     tsServer.close()

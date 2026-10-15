@@ -18,14 +18,30 @@ func (w *discardWriter) Header() http.Header         { return w.header }
 func (w *discardWriter) WriteHeader(int)             {}
 func (w *discardWriter) Write(p []byte) (int, error) { return len(p), nil }
 
-func BenchmarkRestGetItem(b *testing.B) {
+// newGetItemRequest returns a server with item 7 and a GET request for it.
+func newGetItemRequest(tb testing.TB) (http.Handler, *http.Request, *discardWriter) {
 	impl := server.NewTestRESTServer()
 	if _, err := impl.CreateItem(context.Background(), server.CreateItemRequest{Item: &server.Item{Id: 7, Name: "alice"}}); err != nil {
-		b.Fatal(err)
+		tb.Fatal(err)
 	}
 	srv := server.NewTestApiRestServer(impl)
-	req := httptest.NewRequest("GET", "/rpc/items/7", nil)
-	w := &discardWriter{header: http.Header{}}
+	return srv, httptest.NewRequest("GET", "/rpc/items/7", nil), &discardWriter{header: http.Header{}}
+}
+
+// TestRestGetItemAllocs guards the allocation budget that BenchmarkRestGetItem reports.
+func TestRestGetItemAllocs(t *testing.T) {
+	srv, req, w := newGetItemRequest(t)
+	allocs := testing.AllocsPerRun(100, func() {
+		clear(w.header)
+		srv.ServeHTTP(w, req)
+	})
+	if allocs > 14 {
+		t.Errorf("GET /rpc/items/7: %v allocs per request, want <= 14", allocs)
+	}
+}
+
+func BenchmarkRestGetItem(b *testing.B) {
+	srv, req, w := newGetItemRequest(b)
 
 	b.ReportAllocs()
 	b.ResetTimer()

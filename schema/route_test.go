@@ -359,7 +359,7 @@ func TestRouteInvalidSchemas(t *testing.T) {
 			}`,
 		},
 		{
-			name:     "root route conflicts with default dispatch path under root basepath",
+			name:     "exact root route does not overlap default dispatch paths",
 			basePath: "/",
 			services: `{
 				"name": "S",
@@ -378,7 +378,6 @@ func TestRouteInvalidSchemas(t *testing.T) {
 					}
 				]
 			}`,
-			wantErr: "overlaps the default webrpc dispatch path '/S/Other'",
 		},
 		{
 			name:     "root route with root basepath and no other default paths is allowed",
@@ -395,7 +394,7 @@ func TestRouteInvalidSchemas(t *testing.T) {
 			}`,
 		},
 		{
-			name:     "root route overlaps param route of another service",
+			name:     "exact root route does not overlap param route of another service",
 			basePath: "/",
 			services: `{
 				"name": "S",
@@ -417,7 +416,6 @@ func TestRouteInvalidSchemas(t *testing.T) {
 					"outputs": []
 				}]
 			}`,
-			wantErr: "cannot overlap across services",
 		},
 		{
 			name:     "routed method's own default path is not checked",

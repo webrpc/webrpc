@@ -19,9 +19,13 @@
 {{- end -}}
 
 {{- if $opts.client }}
-	{{- set $stdlibImports "encoding" "" -}}
+	{{- set $stdlibImports "bytes" "" -}}
 	{{- set $stdlibImports "io" "" -}}
 	{{- set $stdlibImports "net/url" "" -}}
+	{{- if $opts.restRoutes }}
+		{{- set $stdlibImports "encoding" "" -}}
+		{{- set $stdlibImports "strconv" "" -}}
+	{{- end -}}
 {{- end -}}
 
 {{- if $opts.server }}
@@ -35,7 +39,9 @@
 
 	{{- if $opts.restRoutes }}
 		{{- set $stdlibImports "encoding" "" -}}
+		{{- set $stdlibImports "math" "" -}}
 		{{- set $stdlibImports "strconv" "" -}}
+		{{- set $stdlibImports "unsafe" "" -}}
 	{{- end -}}
 {{- end -}}
 

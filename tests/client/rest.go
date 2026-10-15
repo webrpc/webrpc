@@ -5,25 +5,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 )
 
-// RESTOptions adjusts RunRESTTestsWith for servers with known differences.
-type RESTOptions struct {
-	// SkipNullOptional skips the PATCH case that sends an explicit null for an
-	// optional field (the Go client does this for a nil pointer).
-	SkipNullOptional bool
-}
-
-// RunRESTTests exercises the TestApiRest service, whose methods are served on
-// REST routes (verb + path template) instead of the default webrpc dispatch.
-func RunRESTTests(ctx context.Context, serverURL string) error {
-	return RunRESTTestsWith(ctx, serverURL, RESTOptions{})
-}
-
-// RunRESTTestsWith is RunRESTTests with options for known server differences.
-func RunRESTTestsWith(ctx context.Context, serverURL string, opts RESTOptions) error {
+// RunRESTTests runs the TestApiRest REST cases; skip lists case names to leave out.
+func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 	var errs []error
 
 	api := NewTestApiRestClient(serverURL, &http.Client{})
@@ -80,8 +68,8 @@ func RunRESTTestsWith(ctx context.Context, serverURL string, opts RESTOptions) e
 	}
 
 	// PATCH with absent optional body field keeps the value.
-	// Known difference: TS server rejects null for optional fields (pre-existing, RPC too). Tracked separately.
-	if !opts.SkipNullOptional {
+	// Known difference: TS server rejects null for optional args. https://github.com/webrpc/webrpc/issues/523
+	if !slices.Contains(skip, "PatchItem(nil)") {
 		patched, err = api.PatchItem(ctx, 7, nil)
 		if err != nil {
 			errs = append(errs, fmt.Errorf("PatchItem(nil): %w", err))

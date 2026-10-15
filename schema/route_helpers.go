@@ -50,6 +50,19 @@ func MethodRoutePath(m *Method) string {
 	return JoinRoutePath(basePath, servicePath, m.Route.Path)
 }
 
+// MethodRoutePattern returns the ServeMux pattern "VERB /path" of the route. The
+// root path gets "/{$}" so it matches only "/", not the subtree.
+func MethodRoutePattern(m *Method) string {
+	if !MethodHasRoute(m) {
+		return ""
+	}
+	path := MethodRoutePath(m)
+	if path == "/" {
+		path = "/{$}"
+	}
+	return m.Route.Verb + " " + path
+}
+
 // MethodRouteParams returns the request fields bound to the route's path
 // params and, for GET/DELETE routes, to its query params — in request field
 // order. Body verbs (see MethodRouteHasBody) send all other fields in the body.

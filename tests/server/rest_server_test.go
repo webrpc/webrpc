@@ -107,7 +107,7 @@ func TestRESTScalarOverflowIsBadRequest(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("GET /n/{n}", restHandler("Overflow", false,
 		func(ctx context.Context, req overflowRequest) (struct{}, error) { return struct{}{}, nil },
-		func(p *restParams, req *overflowRequest) error { return restPath(p, "n", &req.N, restUint) },
+		func(p *restParams, req *overflowRequest) error { return restPath(p, "n", "uint8", &req.N, restUint) },
 		srv.sendErrorJSON, &srv.OnRequest))
 
 	if rec := serveTest(t, mux, "GET", "/n/300", "", ""); rec.Code != http.StatusBadRequest {
@@ -115,5 +115,19 @@ func TestRESTScalarOverflowIsBadRequest(t *testing.T) {
 	}
 	if rec := serveTest(t, mux, "GET", "/n/255", "", ""); rec.Code != http.StatusOK {
 		t.Errorf("GET /n/255 (uint8): status %d, want 200", rec.Code)
+	}
+}
+
+func TestRESTHeadOnGetRouteHasNoBody(t *testing.T) {
+	impl := NewTestRESTServer()
+	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
+		t.Fatal(err)
+	}
+	rec := serveTest(t, NewTestApiRestServer(impl), "HEAD", "/rpc/items/7", "", "")
+	if rec.Code != http.StatusOK {
+		t.Errorf("HEAD /rpc/items/7: status %d, want 200", rec.Code)
+	}
+	if rec.Body.Len() != 0 {
+		t.Errorf("HEAD /rpc/items/7: body %q, want none", rec.Body)
 	}
 }

@@ -25,7 +25,7 @@ func (m *method) HasAnnotation(key string) bool { _, ok := m.annotations[key]; r
 var methods = map[string]*method{
 	{{- range $_, $service := $services -}}
 	{{- range $_, $method := $service.Methods }}
-	"{{if MethodHasRoute $method}}{{MethodRouteVerb $method}} {{MethodRoutePath $method}}{{else}}{{$basepath}}{{$service.Name}}/{{$method.Name}}{{end}}": {
+	"{{if MethodHasRoute $method}}{{MethodRoutePattern $method}}{{else}}{{$basepath}}{{$service.Name}}/{{$method.Name}}{{end}}": {
 		name: "{{$method.Name}}",
 		service: "{{$service.Name}}",
 		annotations: map[string]string{ {{- range $_, $annotation := $method.Annotations -}}"{{$annotation.AnnotationType}}": "{{$annotation.Value}}", {{- end -}} },

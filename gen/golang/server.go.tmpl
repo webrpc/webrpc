@@ -42,12 +42,15 @@ type Options struct {
 {{- $name := $service.Name -}}
 {{- $serviceHasUpload := false -}}
 {{- $serviceHasRoutes := false -}}
+{{- $serviceHasRPC := false -}}
 {{- range $_, $method := $service.Methods -}}
 {{- if MethodHasFileUpload $method -}}
 {{- $serviceHasUpload = true -}}
 {{- end -}}
 {{- if MethodHasRoute $method -}}
 {{- $serviceHasRoutes = true -}}
+{{- else -}}
+{{- $serviceHasRPC = true -}}
 {{- end -}}
 {{- end -}}
 {{ $serviceName := (printf "%sService" (firstWordToLower $service.Name)) }}
@@ -85,7 +88,7 @@ func New{{firstLetterToUpper $service.Name}}Server(svc {{$typePrefix}}{{.Name}}S
 	{{- $resType := printf "%s%sResult" $serviceName (firstLetterToUpper $method.Name)}}
 	{{- $reqType := $argsType}}
 	{{- if $method.Succinct}}{{$reqType = printf "%s%s" $typePrefix (index $method.Inputs 0).Type}}{{end}}
-	server.restMux.Handle("{{MethodRouteVerb $method}} {{$routePath}}", restHandler("{{$method.Name}}", {{MethodRouteHasBody $method}},
+	server.restMux.Handle("{{MethodRoutePattern $method}}", restHandler("{{$method.Name}}", {{MethodRouteHasBody $method}},
 	{{- if $method.Succinct}}
 		server.{{$name}}Server.{{$method.Name}},
 	{{- else}}
@@ -122,25 +125,25 @@ func New{{firstLetterToUpper $service.Name}}Server(svc {{$typePrefix}}{{.Name}}S
 			{{- end}}
 			{{- $isPath := ne (replaceAll $routePath (printf "{%s}" $param.Name) "") $routePath}}
 			{{- $parser := "restText"}}
-			{{- if $matchCustom}}{{$parser = "restJSON"}}{{else if eq $param.TypeExpr "string"}}{{$parser = "restString"}}{{else if eq $param.TypeExpr "bool"}}{{$parser = "restBool"}}{{else if hasPrefix $param.TypeExpr "uint"}}{{$parser = "restUint"}}{{else if hasPrefix $param.TypeExpr "int"}}{{$parser = "restInt"}}{{else if hasPrefix $param.TypeExpr "float"}}{{$parser = "restFloat"}}{{end}}
+			{{- if $matchCustom}}{{$parser = "restJSON"}}{{if eq $param.TypeExpr "string"}}{{$parser = "restJSONString"}}{{end}}{{else if eq $param.TypeExpr "string"}}{{$parser = "restString"}}{{else if eq $param.TypeExpr "bool"}}{{$parser = "restBool"}}{{else if hasPrefix $param.TypeExpr "uint"}}{{$parser = "restUint"}}{{else if hasPrefix $param.TypeExpr "int"}}{{$parser = "restInt"}}{{else if hasPrefix $param.TypeExpr "float"}}{{$parser = "restFloat"}}{{end}}
 			{{- if $isPath}}
-			if err := restPath(p, "{{$param.Name}}", &req.{{$expr}}, {{$parser}}); err != nil {
+			if err := restPath(p, "{{$param.Name}}", "{{$param.TypeExpr}}", &req.{{$expr}}, {{$parser}}); err != nil {
 				return err
 			}
 			{{- else if $param.Repeated}}
-			if err := restQueryList(p, "{{$param.Name}}", &req.{{$expr}}, {{$parser}}, {{$param.Optional}}); err != nil {
+			if err := restQueryList(p, "{{$param.Name}}", "{{$param.TypeExpr}}", &req.{{$expr}}, {{$parser}}, {{$param.Optional}}); err != nil {
 				return err
 			}
 			{{- else if and $param.Optional $matchCustom}}
-			if err := restQueryMaybe(p, "{{$param.Name}}", &req.{{$expr}}, {{$parser}}); err != nil {
+			if err := restQueryMaybe(p, "{{$param.Name}}", "{{$param.TypeExpr}}", &req.{{$expr}}, {{$parser}}); err != nil {
 				return err
 			}
 			{{- else if $param.Optional}}
-			if err := restQueryOpt(p, "{{$param.Name}}", &req.{{$expr}}, {{$parser}}); err != nil {
+			if err := restQueryOpt(p, "{{$param.Name}}", "{{$param.TypeExpr}}", &req.{{$expr}}, {{$parser}}); err != nil {
 				return err
 			}
 			{{- else}}
-			if err := restQuery(p, "{{$param.Name}}", &req.{{$expr}}, {{$parser}}); err != nil {
+			if err := restQuery(p, "{{$param.Name}}", "{{$param.TypeExpr}}", &req.{{$expr}}, {{$parser}}); err != nil {
 				return err
 			}
 			{{- end}}
@@ -153,6 +156,7 @@ func New{{firstLetterToUpper $service.Name}}Server(svc {{$typePrefix}}{{.Name}}S
 		server.sendErrorJSON, &server.OnRequest))
 	{{- end}}
 	{{- end}}
+	server.restMux.Handle("/", restMiss(server.restMux, server.sendErrorJSON))
 {{- end }}
 	return server
 }
@@ -177,6 +181,10 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	r = r.WithContext(ctx)
 
+{{ if not $serviceHasRPC }}
+	serveRest(s.restMux, w, r, s.sendErrorJSON)
+}
+{{- else }}
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 {{- if $serviceHasUpload }}
 	expectedContentType := "application/json"
@@ -246,6 +254,7 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.sendErrorJSON(w, r, err)
 	}
 }
+{{- end }}
 {{- range $_, $method := $service.Methods}}
 {{- if not (MethodHasRoute $method)}}
 {{- if eq $method.StreamOutput false }}
