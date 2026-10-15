@@ -28,6 +28,33 @@
     {{- end}}
     }
 
+    func (x {{$name}}) IsValid() bool {
+    {{- if $fields }}
+    switch x {
+    case {{range $i, $field := $fields}}{{if $i}}, {{end}}{{template "enumConstName" dict "EnumName" $name "FieldName" $field.Name}}{{end}}:
+    return true
+    }
+    {{- end }}
+    return false
+    }
+
+    func ({{$name}}) Values() []{{$name}} {
+    return []{{$name}}{
+    {{- range $fields}}
+        {{template "enumConstName" dict "EnumName" $name "FieldName" .Name}},
+    {{- end}}
+    }
+    }
+
+    func (x *{{$name}}) Parse(s string) error {
+    v := {{$name}}(s)
+    if !v.IsValid() {
+    return fmt.Errorf("invalid enum {{$name}} %q", s)
+    }
+    *x = v
+    return nil
+    }
+
     func (x {{$name}}) MarshalText() ([]byte, error) {
     return []byte(x), nil
     }
