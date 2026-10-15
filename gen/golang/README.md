@@ -84,6 +84,44 @@ type User struct {
 }
 ```
 
+## REST routes
+
+Declare a route under a method in RIDL:
+
+```ridl
+basepath = /api
+
+service Users
+  path = /users
+
+  - GetUser(GetUserRequest) => (GetUserResponse)
+      GET /{id}
+```
+
+The full route is `{basepath}{service.path}{method.path}`, here `GET /api/users/{id}`.
+
+- A route replaces the method's RPC path. The old `/api/Users/GetUser` path returns 404.
+- For both URLs, declare a second service without routes.
+- `{id}` binds to the required scalar field `id` on `GetUserRequest`.
+- `GET` and `DELETE`: every other field is a query param.
+- Lists repeat the key: `?ids=1&ids=2`.
+- `POST`, `PUT`, `PATCH` and `QUERY`: other fields come from the JSON body.
+- Precedence: body, then path, then query. A path param wins over a same-named body field.
+- A required list missing from the query binds to an empty slice.
+- An optional list missing from the query stays `nil`.
+- Body verbs require `Content-Type: application/json`, even with an empty body.
+- Other content types get 400. This blocks cross-site `text/plain` posts, which skip CORS preflight.
+- `HEAD` is served by `GET` routes.
+- A 405 response sets `Allow`, and it lists `HEAD` next to `GET`.
+- A bad path param returns 400, e.g. `invalid path param 'id'`.
+- A missing required query param returns 400, e.g. `missing query param 'limit'`.
+- Integer params are range-checked per type. `int8` value `300` returns 400.
+- `WebrpcMethods()` keys routed methods by their ServeMux pattern, e.g. `GET /api/users/{id}`.
+- Code that mounts these keys as router paths, or compares them to `r.URL.Path`, must handle routed methods.
+- `MethodCtx(ctx)` works for REST calls.
+- Routes need Go 1.23+ (they use `Request.Pattern`).
+- The JavaScript, Kotlin, Dart, Swift and OpenAPI targets exit with an error on routed methods.
+
 ## Examples
 
 See [_examples](./_examples)

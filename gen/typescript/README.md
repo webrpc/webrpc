@@ -111,6 +111,42 @@ There are two behavioral differences from a real `enum` to be aware of:
 
 Passing any value other than `enum` or `union` (e.g. `-enumStyle=foo`) prints an error and exits.
 
+## REST routes
+
+Declare a route under a method in RIDL:
+
+```ridl
+basepath = /api
+
+service Users
+  path = /users
+
+  - GetUser(GetUserRequest) => (GetUserResponse)
+      GET /{id}
+```
+
+The full route is `{basepath}{service.path}{method.path}`, here `GET /api/users/{id}`.
+
+- A route replaces the method's RPC path. The old `/api/Users/GetUser` path returns 404.
+- For both URLs, declare a second service without routes.
+- `{id}` binds to the required scalar field `id` on `GetUserRequest`.
+- `GET` and `DELETE`: every other field is a query param.
+- Lists repeat the key: `?ids=1&ids=2`.
+- `POST`, `PUT`, `PATCH` and `QUERY`: other fields come from the JSON body.
+- Precedence: body, then path, then query. A path param wins over a same-named body field.
+- A required list missing from the query binds to `[]`.
+- An optional list missing from the query stays `undefined`.
+- Body verbs require `Content-Type: application/json`, even with an empty body.
+- Other content types get 400. This blocks cross-site `text/plain` posts, which skip CORS preflight.
+- A body of `null` returns 400.
+- `HEAD` is served by `GET` routes, without a body.
+- A 405 response sets `Allow`, and it lists `HEAD` next to `GET`.
+- A bad path param returns 400, e.g. `invalid path param 'id'`.
+- A missing required query param returns 400, e.g. `missing query param 'limit'`.
+- Integer params are range-checked per type. `int8` value `300` returns 400.
+- 64-bit integer params must be safe integers (`Number.isSafeInteger`). Larger values return 400.
+- The JavaScript, Kotlin, Dart, Swift and OpenAPI targets exit with an error on routed methods.
+
 ## Usage
 
 ```
