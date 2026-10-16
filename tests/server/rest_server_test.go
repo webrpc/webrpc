@@ -131,3 +131,35 @@ func TestRESTHeadOnGetRouteHasNoBody(t *testing.T) {
 		t.Errorf("HEAD /rpc/items/7: body %q, want none", rec.Body)
 	}
 }
+
+func TestRESTAliasRoutesServeSameMethod(t *testing.T) {
+	impl := NewTestRESTServer()
+	impl.items[7] = &Item{Id: 7, Name: "alice"}
+	srv := NewTestApiRestServer(impl)
+
+	for _, tc := range []struct{ method, target, contentType, body string }{
+		{"GET", "/rpc/items/lookup/7", "", ""},
+		{"POST", "/rpc/TestApiRest/LookupItem", "application/json", `{"id":7}`},
+		{"GET", "/rpc/items/find?q=ali", "", ""},
+		{"QUERY", "/rpc/items/find", "application/json", `{"q":"ali"}`},
+	} {
+		rec := serveTest(t, srv, tc.method, tc.target, tc.contentType, tc.body)
+		if rec.Code != 200 || !strings.Contains(rec.Body.String(), `"name":"alice"`) {
+			t.Errorf("%s %s: status %d, body %s", tc.method, tc.target, rec.Code, rec.Body)
+		}
+	}
+
+	// A body verb on the GET-only alias path is not served.
+	if rec := serveTest(t, srv, "POST", "/rpc/items/find", "application/json", `{"q":"ali"}`); rec.Code != 405 {
+		t.Errorf("POST /rpc/items/find: status %d, want 405", rec.Code)
+	}
+}
+
+func TestRESTWebrpcMethodsHasEntryPerRoute(t *testing.T) {
+	m := WebrpcMethods(ServiceTestApiRest)
+	for _, key := range []string{"GET /rpc/items/lookup/{id}", "POST /rpc/TestApiRest/LookupItem", "GET /rpc/items/find", "QUERY /rpc/items/find"} {
+		if _, ok := m[key]; !ok {
+			t.Errorf("WebrpcMethods() missing %q", key)
+		}
+	}
+}

@@ -7,11 +7,11 @@ basepath = /
 # Go-only REST cases: go.field.type overrides, string and float32 params, and the root route.
 service RestOverrides
   - Index()
-      GET /
+      + GET /
   - Search(SearchRequest) => (SearchResponse)
-      GET /by/{lbl}
+      + GET /by/{lbl}
   - Scale(factor: float32) => (value: float32)
-      GET /scale/{factor}
+      + GET /scale/{factor}
 
 struct SearchRequest
   - label: string

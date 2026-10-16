@@ -606,17 +606,18 @@
   },
   {
    "name": "TestApiRest",
-   "path": "/items",
    "methods": [
     {
      "name": "GetItem",
      "annotations": {},
      "comments": [],
      "succinct": true,
-     "route": {
-      "verb": "GET",
-      "path": "/{id}"
-     },
+     "routes": [
+      {
+       "verb": "GET",
+       "path": "/items/{id}"
+      }
+     ],
      "inputs": [
       {
        "name": "getItemRequest",
@@ -637,10 +638,12 @@
      "annotations": {},
      "comments": [],
      "succinct": true,
-     "route": {
-      "verb": "GET",
-      "path": "/"
-     },
+     "routes": [
+      {
+       "verb": "GET",
+       "path": "/items"
+      }
+     ],
      "inputs": [
       {
        "name": "listItemsRequest",
@@ -661,10 +664,12 @@
      "annotations": {},
      "comments": [],
      "succinct": true,
-     "route": {
-      "verb": "POST",
-      "path": "/"
-     },
+     "routes": [
+      {
+       "verb": "POST",
+       "path": "/items"
+      }
+     ],
      "inputs": [
       {
        "name": "createItemRequest",
@@ -684,10 +689,12 @@
      "name": "UpdateItem",
      "annotations": {},
      "comments": [],
-     "route": {
-      "verb": "PUT",
-      "path": "/{id}"
-     },
+     "routes": [
+      {
+       "verb": "PUT",
+       "path": "/items/{id}"
+      }
+     ],
      "inputs": [
       {
        "name": "id",
@@ -712,10 +719,12 @@
      "name": "PatchItem",
      "annotations": {},
      "comments": [],
-     "route": {
-      "verb": "PATCH",
-      "path": "/{id}"
-     },
+     "routes": [
+      {
+       "verb": "PATCH",
+       "path": "/items/{id}"
+      }
+     ],
      "inputs": [
       {
        "name": "id",
@@ -740,10 +749,12 @@
      "name": "DeleteItem",
      "annotations": {},
      "comments": [],
-     "route": {
-      "verb": "DELETE",
-      "path": "/{id}"
-     },
+     "routes": [
+      {
+       "verb": "DELETE",
+       "path": "/items/{id}"
+      }
+     ],
      "inputs": [
       {
        "name": "id",
@@ -757,10 +768,12 @@
      "name": "QueryItems",
      "annotations": {},
      "comments": [],
-     "route": {
-      "verb": "QUERY",
-      "path": "/search"
-     },
+     "routes": [
+      {
+       "verb": "QUERY",
+       "path": "/items/search"
+      }
+     ],
      "inputs": [
       {
        "name": "q",
@@ -780,10 +793,12 @@
      "name": "EchoParams",
      "annotations": {},
      "comments": [],
-     "route": {
-      "verb": "GET",
-      "path": "/echo/params"
-     },
+     "routes": [
+      {
+       "verb": "GET",
+       "path": "/items/echo/params"
+      }
+     ],
      "inputs": [
       {
        "name": "str",
@@ -838,10 +853,12 @@
      "name": "GetChild",
      "annotations": {},
      "comments": [],
-     "route": {
-      "verb": "GET",
-      "path": "/{id}/children/{childId}"
-     },
+     "routes": [
+      {
+       "verb": "GET",
+       "path": "/items/{id}/children/{childId}"
+      }
+     ],
      "inputs": [
       {
        "name": "id",
@@ -866,12 +883,72 @@
      "name": "ResetItems",
      "annotations": {},
      "comments": [],
-     "route": {
-      "verb": "POST",
-      "path": "/reset"
-     },
+     "routes": [
+      {
+       "verb": "POST",
+       "path": "/items/reset"
+      }
+     ],
      "inputs": [],
      "outputs": []
+    },
+    {
+     "name": "LookupItem",
+     "annotations": {},
+     "comments": [],
+     "routes": [
+      {
+       "verb": "GET",
+       "path": "/items/lookup/{id}"
+      },
+      {
+       "verb": "POST",
+       "path": "/TestApiRest/LookupItem"
+      }
+     ],
+     "inputs": [
+      {
+       "name": "id",
+       "type": "uint64",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "item",
+       "type": "Item",
+       "optional": false
+      }
+     ]
+    },
+    {
+     "name": "FindItems",
+     "annotations": {},
+     "comments": [],
+     "routes": [
+      {
+       "verb": "GET",
+       "path": "/items/find"
+      },
+      {
+       "verb": "QUERY",
+       "path": "/items/find"
+      }
+     ],
+     "inputs": [
+      {
+       "name": "q",
+       "type": "string",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "items",
+       "type": "[]Item",
+       "optional": false
+      }
+     ]
     },
     {
      "name": "RpcMethod",

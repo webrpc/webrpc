@@ -31,28 +31,33 @@ service TestApi
 
 # added in v0.47.0 (REST routes)
 service TestApiRest
-  path = /items
-
   - GetItem(GetItemRequest) => (GetItemResponse)
-      GET /{id}
+      + GET /items/{id}
   - ListItems(ListItemsRequest) => (ListItemsResponse)
-      GET /
+      + GET /items
   - CreateItem(CreateItemRequest) => (CreateItemResponse)
-      POST /
+      + POST /items
   - UpdateItem(id: uint64, name: string) => (item: Item)
-      PUT /{id}
+      + PUT /items/{id}
   - PatchItem(id: uint64, name?: string) => (item: Item)
-      PATCH /{id}
+      + PATCH /items/{id}
   - DeleteItem(id: uint64)
-      DELETE /{id}
+      + DELETE /items/{id}
   - QueryItems(q: string) => (items: []Item)
-      QUERY /search
+      + QUERY /items/search
   - EchoParams(str: string, num: int64, flag: bool, fl: float64, ts: timestamp, status: Status, tags: []string, opt?: string) => (echo: string)
-      GET /echo/params
+      + GET /items/echo/params
   - GetChild(id: uint64, childId: uint64) => (path: string)
-      GET /{id}/children/{childId}
+      + GET /items/{id}/children/{childId}
   - ResetItems()
-      POST /reset
+      + POST /items/reset
+  - LookupItem(id: uint64) => (item: Item)
+      + GET /items/lookup/{id}
+      + POST /TestApiRest/LookupItem
+  - FindItems(q: string) => (items: []Item)
+      + GET /items/find
+      + QUERY /items/find
+
   - RpcMethod(id: uint64) => (item: Item)
 
 struct Item

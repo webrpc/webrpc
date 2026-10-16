@@ -7,12 +7,14 @@ import (
 	"strings"
 )
 
-// MethodRoute is a method's optional REST route, declared in RIDL as a bare
-// `VERB /relative/path` line under the method. It replaces the default
-// webrpc path (POST {basepath}{Service}/{Method}).
+// MethodRoute is one REST route of a method, declared in RIDL as a meta line
+// `+ VERB /absolute/path` under the method. A method with routes no longer
+// serves its default webrpc path (POST {basepath}{Service}/{Method}).
 type MethodRoute struct {
 	Verb string `json:"verb"` // GET, POST, PUT, PATCH, DELETE or QUERY
-	Path string `json:"path"` // path template relative to {basepath}{service.path}, e.g. /{userId}/friends
+	Path string `json:"path"` // absolute path template relative to {basepath}, e.g. /users/{userId}
+
+	Method *Method `json:"-"` // denormalize/back-reference
 }
 
 // RouteVerbs are the HTTP verbs allowed on a method route. QUERY (RFC draft,
@@ -81,6 +83,12 @@ func validateRoutePathSyntax(path string) ([]string, error) {
 	return params, nil
 }
 
+// CheckRoutePathSyntax validates a route path template, so parsers can fail with a source position.
+func CheckRoutePathSyntax(path string) error {
+	_, err := validateRoutePathSyntax(path)
+	return err
+}
+
 // routeParamCoreTypes are the types a request field must have to be bound to
 // a path param or serialized as a query param.
 var routeParamCoreTypes = []CoreType{
@@ -139,31 +147,37 @@ func (s *WebRPCSchema) validateRoutes() error {
 		id       string // "Service.Method"
 		service  string
 		verb     string
-		path     string // composed path template
+		path     string // full path template, including basepath
 		segments []string
 	}
 	var routes []declaredRoute
 	var defaults []declaredRoute
 
-	for _, svc := range s.Services {
-		if svc.Path != "" {
-			if _, err := validateRoutePathSyntax(svc.Path); err != nil {
-				return fmt.Errorf("schema error: invalid path of service '%s': %w", svc.Name, err)
-			}
+	if basePath := JoinRoutePath(s.BasePath); basePath != "/" {
+		params, err := validateRoutePathSyntax(basePath)
+		if err == nil && len(params) > 0 {
+			err = fmt.Errorf("path %q must not contain params", basePath)
 		}
+		if err != nil && s.hasRoutes() {
+			return fmt.Errorf("schema error: invalid basepath for REST routes: %w", err)
+		}
+	}
+
+	for _, svc := range s.Services {
 		for _, m := range svc.Methods {
 			id := fmt.Sprintf("%s.%s", svc.Name, m.Name)
-			if m.Route == nil {
-				// A routed method replaces its default RPC path, so only unrouted methods own one.
+			if len(m.Routes) == 0 {
 				defaultPath := JoinRoutePath(s.BasePath, svc.Name, m.Name)
 				defaults = append(defaults, declaredRoute{id: id, service: svc.Name, path: defaultPath, segments: routePathSegments(defaultPath)})
 				continue
 			}
-			if err := s.validateMethodRoute(svc, m); err != nil {
-				return err
+			for _, route := range m.Routes {
+				if err := s.validateMethodRoute(svc, m, route); err != nil {
+					return err
+				}
+				path := RoutePath(route)
+				routes = append(routes, declaredRoute{id: id, service: svc.Name, verb: route.Verb, path: path, segments: routePathSegments(path)})
 			}
-			path := MethodRoutePath(m)
-			routes = append(routes, declaredRoute{id: id, service: svc.Name, verb: m.Route.Verb, path: path, segments: routePathSegments(path)})
 		}
 	}
 
@@ -189,6 +203,9 @@ func (s *WebRPCSchema) validateRoutes() error {
 				continue
 			}
 			if !rMoreStatic && !oMoreStatic {
+				if o.id == r.id {
+					return fmt.Errorf("schema error: duplicate route '%s %s' declared twice by method '%s'", r.verb, r.path, r.id)
+				}
 				return fmt.Errorf("schema error: duplicate route '%s %s' declared by methods '%s' and '%s'", r.verb, r.path, o.id, r.id)
 			}
 			if rMoreStatic && oMoreStatic {
@@ -225,11 +242,10 @@ func compareRouteSegments(a, b []string) (overlap, aMoreStatic, bMoreStatic bool
 	return true, aMoreStatic, bMoreStatic
 }
 
-// validateMethodRoute checks a single method's route: verb, path syntax, and
-// the field binding rules for path and query params.
-func (s *WebRPCSchema) validateMethodRoute(svc *Service, m *Method) error {
+// validateMethodRoute checks one route of a method: verb, path syntax, and
+// the field binding rules for path and query params, by the route's own verb.
+func (s *WebRPCSchema) validateMethodRoute(svc *Service, m *Method, route *MethodRoute) error {
 	methodID := fmt.Sprintf("%s.%s", svc.Name, m.Name)
-	route := m.Route
 
 	if !IsRouteVerb(route.Verb) {
 		return fmt.Errorf("schema error: method '%s' declares invalid route verb '%s': must be one of %s", methodID, route.Verb, strings.Join(RouteVerbs, ", "))
@@ -241,14 +257,7 @@ func (s *WebRPCSchema) validateMethodRoute(svc *Service, m *Method) error {
 		return fmt.Errorf("schema error: method '%s' cannot declare a route: methods using the file type keep the default webrpc dispatch", methodID)
 	}
 
-	if _, err := validateRoutePathSyntax(route.Path); err != nil {
-		return fmt.Errorf("schema error: invalid route of method '%s': %w", methodID, err)
-	}
-
-	// Params are validated on the composed path, so service-level path params
-	// are bound (and checked) per method too.
-	composed := MethodRoutePath(m)
-	params, err := validateRoutePathSyntax(composed)
+	params, err := validateRoutePathSyntax(route.Path)
 	if err != nil {
 		return fmt.Errorf("schema error: invalid route of method '%s': %w", methodID, err)
 	}
@@ -256,7 +265,7 @@ func (s *WebRPCSchema) validateMethodRoute(svc *Service, m *Method) error {
 	seenParams := map[string]bool{}
 	for _, p := range params {
 		if seenParams[p] {
-			return fmt.Errorf("schema error: route '%s %s' of method '%s' declares duplicate path param '{%s}'", route.Verb, composed, methodID, p)
+			return fmt.Errorf("schema error: route '%s %s' of method '%s' declares duplicate path param '{%s}'", route.Verb, route.Path, methodID, p)
 		}
 		seenParams[p] = true
 	}
@@ -295,9 +304,20 @@ func (s *WebRPCSchema) validateMethodRoute(svc *Service, m *Method) error {
 					continue
 				}
 			}
-			return fmt.Errorf("schema error: field '%s' of method '%s' cannot be sent as a query param of '%s %s': only scalars and scalar arrays are supported in %s requests, which have no body", f.name, methodID, route.Verb, composed, route.Verb)
+			return fmt.Errorf("schema error: field '%s' of method '%s' cannot be sent as a query param of '%s %s': only scalars and scalar arrays are supported in %s requests, which have no body", f.name, methodID, route.Verb, route.Path, route.Verb)
 		}
 	}
 
 	return nil
+}
+
+func (s *WebRPCSchema) hasRoutes() bool {
+	for _, svc := range s.Services {
+		for _, m := range svc.Methods {
+			if len(m.Routes) > 0 {
+				return true
+			}
+		}
+	}
+	return false
 }

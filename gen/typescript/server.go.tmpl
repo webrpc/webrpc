@@ -34,8 +34,8 @@ export const serve{{$service.Name}}Rpc = async <Context>(service: {{$service.Nam
   const pathname = new URL(request.url).pathname
   const method = pathname.startsWith('{{$basepath}}{{$service.Name}}/') ? pathname.slice('{{$basepath}}{{$service.Name}}/'.length) : ''
   const rpcPath = method !== '' && !method.includes('/')
-  // A plain RPC POST skips the REST probe; a routed method's RPC path still gets webrpcRestRoute's 404.
-  if (!(request.method === 'POST' && rpcPath && !{{firstLetterToLower $service.Name}}RestRoutes.some((route) => route.rpcPath === pathname))) {
+  // Only a known unrouted method name skips the REST probe; any other path may match an alias or a param route.
+  if (!(request.method === 'POST' && rpcPath && {{firstLetterToLower $service.Name}}UnroutedMethods.has(method))) {
     const rest = webrpcRestRoute({{firstLetterToLower $service.Name}}RestRoutes, request)
     if (rest instanceof Response) return rest
     if (rest) {
@@ -69,10 +69,12 @@ export const serve{{$service.Name}}Rpc = async <Context>(service: {{$service.Nam
 
 {{- if $serviceHasRoutes }}
 
+const {{firstLetterToLower $service.Name}}UnroutedMethods = new Set<string>([{{range $_, $method := $service.Methods}}{{if not (MethodHasRoute $method)}}'{{$method.Name}}', {{end}}{{end}}])
+
 const {{firstLetterToLower $service.Name}}RestRoutes: WebrpcRestRoute[] = [
 {{- range $_, $method := $service.Methods}}
-{{- if MethodHasRoute $method}}
-  { method: '{{MethodRouteVerb $method}}', path: '{{MethodRoutePath $method}}', rpcPath: '{{$basepath}}{{$service.Name}}/{{$method.Name}}', name: '{{$method.Name}}', hasBody: {{if MethodRouteHasBody $method}}true{{else}}false{{end}}, params: [{{range $i, $p := MethodRouteParams $method}}{{if $i}}, {{end}}{ name: '{{$p.Name}}', type: '{{$p.TypeExpr}}', optional: {{if $p.Optional}}true{{else}}false{{end}}, list: {{if $p.Repeated}}true{{else}}false{{end}} }{{end}}] },
+{{- range $_, $route := $method.Routes}}
+  { method: '{{$route.Verb}}', path: '{{RoutePath $route}}', rpcPath: '{{$basepath}}{{$service.Name}}/{{$method.Name}}', name: '{{$method.Name}}', hasBody: {{if RouteHasBody $route}}true{{else}}false{{end}}, params: [{{range $i, $p := RouteParams $route}}{{if $i}}, {{end}}{ name: '{{$p.Name}}', type: '{{$p.TypeExpr}}', optional: {{if $p.Optional}}true{{else}}false{{end}}, list: {{if $p.Repeated}}true{{else}}false{{end}} }{{end}}] },
 {{- end}}
 {{- end}}
 ]
@@ -195,13 +197,11 @@ type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: st
 
 type WebrpcRestMatch = { route: WebrpcRestRoute, pathParams: Map<string, string> }
 
+const webrpcRestVerbOrder = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'QUERY']
+
 // Null lets the caller try the RPC path; a routed method's RPC path gets a 404.
 const webrpcRestRoute = (routes: WebrpcRestRoute[], request: Request): WebrpcRestMatch | Response | null => {
   const url = new URL(request.url)
-  // A routed method answers only on its route.
-  if (routes.some((route) => route.rpcPath === url.pathname)) {
-    return webrpcErrorResponse(new WebrpcBadRouteError({ cause: `no webrpc method defined for path ${url.pathname}` }))
-  }
   const segments = url.pathname.slice(1).split('/')
   const verb = request.method === 'HEAD' ? 'GET' : request.method
   const allowed: string[] = []
@@ -217,9 +217,15 @@ const webrpcRestRoute = (routes: WebrpcRestRoute[], request: Request): WebrpcRes
     }
   }
   if (!match) {
-    if (allowed.length === 0) return null
+    if (allowed.length === 0) {
+      // A routed method answers only on its routes, unless one of them is its RPC path.
+      if (routes.some((route) => route.rpcPath === url.pathname)) {
+        return webrpcErrorResponse(new WebrpcBadRouteError({ cause: `no webrpc method defined for path ${url.pathname}` }))
+      }
+      return null
+    }
     // HEAD is served by every GET route, so it is allowed wherever GET is.
-    const methods = [...new Set(allowed.flatMap((m) => (m === 'GET' ? ['GET', 'HEAD'] : [m])))]
+    const methods = webrpcRestVerbOrder.filter((m) => allowed.includes(m === 'HEAD' ? 'GET' : m))
     return webrpcErrorResponse(new WebrpcBadMethodError({ cause: `unsupported HTTP method ${request.method} (allowed: ${methods.join(', ')})` }), { Allow: methods.join(', ') })
   }
   return { route: match.route, pathParams: match.pathParams }

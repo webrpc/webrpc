@@ -231,7 +231,6 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	for _, service := range q.root.Services() {
 		srv := &schema.Service{
 			Name:     service.Name().String(),
-			Path:     service.Path().String(),
 			Comments: parseComment(service.Comment()),
 		}
 
@@ -399,11 +398,11 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				Annotations:  buildAnnotations(method),
 				Succinct:     succinctInput && succinctOutput,
 			}
-			if method.HasRoute() {
-				m.Route = &schema.MethodRoute{
-					Verb: method.RouteVerb().String(),
-					Path: method.RoutePath().String(),
-				}
+			for _, route := range method.Routes() {
+				m.Routes = append(m.Routes, &schema.MethodRoute{
+					Verb: route.Verb().String(),
+					Path: route.Path().String(),
+				})
 			}
 
 			methods = append(methods, m)

@@ -12,65 +12,61 @@ type RouteParam struct {
 	Repeated bool // []scalar query param, sent as repeated keys
 }
 
-// MethodHasRoute returns true if the method declares a REST route, served
+// MethodHasRoute returns true if the method declares REST routes, served
 // instead of its default webrpc path (POST {basepath}{Service}/{Method}).
 func MethodHasRoute(m *Method) bool {
-	return m != nil && m.Route != nil
+	return m != nil && len(m.Routes) > 0
 }
 
-// MethodRouteVerb returns the route's HTTP verb, or "" without a route.
-func MethodRouteVerb(m *Method) string {
-	if !MethodHasRoute(m) {
-		return ""
-	}
-	return m.Route.Verb
-}
-
-// MethodRouteHasBody reports whether the route's non-path fields travel in the
-// JSON body (POST/PUT/PATCH/QUERY) rather than the query string (GET/DELETE).
-func MethodRouteHasBody(m *Method) bool {
-	return MethodHasRoute(m) && routeVerbHasBody(m.Route.Verb)
-}
-
-// MethodRoutePath returns the full route path template, composed as
-// {basepath}{service.path}{method.path} and normalized (leading slash, no
-// trailing slash).
-func MethodRoutePath(m *Method) string {
-	if !MethodHasRoute(m) {
-		return ""
-	}
-	basePath := ""
-	servicePath := ""
-	if m.Service != nil {
-		servicePath = m.Service.Path
-		if m.Service.Schema != nil {
-			basePath = m.Service.Schema.BasePath
-		}
-	}
-	return JoinRoutePath(basePath, servicePath, m.Route.Path)
-}
-
-// MethodRoutePattern returns the ServeMux pattern "VERB /path" of the route. The
-// root path gets "/{$}" so it matches only "/", not the subtree.
-func MethodRoutePattern(m *Method) string {
-	if !MethodHasRoute(m) {
-		return ""
-	}
-	path := MethodRoutePath(m)
-	if path == "/" {
-		path = "/{$}"
-	}
-	return m.Route.Verb + " " + path
-}
-
-// MethodRouteParams returns the request fields bound to the route's path
-// params and, for GET/DELETE routes, to its query params — in request field
-// order. Body verbs (see MethodRouteHasBody) send all other fields in the body.
-func MethodRouteParams(m *Method) []*RouteParam {
+// MethodCanonicalRoute returns the first declared route, the one generated
+// clients call, or nil without routes. Later routes are server-only aliases.
+func MethodCanonicalRoute(m *Method) *MethodRoute {
 	if !MethodHasRoute(m) {
 		return nil
 	}
-	pathParams, err := validateRoutePathSyntax(MethodRoutePath(m))
+	return m.Routes[0]
+}
+
+// RouteHasBody reports whether the route's non-path fields travel in the
+// JSON body (POST/PUT/PATCH/QUERY) rather than the query string (GET/DELETE).
+func RouteHasBody(r *MethodRoute) bool {
+	return r != nil && routeVerbHasBody(r.Verb)
+}
+
+// RoutePath returns the full route path template, {basepath}{route.path},
+// normalized (leading slash, no trailing slash).
+func RoutePath(r *MethodRoute) string {
+	if r == nil {
+		return ""
+	}
+	basePath := ""
+	if r.Method != nil && r.Method.Service != nil && r.Method.Service.Schema != nil {
+		basePath = r.Method.Service.Schema.BasePath
+	}
+	return JoinRoutePath(basePath, r.Path)
+}
+
+// RoutePattern returns the ServeMux pattern "VERB /path" of the route. The
+// root path gets "/{$}" so it matches only "/", not the subtree.
+func RoutePattern(r *MethodRoute) string {
+	if r == nil {
+		return ""
+	}
+	path := RoutePath(r)
+	if path == "/" {
+		path = "/{$}"
+	}
+	return r.Verb + " " + path
+}
+
+// RouteParams returns the request fields bound to the route's path params
+// and, for GET/DELETE routes, to its query params, in request field order.
+// Body verbs (see RouteHasBody) send all other fields in the body.
+func RouteParams(r *MethodRoute) []*RouteParam {
+	if r == nil || r.Method == nil {
+		return nil
+	}
+	pathParams, err := validateRoutePathSyntax(r.Path)
 	if err != nil {
 		return nil
 	}
@@ -80,8 +76,8 @@ func MethodRouteParams(m *Method) []*RouteParam {
 	}
 
 	var out []*RouteParam
-	for _, f := range methodRouteFields(m) {
-		if !inPath[f.name] && routeVerbHasBody(m.Route.Verb) {
+	for _, f := range methodRouteFields(r.Method) {
+		if !inPath[f.name] && routeVerbHasBody(r.Verb) {
 			continue
 		}
 		p := &RouteParam{Name: f.name, Optional: f.optional}

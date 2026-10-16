@@ -115,8 +115,54 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 		errs = append(errs, fmt.Errorf("RpcMethod(): unexpected response %+v", item))
 	}
 
+	// LookupItem: the client calls the canonical GET /rpc/items/lookup/{id}.
+	looked, err := api.LookupItem(ctx, 7)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("LookupItem(): %w", err))
+	} else if looked == nil || looked.Name != "carol" {
+		errs = append(errs, fmt.Errorf("LookupItem(): unexpected response %+v", looked))
+	}
+
+	// LookupItem alias: the legacy RPC-shaped POST /rpc/TestApiRest/LookupItem.
+	resp, err := http.Post(serverURL+"/rpc/TestApiRest/LookupItem", "application/json", strings.NewReader(`{"id": 7}`))
+	if err != nil {
+		errs = append(errs, fmt.Errorf("POST /rpc/TestApiRest/LookupItem: %w", err))
+	} else {
+		body, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if resp.StatusCode != http.StatusOK || !strings.Contains(string(body), `"name":"carol"`) {
+			errs = append(errs, fmt.Errorf("POST /rpc/TestApiRest/LookupItem: got %d %s", resp.StatusCode, body))
+		}
+	}
+
+	// FindItems: the client calls the canonical GET /rpc/items/find?q=...
+	foundItems, err := api.FindItems(ctx, "carol")
+	if err != nil {
+		errs = append(errs, fmt.Errorf("FindItems(): %w", err))
+	} else if len(foundItems) != 1 || foundItems[0].Name != "carol" {
+		errs = append(errs, fmt.Errorf("FindItems(): unexpected response %+v", foundItems))
+	}
+
+	// FindItems alias: QUERY /rpc/items/find reads the JSON body.
+	queryReq, err := http.NewRequestWithContext(ctx, "QUERY", serverURL+"/rpc/items/find", strings.NewReader(`{"q": "carol"}`))
+	if err != nil {
+		errs = append(errs, fmt.Errorf("QUERY /rpc/items/find: %w", err))
+	} else {
+		queryReq.Header.Set("Content-Type", "application/json")
+		resp, err := http.DefaultClient.Do(queryReq)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("QUERY /rpc/items/find: %w", err))
+		} else {
+			body, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			if resp.StatusCode != http.StatusOK || !strings.Contains(string(body), `"name":"carol"`) {
+				errs = append(errs, fmt.Errorf("QUERY /rpc/items/find: got %d %s", resp.StatusCode, body))
+			}
+		}
+	}
+
 	// A routed method answers only on its REST route.
-	resp, err := http.Post(serverURL+"/rpc/TestApiRest/GetItem", "application/json", strings.NewReader(`{"id": 7}`))
+	resp, err = http.Post(serverURL+"/rpc/TestApiRest/GetItem", "application/json", strings.NewReader(`{"id": 7}`))
 	if err != nil {
 		errs = append(errs, fmt.Errorf("POST /rpc/TestApiRest/GetItem: %w", err))
 	} else {

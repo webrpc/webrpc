@@ -142,3 +142,11 @@ func (s *TestRESTServer) RpcMethod(ctx context.Context, id uint64) (*Item, error
 	}
 	return item, nil
 }
+
+func (s *TestRESTServer) LookupItem(ctx context.Context, id uint64) (*Item, error) {
+	return s.RpcMethod(ctx, id)
+}
+
+func (s *TestRESTServer) FindItems(ctx context.Context, q string) ([]*Item, error) {
+	return s.QueryItems(ctx, q)
+}

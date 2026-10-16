@@ -92,6 +92,18 @@ const createRestService = (): TestApiRestServer => {
       return { path: `/items/${id}/children/${childId}` }
     },
 
+    async lookupItem(_ctx, { id }) {
+      const item = items.get(id)
+      if (!item) {
+        throw new UnexpectedValueError({ cause: `no item ${id}` })
+      }
+      return { item }
+    },
+
+    async findItems(_ctx, { q }) {
+      return { items: [...items.values()].filter((item) => item.name.includes(q)) }
+    },
+
     async resetItems() {
       items.clear()
       return {}
@@ -156,6 +168,15 @@ const createParamService = (): ParamRestServer => ({
   },
   async search(_ctx, args) {
     return { echo: JSON.stringify(args) }
+  },
+  async legacy(_ctx, { name }) {
+    return { echo: name }
+  },
+  async both(_ctx, args) {
+    return { echo: JSON.stringify(args) }
+  },
+  async wild(_ctx, { x }) {
+    return { echo: `wild:${x}` }
   },
 })
 
@@ -241,6 +262,27 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   // GET /rpc/items/{id}/children/{childId} — multiple path params.
   const { path } = await api.getChild({ id: 1, childId: 2 })
   assert.equal(path, '/items/1/children/2', 'getChild path mismatch')
+
+  // LookupItem: the client calls the canonical GET; the alias at its RPC path is a POST with a JSON body.
+  const { item: looked } = await api.lookupItem({ id: 7 })
+  const lookAlias = await fetch(`${addr}/rpc/TestApiRest/LookupItem`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"id": 7}',
+  })
+  assert.equal(lookAlias.status, 200, 'the RPC-path alias must work')
+  assert.deepEqual((await lookAlias.json()).item, looked, 'canonical and alias must agree')
+
+  // FindItems: GET reads the query string, QUERY reads the JSON body.
+  const { items: foundGet } = await api.findItems({ q: 'carol' })
+  const foundQuery = await fetch(`${addr}/rpc/items/find`, {
+    method: 'QUERY',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"q": "carol"}',
+  })
+  assert.equal(foundQuery.status, 200, 'QUERY alias must work')
+  assert.deepEqual((await foundQuery.json()).items, foundGet, 'GET and QUERY must agree')
+  assert.equal(foundGet.length, 1, 'findItems count mismatch')
 
   // A method without a route keeps the default webrpc dispatch.
   const { item: rpcItem } = await api.rpcMethod({ id: 7 })
@@ -520,6 +562,54 @@ const paramSuite = async (addr: string) => {
   assert.deepEqual(JSON.parse((await wire.json()).echo), { term: 't' }, 'the RIDL field name must not bind')
 }
 
+// aliasSuite covers methods with several routes: the client calls the canonical
+// route, and server-only aliases (including a legacy RPC path) bind by their own verb.
+const aliasSuite = async (addr: string) => {
+  const sent: string[] = []
+  const recording = (input: RequestInfo, init?: RequestInit): Promise<Response> => {
+    sent.push(`${init?.method} ${input}`)
+    return fetch(input, init)
+  }
+  const api = new ParamRest(addr, recording)
+  const json = { 'Content-Type': 'application/json' }
+
+  // The canonical route is the first one: GET with a query string.
+  const viaClient = await api.legacy({ name: 'x' })
+  assert.equal(viaClient.echo, 'x')
+  assert.equal(sent.at(-1), `GET ${addr}/rpc/params/legacy?name=x`, 'the client must call the canonical route')
+
+  // The alias equal to the method's RPC path is a normal REST route: POST with a JSON body.
+  const viaAlias = await fetch(`${addr}/rpc/ParamRest/Legacy`, { method: 'POST', headers: json, body: '{"name": "x"}' })
+  assert.equal(viaAlias.status, 200, 'the RPC-path alias must work')
+  assert.deepEqual(await viaAlias.json(), viaClient, 'canonical and alias must agree')
+  const aliasBadVerb = await fetch(`${addr}/rpc/ParamRest/Legacy`)
+  assert.equal(aliasBadVerb.status, 405, 'GET on the alias path must be a 405 from the route table')
+  await aliasBadVerb.body?.cancel()
+
+  // GET reads query params, QUERY reads the JSON body, same implementation.
+  const viaGet = await api.both({ q: 'a', n: 2 })
+  assert.equal(sent.at(-1), `GET ${addr}/rpc/params/both?q=a&n=2`, 'the client must call the first route')
+  const viaQuery = await fetch(`${addr}/rpc/params/both`, { method: 'QUERY', headers: json, body: '{"q": "a", "n": 2}' })
+  assert.equal(viaQuery.status, 200, 'QUERY route must work')
+  assert.deepEqual(await viaQuery.json(), viaGet, 'GET and QUERY must agree')
+  const allowBoth = await fetch(`${addr}/rpc/params/both`, { method: 'POST', headers: json, body: '{}' })
+  assert.equal(allowBoth.status, 405)
+  assert.equal(allowBoth.headers.get('Allow'), 'GET, HEAD, QUERY', 'Allow must use the fixed verb order')
+  await allowBoth.body?.cancel()
+
+  // An alias on an old RPC name and a single-segment param route must not be shadowed by the RPC fast path.
+  const oldName = await fetch(`${addr}/rpc/ParamRest/OldMake`, { method: 'POST', headers: json, body: '{"constructor": "c"}' })
+  assert.equal(oldName.status, 200, 'an alias on an old RPC name must work')
+  assert.deepEqual(await oldName.json(), { echo: 'c' })
+  const wild = await fetch(`${addr}/rpc/ParamRest/zzz`, { method: 'POST', headers: json, body: '{}' })
+  assert.equal(wild.status, 200, 'a POST /ParamRest/{x} route must match')
+  assert.deepEqual(await wild.json(), { echo: 'wild:zzz' })
+
+  const queryNoBody = await fetch(`${addr}/rpc/params/both?q=a&n=2`, { method: 'QUERY', headers: json, body: '{}' })
+  assert.equal(queryNoBody.status, 400, 'QUERY must not read query params')
+  await queryNoBody.body?.cancel()
+}
+
 const waitForServer = async (addr: string, timeoutMs = 60_000) => {
   const deadline = Date.now() + timeoutMs
   for (;;) {
@@ -578,6 +668,10 @@ const main = async () => {
     console.log('    OK')
     console.log('==> TypeScript client -> TypeScript server (REST param parsing)')
     await paramSuite(`http://127.0.0.1:${paramAddr.port}`)
+    console.log('    OK')
+
+    console.log('==> TypeScript client -> TypeScript server (REST aliases)')
+    await aliasSuite(`http://127.0.0.1:${paramAddr.port}`)
     console.log('    OK')
 
     console.log('==> TypeScript client -> Go server (REST routes)')

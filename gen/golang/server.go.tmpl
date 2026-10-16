@@ -81,14 +81,14 @@ func New{{firstLetterToUpper $service.Name}}Server(svc {{$typePrefix}}{{.Name}}S
 {{- if $serviceHasRoutes }}
 	server.restMux = http.NewServeMux()
 	{{- range $_, $method := $service.Methods}}
-	{{- if MethodHasRoute $method}}
-	{{- $routePath := MethodRoutePath $method}}
-	{{- $params := MethodRouteParams $method}}
+	{{- range $_, $route := $method.Routes}}
+	{{- $routePath := RoutePath $route}}
+	{{- $params := RouteParams $route}}
 	{{- $argsType := printf "%s%sArgs" $serviceName (firstLetterToUpper $method.Name)}}
 	{{- $resType := printf "%s%sResult" $serviceName (firstLetterToUpper $method.Name)}}
 	{{- $reqType := $argsType}}
 	{{- if $method.Succinct}}{{$reqType = printf "%s%s" $typePrefix (index $method.Inputs 0).Type}}{{end}}
-	server.restMux.Handle("{{MethodRoutePattern $method}}", restHandler("{{$method.Name}}", {{MethodRouteHasBody $method}},
+	server.restMux.Handle("{{RoutePattern $route}}", restHandler("{{$method.Name}}", {{RouteHasBody $route}},
 	{{- if $method.Succinct}}
 		server.{{$name}}Server.{{$method.Name}},
 	{{- else}}

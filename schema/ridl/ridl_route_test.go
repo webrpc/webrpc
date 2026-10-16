@@ -48,18 +48,16 @@ struct CreateUserResponse
 func TestRIDLServiceRoutes(t *testing.T) {
 	s, err := parseRouteRIDL(t, routeRIDLHeader+`
 service Users
-  path = /users
-
   - Get(GetUserRequest) => (GetUserResponse)
-      GET /{userId}
+      + GET /users/{userId}
   - List(ListUsersRequest) => (ListUsersResponse)
-      GET /
+      + GET /users
   - Create(CreateUserRequest) => (CreateUserResponse)
-      POST /
+      + POST /users
   - Remove(userId: uint64)
-      DELETE /{userId}
+      + DELETE /users/{userId}
   - GetFriend(userId: uint64, friendId: uint64) => (friend: User)
-      GET /{userId}/friends/{friendId}
+      + GET /users/{userId}/friends/{friendId}
   - Ping()
 `)
 	require.NoError(t, err)
@@ -67,94 +65,112 @@ service Users
 
 	users := s.Services[0]
 	assert.Equal(t, "Users", users.Name)
-	assert.Equal(t, "/users", users.Path)
 	require.Len(t, users.Methods, 6)
 
 	get := users.Methods[0]
-	require.NotNil(t, get.Route)
-	assert.Equal(t, "GET", get.Route.Verb)
-	assert.Equal(t, "/{userId}", get.Route.Path)
-	assert.Equal(t, "/api/users/{userId}", schema.MethodRoutePath(get))
+	require.Len(t, get.Routes, 1)
+	assert.Equal(t, "GET", get.Routes[0].Verb)
+	assert.Equal(t, "/users/{userId}", get.Routes[0].Path)
+	assert.Equal(t, "/api/users/{userId}", schema.RoutePath(get.Routes[0]))
 
 	list := users.Methods[1]
-	require.NotNil(t, list.Route)
-	assert.Equal(t, "GET", list.Route.Verb)
-	assert.Equal(t, "/", list.Route.Path)
-	assert.Equal(t, "/api/users", schema.MethodRoutePath(list))
+	assert.Equal(t, "/api/users", schema.RoutePath(list.Routes[0]))
 
-	create := users.Methods[2]
-	require.NotNil(t, create.Route)
-	assert.Equal(t, "POST", create.Route.Verb)
+	assert.Equal(t, "POST", users.Methods[2].Routes[0].Verb)
+	assert.Equal(t, "DELETE", users.Methods[3].Routes[0].Verb)
+	assert.Equal(t, "/api/users/{userId}/friends/{friendId}", schema.RoutePath(users.Methods[4].Routes[0]))
 
-	remove := users.Methods[3]
-	require.NotNil(t, remove.Route)
-	assert.Equal(t, "DELETE", remove.Route.Verb)
-	assert.Equal(t, "/{userId}", remove.Route.Path)
+	assert.Empty(t, users.Methods[5].Routes)
+}
 
-	friend := users.Methods[4]
-	require.NotNil(t, friend.Route)
-	assert.Equal(t, "/api/users/{userId}/friends/{friendId}", schema.MethodRoutePath(friend))
+func TestRIDLMultipleRoutesKeepOrder(t *testing.T) {
+	s, err := parseRouteRIDL(t, strings.Replace(routeRIDLHeader, "/api", "/v1", 1)+`
+service Intents
+  - Get(GetUserRequest) => (GetUserResponse)
+      + GET /intents/{userId}
+      + POST /Intents/Get     # backward-compatible with pre-REST API route.
+  - Ping()
+`)
+	require.NoError(t, err)
 
-	ping := users.Methods[5]
-	assert.Nil(t, ping.Route)
+	get := s.Services[0].Methods[0]
+	require.Len(t, get.Routes, 2)
+	assert.Same(t, get.Routes[0], schema.MethodCanonicalRoute(get))
+	assert.Equal(t, "GET", get.Routes[0].Verb)
+	assert.Equal(t, "/intents/{userId}", get.Routes[0].Path)
+	assert.Equal(t, "POST", get.Routes[1].Verb)
+	assert.Equal(t, "/v1/Intents/Get", schema.RoutePath(get.Routes[1]))
+	assert.Empty(t, s.Services[0].Methods[1].Routes)
 }
 
 func TestRIDLRouteWithAnnotationsAndComments(t *testing.T) {
 	s, err := parseRouteRIDL(t, routeRIDLHeader+`
 service Users
-  path = /users # user endpoints
-
   # fetch a single user
   @auth:required
   - Get(GetUserRequest) => (GetUserResponse)
-      GET /{userId} # by id
+      + GET /users/{userId} # by id
   - Create(CreateUserRequest) => (CreateUserResponse)
 `)
 	require.NoError(t, err)
 
 	users := s.Services[0]
-	assert.Equal(t, "/users", users.Path)
-
 	get := users.Methods[0]
-	require.NotNil(t, get.Route)
-	assert.Equal(t, "GET", get.Route.Verb)
-	assert.Equal(t, "/{userId}", get.Route.Path)
+	require.Len(t, get.Routes, 1)
+	assert.Equal(t, "GET", get.Routes[0].Verb)
+	assert.Equal(t, "/users/{userId}", get.Routes[0].Path)
 	require.Contains(t, get.Annotations, "auth")
 	assert.Equal(t, "required", get.Annotations["auth"].Value)
 
-	create := users.Methods[1]
-	assert.Nil(t, create.Route)
+	assert.Empty(t, users.Methods[1].Routes)
 }
 
-func TestRIDLRouteQueryVerb(t *testing.T) {
-	s, err := parseRouteRIDL(t, routeRIDLHeader+`
-service Users
-  path = /users
+func TestRIDLRouteAfterErrorsClause(t *testing.T) {
+	s, err := parseRouteRIDL(t, `webrpc = v1
+name = example
+version = v0.0.1
 
-  - List(ListUsersRequest) => (ListUsersResponse)
-      QUERY /
+error 100 NotFound "not found" HTTP 404
+
+service Users
+  - Get(userId: uint64) => (name: string) errors NotFound
+      + GET /users/{userId}
 `)
 	require.NoError(t, err)
-	assert.Equal(t, "QUERY", s.Services[0].Methods[0].Route.Verb)
+	get := s.Services[0].Methods[0]
+	assert.Equal(t, []string{"NotFound"}, get.Errors)
+	require.Len(t, get.Routes, 1)
+}
+
+func TestRIDLRouteGetAndQueryOnOneMethod(t *testing.T) {
+	s, err := parseRouteRIDL(t, routeRIDLHeader+`
+service Users
+  - List(ListUsersRequest) => (ListUsersResponse)
+      + GET /users
+      + QUERY /users
+`)
+	require.NoError(t, err)
+	routes := s.Services[0].Methods[0].Routes
+	require.Len(t, routes, 2)
+	assert.Equal(t, "GET", routes[0].Verb)
+	assert.Equal(t, "QUERY", routes[1].Verb)
 }
 
 func TestRIDLRouteQueryVerbCarriesBody(t *testing.T) {
 	_, err := parseRouteRIDL(t, routeRIDLHeader+`
 service Users
-  path = /users
-
   - Search(CreateUserRequest) => (CreateUserResponse)
-      QUERY /search
+      + QUERY /users/search
 `)
 	require.NoError(t, err)
 }
 
-func TestRIDLRoutedMethodReplacesDefaultPath(t *testing.T) {
+func TestRIDLLegacyRouteAliasDoesNotConflictWithOwnDefaultPath(t *testing.T) {
 	_, err := parseRouteRIDL(t, routeRIDLHeader+`
 service Repos
-  path = /
   - GetRepo(org: string, repo: string) => (name: string)
-      GET /{org}/{repo}
+      + GET /{org}/{repo}
+      + POST /Repos/GetRepo
 `)
 	require.NoError(t, err)
 }
@@ -163,9 +179,8 @@ func TestRIDLExactRootRouteDoesNotConflictWithDefaultPath(t *testing.T) {
 	header := strings.Replace(routeRIDLHeader, "basepath = /api", "basepath = /", 1)
 	_, err := parseRouteRIDL(t, header+`
 service S
-  path = /
   - G() => ()
-      GET /
+      + GET /
   - Other() => ()
 `)
 	require.NoError(t, err)
@@ -181,67 +196,129 @@ func TestRIDLRouteErrors(t *testing.T) {
 			name: "route before any method",
 			input: routeRIDLHeader + `
 service Users
-  path = /users
-  GET /{userId}
+  + GET /users/{userId}
   - Get(GetUserRequest) => (GetUserResponse)
 `,
 			wantErr: "must be declared under a service method",
 		},
 		{
-			name: "duplicate route on a method",
+			name: "old bare route line",
 			input: routeRIDLHeader + `
 service Users
   - Get(GetUserRequest) => (GetUserResponse)
       GET /users/{userId}
-      GET /people/{userId}
 `,
-			wantErr: "already declares a route",
+			wantErr: "route 'GET' must start with '+'",
 		},
 		{
-			name: "duplicate service path",
+			name: "service-level path",
 			input: routeRIDLHeader + `
 service Users
   path = /users
-  path = /people
   - Get(GetUserRequest) => (GetUserResponse)
 `,
-			wantErr: "previously declared",
+			wantErr: "service-level 'path' is no longer supported",
 		},
 		{
-			name: "service path after methods",
+			name: "service-level path after methods",
 			input: routeRIDLHeader + `
 service Users
   - Get(GetUserRequest) => (GetUserResponse)
   path = /users
 `,
-			wantErr: "must be declared before the service methods",
+			wantErr: "service-level 'path' is no longer supported",
+		},
+		{
+			name: "unknown verb",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      + FETCH /users/{userId}
+`,
+			wantErr: `expecting route '+ VERB /path'`,
+		},
+		{
+			name: "missing path",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      + GET
+`,
+			wantErr: "expecting route path after 'GET'",
+		},
+		{
+			name: "duplicate route within a method",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      + GET /users/{userId}
+      + GET /users/{userId}
+`,
+			wantErr: "declared twice by method 'Users.Get'",
+		},
+		{
+			name: "relative path",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      + GET users/{userId}
+`,
+			wantErr: "must start with '/'",
 		},
 		{
 			name: "dot-dot segment in route",
 			input: routeRIDLHeader + `
 service Items
   - Lookup() => ()
-      GET /items/../lookup
+      + GET /items/../lookup
 `,
 			wantErr: "dot segments are not allowed",
+		},
+		{
+			name: "plus without verb",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      +
+`,
+			wantErr: "expecting route verb after '+'",
+		},
+		{
+			name: "unclosed param in route",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      + GET /users/{userId
+`,
+			wantErr: "invalid route of method 'Get'",
+		},
+		{
+			name: "empty param in route",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      + GET /users/{}
+`,
+			wantErr: "invalid route of method 'Get'",
+		},
+		{
+			name: "annotation between method and route",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      @auth:x
+      + GET /users/{userId}
+`,
+			wantErr: "route must directly follow its method",
 		},
 		{
 			name: "route on stream method",
 			input: routeRIDLHeader + `
 service Users
   - Watch(GetUserRequest) => stream (GetUserResponse)
-      GET /users/{userId}/watch
+      + GET /users/{userId}/watch
 `,
 			wantErr: "stream methods are POST-only",
-		},
-		{
-			name: "unknown verb ends the service block",
-			input: routeRIDLHeader + `
-service Users
-  - Get(GetUserRequest) => (GetUserResponse)
-      FETCH /users/{userId}
-`,
-			wantErr: `error near "FETCH": unexpected token`,
 		},
 	}
 
@@ -252,4 +329,15 @@ service Users
 			assert.Contains(t, err.Error(), tc.wantErr)
 		})
 	}
+}
+
+func TestRIDLRoutePathSyntaxErrorHasPosition(t *testing.T) {
+	_, err := parseRouteRIDL(t, routeRIDLHeader+`
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      + GET /users/../{userId}
+`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "dot segments are not allowed")
+	assert.Regexp(t, `^\d+:\d+:`, err.Error())
 }

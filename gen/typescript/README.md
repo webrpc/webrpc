@@ -113,22 +113,28 @@ Passing any value other than `enum` or `union` (e.g. `-enumStyle=foo`) prints an
 
 ## REST routes
 
-Declare a route under a method in RIDL:
+Declare a route under a method in RIDL with a `+ VERB /path` line:
 
 ```ridl
 basepath = /api
 
 service Users
-  path = /users
-
   - GetUser(GetUserRequest) => (GetUserResponse)
-      GET /{id}
+      + GET /users/{id}
 ```
 
-The full route is `{basepath}{service.path}{method.path}`, here `GET /api/users/{id}`.
+The full route is `{basepath}{route.path}`, here `GET /api/users/{id}`. Route paths are absolute.
 
-- A route replaces the method's RPC path. The old `/api/Users/GetUser` path returns 404.
-- For both URLs, declare a second service without routes.
+- Declaring any route replaces the method's default RPC path. The old `/api/Users/GetUser` path returns 404.
+- To keep the RPC path, list it explicitly: `+ POST /Users/GetUser`. It then works as a normal REST route.
+- A method can declare several routes, each with its own verb and path params.
+- The first route is canonical. The generated client always calls it.
+- Later routes are server-only aliases. The server binds each by its own verb.
+- Example: `+ GET /items/find` and `+ QUERY /items/find` share one implementation. `GET` reads query params, `QUERY` reads the JSON body.
+- A duplicate verb and path is a generation error.
+- An alias that overlaps an unrouted method's RPC path is a generation error.
+- Routes may not overlap across services.
+- With `GET /a/{id}` and `QUERY /a/find`, `GET /a/find` binds `id=find`.
 - `{id}` binds to the required scalar field `id` on `GetUserRequest`.
 - `GET` and `DELETE`: every other field is a query param.
 - Lists repeat the key: `?ids=1&ids=2`.

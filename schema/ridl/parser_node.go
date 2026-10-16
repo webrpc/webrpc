@@ -360,8 +360,7 @@ type MethodNode struct {
 	outputs     argumentList
 	errors      []*TokenNode // List of error names this method can throw
 
-	routeVerb *TokenNode // optional REST route line, e.g. GET /{userId}
-	routePath *TokenNode
+	routes []*RouteNode // `+ GET /users/{userId}` lines, in declaration order
 }
 
 func (mn *MethodNode) Name() *TokenNode {
@@ -400,29 +399,27 @@ func (mn *MethodNode) Annotations() []*AnnotationNode {
 	return mn.annotations
 }
 
-func (mn *MethodNode) RouteVerb() *TokenNode {
-	if mn.routeVerb == nil {
-		return invalidToken
-	}
-	return mn.routeVerb
+func (mn *MethodNode) Routes() []*RouteNode {
+	return mn.routes
 }
 
-func (mn *MethodNode) RoutePath() *TokenNode {
-	if mn.routePath == nil {
-		return invalidToken
-	}
-	return mn.routePath
+type RouteNode struct {
+	verb *TokenNode
+	path *TokenNode
 }
 
-func (mn *MethodNode) HasRoute() bool {
-	return mn.routeVerb != nil
+func (rn *RouteNode) Verb() *TokenNode {
+	return rn.verb
+}
+
+func (rn *RouteNode) Path() *TokenNode {
+	return rn.path
 }
 
 type ServiceNode struct {
 	node
 
 	name              *TokenNode
-	path              *TokenNode // optional REST path prefix, e.g. path = /users
 	methods           []*MethodNode
 	methodAnnotations []*AnnotationNode
 	comment           string
@@ -434,13 +431,6 @@ func (sn ServiceNode) Type() NodeType {
 
 func (sn ServiceNode) Name() *TokenNode {
 	return sn.name
-}
-
-func (sn ServiceNode) Path() *TokenNode {
-	if sn.path == nil {
-		return invalidToken
-	}
-	return sn.path
 }
 
 func (sn ServiceNode) Methods() []*MethodNode {

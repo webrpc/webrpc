@@ -33,7 +33,7 @@
 {{- range $_, $service := .Services -}}
   {{- range $_, $method := $service.Methods -}}
     {{- if MethodHasRoute $method -}}
-      {{- stderrPrintf "%s generator error: the Dart target does not support REST routes yet (%s.%s declares '%s %s'); use the golang or typescript target\n" $.WebrpcTarget $service.Name $method.Name (MethodRouteVerb $method) (MethodRoutePath $method) -}}
+      {{- stderrPrintf "%s generator error: the Dart target does not support REST routes yet (%s.%s declares '%s %s'); use the golang or typescript target\n" $.WebrpcTarget $service.Name $method.Name (MethodCanonicalRoute $method).Verb (RoutePath (MethodCanonicalRoute $method)) -}}
       {{- exit 1 -}}
     {{- end -}}
   {{- end -}}

@@ -339,9 +339,10 @@ func NewClient(addr string, client HTTPClient) *Client {
 {{- define "clientRestCall"}}
 {{- $method := .Method }}
 {{- $keywordMap := .KeywordMap }}
-{{- $routePath := MethodRoutePath $method }}
+{{- $route := MethodCanonicalRoute $method }}
+{{- $routePath := RoutePath $route }}
 var ub restURL
-{{- range $_, $param := MethodRouteParams $method }}
+{{- range $_, $param := RouteParams $route }}
 {{- $expr := "" }}
 {{- $matchCustom := "" }}
 {{- if $method.Succinct }}
@@ -395,6 +396,6 @@ ub.addQuery{{$suffix}}("{{$param.Name}}", {{if $suffix}}{{$expr}}{{else}}restFor
 {{- end }}
 u, err := ub.build(c.base, "{{$routePath}}")
 if err == nil {
-	err = doRESTRequest(ctx, c.client, "{{MethodRouteVerb $method}}", u, {{MethodRouteHasBody $method}}, {{.In}}, {{.Out}})
+	err = doRESTRequest(ctx, c.client, "{{$route.Verb}}", u, {{RouteHasBody $route}}, {{.In}}, {{.Out}})
 }
 {{- end}}

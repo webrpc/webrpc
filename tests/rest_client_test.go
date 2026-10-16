@@ -147,3 +147,20 @@ func TestRESTClientMultiplePathParams(t *testing.T) {
 		t.Errorf("path = %q, want /rpc/items/1/children/2", got)
 	}
 }
+
+func TestRESTClientCallsCanonicalRouteOnly(t *testing.T) {
+	hc := &capturingClient{}
+	api := client.NewTestApiRestClient("http://example.test", hc)
+	if _, err := api.LookupItem(context.Background(), 5); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := api.FindItems(context.Background(), "x"); err != nil {
+		t.Fatal(err)
+	}
+	if req := hc.reqs[0]; req.Method != "GET" || req.URL.Path != "/rpc/items/lookup/5" {
+		t.Errorf("LookupItem: got %s %s, want GET /rpc/items/lookup/5", req.Method, req.URL.Path)
+	}
+	if req := hc.reqs[1]; req.Method != "GET" || req.URL.Path != "/rpc/items/find" || req.URL.Query().Get("q") != "x" {
+		t.Errorf("FindItems: got %s %s, want GET /rpc/items/find?q=x", req.Method, req.URL.String())
+	}
+}

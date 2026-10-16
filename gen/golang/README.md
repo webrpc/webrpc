@@ -86,22 +86,28 @@ type User struct {
 
 ## REST routes
 
-Declare a route under a method in RIDL:
+Declare routes under a method in RIDL with `+ VERB /path` lines:
 
 ```ridl
 basepath = /api
 
 service Users
-  path = /users
-
   - GetUser(GetUserRequest) => (GetUserResponse)
-      GET /{id}
+      + GET /users/{id}
 ```
 
-The full route is `{basepath}{service.path}{method.path}`, here `GET /api/users/{id}`.
+The full route is `{basepath}{route.path}`, here `GET /api/users/{id}`. Route paths are absolute.
 
-- A route replaces the method's RPC path. The old `/api/Users/GetUser` path returns 404.
-- For both URLs, declare a second service without routes.
+- Declaring any route replaces the method's default RPC path. The old `/api/Users/GetUser` path returns 404.
+- To keep the default RPC path, list it as a route: `+ POST /Users/GetUser`.
+- A method can have several routes. The server registers every one of them.
+- A duplicate verb and path is a generation error.
+- An alias that overlaps an unrouted method's RPC path is a generation error.
+- Routes may not overlap across services.
+- With `GET /a/{id}` and `QUERY /a/find`, `GET /a/find` binds `id=find`.
+- The first route is canonical. The generated client calls only it.
+- Later routes are server-only aliases, e.g. for legacy URLs.
+- Each route binds params by its own verb. `GET /users/find` can read the query while `QUERY /users/find` reads the JSON body.
 - `{id}` binds to the required scalar field `id` on `GetUserRequest`.
 - `GET` and `DELETE`: every other field is a query param.
 - Lists repeat the key: `?ids=1&ids=2`.
@@ -118,6 +124,7 @@ The full route is `{basepath}{service.path}{method.path}`, here `GET /api/users/
 - Integer params are range-checked per type. `int8` value `300` returns 400.
 - `WebrpcMethods()` keys routed methods by their ServeMux pattern, e.g. `GET /api/users/{id}`.
   Mount them on `http.ServeMux` (Go 1.23+) or chi v5.2.3+. Older chi treats the key as a literal path.
+- A method with two routes has two `WebrpcMethods()` entries.
 - Code that mounts these keys as router paths, or compares them to `r.URL.Path`, must handle routed methods.
 - `MethodCtx(ctx)` works for REST calls.
 - Routes need Go 1.23+ (they use `Request.Pattern`).
