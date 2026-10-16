@@ -117,6 +117,7 @@ The full route is `{basepath}{service.path}{method.path}`, here `GET /api/users/
 - A missing required query param returns 400, e.g. `missing query param 'limit'`.
 - Integer params are range-checked per type. `int8` value `300` returns 400.
 - `WebrpcMethods()` keys routed methods by their ServeMux pattern, e.g. `GET /api/users/{id}`.
+  Mount them on `http.ServeMux` (Go 1.23+) or chi v5.2.3+. Older chi treats the key as a literal path.
 - Code that mounts these keys as router paths, or compares them to `r.URL.Path`, must handle routed methods.
 - `MethodCtx(ctx)` works for REST calls.
 - Routes need Go 1.23+ (they use `Request.Pattern`).
