@@ -20,21 +20,41 @@ const {{.Name}}PathPrefix = "{{$basepath}}{{.Name}}/"
 
 {{- $serviceNameClient := (printf "%sClient" ($service.Name | firstWordToLower)) }}
 {{- $ServiceNameClient := (printf "%sClient" ($service.Name | firstLetterToUpper)) }}
+{{- $serviceHasRPC := false -}}
+{{- $serviceHasRoutes := false -}}
+{{- range $_, $method := $service.Methods -}}
+{{- if not (MethodHasRoute $method) -}}
+{{- $serviceHasRPC = true -}}
+{{- else -}}
+{{- $serviceHasRoutes = true -}}
+{{- end -}}
+{{- end }}
 type {{$serviceNameClient}} struct {
 	client HTTPClient
 	urls	 [{{len $service.Methods}}]string
+	{{- if $serviceHasRoutes }}
+	base string
+	{{- end }}
 }
 
 func New{{$ServiceNameClient}}(addr string, client HTTPClient) {{$ServiceNameClient}} {
+	{{- if $serviceHasRPC }}
 	prefix := serviceURL(addr, {{$service.Name}}PathPrefix)
+	{{- end }}
+	{{- if $serviceHasRoutes }}
+	base := serviceURL(addr, "")
+	{{- end }}
 	urls := [{{len $service.Methods}}]string{
 	{{- range $_, $method := $service.Methods}}
-		prefix + "{{$method.Name}}",
+		{{if MethodHasRoute $method}}""{{else}}prefix + "{{$method.Name}}"{{end}},
 	{{- end}}
 	}
 	return &{{$serviceNameClient}}{
 		client: client,
 		urls:	 urls,
+		{{- if $serviceHasRoutes }}
+		base: base,
+		{{- end }}
 	}
 }
 
@@ -81,7 +101,12 @@ func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context, {{$input.
 	{{- end }}
 	err := doHTTPUploadRequest(ctx, c.client, c.urls[{{$i}}], {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}, parts, &out)
 	{{- else }}
+	{{- if MethodHasRoute $method }}
+	{{- $inKw := "" }}{{ if index $keywordMap $input.Name }}{{ $inKw = "_" }}{{ end }}
+	{{- template "clientRestCall" dict "Method" $method "KeywordMap" $keywordMap "Json" $json "In" (printf "%s%s" $input.Name $inKw) "Out" "&out" }}
+	{{- else }}
 	err := doHTTPRequest(ctx, c.client, c.urls[{{$i}}], {{$input.Name}}{{if index $keywordMap $input.Name}}_{{end}}, &out)
+	{{- end }}
 	{{- end }}
 	return out, err
 	{{- end }}
@@ -152,7 +177,11 @@ func (c *{{$serviceNameClient}}) {{$method.Name}}(ctx context.Context{{range $_,
 
 	return fileFromResponse(resp), nil
 	{{- else }}
+	{{- if MethodHasRoute $method }}
+	{{- template "clientRestCall" dict "Method" $method "KeywordMap" $keywordMap "Json" $json "In" $inputVar "Out" $outputVar }}
+	{{- else }}
 	err := doHTTPRequest(ctx, c.client, c.urls[{{$i}}], {{$inputVar}}, {{$outputVar}})
+	{{- end }}
 
 	return {{range $i, $output := $method.Outputs}}out.Ret{{$i}}, {{end}}err
 	{{- end }}
@@ -306,3 +335,67 @@ func NewClient(addr string, client HTTPClient) *Client {
 	}
 }
 {{- end -}}
+
+{{- define "clientRestCall"}}
+{{- $method := .Method }}
+{{- $keywordMap := .KeywordMap }}
+{{- $route := MethodCanonicalRoute $method }}
+{{- $routePath := RoutePath $route }}
+var ub restURL
+{{- range $_, $param := RouteParams $route }}
+{{- $expr := "" }}
+{{- $matchCustom := "" }}
+{{- if $method.Succinct }}
+{{- $inKw := "" }}{{ if index $keywordMap (index $method.Inputs 0).Name }}{{ $inKw = "_" }}{{ end }}
+{{- $inName := printf "%s%s" (index $method.Inputs 0).Name $inKw }}
+{{- range $_, $f := (index $method.Inputs 0).Type.Struct.Type.Fields }}
+{{- $jn := $f.Name }}
+{{- $gn := firstLetterToUpper $f.Name }}
+{{- $custom := "" }}
+{{- range $_, $meta := $f.Meta }}
+{{- if exists $meta "json" }}{{ $jn = get $meta "json" }}{{ end }}
+{{- if exists $meta "go.tag.json" }}{{ $jn = get $meta "go.tag.json" }}{{ end }}
+{{- if exists $meta "go.field.name" }}{{ $gn = get $meta "go.field.name" }}{{ end }}
+{{- if exists $meta "go.field.type" }}{{ $custom = get $meta "go.field.type" }}{{ end }}
+{{- end }}
+{{- if eq $jn $param.Name }}{{ $expr = printf "%s.%s" $inName $gn }}{{ $matchCustom = $custom }}{{ end }}
+{{- end }}
+{{- else }}
+{{- range $_, $in := $method.Inputs }}
+{{- if eq $in.Name $param.Name }}
+{{- $argKw := "" }}{{ if index $keywordMap $in.Name }}{{ $argKw = "_" }}{{ end }}
+{{- $expr = printf "%s%s" $in.Name $argKw }}
+{{- range $_, $meta := $in.Meta }}{{ if exists $meta "go.field.type" }}{{ $matchCustom = get $meta "go.field.type" }}{{ end }}{{ end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- $kind := "Text" }}
+{{- if $matchCustom }}{{ $kind = "Custom" }}{{ if eq $param.TypeExpr "string" }}{{ $kind = "CustomString" }}{{ end }}
+{{- else if eq $param.TypeExpr "string" }}{{ $kind = "String" }}
+{{- else if eq $param.TypeExpr "bool" }}{{ $kind = "Bool" }}
+{{- else if hasPrefix $param.TypeExpr "uint" }}{{ $kind = "Uint" }}
+{{- else if hasPrefix $param.TypeExpr "int" }}{{ $kind = "Int" }}
+{{- else if hasPrefix $param.TypeExpr "float" }}{{ $kind = "Float" }}
+{{- end }}
+{{- $suffix := "" }}
+{{- if eq $kind "Text" }}{{ $suffix = "Text" }}{{ else if eq $kind "Custom" }}{{ $suffix = "Custom" }}{{ else if eq $kind "CustomString" }}{{ $suffix = "CustomString" }}{{ end }}
+{{- $isPath := ne (replaceAll $routePath (printf "{%s}" $param.Name) "") $routePath }}
+{{- if $isPath }}
+ub.setPath{{$suffix}}("{{$param.Name}}", {{if $suffix}}{{$expr}}{{else}}restFormat{{$kind}}({{$expr}}){{end}})
+{{- else if $param.Repeated }}
+for _, v := range {{$expr}} {
+	ub.addQuery{{$suffix}}("{{$param.Name}}", {{if $suffix}}v{{else}}restFormat{{$kind}}(v){{end}})
+}
+{{- else if and $param.Optional (not $matchCustom) }}
+if {{$expr}} != nil {
+	ub.addQuery{{$suffix}}("{{$param.Name}}", {{if $suffix}}*{{$expr}}{{else}}restFormat{{$kind}}(*{{$expr}}){{end}})
+}
+{{- else }}
+ub.addQuery{{$suffix}}("{{$param.Name}}", {{if $suffix}}{{$expr}}{{else}}restFormat{{$kind}}({{$expr}}){{end}})
+{{- end }}
+{{- end }}
+u, err := ub.build(c.base, "{{$routePath}}")
+if err == nil {
+	err = doRESTRequest(ctx, c.client, "{{$route.Verb}}", u, {{RouteHasBody $route}}, {{.In}}, {{.Out}})
+}
+{{- end}}

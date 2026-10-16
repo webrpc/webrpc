@@ -120,6 +120,9 @@
 			{{- set $opts "fileDownload" true -}}
 			{{- set $opts "fileType" true -}}
 		{{- end -}}
+		{{ if MethodHasRoute $method -}}
+			{{- set $opts "restRoutes" true -}}
+		{{- end -}}
 	{{- end -}}
 {{- end -}}
 
@@ -222,7 +225,7 @@ func WebRPCSchemaHash() string {
 
 {{/* Client/server helpers */}}
 {{- if or $opts.client $opts.server }}
-{{ template "helpers" dict "Opts" $opts }}
+{{ template "helpers" dict "Opts" $opts "Json" $json }}
 
 {{- if $usesBigInts}}
 {{ template "bigintHelpers" dict "Schema" .WebRPCSchema "Services" .Services "Opts" $opts }}

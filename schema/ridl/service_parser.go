@@ -1,6 +1,11 @@
 package ridl
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/webrpc/webrpc/schema"
+)
 
 func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 	return func(p *parser) parserState {
@@ -105,6 +110,7 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 		}
 
 		// Check for optional errors clause
+		pos := p.pos
 		matches, err = p.match(tokenWhitespace, tokenWord)
 		if err == nil && matches[1].val == wordErrors {
 			// Parse bar-separated list of error names
@@ -113,6 +119,8 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 				return p.stateError(err)
 			}
 			mn.errors = errorNames
+		} else {
+			p.pos = pos // not an errors clause, e.g. a route line on the next line
 		}
 
 		sn.methods = append(sn.methods, mn)
@@ -146,6 +154,26 @@ func parserStateServiceMethod(s *ServiceNode) parserState {
 			state := parseStateServiceMethodDefinition(s)
 			return state
 
+		case tokenPlusSign:
+			// + POST /users/{userId}, a REST route for the preceding method
+			if err := parseMethodRoute(p, s); err != nil {
+				return p.stateError(err)
+			}
+
+		case tokenWord:
+			switch {
+			case tok.val == wordPath:
+				return p.stateError(fmt.Errorf("service-level 'path' is no longer supported: declare absolute routes under methods, e.g. '+ GET /users/{userId}'"))
+
+			case schema.IsRouteVerb(tok.val):
+				return p.stateError(fmt.Errorf("route '%s' must start with '+': write '+ %s /path' under the method", tok.val, tok.val))
+
+			default:
+				// any other word ends the service block
+				p.emit(s)
+				return parserDefaultState
+			}
+
 		default:
 			p.emit(s)
 			return parserDefaultState
@@ -154,6 +182,52 @@ func parserStateServiceMethod(s *ServiceNode) parserState {
 
 		return parserStateServiceMethod(s)
 	}
+}
+
+// parseMethodRoute parses a route meta line, e.g. `+ GET /users/{userId}`,
+// and appends it to the method defined just above it.
+func parseMethodRoute(p *parser, s *ServiceNode) error {
+	if _, err := p.match(tokenPlusSign); err != nil {
+		return err
+	}
+	if p.cursor().tt == tokenWhitespace {
+		p.next()
+	}
+
+	if len(s.methods) == 0 {
+		return fmt.Errorf("route must be declared under a service method")
+	}
+	if len(s.methodAnnotations) > 0 {
+		return fmt.Errorf("route must directly follow its method: move the annotations above the next method")
+	}
+	mn := s.methods[len(s.methods)-1]
+
+	verbTok := p.cursor()
+	if verbTok.tt == tokenNewLine || verbTok.tt == tokenEOF {
+		return fmt.Errorf("expecting route verb after '+'")
+	}
+	if verbTok.tt != tokenWord || !schema.IsRouteVerb(verbTok.val) {
+		return fmt.Errorf("expecting route '+ VERB /path' with VERB one of %s, got %q", strings.Join(schema.RouteVerbs, ", "), verbTok.val)
+	}
+	p.next()
+
+	if _, err := p.match(tokenWhitespace); err != nil {
+		return fmt.Errorf("expecting route path after '%s': %w", verbTok.val, err)
+	}
+
+	pathToken, err := p.expectRoutePath()
+	if err != nil {
+		return fmt.Errorf("expecting route path after '%s': %w", verbTok.val, err)
+	}
+	if err := schema.CheckRoutePathSyntax(pathToken.val); err != nil {
+		return fmt.Errorf("invalid route of method '%s': %w", mn.name.String(), err)
+	}
+	if err := p.expectOptionalCommentOrEOL(); err != nil {
+		return err
+	}
+
+	mn.routes = append(mn.routes, &RouteNode{verb: newTokenNode(verbTok), path: newTokenNode(pathToken)})
+	return nil
 }
 
 func parserStateService(p *parser) parserState {

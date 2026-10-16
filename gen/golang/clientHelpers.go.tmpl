@@ -132,4 +132,193 @@ func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out i
 	return err
 }
 
+{{- if $opts.restRoutes }}
+
+// restURL collects one REST request's path and query params; build returns the first error.
+type restURL struct {
+	path  map[string]string
+	query url.Values
+	err   error
+}
+
+func (u *restURL) setPath(name, value string) {
+	if u.path == nil {
+		u.path = map[string]string{}
+	}
+	u.path[name] = value
+}
+
+func (u *restURL) addQuery(name, value string) {
+	if u.query == nil {
+		u.query = url.Values{}
+	}
+	u.query.Add(name, value)
+}
+
+func (u *restURL) setPathText(name string, v encoding.TextMarshaler) { u.setPath(name, u.text(v)) }
+
+func (u *restURL) addQueryText(name string, v encoding.TextMarshaler) { u.addQuery(name, u.text(v)) }
+
+func (u *restURL) setPathCustom(name string, v any) { u.setPath(name, u.custom(v)) }
+
+func (u *restURL) addQueryCustom(name string, v any) { u.addQuery(name, u.custom(v)) }
+
+func (u *restURL) setPathCustomString(name string, v any) { u.setPath(name, u.customString(v)) }
+
+func (u *restURL) addQueryCustomString(name string, v any) { u.addQuery(name, u.customString(v)) }
+
+func (u *restURL) text(v encoding.TextMarshaler) string {
+	b, err := v.MarshalText()
+	if err != nil && u.err == nil {
+		u.err = ErrWebrpcRequestFailed.WithCausef("failed to marshal URL param: %w", err)
+	}
+	return string(b)
+}
+
+func (u *restURL) json(v any) string {
+	b, err := {{$json}}.Marshal(v)
+	if err != nil && u.err == nil {
+		u.err = ErrWebrpcRequestFailed.WithCausef("failed to marshal URL param: %w", err)
+	}
+	return string(b)
+}
+
+// custom renders a go.field.type override: MarshalText if implemented, else JSON.
+func (u *restURL) custom(v any) string {
+	if m, ok := v.(encoding.TextMarshaler); ok {
+		return u.text(m)
+	}
+	return u.json(v)
+}
+
+// customString renders a string-typed override: MarshalText if implemented, else its JSON string value.
+func (u *restURL) customString(v any) string {
+	if m, ok := v.(encoding.TextMarshaler); ok {
+		return u.text(m)
+	}
+	b, err := {{$json}}.Marshal(v)
+	var s string
+	if err == nil {
+		err = {{$json}}.Unmarshal(b, &s)
+	}
+	if err != nil && u.err == nil {
+		u.err = ErrWebrpcRequestFailed.WithCausef("failed to marshal URL param: %w", err)
+	}
+	return s
+}
+
+// build expands {name} placeholders in one pass, so a value is never scanned again.
+func (u *restURL) build(base, route string) (string, error) {
+	if u.err != nil {
+		return "", u.err
+	}
+	var b strings.Builder
+	b.WriteString(base)
+	rest := route
+	for {
+		open := strings.IndexByte(rest, '{')
+		if open < 0 {
+			b.WriteString(rest)
+			break
+		}
+		closing := strings.IndexByte(rest[open:], '}')
+		if closing < 0 {
+			return "", ErrWebrpcBadRequest.WithCausef("unclosed placeholder in route %q", route)
+		}
+		name := rest[open+1 : open+closing]
+		value := u.path[name]
+		if value == "" || value == "." || value == ".." {
+			return "", ErrWebrpcBadRequest.WithCausef("invalid path param '%s': %q", name, value)
+		}
+		b.WriteString(rest[:open])
+		b.WriteString(url.PathEscape(value))
+		rest = rest[open+closing+1:]
+	}
+	if len(u.query) > 0 {
+		b.WriteByte('?')
+		b.WriteString(u.query.Encode())
+	}
+	return b.String(), nil
+}
+
+// restFormat* render a route param in the form the server's restString, restUint, ... parse.
+func restFormatString[T ~string](v T) string { return string(v) }
+
+func restFormatBool[T ~bool](v T) string { return strconv.FormatBool(bool(v)) }
+
+func restFormatInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](v T) string {
+	return strconv.FormatInt(int64(v), 10)
+}
+
+func restFormatUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr](v T) string {
+	return strconv.FormatUint(uint64(v), 10)
+}
+
+// 64 bits round-trips float32 exactly, so the server's 32-bit parse gets the same value.
+func restFormatFloat[T ~float32 | ~float64](v T) string {
+	return strconv.FormatFloat(float64(v), 'g', -1, 64)
+}
+
+// doRESTRequest sends a REST request and decodes the response into out.
+func doRESTRequest(ctx context.Context, client HTTPClient, method, rawURL string, hasBody bool, in, out interface{}) error {
+	var body io.Reader
+	if hasBody {
+		reqBody, err := {{$json}}.Marshal(in)
+		if err != nil {
+			return ErrWebrpcRequestFailed.WithCausef("failed to marshal JSON body: %w", err)
+		}
+		body = bytes.NewReader(reqBody)
+	}
+	if err := ctx.Err(); err != nil {
+		return ErrWebrpcRequestFailed.WithCausef("aborted because context was done: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, rawURL, body)
+	if err != nil {
+		return ErrWebrpcRequestFailed.WithCausef("could not build request: %w", err)
+	}
+	req.Header.Set("Accept", "application/json")
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	{{- if eq $opts.webrpcHeader true }}
+	req.Header.Set(WebrpcHeader, WebrpcHeaderValue)
+	{{- end }}
+	if headers, ok := HTTPRequestHeaders(ctx); ok {
+		for k := range headers {
+			for _, v := range headers[k] {
+				req.Header.Add(k, v)
+			}
+		}
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return ErrWebrpcRequestFailed.WithCause(err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return ErrWebrpcBadResponse.WithCausef("failed to read response body: %w", err)
+	}
+	if resp.StatusCode != 200 {
+		var rpcErr WebRPCError
+		if err := {{$json}}.Unmarshal(respBody, &rpcErr); err != nil {
+			return ErrWebrpcBadResponse.WithCausef("failed to unmarshal server error: %w", err)
+		}
+		if rpcErr.Cause != "" {
+			rpcErr.cause = errors.New(rpcErr.Cause)
+		}
+		return rpcErr
+	}
+	if out != nil {
+		if err := {{$json}}.Unmarshal(respBody, out); err != nil {
+			return ErrWebrpcBadResponse.WithCausef("failed to unmarshal JSON response body: %w", err)
+		}
+	}
+	return nil
+}
+{{- end }}
+
 {{- end -}}

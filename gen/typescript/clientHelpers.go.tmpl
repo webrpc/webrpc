@@ -9,6 +9,41 @@ const createHttpRequest = (body: string = '{}', headers: object = {}, signal: Ab
   return { method: 'POST', headers: reqHeaders, body, signal }
 }
 
+{{- if $opts.restRoutes }}
+
+// Checks the raw value: decoding would wrongly reject an encoded "%2e%2e", which is sent safely.
+const isDotPathSegment = (segment: string): boolean => segment === '' || segment === '.' || segment === '..'
+
+// Path fields fill the template; the rest go to the query string, or to the JSON body for body verbs.
+const createHttpRestRequest = (hostname: string, method: string, path: string, hasBody: boolean, req: object, headers: object = {}, signal: AbortSignal | null = null): [string, object] => {
+  const fields: { [key: string]: any } = JSON.parse(JsonEncode(req))
+  const query = new URLSearchParams()
+  // One replace pass over the template, so a substituted value is never re-expanded.
+  path = path.replace(/\{(\w+)\}/g, (_, name) => {
+    const value = String(fields[name])
+    delete fields[name]
+    // A dot segment is normalized away by URL parsers, and encoding cannot fix it.
+    if (isDotPathSegment(value)) {
+      throw WebrpcBadRequestError.new({ cause: `invalid path param '${name}': "${value}" is not a valid path segment` })
+    }
+    return encodeURIComponent(value)
+  })
+  if (!hasBody) {
+    for (const [name, value] of Object.entries(fields)) {
+      for (const v of Array.isArray(value) ? value : value == null ? [] : [value]) {
+        query.append(name, String(v))
+      }
+    }
+  }
+  const qs = query.toString()
+  const reqHeaders: { [key: string]: string } = { ...headers {{- if eq $opts.webrpcHeader true }}, [WebrpcHeader]: WebrpcHeaderValue{{ end }} }
+  if (hasBody) {
+    reqHeaders['Content-Type'] = 'application/json'
+  }
+  return [hostname + path + (qs ? '?' + qs : ''), { method, headers: reqHeaders, body: hasBody ? JsonEncode(req) : undefined, signal }]
+}
+{{- end }}
+
 const buildResponse = (res: Response): Promise<any> => {
   return res.text().then(text => {
     let data

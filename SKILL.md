@@ -86,6 +86,23 @@ service Example
 - Custom annotations (`@access:`, `@perms:`) are readable at runtime: middleware calls
   `proto.MethodCtx(ctx)` then `Annotation("access")` / `HasAnnotation(...)`.
 
+## REST routes
+```
+basepath = /api
+
+service Users
+  - GetUser(GetUserRequest) => (GetUserResponse)
+      + GET /users/{id}
+      + POST /Users/GetUser      # extra route: server-only alias, keeps the old RPC path
+```
+- `+ VERB /path` goes under the method. Paths are absolute; the full route is `{basepath}{path}`.
+- A method can have several routes. The first is canonical: the generated client calls only it.
+- Any route replaces the default RPC path (`POST {basepath}{Service}/{Method}`).
+  List it as a route to keep it.
+- `{id}` binds to a required scalar request field. `GET`/`DELETE` send other fields as query
+  params; `POST`/`PUT`/`PATCH`/`QUERY` send them in the JSON body.
+- Only the golang and typescript targets support routes. Other targets exit with an error.
+
 ## Field metadata
 ```
   - id: string

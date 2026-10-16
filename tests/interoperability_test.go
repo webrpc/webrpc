@@ -22,3 +22,11 @@ func TestInteroperability(t *testing.T) {
 	err := client.RunTests(context.Background(), srv.URL)
 	assert.NoError(t, err)
 }
+
+func TestRESTInteroperability(t *testing.T) {
+	srv := httptest.NewServer(server.NewTestApiRestServer(server.NewTestRESTServer()))
+	defer srv.Close()
+
+	err := client.RunRESTTests(context.Background(), srv.URL)
+	assert.NoError(t, err)
+}
