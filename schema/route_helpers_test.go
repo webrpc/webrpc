@@ -69,10 +69,9 @@ func TestRestRouteHandlerFieldNames(t *testing.T) {
 }
 
 // TestRestAllowOverlapEntries pins the static/param overlap: the planner
-// keeps one entry per static path and one per param shape, each carrying its
-// own verbs; the generated restAllowMethods accumulates every entry that
-// matches the request path, so the Allow value is the union (proven
-// end-to-end by TestRESTAllowUnionsOverlappingRoutes).
+// unions the param shape's verbs into the static path's entry, so the
+// generated restAllowMethods returns the full answer on its first match
+// (proven end-to-end by TestRESTAllowUnionsOverlappingRoutes).
 func TestRestAllowOverlapEntries(t *testing.T) {
 	s := restPlannerSchema(t, `
 		{"verb": "GET", "path": "/a/{x}"},
@@ -81,13 +80,45 @@ func TestRestAllowOverlapEntries(t *testing.T) {
 
 	require.Len(t, r.Allow, 1)
 	assert.Equal(t, []string{"/rpc/a/b"}, r.Allow[0].Paths)
-	assert.Equal(t, "POST", r.Allow[0].Allow, "static entry carries only its own verbs")
+	assert.Equal(t, "GET, HEAD, POST", r.Allow[0].Allow, "static path unions the overlapping shape's verbs")
 
 	require.Len(t, r.Shapes, 1)
 	assert.Equal(t, "GET, HEAD", r.Shapes[0].Allow, "param shape carries only its own verbs")
-	// The shape matches both the static path and any other /rpc/a/{x} path,
-	// so both entries accumulate for either request path.
+	// The shape matches both the static path and any other /rpc/a/{x} path.
 	assert.Equal(t, "/rpc/a/", r.Shapes[0].Shape.Literals[0])
+}
+
+// TestRestAllowStaticParamUnion pins the interop case: /items/find serves
+// GET+QUERY statically but the /items/{x} shape also matches it, so a DELETE
+// to it really dispatches and the Allow value must be the full union.
+func TestRestAllowStaticParamUnion(t *testing.T) {
+	s := restPlannerSchema(t, `
+		{"verb": "GET", "path": "/items/find"},
+		{"verb": "QUERY", "path": "/items/find"},
+		{"verb": "GET", "path": "/items/{x}"},
+		{"verb": "PUT", "path": "/items/{x}"},
+		{"verb": "PATCH", "path": "/items/{x}"},
+		{"verb": "DELETE", "path": "/items/{x}"}`)
+	r := RestRouter(s.Services[0])
+
+	require.Len(t, r.Allow, 1)
+	assert.Equal(t, []string{"/rpc/items/find"}, r.Allow[0].Paths)
+	assert.Equal(t, "DELETE, GET, HEAD, PATCH, PUT, QUERY", r.Allow[0].Allow)
+}
+
+// TestRestAllowOverlappingShapes pins the cross-shape union: two param shapes
+// can cover one concrete path (GET /{x}/b and DELETE /a/{y} both match /a/b),
+// and the generated table returns the first match, so each carries the
+// other's verbs.
+func TestRestAllowOverlappingShapes(t *testing.T) {
+	s := restPlannerSchema(t, `
+		{"verb": "GET", "path": "/{x}/b"},
+		{"verb": "DELETE", "path": "/a/{y}"}`)
+	r := RestRouter(s.Services[0])
+
+	require.Len(t, r.Shapes, 2)
+	assert.Equal(t, "DELETE, GET, HEAD", r.Shapes[0].Allow)
+	assert.Equal(t, "DELETE, GET, HEAD", r.Shapes[1].Allow)
 }
 
 // TestRestVarNameKeyword sanitizes Go keywords and matcher-local names for

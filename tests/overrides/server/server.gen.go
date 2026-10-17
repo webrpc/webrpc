@@ -95,14 +95,14 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 		server.OnError = options[0].OnError
 		server.OnRequest = options[0].OnRequest
 	}
-	server.restIndex = restHandler("RestOverrides", "Index", false,
+	server.restIndex = restHandler("GET /{$}", "RestOverrides", "Index", false,
 		func(ctx context.Context, req restOverridesServiceIndexArgs) (restOverridesServiceIndexResult, error) {
 			err := server.RestOverridesServer.Index(ctx)
 			return restOverridesServiceIndexResult{}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restSearch = restHandler("RestOverrides", "Search", false,
+	server.restSearch = restHandler("GET /by/{lbl}", "RestOverrides", "Search", false,
 		server.RestOverridesServer.Search,
 		func(p *restParams, req *SearchRequest) error {
 			if err := restPath(p, "lbl", "string", &req.Key, restJSONString); err != nil {
@@ -117,7 +117,7 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restScale = restHandler("RestOverrides", "Scale", false,
+	server.restScale = restHandler("GET /scale/{factor}", "RestOverrides", "Scale", false,
 		func(ctx context.Context, req restOverridesServiceScaleArgs) (restOverridesServiceScaleResult, error) {
 			ret0, err := server.RestOverridesServer.Scale(ctx, req.Arg0)
 			return restOverridesServiceScaleResult{Ret0: ret0}, err
@@ -129,7 +129,7 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restScaleGet = restHandler("RestOverrides", "Scale", false,
+	server.restScaleGet = restHandler("GET /scale/{factor}/half", "RestOverrides", "Scale", false,
 		func(ctx context.Context, req restOverridesServiceScaleArgs) (restOverridesServiceScaleResult, error) {
 			ret0, err := server.RestOverridesServer.Scale(ctx, req.Arg0)
 			return restOverridesServiceScaleResult{Ret0: ret0}, err
@@ -176,26 +176,22 @@ func (s *restOverridesService) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	case "GET", "HEAD":
 		switch path {
 		case "/":
-			r.Pattern = "GET /{$}"
 			s.restIndex(w, r)
 		default:
 			if restTail, ok := strings.CutSuffix(path, "/half"); ok {
 				if factor, ok := restSeg1(restTail, "/scale/"); ok {
 					r.SetPathValue("factor", factor)
-					r.Pattern = "GET /scale/{factor}/half"
 					s.restScaleGet(w, r)
 					return
 				}
 			}
 			if lbl, ok := restSeg1(path, "/by/"); ok {
 				r.SetPathValue("lbl", lbl)
-				r.Pattern = "GET /by/{lbl}"
 				s.restSearch(w, r)
 				return
 			}
 			if factor, ok := restSeg1(path, "/scale/"); ok {
 				r.SetPathValue("factor", factor)
-				r.Pattern = "GET /scale/{factor}"
 				s.restScale(w, r)
 				return
 			}
@@ -412,9 +408,11 @@ func (p *restParams) values() map[string][]string {
 }
 
 // restHandler runs one REST route: body decode, param binding, then fn.
-func restHandler[I, O any](service, method string, hasBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+func restHandler[I, O any](pattern, service, method string, hasBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// The dispatcher set Pattern and path values on r; keep that request in the context.
+		// Identify the route before user code can run: MethodCtx resolves the
+		// method from r.Pattern (the dispatcher already set the path values).
+		r.Pattern = pattern
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
 		ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
@@ -522,38 +520,26 @@ func restSeg1(path, prefix string) (string, bool) {
 }
 
 // restAllowMethods returns the Allow value for a routed path, so a
-// wrong-method request answers 405 without probing a router. Every matching
-// entry accumulates, so a path served by both a static route and a param
-// route reports every method that would dispatch.
+// wrong-method request answers 405 without probing a router. The planner
+// unions every method that could dispatch into each entry's literal, so the
+// first match is the full answer.
 func (s *restOverridesService) restAllowMethods(path string) (string, bool) {
-	var allow []string
-	add := func(verbs string) {
-		for _, verb := range strings.Split(verbs, ", ") {
-			if !slices.Contains(allow, verb) {
-				allow = append(allow, verb)
-			}
-		}
-	}
 	switch path {
 	case "/":
-		add("GET, HEAD")
+		return "GET, HEAD", true
 	}
 	if _, ok := restSeg1(path, "/by/"); ok {
-		add("GET, HEAD")
+		return "GET, HEAD", true
 	}
 	if _, ok := restSeg1(path, "/scale/"); ok {
-		add("GET, HEAD")
+		return "GET, HEAD", true
 	}
 	if restTail, ok := strings.CutSuffix(path, "/half"); ok {
 		if _, ok := restSeg1(restTail, "/scale/"); ok {
-			add("GET, HEAD")
+			return "GET, HEAD", true
 		}
 	}
-	if len(allow) == 0 {
-		return "", false
-	}
-	slices.Sort(allow)
-	return strings.Join(allow, ", "), true
+	return "", false
 }
 
 // restMiss answers requests no route matched: 405 with Allow, or 404.

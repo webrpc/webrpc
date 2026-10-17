@@ -247,7 +247,6 @@ func MethodRPCPath(m *Method) string {
 type RestRoute struct {
 	Verb    string
 	Path    string // literal request path
-	Pattern string // r.Pattern value; empty for plain RPC methods
 	Handler string // generated Go handler, e.g. "s.restGetItem" or "s.handleRpcMethod"
 	Method  *Method
 	Route   *MethodRoute // nil for a plain RPC method
@@ -327,7 +326,6 @@ func RestRouter(svc *Service) *RestRouterPlan {
 			addRoute(&RestRoute{
 				Verb:    route.Verb,
 				Path:    RoutePath(route),
-				Pattern: RoutePattern(route),
 				Handler: "s." + RouteHandlerField(route),
 				Method:  m,
 				Route:   route,
@@ -358,6 +356,70 @@ func RestRouter(svc *Service) *RestRouterPlan {
 		router.Verbs = append(router.Verbs, verbCase)
 	}
 
+	// Param shapes: one entry per distinct literal structure, carrying the
+	// union of its own routes' verbs.
+	type paramShape struct {
+		shape *RouteShape
+		segs  []string
+		verbs map[string]bool
+	}
+	var paramShapes []paramShape
+	shapeIndex := map[string]int{}
+	for _, verb := range RouteVerbs {
+		for _, r := range verbRoutes[verb] {
+			shape := RouteShapeOf(r.Route)
+			if len(shape.Params) == 0 {
+				continue
+			}
+			key := strings.Join(shape.Literals, "\x00")
+			i, ok := shapeIndex[key]
+			if !ok {
+				i = len(paramShapes)
+				shapeIndex[key] = i
+				paramShapes = append(paramShapes, paramShape{
+					shape: shape,
+					segs:  routePathSegments(RoutePath(r.Route)),
+					verbs: map[string]bool{},
+				})
+			}
+			paramShapes[i].verbs[verb] = true
+		}
+	}
+	// Overlapping shapes serve some concrete path together (e.g. GET /{x}/b
+	// and DELETE /a/{y} both match /a/b), and the generated Allow table
+	// returns the first match, so each shape unions the other's verbs.
+	for i := range paramShapes {
+		for j := i + 1; j < len(paramShapes); j++ {
+			a, b := &paramShapes[i], &paramShapes[j]
+			if overlap, _, _ := compareRouteSegments(a.segs, b.segs); overlap {
+				for verb := range a.verbs {
+					b.verbs[verb] = true
+				}
+				for verb := range b.verbs {
+					a.verbs[verb] = true
+				}
+			}
+		}
+	}
+	// staticVerbs unions a static path's own verbs with every param shape
+	// that also matches it: such a request really dispatches on the shape
+	// too, so the Allow value must list those methods.
+	staticVerbs := func(path string) map[string]bool {
+		verbs := map[string]bool{}
+		for verb := range allowVerbsByPath[path] {
+			verbs[verb] = true
+		}
+		segs := routePathSegments(path)
+		for _, ps := range paramShapes {
+			if overlap, _, _ := compareRouteSegments(ps.segs, segs); overlap {
+				for verb := range ps.verbs {
+					verbs[verb] = true
+				}
+			}
+		}
+		return verbs
+	}
+
 	// Static Allow entries: one per literal route path, then the RPC paths
 	// (route aliases that revive a method's default path, and plain RPC
 	// methods) grouped into one trailing entry.
@@ -370,7 +432,7 @@ func RestRouter(svc *Service) *RestRouterPlan {
 			seen[r.Path] = true
 			router.Allow = append(router.Allow, &RestAllowCase{
 				Paths: []string{r.Path},
-				Allow: restAllowValue(allowVerbsByPath[r.Path]),
+				Allow: restAllowValue(staticVerbs(r.Path)),
 			})
 		}
 	}
@@ -391,37 +453,16 @@ func RestRouter(svc *Service) *RestRouterPlan {
 	if len(rpcPaths) > 0 {
 		verbs := map[string]bool{}
 		for _, p := range rpcPaths {
-			for verb := range allowVerbsByPath[p] {
+			for verb := range staticVerbs(p) {
 				verbs[verb] = true
 			}
 		}
 		router.Allow = append(router.Allow, &RestAllowCase{Paths: rpcPaths, Allow: restAllowValue(verbs)})
 	}
-
-	// Param matcher Allow entries: verbs unioned per shape; matching entries
-	// accumulate, so their order is irrelevant.
-	shapeByKey := map[string]*RouteShape{}
-	var shapes []*RouteShape
-	shapeVerbs := map[string]map[string]bool{}
-	for _, verb := range RouteVerbs {
-		for _, r := range verbRoutes[verb] {
-			shape := RouteShapeOf(r.Route)
-			if len(shape.Params) == 0 {
-				continue
-			}
-			key := strings.Join(shape.Literals, "\x00")
-			if shapeByKey[key] == nil {
-				shapeByKey[key] = shape
-				shapes = append(shapes, shape)
-				shapeVerbs[key] = map[string]bool{}
-			}
-			shapeVerbs[key][verb] = true
-		}
-	}
-	for _, shape := range shapes {
+	for _, ps := range paramShapes {
 		router.Shapes = append(router.Shapes, &RestShapeCase{
-			Shape: shape,
-			Allow: restAllowValue(shapeVerbs[strings.Join(shape.Literals, "\x00")]),
+			Shape: ps.shape,
+			Allow: restAllowValue(ps.verbs),
 		})
 	}
 	for _, m := range svc.Methods {

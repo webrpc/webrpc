@@ -13,7 +13,6 @@
 				{{- range $_, $p := $shape.Params}}
 				r.SetPathValue("{{$p}}", {{RestVarName $p $keywordMap}})
 				{{- end}}
-				r.Pattern = "{{$entry.Pattern}}"
 				{{$entry.Handler}}(w, r)
 				return
 			}
@@ -23,7 +22,6 @@
 			{{- range $_, $p := $shape.Params}}
 			r.SetPathValue("{{$p}}", {{RestVarName $p $keywordMap}})
 			{{- end}}
-			r.Pattern = "{{$entry.Pattern}}"
 			{{$entry.Handler}}(w, r)
 			return
 		}
@@ -121,7 +119,7 @@ func New{{firstLetterToUpper $service.Name}}Server(svc {{$typePrefix}}{{.Name}}S
 	{{- $resType := printf "%s%sResult" $serviceName (firstLetterToUpper $method.Name)}}
 	{{- $reqType := $argsType}}
 	{{- if $method.Succinct}}{{$reqType = printf "%s%s" $typePrefix (index $method.Inputs 0).Type}}{{end}}
-	server.{{RouteHandlerField $route}} = restHandler("{{$service.Name}}", "{{$method.Name}}", {{RouteHasBody $route}},
+	server.{{RouteHandlerField $route}} = restHandler("{{RoutePattern $route}}", "{{$service.Name}}", "{{$method.Name}}", {{RouteHasBody $route}},
 	{{- if $method.Succinct}}
 		server.{{$name}}Server.{{$method.Name}},
 	{{- else}}
@@ -235,9 +233,6 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		switch path {
 		{{- range $_, $entry := $verb.Statics}}
 		case "{{$entry.Path}}":
-			{{- if $entry.Pattern}}
-			r.Pattern = "{{$entry.Pattern}}"
-			{{- end}}
 			{{$entry.Handler}}(w, r)
 		{{- end}}
 		default:
@@ -251,9 +246,6 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		switch path {
 		{{- range $_, $entry := $verb.Statics}}
 		case "{{$entry.Path}}":
-			{{- if $entry.Pattern}}
-			r.Pattern = "{{$entry.Pattern}}"
-			{{- end}}
 			{{$entry.Handler}}(w, r)
 		{{- end}}
 		default:
@@ -277,6 +269,7 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // handle{{$method.Name}} serves the plain RPC method, self-contained so it works
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *{{$serviceName}}) handle{{$method.Name}}(w http.ResponseWriter, r *http.Request) {
+	r.Pattern = "{{$basepath}}{{$name}}/{{$method.Name}}" // MethodCtx resolves the method by this key.
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
 	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
