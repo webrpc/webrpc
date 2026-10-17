@@ -8,8 +8,8 @@
 {{- $vars = printf "%s%s" $vars (RestVarName $p $keywordMap) -}}
 {{- end -}}
 {{- if $shape.HasTrailing}}
-		if s, ok := strings.CutSuffix({{.Target}}, "{{$shape.Trailing}}"); ok {
-			if {{$vars}}, ok := restSeg{{$shape.SegN}}(s, {{$shape.Args}}); ok {
+		if restTail, ok := strings.CutSuffix({{.Target}}, "{{$shape.Trailing}}"); ok {
+			if {{$vars}}, ok := restSeg{{$shape.SegN}}(restTail, {{$shape.Args}}); ok {
 				{{- range $_, $p := $shape.Params}}
 				r.SetPathValue("{{$p}}", {{RestVarName $p $keywordMap}})
 				{{- end}}

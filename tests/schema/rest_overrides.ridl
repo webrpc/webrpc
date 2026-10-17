@@ -4,7 +4,8 @@ name = RestOverrides
 version = v1.0.0
 basepath = /
 
-# Go-only REST cases: go.field.type overrides, string and float32 params, and the root route.
+# Go-only REST cases: go.field.type overrides, string and float32 params, the root route,
+# and a trailing literal after a param (the shadowed-receiver regression).
 service RestOverrides
   - Index()
       + GET /
@@ -12,6 +13,7 @@ service RestOverrides
       + GET /by/{lbl}
   - Scale(factor: float32) => (value: float32)
       + GET /scale/{factor}
+      + GET /scale/{factor}/half
 
 struct SearchRequest
   - label: string

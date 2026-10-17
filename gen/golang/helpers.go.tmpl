@@ -248,8 +248,8 @@ func (s *{{$serviceName}}) restAllowMethods(path string) (string, bool) {
 	}
 	{{- range $_, $case := $router.Shapes}}
 	{{- if $case.Shape.HasTrailing}}
-	if s, ok := strings.CutSuffix(path, "{{$case.Shape.Trailing}}"); ok {
-		if {{$case.Shape.Blanks}}, ok := restSeg{{$case.Shape.SegN}}(s, {{$case.Shape.Args}}); ok {
+	if restTail, ok := strings.CutSuffix(path, "{{$case.Shape.Trailing}}"); ok {
+		if {{$case.Shape.Blanks}}, ok := restSeg{{$case.Shape.SegN}}(restTail, {{$case.Shape.Args}}); ok {
 			add("{{$case.Allow}}")
 		}
 	}

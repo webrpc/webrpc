@@ -52,6 +52,17 @@ func TestRESTOverridesRoundTrip(t *testing.T) {
 		t.Errorf("Scale(1.5) = %v, %v; want 3", got, err)
 	}
 
+	// Alias route with a trailing literal after the param: dispatch and binding.
+	resp, err := http.Get(srv.URL + "/scale/2.5/half")
+	if err != nil {
+		t.Fatalf("GET /scale/2.5/half: %v", err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK || string(body) != `{"value":5}` {
+		t.Errorf("GET /scale/2.5/half = %d %s; want 200 {\"value\":5}", resp.StatusCode, body)
+	}
+
 	for _, u := range rec.urls {
 		if strings.Contains(u, "%22") {
 			t.Errorf("wire URL %q has a JSON-quoted value", u)
