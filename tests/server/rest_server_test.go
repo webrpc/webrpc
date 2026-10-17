@@ -163,3 +163,84 @@ func TestRESTWebrpcMethodsHasEntryPerRoute(t *testing.T) {
 		}
 	}
 }
+
+// TestRESTEncodedSlashDoesNotHitStaticRoute pins ServeMux's segment rule: a
+// %2F inside a segment is not a path separator, so the encoded form must not
+// unwrap into a static route match.
+func TestRESTEncodedSlashDoesNotHitStaticRoute(t *testing.T) {
+	srv := NewTestApiRestServer(NewTestRESTServer())
+	for _, target := range []string{"/rpc%2Fitems", "/rpc/items%2F7"} {
+		rec := serveTest(t, srv, "GET", target, "", "")
+		if rec.Code != http.StatusNotFound {
+			t.Errorf("GET %s: status %d, want 404", target, rec.Code)
+			continue
+		}
+		if !strings.Contains(rec.Body.String(), `"error":"WebrpcBadRoute"`) {
+			t.Errorf("GET %s: body %s, want the webrpc 404 envelope", target, rec.Body)
+		}
+	}
+}
+
+// TestRESTEncodedSegmentsMatch pins segment-wise percent-decoding: encoded
+// literal segments still match their route, and encoded path params bind
+// their decoded value.
+func TestRESTEncodedSegmentsMatch(t *testing.T) {
+	impl := NewTestRESTServer()
+	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
+		t.Fatal(err)
+	}
+	srv := NewTestApiRestServer(impl)
+
+	rec := serveTest(t, srv, "GET", "/rpc/%69tems/7", "", "")
+	if rec.Code != http.StatusOK {
+		t.Errorf("GET /rpc/%%69tems/7: status %d, want 200 (encoded literal segment)", rec.Code)
+	}
+
+	rec = serveTest(t, srv, "GET", "/rpc/items/%37", "", "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET /rpc/items/%%37: status %d, want 200", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), `"id":7`) {
+		t.Errorf("GET /rpc/items/%%37: body %s, want item 7", rec.Body)
+	}
+}
+
+// TestRESTAllowUnionsOverlappingRoutes pins the Allow union: a path served by
+// both a static route and a param route reports every method that would
+// dispatch, not just the first matching entry.
+func TestRESTAllowUnionsOverlappingRoutes(t *testing.T) {
+	srv := NewTestApiRestServer(NewTestRESTServer())
+	for _, tc := range []struct{ path, want string }{
+		// GET+QUERY static routes overlap the DELETE/PUT/PATCH param route.
+		{"/rpc/items/find", "DELETE, GET, HEAD, PATCH, PUT, QUERY"},
+		{"/rpc/items/reset", "DELETE, GET, HEAD, PATCH, POST, PUT"},
+		// No overlap: the param route needs one trailing segment.
+		{"/rpc/items/echo/params", "GET, HEAD"},
+	} {
+		rec := serveTest(t, srv, "OPTIONS", tc.path, "", "")
+		if rec.Code != http.StatusMethodNotAllowed {
+			t.Errorf("OPTIONS %s: status %d, want 405", tc.path, rec.Code)
+			continue
+		}
+		if allow := rec.Header().Get("Allow"); allow != tc.want {
+			t.Errorf("OPTIONS %s: Allow = %q, want %q", tc.path, allow, tc.want)
+		}
+	}
+}
+
+// TestRESTSegHelpersAdjacentParams pins adjacent-param matching: an empty
+// middle literal cuts on the segment separator, so /a/{x}/{y} matches
+// /rpc/a/v/w but not /rpc/a/v.
+func TestRESTSegHelpersAdjacentParams(t *testing.T) {
+	x, y, ok := restSeg2("/rpc/a/v/w", "/rpc/a/", "")
+	if !ok || x != "v" || y != "w" {
+		t.Errorf("restSeg2 adjacent params: got (%q, %q, %v), want (v, w, true)", x, y, ok)
+	}
+	if _, _, ok := restSeg2("/rpc/a/v", "/rpc/a/", ""); ok {
+		t.Error("restSeg2 adjacent params: short path must not match")
+	}
+	x, ok = restSeg1("/rpc/items/%37", "/rpc/items/")
+	if !ok || x != "7" {
+		t.Errorf("restSeg1 unescape: got (%q, %v), want (7, true)", x, ok)
+	}
+}

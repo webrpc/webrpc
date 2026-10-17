@@ -100,6 +100,7 @@
 {{- end -}}
 
 {{- set $opts "" false -}}
+{{- set $opts "restSegParams" 0 -}}
 {{- range $_, $service := .Services -}}
 	{{- range $_, $method := $service.Methods -}}
 		{{ if eq $method.StreamOutput true -}}
@@ -122,6 +123,11 @@
 		{{- end -}}
 		{{ if MethodHasRoute $method -}}
 			{{- set $opts "restRoutes" true -}}
+			{{- range $_, $route := $method.Routes -}}
+				{{- if gt (RouteShapeOf $route).SegN (get $opts "restSegParams") -}}
+					{{- set $opts "restSegParams" (RouteShapeOf $route).SegN -}}
+				{{- end -}}
+			{{- end -}}
 		{{- end -}}
 	{{- end -}}
 {{- end -}}
@@ -225,7 +231,7 @@ func WebRPCSchemaHash() string {
 
 {{/* Client/server helpers */}}
 {{- if or $opts.client $opts.server }}
-{{ template "helpers" dict "Opts" $opts "Json" $json }}
+{{ template "helpers" dict "Opts" $opts "Json" $json "Services" .Services "SegParams" (get $opts "restSegParams") }}
 
 {{- if $usesBigInts}}
 {{ template "bigintHelpers" dict "Schema" .WebRPCSchema "Services" .Services "Opts" $opts }}

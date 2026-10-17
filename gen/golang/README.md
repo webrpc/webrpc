@@ -124,6 +124,9 @@ The full route is `{basepath}{route.path}`, here `GET /api/users/{id}`. Route pa
 - Integer params are range-checked per type. `int8` value `300` returns 400.
 - `WebrpcMethods()` keys routed methods by their ServeMux pattern, e.g. `GET /api/users/{id}`.
   Mount them on `http.ServeMux` (Go 1.23+) or chi v5.2.3+. Older chi treats the key as a literal path.
+  The generated server itself no longer routes through `http.ServeMux`: services with routes get a
+  method-first `switch` in `ServeHTTP` and one self-contained handler field per route, so an external
+  mux is only needed when mounting individual methods (see `Methods()`).
 - A method with two routes has two `WebrpcMethods()` entries.
 - Code that mounts these keys as router paths, or compares them to `r.URL.Path`, must handle routed methods.
 - `MethodCtx(ctx)` works for REST calls.

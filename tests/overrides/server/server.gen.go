@@ -15,6 +15,7 @@ import (
 	"maps"
 	"math"
 	"net/http"
+	"net/url"
 	"slices"
 	"strconv"
 	"strings"
@@ -79,7 +80,10 @@ type restOverridesService struct {
 	RestOverridesServer
 	OnError   func(r *http.Request, rpcErr *WebRPCError)
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
-	restMux   *http.ServeMux
+
+	restIndex  http.HandlerFunc
+	restSearch http.HandlerFunc
+	restScale  http.HandlerFunc
 }
 
 func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restOverridesService {
@@ -90,15 +94,14 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 		server.OnError = options[0].OnError
 		server.OnRequest = options[0].OnRequest
 	}
-	server.restMux = http.NewServeMux()
-	server.restMux.Handle("GET /{$}", restHandler("Index", false,
+	server.restIndex = restHandler("RestOverrides", "Index", false,
 		func(ctx context.Context, req restOverridesServiceIndexArgs) (restOverridesServiceIndexResult, error) {
 			err := server.RestOverridesServer.Index(ctx)
 			return restOverridesServiceIndexResult{}, err
 		},
 		nil,
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("GET /by/{lbl}", restHandler("Search", false,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restSearch = restHandler("RestOverrides", "Search", false,
 		server.RestOverridesServer.Search,
 		func(p *restParams, req *SearchRequest) error {
 			if err := restPath(p, "lbl", "string", &req.Key, restJSONString); err != nil {
@@ -112,8 +115,8 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			}
 			return nil
 		},
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("GET /scale/{factor}", restHandler("Scale", false,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restScale = restHandler("RestOverrides", "Scale", false,
 		func(ctx context.Context, req restOverridesServiceScaleArgs) (restOverridesServiceScaleResult, error) {
 			ret0, err := server.RestOverridesServer.Scale(ctx, req.Arg0)
 			return restOverridesServiceScaleResult{Ret0: ret0}, err
@@ -124,12 +127,17 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			}
 			return nil
 		},
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("/", restMiss(server.restMux, server.sendErrorJSON))
+		server.sendErrorJSON, &server.OnRequest)
 	return server
 }
 
-func (s *restOverridesService) Methods() []Method { return methodsFor(ServiceRestOverrides, s) }
+func (s *restOverridesService) Methods() []Method {
+	return []Method{
+		{method: methods["GET /{$}"], Path: "GET /{$}", Handler: s.restIndex},
+		{method: methods["GET /by/{lbl}"], Path: "GET /by/{lbl}", Handler: s.restSearch},
+		{method: methods["GET /scale/{factor}"], Path: "GET /scale/{factor}", Handler: s.restScale},
+	}
+}
 
 func (s *restOverridesService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
@@ -142,14 +150,38 @@ func (s *restOverridesService) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "RestOverrides")
+	// One canonical escaped path for the whole dispatch: static cases and
+	// segment matchers compare it, so %2F stays inside one segment and
+	// percent-encoded segments still match, like http.ServeMux.
+	path := restEscapedPath(r.URL)
 
-	r = r.WithContext(ctx)
-
-	serveRest(s.restMux, w, r, s.sendErrorJSON)
+	// Method-first dispatch: one switch per verb, then static paths, then
+	// segment matchers. Handlers are fully self-contained (context preamble
+	// included), so this function allocates nothing on the hot path.
+	switch r.Method {
+	case "GET", "HEAD":
+		switch path {
+		case "/":
+			r.Pattern = "GET /{$}"
+			s.restIndex(w, r)
+		default:
+			if factor, ok := restSeg1(path, "/scale/"); ok {
+				r.SetPathValue("factor", factor)
+				r.Pattern = "GET /scale/{factor}"
+				s.restScale(w, r)
+				return
+			}
+			if lbl, ok := restSeg1(path, "/by/"); ok {
+				r.SetPathValue("lbl", lbl)
+				r.Pattern = "GET /by/{lbl}"
+				s.restSearch(w, r)
+				return
+			}
+			s.restMiss(w, r)
+		}
+	default:
+		s.restMiss(w, r)
+	}
 }
 
 type restOverridesServiceIndexArgs struct {
@@ -353,10 +385,13 @@ func (p *restParams) values() map[string][]string {
 }
 
 // restHandler runs one REST route: body decode, param binding, then fn.
-func restHandler[I, O any](method string, hasBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+func restHandler[I, O any](service, method string, hasBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// ServeMux set Pattern and path values on r, so keep that request in the context.
-		ctx := context.WithValue(r.Context(), HTTPRequestCtxKey, r)
+		// The dispatcher set Pattern and path values on r; keep that request in the context.
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
+		ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
+		ctx = context.WithValue(ctx, ServiceNameCtxKey, service)
 		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
 		r = r.WithContext(ctx)
 
@@ -427,39 +462,102 @@ func restHandler[I, O any](method string, hasBody bool, fn func(context.Context,
 	}
 }
 
-// serveRest serves the REST routes of mux; the mux's "/" catch-all answers misses.
-func serveRest(mux *http.ServeMux, w http.ResponseWriter, r *http.Request, sendError func(http.ResponseWriter, *http.Request, WebRPCError)) {
-	// ServeMux would redirect these paths; webrpc answers them with 404 instead.
-	p := r.URL.EscapedPath()
-	if strings.Contains(p, "//") || strings.Contains(p, "/./") || strings.Contains(p, "/../") || strings.HasSuffix(p, "/.") || strings.HasSuffix(p, "/..") {
-		sendError(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
-		return
+// restEscapedPath returns the request's escaped path with every segment
+// percent-escaped canonically, so route literals compare byte-for-byte and
+// %2F stays inside one segment, like http.ServeMux. Requests without
+// non-canonical escaping take a zero-alloc fast path: the decoded path.
+func restEscapedPath(u *url.URL) string {
+	if u.RawPath == "" {
+		return u.Path
 	}
-	mux.ServeHTTP(w, r)
+	segs := strings.Split(u.EscapedPath(), "/")
+	for i, seg := range segs {
+		if unescaped, err := url.PathUnescape(seg); err == nil {
+			segs[i] = url.PathEscape(unescaped)
+		}
+	}
+	return strings.Join(segs, "/")
+}
+
+// restSeg1 matches prefix + one path parameter segment. The path is the
+// escaped form, so %2F stays inside one segment like http.ServeMux, and the
+// returned segment is percent-unescaped.
+func restSeg1(path, prefix string) (string, bool) {
+	s, ok := strings.CutPrefix(path, prefix)
+	if !ok || s == "" || strings.Contains(s, "/") {
+		return "", false
+	}
+	s, err := url.PathUnescape(s)
+	if err != nil {
+		return "", false
+	}
+	return s, true
+}
+
+// restSeg2 matches prefix + segment + middle + segment. An empty middle
+// means adjacent params: the boundary is then the segment separator.
+func restSeg2(path, prefix, middle string) (string, string, bool) {
+	s, ok := strings.CutPrefix(path, prefix)
+	if !ok {
+		return "", "", false
+	}
+	if middle == "" {
+		middle = "/"
+	}
+	a, b, ok := strings.Cut(s, middle)
+	if !ok || a == "" || b == "" || strings.Contains(a, "/") || strings.Contains(b, "/") {
+		return "", "", false
+	}
+	a, err := url.PathUnescape(a)
+	if err != nil {
+		return "", "", false
+	}
+	b, err = url.PathUnescape(b)
+	if err != nil {
+		return "", "", false
+	}
+	return a, b, true
+}
+
+// restAllowMethods returns the Allow value for a routed path, so a
+// wrong-method request answers 405 without probing a router. Every matching
+// entry accumulates, so a path served by both a static route and a param
+// route reports every method that would dispatch.
+func (s *restOverridesService) restAllowMethods(path string) (string, bool) {
+	var allow []string
+	add := func(verbs string) {
+		for _, verb := range strings.Split(verbs, ", ") {
+			if !slices.Contains(allow, verb) {
+				allow = append(allow, verb)
+			}
+		}
+	}
+	switch path {
+	case "/":
+		add("GET, HEAD")
+	}
+	if _, ok := restSeg1(path, "/scale/"); ok {
+		add("GET, HEAD")
+	}
+	if _, ok := restSeg1(path, "/by/"); ok {
+		add("GET, HEAD")
+	}
+	if len(allow) == 0 {
+		return "", false
+	}
+	slices.Sort(allow)
+	return strings.Join(allow, ", "), true
 }
 
 // restMiss answers requests no route matched: 405 with Allow, or 404.
-func restMiss(mux *http.ServeMux, sendError func(http.ResponseWriter, *http.Request, WebRPCError)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var allowed []string
-		probe := *r
-		for _, method := range []string{"GET", "POST", "PUT", "PATCH", "DELETE", "QUERY"} {
-			probe.Method = method
-			// The "/" catch-all matches every request, so it is not a route.
-			if _, pattern := mux.Handler(&probe); pattern != "" && pattern != "/" {
-				allowed = append(allowed, method)
-				if method == "GET" {
-					allowed = append(allowed, "HEAD") // ServeMux also matches HEAD on GET patterns.
-				}
-			}
-		}
-		if len(allowed) == 0 {
-			sendError(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
-			return
-		}
-		w.Header().Set("Allow", strings.Join(allowed, ", ")) // RFC 9110.
-		sendError(w, r, ErrWebrpcBadMethod.WithCausef("unsupported HTTP method %v (allowed: %v)", r.Method, strings.Join(allowed, ", ")))
+func (s *restOverridesService) restMiss(w http.ResponseWriter, r *http.Request) {
+	path := restEscapedPath(r.URL)
+	if allow, ok := s.restAllowMethods(path); ok {
+		w.Header().Set("Allow", allow) // RFC 9110.
+		s.sendErrorJSON(w, r, ErrWebrpcBadMethod.WithCausef("unsupported HTTP method %v (allowed: %v)", r.Method, allow))
+		return
 	}
+	s.sendErrorJSON(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
 }
 
 // restSet parses one raw param value into dst; typ is the RIDL type named in the error.

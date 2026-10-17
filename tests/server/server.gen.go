@@ -17,6 +17,7 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"slices"
 	"strconv"
 	"strings"
@@ -1184,12 +1185,17 @@ func (s *testApiRestService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
+	// One canonical escaped path for the whole dispatch: static cases and
+	// segment matchers compare it, so %2F stays inside one segment and
+	// percent-encoded segments still match, like http.ServeMux.
+	path := restEscapedPath(r.URL)
+
 	// Method-first dispatch: one switch per verb, then static paths, then
 	// segment matchers. Handlers are fully self-contained (context preamble
 	// included), so this function allocates nothing on the hot path.
 	switch r.Method {
 	case "GET", "HEAD":
-		switch r.URL.Path {
+		switch path {
 		case "/rpc/items":
 			r.Pattern = "GET /rpc/items"
 			s.restListItems(w, r)
@@ -1200,18 +1206,17 @@ func (s *testApiRestService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			r.Pattern = "GET /rpc/items/find"
 			s.restFindItems(w, r)
 		default:
-			path := r.URL.Path
+			if id, ok := restSeg1(path, "/rpc/items/lookup/"); ok {
+				r.SetPathValue("id", id)
+				r.Pattern = "GET /rpc/items/lookup/{id}"
+				s.restLookupItem(w, r)
+				return
+			}
 			if id, childId, ok := restSeg2(path, "/rpc/items/", "/children/"); ok {
 				r.SetPathValue("id", id)
 				r.SetPathValue("childId", childId)
 				r.Pattern = "GET /rpc/items/{id}/children/{childId}"
 				s.restGetChild(w, r)
-				return
-			}
-			if id, ok := restSeg1(path, "/rpc/items/lookup/"); ok {
-				r.SetPathValue("id", id)
-				r.Pattern = "GET /rpc/items/lookup/{id}"
-				s.restLookupItem(w, r)
 				return
 			}
 			if id, ok := restSeg1(path, "/rpc/items/"); ok {
@@ -1223,7 +1228,7 @@ func (s *testApiRestService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			s.restMiss(w, r)
 		}
 	case "POST":
-		switch r.URL.Path {
+		switch path {
 		case "/rpc/items":
 			r.Pattern = "POST /rpc/items"
 			s.restCreateItem(w, r)
@@ -1239,7 +1244,7 @@ func (s *testApiRestService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			s.restMiss(w, r)
 		}
 	case "PUT":
-		if id, ok := restSeg1(r.URL.Path, "/rpc/items/"); ok {
+		if id, ok := restSeg1(path, "/rpc/items/"); ok {
 			r.SetPathValue("id", id)
 			r.Pattern = "PUT /rpc/items/{id}"
 			s.restUpdateItem(w, r)
@@ -1247,7 +1252,7 @@ func (s *testApiRestService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		s.restMiss(w, r)
 	case "PATCH":
-		if id, ok := restSeg1(r.URL.Path, "/rpc/items/"); ok {
+		if id, ok := restSeg1(path, "/rpc/items/"); ok {
 			r.SetPathValue("id", id)
 			r.Pattern = "PATCH /rpc/items/{id}"
 			s.restPatchItem(w, r)
@@ -1255,7 +1260,7 @@ func (s *testApiRestService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		s.restMiss(w, r)
 	case "DELETE":
-		if id, ok := restSeg1(r.URL.Path, "/rpc/items/"); ok {
+		if id, ok := restSeg1(path, "/rpc/items/"); ok {
 			r.SetPathValue("id", id)
 			r.Pattern = "DELETE /rpc/items/{id}"
 			s.restDeleteItem(w, r)
@@ -1263,7 +1268,7 @@ func (s *testApiRestService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		s.restMiss(w, r)
 	case "QUERY":
-		switch r.URL.Path {
+		switch path {
 		case "/rpc/items/search":
 			r.Pattern = "QUERY /rpc/items/search"
 			s.restQueryItems(w, r)
@@ -1872,62 +1877,112 @@ func restHandler[I, O any](service, method string, hasBody bool, fn func(context
 	}
 }
 
-// restSeg1 matches prefix + one path parameter segment.
+// restEscapedPath returns the request's escaped path with every segment
+// percent-escaped canonically, so route literals compare byte-for-byte and
+// %2F stays inside one segment, like http.ServeMux. Requests without
+// non-canonical escaping take a zero-alloc fast path: the decoded path.
+func restEscapedPath(u *url.URL) string {
+	if u.RawPath == "" {
+		return u.Path
+	}
+	segs := strings.Split(u.EscapedPath(), "/")
+	for i, seg := range segs {
+		if unescaped, err := url.PathUnescape(seg); err == nil {
+			segs[i] = url.PathEscape(unescaped)
+		}
+	}
+	return strings.Join(segs, "/")
+}
+
+// restSeg1 matches prefix + one path parameter segment. The path is the
+// escaped form, so %2F stays inside one segment like http.ServeMux, and the
+// returned segment is percent-unescaped.
 func restSeg1(path, prefix string) (string, bool) {
 	s, ok := strings.CutPrefix(path, prefix)
 	if !ok || s == "" || strings.Contains(s, "/") {
 		return "", false
 	}
+	s, err := url.PathUnescape(s)
+	if err != nil {
+		return "", false
+	}
 	return s, true
 }
 
-// restSeg2 matches prefix + segment + middle + segment.
+// restSeg2 matches prefix + segment + middle + segment. An empty middle
+// means adjacent params: the boundary is then the segment separator.
 func restSeg2(path, prefix, middle string) (string, string, bool) {
 	s, ok := strings.CutPrefix(path, prefix)
 	if !ok {
 		return "", "", false
 	}
+	if middle == "" {
+		middle = "/"
+	}
 	a, b, ok := strings.Cut(s, middle)
 	if !ok || a == "" || b == "" || strings.Contains(a, "/") || strings.Contains(b, "/") {
+		return "", "", false
+	}
+	a, err := url.PathUnescape(a)
+	if err != nil {
+		return "", "", false
+	}
+	b, err = url.PathUnescape(b)
+	if err != nil {
 		return "", "", false
 	}
 	return a, b, true
 }
 
-// restAllowMethods returns the static Allow value for a routed path, so a
-// wrong-method request answers 405 without probing a router.
-func restAllowMethods(path string) (string, bool) {
+// restAllowMethods returns the Allow value for a routed path, so a
+// wrong-method request answers 405 without probing a router. Every matching
+// entry accumulates, so a path served by both a static route and a param
+// route reports every method that would dispatch.
+func (s *testApiRestService) restAllowMethods(path string) (string, bool) {
+	var allow []string
+	add := func(verbs string) {
+		for _, verb := range strings.Split(verbs, ", ") {
+			if !slices.Contains(allow, verb) {
+				allow = append(allow, verb)
+			}
+		}
+	}
 	switch path {
 	case "/rpc/items":
-		return "GET, HEAD, POST", true
+		add("GET, HEAD, POST")
 	case "/rpc/items/echo/params":
-		return "GET, HEAD", true
+		add("GET, HEAD")
 	case "/rpc/items/find":
-		return "GET, HEAD, QUERY", true
+		add("GET, HEAD, QUERY")
 	case "/rpc/items/search":
-		return "QUERY", true
+		add("QUERY")
 	case "/rpc/items/reset":
-		return "POST", true
+		add("POST")
 	case "/rpc/TestApiRest/LookupItem", "/rpc/TestApiRest/RpcMethod":
-		return "POST", true
-	}
-	if _, _, ok := restSeg2(path, "/rpc/items/", "/children/"); ok {
-		return "GET, HEAD", true
+		add("POST")
 	}
 	if _, ok := restSeg1(path, "/rpc/items/lookup/"); ok {
-		return "GET, HEAD", true
+		add("GET, HEAD")
+	}
+	if _, _, ok := restSeg2(path, "/rpc/items/", "/children/"); ok {
+		add("GET, HEAD")
 	}
 	if _, ok := restSeg1(path, "/rpc/items/"); ok {
-		return "DELETE, GET, HEAD, PATCH, PUT", true
+		add("DELETE, GET, HEAD, PATCH, PUT")
 	}
-	return "", false
+	if len(allow) == 0 {
+		return "", false
+	}
+	slices.Sort(allow)
+	return strings.Join(allow, ", "), true
 }
 
 // restMiss answers requests no route matched: 405 with Allow, or 404.
 func (s *testApiRestService) restMiss(w http.ResponseWriter, r *http.Request) {
-	if allow, ok := restAllowMethods(r.URL.Path); ok {
+	path := restEscapedPath(r.URL)
+	if allow, ok := s.restAllowMethods(path); ok {
 		w.Header().Set("Allow", allow) // RFC 9110.
-		if r.URL.Path == "/rpc/TestApiRest/RpcMethod" {
+		if path == "/rpc/TestApiRest/RpcMethod" {
 			// The legacy RPC path keeps its "only POST" message.
 			s.sendErrorJSON(w, r, ErrWebrpcBadMethod.WithCausef("unsupported HTTP method %v (only POST is allowed)", r.Method))
 			return
