@@ -280,7 +280,7 @@ type RestRouterPlan struct {
 	Verbs  []*RestVerbCase
 	Allow  []*RestAllowCase
 	Shapes []*RestShapeCase
-	RPC    []*RestRoute
+	RPC    []string // default webrpc paths of methods without routes
 }
 
 // restAllowVerbOrder scans static routes for the Allow table, safe verbs
@@ -350,20 +350,10 @@ func RestRouter(svc *Service) *RestRouterPlan {
 			}
 		}
 		// Param matchers run most specific first, like http.ServeMux
-		// precedence: more literal segments, then a longer literal prefix, then
-		// fewer path params.
+		// precedence: more literal segments first. Ties keep declaration order;
+		// validation rejects the overlapping ties where the winner matters.
 		slices.SortStableFunc(verbCase.Params, func(a, b *RestRoute) int {
-			sa, sb := RouteShapeOf(a.Route), RouteShapeOf(b.Route)
-			if d := sb.LiteralSegs() - sa.LiteralSegs(); d != 0 {
-				return d
-			}
-			if d := len(sb.Literals[0]) - len(sa.Literals[0]); d != 0 {
-				return d
-			}
-			if d := len(sa.Params) - len(sb.Params); d != 0 {
-				return d
-			}
-			return strings.Compare(a.Path, b.Path)
+			return RouteShapeOf(b.Route).LiteralSegs() - RouteShapeOf(a.Route).LiteralSegs()
 		})
 		router.Verbs = append(router.Verbs, verbCase)
 	}
@@ -408,7 +398,8 @@ func RestRouter(svc *Service) *RestRouterPlan {
 		router.Allow = append(router.Allow, &RestAllowCase{Paths: rpcPaths, Allow: restAllowValue(verbs)})
 	}
 
-	// Param matcher Allow entries: most specific first, verbs unioned per shape.
+	// Param matcher Allow entries: verbs unioned per shape; matching entries
+	// accumulate, so their order is irrelevant.
 	shapeByKey := map[string]*RouteShape{}
 	var shapes []*RouteShape
 	shapeVerbs := map[string]map[string]bool{}
@@ -427,18 +418,6 @@ func RestRouter(svc *Service) *RestRouterPlan {
 			shapeVerbs[key][verb] = true
 		}
 	}
-	slices.SortStableFunc(shapes, func(a, b *RouteShape) int {
-		if d := b.LiteralSegs() - a.LiteralSegs(); d != 0 {
-			return d
-		}
-		if d := len(b.Literals[0]) - len(a.Literals[0]); d != 0 {
-			return d
-		}
-		if d := len(a.Params) - len(b.Params); d != 0 {
-			return d
-		}
-		return strings.Compare(a.Literals[0], b.Literals[0])
-	})
 	for _, shape := range shapes {
 		router.Shapes = append(router.Shapes, &RestShapeCase{
 			Shape: shape,
@@ -447,10 +426,140 @@ func RestRouter(svc *Service) *RestRouterPlan {
 	}
 	for _, m := range svc.Methods {
 		if len(m.Routes) == 0 {
-			router.RPC = append(router.RPC, &RestRoute{Path: MethodRPCPath(m), Handler: "handle" + m.Name, Method: m})
+			router.RPC = append(router.RPC, MethodRPCPath(m))
 		}
 	}
 	return router
+}
+
+// RestFeatures reports which REST helpers the generated Go code calls, so the
+// templates emit only those. Server helpers cover every route of every
+// service; client helpers only each method's canonical route.
+type RestFeatures struct {
+	Segs       int             // highest path-param count; 0 when no route has path params
+	PathParams bool            // restPath binder
+	Query      bool            // restQuery: required scalar query param
+	QueryOpt   bool            // restQueryOpt: optional scalar query param
+	QueryMaybe bool            // restQueryMaybe: optional query param, non-pointer field
+	QueryList  bool            // restQueryList: []scalar query param
+	Parsers    map[string]bool // string, bool, uint, int, float, text, json, jsonString
+
+	ClientPath  bool            // restURL.setPath: canonical route has path params
+	ClientQuery bool            // restURL.addQuery: canonical route has query params
+	ClientKinds map[string]bool // string, bool, uint, int, float, text, custom, customString
+}
+
+// RestFeaturesOf scans the services' routes for the helpers they call.
+func RestFeaturesOf(services []*Service) *RestFeatures {
+	f := &RestFeatures{Parsers: map[string]bool{}, ClientKinds: map[string]bool{}}
+	for _, svc := range services {
+		for _, m := range svc.Methods {
+			customs := routeFieldCustomTypes(m)
+			for _, route := range m.Routes {
+				inPath := map[string]bool{}
+				if names, err := validateRoutePathSyntax(route.Path); err == nil {
+					for _, name := range names {
+						inPath[name] = true
+					}
+				}
+				if n := RouteShapeOf(route).SegN(); n > f.Segs {
+					f.Segs = n
+				}
+				for _, p := range RouteParams(route) {
+					custom := customs[p.Name]
+					if inPath[p.Name] {
+						f.PathParams = true
+					} else {
+						switch {
+						case p.Repeated:
+							f.QueryList = true
+						case p.Optional && custom != "":
+							f.QueryMaybe = true
+						case p.Optional:
+							f.QueryOpt = true
+						default:
+							f.Query = true
+						}
+					}
+					f.Parsers[restParamParser(p, custom)] = true
+				}
+			}
+			if route := MethodCanonicalRoute(m); route != nil {
+				canonPathParams, _ := validateRoutePathSyntax(route.Path)
+				for _, p := range RouteParams(route) {
+					custom := customs[p.Name]
+					if slices.Contains(canonPathParams, p.Name) {
+						f.ClientPath = true
+					} else {
+						f.ClientQuery = true
+					}
+					switch kind := restParamParser(p, custom); kind {
+					case "json":
+						f.ClientKinds["custom"] = true
+					case "jsonString":
+						f.ClientKinds["customString"] = true
+					default:
+						f.ClientKinds[kind] = true
+					}
+				}
+			}
+		}
+	}
+	// restJSONString wraps restJSON, so the base parser must be emitted too.
+	if f.Parsers["jsonString"] {
+		f.Parsers["json"] = true
+	}
+	return f
+}
+
+// routeFieldCustomTypes maps each bindable request field's wire name to its
+// go.field.type override, mirroring the generator's param binding.
+func routeFieldCustomTypes(m *Method) map[string]string {
+	out := map[string]string{}
+	custom := func(metas []TypeFieldMeta) string {
+		v := ""
+		for _, meta := range metas {
+			if s, ok := meta["go.field.type"].(string); ok {
+				v = s
+			}
+		}
+		return v
+	}
+	if m.Succinct && len(m.Inputs) == 1 && m.Inputs[0].Type != nil && m.Inputs[0].Type.Type == T_Struct {
+		for _, fld := range m.Inputs[0].Type.Struct.Type.Fields {
+			out[fieldJSONName(fld)] = custom(fld.Meta)
+		}
+		return out
+	}
+	for _, in := range m.Inputs {
+		out[in.Name] = custom(in.Meta)
+	}
+	return out
+}
+
+// restParamParser names the parser a param's type binds with, mirroring the
+// generator's binder templates: a go.field.type override parses as JSON, the
+// core scalars with their strconv parser, everything else as text.
+func restParamParser(p *RouteParam, custom string) string {
+	switch {
+	case custom != "":
+		if p.TypeExpr == "string" {
+			return "jsonString"
+		}
+		return "json"
+	case p.TypeExpr == "string":
+		return "string"
+	case p.TypeExpr == "bool":
+		return "bool"
+	case strings.HasPrefix(p.TypeExpr, "uint"):
+		return "uint"
+	case strings.HasPrefix(p.TypeExpr, "int"):
+		return "int"
+	case strings.HasPrefix(p.TypeExpr, "float"):
+		return "float"
+	default:
+		return "text"
+	}
 }
 
 // restAllowValue joins a path's verbs into an Allow header value, sorted, with
@@ -479,10 +588,10 @@ func QuotedList(paths []string) string {
 // RPCPathCondition renders the restMiss guard that keeps the legacy "only
 // POST is allowed" message on plain RPC paths, evaluated on the canonical
 // escaped path: (1 path) -> `path == "/rpc/Svc/M"`.
-func RPCPathCondition(routes []*RestRoute) string {
-	parts := make([]string, len(routes))
-	for i, r := range routes {
-		parts[i] = fmt.Sprintf("path == %s", strconv.Quote(r.Path))
+func RPCPathCondition(paths []string) string {
+	parts := make([]string, len(paths))
+	for i, path := range paths {
+		parts[i] = fmt.Sprintf("path == %s", strconv.Quote(path))
 	}
 	return strings.Join(parts, " || ")
 }

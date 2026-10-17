@@ -100,7 +100,6 @@
 {{- end -}}
 
 {{- set $opts "" false -}}
-{{- set $opts "restSegParams" 0 -}}
 {{- range $_, $service := .Services -}}
 	{{- range $_, $method := $service.Methods -}}
 		{{ if eq $method.StreamOutput true -}}
@@ -123,11 +122,6 @@
 		{{- end -}}
 		{{ if MethodHasRoute $method -}}
 			{{- set $opts "restRoutes" true -}}
-			{{- range $_, $route := $method.Routes -}}
-				{{- if gt (RouteShapeOf $route).SegN (get $opts "restSegParams") -}}
-					{{- set $opts "restSegParams" (RouteShapeOf $route).SegN -}}
-				{{- end -}}
-			{{- end -}}
 		{{- end -}}
 	{{- end -}}
 {{- end -}}
@@ -143,6 +137,9 @@
 		{{- end -}}
 	{{- end -}}
 {{- end }}
+
+{{- /* Which REST helpers the routes actually call, so only those are emitted. */ -}}
+{{- $restFeatures := RestFeaturesOf .Services -}}
 
 {{- /* Allow using custom JSON configuration. */ -}}
 {{- $json := "json" -}}
@@ -226,12 +223,12 @@ func WebRPCSchemaHash() string {
 
 {{/* Client helpers */}}
 {{- if $opts.client }}
-{{ template "clientHelpers" dict "Json" $json "Opts" $opts }}
+{{ template "clientHelpers" dict "Json" $json "Opts" $opts "Rest" $restFeatures }}
 {{ end -}}
 
 {{/* Client/server helpers */}}
 {{- if or $opts.client $opts.server }}
-{{ template "helpers" dict "Opts" $opts "Json" $json "Services" .Services "SegParams" (get $opts "restSegParams") }}
+{{ template "helpers" dict "Opts" $opts "Json" $json "Services" .Services "Rest" $restFeatures }}
 
 {{- if $usesBigInts}}
 {{ template "bigintHelpers" dict "Schema" .WebRPCSchema "Services" .Services "Opts" $opts }}

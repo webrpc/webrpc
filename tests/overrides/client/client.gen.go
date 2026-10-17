@@ -64,24 +64,15 @@ type SearchResponse struct {
 // Client
 //
 
-const RestOverridesPathPrefix = "/RestOverrides/"
-
 type restOverridesClient struct {
 	client HTTPClient
-	urls   [3]string
 	base   string
 }
 
 func NewRestOverridesClient(addr string, client HTTPClient) RestOverridesClient {
 	base := serviceURL(addr, "")
-	urls := [3]string{
-		"",
-		"",
-		"",
-	}
 	return &restOverridesClient{
 		client: client,
-		urls:   urls,
 		base:   base,
 	}
 }
@@ -295,10 +286,6 @@ func (u *restURL) setPathText(name string, v encoding.TextMarshaler) { u.setPath
 
 func (u *restURL) addQueryText(name string, v encoding.TextMarshaler) { u.addQuery(name, u.text(v)) }
 
-func (u *restURL) setPathCustom(name string, v any) { u.setPath(name, u.custom(v)) }
-
-func (u *restURL) addQueryCustom(name string, v any) { u.addQuery(name, u.custom(v)) }
-
 func (u *restURL) setPathCustomString(name string, v any) { u.setPath(name, u.customString(v)) }
 
 func (u *restURL) addQueryCustomString(name string, v any) { u.addQuery(name, u.customString(v)) }
@@ -309,22 +296,6 @@ func (u *restURL) text(v encoding.TextMarshaler) string {
 		u.err = ErrWebrpcRequestFailed.WithCausef("failed to marshal URL param: %w", err)
 	}
 	return string(b)
-}
-
-func (u *restURL) json(v any) string {
-	b, err := json.Marshal(v)
-	if err != nil && u.err == nil {
-		u.err = ErrWebrpcRequestFailed.WithCausef("failed to marshal URL param: %w", err)
-	}
-	return string(b)
-}
-
-// custom renders a go.field.type override: MarshalText if implemented, else JSON.
-func (u *restURL) custom(v any) string {
-	if m, ok := v.(encoding.TextMarshaler); ok {
-		return u.text(m)
-	}
-	return u.json(v)
 }
 
 // customString renders a string-typed override: MarshalText if implemented, else its JSON string value.
@@ -375,15 +346,6 @@ func (u *restURL) build(base, route string) (string, error) {
 		b.WriteString(u.query.Encode())
 	}
 	return b.String(), nil
-}
-
-// restFormat* render a route param in the form the server's restString, restUint, ... parse.
-func restFormatString[T ~string](v T) string { return string(v) }
-
-func restFormatBool[T ~bool](v T) string { return strconv.FormatBool(bool(v)) }
-
-func restFormatInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](v T) string {
-	return strconv.FormatInt(int64(v), 10)
 }
 
 func restFormatUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr](v T) string {

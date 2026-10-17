@@ -165,16 +165,16 @@ func (s *restOverridesService) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			r.Pattern = "GET /{$}"
 			s.restIndex(w, r)
 		default:
-			if factor, ok := restSeg1(path, "/scale/"); ok {
-				r.SetPathValue("factor", factor)
-				r.Pattern = "GET /scale/{factor}"
-				s.restScale(w, r)
-				return
-			}
 			if lbl, ok := restSeg1(path, "/by/"); ok {
 				r.SetPathValue("lbl", lbl)
 				r.Pattern = "GET /by/{lbl}"
 				s.restSearch(w, r)
+				return
+			}
+			if factor, ok := restSeg1(path, "/scale/"); ok {
+				r.SetPathValue("factor", factor)
+				r.Pattern = "GET /scale/{factor}"
+				s.restScale(w, r)
 				return
 			}
 			s.restMiss(w, r)
@@ -494,31 +494,6 @@ func restSeg1(path, prefix string) (string, bool) {
 	return s, true
 }
 
-// restSeg2 matches prefix + segment + middle + segment. An empty middle
-// means adjacent params: the boundary is then the segment separator.
-func restSeg2(path, prefix, middle string) (string, string, bool) {
-	s, ok := strings.CutPrefix(path, prefix)
-	if !ok {
-		return "", "", false
-	}
-	if middle == "" {
-		middle = "/"
-	}
-	a, b, ok := strings.Cut(s, middle)
-	if !ok || a == "" || b == "" || strings.Contains(a, "/") || strings.Contains(b, "/") {
-		return "", "", false
-	}
-	a, err := url.PathUnescape(a)
-	if err != nil {
-		return "", "", false
-	}
-	b, err = url.PathUnescape(b)
-	if err != nil {
-		return "", "", false
-	}
-	return a, b, true
-}
-
 // restAllowMethods returns the Allow value for a routed path, so a
 // wrong-method request answers 405 without probing a router. Every matching
 // entry accumulates, so a path served by both a static route and a param
@@ -536,10 +511,10 @@ func (s *restOverridesService) restAllowMethods(path string) (string, bool) {
 	case "/":
 		add("GET, HEAD")
 	}
-	if _, ok := restSeg1(path, "/scale/"); ok {
+	if _, ok := restSeg1(path, "/by/"); ok {
 		add("GET, HEAD")
 	}
-	if _, ok := restSeg1(path, "/by/"); ok {
+	if _, ok := restSeg1(path, "/scale/"); ok {
 		add("GET, HEAD")
 	}
 	if len(allow) == 0 {
@@ -582,20 +557,6 @@ func restQuery[T any](p *restParams, name, typ string, dst *T, parse func(string
 	return restSet("query", name, typ, vals[0], dst, parse)
 }
 
-// restQueryOpt binds an optional scalar query param to a pointer field.
-func restQueryOpt[T any](p *restParams, name, typ string, dst **T, parse func(string) (T, error)) error {
-	vals := p.values()[name]
-	if len(vals) == 0 {
-		return nil
-	}
-	var v T
-	if err := restSet("query", name, typ, vals[0], &v, parse); err != nil {
-		return err
-	}
-	*dst = &v
-	return nil
-}
-
 // restQueryMaybe binds an optional query param to a field that is not a pointer.
 func restQueryMaybe[T any](p *restParams, name, typ string, dst *T, parse func(string) (T, error)) error {
 	vals := p.values()[name]
@@ -603,41 +564,6 @@ func restQueryMaybe[T any](p *restParams, name, typ string, dst *T, parse func(s
 		return nil
 	}
 	return restSet("query", name, typ, vals[0], dst, parse)
-}
-
-// restQueryList binds a []T query param; a required list with no keys is empty, not nil.
-func restQueryList[T any](p *restParams, name, typ string, dst *[]T, parse func(string) (T, error), optional bool) error {
-	vals := p.values()[name]
-	if len(vals) == 0 {
-		if !optional {
-			*dst = []T{}
-		}
-		return nil
-	}
-	list := make([]T, len(vals))
-	for i, raw := range vals {
-		if err := restSet("query", name, typ, raw, &list[i], parse); err != nil {
-			return err
-		}
-	}
-	*dst = list
-	return nil
-}
-
-func restString[T ~string](s string) (T, error) { return T(s), nil }
-
-func restBool[T ~bool](s string) (T, error) {
-	v, err := strconv.ParseBool(s)
-	return T(v), err
-}
-
-// restInt and restUint reject values that overflow T.
-func restInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string) (T, error) {
-	v, err := strconv.ParseInt(s, 10, 64)
-	if err == nil && int64(T(v)) != v {
-		err = strconv.ErrRange
-	}
-	return T(v), err
 }
 
 func restUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string) (T, error) {
@@ -656,16 +582,6 @@ func restFloat[T ~float32 | ~float64](s string) (T, error) {
 		err = errors.New("not a finite number")
 	}
 	return T(v), err
-}
-
-// restText parses enums and timestamps with their encoding.TextUnmarshaler.
-func restText[T any, PT interface {
-	*T
-	encoding.TextUnmarshaler
-}](s string) (T, error) {
-	var v T
-	err := PT(&v).UnmarshalText([]byte(s))
-	return v, err
 }
 
 // restJSON parses a go.field.type override: UnmarshalText if implemented, else JSON.

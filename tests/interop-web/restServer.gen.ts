@@ -500,8 +500,6 @@ type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: st
 
 type WebrpcRestMatch = { route: WebrpcRestRoute, pathParams: Map<string, string> }
 
-const webrpcRestVerbOrder = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'QUERY']
-
 // Null lets the caller try the RPC path; a routed method's RPC path gets a 404.
 const webrpcRestRoute = (routes: WebrpcRestRoute[], request: Request): WebrpcRestMatch | Response | null => {
   const url = new URL(request.url)
@@ -528,7 +526,10 @@ const webrpcRestRoute = (routes: WebrpcRestRoute[], request: Request): WebrpcRes
       return null
     }
     // HEAD is served by every GET route, so it is allowed wherever GET is.
-    const methods = webrpcRestVerbOrder.filter((m) => allowed.includes(m === 'HEAD' ? 'GET' : m))
+    // Sorted lexically, matching the Go server's Allow header.
+    const allowSet = new Set(allowed)
+    if (allowSet.has('GET')) allowSet.add('HEAD')
+    const methods = [...allowSet].sort()
     return webrpcErrorResponse(new WebrpcBadMethodError({ cause: `unsupported HTTP method ${request.method} (allowed: ${methods.join(', ')})` }), { Allow: methods.join(', ') })
   }
   return { route: match.route, pathParams: match.pathParams }

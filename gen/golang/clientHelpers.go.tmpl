@@ -133,6 +133,10 @@ func doHTTPRequest(ctx context.Context, client HTTPClient, url string, in, out i
 }
 
 {{- if $opts.restRoutes }}
+{{- $rest := .Rest -}}
+{{- $kinds := $rest.ClientKinds -}}
+{{- $anyKind := or $kinds.text $kinds.custom $kinds.customString $kinds.string $kinds.bool $kinds.uint $kinds.int $kinds.float -}}
+{{- $anyClientParams := or $rest.ClientPath $rest.ClientQuery}}
 
 // restURL collects one REST request's path and query params; build returns the first error.
 type restURL struct {
@@ -140,6 +144,7 @@ type restURL struct {
 	query url.Values
 	err   error
 }
+{{- if $anyClientParams}}
 
 func (u *restURL) setPath(name, value string) {
 	if u.path == nil {
@@ -154,18 +159,26 @@ func (u *restURL) addQuery(name, value string) {
 	}
 	u.query.Add(name, value)
 }
+{{- end}}
+{{- if or $kinds.text $kinds.custom $kinds.customString}}
 
 func (u *restURL) setPathText(name string, v encoding.TextMarshaler) { u.setPath(name, u.text(v)) }
 
 func (u *restURL) addQueryText(name string, v encoding.TextMarshaler) { u.addQuery(name, u.text(v)) }
+{{- end}}
+{{- if $kinds.custom}}
 
 func (u *restURL) setPathCustom(name string, v any) { u.setPath(name, u.custom(v)) }
 
 func (u *restURL) addQueryCustom(name string, v any) { u.addQuery(name, u.custom(v)) }
+{{- end}}
+{{- if $kinds.customString}}
 
 func (u *restURL) setPathCustomString(name string, v any) { u.setPath(name, u.customString(v)) }
 
 func (u *restURL) addQueryCustomString(name string, v any) { u.addQuery(name, u.customString(v)) }
+{{- end}}
+{{- if or $kinds.text $kinds.custom $kinds.customString}}
 
 func (u *restURL) text(v encoding.TextMarshaler) string {
 	b, err := v.MarshalText()
@@ -174,6 +187,8 @@ func (u *restURL) text(v encoding.TextMarshaler) string {
 	}
 	return string(b)
 }
+{{- end}}
+{{- if $kinds.custom}}
 
 func (u *restURL) json(v any) string {
 	b, err := {{$json}}.Marshal(v)
@@ -182,6 +197,8 @@ func (u *restURL) json(v any) string {
 	}
 	return string(b)
 }
+{{- end}}
+{{- if $kinds.custom}}
 
 // custom renders a go.field.type override: MarshalText if implemented, else JSON.
 func (u *restURL) custom(v any) string {
@@ -190,6 +207,8 @@ func (u *restURL) custom(v any) string {
 	}
 	return u.json(v)
 }
+{{- end}}
+{{- if $kinds.customString}}
 
 // customString renders a string-typed override: MarshalText if implemented, else its JSON string value.
 func (u *restURL) customString(v any) string {
@@ -206,6 +225,7 @@ func (u *restURL) customString(v any) string {
 	}
 	return s
 }
+{{- end}}
 
 // build expands {name} placeholders in one pass, so a value is never scanned again.
 func (u *restURL) build(base, route string) (string, error) {
@@ -240,24 +260,34 @@ func (u *restURL) build(base, route string) (string, error) {
 	}
 	return b.String(), nil
 }
+{{- if $kinds.string}}
 
 // restFormat* render a route param in the form the server's restString, restUint, ... parse.
 func restFormatString[T ~string](v T) string { return string(v) }
+{{- end}}
+{{- if $kinds.bool}}
 
 func restFormatBool[T ~bool](v T) string { return strconv.FormatBool(bool(v)) }
+{{- end}}
+{{- if $kinds.int}}
 
 func restFormatInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](v T) string {
 	return strconv.FormatInt(int64(v), 10)
 }
+{{- end}}
+{{- if $kinds.uint}}
 
 func restFormatUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr](v T) string {
 	return strconv.FormatUint(uint64(v), 10)
 }
+{{- end}}
+{{- if $kinds.float}}
 
 // 64 bits round-trips float32 exactly, so the server's 32-bit parse gets the same value.
 func restFormatFloat[T ~float32 | ~float64](v T) string {
 	return strconv.FormatFloat(float64(v), 'g', -1, 64)
 }
+{{- end}}
 
 // doRESTRequest sends a REST request and decodes the response into out.
 func doRESTRequest(ctx context.Context, client HTTPClient, method, rawURL string, hasBody bool, in, out interface{}) error {

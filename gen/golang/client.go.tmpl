@@ -13,8 +13,11 @@
 //
 
 {{range $services -}}
+{{- $hasRPC := false -}}
+{{- range $_, $method := .Methods -}}{{- if not (MethodHasRoute $method) -}}{{- $hasRPC = true -}}{{- end -}}{{- end -}}
+{{- if $hasRPC -}}
 const {{.Name}}PathPrefix = "{{$basepath}}{{.Name}}/"
-{{end}}
+{{end}}{{end}}
 
 {{- range $_, $service := $services -}}
 
@@ -31,7 +34,9 @@ const {{.Name}}PathPrefix = "{{$basepath}}{{.Name}}/"
 {{- end }}
 type {{$serviceNameClient}} struct {
 	client HTTPClient
+	{{- if $serviceHasRPC }}
 	urls	 [{{len $service.Methods}}]string
+	{{- end }}
 	{{- if $serviceHasRoutes }}
 	base string
 	{{- end }}
@@ -44,14 +49,18 @@ func New{{$ServiceNameClient}}(addr string, client HTTPClient) {{$ServiceNameCli
 	{{- if $serviceHasRoutes }}
 	base := serviceURL(addr, "")
 	{{- end }}
+	{{- if $serviceHasRPC }}
 	urls := [{{len $service.Methods}}]string{
 	{{- range $_, $method := $service.Methods}}
 		{{if MethodHasRoute $method}}""{{else}}prefix + "{{$method.Name}}"{{end}},
 	{{- end}}
 	}
+	{{- end }}
 	return &{{$serviceNameClient}}{
 		client: client,
+		{{- if $serviceHasRPC }}
 		urls:	 urls,
+		{{- end }}
 		{{- if $serviceHasRoutes }}
 		base: base,
 		{{- end }}

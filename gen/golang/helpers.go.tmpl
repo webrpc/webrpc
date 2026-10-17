@@ -55,19 +55,26 @@ func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
 {{- end}}
 
 {{- if and $opts.restRoutes $opts.server}}
+{{- $rest := .Rest -}}
+{{- $anyQuery := or $rest.Query $rest.QueryOpt $rest.QueryMaybe $rest.QueryList -}}
+{{- $anyParams := or $rest.PathParams $anyQuery}}
 
 // restParams holds one REST request's params; the query string is parsed on first use.
 type restParams struct {
-	r     *http.Request
+	r *http.Request
+	{{- if $anyQuery}}
 	query map[string][]string
+	{{- end}}
 }
 
+{{- if $anyQuery}}
 func (p *restParams) values() map[string][]string {
 	if p.query == nil && p.r.URL.RawQuery != "" {
 		p.query = p.r.URL.Query()
 	}
 	return p.query
 }
+{{- end}}
 
 // restHandler runs one REST route: body decode, param binding, then fn.
 func restHandler[I, O any](service, method string, hasBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
@@ -167,6 +174,7 @@ func restEscapedPath(u *url.URL) string {
 	}
 	return strings.Join(segs, "/")
 }
+{{- if gt $rest.Segs 0}}
 
 // restSeg1 matches prefix + one path parameter segment. The path is the
 // escaped form, so %2F stays inside one segment like http.ServeMux, and the
@@ -182,6 +190,8 @@ func restSeg1(path, prefix string) (string, bool) {
 	}
 	return s, true
 }
+{{- end}}
+{{- if gt $rest.Segs 1}}
 
 // restSeg2 matches prefix + segment + middle + segment. An empty middle
 // means adjacent params: the boundary is then the segment separator.
@@ -207,9 +217,10 @@ func restSeg2(path, prefix, middle string) (string, string, bool) {
 	}
 	return a, b, true
 }
-{{- if gt (default 0 .SegParams) 2 }}
-{{ RestSegHelpers .SegParams }}
-{{- end }}
+{{- end}}
+{{- if gt $rest.Segs 2}}
+{{ RestSegHelpers $rest.Segs }}
+{{- end}}
 
 {{- range $_, $service := .Services}}
 {{- $router := RestRouter $service}}
@@ -274,6 +285,7 @@ func (s *{{$serviceName}}) restMiss(w http.ResponseWriter, r *http.Request) {
 }
 {{- end}}
 {{- end}}
+{{- if $anyParams}}
 
 // restSet parses one raw param value into dst; typ is the RIDL type named in the error.
 func restSet[T any](kind, name, typ, raw string, dst *T, parse func(string) (T, error)) error {
@@ -284,10 +296,14 @@ func restSet[T any](kind, name, typ, raw string, dst *T, parse func(string) (T, 
 	*dst = v
 	return nil
 }
+{{- end}}
+{{- if $rest.PathParams}}
 
 func restPath[T any](p *restParams, name, typ string, dst *T, parse func(string) (T, error)) error {
 	return restSet("path", name, typ, p.r.PathValue(name), dst, parse)
 }
+{{- end}}
+{{- if $rest.Query}}
 
 func restQuery[T any](p *restParams, name, typ string, dst *T, parse func(string) (T, error)) error {
 	vals := p.values()[name]
@@ -296,6 +312,8 @@ func restQuery[T any](p *restParams, name, typ string, dst *T, parse func(string
 	}
 	return restSet("query", name, typ, vals[0], dst, parse)
 }
+{{- end}}
+{{- if $rest.QueryOpt}}
 
 // restQueryOpt binds an optional scalar query param to a pointer field.
 func restQueryOpt[T any](p *restParams, name, typ string, dst **T, parse func(string) (T, error)) error {
@@ -310,6 +328,8 @@ func restQueryOpt[T any](p *restParams, name, typ string, dst **T, parse func(st
 	*dst = &v
 	return nil
 }
+{{- end}}
+{{- if $rest.QueryMaybe}}
 
 // restQueryMaybe binds an optional query param to a field that is not a pointer.
 func restQueryMaybe[T any](p *restParams, name, typ string, dst *T, parse func(string) (T, error)) error {
@@ -319,6 +339,8 @@ func restQueryMaybe[T any](p *restParams, name, typ string, dst *T, parse func(s
 	}
 	return restSet("query", name, typ, vals[0], dst, parse)
 }
+{{- end}}
+{{- if $rest.QueryList}}
 
 // restQueryList binds a []T query param; a required list with no keys is empty, not nil.
 func restQueryList[T any](p *restParams, name, typ string, dst *[]T, parse func(string) (T, error), optional bool) error {
@@ -338,13 +360,19 @@ func restQueryList[T any](p *restParams, name, typ string, dst *[]T, parse func(
 	*dst = list
 	return nil
 }
+{{- end}}
+{{- if $rest.Parsers.string}}
 
 func restString[T ~string](s string) (T, error) { return T(s), nil }
+{{- end}}
+{{- if $rest.Parsers.bool}}
 
 func restBool[T ~bool](s string) (T, error) {
 	v, err := strconv.ParseBool(s)
 	return T(v), err
 }
+{{- end}}
+{{- if $rest.Parsers.int}}
 
 // restInt and restUint reject values that overflow T.
 func restInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string) (T, error) {
@@ -354,6 +382,8 @@ func restInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string) (T, error) {
 	}
 	return T(v), err
 }
+{{- end}}
+{{- if $rest.Parsers.uint}}
 
 func restUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string) (T, error) {
 	v, err := strconv.ParseUint(s, 10, 64)
@@ -362,6 +392,8 @@ func restUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string) (T, erro
 	}
 	return T(v), err
 }
+{{- end}}
+{{- if $rest.Parsers.float}}
 
 // restFloat parses at T's bit size and rejects NaN and infinities.
 func restFloat[T ~float32 | ~float64](s string) (T, error) {
@@ -372,6 +404,8 @@ func restFloat[T ~float32 | ~float64](s string) (T, error) {
 	}
 	return T(v), err
 }
+{{- end}}
+{{- if $rest.Parsers.text}}
 
 // restText parses enums and timestamps with their encoding.TextUnmarshaler.
 func restText[T any, PT interface {
@@ -382,6 +416,8 @@ func restText[T any, PT interface {
 	err := PT(&v).UnmarshalText([]byte(s))
 	return v, err
 }
+{{- end}}
+{{- if $rest.Parsers.json}}
 
 // restJSON parses a go.field.type override: UnmarshalText if implemented, else JSON.
 func restJSON[T any](s string) (T, error) {
@@ -392,6 +428,8 @@ func restJSON[T any](s string) (T, error) {
 	err := {{$json}}.Unmarshal([]byte(s), &v)
 	return v, err
 }
+{{- end}}
+{{- if $rest.Parsers.jsonString}}
 
 // restJSONString parses a string-typed override; without UnmarshalText the raw value is a JSON string.
 func restJSONString[T any](s string) (T, error) {
@@ -405,6 +443,7 @@ func restJSONString[T any](s string) (T, error) {
 	}
 	return restJSON[T](s)
 }
+{{- end}}
 {{- end}}
 
 {{- if and $opts.fixEmptyArrays $opts.server}}

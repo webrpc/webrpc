@@ -594,7 +594,7 @@ const aliasSuite = async (addr: string) => {
   assert.deepEqual(await viaQuery.json(), viaGet, 'GET and QUERY must agree')
   const allowBoth = await fetch(`${addr}/rpc/params/both`, { method: 'POST', headers: json, body: '{}' })
   assert.equal(allowBoth.status, 405)
-  assert.equal(allowBoth.headers.get('Allow'), 'GET, HEAD, QUERY', 'Allow must use the fixed verb order')
+  assert.equal(allowBoth.headers.get('Allow'), 'GET, HEAD, QUERY', 'Allow must be sorted lexically')
   await allowBoth.body?.cancel()
 
   // An alias on an old RPC name and a single-segment param route must not be shadowed by the RPC fast path.

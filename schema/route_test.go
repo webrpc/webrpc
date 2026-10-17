@@ -89,6 +89,15 @@ func TestRouteValidSchema(t *testing.T) {
 					"outputs": []
 				},
 				{
+					"name": "GetMember",
+					"routes": [{"verb": "GET", "path": "/orgs/{orgId}/members/{memberId}"}],
+					"inputs": [
+						{"name": "orgId", "type": "string"},
+						{"name": "memberId", "type": "uint64"}
+					],
+					"outputs": []
+				},
+				{
 					"name": "Ping",
 					"inputs": [],
 					"outputs": []
@@ -126,7 +135,13 @@ func TestRouteValidSchema(t *testing.T) {
 
 	assert.Equal(t, []*RouteParam{{Name: "userId", TypeExpr: "uint64"}}, RouteParams(users.Methods[3].Routes[0]))
 
-	ping := users.Methods[4]
+	// Multiple path params bind in path order.
+	assert.Equal(t, []*RouteParam{
+		{Name: "orgId", TypeExpr: "string"},
+		{Name: "memberId", TypeExpr: "uint64"},
+	}, RouteParams(users.Methods[4].Routes[0]))
+
+	ping := users.Methods[5]
 	assert.False(t, MethodHasRoute(ping))
 	assert.Nil(t, MethodCanonicalRoute(ping))
 }
@@ -155,26 +170,6 @@ func TestRouteNormalFormBinding(t *testing.T) {
 		{Name: "id", TypeExpr: "uint64"},
 		{Name: "raw", TypeExpr: "bool", Optional: true},
 	}, RouteParams(s.Services[0].Methods[0].Routes[0]))
-}
-
-func TestRouteMultiplePathParams(t *testing.T) {
-	_, err := parseRouteTestSchema(t, "", "", `
-		{
-			"name": "Orgs",
-			"methods": [
-				{
-					"name": "GetMember",
-					"routes": [{"verb": "GET", "path": "/orgs/{orgId}/members/{memberId}"}],
-					"inputs": [
-						{"name": "orgId", "type": "string"},
-						{"name": "memberId", "type": "uint64"}
-					],
-					"outputs": []
-				}
-			]
-		}
-	`)
-	require.NoError(t, err)
 }
 
 func TestRouteInvalidSchemas(t *testing.T) {

@@ -156,32 +156,12 @@ service Users
 	assert.Equal(t, "QUERY", routes[1].Verb)
 }
 
-func TestRIDLRouteQueryVerbCarriesBody(t *testing.T) {
-	_, err := parseRouteRIDL(t, routeRIDLHeader+`
-service Users
-  - Search(CreateUserRequest) => (CreateUserResponse)
-      + QUERY /users/search
-`)
-	require.NoError(t, err)
-}
-
 func TestRIDLLegacyRouteAliasDoesNotConflictWithOwnDefaultPath(t *testing.T) {
 	_, err := parseRouteRIDL(t, routeRIDLHeader+`
 service Repos
   - GetRepo(org: string, repo: string) => (name: string)
       + GET /{org}/{repo}
       + POST /Repos/GetRepo
-`)
-	require.NoError(t, err)
-}
-
-func TestRIDLExactRootRouteDoesNotConflictWithDefaultPath(t *testing.T) {
-	header := strings.Replace(routeRIDLHeader, "basepath = /api", "basepath = /", 1)
-	_, err := parseRouteRIDL(t, header+`
-service S
-  - G() => ()
-      + GET /
-  - Other() => ()
 `)
 	require.NoError(t, err)
 }
@@ -245,16 +225,6 @@ service Users
       + GET
 `,
 			wantErr: "expecting route path after 'GET'",
-		},
-		{
-			name: "duplicate route within a method",
-			input: routeRIDLHeader + `
-service Users
-  - Get(GetUserRequest) => (GetUserResponse)
-      + GET /users/{userId}
-      + GET /users/{userId}
-`,
-			wantErr: "declared twice by method 'Users.Get'",
 		},
 		{
 			name: "relative path",

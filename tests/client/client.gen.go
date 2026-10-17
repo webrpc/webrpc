@@ -924,52 +924,12 @@ func (u *restURL) setPathText(name string, v encoding.TextMarshaler) { u.setPath
 
 func (u *restURL) addQueryText(name string, v encoding.TextMarshaler) { u.addQuery(name, u.text(v)) }
 
-func (u *restURL) setPathCustom(name string, v any) { u.setPath(name, u.custom(v)) }
-
-func (u *restURL) addQueryCustom(name string, v any) { u.addQuery(name, u.custom(v)) }
-
-func (u *restURL) setPathCustomString(name string, v any) { u.setPath(name, u.customString(v)) }
-
-func (u *restURL) addQueryCustomString(name string, v any) { u.addQuery(name, u.customString(v)) }
-
 func (u *restURL) text(v encoding.TextMarshaler) string {
 	b, err := v.MarshalText()
 	if err != nil && u.err == nil {
 		u.err = ErrWebrpcRequestFailed.WithCausef("failed to marshal URL param: %w", err)
 	}
 	return string(b)
-}
-
-func (u *restURL) json(v any) string {
-	b, err := json.Marshal(v)
-	if err != nil && u.err == nil {
-		u.err = ErrWebrpcRequestFailed.WithCausef("failed to marshal URL param: %w", err)
-	}
-	return string(b)
-}
-
-// custom renders a go.field.type override: MarshalText if implemented, else JSON.
-func (u *restURL) custom(v any) string {
-	if m, ok := v.(encoding.TextMarshaler); ok {
-		return u.text(m)
-	}
-	return u.json(v)
-}
-
-// customString renders a string-typed override: MarshalText if implemented, else its JSON string value.
-func (u *restURL) customString(v any) string {
-	if m, ok := v.(encoding.TextMarshaler); ok {
-		return u.text(m)
-	}
-	b, err := json.Marshal(v)
-	var s string
-	if err == nil {
-		err = json.Unmarshal(b, &s)
-	}
-	if err != nil && u.err == nil {
-		u.err = ErrWebrpcRequestFailed.WithCausef("failed to marshal URL param: %w", err)
-	}
-	return s
 }
 
 // build expands {name} placeholders in one pass, so a value is never scanned again.

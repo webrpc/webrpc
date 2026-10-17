@@ -1206,17 +1206,17 @@ func (s *testApiRestService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			r.Pattern = "GET /rpc/items/find"
 			s.restFindItems(w, r)
 		default:
-			if id, ok := restSeg1(path, "/rpc/items/lookup/"); ok {
-				r.SetPathValue("id", id)
-				r.Pattern = "GET /rpc/items/lookup/{id}"
-				s.restLookupItem(w, r)
-				return
-			}
 			if id, childId, ok := restSeg2(path, "/rpc/items/", "/children/"); ok {
 				r.SetPathValue("id", id)
 				r.SetPathValue("childId", childId)
 				r.Pattern = "GET /rpc/items/{id}/children/{childId}"
 				s.restGetChild(w, r)
+				return
+			}
+			if id, ok := restSeg1(path, "/rpc/items/lookup/"); ok {
+				r.SetPathValue("id", id)
+				r.Pattern = "GET /rpc/items/lookup/{id}"
+				s.restLookupItem(w, r)
 				return
 			}
 			if id, ok := restSeg1(path, "/rpc/items/"); ok {
@@ -1961,14 +1961,14 @@ func (s *testApiRestService) restAllowMethods(path string) (string, bool) {
 	case "/rpc/TestApiRest/LookupItem", "/rpc/TestApiRest/RpcMethod":
 		add("POST")
 	}
-	if _, ok := restSeg1(path, "/rpc/items/lookup/"); ok {
-		add("GET, HEAD")
+	if _, ok := restSeg1(path, "/rpc/items/"); ok {
+		add("DELETE, GET, HEAD, PATCH, PUT")
 	}
 	if _, _, ok := restSeg2(path, "/rpc/items/", "/children/"); ok {
 		add("GET, HEAD")
 	}
-	if _, ok := restSeg1(path, "/rpc/items/"); ok {
-		add("DELETE, GET, HEAD, PATCH, PUT")
+	if _, ok := restSeg1(path, "/rpc/items/lookup/"); ok {
+		add("GET, HEAD")
 	}
 	if len(allow) == 0 {
 		return "", false
@@ -2027,15 +2027,6 @@ func restQueryOpt[T any](p *restParams, name, typ string, dst **T, parse func(st
 	}
 	*dst = &v
 	return nil
-}
-
-// restQueryMaybe binds an optional query param to a field that is not a pointer.
-func restQueryMaybe[T any](p *restParams, name, typ string, dst *T, parse func(string) (T, error)) error {
-	vals := p.values()[name]
-	if len(vals) == 0 {
-		return nil
-	}
-	return restSet("query", name, typ, vals[0], dst, parse)
 }
 
 // restQueryList binds a []T query param; a required list with no keys is empty, not nil.
@@ -2099,29 +2090,6 @@ func restText[T any, PT interface {
 	var v T
 	err := PT(&v).UnmarshalText([]byte(s))
 	return v, err
-}
-
-// restJSON parses a go.field.type override: UnmarshalText if implemented, else JSON.
-func restJSON[T any](s string) (T, error) {
-	var v T
-	if u, ok := any(&v).(encoding.TextUnmarshaler); ok {
-		return v, u.UnmarshalText([]byte(s))
-	}
-	err := json.Unmarshal([]byte(s), &v)
-	return v, err
-}
-
-// restJSONString parses a string-typed override; without UnmarshalText the raw value is a JSON string.
-func restJSONString[T any](s string) (T, error) {
-	if _, ok := any(new(T)).(encoding.TextUnmarshaler); !ok {
-		quoted, err := json.Marshal(s)
-		if err != nil {
-			var zero T
-			return zero, err
-		}
-		s = string(quoted)
-	}
-	return restJSON[T](s)
 }
 
 //

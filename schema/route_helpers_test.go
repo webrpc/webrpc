@@ -46,18 +46,6 @@ func TestRestRouteDispatchOrder(t *testing.T) {
 	assert.Equal(t, "/rpc/a/{x}/{y}", r.Verbs[0].Params[1].Path)
 }
 
-// TestRestRouteDispatchOrderParamsTiebreak pins the last tiebreak: routes
-// equal on literal segments and prefix length order fewer params first.
-func TestRestRouteDispatchOrderParamsTiebreak(t *testing.T) {
-	s := restPlannerSchema(t, `
-		{"verb": "GET", "path": "/a/{x}/{y}"},
-		{"verb": "GET", "path": "/a/b/{y}"}`)
-	r := RestRouter(s.Services[0])
-	require.Len(t, r.Verbs[0].Params, 2)
-	assert.Equal(t, "/rpc/a/b/{y}", r.Verbs[0].Params[0].Path, "more literal segments first")
-	assert.Equal(t, "/rpc/a/{x}/{y}", r.Verbs[0].Params[1].Path)
-}
-
 // TestRestRouteHandlerFieldNames covers the field-naming scheme: the first
 // route is bare, the RPC-style alias gets RPC, other aliases get the verb,
 // and same-verb aliases get a 2-based ordinal so names stay unique.
