@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/webrpc/webrpc/tests/server"
@@ -35,8 +36,8 @@ func TestRestGetItemAllocs(t *testing.T) {
 		clear(w.header)
 		srv.ServeHTTP(w, req)
 	})
-	if allocs > 14 {
-		t.Errorf("GET /rpc/items/7: %v allocs per request, want <= 14", allocs)
+	if allocs > 12 {
+		t.Errorf("GET /rpc/items/7: %v allocs per request, want <= 12", allocs)
 	}
 }
 
@@ -46,6 +47,51 @@ func BenchmarkRestGetItem(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		clear(w.header)
+		srv.ServeHTTP(w, req)
+	}
+}
+
+// BenchmarkRestGetChildren exercises the two-path-param route.
+func BenchmarkRestGetChildren(b *testing.B) {
+	srv := server.NewTestApiRestServer(server.NewTestRESTServer())
+	req := httptest.NewRequest("GET", "/rpc/items/7/children/3", nil)
+	w := &discardWriter{header: http.Header{}}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		clear(w.header)
+		srv.ServeHTTP(w, req)
+	}
+}
+
+// BenchmarkRestCreateItem exercises a body route; the body must be fresh per
+// iteration, so the request is rebuilt each time (same cost before and after).
+func BenchmarkRestCreateItem(b *testing.B) {
+	srv := server.NewTestApiRestServer(server.NewTestRESTServer())
+	w := &discardWriter{header: http.Header{}}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		req := httptest.NewRequest("POST", "/rpc/items", strings.NewReader(`{"item":{"id":7,"name":"alice"}}`))
+		req.Header.Set("Content-Type", "application/json")
+		clear(w.header)
+		srv.ServeHTTP(w, req)
+	}
+}
+
+// BenchmarkRPCGetEmpty guards the plain RPC dispatch path against regressions.
+func BenchmarkRPCGetEmpty(b *testing.B) {
+	srv := server.NewTestApiServer(&server.TestServer{})
+	w := &discardWriter{header: http.Header{}}
+
+	b.ReportAllocs()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		req := httptest.NewRequest("POST", "/rpc/TestApi/GetEmpty", strings.NewReader("{}"))
+		req.Header.Set("Content-Type", "application/json")
 		clear(w.header)
 		srv.ServeHTTP(w, req)
 	}

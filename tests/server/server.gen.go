@@ -958,7 +958,21 @@ type testApiRestService struct {
 	TestApiRestServer
 	OnError   func(r *http.Request, rpcErr *WebRPCError)
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
-	restMux   *http.ServeMux
+
+	restGetItem        http.HandlerFunc
+	restListItems      http.HandlerFunc
+	restCreateItem     http.HandlerFunc
+	restUpdateItem     http.HandlerFunc
+	restPatchItem      http.HandlerFunc
+	restDeleteItem     http.HandlerFunc
+	restQueryItems     http.HandlerFunc
+	restEchoParams     http.HandlerFunc
+	restGetChild       http.HandlerFunc
+	restResetItems     http.HandlerFunc
+	restLookupItem     http.HandlerFunc
+	restLookupItemRPC  http.HandlerFunc
+	restFindItems      http.HandlerFunc
+	restFindItemsQuery http.HandlerFunc
 }
 
 func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRestService {
@@ -969,8 +983,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 		server.OnError = options[0].OnError
 		server.OnRequest = options[0].OnRequest
 	}
-	server.restMux = http.NewServeMux()
-	server.restMux.Handle("GET /rpc/items/{id}", restHandler("GetItem", false,
+	server.restGetItem = restHandler("TestApiRest", "GetItem", false,
 		server.TestApiRestServer.GetItem,
 		func(p *restParams, req *GetItemRequest) error {
 			if err := restPath(p, "id", "uint64", &req.Id, restUint); err != nil {
@@ -981,8 +994,8 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			}
 			return nil
 		},
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("GET /rpc/items", restHandler("ListItems", false,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restListItems = restHandler("TestApiRest", "ListItems", false,
 		server.TestApiRestServer.ListItems,
 		func(p *restParams, req *ListItemsRequest) error {
 			if err := restQueryOpt(p, "q", "string", &req.Q, restString); err != nil {
@@ -996,12 +1009,12 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			}
 			return nil
 		},
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("POST /rpc/items", restHandler("CreateItem", true,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restCreateItem = restHandler("TestApiRest", "CreateItem", true,
 		server.TestApiRestServer.CreateItem,
 		nil,
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("PUT /rpc/items/{id}", restHandler("UpdateItem", true,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restUpdateItem = restHandler("TestApiRest", "UpdateItem", true,
 		func(ctx context.Context, req testApiRestServiceUpdateItemArgs) (testApiRestServiceUpdateItemResult, error) {
 			ret0, err := server.TestApiRestServer.UpdateItem(ctx, req.Arg0, req.Arg1)
 			return testApiRestServiceUpdateItemResult{Ret0: ret0}, err
@@ -1012,8 +1025,8 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			}
 			return nil
 		},
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("PATCH /rpc/items/{id}", restHandler("PatchItem", true,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restPatchItem = restHandler("TestApiRest", "PatchItem", true,
 		func(ctx context.Context, req testApiRestServicePatchItemArgs) (testApiRestServicePatchItemResult, error) {
 			ret0, err := server.TestApiRestServer.PatchItem(ctx, req.Arg0, req.Arg1)
 			return testApiRestServicePatchItemResult{Ret0: ret0}, err
@@ -1024,8 +1037,8 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			}
 			return nil
 		},
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("DELETE /rpc/items/{id}", restHandler("DeleteItem", false,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restDeleteItem = restHandler("TestApiRest", "DeleteItem", false,
 		func(ctx context.Context, req testApiRestServiceDeleteItemArgs) (testApiRestServiceDeleteItemResult, error) {
 			err := server.TestApiRestServer.DeleteItem(ctx, req.Arg0)
 			return testApiRestServiceDeleteItemResult{}, err
@@ -1036,15 +1049,15 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			}
 			return nil
 		},
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("QUERY /rpc/items/search", restHandler("QueryItems", true,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restQueryItems = restHandler("TestApiRest", "QueryItems", true,
 		func(ctx context.Context, req testApiRestServiceQueryItemsArgs) (testApiRestServiceQueryItemsResult, error) {
 			ret0, err := server.TestApiRestServer.QueryItems(ctx, req.Arg0)
 			return testApiRestServiceQueryItemsResult{Ret0: ret0}, err
 		},
 		nil,
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("GET /rpc/items/echo/params", restHandler("EchoParams", false,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restEchoParams = restHandler("TestApiRest", "EchoParams", false,
 		func(ctx context.Context, req testApiRestServiceEchoParamsArgs) (testApiRestServiceEchoParamsResult, error) {
 			ret0, err := server.TestApiRestServer.EchoParams(ctx, req.Arg0, req.Arg1, req.Arg2, req.Arg3, req.Arg4, req.Arg5, req.Arg6, req.Arg7)
 			return testApiRestServiceEchoParamsResult{Ret0: ret0}, err
@@ -1076,8 +1089,8 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			}
 			return nil
 		},
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("GET /rpc/items/{id}/children/{childId}", restHandler("GetChild", false,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restGetChild = restHandler("TestApiRest", "GetChild", false,
 		func(ctx context.Context, req testApiRestServiceGetChildArgs) (testApiRestServiceGetChildResult, error) {
 			ret0, err := server.TestApiRestServer.GetChild(ctx, req.Arg0, req.Arg1)
 			return testApiRestServiceGetChildResult{Ret0: ret0}, err
@@ -1091,15 +1104,15 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			}
 			return nil
 		},
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("POST /rpc/items/reset", restHandler("ResetItems", true,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restResetItems = restHandler("TestApiRest", "ResetItems", true,
 		func(ctx context.Context, req testApiRestServiceResetItemsArgs) (testApiRestServiceResetItemsResult, error) {
 			err := server.TestApiRestServer.ResetItems(ctx)
 			return testApiRestServiceResetItemsResult{}, err
 		},
 		nil,
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("GET /rpc/items/lookup/{id}", restHandler("LookupItem", false,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restLookupItem = restHandler("TestApiRest", "LookupItem", false,
 		func(ctx context.Context, req testApiRestServiceLookupItemArgs) (testApiRestServiceLookupItemResult, error) {
 			ret0, err := server.TestApiRestServer.LookupItem(ctx, req.Arg0)
 			return testApiRestServiceLookupItemResult{Ret0: ret0}, err
@@ -1110,15 +1123,15 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			}
 			return nil
 		},
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("POST /rpc/TestApiRest/LookupItem", restHandler("LookupItem", true,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restLookupItemRPC = restHandler("TestApiRest", "LookupItem", true,
 		func(ctx context.Context, req testApiRestServiceLookupItemArgs) (testApiRestServiceLookupItemResult, error) {
 			ret0, err := server.TestApiRestServer.LookupItem(ctx, req.Arg0)
 			return testApiRestServiceLookupItemResult{Ret0: ret0}, err
 		},
 		nil,
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("GET /rpc/items/find", restHandler("FindItems", false,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restFindItems = restHandler("TestApiRest", "FindItems", false,
 		func(ctx context.Context, req testApiRestServiceFindItemsArgs) (testApiRestServiceFindItemsResult, error) {
 			ret0, err := server.TestApiRestServer.FindItems(ctx, req.Arg0)
 			return testApiRestServiceFindItemsResult{Ret0: ret0}, err
@@ -1129,19 +1142,36 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			}
 			return nil
 		},
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("QUERY /rpc/items/find", restHandler("FindItems", true,
+		server.sendErrorJSON, &server.OnRequest)
+	server.restFindItemsQuery = restHandler("TestApiRest", "FindItems", true,
 		func(ctx context.Context, req testApiRestServiceFindItemsArgs) (testApiRestServiceFindItemsResult, error) {
 			ret0, err := server.TestApiRestServer.FindItems(ctx, req.Arg0)
 			return testApiRestServiceFindItemsResult{Ret0: ret0}, err
 		},
 		nil,
-		server.sendErrorJSON, &server.OnRequest))
-	server.restMux.Handle("/", restMiss(server.restMux, server.sendErrorJSON))
+		server.sendErrorJSON, &server.OnRequest)
 	return server
 }
 
-func (s *testApiRestService) Methods() []Method { return methodsFor(ServiceTestApiRest, s) }
+func (s *testApiRestService) Methods() []Method {
+	return []Method{
+		{method: methods["GET /rpc/items/{id}"], Path: "GET /rpc/items/{id}", Handler: s.restGetItem},
+		{method: methods["GET /rpc/items"], Path: "GET /rpc/items", Handler: s.restListItems},
+		{method: methods["POST /rpc/items"], Path: "POST /rpc/items", Handler: s.restCreateItem},
+		{method: methods["PUT /rpc/items/{id}"], Path: "PUT /rpc/items/{id}", Handler: s.restUpdateItem},
+		{method: methods["PATCH /rpc/items/{id}"], Path: "PATCH /rpc/items/{id}", Handler: s.restPatchItem},
+		{method: methods["DELETE /rpc/items/{id}"], Path: "DELETE /rpc/items/{id}", Handler: s.restDeleteItem},
+		{method: methods["QUERY /rpc/items/search"], Path: "QUERY /rpc/items/search", Handler: s.restQueryItems},
+		{method: methods["GET /rpc/items/echo/params"], Path: "GET /rpc/items/echo/params", Handler: s.restEchoParams},
+		{method: methods["GET /rpc/items/{id}/children/{childId}"], Path: "GET /rpc/items/{id}/children/{childId}", Handler: s.restGetChild},
+		{method: methods["POST /rpc/items/reset"], Path: "POST /rpc/items/reset", Handler: s.restResetItems},
+		{method: methods["GET /rpc/items/lookup/{id}"], Path: "GET /rpc/items/lookup/{id}", Handler: s.restLookupItem},
+		{method: methods["POST /rpc/TestApiRest/LookupItem"], Path: "POST /rpc/TestApiRest/LookupItem", Handler: s.restLookupItemRPC},
+		{method: methods["GET /rpc/items/find"], Path: "GET /rpc/items/find", Handler: s.restFindItems},
+		{method: methods["QUERY /rpc/items/find"], Path: "QUERY /rpc/items/find", Handler: s.restFindItemsQuery},
+		{method: methods["/rpc/TestApiRest/RpcMethod"], Path: "/rpc/TestApiRest/RpcMethod", Handler: http.HandlerFunc(s.handleRpcMethod)},
+	}
+}
 
 func (s *testApiRestService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
@@ -1154,21 +1184,109 @@ func (s *testApiRestService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
+	// Method-first dispatch: one switch per verb, then static paths, then
+	// segment matchers. Handlers are fully self-contained (context preamble
+	// included), so this function allocates nothing on the hot path.
+	switch r.Method {
+	case "GET", "HEAD":
+		switch r.URL.Path {
+		case "/rpc/items":
+			r.Pattern = "GET /rpc/items"
+			s.restListItems(w, r)
+		case "/rpc/items/echo/params":
+			r.Pattern = "GET /rpc/items/echo/params"
+			s.restEchoParams(w, r)
+		case "/rpc/items/find":
+			r.Pattern = "GET /rpc/items/find"
+			s.restFindItems(w, r)
+		default:
+			path := r.URL.Path
+			if id, childId, ok := restSeg2(path, "/rpc/items/", "/children/"); ok {
+				r.SetPathValue("id", id)
+				r.SetPathValue("childId", childId)
+				r.Pattern = "GET /rpc/items/{id}/children/{childId}"
+				s.restGetChild(w, r)
+				return
+			}
+			if id, ok := restSeg1(path, "/rpc/items/lookup/"); ok {
+				r.SetPathValue("id", id)
+				r.Pattern = "GET /rpc/items/lookup/{id}"
+				s.restLookupItem(w, r)
+				return
+			}
+			if id, ok := restSeg1(path, "/rpc/items/"); ok {
+				r.SetPathValue("id", id)
+				r.Pattern = "GET /rpc/items/{id}"
+				s.restGetItem(w, r)
+				return
+			}
+			s.restMiss(w, r)
+		}
+	case "POST":
+		switch r.URL.Path {
+		case "/rpc/items":
+			r.Pattern = "POST /rpc/items"
+			s.restCreateItem(w, r)
+		case "/rpc/items/reset":
+			r.Pattern = "POST /rpc/items/reset"
+			s.restResetItems(w, r)
+		case "/rpc/TestApiRest/LookupItem":
+			r.Pattern = "POST /rpc/TestApiRest/LookupItem"
+			s.restLookupItemRPC(w, r)
+		case "/rpc/TestApiRest/RpcMethod":
+			s.handleRpcMethod(w, r)
+		default:
+			s.restMiss(w, r)
+		}
+	case "PUT":
+		if id, ok := restSeg1(r.URL.Path, "/rpc/items/"); ok {
+			r.SetPathValue("id", id)
+			r.Pattern = "PUT /rpc/items/{id}"
+			s.restUpdateItem(w, r)
+			return
+		}
+		s.restMiss(w, r)
+	case "PATCH":
+		if id, ok := restSeg1(r.URL.Path, "/rpc/items/"); ok {
+			r.SetPathValue("id", id)
+			r.Pattern = "PATCH /rpc/items/{id}"
+			s.restPatchItem(w, r)
+			return
+		}
+		s.restMiss(w, r)
+	case "DELETE":
+		if id, ok := restSeg1(r.URL.Path, "/rpc/items/"); ok {
+			r.SetPathValue("id", id)
+			r.Pattern = "DELETE /rpc/items/{id}"
+			s.restDeleteItem(w, r)
+			return
+		}
+		s.restMiss(w, r)
+	case "QUERY":
+		switch r.URL.Path {
+		case "/rpc/items/search":
+			r.Pattern = "QUERY /rpc/items/search"
+			s.restQueryItems(w, r)
+		case "/rpc/items/find":
+			r.Pattern = "QUERY /rpc/items/find"
+			s.restFindItemsQuery(w, r)
+		default:
+			s.restMiss(w, r)
+		}
+	default:
+		s.restMiss(w, r)
+	}
+}
+
+// handleRpcMethod serves the plain RPC method, self-contained so it works
+// both in ServeHTTP's dispatch and when mounted on an external mux.
+func (s *testApiRestService) handleRpcMethod(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
 	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
 	ctx = context.WithValue(ctx, ServiceNameCtxKey, "TestApiRest")
 
 	r = r.WithContext(ctx)
-
-	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
-	switch r.URL.Path {
-	case "/rpc/TestApiRest/RpcMethod":
-		handler = s.serveRpcMethodJSON
-	default:
-		serveRest(s.restMux, w, r, s.sendErrorJSON)
-		return
-	}
 
 	if r.Method != "POST" {
 		w.Header().Add("Allow", "POST") // RFC 9110.
@@ -1196,7 +1314,7 @@ func (s *testApiRestService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		handler(ctx, w, r)
+		s.serveRpcMethodJSON(ctx, w, r)
 	default:
 		err := ErrWebrpcBadRequest.WithCausef("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type"))
 		s.sendErrorJSON(w, r, err)
@@ -1677,10 +1795,13 @@ func (p *restParams) values() map[string][]string {
 }
 
 // restHandler runs one REST route: body decode, param binding, then fn.
-func restHandler[I, O any](method string, hasBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+func restHandler[I, O any](service, method string, hasBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// ServeMux set Pattern and path values on r, so keep that request in the context.
-		ctx := context.WithValue(r.Context(), HTTPRequestCtxKey, r)
+		// The dispatcher set Pattern and path values on r; keep that request in the context.
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
+		ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
+		ctx = context.WithValue(ctx, ServiceNameCtxKey, service)
 		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
 		r = r.WithContext(ctx)
 
@@ -1751,39 +1872,70 @@ func restHandler[I, O any](method string, hasBody bool, fn func(context.Context,
 	}
 }
 
-// serveRest serves the REST routes of mux; the mux's "/" catch-all answers misses.
-func serveRest(mux *http.ServeMux, w http.ResponseWriter, r *http.Request, sendError func(http.ResponseWriter, *http.Request, WebRPCError)) {
-	// ServeMux would redirect these paths; webrpc answers them with 404 instead.
-	p := r.URL.EscapedPath()
-	if strings.Contains(p, "//") || strings.Contains(p, "/./") || strings.Contains(p, "/../") || strings.HasSuffix(p, "/.") || strings.HasSuffix(p, "/..") {
-		sendError(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
-		return
+// restSeg1 matches prefix + one path parameter segment.
+func restSeg1(path, prefix string) (string, bool) {
+	s, ok := strings.CutPrefix(path, prefix)
+	if !ok || s == "" || strings.Contains(s, "/") {
+		return "", false
 	}
-	mux.ServeHTTP(w, r)
+	return s, true
+}
+
+// restSeg2 matches prefix + segment + middle + segment.
+func restSeg2(path, prefix, middle string) (string, string, bool) {
+	s, ok := strings.CutPrefix(path, prefix)
+	if !ok {
+		return "", "", false
+	}
+	a, b, ok := strings.Cut(s, middle)
+	if !ok || a == "" || b == "" || strings.Contains(a, "/") || strings.Contains(b, "/") {
+		return "", "", false
+	}
+	return a, b, true
+}
+
+// restAllowMethods returns the static Allow value for a routed path, so a
+// wrong-method request answers 405 without probing a router.
+func restAllowMethods(path string) (string, bool) {
+	switch path {
+	case "/rpc/items":
+		return "GET, HEAD, POST", true
+	case "/rpc/items/echo/params":
+		return "GET, HEAD", true
+	case "/rpc/items/find":
+		return "GET, HEAD, QUERY", true
+	case "/rpc/items/search":
+		return "QUERY", true
+	case "/rpc/items/reset":
+		return "POST", true
+	case "/rpc/TestApiRest/LookupItem", "/rpc/TestApiRest/RpcMethod":
+		return "POST", true
+	}
+	if _, _, ok := restSeg2(path, "/rpc/items/", "/children/"); ok {
+		return "GET, HEAD", true
+	}
+	if _, ok := restSeg1(path, "/rpc/items/lookup/"); ok {
+		return "GET, HEAD", true
+	}
+	if _, ok := restSeg1(path, "/rpc/items/"); ok {
+		return "DELETE, GET, HEAD, PATCH, PUT", true
+	}
+	return "", false
 }
 
 // restMiss answers requests no route matched: 405 with Allow, or 404.
-func restMiss(mux *http.ServeMux, sendError func(http.ResponseWriter, *http.Request, WebRPCError)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var allowed []string
-		probe := *r
-		for _, method := range []string{"GET", "POST", "PUT", "PATCH", "DELETE", "QUERY"} {
-			probe.Method = method
-			// The "/" catch-all matches every request, so it is not a route.
-			if _, pattern := mux.Handler(&probe); pattern != "" && pattern != "/" {
-				allowed = append(allowed, method)
-				if method == "GET" {
-					allowed = append(allowed, "HEAD") // ServeMux also matches HEAD on GET patterns.
-				}
-			}
-		}
-		if len(allowed) == 0 {
-			sendError(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
+func (s *testApiRestService) restMiss(w http.ResponseWriter, r *http.Request) {
+	if allow, ok := restAllowMethods(r.URL.Path); ok {
+		w.Header().Set("Allow", allow) // RFC 9110.
+		if r.URL.Path == "/rpc/TestApiRest/RpcMethod" {
+			// The legacy RPC path keeps its "only POST" message.
+			s.sendErrorJSON(w, r, ErrWebrpcBadMethod.WithCausef("unsupported HTTP method %v (only POST is allowed)", r.Method))
 			return
 		}
-		w.Header().Set("Allow", strings.Join(allowed, ", ")) // RFC 9110.
-		sendError(w, r, ErrWebrpcBadMethod.WithCausef("unsupported HTTP method %v (allowed: %v)", r.Method, strings.Join(allowed, ", ")))
+		s.sendErrorJSON(w, r, ErrWebrpcBadMethod.WithCausef("unsupported HTTP method %v (allowed: %v)", r.Method, allow))
+		return
 	}
+	s.sendErrorJSON(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
 }
 
 // restSet parses one raw param value into dst; typ is the RIDL type named in the error.
