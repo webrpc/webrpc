@@ -14,14 +14,10 @@ import (
 type TestRESTServer struct {
 	mu    sync.Mutex
 	items map[uint64]*Item
-
-	// statusOverride makes a method write the given status via the
-	// ResponseWriter; tests use it to exercise undeclared codes (a 500).
-	statusOverride map[string]int
 }
 
 func NewTestRESTServer() *TestRESTServer {
-	return &TestRESTServer{items: map[uint64]*Item{}, statusOverride: map[string]int{}}
+	return &TestRESTServer{items: map[uint64]*Item{}}
 }
 
 func (s *TestRESTServer) GetItem(ctx context.Context, req GetItemRequest) (*GetItemResponse, error) {
@@ -100,8 +96,11 @@ func (s *TestRESTServer) UpsertItem(ctx context.Context, item *Item) (*Item, err
 	}
 	_, exists := s.items[item.Id]
 	s.items[item.Id] = item
-	if !exists {
-		// Runtime override: created, so the declared default 200 becomes 201.
+	// Multi-code route (declared 200|201): the handler owns WriteHeader —
+	// 201 on create, the declared default 200 on update.
+	if exists {
+		ResponseWriterFromContext(ctx).WriteHeader(200)
+	} else {
 		ResponseWriterFromContext(ctx).WriteHeader(201)
 	}
 	return item, nil
@@ -115,13 +114,9 @@ func (s *TestRESTServer) DeleteItem(ctx context.Context, id uint64) error {
 		return ErrUnexpectedValue.WithCausef("no item %d", id)
 	}
 	delete(s.items, id)
-	// Runtime override to the bodyless code of the declared 200|204 set; the
-	// knob lets tests write an undeclared code, which the server turns into 500.
-	if code := s.statusOverride["DeleteItem"]; code != 0 {
-		ResponseWriterFromContext(ctx).WriteHeader(code)
-	} else {
-		ResponseWriterFromContext(ctx).WriteHeader(204)
-	}
+	// Multi-code bodyless route (declared 200|204, empty response): the
+	// handler owns WriteHeader and the route never carries a body.
+	ResponseWriterFromContext(ctx).WriteHeader(204)
 	return nil
 }
 

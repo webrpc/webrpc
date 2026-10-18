@@ -181,8 +181,8 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 		}
 	}
 
-	// PUT /rpc/items — upsert (declared 200|201): the handler overrides the
-	// status to 201 on create and keeps the declared default 200 on update.
+	// PUT /rpc/items — upsert (declared 200|201): the handler writes the
+	// status 201 on create and the declared default 200 on update.
 	upserted, err := api.UpsertItem(ctx, &Item{Id: 10, Name: "zoe"})
 	if err != nil {
 		errs = append(errs, fmt.Errorf("UpsertItem(): %w", err))
@@ -203,7 +203,7 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 		}
 		body, _ := io.ReadAll(upsertResp.Body)
 		upsertResp.Body.Close()
-		// Both are declared: the Go server overrides 201 on create, the
+		// Both are declared: the Go server writes 201 on create, the
 		// TypeScript server keeps the static default 200.
 		if upsertResp.StatusCode != http.StatusOK && upsertResp.StatusCode != http.StatusCreated {
 			errs = append(errs, fmt.Errorf("PUT /rpc/items (%d): expected 200 or 201, got %d", id, upsertResp.StatusCode))
@@ -224,7 +224,7 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 		}
 	}
 
-	// DELETE /rpc/items/{id} — the handler overrides to the declared 204; the
+	// DELETE /rpc/items/{id} — the handler writes the declared 204; the
 	// client skips the (empty) body and the round-trip succeeds.
 	if err := api.DeleteItem(ctx, 7); err != nil {
 		errs = append(errs, fmt.Errorf("DeleteItem(): %w", err))
@@ -234,7 +234,7 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 	}
 
 	// A raw DELETE reports a declared status: 204 with no body from the Go
-	// server's runtime override, or the TypeScript server's static 200.
+	// server's handler-written status, or the TypeScript server's static 200.
 	delReq, err := http.NewRequestWithContext(ctx, "DELETE", serverURL+"/rpc/items/10", nil)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("DELETE /rpc/items/10: %w", err))

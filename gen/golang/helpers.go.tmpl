@@ -76,39 +76,30 @@ func (p *restParams) values() map[string][]string {
 }
 {{- end}}
 
-// restResponseWriter records the status a handler wrote via WriteHeader, so
-// restHandler can validate and forward it once fn returns. It never forwards
-// the write itself, so response headers stay mutable until then.
-type restResponseWriter struct {
-	http.ResponseWriter
-	status int
+// restRoute carries one route's response behavior, decided at codegen time
+// from its @success set and response shape.
+type restRoute struct {
+	defaultStatus int
+	// frameworkWritesStatus: the framework writes defaultStatus after fn
+	// returns nil (single-code routes); multi-code routes leave WriteHeader
+	// to the handler via ResponseWriterFromContext(ctx).
+	frameworkWritesStatus bool
+	// writeBody: false for routes with an empty response whose declared set
+	// contains 204 or 205 — they never write a body or Content-Type.
+	writeBody bool
 }
 
-func (w *restResponseWriter) WriteHeader(code int) {
-	w.status = code
-}
-
-// restSuccessCodes renders a declared success-code set for error messages.
-func restSuccessCodes(codes []int) string {
-	parts := make([]string, len(codes))
-	for i, code := range codes {
-		parts[i] = strconv.Itoa(code)
-	}
-	return strings.Join(parts, "|")
-}
-
-// restHandler runs one REST route: body decode, param binding, then fn. A
-// handler picks the success status at runtime with
-// ResponseWriterFromContext(ctx).WriteHeader(code); the code must be one of
-// the route's declared success codes, else the response is a 500.
-func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, successDefault int, successCodes []int, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+// restHandler runs one REST route: body decode, param binding, then fn. On
+// single-code routes the framework writes the declared status; on multi-code
+// routes the handler picks one of the declared codes with
+// ResponseWriterFromContext(ctx).WriteHeader(code) before returning.
+func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, route restRoute, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Identify the route before user code can run: MethodCtx resolves the
 		// method from r.Pattern (the dispatcher already set the path values).
 		r.Pattern = pattern
 		ctx := r.Context()
-		rec := &restResponseWriter{ResponseWriter: w}
-		ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, rec)
+		ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
 		ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
 		ctx = context.WithValue(ctx, ServiceNameCtxKey, service)
 		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
@@ -156,10 +147,14 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 			}
 		}
 
+		// Content-Type is declared before user code runs; bodyless routes carry
+		// none, and sendError sets its own on the error path.
+		if route.writeBody {
+			w.Header().Set("Content-Type", "application/json")
+		}
+
 		out, err := fn(ctx, req)
 		if err != nil {
-			// The error wins over any status the handler already recorded; the
-			// recorder never forwarded it, so headers are still mutable here.
 			var rpcErr WebRPCError
 			if !errors.As(err, &rpcErr) {
 				rpcErr = ErrWebrpcEndpoint.WithCause(err)
@@ -168,31 +163,26 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 			return
 		}
 
-		{{ if $opts.fixEmptyArrays -}}
-		respBody, err := {{$json}}.Marshal(initializeNilSlices(out))
-		{{ else -}}
-		respBody, err := {{$json}}.Marshal(out)
-		{{ end -}}
-		if err != nil {
-			sendError(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
-			return
-		}
-
-		// A recorded status must be one of the route's declared success codes;
-		// no recorded status keeps the declared default.
-		status := successDefault
-		if rec.status != 0 {
-			if !slices.Contains(successCodes, rec.status) {
-				sendError(w, r, ErrWebrpcBadResponse.WithCausef("handler wrote status %d, but route declares success status %s", rec.status, restSuccessCodes(successCodes)))
+		var respBody []byte
+		if route.writeBody && r.Method != "HEAD" {
+			{{ if $opts.fixEmptyArrays -}}
+			respBody, err = {{$json}}.Marshal(initializeNilSlices(out))
+			{{ else -}}
+			respBody, err = {{$json}}.Marshal(out)
+			{{ end -}}
+			if err != nil {
+				sendError(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
 				return
 			}
-			status = rec.status
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(status)
-		// HEAD gets the GET status and headers, but no body; 204/205 have no body.
-		if r.Method != "HEAD" && status != 204 && status != 205 {
+		// Single-code routes: the framework owns WriteHeader. Multi-code
+		// routes: the handler already wrote one of the declared codes; if it
+		// forgot, the first Write gets an implicit 200.
+		if route.frameworkWritesStatus {
+			w.WriteHeader(route.defaultStatus)
+		}
+		if respBody != nil {
 			w.Write(respBody)
 		}
 	}

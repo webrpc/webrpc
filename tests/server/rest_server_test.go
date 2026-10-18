@@ -196,7 +196,7 @@ func TestRESTScalarOverflowIsBadRequest(t *testing.T) {
 	type overflowRequest struct{ N uint8 }
 	srv := NewTestApiRestServer(NewTestRESTServer())
 	mux := http.NewServeMux()
-	mux.Handle("GET /n/{n}", restHandler("GET /n/{n}", "", "Overflow", false, false, 200, []int{200},
+	mux.Handle("GET /n/{n}", restHandler("GET /n/{n}", "", "Overflow", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
 		func(ctx context.Context, req overflowRequest) (struct{}, error) { return struct{}{}, nil },
 		func(p *restParams, req *overflowRequest) error { return restPath(p, "n", "uint8", &req.N, restUint) },
 		srv.sendErrorJSON, &srv.OnRequest))
@@ -244,16 +244,17 @@ func TestRESTDeclaredSuccessStatus(t *testing.T) {
 	}
 }
 
-// TestRESTSuccessStatusOverride pins the runtime override: the handler writes
-// the status via ResponseWriterFromContext(ctx).WriteHeader(code); the code
-// must be one of the route's declared success codes.
-func TestRESTSuccessStatusOverride(t *testing.T) {
+// TestRESTMultiCodeHandlerWritesStatus pins the multi-code routes: the
+// handler owns WriteHeader via ResponseWriterFromContext(ctx) and picks one
+// of the declared codes; single-code routes stay framework-written.
+func TestRESTMultiCodeHandlerWritesStatus(t *testing.T) {
 	impl := NewTestRESTServer()
 	srv := NewTestApiRestServer(impl)
 
-	// UpsertItem (declared 200|201): create overrides to 201, update keeps the default 200.
+	// UpsertItem (declared 200|201): the handler writes 201 on create and
+	// the declared default 200 on update.
 	if rec := serveTest(t, srv, "PUT", "/rpc/items", "application/json", `{"item":{"id":7,"name":"alice"}}`); rec.Code != http.StatusCreated {
-		t.Errorf("PUT /rpc/items (create): status %d, body %s, want 201 (runtime override)", rec.Code, rec.Body)
+		t.Errorf("PUT /rpc/items (create): status %d, body %s, want 201 (handler-written)", rec.Code, rec.Body)
 	}
 	rec := serveTest(t, srv, "PUT", "/rpc/items", "application/json", `{"item":{"id":7,"name":"bob"}}`)
 	if rec.Code != http.StatusOK {
@@ -263,16 +264,21 @@ func TestRESTSuccessStatusOverride(t *testing.T) {
 		t.Errorf("PUT /rpc/items (update): body %s, want the updated item", rec.Body)
 	}
 
-	// DeleteItem (declared 200|204): the handler overrides to the bodyless 204.
+	// DeleteItem (declared 200|204, empty response): the handler writes the
+	// bodyless 204 — no body and no Content-Type on either code.
 	rec = serveTest(t, srv, "DELETE", "/rpc/items/7", "", "")
 	if rec.Code != http.StatusNoContent {
-		t.Errorf("DELETE /rpc/items/7: status %d, body %s, want 204 (runtime override)", rec.Code, rec.Body)
+		t.Errorf("DELETE /rpc/items/7: status %d, body %s, want 204 (handler-written)", rec.Code, rec.Body)
 	}
 	if rec.Body.Len() != 0 {
 		t.Errorf("DELETE /rpc/items/7: body %q, want none", rec.Body)
 	}
+	if ct := rec.Header().Get("Content-Type"); ct != "" {
+		t.Errorf("DELETE /rpc/items/7: Content-Type %q, want none on a bodyless route", ct)
+	}
 
-	// PurgeItems (declared 204): the static default, no runtime override involved.
+	// PurgeItems (declared 204, single code): the static default, no
+	// handler-written status involved.
 	rec = serveTest(t, srv, "POST", "/rpc/items/purge", "", "")
 	if rec.Code != http.StatusNoContent {
 		t.Errorf("POST /rpc/items/purge: status %d, body %s, want 204", rec.Code, rec.Body)
@@ -280,28 +286,27 @@ func TestRESTSuccessStatusOverride(t *testing.T) {
 	if rec.Body.Len() != 0 {
 		t.Errorf("POST /rpc/items/purge: body %q, want none", rec.Body)
 	}
+	if ct := rec.Header().Get("Content-Type"); ct != "" {
+		t.Errorf("POST /rpc/items/purge: Content-Type %q, want none on a bodyless route", ct)
+	}
 }
 
-// TestRESTSuccessStatusOverrideUndeclared pins the 500: a handler-written
-// status outside the route's declared set fails the response with an error
-// naming the declared codes.
-func TestRESTSuccessStatusOverrideUndeclared(t *testing.T) {
-	impl := NewTestRESTServer()
-	impl.statusOverride["DeleteItem"] = 201
-	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
-		t.Fatal(err)
-	}
-	srv := NewTestApiRestServer(impl)
+// TestRESTMultiCodeForgetToWriteStatus pins the forgiving path: a multi-code
+// handler that never calls WriteHeader gets an implicit 200 from the first
+// body write — no validation, no warning.
+func TestRESTMultiCodeForgetToWriteStatus(t *testing.T) {
+	srv := NewTestApiRestServer(NewTestRESTServer())
+	mux := http.NewServeMux()
+	mux.Handle("GET /implicit", restHandler("GET /implicit", "", "Implicit", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: false, writeBody: true},
+		func(ctx context.Context, req struct{}) (Item, error) { return Item{Id: 1, Name: "alice"}, nil },
+		nil, srv.sendErrorJSON, &srv.OnRequest))
 
-	rec := serveTest(t, srv, "DELETE", "/rpc/items/7", "", "")
-	if rec.Code != http.StatusInternalServerError {
-		t.Fatalf("DELETE /rpc/items/7 with undeclared override: status %d, body %s, want 500", rec.Code, rec.Body)
+	rec := serveTest(t, mux, "GET", "/implicit", "", "")
+	if rec.Code != http.StatusOK {
+		t.Errorf("GET /implicit: status %d, want implicit 200", rec.Code)
 	}
-	if !strings.Contains(rec.Body.String(), `"error":"WebrpcBadResponse"`) {
-		t.Errorf("DELETE /rpc/items/7 with undeclared override: body %s, want the WebrpcBadResponse envelope", rec.Body)
-	}
-	if !strings.Contains(rec.Body.String(), "200|204") {
-		t.Errorf("DELETE /rpc/items/7 with undeclared override: body %s, want the declared codes", rec.Body)
+	if !strings.Contains(rec.Body.String(), `"name":"alice"`) {
+		t.Errorf("GET /implicit: body %s, want the marshaled item", rec.Body)
 	}
 }
 

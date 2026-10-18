@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/Masterminds/sprig/v3"
@@ -140,6 +141,7 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"RoutePattern":         schema.RoutePattern,         // v0.47.0
 		"RouteSuccessStatus":   schema.RouteSuccessStatus,   // v0.47.0
 		"RouteSuccessCodes":    schema.RouteSuccessCodes,    // v0.47.0
+		"RouteRestBehavior":    routeRestBehavior,           // static WriteHeader split
 		"RouteParams":          schema.RouteParams,          // v0.47.0
 		"RouteShapeOf":         schema.RouteShapeOf,         // switch-based REST router
 		"RouteHandlerField":    schema.RouteHandlerField,    // switch-based REST router
@@ -156,4 +158,22 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 	}
 
 	return f
+}
+
+// routeRestBehavior renders the restRoute literal that fixes one route's
+// WriteHeader responsibility at codegen time: the framework writes the status
+// on single-code routes, the handler on multi-code routes; an empty response
+// whose set contains 204 or 205 is bodyless.
+func routeRestBehavior(r *schema.MethodRoute) string {
+	codes := schema.RouteSuccessCodes(r)
+	bodyless := false
+	if r.Method != nil && schema.MethodHasEmptyResponse(r.Method) {
+		for _, code := range codes {
+			if code == 204 || code == 205 {
+				bodyless = true
+			}
+		}
+	}
+	return fmt.Sprintf("restRoute{defaultStatus: %d, frameworkWritesStatus: %t, writeBody: %t}",
+		codes[0], len(codes) == 1, !bodyless)
 }

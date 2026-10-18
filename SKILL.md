@@ -113,10 +113,12 @@ service Users
 - `+ @success <codes>` directly below a route line declares the route's allowed success
   statuses as a pipe-separated set, e.g. `+ @success 200|201`. The first is the default;
   no `+ @success` line means 200. Codes must be 2xx and unique, and 204/205 are allowed
-  only for methods with an empty response (no outputs or an empty struct). Go handlers
-  pick the status at runtime with `ResponseWriterFromContext(ctx).WriteHeader(code)` —
-  the code must be in the declared set, or the response fails with a 500. The TypeScript
-  server uses the declared default only (a runtime override is a follow-up).
+  only for methods with an empty response (no outputs or an empty struct); such routes
+  never carry a response body or `Content-Type`. The WriteHeader responsibility is fixed
+  at codegen time: on a single-code route (or no `+ @success` line) the framework writes
+  the declared status and the handler must not; on a multi-code route the Go handler
+  picks one with `ResponseWriterFromContext(ctx).WriteHeader(code)` — not validated, the
+  declared set is the contract. The TypeScript server uses the declared default only.
 - Routed endpoints ignore unknown fields in the JSON body. A strict-decode opt-in is
   proposed in [#530](https://github.com/webrpc/webrpc/issues/530).
 - Only the golang and typescript targets support routes. Other targets exit with an error.

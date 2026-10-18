@@ -431,8 +431,9 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   assert.equal(sent.length, before, 'dot and empty path values must not be sent')
 
   // PUT /rpc/items — upsert, declared `+ @success 200|201`. The TypeScript
-  // server's success status is static (the runtime override is Go-only): 200
-  // always. The Go handler overrides 201 on create via the ResponseWriter.
+  // server's success status is static (handler-written statuses are
+  // Go-only): 200 always. The Go handler writes 201 on create via the
+  // ResponseWriter.
   const upsertCreate = await fetch(`${addr}/rpc/items`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -449,7 +450,7 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   await upsertUpdate.body?.cancel()
 
   // DELETE /rpc/items/{id} — declared `+ @success 200|204`. The Go handler
-  // overrides to the bodyless 204; the TypeScript server keeps the static
+  // writes the bodyless 204; the TypeScript server keeps the static
   // default 200. The client tolerates both (204 has no body to parse).
   await api.deleteItem({ id: 7 })
   await assert.rejects(api.getItem({ id: 7 }), 'getItem after deleteItem must fail')
