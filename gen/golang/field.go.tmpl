@@ -14,11 +14,12 @@
 {{- $succinct := or .Succinct false -}}
 
 {{- $customType := "" -}}
-{{- $jsonTag := printf "json:%q" $name }}
+{{- $jsonName := $name -}}
+{{- $jsonOverride := false -}}
 {{- $structTags := array -}}
 {{- range $meta := $typeMeta -}}
     {{- if exists $meta "json" -}}
-        {{- $jsonTag = printf "json:%q" (get $meta "json") -}}
+        {{- $jsonName = get $meta "json" -}}
     {{- end -}}
     {{- if exists $meta "go.field.name" -}}
         {{- $fieldName = get $meta "go.field.name" -}}
@@ -27,7 +28,8 @@
         {{- $customType = get $meta "go.field.type" -}}
     {{- end -}}
     {{- if exists $meta "go.tag.json" -}}
-        {{- $jsonTag = printf "json:%q" (get $meta "go.tag.json") -}}
+        {{- $jsonName = get $meta "go.tag.json" -}}
+        {{- $jsonOverride = true -}}
     {{- end -}}
     {{- range $metaKey, $metaValue := $meta -}}
         {{- if and (hasPrefix $metaKey "go.tag.") (ne $metaKey "go.tag.json") -}}
@@ -70,7 +72,10 @@
     {{- end -}}
 {{- end -}}
 
+{{- /* optional fields omit their zero value (nil pointer / nil slice / nil map) from JSON; a full `go.tag.json` override owns the tag. */ -}}
 {{- if $includeJsonTags -}}
+{{- if and $optional (not $jsonOverride) (ne $jsonName "-") -}}{{- $jsonName = printf "%s,omitzero" $jsonName -}}{{- end -}}
+{{- $jsonTag := printf "json:%q" $jsonName -}}
 {{" "}}`{{$jsonTag}}{{if and $includeStructTags (len $structTags)}} {{join (sort $structTags) " "}}{{end}}`
 {{- end -}}
 
