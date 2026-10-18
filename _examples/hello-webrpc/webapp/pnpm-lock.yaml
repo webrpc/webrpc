@@ -156,6 +156,8 @@ packages:
   '@parcel/node-resolver-core@3.7.0':
     resolution: {integrity: sha512-YIK7wtjO7biRoXNRdFR0uSYPY0FwvCA77xlJCOTX1+jeACj8BPwLKOMFJKCA89pBr7iHyTNzZ3ppVGsX8flMag==}
     engines: {node: '>= 16.0.0'}
+    peerDependencies:
+      '@parcel/core': '*'
 
   '@parcel/optimizer-css@2.16.0':
     resolution: {integrity: sha512-QTrMOVknU4DmKzmnTxQx69ZZxoDYyTIWhpflDLSvUaLSXk2yi0SMBMcsEdA0W4bhORn6nj8toGwi04vbGVuQtA==}
@@ -232,6 +234,8 @@ packages:
   '@parcel/resolver-default@2.16.0':
     resolution: {integrity: sha512-HvzVXPn8j/ElbNkqAHa7wHOzqCWTwAEv4pWJVnguuqL9m7ZC2INDsp3XJR1LOA5UqBYRhkBrvWK69v4sA21a9w==}
     engines: {node: '>= 16.0.0', parcel: ^2.16.0}
+    peerDependencies:
+      '@parcel/core': '*'
 
   '@parcel/runtime-browser-hmr@2.16.0':
     resolution: {integrity: sha512-tRPoFwUVtzE7ufOtIr1CHdh8SH3772FI1JlFCV0//tEWbj9iSk1bcK0g05Yj4dW4hW2SjqTcVo59Kw50Zeh7/Q==}
@@ -545,8 +549,9 @@ packages:
   base-x@3.0.11:
     resolution: {integrity: sha512-xz7wQ8xDhdyP7tQxwdteLYeFfS68tSMNCZ/Y37WJ4bhGfKPpqEIlmIyueQHqOyoPhE6xNUqjzRr8ra0eF9VRvA==}
 
-  baseline-browser-mapping@2.8.18:
-    resolution: {integrity: sha512-UYmTpOBwgPScZpS4A+YbapwWuBwasxvO/2IOHArSsAhL/+ZdmATBXTex3t+l2hXwLVYK382ibr/nKoY9GKe86w==}
+  baseline-browser-mapping@2.11.29:
+    resolution: {integrity: sha512-YeesxhUmR4h5y5V8KF8iBCqJb8YFrBJ++XBTeGcWIaQOYXGN19JM0FoiOjAhwuDoln8owMgXcWBmgHtYSkky2w==}
+    engines: {node: '>=6.0.0'}
     hasBin: true
 
   braces@3.0.3:
@@ -1018,6 +1023,7 @@ snapshots:
   '@parcel/node-resolver-core@3.7.0(@parcel/core@2.16.0(@swc/helpers@0.5.17))':
     dependencies:
       '@mischnic/json-sourcemap': 0.1.1
+      '@parcel/core': 2.16.0(@swc/helpers@0.5.17)
       '@parcel/diagnostic': 2.16.0
       '@parcel/fs': 2.16.0(@parcel/core@2.16.0(@swc/helpers@0.5.17))
       '@parcel/rust': 2.16.0
@@ -1025,7 +1031,6 @@ snapshots:
       nullthrows: 1.1.1
       semver: 7.7.3
     transitivePeerDependencies:
-      - '@parcel/core'
       - napi-wasm
 
   '@parcel/optimizer-css@2.16.0(@parcel/core@2.16.0(@swc/helpers@0.5.17))':
@@ -1206,10 +1211,10 @@ snapshots:
 
   '@parcel/resolver-default@2.16.0(@parcel/core@2.16.0(@swc/helpers@0.5.17))':
     dependencies:
+      '@parcel/core': 2.16.0(@swc/helpers@0.5.17)
       '@parcel/node-resolver-core': 3.7.0(@parcel/core@2.16.0(@swc/helpers@0.5.17))
       '@parcel/plugin': 2.16.0(@parcel/core@2.16.0(@swc/helpers@0.5.17))
     transitivePeerDependencies:
-      - '@parcel/core'
       - napi-wasm
 
   '@parcel/runtime-browser-hmr@2.16.0(@parcel/core@2.16.0(@swc/helpers@0.5.17))':
@@ -1579,7 +1584,7 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
 
-  baseline-browser-mapping@2.8.18: {}
+  baseline-browser-mapping@2.11.29: {}
 
   braces@3.0.3:
     dependencies:
@@ -1587,7 +1592,7 @@ snapshots:
 
   browserslist@4.26.3:
     dependencies:
-      baseline-browser-mapping: 2.8.18
+      baseline-browser-mapping: 2.11.29
       caniuse-lite: 1.0.30001751
       electron-to-chromium: 1.5.237
       node-releases: 2.0.25
