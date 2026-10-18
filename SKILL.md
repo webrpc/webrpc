@@ -111,6 +111,8 @@ service Users
 - `+ @success <code>` directly below a route line sets that route's success status
   (2xx only, default 200). It is static per route: a runtime-chosen status (e.g. 201 vs
   202 + Retry-After) is a follow-up.
+- Routed endpoints ignore unknown fields in the JSON body. A strict-decode opt-in is
+  proposed in [#530](https://github.com/webrpc/webrpc/issues/530).
 - Only the golang and typescript targets support routes. Other targets exit with an error.
 
 ## Field metadata
