@@ -118,7 +118,11 @@ service Users
   at codegen time: on a single-code route (or no `+ @success` line) the framework writes
   the declared status and the handler must not; on a multi-code route the Go handler
   picks one with `ResponseWriterFromContext(ctx).WriteHeader(code)` — not validated, the
-  declared set is the contract. The TypeScript server uses the declared default only.
+  declared set is the contract. The TypeScript server picks it the same way via the
+  generated `withStatus(status, result)` helper (an untagged result uses the declared
+  default).
+- Unit-testing a Go handler that writes a status needs a ResponseWriter in ctx: inject
+  one with `context.WithValue(ctx, HTTPResponseWriterCtxKey, httptest.NewRecorder())`.
 - Routed endpoints ignore unknown fields in the JSON body. A strict-decode opt-in is
   proposed in [#530](https://github.com/webrpc/webrpc/issues/530).
 - Only the golang and typescript targets support routes. Other targets exit with an error.

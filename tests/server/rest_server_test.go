@@ -196,7 +196,7 @@ func TestRESTScalarOverflowIsBadRequest(t *testing.T) {
 	type overflowRequest struct{ N uint8 }
 	srv := NewTestApiRestServer(NewTestRESTServer())
 	mux := http.NewServeMux()
-	mux.Handle("GET /n/{n}", restHandler("GET /n/{n}", "", "Overflow", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	mux.Handle("GET /n/{n}", restHandler("GET /n/{n}", "", "Overflow", false, false, 200, true,
 		func(ctx context.Context, req overflowRequest) (struct{}, error) { return struct{}{}, nil },
 		func(p *restParams, req *overflowRequest) error { return restPath(p, "n", "uint8", &req.N, restUint) },
 		srv.sendErrorJSON, &srv.OnRequest))
@@ -297,7 +297,7 @@ func TestRESTMultiCodeHandlerWritesStatus(t *testing.T) {
 func TestRESTMultiCodeForgetToWriteStatus(t *testing.T) {
 	srv := NewTestApiRestServer(NewTestRESTServer())
 	mux := http.NewServeMux()
-	mux.Handle("GET /implicit", restHandler("GET /implicit", "", "Implicit", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: false, writeBody: true},
+	mux.Handle("GET /implicit", restHandler("GET /implicit", "", "Implicit", false, false, 0, true,
 		func(ctx context.Context, req struct{}) (Item, error) { return Item{Id: 1, Name: "alice"}, nil },
 		nil, srv.sendErrorJSON, &srv.OnRequest))
 

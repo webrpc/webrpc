@@ -160,10 +160,11 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 	return f
 }
 
-// routeRestBehavior renders the restRoute literal that fixes one route's
-// WriteHeader responsibility at codegen time: the framework writes the status
-// on single-code routes, the handler on multi-code routes; an empty response
-// whose set contains 204 or 205 is bodyless.
+// routeRestBehavior renders the two restHandler status args that fix one
+// route's WriteHeader responsibility at codegen time: status is 0 on
+// multi-code routes, where the handler writes one of the declared codes, and
+// the declared status on single-code routes, where the framework writes it;
+// writeBody is false for an empty response whose set contains 204 or 205.
 func routeRestBehavior(r *schema.MethodRoute) string {
 	codes := schema.RouteSuccessCodes(r)
 	bodyless := false
@@ -174,6 +175,9 @@ func routeRestBehavior(r *schema.MethodRoute) string {
 			}
 		}
 	}
-	return fmt.Sprintf("restRoute{defaultStatus: %d, frameworkWritesStatus: %t, writeBody: %t}",
-		codes[0], len(codes) == 1, !bodyless)
+	status := codes[0]
+	if len(codes) > 1 {
+		status = 0
+	}
+	return fmt.Sprintf("%d, %t", status, !bodyless)
 }

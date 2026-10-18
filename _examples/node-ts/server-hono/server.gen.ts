@@ -132,7 +132,8 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: counter" })
       }
       const result = await service.ping(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'GetUser': {
@@ -144,7 +145,8 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: userId" })
       }
       const result = await service.getUser(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'GetArticle': {
@@ -153,7 +155,8 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: getArticleRequest" })
       }
       const result = await service.getArticle(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'UploadAvatar': {
@@ -173,7 +176,8 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: avatar" })
       }
       const result = await service.uploadAvatar(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'DownloadAvatar': {
@@ -185,7 +189,8 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: userId" })
       }
       const result = await service.downloadAvatar(ctx, payload || {})
-      return webrpcFileResponse(result)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcFileResponse(tagged ? tagged.result : result)
     }
   
     default:
@@ -233,8 +238,9 @@ const webrpcJsonResponse = (data: any, status = 200): Response => {
   })
 }
 
-// A route's declared default success status is static (runtime override is a
-// follow-up); 204/205 carry no body, and the Response constructor throws on one.
+// A route's declared default status applies unless the method result was
+// tagged with withStatus; 204/205 carry no body, and the Response constructor
+// throws on one.
 const webrpcSuccessResponse = (data: any, status = 200): Response => {
   if (status === 204 || status === 205) {
     return new Response(null, {
@@ -244,6 +250,25 @@ const webrpcSuccessResponse = (data: any, status = 200): Response => {
   }
   return webrpcJsonResponse(data, status)
 }
+
+// webrpcStatusKey tags a withStatus wrapper; being module-local, it can never
+// collide with a real payload field.
+const webrpcStatusKey = Symbol('webrpcStatus')
+
+// withStatus tags a method result with an explicit success status, which the
+// dispatcher uses instead of the route's declared default — the TypeScript
+// counterpart of the Go server's handler-written status via
+// ResponseWriterFromContext(ctx).WriteHeader(code). Advisory: the status is
+// not validated against the route's declared set.
+export const withStatus = <T>(status: number, result?: T): T =>
+  ({ [webrpcStatusKey]: status, result }) as unknown as T
+
+// webrpcTaggedStatus splits a withStatus wrapper; null when the result is
+// untagged and the route's declared default status applies.
+const webrpcTaggedStatus = (result: any): { status: number, result: any } | null =>
+  result !== null && typeof result === 'object' && webrpcStatusKey in result
+    ? { status: result[webrpcStatusKey] as number, result: result.result }
+    : null
 
 const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }): Response => {
   const rpcErr = err instanceof WebrpcError ? err : new WebrpcEndpointError({ cause: err instanceof Error ? err.message : String(err) })

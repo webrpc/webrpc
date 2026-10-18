@@ -1003,7 +1003,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 		server.OnError = options[0].OnError
 		server.OnRequest = options[0].OnRequest
 	}
-	server.restGetItem = restHandler("GET /rpc/items/{id}", "TestApiRest", "GetItem", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restGetItem = restHandler("GET /rpc/items/{id}", "TestApiRest", "GetItem", false, false, 200, true,
 		server.TestApiRestServer.GetItem,
 		func(p *restParams, req *GetItemRequest) error {
 			if err := restPath(p, "id", "uint64", &req.Id, restUint); err != nil {
@@ -1015,7 +1015,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restListItems = restHandler("GET /rpc/items", "TestApiRest", "ListItems", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restListItems = restHandler("GET /rpc/items", "TestApiRest", "ListItems", false, false, 200, true,
 		server.TestApiRestServer.ListItems,
 		func(p *restParams, req *ListItemsRequest) error {
 			if err := restQueryOpt(p, "q", "string", &req.Q, restString); err != nil {
@@ -1030,11 +1030,11 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restCreateItem = restHandler("POST /rpc/items", "TestApiRest", "CreateItem", true, true, restRoute{defaultStatus: 201, frameworkWritesStatus: true, writeBody: true},
+	server.restCreateItem = restHandler("POST /rpc/items", "TestApiRest", "CreateItem", true, true, 201, true,
 		server.TestApiRestServer.CreateItem,
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restUpdateItem = restHandler("PUT /rpc/items/{id}", "TestApiRest", "UpdateItem", true, true, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restUpdateItem = restHandler("PUT /rpc/items/{id}", "TestApiRest", "UpdateItem", true, true, 200, true,
 		func(ctx context.Context, req testApiRestServiceUpdateItemArgs) (testApiRestServiceUpdateItemResult, error) {
 			ret0, err := server.TestApiRestServer.UpdateItem(ctx, req.Arg0, req.Arg1)
 			return testApiRestServiceUpdateItemResult{Ret0: ret0}, err
@@ -1046,7 +1046,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restPatchItem = restHandler("PATCH /rpc/items/{id}", "TestApiRest", "PatchItem", true, true, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restPatchItem = restHandler("PATCH /rpc/items/{id}", "TestApiRest", "PatchItem", true, true, 200, true,
 		func(ctx context.Context, req testApiRestServicePatchItemArgs) (testApiRestServicePatchItemResult, error) {
 			ret0, err := server.TestApiRestServer.PatchItem(ctx, req.Arg0, req.Arg1)
 			return testApiRestServicePatchItemResult{Ret0: ret0}, err
@@ -1058,14 +1058,14 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restUpsertItem = restHandler("PUT /rpc/items", "TestApiRest", "UpsertItem", true, true, restRoute{defaultStatus: 200, frameworkWritesStatus: false, writeBody: true},
+	server.restUpsertItem = restHandler("PUT /rpc/items", "TestApiRest", "UpsertItem", true, true, 0, true,
 		func(ctx context.Context, req testApiRestServiceUpsertItemArgs) (testApiRestServiceUpsertItemResult, error) {
 			ret0, err := server.TestApiRestServer.UpsertItem(ctx, req.Arg0)
 			return testApiRestServiceUpsertItemResult{Ret0: ret0}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restDeleteItem = restHandler("DELETE /rpc/items/{id}", "TestApiRest", "DeleteItem", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: false, writeBody: false},
+	server.restDeleteItem = restHandler("DELETE /rpc/items/{id}", "TestApiRest", "DeleteItem", false, false, 0, false,
 		func(ctx context.Context, req testApiRestServiceDeleteItemArgs) (testApiRestServiceDeleteItemResult, error) {
 			err := server.TestApiRestServer.DeleteItem(ctx, req.Arg0)
 			return testApiRestServiceDeleteItemResult{}, err
@@ -1077,21 +1077,21 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restPurgeItems = restHandler("POST /rpc/items/purge", "TestApiRest", "PurgeItems", true, false, restRoute{defaultStatus: 204, frameworkWritesStatus: true, writeBody: false},
+	server.restPurgeItems = restHandler("POST /rpc/items/purge", "TestApiRest", "PurgeItems", true, false, 204, false,
 		func(ctx context.Context, req testApiRestServicePurgeItemsArgs) (testApiRestServicePurgeItemsResult, error) {
 			err := server.TestApiRestServer.PurgeItems(ctx)
 			return testApiRestServicePurgeItemsResult{}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restQueryItems = restHandler("QUERY /rpc/items/search", "TestApiRest", "QueryItems", true, true, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restQueryItems = restHandler("QUERY /rpc/items/search", "TestApiRest", "QueryItems", true, true, 200, true,
 		func(ctx context.Context, req testApiRestServiceQueryItemsArgs) (testApiRestServiceQueryItemsResult, error) {
 			ret0, err := server.TestApiRestServer.QueryItems(ctx, req.Arg0)
 			return testApiRestServiceQueryItemsResult{Ret0: ret0}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restEchoParams = restHandler("GET /rpc/items/echo/params", "TestApiRest", "EchoParams", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restEchoParams = restHandler("GET /rpc/items/echo/params", "TestApiRest", "EchoParams", false, false, 200, true,
 		func(ctx context.Context, req testApiRestServiceEchoParamsArgs) (testApiRestServiceEchoParamsResult, error) {
 			ret0, err := server.TestApiRestServer.EchoParams(ctx, req.Arg0, req.Arg1, req.Arg2, req.Arg3, req.Arg4, req.Arg5, req.Arg6, req.Arg7)
 			return testApiRestServiceEchoParamsResult{Ret0: ret0}, err
@@ -1124,7 +1124,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restGetChild = restHandler("GET /rpc/items/{id}/children/{childId}", "TestApiRest", "GetChild", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restGetChild = restHandler("GET /rpc/items/{id}/children/{childId}", "TestApiRest", "GetChild", false, false, 200, true,
 		func(ctx context.Context, req testApiRestServiceGetChildArgs) (testApiRestServiceGetChildResult, error) {
 			ret0, err := server.TestApiRestServer.GetChild(ctx, req.Arg0, req.Arg1)
 			return testApiRestServiceGetChildResult{Ret0: ret0}, err
@@ -1139,7 +1139,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restGetItemStatus = restHandler("GET /rpc/items/{id}/status/latest", "TestApiRest", "GetItemStatus", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restGetItemStatus = restHandler("GET /rpc/items/{id}/status/latest", "TestApiRest", "GetItemStatus", false, false, 200, true,
 		func(ctx context.Context, req testApiRestServiceGetItemStatusArgs) (testApiRestServiceGetItemStatusResult, error) {
 			ret0, err := server.TestApiRestServer.GetItemStatus(ctx, req.Arg0)
 			return testApiRestServiceGetItemStatusResult{Ret0: ret0}, err
@@ -1151,14 +1151,14 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restResetItems = restHandler("POST /rpc/items/reset", "TestApiRest", "ResetItems", true, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restResetItems = restHandler("POST /rpc/items/reset", "TestApiRest", "ResetItems", true, false, 200, true,
 		func(ctx context.Context, req testApiRestServiceResetItemsArgs) (testApiRestServiceResetItemsResult, error) {
 			err := server.TestApiRestServer.ResetItems(ctx)
 			return testApiRestServiceResetItemsResult{}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restLookupItem = restHandler("GET /rpc/items/lookup/{id}", "TestApiRest", "LookupItem", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restLookupItem = restHandler("GET /rpc/items/lookup/{id}", "TestApiRest", "LookupItem", false, false, 200, true,
 		func(ctx context.Context, req testApiRestServiceLookupItemArgs) (testApiRestServiceLookupItemResult, error) {
 			ret0, err := server.TestApiRestServer.LookupItem(ctx, req.Arg0)
 			return testApiRestServiceLookupItemResult{Ret0: ret0}, err
@@ -1170,14 +1170,14 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restLookupItemRPC = restHandler("POST /rpc/TestApiRest/LookupItem", "TestApiRest", "LookupItem", true, true, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restLookupItemRPC = restHandler("POST /rpc/TestApiRest/LookupItem", "TestApiRest", "LookupItem", true, true, 200, true,
 		func(ctx context.Context, req testApiRestServiceLookupItemArgs) (testApiRestServiceLookupItemResult, error) {
 			ret0, err := server.TestApiRestServer.LookupItem(ctx, req.Arg0)
 			return testApiRestServiceLookupItemResult{Ret0: ret0}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restFindItems = restHandler("GET /rpc/items/find", "TestApiRest", "FindItems", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restFindItems = restHandler("GET /rpc/items/find", "TestApiRest", "FindItems", false, false, 200, true,
 		func(ctx context.Context, req testApiRestServiceFindItemsArgs) (testApiRestServiceFindItemsResult, error) {
 			ret0, err := server.TestApiRestServer.FindItems(ctx, req.Arg0)
 			return testApiRestServiceFindItemsResult{Ret0: ret0}, err
@@ -1189,7 +1189,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restFindItemsQuery = restHandler("QUERY /rpc/items/find", "TestApiRest", "FindItems", true, true, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restFindItemsQuery = restHandler("QUERY /rpc/items/find", "TestApiRest", "FindItems", true, true, 200, true,
 		func(ctx context.Context, req testApiRestServiceFindItemsArgs) (testApiRestServiceFindItemsResult, error) {
 			ret0, err := server.TestApiRestServer.FindItems(ctx, req.Arg0)
 			return testApiRestServiceFindItemsResult{Ret0: ret0}, err
@@ -1888,24 +1888,13 @@ func (p *restParams) values() map[string][]string {
 	return p.query
 }
 
-// restRoute carries one route's response behavior, decided at codegen time
-// from its @success set and response shape.
-type restRoute struct {
-	defaultStatus int
-	// frameworkWritesStatus: the framework writes defaultStatus after fn
-	// returns nil (single-code routes); multi-code routes leave WriteHeader
-	// to the handler via ResponseWriterFromContext(ctx).
-	frameworkWritesStatus bool
-	// writeBody: false for routes with an empty response whose declared set
-	// contains 204 or 205 — they never write a body or Content-Type.
-	writeBody bool
-}
-
-// restHandler runs one REST route: body decode, param binding, then fn. On
-// single-code routes the framework writes the declared status; on multi-code
-// routes the handler picks one of the declared codes with
-// ResponseWriterFromContext(ctx).WriteHeader(code) before returning.
-func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, route restRoute, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+// restHandler runs one REST route: body decode, param binding, then fn. A
+// non-zero status means the framework writes it after fn returns nil
+// (single-code routes); status 0 leaves WriteHeader to the handler via
+// ResponseWriterFromContext(ctx) on multi-code routes. writeBody is false for
+// routes with an empty response whose declared set contains 204 or 205 — they
+// never write a body or Content-Type.
+func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, status int, writeBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Identify the route before user code can run: MethodCtx resolves the
 		// method from r.Pattern (the dispatcher already set the path values).
@@ -1961,7 +1950,7 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 
 		// Content-Type is declared before user code runs; bodyless routes carry
 		// none, and sendError sets its own on the error path.
-		if route.writeBody {
+		if writeBody {
 			w.Header().Set("Content-Type", "application/json")
 		}
 
@@ -1976,7 +1965,7 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 		}
 
 		var respBody []byte
-		if route.writeBody && r.Method != "HEAD" {
+		if writeBody && r.Method != "HEAD" {
 			respBody, err = json.Marshal(out)
 			if err != nil {
 				sendError(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
@@ -1987,8 +1976,8 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 		// Single-code routes: the framework owns WriteHeader. Multi-code
 		// routes: the handler already wrote one of the declared codes; if it
 		// forgot, the first Write gets an implicit 200.
-		if route.frameworkWritesStatus {
-			w.WriteHeader(route.defaultStatus)
+		if status != 0 {
+			w.WriteHeader(status)
 		}
 		if respBody != nil {
 			w.Write(respBody)

@@ -311,7 +311,8 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: getItemRequest" })
       }
       const result = await service.getItem(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'ListItems': {
@@ -320,7 +321,8 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: listItemsRequest" })
       }
       const result = await service.listItems(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'CreateItem': {
@@ -329,7 +331,8 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: createItemRequest" })
       }
       const result = await service.createItem(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'UpdateItem': {
@@ -347,7 +350,8 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: name" })
       }
       const result = await service.updateItem(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'PatchItem': {
@@ -362,7 +366,8 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: name" })
       }
       const result = await service.patchItem(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'UpsertItem': {
@@ -374,7 +379,8 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: item" })
       }
       const result = await service.upsertItem(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'DeleteItem': {
@@ -386,13 +392,15 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: id" })
       }
       const result = await service.deleteItem(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'PurgeItems': {
       const payload: any = webrpcDecodeRequest(data ?? webrpcJsonBody(await webrpcRequestBodyText(request)), 'PurgeItemsRequest')
       const result = await service.purgeItems(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'QueryItems': {
@@ -404,7 +412,8 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: q" })
       }
       const result = await service.queryItems(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'EchoParams': {
@@ -455,7 +464,8 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: opt" })
       }
       const result = await service.echoParams(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'GetChild': {
@@ -473,7 +483,8 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: childId" })
       }
       const result = await service.getChild(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'GetItemStatus': {
@@ -485,13 +496,15 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: id" })
       }
       const result = await service.getItemStatus(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'ResetItems': {
       const payload: any = webrpcDecodeRequest(data ?? webrpcJsonBody(await webrpcRequestBodyText(request)), 'ResetItemsRequest')
       const result = await service.resetItems(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'LookupItem': {
@@ -503,7 +516,8 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: id" })
       }
       const result = await service.lookupItem(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'FindItems': {
@@ -515,7 +529,8 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: q" })
       }
       const result = await service.findItems(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'RpcMethod': {
@@ -527,7 +542,8 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
         throw new WebrpcBadRequestError({ cause: "invalid argument: id" })
       }
       const result = await service.rpcMethod(ctx, payload || {})
-      return webrpcSuccessResponse(result ?? {}, status)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     default:
@@ -558,8 +574,9 @@ const webrpcJsonResponse = (data: any, status = 200): Response => {
   })
 }
 
-// A route's declared default success status is static (runtime override is a
-// follow-up); 204/205 carry no body, and the Response constructor throws on one.
+// A route's declared default status applies unless the method result was
+// tagged with withStatus; 204/205 carry no body, and the Response constructor
+// throws on one.
 const webrpcSuccessResponse = (data: any, status = 200): Response => {
   if (status === 204 || status === 205) {
     return new Response(null, {
@@ -569,6 +586,25 @@ const webrpcSuccessResponse = (data: any, status = 200): Response => {
   }
   return webrpcJsonResponse(data, status)
 }
+
+// webrpcStatusKey tags a withStatus wrapper; being module-local, it can never
+// collide with a real payload field.
+const webrpcStatusKey = Symbol('webrpcStatus')
+
+// withStatus tags a method result with an explicit success status, which the
+// dispatcher uses instead of the route's declared default — the TypeScript
+// counterpart of the Go server's handler-written status via
+// ResponseWriterFromContext(ctx).WriteHeader(code). Advisory: the status is
+// not validated against the route's declared set.
+export const withStatus = <T>(status: number, result?: T): T =>
+  ({ [webrpcStatusKey]: status, result }) as unknown as T
+
+// webrpcTaggedStatus splits a withStatus wrapper; null when the result is
+// untagged and the route's declared default status applies.
+const webrpcTaggedStatus = (result: any): { status: number, result: any } | null =>
+  result !== null && typeof result === 'object' && webrpcStatusKey in result
+    ? { status: result[webrpcStatusKey] as number, result: result.result }
+    : null
 
 const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }): Response => {
   const rpcErr = err instanceof WebrpcError ? err : new WebrpcEndpointError({ cause: err instanceof Error ? err.message : String(err) })

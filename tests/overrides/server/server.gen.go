@@ -95,14 +95,14 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 		server.OnError = options[0].OnError
 		server.OnRequest = options[0].OnRequest
 	}
-	server.restIndex = restHandler("GET /{$}", "RestOverrides", "Index", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restIndex = restHandler("GET /{$}", "RestOverrides", "Index", false, false, 200, true,
 		func(ctx context.Context, req restOverridesServiceIndexArgs) (restOverridesServiceIndexResult, error) {
 			err := server.RestOverridesServer.Index(ctx)
 			return restOverridesServiceIndexResult{}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restSearch = restHandler("GET /by/{lbl}", "RestOverrides", "Search", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restSearch = restHandler("GET /by/{lbl}", "RestOverrides", "Search", false, false, 200, true,
 		server.RestOverridesServer.Search,
 		func(p *restParams, req *SearchRequest) error {
 			if err := restPath(p, "lbl", "string", &req.Key, restJSONString); err != nil {
@@ -117,7 +117,7 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restScale = restHandler("GET /scale/{factor}", "RestOverrides", "Scale", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restScale = restHandler("GET /scale/{factor}", "RestOverrides", "Scale", false, false, 200, true,
 		func(ctx context.Context, req restOverridesServiceScaleArgs) (restOverridesServiceScaleResult, error) {
 			ret0, err := server.RestOverridesServer.Scale(ctx, req.Arg0)
 			return restOverridesServiceScaleResult{Ret0: ret0}, err
@@ -129,7 +129,7 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restScaleGet = restHandler("GET /scale/{factor}/half", "RestOverrides", "Scale", false, false, restRoute{defaultStatus: 200, frameworkWritesStatus: true, writeBody: true},
+	server.restScaleGet = restHandler("GET /scale/{factor}/half", "RestOverrides", "Scale", false, false, 200, true,
 		func(ctx context.Context, req restOverridesServiceScaleArgs) (restOverridesServiceScaleResult, error) {
 			ret0, err := server.RestOverridesServer.Scale(ctx, req.Arg0)
 			return restOverridesServiceScaleResult{Ret0: ret0}, err
@@ -407,24 +407,13 @@ func (p *restParams) values() map[string][]string {
 	return p.query
 }
 
-// restRoute carries one route's response behavior, decided at codegen time
-// from its @success set and response shape.
-type restRoute struct {
-	defaultStatus int
-	// frameworkWritesStatus: the framework writes defaultStatus after fn
-	// returns nil (single-code routes); multi-code routes leave WriteHeader
-	// to the handler via ResponseWriterFromContext(ctx).
-	frameworkWritesStatus bool
-	// writeBody: false for routes with an empty response whose declared set
-	// contains 204 or 205 — they never write a body or Content-Type.
-	writeBody bool
-}
-
-// restHandler runs one REST route: body decode, param binding, then fn. On
-// single-code routes the framework writes the declared status; on multi-code
-// routes the handler picks one of the declared codes with
-// ResponseWriterFromContext(ctx).WriteHeader(code) before returning.
-func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, route restRoute, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+// restHandler runs one REST route: body decode, param binding, then fn. A
+// non-zero status means the framework writes it after fn returns nil
+// (single-code routes); status 0 leaves WriteHeader to the handler via
+// ResponseWriterFromContext(ctx) on multi-code routes. writeBody is false for
+// routes with an empty response whose declared set contains 204 or 205 — they
+// never write a body or Content-Type.
+func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, status int, writeBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Identify the route before user code can run: MethodCtx resolves the
 		// method from r.Pattern (the dispatcher already set the path values).
@@ -480,7 +469,7 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 
 		// Content-Type is declared before user code runs; bodyless routes carry
 		// none, and sendError sets its own on the error path.
-		if route.writeBody {
+		if writeBody {
 			w.Header().Set("Content-Type", "application/json")
 		}
 
@@ -495,7 +484,7 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 		}
 
 		var respBody []byte
-		if route.writeBody && r.Method != "HEAD" {
+		if writeBody && r.Method != "HEAD" {
 			respBody, err = json.Marshal(out)
 			if err != nil {
 				sendError(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
@@ -506,8 +495,8 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 		// Single-code routes: the framework owns WriteHeader. Multi-code
 		// routes: the handler already wrote one of the declared codes; if it
 		// forgot, the first Write gets an implicit 200.
-		if route.frameworkWritesStatus {
-			w.WriteHeader(route.defaultStatus)
+		if status != 0 {
+			w.WriteHeader(status)
 		}
 		if respBody != nil {
 			w.Write(respBody)

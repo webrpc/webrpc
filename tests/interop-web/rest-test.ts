@@ -21,7 +21,7 @@ import { once } from 'node:events'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { TestApiRest, Status, WebrpcBadRequestError } from './restClient.gen'
-import { TestApiRestServer, Item, UnexpectedValueError, serveTestApiRestRpc } from './restServer.gen'
+import { TestApiRestServer, Item, UnexpectedValueError, serveTestApiRestRpc, withStatus } from './restServer.gen'
 import { ParamRest, WebrpcBadRequestError as ParamBadRequestError } from './paramRestClient.gen'
 import { ParamRestServer, serveParamRestRpc } from './paramRestServer.gen'
 
@@ -72,16 +72,20 @@ const createRestService = (): TestApiRestServer => {
       return { item }
     },
 
+    // Multi-code route (declared 200|201): 201 on create, 200 on update,
+    // mirroring the Go handler's WriteHeader in tests/server/rest.go.
     async upsertItem(_ctx, { item }) {
+      const created = !items.has(item.id)
       items.set(item.id, item)
-      return { item }
+      return withStatus(created ? 201 : 200, { item })
     },
 
+    // Multi-code route (declared 200|204): the handler picks the bodyless 204.
     async deleteItem(_ctx, { id }) {
       if (!items.delete(id)) {
         throw new UnexpectedValueError({ cause: `no item ${id}` })
       }
-      return {}
+      return withStatus(204, {})
     },
 
     async purgeItems() {
@@ -430,16 +434,15 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   }
   assert.equal(sent.length, before, 'dot and empty path values must not be sent')
 
-  // PUT /rpc/items — upsert, declared `+ @success 200|201`. The TypeScript
-  // server's success status is static (handler-written statuses are
-  // Go-only): 200 always. The Go handler writes 201 on create via the
-  // ResponseWriter.
+  // PUT /rpc/items — upsert, declared `+ @success 200|201`. Both handlers
+  // pick the status at runtime (Go via WriteHeader, TypeScript via
+  // withStatus): 201 on create, the declared default 200 on update.
   const upsertCreate = await fetch(`${addr}/rpc/items`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: '{"item": {"id": 10, "name": "zoe"}}',
   })
-  assert.equal(upsertCreate.status, server === 'go' ? 201 : 200, 'upsert create status mismatch')
+  assert.equal(upsertCreate.status, 201, 'upsert create status mismatch')
   assert.equal((await upsertCreate.json()).item.name, 'zoe', 'upsert create name mismatch')
   const upsertUpdate = await fetch(`${addr}/rpc/items`, {
     method: 'PUT',
@@ -449,18 +452,14 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   assert.equal(upsertUpdate.status, 200, 'upsert update status must be the declared default 200')
   await upsertUpdate.body?.cancel()
 
-  // DELETE /rpc/items/{id} — declared `+ @success 200|204`. The Go handler
-  // writes the bodyless 204; the TypeScript server keeps the static
-  // default 200. The client tolerates both (204 has no body to parse).
+  // DELETE /rpc/items/{id} — declared `+ @success 200|204`. Both handlers
+  // write the bodyless 204 (Go via WriteHeader, TypeScript via withStatus);
+  // the client tolerates any 2xx and skips decoding on 204/205.
   await api.deleteItem({ id: 7 })
   await assert.rejects(api.getItem({ id: 7 }), 'getItem after deleteItem must fail')
   const deleted = await fetch(`${addr}/rpc/items/10`, { method: 'DELETE' })
-  assert.equal(deleted.status, server === 'go' ? 204 : 200, 'delete status mismatch')
-  if (server === 'go') {
-    assert.equal(await deleted.text(), '', '204 must carry no body')
-  } else {
-    await deleted.body?.cancel()
-  }
+  assert.equal(deleted.status, 204, 'delete status mismatch')
+  assert.equal(await deleted.text(), '', '204 must carry no body')
 
   // Path params overwrite conflicting JSON body fields (decode order:
   // body -> path).
