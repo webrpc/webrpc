@@ -671,6 +671,32 @@ func TestRouteInvalidSchemas(t *testing.T) {
 			wantErr: "overlaps the default webrpc dispatch path '/rpc/Users/Get'",
 		},
 		{
+			name: "success 204 is body-forbidden",
+			services: `{
+				"name": "Users",
+				"methods": [{
+					"name": "Get",
+					"routes": [{"verb": "GET", "path": "/users/{id}", "success": 204}],
+					"inputs": [{"name": "id", "type": "uint64"}],
+					"outputs": []
+				}]
+			}`,
+			wantErr: "bodyless 204/205 responses are not supported",
+		},
+		{
+			name: "success 205 is body-forbidden",
+			services: `{
+				"name": "Users",
+				"methods": [{
+					"name": "Get",
+					"routes": [{"verb": "GET", "path": "/users/{id}", "success": 205}],
+					"inputs": [{"name": "id", "type": "uint64"}],
+					"outputs": []
+				}]
+			}`,
+			wantErr: "bodyless 204/205 responses are not supported",
+		},
+		{
 			name:     "param route overlapping another service's default dispatch path",
 			basePath: "/rpc",
 			services: `{

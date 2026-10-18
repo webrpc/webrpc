@@ -266,6 +266,9 @@ func (s *WebRPCSchema) validateMethodRoute(svc *Service, m *Method, route *Metho
 	if route.Success != 0 && (route.Success < 200 || route.Success > 299) {
 		return fmt.Errorf("schema error: invalid @success status code '%d' of route '%s %s' of method '%s': must be a 2xx code (200-299)", route.Success, route.Verb, route.Path, methodID)
 	}
+	if route.Success == 204 || route.Success == 205 {
+		return fmt.Errorf("schema error: invalid @success status code '%d' of route '%s %s' of method '%s': bodyless 204/205 responses are not supported (yet)", route.Success, route.Verb, route.Path, methodID)
+	}
 
 	seenParams := map[string]bool{}
 	for _, p := range params {

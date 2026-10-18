@@ -289,6 +289,9 @@ func parseRouteSuccess(p *parser, s *ServiceNode) error {
 	if code < 200 || code > 299 {
 		return fmt.Errorf("invalid @success status code '%s' of method '%s': must be a 2xx code (200-299)", codeTok.val, mn.name.String())
 	}
+	if code == 204 || code == 205 {
+		return fmt.Errorf("invalid @success status code '%s' of method '%s': bodyless 204/205 responses are not supported (yet)", codeTok.val, mn.name.String())
+	}
 	p.next()
 
 	if err := p.expectOptionalCommentOrEOL(); err != nil {

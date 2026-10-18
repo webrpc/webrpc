@@ -426,6 +426,26 @@ service Users
 			wantErr: "must be a 2xx code (200-299)",
 		},
 		{
+			name: "204 bodyless code",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success 204
+`,
+			wantErr: "invalid @success status code '204' of method 'Create': bodyless 204/205 responses are not supported (yet)",
+		},
+		{
+			name: "205 bodyless code",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success 205
+`,
+			wantErr: "invalid @success status code '205' of method 'Create': bodyless 204/205 responses are not supported (yet)",
+		},
+		{
 			name: "non-numeric code",
 			input: routeRIDLHeader + `
 service Users

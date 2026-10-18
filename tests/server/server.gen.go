@@ -1844,6 +1844,8 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 				return
 			}
 			body = bytes.TrimSpace(b)
+			// Restores the hook's view of the body: the hook runs after the read.
+			r.Body = io.NopCloser(bytes.NewReader(b))
 		}
 
 		// An empty (or whitespace-only) body yields a zero-value request and bypasses the

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -111,6 +112,39 @@ func TestRESTContentTypeRelaxation(t *testing.T) {
 	// But a malformed body still 400s even on a zero-body-field route.
 	if rec := serveTest(t, srv, "POST", "/rpc/items/reset", "text/plain", `{"unknown":`); rec.Code != http.StatusBadRequest {
 		t.Errorf("POST /rpc/items/reset with malformed body: status %d, want 400", rec.Code)
+	}
+}
+
+// TestRESTOnRequestReadsBody pins that OnRequest runs after body capture but
+// still sees the full original body: the handler restores r.Body from the raw
+// bytes, while decoding continues from the trimmed copy.
+func TestRESTOnRequestReadsBody(t *testing.T) {
+	impl := NewTestRESTServer()
+	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
+		t.Fatal(err)
+	}
+	var hookBody []byte
+	srv := NewTestApiRestServer(impl, &Options{
+		OnRequest: func(w http.ResponseWriter, r *http.Request) error {
+			b, err := io.ReadAll(r.Body)
+			if err != nil {
+				return err
+			}
+			hookBody = b
+			return nil
+		},
+	})
+
+	raw := "  " + `{"name":"bob"}` + "  " // original bytes include surrounding whitespace
+	rec := serveTest(t, srv, "PATCH", "/rpc/items/7", "application/json", raw)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("PATCH /rpc/items/7: status %d, body %s, want 200", rec.Code, rec.Body)
+	}
+	if string(hookBody) != raw {
+		t.Errorf("OnRequest saw body %q, want %q (original, untrimmed bytes)", hookBody, raw)
+	}
+	if !strings.Contains(rec.Body.String(), `"name":"bob"`) {
+		t.Errorf("PATCH /rpc/items/7: body %s, want renamed item (decode after hook failed)", rec.Body)
 	}
 }
 
