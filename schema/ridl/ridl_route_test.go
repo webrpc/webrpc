@@ -125,6 +125,23 @@ service Users
 	assert.Empty(t, users.Methods[1].Routes)
 }
 
+func TestRIDLRouteAnnotationAttachesToNextMethod(t *testing.T) {
+	s, err := parseRouteRIDL(t, routeRIDLHeader+`
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      + GET /users/{userId}
+  @auth:required
+  - List(ListUsersRequest) => (ListUsersResponse)
+`)
+	require.NoError(t, err)
+
+	users := s.Services[0]
+	assert.Empty(t, users.Methods[0].Annotations)
+	require.Contains(t, users.Methods[1].Annotations, "auth")
+	assert.Equal(t, "required", users.Methods[1].Annotations["auth"].Value)
+	assert.Empty(t, users.Methods[1].Routes)
+}
+
 func TestRIDLRouteAfterErrorsClause(t *testing.T) {
 	s, err := parseRouteRIDL(t, `webrpc = v1
 name = example
@@ -280,6 +297,34 @@ service Users
       + GET /users/{userId}
 `,
 			wantErr: "route must directly follow its method",
+		},
+		{
+			name: "annotation after last method's routes at end of service",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      + GET /users/{userId}
+  @auth:x
+`,
+			wantErr: "annotation '@auth' must be placed directly above a '- Method' line",
+		},
+		{
+			name: "annotation after routeless last method at end of service",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+  @auth:x
+`,
+			wantErr: "annotation '@auth' must be placed directly above a '- Method' line",
+		},
+		{
+			name: "annotation after last method's routes at EOF without trailing newline",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      + GET /users/{userId}
+  @auth:x`,
+			wantErr: "annotation '@auth' must be placed directly above a '- Method' line",
 		},
 		{
 			name: "route on stream method",

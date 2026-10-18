@@ -170,11 +170,17 @@ func parserStateServiceMethod(s *ServiceNode) parserState {
 
 			default:
 				// any other word ends the service block
+				if err := pendingAnnotationsError(s); err != nil {
+					return p.stateError(err)
+				}
 				p.emit(s)
 				return parserDefaultState
 			}
 
 		default:
+			if err := pendingAnnotationsError(s); err != nil {
+				return p.stateError(err)
+			}
 			p.emit(s)
 			return parserDefaultState
 
@@ -182,6 +188,16 @@ func parserStateServiceMethod(s *ServiceNode) parserState {
 
 		return parserStateServiceMethod(s)
 	}
+}
+
+// pendingAnnotationsError reports annotations buffered after the last method;
+// they would otherwise be silently dropped when the service block ends.
+func pendingAnnotationsError(s *ServiceNode) error {
+	if len(s.methodAnnotations) == 0 {
+		return nil
+	}
+	ann := s.methodAnnotations[0]
+	return fmt.Errorf("annotation '@%s' must be placed directly above a '- Method' line", ann.AnnotationType().String())
 }
 
 // parseMethodRoute parses a route meta line, e.g. `+ GET /users/{userId}`,

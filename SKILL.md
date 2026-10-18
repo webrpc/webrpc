@@ -81,6 +81,8 @@ service Example
   - Ping() => (version: string)                    # no-payload inline return is fine
 ```
 - Group error codes by range (1xxx auth, 2xxx validation, 3xxx not-found, 4xxx business).
+- Annotations attach only directly above the `- Method` line; anywhere else in the method
+  block is a parse error.
 - Go: a `WebRPCError` must reach the transport unwrapped (the server type-asserts it) —
   use `proto.ErrXxx.WithCause(err)`, not `fmt.Errorf` chains.
 - Custom annotations (`@access:`, `@perms:`) are readable at runtime: middleware calls
