@@ -29,7 +29,7 @@ Change any of the following values by passing `-option="Value"` CLI flag to `web
 | `-server`             | `false`   | generate server code                                                        | v0.5.0   |
 | `-types=false`        | `true`    | don't generate types                                                        | v0.13.0  |
 | `-json=sonic`         |           | use [sonic](https://github.com/bytedance/sonic) for JSON encoding           | v0.18.0  |
-| `-json=jsoniter`      |           | use [jsoniter](https://github.com/json-iterator/go) for JSON encoding       | v0.12.0  |
+| `-json=jsoniter`      |           | deprecated, unsupported: jsoniter is archived upstream; does not support omitzero | v0.12.0  |
 | `-json=<pkg>`         |           | use alternative drop-in replacement import path for JSON encoding package   | v0.18.0  |
 | `-fixEmptyArrays`     | `false`   | `encoding/json`: fix `null` arrays with reflect (see Go [#27589][go27589])  | v0.13.0  |
 | `-errorStackTrace`    | `false`   | enables error stack traces                                                  | v0.14.0  |
