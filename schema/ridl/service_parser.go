@@ -2,6 +2,7 @@ package ridl
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/webrpc/webrpc/schema"
@@ -210,6 +211,10 @@ func parseMethodRoute(p *parser, s *ServiceNode) error {
 		p.next()
 	}
 
+	if p.cursor().tt == tokenAt {
+		return parseRouteSuccess(p, s)
+	}
+
 	if len(s.methods) == 0 {
 		return fmt.Errorf("route must be declared under a service method")
 	}
@@ -243,6 +248,54 @@ func parseMethodRoute(p *parser, s *ServiceNode) error {
 	}
 
 	mn.routes = append(mn.routes, &RouteNode{verb: newTokenNode(verbTok), path: newTokenNode(pathToken)})
+	return nil
+}
+
+// parseRouteSuccess parses a `+ @success <code>` meta line and attaches the
+// status code to the route line directly above it.
+func parseRouteSuccess(p *parser, s *ServiceNode) error {
+	if _, err := p.match(tokenAt); err != nil {
+		return err
+	}
+	nameTok := p.cursor()
+	if nameTok.tt != tokenWord || nameTok.val != "success" {
+		return fmt.Errorf("expecting '@success <code>' after '+', e.g. '+ @success 201'")
+	}
+	p.next()
+
+	if len(s.methods) == 0 {
+		return fmt.Errorf("@success must be declared under a service method")
+	}
+	mn := s.methods[len(s.methods)-1]
+	if len(mn.routes) == 0 {
+		return fmt.Errorf("@success must directly follow a route line of method '%s', e.g. '+ POST /webhooks' then '+ @success 201'", mn.name.String())
+	}
+	route := mn.routes[len(mn.routes)-1]
+	if route.success != nil {
+		return fmt.Errorf("route '%s %s' of method '%s' already declares @success", route.verb.String(), route.path.String(), mn.name.String())
+	}
+
+	if _, err := p.match(tokenWhitespace); err != nil {
+		return fmt.Errorf("expecting status code after '@success': %w", err)
+	}
+	codeTok := p.cursor()
+	if codeTok.tt != tokenWord || expectNumber(codeTok, codeTok.val) != nil {
+		return fmt.Errorf("expecting '@success' status code to be a number but got '%s'", codeTok.val)
+	}
+	code, err := strconv.Atoi(codeTok.val)
+	if err != nil {
+		return fmt.Errorf("expecting '@success' status code to be a number but got '%s'", codeTok.val)
+	}
+	if code < 200 || code > 299 {
+		return fmt.Errorf("invalid @success status code '%s' of method '%s': must be a 2xx code (200-299)", codeTok.val, mn.name.String())
+	}
+	p.next()
+
+	if err := p.expectOptionalCommentOrEOL(); err != nil {
+		return err
+	}
+
+	route.success = newTokenNode(codeTok)
 	return nil
 }
 

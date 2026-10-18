@@ -41,7 +41,7 @@ export const serve{{$service.Name}}Rpc = async <Context>(service: {{$service.Nam
     if (rest) {
       try {
         const data = await webrpcRestData(rest.route, rest.pathParams, request)
-        const response = await dispatch{{$service.Name}}Request(service, ctx, rest.route.name, request, data)
+        const response = await dispatch{{$service.Name}}Request(service, ctx, rest.route.name, request, data, rest.route.success)
         return request.method === 'HEAD' ? webrpcHeadResponse(response) : response
       } catch (err) {
         return webrpcErrorResponse(err)
@@ -74,13 +74,13 @@ const {{firstLetterToLower $service.Name}}UnroutedMethods = new Set<string>([{{r
 const {{firstLetterToLower $service.Name}}RestRoutes: WebrpcRestRoute[] = [
 {{- range $_, $method := $service.Methods}}
 {{- range $_, $route := $method.Routes}}
-  { method: '{{$route.Verb}}', path: '{{RoutePath $route}}', rpcPath: '{{$basepath}}{{$service.Name}}/{{$method.Name}}', name: '{{$method.Name}}', hasBody: {{if RouteHasBody $route}}true{{else}}false{{end}}, params: [{{range $i, $p := RouteParams $route}}{{if $i}}, {{end}}{ name: '{{$p.Name}}', type: '{{$p.TypeExpr}}', optional: {{if $p.Optional}}true{{else}}false{{end}}, list: {{if $p.Repeated}}true{{else}}false{{end}} }{{end}}] },
+  { method: '{{$route.Verb}}', path: '{{RoutePath $route}}', rpcPath: '{{$basepath}}{{$service.Name}}/{{$method.Name}}', name: '{{$method.Name}}', hasBody: {{if RouteHasBody $route}}true{{else}}false{{end}}{{if $route.Success}}, success: {{$route.Success}}{{end}}, params: [{{range $i, $p := RouteParams $route}}{{if $i}}, {{end}}{ name: '{{$p.Name}}', type: '{{$p.TypeExpr}}', optional: {{if $p.Optional}}true{{else}}false{{end}}, list: {{if $p.Repeated}}true{{else}}false{{end}} }{{end}}] },
 {{- end}}
 {{- end}}
 ]
 {{- end }}
 
-const dispatch{{$service.Name}}Request = async <Context>(service: {{$service.Name}}Server<Context>, ctx: Context, method: string, request: Request{{if $serviceHasRoutes}}, data?: { [key: string]: any }{{end}}): Promise<Response> => {
+const dispatch{{$service.Name}}Request = async <Context>(service: {{$service.Name}}Server<Context>, ctx: Context, method: string, request: Request{{if $serviceHasRoutes}}, data?: { [key: string]: any }{{end}}, status = 200): Promise<Response> => {
   switch (method) {
   {{- range $_, $method := $service.Methods}}
   {{- $methodReqName := "" -}}
@@ -130,7 +130,7 @@ const dispatch{{$service.Name}}Request = async <Context>(service: {{$service.Nam
       {{- if MethodHasFileDownload $method }}
       return webrpcFileResponse(result)
       {{- else }}
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
       {{- end }}
     }
   {{end}}
@@ -169,9 +169,9 @@ const webrpcParseRequestBody = (body: unknown, typ: string): any => {
 }
 {{- end }}
 
-const webrpcJsonResponse = (data: any): Response => {
+const webrpcJsonResponse = (data: any, status = 200): Response => {
   return new Response(JsonEncode(data), {
-    status: 200,
+    status,
     headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
   })
 }
@@ -193,7 +193,7 @@ const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }):
 // Routes are generated data, so the server never parses RIDL param strings.
 type WebrpcRestParam = { name: string, type: string, optional: boolean, list: boolean }
 
-type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, hasBody: boolean, params: WebrpcRestParam[] }
+type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, hasBody: boolean, params: WebrpcRestParam[], success?: number }
 
 type WebrpcRestMatch = { route: WebrpcRestRoute, pathParams: Map<string, string> }
 

@@ -14,6 +14,8 @@ type MethodRoute struct {
 	Verb string `json:"verb"` // GET, POST, PUT, PATCH, DELETE or QUERY
 	Path string `json:"path"` // absolute path template relative to {basepath}, e.g. /users/{userId}
 
+	Success int `json:"success,omitempty"` // success HTTP status code declared by `+ @success NNN`; 0 means the default 200
+
 	Method *Method `json:"-"` // denormalize/back-reference
 }
 
@@ -260,6 +262,9 @@ func (s *WebRPCSchema) validateMethodRoute(svc *Service, m *Method, route *Metho
 	params, err := validateRoutePathSyntax(route.Path)
 	if err != nil {
 		return fmt.Errorf("schema error: invalid route of method '%s': %w", methodID, err)
+	}
+	if route.Success != 0 && (route.Success < 200 || route.Success > 299) {
+		return fmt.Errorf("schema error: invalid @success status code '%d' of route '%s %s' of method '%s': must be a 2xx code (200-299)", route.Success, route.Verb, route.Path, methodID)
 	}
 
 	seenParams := map[string]bool{}

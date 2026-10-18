@@ -718,7 +718,8 @@
      "routes": [
       {
        "verb": "POST",
-       "path": "/items"
+       "path": "/items",
+       "success": 201
       }
      ],
      "inputs": [

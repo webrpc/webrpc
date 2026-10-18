@@ -128,7 +128,7 @@ export const serveParamRestRpc = async <Context>(service: ParamRestServer<Contex
     if (rest) {
       try {
         const data = await webrpcRestData(rest.route, rest.pathParams, request)
-        const response = await dispatchParamRestRequest(service, ctx, rest.route.name, request, data)
+        const response = await dispatchParamRestRequest(service, ctx, rest.route.name, request, data, rest.route.success)
         return request.method === 'HEAD' ? webrpcHeadResponse(response) : response
       } catch (err) {
         return webrpcErrorResponse(err)
@@ -164,7 +164,7 @@ const paramRestRestRoutes: WebrpcRestRoute[] = [
   { method: 'POST', path: '/rpc/ParamRest/{x}', rpcPath: '/rpc/ParamRest/Wild', name: 'Wild', hasBody: true, params: [{ name: 'x', type: 'string', optional: false, list: false }] },
 ]
 
-const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Context>, ctx: Context, method: string, request: Request, data?: { [key: string]: any }): Promise<Response> => {
+const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Context>, ctx: Context, method: string, request: Request, data?: { [key: string]: any }, status = 200): Promise<Response> => {
   switch (method) {
     case 'Probe': {
       const payload: any = webrpcDecodeRequest(data ?? webrpcJsonBody(await webrpcRequestBodyText(request)), 'ProbeRequest')
@@ -202,7 +202,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: flag" })
       }
       const result = await service.probe(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
     }
   
     case 'Make': {
@@ -214,7 +214,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: constructor" })
       }
       const result = await service.make(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
     }
   
     case 'Tag': {
@@ -226,7 +226,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: name" })
       }
       const result = await service.tag(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
     }
   
     case 'Numbers': {
@@ -250,7 +250,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: ts" })
       }
       const result = await service.numbers(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
     }
   
     case 'Search': {
@@ -259,7 +259,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: searchRequest" })
       }
       const result = await service.search(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
     }
   
     case 'Legacy': {
@@ -271,7 +271,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: name" })
       }
       const result = await service.legacy(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
     }
   
     case 'Both': {
@@ -289,7 +289,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: n" })
       }
       const result = await service.both(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
     }
   
     case 'Wild': {
@@ -301,7 +301,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: x" })
       }
       const result = await service.wild(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
     }
   
     default:
@@ -318,9 +318,9 @@ const webrpcRequestBodyText = async (request: Request): Promise<string> => {
   return request.text()
 }
 
-const webrpcJsonResponse = (data: any): Response => {
+const webrpcJsonResponse = (data: any, status = 200): Response => {
   return new Response(JsonEncode(data), {
-    status: 200,
+    status,
     headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
   })
 }
@@ -341,7 +341,7 @@ const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }):
 // Routes are generated data, so the server never parses RIDL param strings.
 type WebrpcRestParam = { name: string, type: string, optional: boolean, list: boolean }
 
-type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, hasBody: boolean, params: WebrpcRestParam[] }
+type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, hasBody: boolean, params: WebrpcRestParam[], success?: number }
 
 type WebrpcRestMatch = { route: WebrpcRestRoute, pathParams: Map<string, string> }
 

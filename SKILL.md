@@ -103,6 +103,9 @@ service Users
   List it as a route to keep it.
 - `{id}` binds to a required scalar request field. `GET`/`DELETE` send other fields as query
   params; `POST`/`PUT`/`PATCH`/`QUERY` send them in the JSON body.
+- `+ @success <code>` directly below a route line sets that route's success status
+  (2xx only, default 200). It is static per route: a runtime-chosen status (e.g. 201 vs
+  202 + Retry-After) is a follow-up.
 - Only the golang and typescript targets support routes. Other targets exit with an error.
 
 ## Field metadata

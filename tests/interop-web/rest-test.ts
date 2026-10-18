@@ -221,9 +221,16 @@ const echoQuery = (overrides: { [key: string]: string } = {}): string =>
 const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   const api = new TestApiRest(addr, fetch)
 
-  // POST /rpc/items — request fields in the JSON body.
-  const { item: created } = await api.createItem({ item: { id: 7, name: 'alice' } })
-  assert.equal(created.name, 'alice', 'createItem name mismatch')
+  // POST /rpc/items — request fields in the JSON body; the route declares
+  // `+ @success 201`, so the success status must be 201, not the default 200.
+  const create = await fetch(`${addr}/rpc/items`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ item: { id: 7, name: 'alice' } }),
+  })
+  assert.equal(create.status, 201, 'createItem must answer the declared @success status')
+  const created = (await create.json()) as { item: Item }
+  assert.equal(created.item.name, 'alice', 'createItem name mismatch')
 
   // GET /rpc/items/{id} — path param plus optional query param.
   const { item: got } = await api.getItem({ id: 7, details: true })

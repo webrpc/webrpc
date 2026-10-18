@@ -105,7 +105,7 @@ func TestRESTScalarOverflowIsBadRequest(t *testing.T) {
 	type overflowRequest struct{ N uint8 }
 	srv := NewTestApiRestServer(NewTestRESTServer())
 	mux := http.NewServeMux()
-	mux.Handle("GET /n/{n}", restHandler("GET /n/{n}", "", "Overflow", false,
+	mux.Handle("GET /n/{n}", restHandler("GET /n/{n}", "", "Overflow", false, 200,
 		func(ctx context.Context, req overflowRequest) (struct{}, error) { return struct{}{}, nil },
 		func(p *restParams, req *overflowRequest) error { return restPath(p, "n", "uint8", &req.N, restUint) },
 		srv.sendErrorJSON, &srv.OnRequest))
@@ -129,6 +129,27 @@ func TestRESTHeadOnGetRouteHasNoBody(t *testing.T) {
 	}
 	if rec.Body.Len() != 0 {
 		t.Errorf("HEAD /rpc/items/7: body %q, want none", rec.Body)
+	}
+}
+
+// TestRESTDeclaredSuccessStatus pins `+ @success 201`: the route writes the
+// declared 2xx status on success, while routes without @success keep 200.
+func TestRESTDeclaredSuccessStatus(t *testing.T) {
+	impl := NewTestRESTServer()
+	srv := NewTestApiRestServer(impl)
+
+	rec := serveTest(t, srv, "POST", "/rpc/items", "application/json", `{"item":{"id":7,"name":"alice"}}`)
+	if rec.Code != http.StatusCreated {
+		t.Errorf("POST /rpc/items: status %d, want 201 (@success)", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), `"name":"alice"`) {
+		t.Errorf("POST /rpc/items: unexpected response %s", rec.Body)
+	}
+
+	// A route without @success keeps the default 200.
+	rec = serveTest(t, srv, "GET", "/rpc/items/7", "", "")
+	if rec.Code != http.StatusOK {
+		t.Errorf("GET /rpc/items/7: status %d, want 200", rec.Code)
 	}
 }
 

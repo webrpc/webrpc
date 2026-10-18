@@ -84,7 +84,7 @@ export const serveValidateRpc = async <Context>(service: ValidateServer<Context>
   }
 }
 
-const dispatchValidateRequest = async <Context>(service: ValidateServer<Context>, ctx: Context, method: string, request: Request): Promise<Response> => {
+const dispatchValidateRequest = async <Context>(service: ValidateServer<Context>, ctx: Context, method: string, request: Request, status = 200): Promise<Response> => {
   switch (method) {
     case 'Check': {
       const payload: any = webrpcParseRequestBody(await webrpcRequestBodyText(request), 'CheckRequest')
@@ -92,7 +92,7 @@ const dispatchValidateRequest = async <Context>(service: ValidateServer<Context>
         throw new WebrpcBadRequestError({ cause: "invalid argument: checkRequest" })
       }
       const result = await service.check(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
     }
   
     default:
@@ -126,9 +126,9 @@ const webrpcParseRequestBody = (body: unknown, typ: string): any => {
   }
 }
 
-const webrpcJsonResponse = (data: any): Response => {
+const webrpcJsonResponse = (data: any, status = 200): Response => {
   return new Response(JsonEncode(data), {
-    status: 200,
+    status,
     headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
   })
 }

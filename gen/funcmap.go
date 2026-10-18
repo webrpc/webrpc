@@ -137,6 +137,7 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"RouteHasBody":         schema.RouteHasBody,         // v0.47.0
 		"RoutePath":            schema.RoutePath,            // v0.47.0
 		"RoutePattern":         schema.RoutePattern,         // v0.47.0
+		"RouteSuccessStatus":   schema.RouteSuccessStatus,   // v0.47.0
 		"RouteParams":          schema.RouteParams,          // v0.47.0
 		"RouteShapeOf":         schema.RouteShapeOf,         // switch-based REST router
 		"RouteHandlerField":    schema.RouteHandlerField,    // switch-based REST router

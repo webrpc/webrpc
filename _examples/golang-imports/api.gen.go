@@ -538,7 +538,7 @@ func doHTTPRequestRaw(ctx context.Context, client HTTPClient, url string, in, ou
 		return nil, ErrWebrpcRequestFailed.WithCause(err)
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode < 200 || resp.StatusCode > 299 { // 2xx is success; routes may declare e.g. 201
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, ErrWebrpcBadResponse.WithCausef("failed to read server error response body: %w", err)

@@ -53,6 +53,15 @@ func RoutePath(r *MethodRoute) string {
 	return JoinRoutePath(basePath, r.Path)
 }
 
+// RouteSuccessStatus returns the route's declared success status code, or the
+// default 200 when the route has no `+ @success` line.
+func RouteSuccessStatus(r *MethodRoute) int {
+	if r == nil || r.Success == 0 {
+		return 200
+	}
+	return r.Success
+}
+
 // RoutePattern returns the ServeMux pattern "VERB /path" of the route. The
 // root path gets "/{$}" so it matches only "/", not the subtree.
 func RoutePattern(r *MethodRoute) string {

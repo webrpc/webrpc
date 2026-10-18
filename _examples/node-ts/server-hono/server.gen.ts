@@ -124,7 +124,7 @@ export const serveExampleRpc = async <Context>(service: ExampleServer<Context>, 
   }
 }
 
-const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, ctx: Context, method: string, request: Request): Promise<Response> => {
+const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, ctx: Context, method: string, request: Request, status = 200): Promise<Response> => {
   switch (method) {
     case 'Ping': {
       const payload: any = webrpcParseRequestBody(await webrpcRequestBodyText(request), 'PingRequest')
@@ -132,7 +132,7 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: counter" })
       }
       const result = await service.ping(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
     }
   
     case 'GetUser': {
@@ -144,7 +144,7 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: userId" })
       }
       const result = await service.getUser(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
     }
   
     case 'GetArticle': {
@@ -153,7 +153,7 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: getArticleRequest" })
       }
       const result = await service.getArticle(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
     }
   
     case 'UploadAvatar': {
@@ -173,7 +173,7 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: avatar" })
       }
       const result = await service.uploadAvatar(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      return webrpcJsonResponse(result ?? {}, status)
     }
   
     case 'DownloadAvatar': {
@@ -219,9 +219,9 @@ const webrpcParseRequestBody = (body: unknown, typ: string): any => {
   }
 }
 
-const webrpcJsonResponse = (data: any): Response => {
+const webrpcJsonResponse = (data: any, status = 200): Response => {
   return new Response(JsonEncode(data), {
-    status: 200,
+    status,
     headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
   })
 }

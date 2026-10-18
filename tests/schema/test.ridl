@@ -37,6 +37,7 @@ service TestApiRest
       + GET /items
   - CreateItem(CreateItemRequest) => (CreateItemResponse)
       + POST /items
+      + @success 201
   - UpdateItem(id: uint64, name: string) => (item: Item)
       + PUT /items/{id}
   - PatchItem(id: uint64, name?: string) => (item: Item)
