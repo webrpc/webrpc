@@ -38,6 +38,7 @@
 	{{- end -}}
 
 	{{- if $opts.restRoutes }}
+		{{- set $stdlibImports "bytes" "" -}}
 		{{- set $stdlibImports "encoding" "" -}}
 		{{- set $stdlibImports "math" "" -}}
 		{{- set $stdlibImports "net/url" "" -}}

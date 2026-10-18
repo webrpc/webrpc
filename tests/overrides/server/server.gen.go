@@ -6,6 +6,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding"
 	"encoding/json"
@@ -95,14 +96,14 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 		server.OnError = options[0].OnError
 		server.OnRequest = options[0].OnRequest
 	}
-	server.restIndex = restHandler("GET /{$}", "RestOverrides", "Index", false, 200,
+	server.restIndex = restHandler("GET /{$}", "RestOverrides", "Index", false, false, 200,
 		func(ctx context.Context, req restOverridesServiceIndexArgs) (restOverridesServiceIndexResult, error) {
 			err := server.RestOverridesServer.Index(ctx)
 			return restOverridesServiceIndexResult{}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restSearch = restHandler("GET /by/{lbl}", "RestOverrides", "Search", false, 200,
+	server.restSearch = restHandler("GET /by/{lbl}", "RestOverrides", "Search", false, false, 200,
 		server.RestOverridesServer.Search,
 		func(p *restParams, req *SearchRequest) error {
 			if err := restPath(p, "lbl", "string", &req.Key, restJSONString); err != nil {
@@ -117,7 +118,7 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restScale = restHandler("GET /scale/{factor}", "RestOverrides", "Scale", false, 200,
+	server.restScale = restHandler("GET /scale/{factor}", "RestOverrides", "Scale", false, false, 200,
 		func(ctx context.Context, req restOverridesServiceScaleArgs) (restOverridesServiceScaleResult, error) {
 			ret0, err := server.RestOverridesServer.Scale(ctx, req.Arg0)
 			return restOverridesServiceScaleResult{Ret0: ret0}, err
@@ -129,7 +130,7 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restScaleGet = restHandler("GET /scale/{factor}/half", "RestOverrides", "Scale", false, 200,
+	server.restScaleGet = restHandler("GET /scale/{factor}/half", "RestOverrides", "Scale", false, false, 200,
 		func(ctx context.Context, req restOverridesServiceScaleArgs) (restOverridesServiceScaleResult, error) {
 			ret0, err := server.RestOverridesServer.Scale(ctx, req.Arg0)
 			return restOverridesServiceScaleResult{Ret0: ret0}, err
@@ -408,7 +409,7 @@ func (p *restParams) values() map[string][]string {
 }
 
 // restHandler runs one REST route: body decode, param binding, then fn.
-func restHandler[I, O any](pattern, service, method string, hasBody bool, success int, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, success int, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Identify the route before user code can run: MethodCtx resolves the
 		// method from r.Pattern (the dispatcher already set the path values).
@@ -420,8 +421,20 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, succes
 		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
 		r = r.WithContext(ctx)
 
+		var body []byte
 		if hasBody {
-			// Requiring JSON forces a CORS preflight, so cross-site form posts can't reach handlers.
+			b, err := io.ReadAll(r.Body)
+			if err != nil {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+				return
+			}
+			body = bytes.TrimSpace(b)
+		}
+
+		// An empty (or whitespace-only) body yields a zero-value request and bypasses the
+		// Content-Type check. A non-empty body must still declare 'application/json': the
+		// check is a CSRF guard that forces a CORS preflight for cross-site form posts.
+		if hasBody && hasBodyFields && len(body) > 0 {
 			contentType, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";")
 			if !strings.EqualFold(strings.TrimSpace(contentType), "application/json") {
 				sendError(w, r, ErrWebrpcBadRequest.WithCausef("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type")))
@@ -441,18 +454,10 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, succes
 		}
 
 		var req I
-		if hasBody {
-			body, err := io.ReadAll(r.Body)
-			if err != nil {
-				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+		if len(body) > 0 {
+			if err := json.Unmarshal(body, &req); err != nil {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 				return
-			}
-			// A "null" or empty body leaves the struct unchanged.
-			if len(body) > 0 {
-				if err := json.Unmarshal(body, &req); err != nil {
-					sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
-					return
-				}
 			}
 		}
 

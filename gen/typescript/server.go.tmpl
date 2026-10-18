@@ -74,7 +74,7 @@ const {{firstLetterToLower $service.Name}}UnroutedMethods = new Set<string>([{{r
 const {{firstLetterToLower $service.Name}}RestRoutes: WebrpcRestRoute[] = [
 {{- range $_, $method := $service.Methods}}
 {{- range $_, $route := $method.Routes}}
-  { method: '{{$route.Verb}}', path: '{{RoutePath $route}}', rpcPath: '{{$basepath}}{{$service.Name}}/{{$method.Name}}', name: '{{$method.Name}}', hasBody: {{if RouteHasBody $route}}true{{else}}false{{end}}{{if $route.Success}}, success: {{$route.Success}}{{end}}, params: [{{range $i, $p := RouteParams $route}}{{if $i}}, {{end}}{ name: '{{$p.Name}}', type: '{{$p.TypeExpr}}', optional: {{if $p.Optional}}true{{else}}false{{end}}, list: {{if $p.Repeated}}true{{else}}false{{end}} }{{end}}] },
+  { method: '{{$route.Verb}}', path: '{{RoutePath $route}}', rpcPath: '{{$basepath}}{{$service.Name}}/{{$method.Name}}', name: '{{$method.Name}}', hasBody: {{if RouteHasBody $route}}true{{else}}false{{end}}, hasBodyFields: {{if RouteHasBodyFields $route}}true{{else}}false{{end}}{{if $route.Success}}, success: {{$route.Success}}{{end}}, params: [{{range $i, $p := RouteParams $route}}{{if $i}}, {{end}}{ name: '{{$p.Name}}', type: '{{$p.TypeExpr}}', optional: {{if $p.Optional}}true{{else}}false{{end}}, list: {{if $p.Repeated}}true{{else}}false{{end}} }{{end}}] },
 {{- end}}
 {{- end}}
 ]
@@ -141,12 +141,19 @@ const dispatch{{$service.Name}}Request = async <Context>(service: {{$service.Nam
 
 {{- end}}
 {{"\n"}}
-const webrpcRequestBodyText = async (request: Request): Promise<string> => {
+const webrpcRequestBodyText = async (request: Request, skipContentTypeCheck: boolean = false): Promise<string> => {
+  const text = await request.text()
+  // An empty body (no data or whitespace only) yields a zero-value request and bypasses
+  // the Content-Type check. A non-empty body must still declare 'application/json': the
+  // check is a CSRF guard that forces a CORS preflight for cross-site form posts.
+  if (text.trim() === '') {
+    return ''
+  }
   const contentType = (request.headers.get('Content-Type') || '').split(';')[0]!.trim().toLowerCase()
-  if (contentType !== 'application/json') {
+  if (contentType !== 'application/json' && !skipContentTypeCheck) {
     throw new WebrpcBadRequestError({ cause: `unsupported Content-Type '${request.headers.get('Content-Type') || ''}' (only application/json is allowed)` })
   }
-  return request.text()
+  return text
 }
 
 {{- if $parseRequestBody }}
@@ -193,7 +200,7 @@ const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }):
 // Routes are generated data, so the server never parses RIDL param strings.
 type WebrpcRestParam = { name: string, type: string, optional: boolean, list: boolean }
 
-type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, hasBody: boolean, params: WebrpcRestParam[], success?: number }
+type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, hasBody: boolean, hasBodyFields: boolean, params: WebrpcRestParam[], success?: number }
 
 type WebrpcRestMatch = { route: WebrpcRestRoute, pathParams: Map<string, string> }
 
@@ -235,7 +242,8 @@ const webrpcRestRoute = (routes: WebrpcRestRoute[], request: Request): WebrpcRes
 // Body first, then path params, then query params; later sources win.
 const webrpcRestData = async (route: WebrpcRestRoute, pathParams: Map<string, string>, request: Request): Promise<{ [key: string]: any }> => {
   const url = new URL(request.url)
-  const data: { [key: string]: any } = route.hasBody ? webrpcJsonBody(await webrpcRequestBodyText(request)) : {}
+  const text = route.hasBody ? await webrpcRequestBodyText(request, !route.hasBodyFields) : ''
+  const data: { [key: string]: any } = route.hasBody ? webrpcJsonBody(text) : {}
   for (const { name, type, optional, list } of route.params) {
     const kind = pathParams.has(name) ? 'path' : 'query'
     const values = kind === 'path' ? [pathParams.get(name)!] : url.searchParams.getAll(name)

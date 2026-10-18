@@ -258,8 +258,10 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 		}
 	}
 
-	// Body routes reject non-JSON requests, so cross-site form posts (sent
-	// without a CORS preflight) can't reach handlers — with or without inputs.
+	// A body route with body fields rejects non-JSON requests, so cross-site
+	// form posts (sent without a CORS preflight) can't reach handlers. A route
+	// with zero body fields drops the check, so its body is parsed as JSON and
+	// unknown fields are ignored.
 	for _, path := range []string{"/rpc/items", "/rpc/items/reset"} {
 		resp, err := http.Post(serverURL+path, "text/plain", strings.NewReader(`{"item":{"id":5,"name":"csrf"}}`))
 		if err != nil {
@@ -267,8 +269,12 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 			continue
 		}
 		resp.Body.Close()
-		if resp.StatusCode != http.StatusBadRequest {
-			errs = append(errs, fmt.Errorf("text/plain POST %s: expected 400, got %d", path, resp.StatusCode))
+		want := http.StatusBadRequest
+		if path == "/rpc/items/reset" {
+			want = http.StatusOK // zero body fields: JSON is parsed, unknown fields ignored
+		}
+		if resp.StatusCode != want {
+			errs = append(errs, fmt.Errorf("text/plain POST %s: expected %d, got %d", path, want, resp.StatusCode))
 		}
 	}
 	if _, err := api.GetItem(ctx, GetItemRequest{Id: 5}); err == nil {

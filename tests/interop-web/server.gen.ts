@@ -282,12 +282,19 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
 }
 
 
-const webrpcRequestBodyText = async (request: Request): Promise<string> => {
+const webrpcRequestBodyText = async (request: Request, skipContentTypeCheck: boolean = false): Promise<string> => {
+  const text = await request.text()
+  // An empty body (no data or whitespace only) yields a zero-value request and bypasses
+  // the Content-Type check. A non-empty body must still declare 'application/json': the
+  // check is a CSRF guard that forces a CORS preflight for cross-site form posts.
+  if (text.trim() === '') {
+    return ''
+  }
   const contentType = (request.headers.get('Content-Type') || '').split(';')[0]!.trim().toLowerCase()
-  if (contentType !== 'application/json') {
+  if (contentType !== 'application/json' && !skipContentTypeCheck) {
     throw new WebrpcBadRequestError({ cause: `unsupported Content-Type '${request.headers.get('Content-Type') || ''}' (only application/json is allowed)` })
   }
-  return request.text()
+  return text
 }
 
 const webrpcParseRequestBody = (body: unknown, typ: string): any => {

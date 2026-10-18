@@ -151,17 +151,17 @@ export const serveParamRestRpc = async <Context>(service: ParamRestServer<Contex
 const paramRestUnroutedMethods = new Set<string>([])
 
 const paramRestRestRoutes: WebrpcRestRoute[] = [
-  { method: 'GET', path: '/rpc/params/probe', rpcPath: '/rpc/ParamRest/Probe', name: 'Probe', hasBody: false, params: [{ name: 'constructor', type: 'string', optional: false, list: false }, { name: 'toString', type: 'string', optional: true, list: false }, { name: 'i8', type: 'int8', optional: false, list: false }, { name: 'u8', type: 'uint8', optional: false, list: false }, { name: 'i32', type: 'int32', optional: false, list: false }, { name: 'flag', type: 'bool', optional: false, list: false }] },
-  { method: 'POST', path: '/rpc/params/make', rpcPath: '/rpc/ParamRest/Make', name: 'Make', hasBody: true, params: [] },
-  { method: 'POST', path: '/rpc/ParamRest/OldMake', rpcPath: '/rpc/ParamRest/Make', name: 'Make', hasBody: true, params: [] },
-  { method: 'GET', path: '/rpc/params/tags/{name}', rpcPath: '/rpc/ParamRest/Tag', name: 'Tag', hasBody: false, params: [{ name: 'name', type: 'string', optional: false, list: false }] },
-  { method: 'GET', path: '/rpc/params/numbers', rpcPath: '/rpc/ParamRest/Numbers', name: 'Numbers', hasBody: false, params: [{ name: 'f32', type: 'float32', optional: false, list: false }, { name: 'f64', type: 'float64', optional: false, list: false }, { name: 'ts', type: 'timestamp', optional: false, list: false }] },
-  { method: 'GET', path: '/rpc/params/search', rpcPath: '/rpc/ParamRest/Search', name: 'Search', hasBody: false, params: [{ name: 'term', type: 'string', optional: false, list: false }, { name: 'dashed_term', type: 'string', optional: true, list: false }] },
-  { method: 'GET', path: '/rpc/params/legacy', rpcPath: '/rpc/ParamRest/Legacy', name: 'Legacy', hasBody: false, params: [{ name: 'name', type: 'string', optional: false, list: false }] },
-  { method: 'POST', path: '/rpc/ParamRest/Legacy', rpcPath: '/rpc/ParamRest/Legacy', name: 'Legacy', hasBody: true, params: [] },
-  { method: 'GET', path: '/rpc/params/both', rpcPath: '/rpc/ParamRest/Both', name: 'Both', hasBody: false, params: [{ name: 'q', type: 'string', optional: false, list: false }, { name: 'n', type: 'int32', optional: false, list: false }] },
-  { method: 'QUERY', path: '/rpc/params/both', rpcPath: '/rpc/ParamRest/Both', name: 'Both', hasBody: true, params: [] },
-  { method: 'POST', path: '/rpc/ParamRest/{x}', rpcPath: '/rpc/ParamRest/Wild', name: 'Wild', hasBody: true, params: [{ name: 'x', type: 'string', optional: false, list: false }] },
+  { method: 'GET', path: '/rpc/params/probe', rpcPath: '/rpc/ParamRest/Probe', name: 'Probe', hasBody: false, hasBodyFields: false, params: [{ name: 'constructor', type: 'string', optional: false, list: false }, { name: 'toString', type: 'string', optional: true, list: false }, { name: 'i8', type: 'int8', optional: false, list: false }, { name: 'u8', type: 'uint8', optional: false, list: false }, { name: 'i32', type: 'int32', optional: false, list: false }, { name: 'flag', type: 'bool', optional: false, list: false }] },
+  { method: 'POST', path: '/rpc/params/make', rpcPath: '/rpc/ParamRest/Make', name: 'Make', hasBody: true, hasBodyFields: true, params: [] },
+  { method: 'POST', path: '/rpc/ParamRest/OldMake', rpcPath: '/rpc/ParamRest/Make', name: 'Make', hasBody: true, hasBodyFields: true, params: [] },
+  { method: 'GET', path: '/rpc/params/tags/{name}', rpcPath: '/rpc/ParamRest/Tag', name: 'Tag', hasBody: false, hasBodyFields: false, params: [{ name: 'name', type: 'string', optional: false, list: false }] },
+  { method: 'GET', path: '/rpc/params/numbers', rpcPath: '/rpc/ParamRest/Numbers', name: 'Numbers', hasBody: false, hasBodyFields: false, params: [{ name: 'f32', type: 'float32', optional: false, list: false }, { name: 'f64', type: 'float64', optional: false, list: false }, { name: 'ts', type: 'timestamp', optional: false, list: false }] },
+  { method: 'GET', path: '/rpc/params/search', rpcPath: '/rpc/ParamRest/Search', name: 'Search', hasBody: false, hasBodyFields: false, params: [{ name: 'term', type: 'string', optional: false, list: false }, { name: 'dashed_term', type: 'string', optional: true, list: false }] },
+  { method: 'GET', path: '/rpc/params/legacy', rpcPath: '/rpc/ParamRest/Legacy', name: 'Legacy', hasBody: false, hasBodyFields: false, params: [{ name: 'name', type: 'string', optional: false, list: false }] },
+  { method: 'POST', path: '/rpc/ParamRest/Legacy', rpcPath: '/rpc/ParamRest/Legacy', name: 'Legacy', hasBody: true, hasBodyFields: true, params: [] },
+  { method: 'GET', path: '/rpc/params/both', rpcPath: '/rpc/ParamRest/Both', name: 'Both', hasBody: false, hasBodyFields: false, params: [{ name: 'q', type: 'string', optional: false, list: false }, { name: 'n', type: 'int32', optional: false, list: false }] },
+  { method: 'QUERY', path: '/rpc/params/both', rpcPath: '/rpc/ParamRest/Both', name: 'Both', hasBody: true, hasBodyFields: true, params: [] },
+  { method: 'POST', path: '/rpc/ParamRest/{x}', rpcPath: '/rpc/ParamRest/Wild', name: 'Wild', hasBody: true, hasBodyFields: false, params: [{ name: 'x', type: 'string', optional: false, list: false }] },
 ]
 
 const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Context>, ctx: Context, method: string, request: Request, data?: { [key: string]: any }, status = 200): Promise<Response> => {
@@ -310,12 +310,19 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
 }
 
 
-const webrpcRequestBodyText = async (request: Request): Promise<string> => {
+const webrpcRequestBodyText = async (request: Request, skipContentTypeCheck: boolean = false): Promise<string> => {
+  const text = await request.text()
+  // An empty body (no data or whitespace only) yields a zero-value request and bypasses
+  // the Content-Type check. A non-empty body must still declare 'application/json': the
+  // check is a CSRF guard that forces a CORS preflight for cross-site form posts.
+  if (text.trim() === '') {
+    return ''
+  }
   const contentType = (request.headers.get('Content-Type') || '').split(';')[0]!.trim().toLowerCase()
-  if (contentType !== 'application/json') {
+  if (contentType !== 'application/json' && !skipContentTypeCheck) {
     throw new WebrpcBadRequestError({ cause: `unsupported Content-Type '${request.headers.get('Content-Type') || ''}' (only application/json is allowed)` })
   }
-  return request.text()
+  return text
 }
 
 const webrpcJsonResponse = (data: any, status = 200): Response => {
@@ -341,7 +348,7 @@ const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }):
 // Routes are generated data, so the server never parses RIDL param strings.
 type WebrpcRestParam = { name: string, type: string, optional: boolean, list: boolean }
 
-type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, hasBody: boolean, params: WebrpcRestParam[], success?: number }
+type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, hasBody: boolean, hasBodyFields: boolean, params: WebrpcRestParam[], success?: number }
 
 type WebrpcRestMatch = { route: WebrpcRestRoute, pathParams: Map<string, string> }
 
@@ -383,7 +390,8 @@ const webrpcRestRoute = (routes: WebrpcRestRoute[], request: Request): WebrpcRes
 // Body first, then path params, then query params; later sources win.
 const webrpcRestData = async (route: WebrpcRestRoute, pathParams: Map<string, string>, request: Request): Promise<{ [key: string]: any }> => {
   const url = new URL(request.url)
-  const data: { [key: string]: any } = route.hasBody ? webrpcJsonBody(await webrpcRequestBodyText(request)) : {}
+  const text = route.hasBody ? await webrpcRequestBodyText(request, !route.hasBodyFields) : ''
+  const data: { [key: string]: any } = route.hasBody ? webrpcJsonBody(text) : {}
   for (const { name, type, optional, list } of route.params) {
     const kind = pathParams.has(name) ? 'path' : 'query'
     const values = kind === 'path' ? [pathParams.get(name)!] : url.searchParams.getAll(name)

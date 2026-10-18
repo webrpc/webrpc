@@ -40,6 +40,28 @@ func RouteHasBody(r *MethodRoute) bool {
 	return r != nil && routeVerbHasBody(r.Verb)
 }
 
+// RouteHasBodyFields reports whether the route has request fields that travel
+// in the JSON body, i.e. request fields not bound to path params.
+func RouteHasBodyFields(r *MethodRoute) bool {
+	if r == nil || r.Method == nil || !RouteHasBody(r) {
+		return false
+	}
+	pathParams, err := validateRoutePathSyntax(r.Path)
+	if err != nil {
+		return false
+	}
+	inPath := map[string]bool{}
+	for _, name := range pathParams {
+		inPath[name] = true
+	}
+	for _, f := range methodRouteFields(r.Method) {
+		if !inPath[f.name] {
+			return true
+		}
+	}
+	return false
+}
+
 // RoutePath returns the full route path template, {basepath}{route.path},
 // normalized (leading slash, no trailing slash).
 func RoutePath(r *MethodRoute) string {

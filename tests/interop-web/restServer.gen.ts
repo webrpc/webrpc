@@ -255,21 +255,21 @@ export const serveTestApiRestRpc = async <Context>(service: TestApiRestServer<Co
 const testApiRestUnroutedMethods = new Set<string>(['RpcMethod', ])
 
 const testApiRestRestRoutes: WebrpcRestRoute[] = [
-  { method: 'GET', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/GetItem', name: 'GetItem', hasBody: false, params: [{ name: 'id', type: 'uint64', optional: false, list: false }, { name: 'details', type: 'bool', optional: true, list: false }] },
-  { method: 'GET', path: '/rpc/items', rpcPath: '/rpc/TestApiRest/ListItems', name: 'ListItems', hasBody: false, params: [{ name: 'q', type: 'string', optional: true, list: false }, { name: 'tags', type: 'string', optional: false, list: true }, { name: 'limit', type: 'uint32', optional: false, list: false }] },
-  { method: 'POST', path: '/rpc/items', rpcPath: '/rpc/TestApiRest/CreateItem', name: 'CreateItem', hasBody: true, success: 201, params: [] },
-  { method: 'PUT', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/UpdateItem', name: 'UpdateItem', hasBody: true, params: [{ name: 'id', type: 'uint64', optional: false, list: false }] },
-  { method: 'PATCH', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/PatchItem', name: 'PatchItem', hasBody: true, params: [{ name: 'id', type: 'uint64', optional: false, list: false }] },
-  { method: 'DELETE', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/DeleteItem', name: 'DeleteItem', hasBody: false, params: [{ name: 'id', type: 'uint64', optional: false, list: false }] },
-  { method: 'QUERY', path: '/rpc/items/search', rpcPath: '/rpc/TestApiRest/QueryItems', name: 'QueryItems', hasBody: true, params: [] },
-  { method: 'GET', path: '/rpc/items/echo/params', rpcPath: '/rpc/TestApiRest/EchoParams', name: 'EchoParams', hasBody: false, params: [{ name: 'str', type: 'string', optional: false, list: false }, { name: 'num', type: 'int64', optional: false, list: false }, { name: 'flag', type: 'bool', optional: false, list: false }, { name: 'fl', type: 'float64', optional: false, list: false }, { name: 'ts', type: 'timestamp', optional: false, list: false }, { name: 'status', type: 'Status', optional: false, list: false }, { name: 'tags', type: 'string', optional: false, list: true }, { name: 'opt', type: 'string', optional: true, list: false }] },
-  { method: 'GET', path: '/rpc/items/{id}/children/{childId}', rpcPath: '/rpc/TestApiRest/GetChild', name: 'GetChild', hasBody: false, params: [{ name: 'id', type: 'uint64', optional: false, list: false }, { name: 'childId', type: 'uint64', optional: false, list: false }] },
-  { method: 'GET', path: '/rpc/items/{id}/status/latest', rpcPath: '/rpc/TestApiRest/GetItemStatus', name: 'GetItemStatus', hasBody: false, params: [{ name: 'id', type: 'uint64', optional: false, list: false }] },
-  { method: 'POST', path: '/rpc/items/reset', rpcPath: '/rpc/TestApiRest/ResetItems', name: 'ResetItems', hasBody: true, params: [] },
-  { method: 'GET', path: '/rpc/items/lookup/{id}', rpcPath: '/rpc/TestApiRest/LookupItem', name: 'LookupItem', hasBody: false, params: [{ name: 'id', type: 'uint64', optional: false, list: false }] },
-  { method: 'POST', path: '/rpc/TestApiRest/LookupItem', rpcPath: '/rpc/TestApiRest/LookupItem', name: 'LookupItem', hasBody: true, params: [] },
-  { method: 'GET', path: '/rpc/items/find', rpcPath: '/rpc/TestApiRest/FindItems', name: 'FindItems', hasBody: false, params: [{ name: 'q', type: 'string', optional: false, list: false }] },
-  { method: 'QUERY', path: '/rpc/items/find', rpcPath: '/rpc/TestApiRest/FindItems', name: 'FindItems', hasBody: true, params: [] },
+  { method: 'GET', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/GetItem', name: 'GetItem', hasBody: false, hasBodyFields: false, params: [{ name: 'id', type: 'uint64', optional: false, list: false }, { name: 'details', type: 'bool', optional: true, list: false }] },
+  { method: 'GET', path: '/rpc/items', rpcPath: '/rpc/TestApiRest/ListItems', name: 'ListItems', hasBody: false, hasBodyFields: false, params: [{ name: 'q', type: 'string', optional: true, list: false }, { name: 'tags', type: 'string', optional: false, list: true }, { name: 'limit', type: 'uint32', optional: false, list: false }] },
+  { method: 'POST', path: '/rpc/items', rpcPath: '/rpc/TestApiRest/CreateItem', name: 'CreateItem', hasBody: true, hasBodyFields: true, success: 201, params: [] },
+  { method: 'PUT', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/UpdateItem', name: 'UpdateItem', hasBody: true, hasBodyFields: true, params: [{ name: 'id', type: 'uint64', optional: false, list: false }] },
+  { method: 'PATCH', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/PatchItem', name: 'PatchItem', hasBody: true, hasBodyFields: true, params: [{ name: 'id', type: 'uint64', optional: false, list: false }] },
+  { method: 'DELETE', path: '/rpc/items/{id}', rpcPath: '/rpc/TestApiRest/DeleteItem', name: 'DeleteItem', hasBody: false, hasBodyFields: false, params: [{ name: 'id', type: 'uint64', optional: false, list: false }] },
+  { method: 'QUERY', path: '/rpc/items/search', rpcPath: '/rpc/TestApiRest/QueryItems', name: 'QueryItems', hasBody: true, hasBodyFields: true, params: [] },
+  { method: 'GET', path: '/rpc/items/echo/params', rpcPath: '/rpc/TestApiRest/EchoParams', name: 'EchoParams', hasBody: false, hasBodyFields: false, params: [{ name: 'str', type: 'string', optional: false, list: false }, { name: 'num', type: 'int64', optional: false, list: false }, { name: 'flag', type: 'bool', optional: false, list: false }, { name: 'fl', type: 'float64', optional: false, list: false }, { name: 'ts', type: 'timestamp', optional: false, list: false }, { name: 'status', type: 'Status', optional: false, list: false }, { name: 'tags', type: 'string', optional: false, list: true }, { name: 'opt', type: 'string', optional: true, list: false }] },
+  { method: 'GET', path: '/rpc/items/{id}/children/{childId}', rpcPath: '/rpc/TestApiRest/GetChild', name: 'GetChild', hasBody: false, hasBodyFields: false, params: [{ name: 'id', type: 'uint64', optional: false, list: false }, { name: 'childId', type: 'uint64', optional: false, list: false }] },
+  { method: 'GET', path: '/rpc/items/{id}/status/latest', rpcPath: '/rpc/TestApiRest/GetItemStatus', name: 'GetItemStatus', hasBody: false, hasBodyFields: false, params: [{ name: 'id', type: 'uint64', optional: false, list: false }] },
+  { method: 'POST', path: '/rpc/items/reset', rpcPath: '/rpc/TestApiRest/ResetItems', name: 'ResetItems', hasBody: true, hasBodyFields: false, params: [] },
+  { method: 'GET', path: '/rpc/items/lookup/{id}', rpcPath: '/rpc/TestApiRest/LookupItem', name: 'LookupItem', hasBody: false, hasBodyFields: false, params: [{ name: 'id', type: 'uint64', optional: false, list: false }] },
+  { method: 'POST', path: '/rpc/TestApiRest/LookupItem', rpcPath: '/rpc/TestApiRest/LookupItem', name: 'LookupItem', hasBody: true, hasBodyFields: true, params: [] },
+  { method: 'GET', path: '/rpc/items/find', rpcPath: '/rpc/TestApiRest/FindItems', name: 'FindItems', hasBody: false, hasBodyFields: false, params: [{ name: 'q', type: 'string', optional: false, list: false }] },
+  { method: 'QUERY', path: '/rpc/items/find', rpcPath: '/rpc/TestApiRest/FindItems', name: 'FindItems', hasBody: true, hasBodyFields: true, params: [] },
 ]
 
 const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Context>, ctx: Context, method: string, request: Request, data?: { [key: string]: any }, status = 200): Promise<Response> => {
@@ -487,12 +487,19 @@ const dispatchTestApiRestRequest = async <Context>(service: TestApiRestServer<Co
 }
 
 
-const webrpcRequestBodyText = async (request: Request): Promise<string> => {
+const webrpcRequestBodyText = async (request: Request, skipContentTypeCheck: boolean = false): Promise<string> => {
+  const text = await request.text()
+  // An empty body (no data or whitespace only) yields a zero-value request and bypasses
+  // the Content-Type check. A non-empty body must still declare 'application/json': the
+  // check is a CSRF guard that forces a CORS preflight for cross-site form posts.
+  if (text.trim() === '') {
+    return ''
+  }
   const contentType = (request.headers.get('Content-Type') || '').split(';')[0]!.trim().toLowerCase()
-  if (contentType !== 'application/json') {
+  if (contentType !== 'application/json' && !skipContentTypeCheck) {
     throw new WebrpcBadRequestError({ cause: `unsupported Content-Type '${request.headers.get('Content-Type') || ''}' (only application/json is allowed)` })
   }
-  return request.text()
+  return text
 }
 
 const webrpcJsonResponse = (data: any, status = 200): Response => {
@@ -518,7 +525,7 @@ const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }):
 // Routes are generated data, so the server never parses RIDL param strings.
 type WebrpcRestParam = { name: string, type: string, optional: boolean, list: boolean }
 
-type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, hasBody: boolean, params: WebrpcRestParam[], success?: number }
+type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, hasBody: boolean, hasBodyFields: boolean, params: WebrpcRestParam[], success?: number }
 
 type WebrpcRestMatch = { route: WebrpcRestRoute, pathParams: Map<string, string> }
 
@@ -560,7 +567,8 @@ const webrpcRestRoute = (routes: WebrpcRestRoute[], request: Request): WebrpcRes
 // Body first, then path params, then query params; later sources win.
 const webrpcRestData = async (route: WebrpcRestRoute, pathParams: Map<string, string>, request: Request): Promise<{ [key: string]: any }> => {
   const url = new URL(request.url)
-  const data: { [key: string]: any } = route.hasBody ? webrpcJsonBody(await webrpcRequestBodyText(request)) : {}
+  const text = route.hasBody ? await webrpcRequestBodyText(request, !route.hasBodyFields) : ''
+  const data: { [key: string]: any } = route.hasBody ? webrpcJsonBody(text) : {}
   for (const { name, type, optional, list } of route.params) {
     const kind = pathParams.has(name) ? 'path' : 'query'
     const values = kind === 'path' ? [pathParams.get(name)!] : url.searchParams.getAll(name)

@@ -71,6 +71,49 @@ func TestRESTOnRequestSeesRESTRequest(t *testing.T) {
 	}
 }
 
+// TestRESTContentTypeRelaxation pins the relaxed Content-Type rules: an empty
+// body bypasses the check on any body route, a route with zero body fields
+// drops the check entirely, and a route with body fields keeps it as a CSRF
+// guard for non-empty bodies.
+func TestRESTContentTypeRelaxation(t *testing.T) {
+	impl := NewTestRESTServer()
+	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
+		t.Fatal(err)
+	}
+	srv := NewTestApiRestServer(impl)
+
+	// (b) POST with body fields, empty body, and no Content-Type: accepted with a zero-value request.
+	if rec := serveTest(t, srv, "PATCH", "/rpc/items/7", "", ""); rec.Code != http.StatusOK {
+		t.Errorf("PATCH /rpc/items/7 with empty body and no Content-Type: status %d, body %s, want 200", rec.Code, rec.Body)
+	} else if !strings.Contains(rec.Body.String(), `"name":"alice"`) {
+		t.Errorf("PATCH /rpc/items/7 with empty body: body %s, want unchanged item", rec.Body)
+	}
+
+	// (c) POST with body fields, non-empty body, and a wrong Content-Type: rejected (CSRF guard intact).
+	if rec := serveTest(t, srv, "PATCH", "/rpc/items/7", "text/plain", `{"name":"csrf"}`); rec.Code != http.StatusBadRequest {
+		t.Errorf("PATCH /rpc/items/7 with text/plain body: status %d, want 400", rec.Code)
+	}
+
+	// (d) POST with body fields, valid JSON, and the correct Content-Type: unchanged.
+	if rec := serveTest(t, srv, "PATCH", "/rpc/items/7", "application/json", `{"name":"bob"}`); rec.Code != http.StatusOK {
+		t.Errorf("PATCH /rpc/items/7 with JSON body: status %d, body %s, want 200", rec.Code, rec.Body)
+	}
+
+	// (a) POST with zero body fields and no Content-Type: accepted.
+	if rec := serveTest(t, srv, "POST", "/rpc/items/reset", "", ""); rec.Code != http.StatusOK {
+		t.Errorf("POST /rpc/items/reset with no Content-Type: status %d, want 200", rec.Code)
+	}
+
+	// A zero-body-field route with a non-empty body parses it; unknown fields are ignored.
+	if rec := serveTest(t, srv, "POST", "/rpc/items/reset", "text/plain", `{"unknown":1}`); rec.Code != http.StatusOK {
+		t.Errorf("POST /rpc/items/reset with text/plain body: status %d, want 200", rec.Code)
+	}
+	// But a malformed body still 400s even on a zero-body-field route.
+	if rec := serveTest(t, srv, "POST", "/rpc/items/reset", "text/plain", `{"unknown":`); rec.Code != http.StatusBadRequest {
+		t.Errorf("POST /rpc/items/reset with malformed body: status %d, want 400", rec.Code)
+	}
+}
+
 func TestRESTNullBodyKeepsPathParam(t *testing.T) {
 	impl := NewTestRESTServer()
 	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
@@ -105,7 +148,7 @@ func TestRESTScalarOverflowIsBadRequest(t *testing.T) {
 	type overflowRequest struct{ N uint8 }
 	srv := NewTestApiRestServer(NewTestRESTServer())
 	mux := http.NewServeMux()
-	mux.Handle("GET /n/{n}", restHandler("GET /n/{n}", "", "Overflow", false, 200,
+	mux.Handle("GET /n/{n}", restHandler("GET /n/{n}", "", "Overflow", false, false, 200,
 		func(ctx context.Context, req overflowRequest) (struct{}, error) { return struct{}{}, nil },
 		func(p *restParams, req *overflowRequest) error { return restPath(p, "n", "uint8", &req.N, restUint) },
 		srv.sendErrorJSON, &srv.OnRequest))

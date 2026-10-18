@@ -135,6 +135,7 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"MethodHasRoute":       schema.MethodHasRoute,       // v0.47.0
 		"MethodCanonicalRoute": schema.MethodCanonicalRoute, // v0.47.0
 		"RouteHasBody":         schema.RouteHasBody,         // v0.47.0
+		"RouteHasBodyFields":   schema.RouteHasBodyFields,   // v0.47.0
 		"RoutePath":            schema.RoutePath,            // v0.47.0
 		"RoutePattern":         schema.RoutePattern,         // v0.47.0
 		"RouteSuccessStatus":   schema.RouteSuccessStatus,   // v0.47.0

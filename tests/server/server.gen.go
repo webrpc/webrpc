@@ -6,6 +6,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding"
 	"encoding/json"
@@ -986,7 +987,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 		server.OnError = options[0].OnError
 		server.OnRequest = options[0].OnRequest
 	}
-	server.restGetItem = restHandler("GET /rpc/items/{id}", "TestApiRest", "GetItem", false, 200,
+	server.restGetItem = restHandler("GET /rpc/items/{id}", "TestApiRest", "GetItem", false, false, 200,
 		server.TestApiRestServer.GetItem,
 		func(p *restParams, req *GetItemRequest) error {
 			if err := restPath(p, "id", "uint64", &req.Id, restUint); err != nil {
@@ -998,7 +999,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restListItems = restHandler("GET /rpc/items", "TestApiRest", "ListItems", false, 200,
+	server.restListItems = restHandler("GET /rpc/items", "TestApiRest", "ListItems", false, false, 200,
 		server.TestApiRestServer.ListItems,
 		func(p *restParams, req *ListItemsRequest) error {
 			if err := restQueryOpt(p, "q", "string", &req.Q, restString); err != nil {
@@ -1013,11 +1014,11 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restCreateItem = restHandler("POST /rpc/items", "TestApiRest", "CreateItem", true, 201,
+	server.restCreateItem = restHandler("POST /rpc/items", "TestApiRest", "CreateItem", true, true, 201,
 		server.TestApiRestServer.CreateItem,
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restUpdateItem = restHandler("PUT /rpc/items/{id}", "TestApiRest", "UpdateItem", true, 200,
+	server.restUpdateItem = restHandler("PUT /rpc/items/{id}", "TestApiRest", "UpdateItem", true, true, 200,
 		func(ctx context.Context, req testApiRestServiceUpdateItemArgs) (testApiRestServiceUpdateItemResult, error) {
 			ret0, err := server.TestApiRestServer.UpdateItem(ctx, req.Arg0, req.Arg1)
 			return testApiRestServiceUpdateItemResult{Ret0: ret0}, err
@@ -1029,7 +1030,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restPatchItem = restHandler("PATCH /rpc/items/{id}", "TestApiRest", "PatchItem", true, 200,
+	server.restPatchItem = restHandler("PATCH /rpc/items/{id}", "TestApiRest", "PatchItem", true, true, 200,
 		func(ctx context.Context, req testApiRestServicePatchItemArgs) (testApiRestServicePatchItemResult, error) {
 			ret0, err := server.TestApiRestServer.PatchItem(ctx, req.Arg0, req.Arg1)
 			return testApiRestServicePatchItemResult{Ret0: ret0}, err
@@ -1041,7 +1042,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restDeleteItem = restHandler("DELETE /rpc/items/{id}", "TestApiRest", "DeleteItem", false, 200,
+	server.restDeleteItem = restHandler("DELETE /rpc/items/{id}", "TestApiRest", "DeleteItem", false, false, 200,
 		func(ctx context.Context, req testApiRestServiceDeleteItemArgs) (testApiRestServiceDeleteItemResult, error) {
 			err := server.TestApiRestServer.DeleteItem(ctx, req.Arg0)
 			return testApiRestServiceDeleteItemResult{}, err
@@ -1053,14 +1054,14 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restQueryItems = restHandler("QUERY /rpc/items/search", "TestApiRest", "QueryItems", true, 200,
+	server.restQueryItems = restHandler("QUERY /rpc/items/search", "TestApiRest", "QueryItems", true, true, 200,
 		func(ctx context.Context, req testApiRestServiceQueryItemsArgs) (testApiRestServiceQueryItemsResult, error) {
 			ret0, err := server.TestApiRestServer.QueryItems(ctx, req.Arg0)
 			return testApiRestServiceQueryItemsResult{Ret0: ret0}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restEchoParams = restHandler("GET /rpc/items/echo/params", "TestApiRest", "EchoParams", false, 200,
+	server.restEchoParams = restHandler("GET /rpc/items/echo/params", "TestApiRest", "EchoParams", false, false, 200,
 		func(ctx context.Context, req testApiRestServiceEchoParamsArgs) (testApiRestServiceEchoParamsResult, error) {
 			ret0, err := server.TestApiRestServer.EchoParams(ctx, req.Arg0, req.Arg1, req.Arg2, req.Arg3, req.Arg4, req.Arg5, req.Arg6, req.Arg7)
 			return testApiRestServiceEchoParamsResult{Ret0: ret0}, err
@@ -1093,7 +1094,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restGetChild = restHandler("GET /rpc/items/{id}/children/{childId}", "TestApiRest", "GetChild", false, 200,
+	server.restGetChild = restHandler("GET /rpc/items/{id}/children/{childId}", "TestApiRest", "GetChild", false, false, 200,
 		func(ctx context.Context, req testApiRestServiceGetChildArgs) (testApiRestServiceGetChildResult, error) {
 			ret0, err := server.TestApiRestServer.GetChild(ctx, req.Arg0, req.Arg1)
 			return testApiRestServiceGetChildResult{Ret0: ret0}, err
@@ -1108,7 +1109,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restGetItemStatus = restHandler("GET /rpc/items/{id}/status/latest", "TestApiRest", "GetItemStatus", false, 200,
+	server.restGetItemStatus = restHandler("GET /rpc/items/{id}/status/latest", "TestApiRest", "GetItemStatus", false, false, 200,
 		func(ctx context.Context, req testApiRestServiceGetItemStatusArgs) (testApiRestServiceGetItemStatusResult, error) {
 			ret0, err := server.TestApiRestServer.GetItemStatus(ctx, req.Arg0)
 			return testApiRestServiceGetItemStatusResult{Ret0: ret0}, err
@@ -1120,14 +1121,14 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restResetItems = restHandler("POST /rpc/items/reset", "TestApiRest", "ResetItems", true, 200,
+	server.restResetItems = restHandler("POST /rpc/items/reset", "TestApiRest", "ResetItems", true, false, 200,
 		func(ctx context.Context, req testApiRestServiceResetItemsArgs) (testApiRestServiceResetItemsResult, error) {
 			err := server.TestApiRestServer.ResetItems(ctx)
 			return testApiRestServiceResetItemsResult{}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restLookupItem = restHandler("GET /rpc/items/lookup/{id}", "TestApiRest", "LookupItem", false, 200,
+	server.restLookupItem = restHandler("GET /rpc/items/lookup/{id}", "TestApiRest", "LookupItem", false, false, 200,
 		func(ctx context.Context, req testApiRestServiceLookupItemArgs) (testApiRestServiceLookupItemResult, error) {
 			ret0, err := server.TestApiRestServer.LookupItem(ctx, req.Arg0)
 			return testApiRestServiceLookupItemResult{Ret0: ret0}, err
@@ -1139,14 +1140,14 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restLookupItemRPC = restHandler("POST /rpc/TestApiRest/LookupItem", "TestApiRest", "LookupItem", true, 200,
+	server.restLookupItemRPC = restHandler("POST /rpc/TestApiRest/LookupItem", "TestApiRest", "LookupItem", true, true, 200,
 		func(ctx context.Context, req testApiRestServiceLookupItemArgs) (testApiRestServiceLookupItemResult, error) {
 			ret0, err := server.TestApiRestServer.LookupItem(ctx, req.Arg0)
 			return testApiRestServiceLookupItemResult{Ret0: ret0}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restFindItems = restHandler("GET /rpc/items/find", "TestApiRest", "FindItems", false, 200,
+	server.restFindItems = restHandler("GET /rpc/items/find", "TestApiRest", "FindItems", false, false, 200,
 		func(ctx context.Context, req testApiRestServiceFindItemsArgs) (testApiRestServiceFindItemsResult, error) {
 			ret0, err := server.TestApiRestServer.FindItems(ctx, req.Arg0)
 			return testApiRestServiceFindItemsResult{Ret0: ret0}, err
@@ -1158,7 +1159,7 @@ func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRe
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restFindItemsQuery = restHandler("QUERY /rpc/items/find", "TestApiRest", "FindItems", true, 200,
+	server.restFindItemsQuery = restHandler("QUERY /rpc/items/find", "TestApiRest", "FindItems", true, true, 200,
 		func(ctx context.Context, req testApiRestServiceFindItemsArgs) (testApiRestServiceFindItemsResult, error) {
 			ret0, err := server.TestApiRestServer.FindItems(ctx, req.Arg0)
 			return testApiRestServiceFindItemsResult{Ret0: ret0}, err
@@ -1823,7 +1824,7 @@ func (p *restParams) values() map[string][]string {
 }
 
 // restHandler runs one REST route: body decode, param binding, then fn.
-func restHandler[I, O any](pattern, service, method string, hasBody bool, success int, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, success int, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Identify the route before user code can run: MethodCtx resolves the
 		// method from r.Pattern (the dispatcher already set the path values).
@@ -1835,8 +1836,20 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, succes
 		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
 		r = r.WithContext(ctx)
 
+		var body []byte
 		if hasBody {
-			// Requiring JSON forces a CORS preflight, so cross-site form posts can't reach handlers.
+			b, err := io.ReadAll(r.Body)
+			if err != nil {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+				return
+			}
+			body = bytes.TrimSpace(b)
+		}
+
+		// An empty (or whitespace-only) body yields a zero-value request and bypasses the
+		// Content-Type check. A non-empty body must still declare 'application/json': the
+		// check is a CSRF guard that forces a CORS preflight for cross-site form posts.
+		if hasBody && hasBodyFields && len(body) > 0 {
 			contentType, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";")
 			if !strings.EqualFold(strings.TrimSpace(contentType), "application/json") {
 				sendError(w, r, ErrWebrpcBadRequest.WithCausef("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type")))
@@ -1856,18 +1869,10 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, succes
 		}
 
 		var req I
-		if hasBody {
-			body, err := io.ReadAll(r.Body)
-			if err != nil {
-				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+		if len(body) > 0 {
+			if err := json.Unmarshal(body, &req); err != nil {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 				return
-			}
-			// A "null" or empty body leaves the struct unchanged.
-			if len(body) > 0 {
-				if err := json.Unmarshal(body, &req); err != nil {
-					sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
-					return
-				}
 			}
 		}
 

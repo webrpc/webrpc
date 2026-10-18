@@ -77,7 +77,7 @@ func (p *restParams) values() map[string][]string {
 {{- end}}
 
 // restHandler runs one REST route: body decode, param binding, then fn.
-func restHandler[I, O any](pattern, service, method string, hasBody bool, success int, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, success int, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Identify the route before user code can run: MethodCtx resolves the
 		// method from r.Pattern (the dispatcher already set the path values).
@@ -89,8 +89,20 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, succes
 		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
 		r = r.WithContext(ctx)
 
+		var body []byte
 		if hasBody {
-			// Requiring JSON forces a CORS preflight, so cross-site form posts can't reach handlers.
+			b, err := io.ReadAll(r.Body)
+			if err != nil {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+				return
+			}
+			body = bytes.TrimSpace(b)
+		}
+
+		// An empty (or whitespace-only) body yields a zero-value request and bypasses the
+		// Content-Type check. A non-empty body must still declare 'application/json': the
+		// check is a CSRF guard that forces a CORS preflight for cross-site form posts.
+		if hasBody && hasBodyFields && len(body) > 0 {
 			contentType, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";")
 			if !strings.EqualFold(strings.TrimSpace(contentType), "application/json") {
 				sendError(w, r, ErrWebrpcBadRequest.WithCausef("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type")))
@@ -110,18 +122,10 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, succes
 		}
 
 		var req I
-		if hasBody {
-			body, err := io.ReadAll(r.Body)
-			if err != nil {
-				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+		if len(body) > 0 {
+			if err := {{$json}}.Unmarshal(body, &req); err != nil {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 				return
-			}
-			// A "null" or empty body leaves the struct unchanged.
-			if len(body) > 0 {
-				if err := {{$json}}.Unmarshal(body, &req); err != nil {
-					sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
-					return
-				}
 			}
 		}
 
