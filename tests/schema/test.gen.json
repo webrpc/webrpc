@@ -931,6 +931,31 @@
      ]
     },
     {
+     "name": "GetItemStatus",
+     "annotations": {},
+     "comments": [],
+     "routes": [
+      {
+       "verb": "GET",
+       "path": "/items/{id}/status/latest"
+      }
+     ],
+     "inputs": [
+      {
+       "name": "id",
+       "type": "uint64",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "status",
+       "type": "string",
+       "optional": false
+      }
+     ]
+    },
+    {
      "name": "ResetItems",
      "annotations": {},
      "comments": [],

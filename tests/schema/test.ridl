@@ -49,6 +49,8 @@ service TestApiRest
       + GET /items/echo/params
   - GetChild(id: uint64, childId: uint64) => (path: string)
       + GET /items/{id}/children/{childId}
+  - GetItemStatus(id: uint64) => (status: string)
+      + GET /items/{id}/status/latest
   - ResetItems()
       + POST /items/reset
   - LookupItem(id: uint64) => (item: Item)

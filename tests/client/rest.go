@@ -107,6 +107,26 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 		errs = append(errs, fmt.Errorf("GetChild(): unexpected response %q", childPath))
 	}
 
+	// GET /rpc/items/{id}/status/latest — literal segments after the path
+	// param (trailing-literal route): the suffix must match, the param bind.
+	status, err := api.GetItemStatus(ctx, 7)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("GetItemStatus(): %w", err))
+	} else if status != "latest status of item 7: carol" {
+		errs = append(errs, fmt.Errorf("GetItemStatus(): unexpected response %q", status))
+	}
+
+	// A different literal after the param is a different path: 404.
+	missResp, err := http.Get(serverURL + "/rpc/items/7/wrong")
+	if err != nil {
+		errs = append(errs, fmt.Errorf("GET /rpc/items/7/wrong: %w", err))
+	} else {
+		missResp.Body.Close()
+		if missResp.StatusCode != http.StatusNotFound {
+			errs = append(errs, fmt.Errorf("GET /rpc/items/7/wrong: expected 404, got %d", missResp.StatusCode))
+		}
+	}
+
 	// A method without a route keeps the default webrpc dispatch.
 	item, err := api.RpcMethod(ctx, 7)
 	if err != nil {

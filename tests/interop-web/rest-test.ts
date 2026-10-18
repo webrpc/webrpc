@@ -92,6 +92,14 @@ const createRestService = (): TestApiRestServer => {
       return { path: `/items/${id}/children/${childId}` }
     },
 
+    async getItemStatus(_ctx, { id }) {
+      const item = items.get(id)
+      if (!item) {
+        throw new UnexpectedValueError({ cause: `no item ${id}` })
+      }
+      return { status: `latest status of item ${id}: ${item.name}` }
+    },
+
     async lookupItem(_ctx, { id }) {
       const item = items.get(id)
       if (!item) {
@@ -262,6 +270,14 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   // GET /rpc/items/{id}/children/{childId} — multiple path params.
   const { path } = await api.getChild({ id: 1, childId: 2 })
   assert.equal(path, '/items/1/children/2', 'getChild path mismatch')
+
+  // GET /rpc/items/{id}/status/latest — literal segments after the path param.
+  const { status } = await api.getItemStatus({ id: 7 })
+  assert.equal(status, 'latest status of item 7: carol', 'getItemStatus mismatch')
+
+  // A different literal after the param is a different path: 404.
+  const statusMiss = await fetch(`${addr}/rpc/items/7/wrong`)
+  assert.equal(statusMiss.status, 404, 'wrong trailing literal must not match')
 
   // LookupItem: the client calls the canonical GET; the alias at its RPC path is a POST with a JSON body.
   const { item: looked } = await api.lookupItem({ id: 7 })

@@ -155,6 +155,39 @@ func TestRESTAliasRoutesServeSameMethod(t *testing.T) {
 	}
 }
 
+// TestRESTTrailingLiteralRoute pins the route shape with a literal segment
+// after a path param: the suffix must match exactly, the param must bind, and
+// the handler must run on the service receiver (the shadowed-receiver bug).
+func TestRESTTrailingLiteralRoute(t *testing.T) {
+	impl := NewTestRESTServer()
+	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
+		t.Fatal(err)
+	}
+	srv := NewTestApiRestServer(impl)
+
+	rec := serveTest(t, srv, "GET", "/rpc/items/7/status/latest", "", "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET /rpc/items/7/status/latest: status %d, body %s", rec.Code, rec.Body)
+	}
+	if want := `"status":"latest status of item 7: alice"`; !strings.Contains(rec.Body.String(), want) {
+		t.Errorf("GET /rpc/items/7/status/latest: body %s, want containing %s", rec.Body, want)
+	}
+
+	// A different literal after the param is a different path.
+	if rec := serveTest(t, srv, "GET", "/rpc/items/7/wrong", "", ""); rec.Code != http.StatusNotFound {
+		t.Errorf("GET /rpc/items/7/wrong: status %d, want 404", rec.Code)
+	}
+
+	// A wrong method still resolves the path to its Allow set.
+	rec = serveTest(t, srv, "DELETE", "/rpc/items/7/status/latest", "", "")
+	if rec.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("DELETE /rpc/items/7/status/latest: status %d, want 405", rec.Code)
+	}
+	if allow := rec.Header().Get("Allow"); allow != "GET, HEAD" {
+		t.Errorf("DELETE /rpc/items/7/status/latest: Allow = %q, want GET, HEAD", allow)
+	}
+}
+
 func TestRESTWebrpcMethodsHasEntryPerRoute(t *testing.T) {
 	m := WebrpcMethods(ServiceTestApiRest)
 	for _, key := range []string{"GET /rpc/items/lookup/{id}", "POST /rpc/TestApiRest/LookupItem", "GET /rpc/items/find", "QUERY /rpc/items/find"} {

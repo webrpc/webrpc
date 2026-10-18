@@ -4985,7 +4985,7 @@
 			}),
 			(*schema.Service)({
 				Name: (string) (len=11) "TestApiRest",
-				Methods: ([]*schema.Method) (len=13 cap=16) {
+				Methods: ([]*schema.Method) (len=14 cap=16) {
 					(*schema.Method)({
 						Name: (string) (len=7) "GetItem",
 						Annotations: (schema.Annotations) {
@@ -5000,6 +5000,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "GET",
 								Path: (string) (len=11) "/items/{id}",
+								Success: (int) 0,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -5215,6 +5216,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "GET",
 								Path: (string) (len=6) "/items",
+								Success: (int) 0,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -5472,6 +5474,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=4) "POST",
 								Path: (string) (len=6) "/items",
+								Success: (int) 201,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -5723,6 +5726,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "PUT",
 								Path: (string) (len=11) "/items/{id}",
+								Success: (int) 0,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -5867,6 +5871,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=5) "PATCH",
 								Path: (string) (len=11) "/items/{id}",
+								Success: (int) 0,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6011,6 +6016,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=6) "DELETE",
 								Path: (string) (len=11) "/items/{id}",
+								Success: (int) 0,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6057,6 +6063,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=5) "QUERY",
 								Path: (string) (len=13) "/items/search",
+								Success: (int) 0,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6191,6 +6198,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "GET",
 								Path: (string) (len=18) "/items/echo/params",
+								Success: (int) 0,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6462,6 +6470,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "GET",
 								Path: (string) (len=30) "/items/{id}/children/{childId}",
+								Success: (int) 0,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6537,6 +6546,74 @@
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
+						Name: (string) (len=13) "GetItemStatus",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Routes: ([]*schema.MethodRoute) (len=1 cap=1) {
+							(*schema.MethodRoute)({
+								Verb: (string) (len=3) "GET",
+								Path: (string) (len=25) "/items/{id}/status/latest",
+								Success: (int) 0,
+								Method: (*schema.Method)(<already shown>)
+							})
+						},
+						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=2) "id",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "uint64",
+									Type: (schema.CoreType) 9,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=6) "status",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=6) "string",
+									Type: (schema.CoreType) 18,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)(<nil>),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
 						Name: (string) (len=10) "ResetItems",
 						Annotations: (schema.Annotations) {
 						},
@@ -6550,6 +6627,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=4) "POST",
 								Path: (string) (len=12) "/items/reset",
+								Success: (int) 0,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6575,11 +6653,13 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "GET",
 								Path: (string) (len=18) "/items/lookup/{id}",
+								Success: (int) 0,
 								Method: (*schema.Method)(<already shown>)
 							}),
 							(*schema.MethodRoute)({
 								Verb: (string) (len=4) "POST",
 								Path: (string) (len=23) "/TestApiRest/LookupItem",
+								Success: (int) 0,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6703,11 +6783,13 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "GET",
 								Path: (string) (len=11) "/items/find",
+								Success: (int) 0,
 								Method: (*schema.Method)(<already shown>)
 							}),
 							(*schema.MethodRoute)({
 								Verb: (string) (len=5) "QUERY",
 								Path: (string) (len=11) "/items/find",
+								Success: (int) 0,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6953,7 +7035,7 @@
 			})
 		}
 	}),
-	SchemaHash: (string) (len=40) "cbd34ca0400f10c0be632db270d8ae27e1b83965",
+	SchemaHash: (string) (len=40) "ca847e4cd300bc3dd6931dd917aa67ad6afafde8",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcHeader: (string) "",
 	WebrpcTarget: (string) (len=5) "debug",
