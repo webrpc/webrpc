@@ -80,12 +80,13 @@ const createRestService = (): TestApiRestServer => {
       return withStatus(created ? 201 : 200, { item })
     },
 
-    // Multi-code route (declared 200|204): the handler picks the bodyless 204.
+    // Multi-code route (declared 200|204): the handler picks the bodyless
+    // 204, except id 10 which picks 200 to mirror the Go handler.
     async deleteItem(_ctx, { id }) {
       if (!items.delete(id)) {
         throw new UnexpectedValueError({ cause: `no item ${id}` })
       }
-      return withStatus(204, {})
+      return withStatus(id === 10 ? 200 : 204, {})
     },
 
     async purgeItems() {
@@ -453,11 +454,24 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   await upsertUpdate.body?.cancel()
 
   // DELETE /rpc/items/{id} — declared `+ @success 200|204`. Both handlers
-  // write the bodyless 204 (Go via WriteHeader, TypeScript via withStatus);
-  // the client tolerates any 2xx and skips decoding on 204/205.
+  // pick the status at runtime (Go via WriteHeader, TypeScript via
+  // withStatus): 204 for id 7, 200 for id 10.
   await api.deleteItem({ id: 7 })
   await assert.rejects(api.getItem({ id: 7 }), 'getItem after deleteItem must fail')
-  const deleted = await fetch(`${addr}/rpc/items/10`, { method: 'DELETE' })
+
+  // A bodyless 200 on the 200|204 route: the Go server writes no body at
+  // all, the TypeScript server an empty object. The generated client must
+  // resolve against both instead of failing JSON.parse on the empty text.
+  await api.deleteItem({ id: 10 })
+  await assert.rejects(api.getItem({ id: 10 }), 'getItem after deleteItem must fail')
+  await api.upsertItem({ item: { id: 10, name: 'zoe' } })
+  const deleted200 = await fetch(`${addr}/rpc/items/10`, { method: 'DELETE' })
+  assert.equal(deleted200.status, 200, 'bodyless 200 delete status mismatch')
+  assert.equal(await deleted200.text(), server === 'go' ? '' : '{}', 'bodyless 200 body mismatch')
+
+  // The raw wire response of the bodyless 204.
+  await api.upsertItem({ item: { id: 8, name: 'eight' } })
+  const deleted = await fetch(`${addr}/rpc/items/8`, { method: 'DELETE' })
   assert.equal(deleted.status, 204, 'delete status mismatch')
   assert.equal(await deleted.text(), '', '204 must carry no body')
 

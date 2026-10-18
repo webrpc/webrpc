@@ -115,8 +115,13 @@ func (s *TestRESTServer) DeleteItem(ctx context.Context, id uint64) error {
 	}
 	delete(s.items, id)
 	// Multi-code bodyless route (declared 200|204, empty response): the
-	// handler owns WriteHeader and the route never carries a body.
-	ResponseWriterFromContext(ctx).WriteHeader(204)
+	// handler owns WriteHeader and the route never carries a body. ID 10
+	// picks 200, so a bodyless 200 also reaches the TS client.
+	if id == 10 {
+		ResponseWriterFromContext(ctx).WriteHeader(200)
+	} else {
+		ResponseWriterFromContext(ctx).WriteHeader(204)
+	}
 	return nil
 }
 

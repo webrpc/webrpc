@@ -511,13 +511,10 @@ const createHttpRestRequest = (hostname: string, method: string, path: string, h
 }
 
 const buildResponse = (res: Response): Promise<any> => {
-  if (res.status === 204 || res.status === 205) {
-    return Promise.resolve({}) // bodyless success: the zero result
-  }
   return res.text().then(text => {
     let data
     try {
-      data = JSON.parse(text)
+      data = text.trim() === '' ? {} : JSON.parse(text) // empty body (e.g. 204/205, or a Go server's bodyless 200): the zero result
     } catch(error) {
       throw WebrpcBadResponseError.new({
         status: res.status,
