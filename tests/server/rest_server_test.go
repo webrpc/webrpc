@@ -75,7 +75,8 @@ func TestRESTOnRequestSeesRESTRequest(t *testing.T) {
 // TestRESTContentTypeRelaxation pins the relaxed Content-Type rules: an empty
 // body bypasses the check on any body route, a route with zero body fields
 // drops the check entirely, and a route with body fields keeps it as a CSRF
-// guard for non-empty bodies.
+// guard for non-empty bodies. The payload check needs no body read, so a
+// whitespace-only body (ContentLength > 0) counts as a payload.
 func TestRESTContentTypeRelaxation(t *testing.T) {
 	impl := NewTestRESTServer()
 	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
@@ -93,6 +94,16 @@ func TestRESTContentTypeRelaxation(t *testing.T) {
 	// (c) POST with body fields, non-empty body, and a wrong Content-Type: rejected (CSRF guard intact).
 	if rec := serveTest(t, srv, "PATCH", "/rpc/items/7", "text/plain", `{"name":"csrf"}`); rec.Code != http.StatusBadRequest {
 		t.Errorf("PATCH /rpc/items/7 with text/plain body: status %d, want 400", rec.Code)
+	}
+
+	// A whitespace-only body is a payload (ContentLength > 0): 400 without
+	// Content-Type, and a zero-value request with the right one (the decoder
+	// reads the body and stops at io.EOF).
+	if rec := serveTest(t, srv, "PATCH", "/rpc/items/7", "", "   "); rec.Code != http.StatusBadRequest {
+		t.Errorf("PATCH /rpc/items/7 with whitespace-only body and no Content-Type: status %d, want 400", rec.Code)
+	}
+	if rec := serveTest(t, srv, "PATCH", "/rpc/items/7", "application/json", "   "); rec.Code != http.StatusOK {
+		t.Errorf("PATCH /rpc/items/7 with whitespace-only JSON body: status %d, body %s, want 200", rec.Code, rec.Body)
 	}
 
 	// (d) POST with body fields, valid JSON, and the correct Content-Type: unchanged.
@@ -115,9 +126,10 @@ func TestRESTContentTypeRelaxation(t *testing.T) {
 	}
 }
 
-// TestRESTOnRequestReadsBody pins that OnRequest runs after body capture but
-// still sees the full original body: the handler restores r.Body from the raw
-// bytes, while decoding continues from the trimmed copy.
+// TestRESTOnRequestReadsBody pins that OnRequest runs before any body read
+// and sees the full original body. A hook that consumes the body starves the
+// decoder: the request then decodes as zero-value, matching the plain-RPC
+// hook semantics.
 func TestRESTOnRequestReadsBody(t *testing.T) {
 	impl := NewTestRESTServer()
 	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
@@ -141,10 +153,12 @@ func TestRESTOnRequestReadsBody(t *testing.T) {
 		t.Fatalf("PATCH /rpc/items/7: status %d, body %s, want 200", rec.Code, rec.Body)
 	}
 	if string(hookBody) != raw {
-		t.Errorf("OnRequest saw body %q, want %q (original, untrimmed bytes)", hookBody, raw)
+		t.Errorf("OnRequest saw body %q, want %q (original, unread bytes)", hookBody, raw)
 	}
-	if !strings.Contains(rec.Body.String(), `"name":"bob"`) {
-		t.Errorf("PATCH /rpc/items/7: body %s, want renamed item (decode after hook failed)", rec.Body)
+	// The hook consumed the body, so the decoder sees io.EOF: zero-value request,
+	// and the item keeps its name.
+	if !strings.Contains(rec.Body.String(), `"name":"alice"`) {
+		t.Errorf("PATCH /rpc/items/7: body %s, want unchanged item (hook-consumed body must not decode)", rec.Body)
 	}
 }
 

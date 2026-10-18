@@ -89,22 +89,14 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
 		r = r.WithContext(ctx)
 
-		var body []byte
-		if hasBody {
-			b, err := io.ReadAll(r.Body)
-			if err != nil {
-				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
-				return
-			}
-			body = bytes.TrimSpace(b)
-			// Restores the hook's view of the body: the hook runs after the read.
-			r.Body = io.NopCloser(bytes.NewReader(b))
-		}
+		// A payload is detected without reading the body: ContentLength 0 means
+		// no body (http.NoBody too), -1 means chunked and counts as a payload.
+		hasPayload := hasBody && r.Body != nil && r.Body != http.NoBody && r.ContentLength != 0
 
-		// An empty (or whitespace-only) body yields a zero-value request and bypasses the
-		// Content-Type check. A non-empty body must still declare 'application/json': the
+		// An empty body yields a zero-value request and bypasses the Content-Type
+		// check. A non-empty body must still declare 'application/json': the
 		// check is a CSRF guard that forces a CORS preflight for cross-site form posts.
-		if hasBody && hasBodyFields && len(body) > 0 {
+		if hasBodyFields && hasPayload {
 			contentType, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";")
 			if !strings.EqualFold(strings.TrimSpace(contentType), "application/json") {
 				sendError(w, r, ErrWebrpcBadRequest.WithCausef("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type")))
@@ -124,8 +116,9 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 		}
 
 		var req I
-		if len(body) > 0 {
-			if err := {{$json}}.Unmarshal(body, &req); err != nil {
+		if hasPayload {
+			// io.EOF means an empty (or hook-consumed) body: a zero-value request.
+			if err := {{$json}}.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
 				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 				return
 			}
