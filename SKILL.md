@@ -107,7 +107,9 @@ service Users
   fields drops the check entirely: any Content-Type is accepted, and a non-empty body is
   parsed as JSON (unknown fields ignored; malformed JSON is a 400). A route *with* body
   fields still requires `application/json` for non-empty bodies: a cross-site form POST
-  (`text/plain`) triggers no CORS preflight, so this check is the CSRF guard.
+  (`text/plain`) triggers no CORS preflight, so this check is the CSRF guard. Note the
+  classic RPC dispatcher requires `application/json` on every request; the relaxed REST
+  rules assume header/token auth — cookie-auth deployments need their own CSRF defense.
 - `+ @success <code>` directly below a route line sets that route's success status
   (2xx except 204/205 — bodyless responses are a follow-up; default 200). It is static
   per route: a runtime-chosen status (e.g. 201 vs 202 + Retry-After) is a follow-up.
