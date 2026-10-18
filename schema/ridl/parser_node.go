@@ -359,6 +359,8 @@ type MethodNode struct {
 	inputs      argumentList
 	outputs     argumentList
 	errors      []*TokenNode // List of error names this method can throw
+
+	routes []*RouteNode // `+ GET /users/{userId}` lines, in declaration order
 }
 
 func (mn *MethodNode) Name() *TokenNode {
@@ -395,6 +397,23 @@ func (mn *MethodNode) Errors() []*TokenNode {
 
 func (mn *MethodNode) Annotations() []*AnnotationNode {
 	return mn.annotations
+}
+
+func (mn *MethodNode) Routes() []*RouteNode {
+	return mn.routes
+}
+
+type RouteNode struct {
+	verb *TokenNode
+	path *TokenNode
+}
+
+func (rn *RouteNode) Verb() *TokenNode {
+	return rn.verb
+}
+
+func (rn *RouteNode) Path() *TokenNode {
+	return rn.path
 }
 
 type ServiceNode struct {

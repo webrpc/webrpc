@@ -22,6 +22,10 @@
 	{{- set $stdlibImports "bytes" "" -}}
 	{{- set $stdlibImports "io" "" -}}
 	{{- set $stdlibImports "net/url" "" -}}
+	{{- if $opts.restRoutes }}
+		{{- set $stdlibImports "encoding" "" -}}
+		{{- set $stdlibImports "strconv" "" -}}
+	{{- end -}}
 {{- end -}}
 
 {{- if $opts.server }}
@@ -31,6 +35,14 @@
 
 	{{- if $opts.fixEmptyArrays }}
 		{{- set $stdlibImports "reflect" "" -}}
+	{{- end -}}
+
+	{{- if $opts.restRoutes }}
+		{{- set $stdlibImports "encoding" "" -}}
+		{{- set $stdlibImports "math" "" -}}
+		{{- set $stdlibImports "net/url" "" -}}
+		{{- set $stdlibImports "strconv" "" -}}
+		{{- set $stdlibImports "unsafe" "" -}}
 	{{- end -}}
 {{- end -}}
 

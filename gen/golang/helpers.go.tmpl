@@ -1,5 +1,6 @@
 {{define "helpers"}}
 {{ $opts := .Opts -}}
+{{- $json := .Json -}}
 
 //
 // Webrpc helpers
@@ -51,6 +52,388 @@ func ResponseWriterFromContext(ctx context.Context) http.ResponseWriter {
 	w, _ := ctx.Value(HTTPResponseWriterCtxKey).(http.ResponseWriter)
 	return w
 }
+{{- end}}
+
+{{- if and $opts.restRoutes $opts.server}}
+{{- $rest := .Rest -}}
+{{- $anyQuery := or $rest.Query $rest.QueryOpt $rest.QueryMaybe $rest.QueryList -}}
+{{- $anyParams := or $rest.PathParams $anyQuery}}
+
+// restParams holds one REST request's params; the query string is parsed on first use.
+type restParams struct {
+	r *http.Request
+	{{- if $anyQuery}}
+	query map[string][]string
+	{{- end}}
+}
+
+{{- if $anyQuery}}
+func (p *restParams) values() map[string][]string {
+	if p.query == nil && p.r.URL.RawQuery != "" {
+		p.query = p.r.URL.Query()
+	}
+	return p.query
+}
+{{- end}}
+
+// restHandler runs one REST route: body decode, param binding, then fn.
+func restHandler[I, O any](pattern, service, method string, hasBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Identify the route before user code can run: MethodCtx resolves the
+		// method from r.Pattern (the dispatcher already set the path values).
+		r.Pattern = pattern
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
+		ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
+		ctx = context.WithValue(ctx, ServiceNameCtxKey, service)
+		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
+		r = r.WithContext(ctx)
+
+		if hasBody {
+			// Requiring JSON forces a CORS preflight, so cross-site form posts can't reach handlers.
+			contentType, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";")
+			if !strings.EqualFold(strings.TrimSpace(contentType), "application/json") {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type")))
+				return
+			}
+		}
+
+		if onRequest != nil && *onRequest != nil {
+			if err := (*onRequest)(w, r); err != nil {
+				var rpcErr WebRPCError
+				if !errors.As(err, &rpcErr) {
+					rpcErr = ErrWebrpcEndpoint.WithCause(err)
+				}
+				sendError(w, r, rpcErr)
+				return
+			}
+		}
+
+		var req I
+		if hasBody {
+			body, err := io.ReadAll(r.Body)
+			if err != nil {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+				return
+			}
+			// A "null" or empty body leaves the struct unchanged.
+			if len(body) > 0 {
+				if err := {{$json}}.Unmarshal(body, &req); err != nil {
+					sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
+					return
+				}
+			}
+		}
+
+		if bind != nil {
+			if err := bind(&restParams{r: r}, &req); err != nil {
+				sendError(w, r, ErrWebrpcBadRequest.WithCause(err))
+				return
+			}
+		}
+
+		out, err := fn(ctx, req)
+		if err != nil {
+			var rpcErr WebRPCError
+			if !errors.As(err, &rpcErr) {
+				rpcErr = ErrWebrpcEndpoint.WithCause(err)
+			}
+			sendError(w, r, rpcErr)
+			return
+		}
+
+		{{ if $opts.fixEmptyArrays -}}
+		respBody, err := {{$json}}.Marshal(initializeNilSlices(out))
+		{{ else -}}
+		respBody, err := {{$json}}.Marshal(out)
+		{{ end -}}
+		if err != nil {
+			sendError(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if r.Method != "HEAD" { // HEAD gets the GET status and headers, but no body.
+			w.Write(respBody)
+		}
+	}
+}
+
+// restEscapedPath returns the request's escaped path with every segment
+// percent-escaped canonically, so route literals compare byte-for-byte and
+// %2F stays inside one segment, like http.ServeMux. Requests without
+// non-canonical escaping take a zero-alloc fast path: the decoded path.
+func restEscapedPath(u *url.URL) string {
+	if u.RawPath == "" {
+		return u.Path
+	}
+	segs := strings.Split(u.EscapedPath(), "/")
+	for i, seg := range segs {
+		if unescaped, err := url.PathUnescape(seg); err == nil {
+			segs[i] = url.PathEscape(unescaped)
+		}
+	}
+	return strings.Join(segs, "/")
+}
+{{- if gt $rest.Segs 0}}
+
+// restSeg1 matches prefix + one path parameter segment. The path is the
+// escaped form, so %2F stays inside one segment like http.ServeMux, and the
+// returned segment is percent-unescaped.
+func restSeg1(path, prefix string) (string, bool) {
+	s, ok := strings.CutPrefix(path, prefix)
+	if !ok || s == "" || strings.Contains(s, "/") {
+		return "", false
+	}
+	s, err := url.PathUnescape(s)
+	if err != nil {
+		return "", false
+	}
+	return s, true
+}
+{{- end}}
+{{- if gt $rest.Segs 1}}
+
+// restSeg2 matches prefix + segment + middle + segment. An empty middle
+// means adjacent params: the boundary is then the segment separator.
+func restSeg2(path, prefix, middle string) (string, string, bool) {
+	s, ok := strings.CutPrefix(path, prefix)
+	if !ok {
+		return "", "", false
+	}
+	if middle == "" {
+		middle = "/"
+	}
+	a, b, ok := strings.Cut(s, middle)
+	if !ok || a == "" || b == "" || strings.Contains(a, "/") || strings.Contains(b, "/") {
+		return "", "", false
+	}
+	a, err := url.PathUnescape(a)
+	if err != nil {
+		return "", "", false
+	}
+	b, err = url.PathUnescape(b)
+	if err != nil {
+		return "", "", false
+	}
+	return a, b, true
+}
+{{- end}}
+{{- if gt $rest.Segs 2}}
+{{ RestSegHelpers $rest.Segs }}
+{{- end}}
+
+{{- range $_, $service := .Services}}
+{{- $router := RestRouter $service}}
+{{- if $router}}
+{{- $serviceName := printf "%sService" (firstWordToLower $service.Name)}}
+
+// restAllowMethods returns the Allow value for a routed path, so a
+// wrong-method request answers 405 without probing a router. The planner
+// unions every method that could dispatch into each entry's literal, so the
+// first match is the full answer.
+func (s *{{$serviceName}}) restAllowMethods(path string) (string, bool) {
+	switch path {
+	{{- range $_, $case := $router.Allow}}
+	case {{QuotedList $case.Paths}}:
+		return "{{$case.Allow}}", true
+	{{- end}}
+	}
+	{{- range $_, $case := $router.Shapes}}
+	{{- if $case.Shape.HasTrailing}}
+	if restTail, ok := strings.CutSuffix(path, "{{$case.Shape.Trailing}}"); ok {
+		if {{$case.Shape.Blanks}}, ok := restSeg{{$case.Shape.SegN}}(restTail, {{$case.Shape.Args}}); ok {
+			return "{{$case.Allow}}", true
+		}
+	}
+	{{- else}}
+	if {{$case.Shape.Blanks}}, ok := restSeg{{$case.Shape.SegN}}(path, {{$case.Shape.Args}}); ok {
+		return "{{$case.Allow}}", true
+	}
+	{{- end}}
+	{{- end}}
+	return "", false
+}
+
+// restMiss answers requests no route matched: 405 with Allow, or 404.
+func (s *{{$serviceName}}) restMiss(w http.ResponseWriter, r *http.Request) {
+	path := restEscapedPath(r.URL)
+	if allow, ok := s.restAllowMethods(path); ok {
+		w.Header().Set("Allow", allow) // RFC 9110.
+		{{- if $router.RPC}}
+		if {{RPCPathCondition $router.RPC}} {
+			// The legacy RPC path keeps its "only POST" message.
+			s.sendErrorJSON(w, r, ErrWebrpcBadMethod.WithCausef("unsupported HTTP method %v (only POST is allowed)", r.Method))
+			return
+		}
+		{{- end}}
+		s.sendErrorJSON(w, r, ErrWebrpcBadMethod.WithCausef("unsupported HTTP method %v (allowed: %v)", r.Method, allow))
+		return
+	}
+	s.sendErrorJSON(w, r, ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path))
+}
+{{- end}}
+{{- end}}
+{{- if $anyParams}}
+
+// restSet parses one raw param value into dst; typ is the RIDL type named in the error.
+func restSet[T any](kind, name, typ, raw string, dst *T, parse func(string) (T, error)) error {
+	v, err := parse(raw)
+	if err != nil {
+		return fmt.Errorf("invalid %s param '%s': %q is not a valid %s", kind, name, raw, typ)
+	}
+	*dst = v
+	return nil
+}
+{{- end}}
+{{- if $rest.PathParams}}
+
+func restPath[T any](p *restParams, name, typ string, dst *T, parse func(string) (T, error)) error {
+	return restSet("path", name, typ, p.r.PathValue(name), dst, parse)
+}
+{{- end}}
+{{- if $rest.Query}}
+
+func restQuery[T any](p *restParams, name, typ string, dst *T, parse func(string) (T, error)) error {
+	vals := p.values()[name]
+	if len(vals) == 0 {
+		return fmt.Errorf("missing query param '%s'", name)
+	}
+	return restSet("query", name, typ, vals[0], dst, parse)
+}
+{{- end}}
+{{- if $rest.QueryOpt}}
+
+// restQueryOpt binds an optional scalar query param to a pointer field.
+func restQueryOpt[T any](p *restParams, name, typ string, dst **T, parse func(string) (T, error)) error {
+	vals := p.values()[name]
+	if len(vals) == 0 {
+		return nil
+	}
+	var v T
+	if err := restSet("query", name, typ, vals[0], &v, parse); err != nil {
+		return err
+	}
+	*dst = &v
+	return nil
+}
+{{- end}}
+{{- if $rest.QueryMaybe}}
+
+// restQueryMaybe binds an optional query param to a field that is not a pointer.
+func restQueryMaybe[T any](p *restParams, name, typ string, dst *T, parse func(string) (T, error)) error {
+	vals := p.values()[name]
+	if len(vals) == 0 {
+		return nil
+	}
+	return restSet("query", name, typ, vals[0], dst, parse)
+}
+{{- end}}
+{{- if $rest.QueryList}}
+
+// restQueryList binds a []T query param; a required list with no keys is empty, not nil.
+func restQueryList[T any](p *restParams, name, typ string, dst *[]T, parse func(string) (T, error), optional bool) error {
+	vals := p.values()[name]
+	if len(vals) == 0 {
+		if !optional {
+			*dst = []T{}
+		}
+		return nil
+	}
+	list := make([]T, len(vals))
+	for i, raw := range vals {
+		if err := restSet("query", name, typ, raw, &list[i], parse); err != nil {
+			return err
+		}
+	}
+	*dst = list
+	return nil
+}
+{{- end}}
+{{- if $rest.Parsers.string}}
+
+func restString[T ~string](s string) (T, error) { return T(s), nil }
+{{- end}}
+{{- if $rest.Parsers.bool}}
+
+func restBool[T ~bool](s string) (T, error) {
+	v, err := strconv.ParseBool(s)
+	return T(v), err
+}
+{{- end}}
+{{- if $rest.Parsers.int}}
+
+// restInt and restUint reject values that overflow T.
+func restInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string) (T, error) {
+	v, err := strconv.ParseInt(s, 10, 64)
+	if err == nil && int64(T(v)) != v {
+		err = strconv.ErrRange
+	}
+	return T(v), err
+}
+{{- end}}
+{{- if $rest.Parsers.uint}}
+
+func restUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string) (T, error) {
+	v, err := strconv.ParseUint(s, 10, 64)
+	if err == nil && uint64(T(v)) != v {
+		err = strconv.ErrRange
+	}
+	return T(v), err
+}
+{{- end}}
+{{- if $rest.Parsers.float}}
+
+// restFloat parses at T's bit size and rejects NaN and infinities.
+func restFloat[T ~float32 | ~float64](s string) (T, error) {
+	var zero T
+	v, err := strconv.ParseFloat(s, int(unsafe.Sizeof(zero))*8)
+	if err == nil && (math.IsNaN(v) || math.IsInf(v, 0)) {
+		err = errors.New("not a finite number")
+	}
+	return T(v), err
+}
+{{- end}}
+{{- if $rest.Parsers.text}}
+
+// restText parses enums and timestamps with their encoding.TextUnmarshaler.
+func restText[T any, PT interface {
+	*T
+	encoding.TextUnmarshaler
+}](s string) (T, error) {
+	var v T
+	err := PT(&v).UnmarshalText([]byte(s))
+	return v, err
+}
+{{- end}}
+{{- if $rest.Parsers.json}}
+
+// restJSON parses a go.field.type override: UnmarshalText if implemented, else JSON.
+func restJSON[T any](s string) (T, error) {
+	var v T
+	if u, ok := any(&v).(encoding.TextUnmarshaler); ok {
+		return v, u.UnmarshalText([]byte(s))
+	}
+	err := {{$json}}.Unmarshal([]byte(s), &v)
+	return v, err
+}
+{{- end}}
+{{- if $rest.Parsers.jsonString}}
+
+// restJSONString parses a string-typed override; without UnmarshalText the raw value is a JSON string.
+func restJSONString[T any](s string) (T, error) {
+	if _, ok := any(new(T)).(encoding.TextUnmarshaler); !ok {
+		quoted, err := {{$json}}.Marshal(s)
+		if err != nil {
+			var zero T
+			return zero, err
+		}
+		s = string(quoted)
+	}
+	return restJSON[T](s)
+}
+{{- end}}
 {{- end}}
 
 {{- if and $opts.fixEmptyArrays $opts.server}}

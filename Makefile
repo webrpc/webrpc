@@ -47,7 +47,7 @@ diff:
 	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
 
 # Run all tests
-test: test-go test-interoperability
+test: test-go test-interoperability test-interop
 
 # Run Go tests
 test-go: generate

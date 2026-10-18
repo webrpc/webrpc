@@ -120,6 +120,9 @@
 			{{- set $opts "fileDownload" true -}}
 			{{- set $opts "fileType" true -}}
 		{{- end -}}
+		{{ if MethodHasRoute $method -}}
+			{{- set $opts "restRoutes" true -}}
+		{{- end -}}
 	{{- end -}}
 {{- end -}}
 
@@ -134,6 +137,9 @@
 		{{- end -}}
 	{{- end -}}
 {{- end }}
+
+{{- /* Which REST helpers the routes actually call, so only those are emitted. */ -}}
+{{- $restFeatures := RestFeaturesOf .Services -}}
 
 {{- /* Allow using custom JSON configuration. */ -}}
 {{- $json := "json" -}}
@@ -217,12 +223,12 @@ func WebRPCSchemaHash() string {
 
 {{/* Client helpers */}}
 {{- if $opts.client }}
-{{ template "clientHelpers" dict "Json" $json "Opts" $opts }}
+{{ template "clientHelpers" dict "Json" $json "Opts" $opts "Rest" $restFeatures }}
 {{ end -}}
 
 {{/* Client/server helpers */}}
 {{- if or $opts.client $opts.server }}
-{{ template "helpers" dict "Opts" $opts }}
+{{ template "helpers" dict "Opts" $opts "Json" $json "Services" .Services "Rest" $restFeatures }}
 
 {{- if $usesBigInts}}
 {{ template "bigintHelpers" dict "Schema" .WebRPCSchema "Services" .Services "Opts" $opts }}

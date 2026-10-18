@@ -398,6 +398,12 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				Annotations:  buildAnnotations(method),
 				Succinct:     succinctInput && succinctOutput,
 			}
+			for _, route := range method.Routes() {
+				m.Routes = append(m.Routes, &schema.MethodRoute{
+					Verb: route.Verb().String(),
+					Path: route.Path().String(),
+				})
+			}
 
 			methods = append(methods, m)
 		}
