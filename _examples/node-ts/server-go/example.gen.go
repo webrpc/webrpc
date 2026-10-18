@@ -136,7 +136,7 @@ type User struct {
 	Meta       map[string]any `json:"meta"`
 	InternalId uint64         `json:"-"`
 	Balance    BigInt         `json:"balance"`
-	CreatedAt  *time.Time     `json:"createdAt"`
+	CreatedAt  *time.Time     `json:"createdAt,omitzero"`
 	Extra      *Extra         `json:"extra"`
 }
 
@@ -157,7 +157,7 @@ type GetArticleRequest struct {
 
 type GetArticleResponse struct {
 	Title    string  `json:"title"`
-	Content  *string `json:"content"`
+	Content  *string `json:"content,omitzero"`
 	LargeNum BigInt  `json:"largeNum"`
 }
 
@@ -211,7 +211,7 @@ func NewExampleClient(addr string, client HTTPClient) ExampleClient {
 
 func (c *exampleClient) Ping(ctx context.Context, counter *BigInt) error {
 	in := struct {
-		Arg0 *BigInt `json:"counter"`
+		Arg0 *BigInt `json:"counter,omitzero"`
 	}{counter}
 
 	err := doHTTPRequest(ctx, c.client, c.urls[0], in, nil)
@@ -407,7 +407,7 @@ func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWrite
 	defer r.Body.Close()
 
 	reqPayload := struct {
-		Arg0 *BigInt `json:"counter"`
+		Arg0 *BigInt `json:"counter,omitzero"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))

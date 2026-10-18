@@ -116,6 +116,57 @@
   },
   {
    "kind": "struct",
+   "name": "OptFields",
+   "fields": [
+    {
+     "name": "reqBool",
+     "type": "bool"
+    },
+    {
+     "name": "reqInt",
+     "type": "int64"
+    },
+    {
+     "name": "reqString",
+     "type": "string"
+    },
+    {
+     "name": "reqList",
+     "type": "[]string"
+    },
+    {
+     "name": "reqMap",
+     "type": "map<string,uint32>"
+    },
+    {
+     "name": "optBool",
+     "type": "bool",
+     "optional": true
+    },
+    {
+     "name": "optInt",
+     "type": "int64",
+     "optional": true
+    },
+    {
+     "name": "optString",
+     "type": "string",
+     "optional": true
+    },
+    {
+     "name": "optList",
+     "type": "[]string",
+     "optional": true
+    },
+    {
+     "name": "optMap",
+     "type": "map<string,uint32>",
+     "optional": true
+    }
+   ]
+  },
+  {
+   "kind": "struct",
    "name": "CreateItemRequest",
    "fields": [
     {

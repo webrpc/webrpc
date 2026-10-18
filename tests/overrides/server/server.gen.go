@@ -55,7 +55,7 @@ type RestOverridesServer interface {
 
 type SearchRequest struct {
 	Key   types.Label `json:"lbl"`
-	Tag   types.Tag   `json:"t"`
+	Tag   types.Tag   `json:"t,omitzero"`
 	Limit uint32      `json:"n"`
 }
 

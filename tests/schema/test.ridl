@@ -79,6 +79,18 @@ struct ListItemsRequest
 struct ListItemsResponse
   - items: []Item
 
+struct OptFields
+  - reqBool: bool
+  - reqInt: int64
+  - reqString: string
+  - reqList: []string
+  - reqMap: map<string,uint32>
+  - optBool?: bool
+  - optInt?: int64
+  - optString?: string
+  - optList?: []string
+  - optMap?: map<string,uint32>
+
 struct CreateItemRequest
   - item: Item
 
