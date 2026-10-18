@@ -75,13 +75,35 @@ func RoutePath(r *MethodRoute) string {
 	return JoinRoutePath(basePath, r.Path)
 }
 
-// RouteSuccessStatus returns the route's declared success status code, or the
-// default 200 when the route has no `+ @success` line.
+// RouteSuccessStatus returns the route's default success status code: the
+// first declared `+ @success` code, or 200 when the route has no `+ @success`
+// line.
 func RouteSuccessStatus(r *MethodRoute) int {
-	if r == nil || r.Success == 0 {
-		return 200
+	codes := RouteSuccessCodes(r)
+	return codes[0]
+}
+
+// RouteSuccessCodes returns the route's full declared set of success status
+// codes, or [200] when the route has no `+ @success` line.
+func RouteSuccessCodes(r *MethodRoute) []int {
+	if r == nil || len(r.Success) == 0 {
+		return []int{200}
 	}
 	return r.Success
+}
+
+// MethodHasEmptyResponse reports whether the method's success response carries
+// no body: no outputs at all, or a single empty struct output (`=> ()`).
+func MethodHasEmptyResponse(m *Method) bool {
+	if len(m.Outputs) == 0 {
+		return true
+	}
+	if len(m.Outputs) == 1 && m.Outputs[0].Type != nil && m.Outputs[0].Type.Type == T_Struct {
+		if st := m.Outputs[0].Type.Struct; st != nil && st.Type != nil && len(st.Type.Fields) == 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // RoutePattern returns the ServeMux pattern "VERB /path" of the route. The

@@ -213,6 +213,9 @@ const createHttpRequest = (body: string = '{}', headers: object = {}, signal: Ab
 }
 
 const buildResponse = (res: Response): Promise<any> => {
+  if (res.status === 204 || res.status === 205) {
+    return Promise.resolve({}) // bodyless success: the zero result
+  }
   return res.text().then(text => {
     let data
     try {

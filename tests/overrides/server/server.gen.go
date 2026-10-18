@@ -95,14 +95,14 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 		server.OnError = options[0].OnError
 		server.OnRequest = options[0].OnRequest
 	}
-	server.restIndex = restHandler("GET /{$}", "RestOverrides", "Index", false, false, 200,
+	server.restIndex = restHandler("GET /{$}", "RestOverrides", "Index", false, false, 200, []int{200},
 		func(ctx context.Context, req restOverridesServiceIndexArgs) (restOverridesServiceIndexResult, error) {
 			err := server.RestOverridesServer.Index(ctx)
 			return restOverridesServiceIndexResult{}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restSearch = restHandler("GET /by/{lbl}", "RestOverrides", "Search", false, false, 200,
+	server.restSearch = restHandler("GET /by/{lbl}", "RestOverrides", "Search", false, false, 200, []int{200},
 		server.RestOverridesServer.Search,
 		func(p *restParams, req *SearchRequest) error {
 			if err := restPath(p, "lbl", "string", &req.Key, restJSONString); err != nil {
@@ -117,7 +117,7 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restScale = restHandler("GET /scale/{factor}", "RestOverrides", "Scale", false, false, 200,
+	server.restScale = restHandler("GET /scale/{factor}", "RestOverrides", "Scale", false, false, 200, []int{200},
 		func(ctx context.Context, req restOverridesServiceScaleArgs) (restOverridesServiceScaleResult, error) {
 			ret0, err := server.RestOverridesServer.Scale(ctx, req.Arg0)
 			return restOverridesServiceScaleResult{Ret0: ret0}, err
@@ -129,7 +129,7 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restScaleGet = restHandler("GET /scale/{factor}/half", "RestOverrides", "Scale", false, false, 200,
+	server.restScaleGet = restHandler("GET /scale/{factor}/half", "RestOverrides", "Scale", false, false, 200, []int{200},
 		func(ctx context.Context, req restOverridesServiceScaleArgs) (restOverridesServiceScaleResult, error) {
 			ret0, err := server.RestOverridesServer.Scale(ctx, req.Arg0)
 			return restOverridesServiceScaleResult{Ret0: ret0}, err
@@ -407,14 +407,39 @@ func (p *restParams) values() map[string][]string {
 	return p.query
 }
 
-// restHandler runs one REST route: body decode, param binding, then fn.
-func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, success int, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+// restResponseWriter records the status a handler wrote via WriteHeader, so
+// restHandler can validate and forward it once fn returns. It never forwards
+// the write itself, so response headers stay mutable until then.
+type restResponseWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (w *restResponseWriter) WriteHeader(code int) {
+	w.status = code
+}
+
+// restSuccessCodes renders a declared success-code set for error messages.
+func restSuccessCodes(codes []int) string {
+	parts := make([]string, len(codes))
+	for i, code := range codes {
+		parts[i] = strconv.Itoa(code)
+	}
+	return strings.Join(parts, "|")
+}
+
+// restHandler runs one REST route: body decode, param binding, then fn. A
+// handler picks the success status at runtime with
+// ResponseWriterFromContext(ctx).WriteHeader(code); the code must be one of
+// the route's declared success codes, else the response is a 500.
+func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, successDefault int, successCodes []int, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Identify the route before user code can run: MethodCtx resolves the
 		// method from r.Pattern (the dispatcher already set the path values).
 		r.Pattern = pattern
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
+		rec := &restResponseWriter{ResponseWriter: w}
+		ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, rec)
 		ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
 		ctx = context.WithValue(ctx, ServiceNameCtxKey, service)
 		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
@@ -464,6 +489,8 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 
 		out, err := fn(ctx, req)
 		if err != nil {
+			// The error wins over any status the handler already recorded; the
+			// recorder never forwarded it, so headers are still mutable here.
 			var rpcErr WebRPCError
 			if !errors.As(err, &rpcErr) {
 				rpcErr = ErrWebrpcEndpoint.WithCause(err)
@@ -478,9 +505,21 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 			return
 		}
 
+		// A recorded status must be one of the route's declared success codes;
+		// no recorded status keeps the declared default.
+		status := successDefault
+		if rec.status != 0 {
+			if !slices.Contains(successCodes, rec.status) {
+				sendError(w, r, ErrWebrpcBadResponse.WithCausef("handler wrote status %d, but route declares success status %s", rec.status, restSuccessCodes(successCodes)))
+				return
+			}
+			status = rec.status
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(success)
-		if r.Method != "HEAD" { // HEAD gets the GET status and headers, but no body.
+		w.WriteHeader(status)
+		// HEAD gets the GET status and headers, but no body; 204/205 have no body.
+		if r.Method != "HEAD" && status != 204 && status != 205 {
 			w.Write(respBody)
 		}
 	}

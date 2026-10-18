@@ -271,7 +271,7 @@ func parseRouteSuccess(p *parser, s *ServiceNode) error {
 		return fmt.Errorf("@success must directly follow a route line of method '%s', e.g. '+ POST /webhooks' then '+ @success 201'", mn.name.String())
 	}
 	route := mn.routes[len(mn.routes)-1]
-	if route.success != nil {
+	if len(route.success) > 0 {
 		return fmt.Errorf("route '%s %s' of method '%s' already declares @success", route.verb.String(), route.path.String(), mn.name.String())
 	}
 
@@ -279,18 +279,34 @@ func parseRouteSuccess(p *parser, s *ServiceNode) error {
 		return fmt.Errorf("expecting status code after '@success': %w", err)
 	}
 	codeTok := p.cursor()
-	if codeTok.tt != tokenWord || expectNumber(codeTok, codeTok.val) != nil {
+	if codeTok.tt != tokenWord {
 		return fmt.Errorf("expecting '@success' status code to be a number but got '%s'", codeTok.val)
 	}
-	code, err := strconv.Atoi(codeTok.val)
-	if err != nil {
-		return fmt.Errorf("expecting '@success' status code to be a number but got '%s'", codeTok.val)
-	}
-	if code < 200 || code > 299 {
-		return fmt.Errorf("invalid @success status code '%s' of method '%s': must be a 2xx code (200-299)", codeTok.val, mn.name.String())
-	}
-	if code == 204 || code == 205 {
-		return fmt.Errorf("invalid @success status code '%s' of method '%s': bodyless 204/205 responses are not supported (yet)", codeTok.val, mn.name.String())
+	// A pipe-separated set of allowed success codes, e.g. `+ @success 200|201`;
+	// the first is the default the handler can override at runtime.
+	codes := []*TokenNode{}
+	seen := map[int]bool{}
+	for _, val := range strings.Split(codeTok.val, "|") {
+		if expectNumber(codeTok, val) != nil {
+			return fmt.Errorf("expecting '@success' status code to be a number but got '%s'", codeTok.val)
+		}
+		code, err := strconv.Atoi(val)
+		if err != nil {
+			return fmt.Errorf("expecting '@success' status code to be a number but got '%s'", codeTok.val)
+		}
+		if code < 200 || code > 299 {
+			return fmt.Errorf("invalid @success status code '%s' of method '%s': must be a 2xx code (200-299)", val, mn.name.String())
+		}
+		if seen[code] {
+			return fmt.Errorf("duplicate @success status code '%s' of method '%s'", val, mn.name.String())
+		}
+		seen[code] = true
+		// A single output may still be an empty struct, which only the schema
+		// validation (always run next) can resolve.
+		if (code == 204 || code == 205) && len(mn.outputs.arguments) > 1 {
+			return fmt.Errorf("invalid @success status code '%s' of method '%s': 204/205 require an empty response (no outputs or an empty struct)", val, mn.name.String())
+		}
+		codes = append(codes, newTokenNode(&token{tt: codeTok.tt, val: val, pos: codeTok.pos, line: codeTok.line, col: codeTok.col}))
 	}
 	p.next()
 
@@ -298,7 +314,7 @@ func parseRouteSuccess(p *parser, s *ServiceNode) error {
 		return err
 	}
 
-	route.success = newTokenNode(codeTok)
+	route.success = codes
 	return nil
 }
 

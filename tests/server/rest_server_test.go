@@ -196,7 +196,7 @@ func TestRESTScalarOverflowIsBadRequest(t *testing.T) {
 	type overflowRequest struct{ N uint8 }
 	srv := NewTestApiRestServer(NewTestRESTServer())
 	mux := http.NewServeMux()
-	mux.Handle("GET /n/{n}", restHandler("GET /n/{n}", "", "Overflow", false, false, 200,
+	mux.Handle("GET /n/{n}", restHandler("GET /n/{n}", "", "Overflow", false, false, 200, []int{200},
 		func(ctx context.Context, req overflowRequest) (struct{}, error) { return struct{}{}, nil },
 		func(p *restParams, req *overflowRequest) error { return restPath(p, "n", "uint8", &req.N, restUint) },
 		srv.sendErrorJSON, &srv.OnRequest))
@@ -241,6 +241,67 @@ func TestRESTDeclaredSuccessStatus(t *testing.T) {
 	rec = serveTest(t, srv, "GET", "/rpc/items/7", "", "")
 	if rec.Code != http.StatusOK {
 		t.Errorf("GET /rpc/items/7: status %d, want 200", rec.Code)
+	}
+}
+
+// TestRESTSuccessStatusOverride pins the runtime override: the handler writes
+// the status via ResponseWriterFromContext(ctx).WriteHeader(code); the code
+// must be one of the route's declared success codes.
+func TestRESTSuccessStatusOverride(t *testing.T) {
+	impl := NewTestRESTServer()
+	srv := NewTestApiRestServer(impl)
+
+	// UpsertItem (declared 200|201): create overrides to 201, update keeps the default 200.
+	if rec := serveTest(t, srv, "PUT", "/rpc/items", "application/json", `{"item":{"id":7,"name":"alice"}}`); rec.Code != http.StatusCreated {
+		t.Errorf("PUT /rpc/items (create): status %d, body %s, want 201 (runtime override)", rec.Code, rec.Body)
+	}
+	rec := serveTest(t, srv, "PUT", "/rpc/items", "application/json", `{"item":{"id":7,"name":"bob"}}`)
+	if rec.Code != http.StatusOK {
+		t.Errorf("PUT /rpc/items (update): status %d, body %s, want 200 (declared default)", rec.Code, rec.Body)
+	}
+	if !strings.Contains(rec.Body.String(), `"name":"bob"`) {
+		t.Errorf("PUT /rpc/items (update): body %s, want the updated item", rec.Body)
+	}
+
+	// DeleteItem (declared 200|204): the handler overrides to the bodyless 204.
+	rec = serveTest(t, srv, "DELETE", "/rpc/items/7", "", "")
+	if rec.Code != http.StatusNoContent {
+		t.Errorf("DELETE /rpc/items/7: status %d, body %s, want 204 (runtime override)", rec.Code, rec.Body)
+	}
+	if rec.Body.Len() != 0 {
+		t.Errorf("DELETE /rpc/items/7: body %q, want none", rec.Body)
+	}
+
+	// PurgeItems (declared 204): the static default, no runtime override involved.
+	rec = serveTest(t, srv, "POST", "/rpc/items/purge", "", "")
+	if rec.Code != http.StatusNoContent {
+		t.Errorf("POST /rpc/items/purge: status %d, body %s, want 204", rec.Code, rec.Body)
+	}
+	if rec.Body.Len() != 0 {
+		t.Errorf("POST /rpc/items/purge: body %q, want none", rec.Body)
+	}
+}
+
+// TestRESTSuccessStatusOverrideUndeclared pins the 500: a handler-written
+// status outside the route's declared set fails the response with an error
+// naming the declared codes.
+func TestRESTSuccessStatusOverrideUndeclared(t *testing.T) {
+	impl := NewTestRESTServer()
+	impl.statusOverride["DeleteItem"] = 201
+	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
+		t.Fatal(err)
+	}
+	srv := NewTestApiRestServer(impl)
+
+	rec := serveTest(t, srv, "DELETE", "/rpc/items/7", "", "")
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("DELETE /rpc/items/7 with undeclared override: status %d, body %s, want 500", rec.Code, rec.Body)
+	}
+	if !strings.Contains(rec.Body.String(), `"error":"WebrpcBadResponse"`) {
+		t.Errorf("DELETE /rpc/items/7 with undeclared override: body %s, want the WebrpcBadResponse envelope", rec.Body)
+	}
+	if !strings.Contains(rec.Body.String(), "200|204") {
+		t.Errorf("DELETE /rpc/items/7 with undeclared override: body %s, want the declared codes", rec.Body)
 	}
 }
 

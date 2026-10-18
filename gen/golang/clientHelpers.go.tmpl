@@ -328,6 +328,9 @@ func doRESTRequest(ctx context.Context, client HTTPClient, method, rawURL string
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == 204 || resp.StatusCode == 205 {
+		return nil // bodyless success: the zero result
+	}
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return ErrWebrpcBadResponse.WithCausef("failed to read response body: %w", err)

@@ -356,19 +356,35 @@ service Users
       + POST /commits
       + @success 202
       + POST /Users/Commit     # the alias keeps the default 200
+  - Upsert(User) => (User)
+      + PUT /users
+      + @success 200|201
+  - Delete()
+      + DELETE /users
+      + @success 200|204
 `)
 	require.NoError(t, err)
 
 	create := s.Services[0].Methods[0]
 	require.Len(t, create.Routes, 1)
-	assert.Equal(t, 201, create.Routes[0].Success)
+	assert.Equal(t, []int{201}, create.Routes[0].Success)
 
 	// Each route line carries its own @success; a route without one keeps the default.
 	commit := s.Services[0].Methods[1]
 	require.Len(t, commit.Routes, 2)
-	assert.Equal(t, 202, commit.Routes[0].Success)
-	assert.Equal(t, 0, commit.Routes[1].Success)
+	assert.Equal(t, []int{202}, commit.Routes[0].Success)
+	assert.Empty(t, commit.Routes[1].Success)
 	assert.Equal(t, 200, schema.RouteSuccessStatus(commit.Routes[1]))
+
+	// A pipe-separated set declares every allowed success code; the first is
+	// the default. 204 requires an empty response.
+	upsert := s.Services[0].Methods[2]
+	require.Len(t, upsert.Routes, 1)
+	assert.Equal(t, []int{200, 201}, upsert.Routes[0].Success)
+	assert.Equal(t, 200, schema.RouteSuccessStatus(upsert.Routes[0]))
+	deleteMethod := s.Services[0].Methods[3]
+	require.Len(t, deleteMethod.Routes, 1)
+	assert.Equal(t, []int{200, 204}, deleteMethod.Routes[0].Success)
 }
 
 func TestRIDLRouteSuccessStatusErrors(t *testing.T) {
@@ -426,24 +442,54 @@ service Users
 			wantErr: "must be a 2xx code (200-299)",
 		},
 		{
-			name: "204 bodyless code",
+			name: "204 on a non-empty response",
 			input: routeRIDLHeader + `
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
       + POST /users
       + @success 204
 `,
-			wantErr: "invalid @success status code '204' of method 'Create': bodyless 204/205 responses are not supported (yet)",
+			wantErr: "invalid @success status code '204' of route 'POST /users' of method 'Users.Create': 204/205 require an empty response (no outputs or an empty struct)",
 		},
 		{
-			name: "205 bodyless code",
+			name: "205 on a multi-output response",
+			input: routeRIDLHeader + `
+service Users
+  - Create() => (a: string, b: string)
+      + POST /users
+      + @success 205
+`,
+			wantErr: "invalid @success status code '205' of method 'Create': 204/205 require an empty response (no outputs or an empty struct)",
+		},
+		{
+			name: "duplicate code in the set",
 			input: routeRIDLHeader + `
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
       + POST /users
-      + @success 205
+      + @success 200|200
 `,
-			wantErr: "invalid @success status code '205' of method 'Create': bodyless 204/205 responses are not supported (yet)",
+			wantErr: "duplicate @success status code '200' of method 'Create'",
+		},
+		{
+			name: "non-2xx code in the set",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success 200|404
+`,
+			wantErr: "invalid @success status code '404' of method 'Create': must be a 2xx code (200-299)",
+		},
+		{
+			name: "non-numeric code in the set",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success 200|abc
+`,
+			wantErr: "expecting '@success' status code to be a number but got '200|abc'",
 		},
 		{
 			name: "non-numeric code",

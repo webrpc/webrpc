@@ -42,8 +42,15 @@ service TestApiRest
       + PUT /items/{id}
   - PatchItem(id: uint64, name?: string) => (item: Item)
       + PATCH /items/{id}
-  - DeleteItem(id: uint64)
+  - UpsertItem(item: Item) => (item: Item)
+      + PUT /items
+      + @success 200|201
+  - DeleteItem(id: uint64) => ()
       + DELETE /items/{id}
+      + @success 200|204
+  - PurgeItems()
+      + POST /items/purge
+      + @success 204
   - QueryItems(q: string) => (items: []Item)
       + QUERY /items/search
   - EchoParams(str: string, num: int64, flag: bool, fl: float64, ts: timestamp, status: Status, tags: []string, opt?: string) => (echo: string)

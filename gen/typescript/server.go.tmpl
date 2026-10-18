@@ -74,7 +74,7 @@ const {{firstLetterToLower $service.Name}}UnroutedMethods = new Set<string>([{{r
 const {{firstLetterToLower $service.Name}}RestRoutes: WebrpcRestRoute[] = [
 {{- range $_, $method := $service.Methods}}
 {{- range $_, $route := $method.Routes}}
-  { method: '{{$route.Verb}}', path: '{{RoutePath $route}}', rpcPath: '{{$basepath}}{{$service.Name}}/{{$method.Name}}', name: '{{$method.Name}}', hasBody: {{if RouteHasBody $route}}true{{else}}false{{end}}, hasBodyFields: {{if RouteHasBodyFields $route}}true{{else}}false{{end}}{{if $route.Success}}, success: {{$route.Success}}{{end}}, params: [{{range $i, $p := RouteParams $route}}{{if $i}}, {{end}}{ name: '{{$p.Name}}', type: '{{$p.TypeExpr}}', optional: {{if $p.Optional}}true{{else}}false{{end}}, list: {{if $p.Repeated}}true{{else}}false{{end}} }{{end}}] },
+  { method: '{{$route.Verb}}', path: '{{RoutePath $route}}', rpcPath: '{{$basepath}}{{$service.Name}}/{{$method.Name}}', name: '{{$method.Name}}', hasBody: {{if RouteHasBody $route}}true{{else}}false{{end}}, hasBodyFields: {{if RouteHasBodyFields $route}}true{{else}}false{{end}}{{if $route.Success}}, success: {{RouteSuccessStatus $route}}{{end}}, params: [{{range $i, $p := RouteParams $route}}{{if $i}}, {{end}}{ name: '{{$p.Name}}', type: '{{$p.TypeExpr}}', optional: {{if $p.Optional}}true{{else}}false{{end}}, list: {{if $p.Repeated}}true{{else}}false{{end}} }{{end}}] },
 {{- end}}
 {{- end}}
 ]
@@ -130,7 +130,7 @@ const dispatch{{$service.Name}}Request = async <Context>(service: {{$service.Nam
       {{- if MethodHasFileDownload $method }}
       return webrpcFileResponse(result)
       {{- else }}
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
       {{- end }}
     }
   {{end}}
@@ -181,6 +181,18 @@ const webrpcJsonResponse = (data: any, status = 200): Response => {
     status,
     headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
   })
+}
+
+// A route's declared default success status is static (runtime override is a
+// follow-up); 204/205 carry no body, and the Response constructor throws on one.
+const webrpcSuccessResponse = (data: any, status = 200): Response => {
+  if (status === 204 || status === 205) {
+    return new Response(null, {
+      status,
+      headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
+    })
+  }
+  return webrpcJsonResponse(data, status)
 }
 
 const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }): Response => {

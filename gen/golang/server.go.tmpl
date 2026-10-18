@@ -119,7 +119,7 @@ func New{{firstLetterToUpper $service.Name}}Server(svc {{$typePrefix}}{{.Name}}S
 	{{- $resType := printf "%s%sResult" $serviceName (firstLetterToUpper $method.Name)}}
 	{{- $reqType := $argsType}}
 	{{- if $method.Succinct}}{{$reqType = printf "%s%s" $typePrefix (index $method.Inputs 0).Type}}{{end}}
-	server.{{RouteHandlerField $route}} = restHandler("{{RoutePattern $route}}", "{{$service.Name}}", "{{$method.Name}}", {{RouteHasBody $route}}, {{RouteHasBodyFields $route}}, {{RouteSuccessStatus $route}},
+	server.{{RouteHandlerField $route}} = restHandler("{{RoutePattern $route}}", "{{$service.Name}}", "{{$method.Name}}", {{RouteHasBody $route}}, {{RouteHasBodyFields $route}}, {{RouteSuccessStatus $route}}, []int{ {{range $i, $code := RouteSuccessCodes $route}}{{if $i}}, {{end}}{{$code}}{{end}} },
 	{{- if $method.Succinct}}
 		server.{{$name}}Server.{{$method.Name}},
 	{{- else}}

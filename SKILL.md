@@ -110,9 +110,13 @@ service Users
   (`text/plain`) triggers no CORS preflight, so this check is the CSRF guard. Note the
   classic RPC dispatcher requires `application/json` on every request; the relaxed REST
   rules assume header/token auth — cookie-auth deployments need their own CSRF defense.
-- `+ @success <code>` directly below a route line sets that route's success status
-  (2xx except 204/205 — bodyless responses are a follow-up; default 200). It is static
-  per route: a runtime-chosen status (e.g. 201 vs 202 + Retry-After) is a follow-up.
+- `+ @success <codes>` directly below a route line declares the route's allowed success
+  statuses as a pipe-separated set, e.g. `+ @success 200|201`. The first is the default;
+  no `+ @success` line means 200. Codes must be 2xx and unique, and 204/205 are allowed
+  only for methods with an empty response (no outputs or an empty struct). Go handlers
+  pick the status at runtime with `ResponseWriterFromContext(ctx).WriteHeader(code)` —
+  the code must be in the declared set, or the response fails with a 500. The TypeScript
+  server uses the declared default only (a runtime override is a follow-up).
 - Routed endpoints ignore unknown fields in the JSON body. A strict-decode opt-in is
   proposed in [#530](https://github.com/webrpc/webrpc/issues/530).
 - Only the golang and typescript targets support routes. Other targets exit with an error.

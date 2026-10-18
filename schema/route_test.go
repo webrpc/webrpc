@@ -671,30 +671,70 @@ func TestRouteInvalidSchemas(t *testing.T) {
 			wantErr: "overlaps the default webrpc dispatch path '/rpc/Users/Get'",
 		},
 		{
-			name: "success 204 is body-forbidden",
+			name:  "success 204 on a non-empty response",
+			types: userTypes,
 			services: `{
 				"name": "Users",
 				"methods": [{
 					"name": "Get",
-					"routes": [{"verb": "GET", "path": "/users/{id}", "success": 204}],
+					"routes": [{"verb": "GET", "path": "/users/{id}", "success": [204]}],
 					"inputs": [{"name": "id", "type": "uint64"}],
-					"outputs": []
+					"outputs": [{"name": "user", "type": "User"}]
 				}]
 			}`,
-			wantErr: "bodyless 204/205 responses are not supported",
+			wantErr: "204/205 require an empty response",
 		},
 		{
-			name: "success 205 is body-forbidden",
+			name:  "success 205 on a non-empty response",
+			types: userTypes,
 			services: `{
 				"name": "Users",
 				"methods": [{
 					"name": "Get",
-					"routes": [{"verb": "GET", "path": "/users/{id}", "success": 205}],
+					"routes": [{"verb": "GET", "path": "/users/{id}", "success": [205]}],
+					"inputs": [{"name": "id", "type": "uint64"}],
+					"outputs": [{"name": "user", "type": "User"}]
+				}]
+			}`,
+			wantErr: "204/205 require an empty response",
+		},
+		{
+			name: "success 204 is accepted for an empty response",
+			services: `{
+				"name": "Users",
+				"methods": [{
+					"name": "Delete",
+					"routes": [{"verb": "DELETE", "path": "/users/{id}", "success": [200, 204]}],
 					"inputs": [{"name": "id", "type": "uint64"}],
 					"outputs": []
 				}]
 			}`,
-			wantErr: "bodyless 204/205 responses are not supported",
+		},
+		{
+			name: "duplicate success codes",
+			services: `{
+				"name": "Users",
+				"methods": [{
+					"name": "Get",
+					"routes": [{"verb": "GET", "path": "/users/{id}", "success": [200, 200]}],
+					"inputs": [{"name": "id", "type": "uint64"}],
+					"outputs": []
+				}]
+			}`,
+			wantErr: "duplicate @success status code '200'",
+		},
+		{
+			name: "non-2xx success code in the set",
+			services: `{
+				"name": "Users",
+				"methods": [{
+					"name": "Get",
+					"routes": [{"verb": "GET", "path": "/users/{id}", "success": [200, 404]}],
+					"inputs": [{"name": "id", "type": "uint64"}],
+					"outputs": []
+				}]
+			}`,
+			wantErr: "invalid @success status code '404'",
 		},
 		{
 			name:     "param route overlapping another service's default dispatch path",

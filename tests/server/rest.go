@@ -14,10 +14,14 @@ import (
 type TestRESTServer struct {
 	mu    sync.Mutex
 	items map[uint64]*Item
+
+	// statusOverride makes a method write the given status via the
+	// ResponseWriter; tests use it to exercise undeclared codes (a 500).
+	statusOverride map[string]int
 }
 
 func NewTestRESTServer() *TestRESTServer {
-	return &TestRESTServer{items: map[uint64]*Item{}}
+	return &TestRESTServer{items: map[uint64]*Item{}, statusOverride: map[string]int{}}
 }
 
 func (s *TestRESTServer) GetItem(ctx context.Context, req GetItemRequest) (*GetItemResponse, error) {
@@ -87,6 +91,22 @@ func (s *TestRESTServer) PatchItem(ctx context.Context, id uint64, name *string)
 	return item, nil
 }
 
+func (s *TestRESTServer) UpsertItem(ctx context.Context, item *Item) (*Item, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if item == nil {
+		return nil, ErrMissingArgument.WithCausef("item is required")
+	}
+	_, exists := s.items[item.Id]
+	s.items[item.Id] = item
+	if !exists {
+		// Runtime override: created, so the declared default 200 becomes 201.
+		ResponseWriterFromContext(ctx).WriteHeader(201)
+	}
+	return item, nil
+}
+
 func (s *TestRESTServer) DeleteItem(ctx context.Context, id uint64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -95,6 +115,21 @@ func (s *TestRESTServer) DeleteItem(ctx context.Context, id uint64) error {
 		return ErrUnexpectedValue.WithCausef("no item %d", id)
 	}
 	delete(s.items, id)
+	// Runtime override to the bodyless code of the declared 200|204 set; the
+	// knob lets tests write an undeclared code, which the server turns into 500.
+	if code := s.statusOverride["DeleteItem"]; code != 0 {
+		ResponseWriterFromContext(ctx).WriteHeader(code)
+	} else {
+		ResponseWriterFromContext(ctx).WriteHeader(204)
+	}
+	return nil
+}
+
+func (s *TestRESTServer) PurgeItems(ctx context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.items = map[uint64]*Item{}
 	return nil
 }
 

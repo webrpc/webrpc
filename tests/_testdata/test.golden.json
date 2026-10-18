@@ -719,7 +719,9 @@
       {
        "verb": "POST",
        "path": "/items",
-       "success": 201
+       "success": [
+        201
+       ]
       }
      ],
      "inputs": [
@@ -798,13 +800,46 @@
      ]
     },
     {
+     "name": "UpsertItem",
+     "annotations": {},
+     "comments": [],
+     "routes": [
+      {
+       "verb": "PUT",
+       "path": "/items",
+       "success": [
+        200,
+        201
+       ]
+      }
+     ],
+     "inputs": [
+      {
+       "name": "item",
+       "type": "Item",
+       "optional": false
+      }
+     ],
+     "outputs": [
+      {
+       "name": "item",
+       "type": "Item",
+       "optional": false
+      }
+     ]
+    },
+    {
      "name": "DeleteItem",
      "annotations": {},
      "comments": [],
      "routes": [
       {
        "verb": "DELETE",
-       "path": "/items/{id}"
+       "path": "/items/{id}",
+       "success": [
+        200,
+        204
+       ]
       }
      ],
      "inputs": [
@@ -814,6 +849,22 @@
        "optional": false
       }
      ],
+     "outputs": []
+    },
+    {
+     "name": "PurgeItems",
+     "annotations": {},
+     "comments": [],
+     "routes": [
+      {
+       "verb": "POST",
+       "path": "/items/purge",
+       "success": [
+        204
+       ]
+      }
+     ],
+     "inputs": [],
      "outputs": []
     },
     {

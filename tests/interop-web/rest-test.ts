@@ -72,10 +72,20 @@ const createRestService = (): TestApiRestServer => {
       return { item }
     },
 
+    async upsertItem(_ctx, { item }) {
+      items.set(item.id, item)
+      return { item }
+    },
+
     async deleteItem(_ctx, { id }) {
       if (!items.delete(id)) {
         throw new UnexpectedValueError({ cause: `no item ${id}` })
       }
+      return {}
+    },
+
+    async purgeItems() {
+      items.clear()
       return {}
     },
 
@@ -420,9 +430,36 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   }
   assert.equal(sent.length, before, 'dot and empty path values must not be sent')
 
-  // DELETE /rpc/items/{id}.
+  // PUT /rpc/items — upsert, declared `+ @success 200|201`. The TypeScript
+  // server's success status is static (the runtime override is Go-only): 200
+  // always. The Go handler overrides 201 on create via the ResponseWriter.
+  const upsertCreate = await fetch(`${addr}/rpc/items`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"item": {"id": 10, "name": "zoe"}}',
+  })
+  assert.equal(upsertCreate.status, server === 'go' ? 201 : 200, 'upsert create status mismatch')
+  assert.equal((await upsertCreate.json()).item.name, 'zoe', 'upsert create name mismatch')
+  const upsertUpdate = await fetch(`${addr}/rpc/items`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"item": {"id": 10, "name": "zoe"}}',
+  })
+  assert.equal(upsertUpdate.status, 200, 'upsert update status must be the declared default 200')
+  await upsertUpdate.body?.cancel()
+
+  // DELETE /rpc/items/{id} — declared `+ @success 200|204`. The Go handler
+  // overrides to the bodyless 204; the TypeScript server keeps the static
+  // default 200. The client tolerates both (204 has no body to parse).
   await api.deleteItem({ id: 7 })
   await assert.rejects(api.getItem({ id: 7 }), 'getItem after deleteItem must fail')
+  const deleted = await fetch(`${addr}/rpc/items/10`, { method: 'DELETE' })
+  assert.equal(deleted.status, server === 'go' ? 204 : 200, 'delete status mismatch')
+  if (server === 'go') {
+    assert.equal(await deleted.text(), '', '204 must carry no body')
+  } else {
+    await deleted.body?.cancel()
+  }
 
   // Path params overwrite conflicting JSON body fields (decode order:
   // body -> path).
@@ -479,6 +516,12 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   // An empty required list sends no query keys and decodes as empty.
   const { items: emptyList } = await api.listItems({ tags: [], limit: 1 })
   assert.equal(emptyList[0]?.name, 'q=false tags=[] limit=1', 'empty tags list mismatch')
+
+  // POST /rpc/items/purge — declared `+ @success 204`: both servers answer
+  // 204 with no body (the Response constructor would throw on one).
+  const purged = await fetch(`${addr}/rpc/items/purge`, { method: 'POST' })
+  assert.equal(purged.status, 204, 'purge must answer the declared 204')
+  assert.equal(await purged.text(), '', '204 must carry no body')
 }
 
 // paramSuite covers the param parsing rules of the Go server: bool spellings,

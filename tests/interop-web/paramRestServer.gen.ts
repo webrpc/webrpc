@@ -202,7 +202,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: flag" })
       }
       const result = await service.probe(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'Make': {
@@ -214,7 +214,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: constructor" })
       }
       const result = await service.make(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'Tag': {
@@ -226,7 +226,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: name" })
       }
       const result = await service.tag(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'Numbers': {
@@ -250,7 +250,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: ts" })
       }
       const result = await service.numbers(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'Search': {
@@ -259,7 +259,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: searchRequest" })
       }
       const result = await service.search(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'Legacy': {
@@ -271,7 +271,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: name" })
       }
       const result = await service.legacy(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'Both': {
@@ -289,7 +289,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: n" })
       }
       const result = await service.both(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'Wild': {
@@ -301,7 +301,7 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: x" })
       }
       const result = await service.wild(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     default:
@@ -330,6 +330,18 @@ const webrpcJsonResponse = (data: any, status = 200): Response => {
     status,
     headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
   })
+}
+
+// A route's declared default success status is static (runtime override is a
+// follow-up); 204/205 carry no body, and the Response constructor throws on one.
+const webrpcSuccessResponse = (data: any, status = 200): Response => {
+  if (status === 204 || status === 205) {
+    return new Response(null, {
+      status,
+      headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
+    })
+  }
+  return webrpcJsonResponse(data, status)
 }
 
 const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }): Response => {

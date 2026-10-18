@@ -193,19 +193,19 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
     case 'Ping': {
       const payload: any = webrpcParseRequestBody(await webrpcRequestBodyText(request), 'PingRequest')
       const result = await service.ping(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'Status': {
       const payload: any = webrpcParseRequestBody(await webrpcRequestBodyText(request), 'StatusRequest')
       const result = await service.status(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'Version': {
       const payload: any = webrpcParseRequestBody(await webrpcRequestBodyText(request), 'VersionRequest')
       const result = await service.version(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'GetUser': {
@@ -214,7 +214,7 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: getUserRequest" })
       }
       const result = await service.getUser(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'GetUserV2': {
@@ -223,7 +223,7 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: getUserRequest" })
       }
       const result = await service.getUserV2(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'FindUser': {
@@ -235,13 +235,13 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: s" })
       }
       const result = await service.findUser(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'GetIntents': {
       const payload: any = webrpcParseRequestBody(await webrpcRequestBodyText(request), 'GetIntentsRequest')
       const result = await service.getIntents(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'CountIntents': {
@@ -253,7 +253,7 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: userId" })
       }
       const result = await service.countIntents(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'UploadAvatar': {
@@ -264,7 +264,7 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: uploadAvatarRequest" })
       }
       const result = await service.uploadAvatar(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {}, status)
+      return webrpcSuccessResponse(result ?? {}, status)
     }
   
     case 'DownloadAvatar': {
@@ -319,6 +319,18 @@ const webrpcJsonResponse = (data: any, status = 200): Response => {
     status,
     headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
   })
+}
+
+// A route's declared default success status is static (runtime override is a
+// follow-up); 204/205 carry no body, and the Response constructor throws on one.
+const webrpcSuccessResponse = (data: any, status = 200): Response => {
+  if (status === 204 || status === 205) {
+    return new Response(null, {
+      status,
+      headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
+    })
+  }
+  return webrpcJsonResponse(data, status)
 }
 
 const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }): Response => {

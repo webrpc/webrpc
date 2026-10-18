@@ -4985,7 +4985,7 @@
 			}),
 			(*schema.Service)({
 				Name: (string) (len=11) "TestApiRest",
-				Methods: ([]*schema.Method) (len=14 cap=16) {
+				Methods: ([]*schema.Method) (len=16 cap=16) {
 					(*schema.Method)({
 						Name: (string) (len=7) "GetItem",
 						Annotations: (schema.Annotations) {
@@ -5000,7 +5000,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "GET",
 								Path: (string) (len=11) "/items/{id}",
-								Success: (int) 0,
+								Success: ([]int) <nil>,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -5216,7 +5216,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "GET",
 								Path: (string) (len=6) "/items",
-								Success: (int) 0,
+								Success: ([]int) <nil>,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -5474,7 +5474,9 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=4) "POST",
 								Path: (string) (len=6) "/items",
-								Success: (int) 201,
+								Success: ([]int) (len=1 cap=1) {
+									(int) 201
+								},
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -5726,7 +5728,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "PUT",
 								Path: (string) (len=11) "/items/{id}",
-								Success: (int) 0,
+								Success: ([]int) <nil>,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -5871,7 +5873,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=5) "PATCH",
 								Path: (string) (len=11) "/items/{id}",
-								Success: (int) 0,
+								Success: ([]int) <nil>,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6003,6 +6005,189 @@
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
+						Name: (string) (len=10) "UpsertItem",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Routes: ([]*schema.MethodRoute) (len=1 cap=1) {
+							(*schema.MethodRoute)({
+								Verb: (string) (len=3) "PUT",
+								Path: (string) (len=6) "/items",
+								Success: ([]int) (len=2 cap=2) {
+									(int) 200,
+									(int) 201
+								},
+								Method: (*schema.Method)(<already shown>)
+							})
+						},
+						Inputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "item",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=4) "Item",
+									Type: (schema.CoreType) 23,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)({
+										Name: (string) (len=4) "Item",
+										Type: (*schema.Type)({
+											Kind: (string) (len=6) "struct",
+											Name: (string) (len=4) "Item",
+											Type: (*schema.VarType)(<nil>),
+											Fields: ([]*schema.TypeField) (len=2 cap=2) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=2) "id",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "uint64",
+														Type: (schema.CoreType) 9,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=4) "name",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "string",
+														Type: (schema.CoreType) 18,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
+											}
+										})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) true,
+								OutputArg: (bool) false,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Outputs: ([]*schema.MethodArgument) (len=1 cap=1) {
+							(*schema.MethodArgument)({
+								Name: (string) (len=4) "item",
+								Type: (*schema.VarType)({
+									Expr: (string) (len=4) "Item",
+									Type: (schema.CoreType) 23,
+									Comments: ([]string) <nil>,
+									List: (*schema.VarListType)(<nil>),
+									Map: (*schema.VarMapType)(<nil>),
+									Struct: (*schema.VarStructType)({
+										Name: (string) (len=4) "Item",
+										Type: (*schema.Type)({
+											Kind: (string) (len=6) "struct",
+											Name: (string) (len=4) "Item",
+											Type: (*schema.VarType)(<nil>),
+											Fields: ([]*schema.TypeField) (len=2 cap=2) {
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=2) "id",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "uint64",
+														Type: (schema.CoreType) 9,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												}),
+												(*schema.TypeField)({
+													Comments: ([]string) {
+													},
+													Name: (string) (len=4) "name",
+													Type: (*schema.VarType)({
+														Expr: (string) (len=6) "string",
+														Type: (schema.CoreType) 18,
+														Comments: ([]string) <nil>,
+														List: (*schema.VarListType)(<nil>),
+														Map: (*schema.VarMapType)(<nil>),
+														Struct: (*schema.VarStructType)(<nil>),
+														Enum: (*schema.VarEnumType)(<nil>),
+														Alias: (*schema.VarAliasType)(<nil>)
+													}),
+													TypeExtra: (schema.TypeExtra) {
+														Optional: (bool) false,
+														Value: (string) "",
+														Meta: ([]schema.TypeFieldMeta) <nil>
+													}
+												})
+											},
+											TypeExtra: (schema.TypeExtra) {
+												Optional: (bool) false,
+												Value: (string) "",
+												Meta: ([]schema.TypeFieldMeta) <nil>
+											},
+											Comments: ([]string) {
+											}
+										})
+									}),
+									Enum: (*schema.VarEnumType)(<nil>),
+									Alias: (*schema.VarAliasType)(<nil>)
+								}),
+								Optional: (bool) false,
+								InputArg: (bool) false,
+								OutputArg: (bool) true,
+								TypeExtra: (schema.TypeExtra) {
+									Optional: (bool) false,
+									Value: (string) "",
+									Meta: ([]schema.TypeFieldMeta) <nil>
+								}
+							})
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
 						Name: (string) (len=10) "DeleteItem",
 						Annotations: (schema.Annotations) {
 						},
@@ -6016,7 +6201,10 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=6) "DELETE",
 								Path: (string) (len=11) "/items/{id}",
-								Success: (int) 0,
+								Success: ([]int) (len=2 cap=2) {
+									(int) 200,
+									(int) 204
+								},
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6050,6 +6238,34 @@
 						Service: (*schema.Service)(<already shown>)
 					}),
 					(*schema.Method)({
+						Name: (string) (len=10) "PurgeItems",
+						Annotations: (schema.Annotations) {
+						},
+						Comments: ([]string) {
+						},
+						Succinct: (bool) false,
+						StreamInput: (bool) false,
+						StreamOutput: (bool) false,
+						Proxy: (bool) false,
+						Routes: ([]*schema.MethodRoute) (len=1 cap=1) {
+							(*schema.MethodRoute)({
+								Verb: (string) (len=4) "POST",
+								Path: (string) (len=12) "/items/purge",
+								Success: ([]int) (len=1 cap=1) {
+									(int) 204
+								},
+								Method: (*schema.Method)(<already shown>)
+							})
+						},
+						Inputs: ([]*schema.MethodArgument) {
+						},
+						Outputs: ([]*schema.MethodArgument) {
+						},
+						Errors: ([]string) {
+						},
+						Service: (*schema.Service)(<already shown>)
+					}),
+					(*schema.Method)({
 						Name: (string) (len=10) "QueryItems",
 						Annotations: (schema.Annotations) {
 						},
@@ -6063,7 +6279,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=5) "QUERY",
 								Path: (string) (len=13) "/items/search",
-								Success: (int) 0,
+								Success: ([]int) <nil>,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6198,7 +6414,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "GET",
 								Path: (string) (len=18) "/items/echo/params",
-								Success: (int) 0,
+								Success: ([]int) <nil>,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6470,7 +6686,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "GET",
 								Path: (string) (len=30) "/items/{id}/children/{childId}",
-								Success: (int) 0,
+								Success: ([]int) <nil>,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6559,7 +6775,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "GET",
 								Path: (string) (len=25) "/items/{id}/status/latest",
-								Success: (int) 0,
+								Success: ([]int) <nil>,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6627,7 +6843,7 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=4) "POST",
 								Path: (string) (len=12) "/items/reset",
-								Success: (int) 0,
+								Success: ([]int) <nil>,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6653,13 +6869,13 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "GET",
 								Path: (string) (len=18) "/items/lookup/{id}",
-								Success: (int) 0,
+								Success: ([]int) <nil>,
 								Method: (*schema.Method)(<already shown>)
 							}),
 							(*schema.MethodRoute)({
 								Verb: (string) (len=4) "POST",
 								Path: (string) (len=23) "/TestApiRest/LookupItem",
-								Success: (int) 0,
+								Success: ([]int) <nil>,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -6783,13 +6999,13 @@
 							(*schema.MethodRoute)({
 								Verb: (string) (len=3) "GET",
 								Path: (string) (len=11) "/items/find",
-								Success: (int) 0,
+								Success: ([]int) <nil>,
 								Method: (*schema.Method)(<already shown>)
 							}),
 							(*schema.MethodRoute)({
 								Verb: (string) (len=5) "QUERY",
 								Path: (string) (len=11) "/items/find",
-								Success: (int) 0,
+								Success: ([]int) <nil>,
 								Method: (*schema.Method)(<already shown>)
 							})
 						},
@@ -7035,7 +7251,7 @@
 			})
 		}
 	}),
-	SchemaHash: (string) (len=40) "ca847e4cd300bc3dd6931dd917aa67ad6afafde8",
+	SchemaHash: (string) (len=40) "16101a9c33ebe6c0b1b28294cea88e019eae90d0",
 	WebrpcGenCommand: (string) (len=84) "webrpc-gen -schema=./schema/test.ridl -target=debug -out=./schema/test.debug.gen.txt",
 	WebrpcHeader: (string) "",
 	WebrpcTarget: (string) (len=5) "debug",
