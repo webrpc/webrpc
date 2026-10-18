@@ -97,6 +97,10 @@ func Generate(proto *schema.WebRPCSchema, target string, config *Config) (out *G
 	// webrpc-gen v0.6.0
 	target = getOldTarget(target)
 
+	if isGolangTarget(target) && config.TemplateOptions["json"] == "jsoniter" {
+		fmt.Fprintln(os.Stderr, "warning: -json=jsoniter is deprecated and unsupported: json-iterator/go is archived upstream and does not support newer encoding/json features (e.g. omitzero); use the default stdlib encoder or -json=sonic")
+	}
+
 	tmpl, tmplSource, err := loadTemplates(proto, target, config)
 	if err != nil {
 		return genOutput, err
