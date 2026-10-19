@@ -36,21 +36,21 @@ service TestApiRest
   - ListItems(ListItemsRequest) => (ListItemsResponse)
       + GET /items
   - CreateItem(CreateItemRequest) => (CreateItemResponse)
-      + POST /items
       + @success 201
+      + POST /items
   - UpdateItem(id: uint64, name: string) => (item: Item)
       + PUT /items/{id}
   - PatchItem(id: uint64, name?: string) => (item: Item)
       + PATCH /items/{id}
   - UpsertItem(item: Item) => (item: Item)
-      + PUT /items
       + @success 200|201
+      + PUT /items
   - DeleteItem(id: uint64) => ()
-      + DELETE /items/{id}
       + @success 200|204
+      + DELETE /items/{id}
   - PurgeItems()
-      + POST /items/purge
       + @success 204
+      + POST /items/purge
   - QueryItems(q: string) => (items: []Item)
       + QUERY /items/search
   - EchoParams(str: string, num: int64, flag: bool, fl: float64, ts: timestamp, status: Status, tags: []string, opt?: string) => (echo: string)

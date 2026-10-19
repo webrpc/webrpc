@@ -58,10 +58,8 @@ service Example
     + @internal
     + @auth:admin
     + @auth2:"cookies,authorization"
-    + @public @cache:60
-    + GET /ping
-      + @success 200
     + @rateLimit:100
+    + GET /ping
 `)
 	require.NoError(t, err)
 	assert.Empty(t, warnings)
@@ -70,19 +68,47 @@ service Example
 	require.Contains(t, ping.Annotations, "internal")
 	require.Contains(t, ping.Annotations, "auth")
 	require.Contains(t, ping.Annotations, "auth2")
-	require.Contains(t, ping.Annotations, "public")
-	require.Contains(t, ping.Annotations, "cache")
 	require.Contains(t, ping.Annotations, "rateLimit")
 	assert.Equal(t, "admin", ping.Annotations["auth"].Value)
 	assert.Equal(t, "cookies,authorization", ping.Annotations["auth2"].Value)
-	assert.Equal(t, "60", ping.Annotations["cache"].Value)
 	assert.Equal(t, "100", ping.Annotations["rateLimit"].Value)
 	assert.Empty(t, ping.Annotations["internal"].Value)
-	assert.Empty(t, ping.Annotations["public"].Value)
 
 	require.Len(t, ping.Routes, 1)
 	assert.Equal(t, "GET", ping.Routes[0].Verb)
-	assert.Equal(t, []int{200}, ping.Routes[0].Success)
+	assert.Empty(t, ping.Routes[0].Success)
+}
+
+func TestRIDLMethodAnnotationsBareValueToEOL(t *testing.T) {
+	s, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  - Ping(PingRequest) => (PingResponse)
+    + @deprecated:Use GetUserV2 instead.
+    + @headers:X-Access-Key,S2S,Cookies
+    + @public
+`)
+	require.NoError(t, err)
+	assert.Empty(t, warnings)
+
+	ping := s.Services[0].Methods[0]
+	assert.Equal(t, "Use GetUserV2 instead.", ping.Annotations["deprecated"].Value)
+	assert.Equal(t, "X-Access-Key,S2S,Cookies", ping.Annotations["headers"].Value)
+	assert.Empty(t, ping.Annotations["public"].Value)
+}
+
+func TestRIDLMethodAnnotationsQuotedValueEscapeHatch(t *testing.T) {
+	s, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  - Ping(PingRequest) => (PingResponse)
+    + @padded:" leading and trailing "
+    + @hashTag:"value with # comment look"
+`)
+	require.NoError(t, err)
+	assert.Empty(t, warnings)
+
+	ping := s.Services[0].Methods[0]
+	assert.Equal(t, " leading and trailing ", ping.Annotations["padded"].Value)
+	assert.Equal(t, "value with # comment look", ping.Annotations["hashTag"].Value)
 }
 
 func TestRIDLMethodAnnotationsMixedOldAndNewSyntax(t *testing.T) {
@@ -167,73 +193,123 @@ service Example
 	assert.Contains(t, err.Error(), "duplicate annotation type: internal")
 }
 
-func TestRIDLMethodAnnotationDuplicateSameLineError(t *testing.T) {
+func TestRIDLMethodAnnotationsOnePerLineError(t *testing.T) {
 	_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
 service Example
   - Ping(PingRequest) => (PingResponse)
-    + @internal @internal
+    + @public @cache:60
 `)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "duplicate annotation type: internal")
+	assert.Contains(t, err.Error(), "unexpected '@': one annotation per line")
 }
 
-func TestRIDLRouteSuccessNotDirectlyAfterRouteErrors(t *testing.T) {
+func TestRIDLMethodAnnotationsEmptyValueError(t *testing.T) {
 	_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
 service Example
   - Ping(PingRequest) => (PingResponse)
-    + GET /ping
-    + @internal
-    + @success 200
+    + @internal:
 `)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "@success must directly follow a route line")
+	assert.Contains(t, err.Error(), "expecting value after ':' in annotation '@internal'")
 }
 
-func TestRIDLRouteSuccessMultipleRoutesEachWithSuccess(t *testing.T) {
-	s, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + `
+func TestRIDLMethodAnnotationTrailingComment(t *testing.T) {
+	s, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
 service Example
   - Ping(PingRequest) => (PingResponse)
-    + GET /ping
-      + @success 200
-    + POST /pings
-      + @success 201|202
+    + @auth:admin # only admins
+    + @see:"https://a.com/#frag"
+    + @label:hello é and more
 `)
 	require.NoError(t, err)
-	assert.Empty(t, warnings)
 
 	ping := s.Services[0].Methods[0]
-	require.Len(t, ping.Routes, 2)
-	assert.Equal(t, []int{200}, ping.Routes[0].Success)
-	assert.Equal(t, []int{201, 202}, ping.Routes[1].Success)
+	assert.Equal(t, "admin", ping.Annotations["auth"].Value)
+	assert.Equal(t, "https://a.com/#frag", ping.Annotations["see"].Value)
+	assert.Equal(t, "hello é and more", ping.Annotations["label"].Value)
 }
 
-func TestRIDLMethodAnnotationsDeprecationWarningQuotesValues(t *testing.T) {
+func TestRIDLDeprecationWarningQuotesUnrepresentableValues(t *testing.T) {
 	_, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + `
 service Example
-  @foo:foo-bar
-  @dep:"some value"
+  @see:"https://a.com/#frag"
+  @plain:simple
   - Ping(PingRequest) => (PingResponse)
 `)
 	require.NoError(t, err)
 	require.Len(t, warnings, 2)
-	assert.Contains(t, warnings[0], "+ @foo:foo-bar")
-	assert.Contains(t, warnings[1], `+ @dep:"some value"`)
-
-	// The RIDL lexer cannot read an empty bare value, so it must be quoted;
-	// assert on quoteIfNeeded directly since the parser rejects `@empty:""`.
-	assert.Equal(t, `""`, quoteIfNeeded(""))
-	assert.Equal(t, "foo-bar", quoteIfNeeded("foo-bar"))
-	assert.Equal(t, `"X-Access-Key,S2S,Cookies"`, quoteIfNeeded("X-Access-Key,S2S,Cookies"))
+	assert.Contains(t, warnings[0], `+ @see:"https://a.com/#frag"`)
+	assert.Contains(t, warnings[1], "+ @plain:simple")
 }
 
-func TestRIDLRouteSuccessNotAfterRouteStillErrors(t *testing.T) {
+func TestRIDLSuccessBeforeBetweenAfterRoutes(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		ridl string
+	}{
+		{
+			name: "before",
+			ridl: `
+  - Ping(PingRequest) => (PingResponse)
+    + @success 200|201
+    + GET /ping
+    + POST /pings
+`,
+		},
+		{
+			name: "between",
+			ridl: `
+  - Ping(PingRequest) => (PingResponse)
+    + GET /ping
+    + @success 200|201
+    + POST /pings
+`,
+		},
+		{
+			name: "after",
+			ridl: `
+  - Ping(PingRequest) => (PingResponse)
+    + GET /ping
+    + POST /pings
+    + @success 200|201
+`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			s, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+` + tc.ridl)
+			require.NoError(t, err)
+			assert.Empty(t, warnings)
+
+			ping := s.Services[0].Methods[0]
+			require.Len(t, ping.Routes, 2)
+			assert.Equal(t, []int{200, 201}, ping.Routes[0].Success)
+			assert.Equal(t, []int{200, 201}, ping.Routes[1].Success)
+		})
+	}
+}
+
+func TestRIDLSuccessWithoutRoutesError(t *testing.T) {
 	_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
 service Example
   - Ping(PingRequest) => (PingResponse)
     + @success 200
 `)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "@success must directly follow a route line")
+	assert.Contains(t, err.Error(), "@success requires at least one route on method 'Ping'")
+}
+
+func TestRIDLSuccessDuplicateMethodLevelError(t *testing.T) {
+	_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  - Ping(PingRequest) => (PingResponse)
+    + GET /ping
+    + @success 200
+    + @success 201
+`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "method 'Ping' already declares @success")
 }
 
 // An imported file's warnings must reach both Warnings() and stderr, and stderr

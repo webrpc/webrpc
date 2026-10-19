@@ -417,6 +417,15 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				Annotations:  buildAnnotations(method),
 				Succinct:     succinctInput && succinctOutput,
 			}
+			// Method-level `+ @success` applies to every route of the method.
+			if method.SuccessCodes() != nil {
+				if len(method.Routes()) == 0 {
+					return nil, fmt.Errorf("@success requires at least one route on method '%s'", method.Name().String())
+				}
+				for _, route := range method.Routes() {
+					route.success = method.SuccessCodes()
+				}
+			}
 			for _, route := range method.Routes() {
 				r := &schema.MethodRoute{
 					Verb: route.Verb().String(),

@@ -15,12 +15,12 @@ service Example
     + @internal
 
   - GetUser(GetUserRequest) => (GetUserResponse)
-    + @deprecated:"Use GetUserV2 instead."
+    + @deprecated:Use GetUserV2 instead.
     + @internal
 
   - GetUserV2(GetUserRequest) => (GetUserResponse)
     + @public
-    + @auth:"X-Access-Key,S2S,Cookies"
+    + @auth:X-Access-Key,S2S,Cookies
 
   - FindUser(s: SearchFilter) => (name: string, user: User)
     + @public
@@ -42,7 +42,7 @@ service ExampleV2
 service Admin
   - AuthOld() => (jwt: string)
     + @public
-    + @deprecated:"Use Auth instead."
+    + @deprecated:Use Auth instead.
 
   - Auth() => (jwt: string, role: string)
     + @public
