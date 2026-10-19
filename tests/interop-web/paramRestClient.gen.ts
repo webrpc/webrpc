@@ -148,7 +148,7 @@ export class ParamRest implements ParamRestClient {
   probe = async (req: ProbeRequest, headers?: object, signal?: AbortSignal): Promise<ProbeResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'GET', '/rpc/params/probe', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<ProbeResponse>(_data, 'ProbeResponse')
       })
     }, (error) => {
@@ -159,7 +159,7 @@ export class ParamRest implements ParamRestClient {
   make = async (req: MakeRequest, headers?: object, signal?: AbortSignal): Promise<MakeResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'POST', '/rpc/params/make', true, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<MakeResponse>(_data, 'MakeResponse')
       })
     }, (error) => {
@@ -170,7 +170,7 @@ export class ParamRest implements ParamRestClient {
   tag = async (req: TagRequest, headers?: object, signal?: AbortSignal): Promise<TagResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'GET', '/rpc/params/tags/{name}', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<TagResponse>(_data, 'TagResponse')
       })
     }, (error) => {
@@ -181,7 +181,7 @@ export class ParamRest implements ParamRestClient {
   numbers = async (req: NumbersRequest, headers?: object, signal?: AbortSignal): Promise<NumbersResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'GET', '/rpc/params/numbers', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<NumbersResponse>(_data, 'NumbersResponse')
       })
     }, (error) => {
@@ -192,7 +192,7 @@ export class ParamRest implements ParamRestClient {
   search = async (req: SearchRequest, headers?: object, signal?: AbortSignal): Promise<SearchResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'GET', '/rpc/params/search', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<SearchResponse>(_data, 'SearchResponse')
       })
     }, (error) => {
@@ -203,7 +203,7 @@ export class ParamRest implements ParamRestClient {
   legacy = async (req: LegacyRequest, headers?: object, signal?: AbortSignal): Promise<LegacyResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'GET', '/rpc/params/legacy', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<LegacyResponse>(_data, 'LegacyResponse')
       })
     }, (error) => {
@@ -214,7 +214,7 @@ export class ParamRest implements ParamRestClient {
   both = async (req: BothRequest, headers?: object, signal?: AbortSignal): Promise<BothResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'GET', '/rpc/params/both', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<BothResponse>(_data, 'BothResponse')
       })
     }, (error) => {
@@ -225,7 +225,7 @@ export class ParamRest implements ParamRestClient {
   wild = async (req: WildRequest, headers?: object, signal?: AbortSignal): Promise<WildResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'POST', '/rpc/ParamRest/{x}', true, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<WildResponse>(_data, 'WildResponse')
       })
     }, (error) => {
@@ -272,10 +272,13 @@ const createHttpRestRequest = (hostname: string, method: string, path: string, h
   return [hostname + path + (qs ? '?' + qs : ''), { method, headers: reqHeaders, body: hasBody ? JsonEncode(req) : undefined, signal }]
 }
 
-const buildResponse = (res: Response): Promise<any> => {
+const buildResponse = (res: Response, emptyOk: boolean = false): Promise<any> => {
   return res.text().then(text => {
     let data
     try {
+      if (text.trim() === '' && emptyOk && res.ok) {
+        return {} // empty body on an empty-response method: the zero result
+      }
       data = JSON.parse(text)
     } catch(error) {
       throw WebrpcBadResponseError.new({

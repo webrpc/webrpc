@@ -40,6 +40,28 @@ func RouteHasBody(r *MethodRoute) bool {
 	return r != nil && routeVerbHasBody(r.Verb)
 }
 
+// RouteHasBodyFields reports whether the route has request fields that travel
+// in the JSON body, i.e. request fields not bound to path params.
+func RouteHasBodyFields(r *MethodRoute) bool {
+	if r == nil || r.Method == nil || !RouteHasBody(r) {
+		return false
+	}
+	pathParams, err := validateRoutePathSyntax(r.Path)
+	if err != nil {
+		return false
+	}
+	inPath := map[string]bool{}
+	for _, name := range pathParams {
+		inPath[name] = true
+	}
+	for _, f := range methodRouteFields(r.Method) {
+		if !inPath[f.name] {
+			return true
+		}
+	}
+	return false
+}
+
 // RoutePath returns the full route path template, {basepath}{route.path},
 // normalized (leading slash, no trailing slash).
 func RoutePath(r *MethodRoute) string {
@@ -51,6 +73,37 @@ func RoutePath(r *MethodRoute) string {
 		basePath = r.Method.Service.Schema.BasePath
 	}
 	return JoinRoutePath(basePath, r.Path)
+}
+
+// RouteSuccessStatus returns the route's default success status code: the
+// first declared `+ @success` code, or 200 when the route has no `+ @success`
+// line.
+func RouteSuccessStatus(r *MethodRoute) int {
+	codes := RouteSuccessCodes(r)
+	return codes[0]
+}
+
+// RouteSuccessCodes returns the route's full declared set of success status
+// codes, or [200] when the route has no `+ @success` line.
+func RouteSuccessCodes(r *MethodRoute) []int {
+	if r == nil || len(r.Success) == 0 {
+		return []int{200}
+	}
+	return r.Success
+}
+
+// MethodHasEmptyResponse reports whether the method's success response carries
+// no body: no outputs at all, or a single empty struct output (`=> ()`).
+func MethodHasEmptyResponse(m *Method) bool {
+	if len(m.Outputs) == 0 {
+		return true
+	}
+	if len(m.Outputs) == 1 && m.Outputs[0].Type != nil && m.Outputs[0].Type.Type == T_Struct {
+		if st := m.Outputs[0].Type.Struct; st != nil && st.Type != nil && len(st.Type.Fields) == 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // RoutePattern returns the ServeMux pattern "VERB /path" of the route. The

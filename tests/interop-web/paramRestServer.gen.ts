@@ -128,7 +128,7 @@ export const serveParamRestRpc = async <Context>(service: ParamRestServer<Contex
     if (rest) {
       try {
         const data = await webrpcRestData(rest.route, rest.pathParams, request)
-        const response = await dispatchParamRestRequest(service, ctx, rest.route.name, request, data)
+        const response = await dispatchParamRestRequest(service, ctx, rest.route.name, request, data, rest.route.success)
         return request.method === 'HEAD' ? webrpcHeadResponse(response) : response
       } catch (err) {
         return webrpcErrorResponse(err)
@@ -151,20 +151,20 @@ export const serveParamRestRpc = async <Context>(service: ParamRestServer<Contex
 const paramRestUnroutedMethods = new Set<string>([])
 
 const paramRestRestRoutes: WebrpcRestRoute[] = [
-  { method: 'GET', path: '/rpc/params/probe', rpcPath: '/rpc/ParamRest/Probe', name: 'Probe', hasBody: false, params: [{ name: 'constructor', type: 'string', optional: false, list: false }, { name: 'toString', type: 'string', optional: true, list: false }, { name: 'i8', type: 'int8', optional: false, list: false }, { name: 'u8', type: 'uint8', optional: false, list: false }, { name: 'i32', type: 'int32', optional: false, list: false }, { name: 'flag', type: 'bool', optional: false, list: false }] },
-  { method: 'POST', path: '/rpc/params/make', rpcPath: '/rpc/ParamRest/Make', name: 'Make', hasBody: true, params: [] },
-  { method: 'POST', path: '/rpc/ParamRest/OldMake', rpcPath: '/rpc/ParamRest/Make', name: 'Make', hasBody: true, params: [] },
-  { method: 'GET', path: '/rpc/params/tags/{name}', rpcPath: '/rpc/ParamRest/Tag', name: 'Tag', hasBody: false, params: [{ name: 'name', type: 'string', optional: false, list: false }] },
-  { method: 'GET', path: '/rpc/params/numbers', rpcPath: '/rpc/ParamRest/Numbers', name: 'Numbers', hasBody: false, params: [{ name: 'f32', type: 'float32', optional: false, list: false }, { name: 'f64', type: 'float64', optional: false, list: false }, { name: 'ts', type: 'timestamp', optional: false, list: false }] },
-  { method: 'GET', path: '/rpc/params/search', rpcPath: '/rpc/ParamRest/Search', name: 'Search', hasBody: false, params: [{ name: 'term', type: 'string', optional: false, list: false }, { name: 'dashed_term', type: 'string', optional: true, list: false }] },
-  { method: 'GET', path: '/rpc/params/legacy', rpcPath: '/rpc/ParamRest/Legacy', name: 'Legacy', hasBody: false, params: [{ name: 'name', type: 'string', optional: false, list: false }] },
-  { method: 'POST', path: '/rpc/ParamRest/Legacy', rpcPath: '/rpc/ParamRest/Legacy', name: 'Legacy', hasBody: true, params: [] },
-  { method: 'GET', path: '/rpc/params/both', rpcPath: '/rpc/ParamRest/Both', name: 'Both', hasBody: false, params: [{ name: 'q', type: 'string', optional: false, list: false }, { name: 'n', type: 'int32', optional: false, list: false }] },
-  { method: 'QUERY', path: '/rpc/params/both', rpcPath: '/rpc/ParamRest/Both', name: 'Both', hasBody: true, params: [] },
-  { method: 'POST', path: '/rpc/ParamRest/{x}', rpcPath: '/rpc/ParamRest/Wild', name: 'Wild', hasBody: true, params: [{ name: 'x', type: 'string', optional: false, list: false }] },
+  { method: 'GET', path: '/rpc/params/probe', rpcPath: '/rpc/ParamRest/Probe', name: 'Probe', hasBody: false, hasBodyFields: false, params: [{ name: 'constructor', type: 'string', optional: false, list: false }, { name: 'toString', type: 'string', optional: true, list: false }, { name: 'i8', type: 'int8', optional: false, list: false }, { name: 'u8', type: 'uint8', optional: false, list: false }, { name: 'i32', type: 'int32', optional: false, list: false }, { name: 'flag', type: 'bool', optional: false, list: false }] },
+  { method: 'POST', path: '/rpc/params/make', rpcPath: '/rpc/ParamRest/Make', name: 'Make', hasBody: true, hasBodyFields: true, params: [] },
+  { method: 'POST', path: '/rpc/ParamRest/OldMake', rpcPath: '/rpc/ParamRest/Make', name: 'Make', hasBody: true, hasBodyFields: true, params: [] },
+  { method: 'GET', path: '/rpc/params/tags/{name}', rpcPath: '/rpc/ParamRest/Tag', name: 'Tag', hasBody: false, hasBodyFields: false, params: [{ name: 'name', type: 'string', optional: false, list: false }] },
+  { method: 'GET', path: '/rpc/params/numbers', rpcPath: '/rpc/ParamRest/Numbers', name: 'Numbers', hasBody: false, hasBodyFields: false, params: [{ name: 'f32', type: 'float32', optional: false, list: false }, { name: 'f64', type: 'float64', optional: false, list: false }, { name: 'ts', type: 'timestamp', optional: false, list: false }] },
+  { method: 'GET', path: '/rpc/params/search', rpcPath: '/rpc/ParamRest/Search', name: 'Search', hasBody: false, hasBodyFields: false, params: [{ name: 'term', type: 'string', optional: false, list: false }, { name: 'dashed_term', type: 'string', optional: true, list: false }] },
+  { method: 'GET', path: '/rpc/params/legacy', rpcPath: '/rpc/ParamRest/Legacy', name: 'Legacy', hasBody: false, hasBodyFields: false, params: [{ name: 'name', type: 'string', optional: false, list: false }] },
+  { method: 'POST', path: '/rpc/ParamRest/Legacy', rpcPath: '/rpc/ParamRest/Legacy', name: 'Legacy', hasBody: true, hasBodyFields: true, params: [] },
+  { method: 'GET', path: '/rpc/params/both', rpcPath: '/rpc/ParamRest/Both', name: 'Both', hasBody: false, hasBodyFields: false, params: [{ name: 'q', type: 'string', optional: false, list: false }, { name: 'n', type: 'int32', optional: false, list: false }] },
+  { method: 'QUERY', path: '/rpc/params/both', rpcPath: '/rpc/ParamRest/Both', name: 'Both', hasBody: true, hasBodyFields: true, params: [] },
+  { method: 'POST', path: '/rpc/ParamRest/{x}', rpcPath: '/rpc/ParamRest/Wild', name: 'Wild', hasBody: true, hasBodyFields: false, params: [{ name: 'x', type: 'string', optional: false, list: false }] },
 ]
 
-const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Context>, ctx: Context, method: string, request: Request, data?: { [key: string]: any }): Promise<Response> => {
+const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Context>, ctx: Context, method: string, request: Request, data?: { [key: string]: any }, status = 200): Promise<Response> => {
   switch (method) {
     case 'Probe': {
       const payload: any = webrpcDecodeRequest(data ?? webrpcJsonBody(await webrpcRequestBodyText(request)), 'ProbeRequest')
@@ -202,7 +202,8 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: flag" })
       }
       const result = await service.probe(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'Make': {
@@ -214,7 +215,8 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: constructor" })
       }
       const result = await service.make(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'Tag': {
@@ -226,7 +228,8 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: name" })
       }
       const result = await service.tag(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'Numbers': {
@@ -250,7 +253,8 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: ts" })
       }
       const result = await service.numbers(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'Search': {
@@ -259,7 +263,8 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: searchRequest" })
       }
       const result = await service.search(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'Legacy': {
@@ -271,7 +276,8 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: name" })
       }
       const result = await service.legacy(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'Both': {
@@ -289,7 +295,8 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: n" })
       }
       const result = await service.both(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'Wild': {
@@ -301,7 +308,8 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
         throw new WebrpcBadRequestError({ cause: "invalid argument: x" })
       }
       const result = await service.wild(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     default:
@@ -310,20 +318,70 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
 }
 
 
-const webrpcRequestBodyText = async (request: Request): Promise<string> => {
+const webrpcRequestBodyText = async (request: Request, skipContentTypeCheck: boolean = false): Promise<string> => {
   const contentType = (request.headers.get('Content-Type') || '').split(';')[0]!.trim().toLowerCase()
-  if (contentType !== 'application/json') {
-    throw new WebrpcBadRequestError({ cause: `unsupported Content-Type '${request.headers.get('Content-Type') || ''}' (only application/json is allowed)` })
+  const checkContentType = () => {
+    if (contentType !== 'application/json' && !skipContentTypeCheck) {
+      throw new WebrpcBadRequestError({ cause: `unsupported Content-Type '${request.headers.get('Content-Type') || ''}' (only application/json is allowed)` })
+    }
   }
-  return request.text()
+  // Reject a declared body before buffering it: a non-zero Content-Length must
+  // already declare 'application/json' (a CSRF guard forcing a CORS preflight
+  // for cross-site form posts).
+  let checked = false
+  const contentLength = parseInt(request.headers.get('Content-Length') || '0', 10)
+  if (!skipContentTypeCheck && contentLength > 0) {
+    checkContentType()
+    checked = true
+  }
+  const text = await request.text()
+  // Only a zero-byte body is an empty request; whitespace-only counts as a
+  // payload and must still declare 'application/json'.
+  if (text === '') {
+    return ''
+  }
+  if (!checked) {
+    checkContentType()
+  }
+  return text
 }
 
-const webrpcJsonResponse = (data: any): Response => {
+const webrpcJsonResponse = (data: any, status = 200): Response => {
   return new Response(JsonEncode(data), {
-    status: 200,
+    status,
     headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
   })
 }
+
+// A route's declared default status applies unless the method result was
+// tagged with withStatus; 204/205 carry no body, and the Response constructor
+// throws on one.
+const webrpcSuccessResponse = (data: any, status = 200): Response => {
+  if (status === 204 || status === 205) {
+    // Bodyless: the Go server sends no Content-Type here either.
+    return new Response(null, { status, headers: { [WebrpcHeader]: WebrpcHeaderValue } })
+  }
+  return webrpcJsonResponse(data, status)
+}
+
+// webrpcStatusKey tags a withStatus wrapper; being module-local, it can never
+// collide with a real payload field.
+const webrpcStatusKey = Symbol('webrpcStatus')
+
+// withStatus tags a method result with an explicit success status, which the
+// dispatcher uses instead of the route's declared default — the TypeScript
+// counterpart of the Go server's handler-written status via
+// ResponseWriterFromContext(ctx).WriteHeader(code). Advisory: the status is
+// not validated against the route's declared set.
+export const withStatus = <T>(status: number, result?: T): T =>
+  ({ [webrpcStatusKey]: status, result }) as unknown as T
+
+// webrpcTaggedStatus splits a withStatus wrapper; null when the result is
+// untagged and the route's declared default status applies.
+const webrpcTaggedStatus = (result: any): { status: number, result: any } | null =>
+  result !== null && typeof result === 'object' && webrpcStatusKey in result
+    ? { status: result[webrpcStatusKey] as number, result: result.result }
+    : null
 
 const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }): Response => {
   const rpcErr = err instanceof WebrpcError ? err : new WebrpcEndpointError({ cause: err instanceof Error ? err.message : String(err) })
@@ -341,7 +399,7 @@ const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }):
 // Routes are generated data, so the server never parses RIDL param strings.
 type WebrpcRestParam = { name: string, type: string, optional: boolean, list: boolean }
 
-type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, hasBody: boolean, params: WebrpcRestParam[] }
+type WebrpcRestRoute = { method: string, path: string, rpcPath: string, name: string, hasBody: boolean, hasBodyFields: boolean, params: WebrpcRestParam[], success?: number }
 
 type WebrpcRestMatch = { route: WebrpcRestRoute, pathParams: Map<string, string> }
 
@@ -383,7 +441,8 @@ const webrpcRestRoute = (routes: WebrpcRestRoute[], request: Request): WebrpcRes
 // Body first, then path params, then query params; later sources win.
 const webrpcRestData = async (route: WebrpcRestRoute, pathParams: Map<string, string>, request: Request): Promise<{ [key: string]: any }> => {
   const url = new URL(request.url)
-  const data: { [key: string]: any } = route.hasBody ? webrpcJsonBody(await webrpcRequestBodyText(request)) : {}
+  const text = route.hasBody ? await webrpcRequestBodyText(request, !route.hasBodyFields) : ''
+  const data: { [key: string]: any } = route.hasBody ? webrpcJsonBody(text) : {}
   for (const { name, type, optional, list } of route.params) {
     const kind = pathParams.has(name) ? 'path' : 'query'
     const values = kind === 'path' ? [pathParams.get(name)!] : url.searchParams.getAll(name)
@@ -474,8 +533,9 @@ const webrpcRestParam = (value: string, type: string): any => {
 }
 
 // webrpcJsonBody parses a JSON request body into the request data object.
+// Whitespace-only counts as an empty body (like Go's io.EOF): the zero value.
 const webrpcJsonBody = (body: string): { [key: string]: any } => {
-  if (body === '') {
+  if (body.trim() === '') {
     return {}
   }
   let data: any

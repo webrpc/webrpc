@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -71,6 +72,104 @@ func TestRESTOnRequestSeesRESTRequest(t *testing.T) {
 	}
 }
 
+// TestRESTContentTypeRelaxation pins the relaxed Content-Type rules: an empty
+// body bypasses the check on any body route, a route with zero body fields
+// drops the check entirely, and a route with body fields keeps it as a CSRF
+// guard for non-empty bodies. The payload check needs no body read, so a
+// whitespace-only body (ContentLength > 0) counts as a payload.
+func TestRESTContentTypeRelaxation(t *testing.T) {
+	impl := NewTestRESTServer()
+	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
+		t.Fatal(err)
+	}
+	srv := NewTestApiRestServer(impl)
+
+	// (b) POST with body fields, empty body, and no Content-Type: accepted with a zero-value request.
+	if rec := serveTest(t, srv, "PATCH", "/rpc/items/7", "", ""); rec.Code != http.StatusOK {
+		t.Errorf("PATCH /rpc/items/7 with empty body and no Content-Type: status %d, body %s, want 200", rec.Code, rec.Body)
+	} else if !strings.Contains(rec.Body.String(), `"name":"alice"`) {
+		t.Errorf("PATCH /rpc/items/7 with empty body: body %s, want unchanged item", rec.Body)
+	}
+
+	// (c) POST with body fields, non-empty body, and a wrong Content-Type: rejected (CSRF guard intact).
+	if rec := serveTest(t, srv, "PATCH", "/rpc/items/7", "text/plain", `{"name":"csrf"}`); rec.Code != http.StatusBadRequest {
+		t.Errorf("PATCH /rpc/items/7 with text/plain body: status %d, want 400", rec.Code)
+	}
+
+	// A whitespace-only body is a payload (ContentLength > 0): 400 without
+	// Content-Type, and a zero-value request with the right one (the decoder
+	// reads the body and stops at io.EOF).
+	if rec := serveTest(t, srv, "PATCH", "/rpc/items/7", "", "   "); rec.Code != http.StatusBadRequest {
+		t.Errorf("PATCH /rpc/items/7 with whitespace-only body and no Content-Type: status %d, want 400", rec.Code)
+	}
+	if rec := serveTest(t, srv, "PATCH", "/rpc/items/7", "application/json", "   "); rec.Code != http.StatusOK {
+		t.Errorf("PATCH /rpc/items/7 with whitespace-only JSON body: status %d, body %s, want 200", rec.Code, rec.Body)
+	}
+
+	// (d) POST with body fields, valid JSON, and the correct Content-Type: unchanged.
+	if rec := serveTest(t, srv, "PATCH", "/rpc/items/7", "application/json", `{"name":"bob"}`); rec.Code != http.StatusOK {
+		t.Errorf("PATCH /rpc/items/7 with JSON body: status %d, body %s, want 200", rec.Code, rec.Body)
+	}
+
+	// (a) POST with zero body fields and no Content-Type: accepted.
+	if rec := serveTest(t, srv, "POST", "/rpc/items/reset", "", ""); rec.Code != http.StatusOK {
+		t.Errorf("POST /rpc/items/reset with no Content-Type: status %d, want 200", rec.Code)
+	}
+
+	// A zero-body-field route with a non-empty body parses it; unknown fields are ignored.
+	if rec := serveTest(t, srv, "POST", "/rpc/items/reset", "text/plain", `{"unknown":1}`); rec.Code != http.StatusOK {
+		t.Errorf("POST /rpc/items/reset with text/plain body: status %d, want 200", rec.Code)
+	}
+	// But a malformed body still 400s even on a zero-body-field route.
+	if rec := serveTest(t, srv, "POST", "/rpc/items/reset", "text/plain", `{"unknown":`); rec.Code != http.StatusBadRequest {
+		t.Errorf("POST /rpc/items/reset with malformed body: status %d, want 400", rec.Code)
+	}
+
+	// Trailing data after a valid JSON value must fail: parity with the
+	// TypeScript client's JSON.parse.
+	for _, body := range []string{"{} garbage", "{} {}"} {
+		if rec := serveTest(t, srv, "POST", "/rpc/items/reset", "application/json", body); rec.Code != http.StatusBadRequest {
+			t.Errorf("POST /rpc/items/reset with trailing data %q: status %d, want 400", body, rec.Code)
+		}
+	}
+}
+
+// TestRESTOnRequestReadsBody pins that OnRequest runs before any body read
+// and sees the full original body. A hook that consumes the body starves the
+// decoder: the request then decodes as zero-value, matching the plain-RPC
+// hook semantics.
+func TestRESTOnRequestReadsBody(t *testing.T) {
+	impl := NewTestRESTServer()
+	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
+		t.Fatal(err)
+	}
+	var hookBody []byte
+	srv := NewTestApiRestServer(impl, &Options{
+		OnRequest: func(w http.ResponseWriter, r *http.Request) error {
+			b, err := io.ReadAll(r.Body)
+			if err != nil {
+				return err
+			}
+			hookBody = b
+			return nil
+		},
+	})
+
+	raw := "  " + `{"name":"bob"}` + "  " // original bytes include surrounding whitespace
+	rec := serveTest(t, srv, "PATCH", "/rpc/items/7", "application/json", raw)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("PATCH /rpc/items/7: status %d, body %s, want 200", rec.Code, rec.Body)
+	}
+	if string(hookBody) != raw {
+		t.Errorf("OnRequest saw body %q, want %q (original, unread bytes)", hookBody, raw)
+	}
+	// The hook consumed the body, so the decoder sees io.EOF: zero-value request,
+	// and the item keeps its name.
+	if !strings.Contains(rec.Body.String(), `"name":"alice"`) {
+		t.Errorf("PATCH /rpc/items/7: body %s, want unchanged item (hook-consumed body must not decode)", rec.Body)
+	}
+}
+
 func TestRESTNullBodyKeepsPathParam(t *testing.T) {
 	impl := NewTestRESTServer()
 	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
@@ -105,7 +204,7 @@ func TestRESTScalarOverflowIsBadRequest(t *testing.T) {
 	type overflowRequest struct{ N uint8 }
 	srv := NewTestApiRestServer(NewTestRESTServer())
 	mux := http.NewServeMux()
-	mux.Handle("GET /n/{n}", restHandler("GET /n/{n}", "", "Overflow", false,
+	mux.Handle("GET /n/{n}", restHandler("GET /n/{n}", "", "Overflow", false, false, 200, true,
 		func(ctx context.Context, req overflowRequest) (struct{}, error) { return struct{}{}, nil },
 		func(p *restParams, req *overflowRequest) error { return restPath(p, "n", "uint8", &req.N, restUint) },
 		srv.sendErrorJSON, &srv.OnRequest))
@@ -132,6 +231,93 @@ func TestRESTHeadOnGetRouteHasNoBody(t *testing.T) {
 	}
 }
 
+// TestRESTDeclaredSuccessStatus pins `+ @success 201`: the route writes the
+// declared 2xx status on success, while routes without @success keep 200.
+func TestRESTDeclaredSuccessStatus(t *testing.T) {
+	impl := NewTestRESTServer()
+	srv := NewTestApiRestServer(impl)
+
+	rec := serveTest(t, srv, "POST", "/rpc/items", "application/json", `{"item":{"id":7,"name":"alice"}}`)
+	if rec.Code != http.StatusCreated {
+		t.Errorf("POST /rpc/items: status %d, want 201 (@success)", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), `"name":"alice"`) {
+		t.Errorf("POST /rpc/items: unexpected response %s", rec.Body)
+	}
+
+	// A route without @success keeps the default 200.
+	rec = serveTest(t, srv, "GET", "/rpc/items/7", "", "")
+	if rec.Code != http.StatusOK {
+		t.Errorf("GET /rpc/items/7: status %d, want 200", rec.Code)
+	}
+}
+
+// TestRESTMultiCodeHandlerWritesStatus pins the multi-code routes: the
+// handler owns WriteHeader via ResponseWriterFromContext(ctx) and picks one
+// of the declared codes; single-code routes stay framework-written.
+func TestRESTMultiCodeHandlerWritesStatus(t *testing.T) {
+	impl := NewTestRESTServer()
+	srv := NewTestApiRestServer(impl)
+
+	// UpsertItem (declared 200|201): the handler writes 201 on create and
+	// the declared default 200 on update.
+	if rec := serveTest(t, srv, "PUT", "/rpc/items", "application/json", `{"item":{"id":7,"name":"alice"}}`); rec.Code != http.StatusCreated {
+		t.Errorf("PUT /rpc/items (create): status %d, body %s, want 201 (handler-written)", rec.Code, rec.Body)
+	}
+	rec := serveTest(t, srv, "PUT", "/rpc/items", "application/json", `{"item":{"id":7,"name":"bob"}}`)
+	if rec.Code != http.StatusOK {
+		t.Errorf("PUT /rpc/items (update): status %d, body %s, want 200 (declared default)", rec.Code, rec.Body)
+	}
+	if !strings.Contains(rec.Body.String(), `"name":"bob"`) {
+		t.Errorf("PUT /rpc/items (update): body %s, want the updated item", rec.Body)
+	}
+
+	// DeleteItem (declared 200|204, empty response): the handler writes the
+	// bodyless 204 — no body and no Content-Type on either code.
+	rec = serveTest(t, srv, "DELETE", "/rpc/items/7", "", "")
+	if rec.Code != http.StatusNoContent {
+		t.Errorf("DELETE /rpc/items/7: status %d, body %s, want 204 (handler-written)", rec.Code, rec.Body)
+	}
+	if rec.Body.Len() != 0 {
+		t.Errorf("DELETE /rpc/items/7: body %q, want none", rec.Body)
+	}
+	if ct := rec.Header().Get("Content-Type"); ct != "" {
+		t.Errorf("DELETE /rpc/items/7: Content-Type %q, want none on a bodyless route", ct)
+	}
+
+	// PurgeItems (declared 204, single code): the static default, no
+	// handler-written status involved.
+	rec = serveTest(t, srv, "POST", "/rpc/items/purge", "", "")
+	if rec.Code != http.StatusNoContent {
+		t.Errorf("POST /rpc/items/purge: status %d, body %s, want 204", rec.Code, rec.Body)
+	}
+	if rec.Body.Len() != 0 {
+		t.Errorf("POST /rpc/items/purge: body %q, want none", rec.Body)
+	}
+	if ct := rec.Header().Get("Content-Type"); ct != "" {
+		t.Errorf("POST /rpc/items/purge: Content-Type %q, want none on a bodyless route", ct)
+	}
+}
+
+// TestRESTMultiCodeForgetToWriteStatus pins the forgiving path: a multi-code
+// handler that never calls WriteHeader gets an implicit 200 from the first
+// body write — no validation, no warning.
+func TestRESTMultiCodeForgetToWriteStatus(t *testing.T) {
+	srv := NewTestApiRestServer(NewTestRESTServer())
+	mux := http.NewServeMux()
+	mux.Handle("GET /implicit", restHandler("GET /implicit", "", "Implicit", false, false, 0, true,
+		func(ctx context.Context, req struct{}) (Item, error) { return Item{Id: 1, Name: "alice"}, nil },
+		nil, srv.sendErrorJSON, &srv.OnRequest))
+
+	rec := serveTest(t, mux, "GET", "/implicit", "", "")
+	if rec.Code != http.StatusOK {
+		t.Errorf("GET /implicit: status %d, want implicit 200", rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), `"name":"alice"`) {
+		t.Errorf("GET /implicit: body %s, want the marshaled item", rec.Body)
+	}
+}
+
 func TestRESTAliasRoutesServeSameMethod(t *testing.T) {
 	impl := NewTestRESTServer()
 	impl.items[7] = &Item{Id: 7, Name: "alice"}
@@ -152,6 +338,39 @@ func TestRESTAliasRoutesServeSameMethod(t *testing.T) {
 	// A body verb on the GET-only alias path is not served.
 	if rec := serveTest(t, srv, "POST", "/rpc/items/find", "application/json", `{"q":"ali"}`); rec.Code != 405 {
 		t.Errorf("POST /rpc/items/find: status %d, want 405", rec.Code)
+	}
+}
+
+// TestRESTTrailingLiteralRoute pins the route shape with a literal segment
+// after a path param: the suffix must match exactly, the param must bind, and
+// the handler must run on the service receiver (the shadowed-receiver bug).
+func TestRESTTrailingLiteralRoute(t *testing.T) {
+	impl := NewTestRESTServer()
+	if _, err := impl.CreateItem(context.Background(), CreateItemRequest{Item: &Item{Id: 7, Name: "alice"}}); err != nil {
+		t.Fatal(err)
+	}
+	srv := NewTestApiRestServer(impl)
+
+	rec := serveTest(t, srv, "GET", "/rpc/items/7/status/latest", "", "")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("GET /rpc/items/7/status/latest: status %d, body %s", rec.Code, rec.Body)
+	}
+	if want := `"status":"latest status of item 7: alice"`; !strings.Contains(rec.Body.String(), want) {
+		t.Errorf("GET /rpc/items/7/status/latest: body %s, want containing %s", rec.Body, want)
+	}
+
+	// A different literal after the param is a different path.
+	if rec := serveTest(t, srv, "GET", "/rpc/items/7/wrong", "", ""); rec.Code != http.StatusNotFound {
+		t.Errorf("GET /rpc/items/7/wrong: status %d, want 404", rec.Code)
+	}
+
+	// A wrong method still resolves the path to its Allow set.
+	rec = serveTest(t, srv, "DELETE", "/rpc/items/7/status/latest", "", "")
+	if rec.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("DELETE /rpc/items/7/status/latest: status %d, want 405", rec.Code)
+	}
+	if allow := rec.Header().Get("Allow"); allow != "GET, HEAD" {
+		t.Errorf("DELETE /rpc/items/7/status/latest: Allow = %q, want GET, HEAD", allow)
 	}
 }
 

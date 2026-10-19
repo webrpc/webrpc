@@ -399,10 +399,15 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				Succinct:     succinctInput && succinctOutput,
 			}
 			for _, route := range method.Routes() {
-				m.Routes = append(m.Routes, &schema.MethodRoute{
+				r := &schema.MethodRoute{
 					Verb: route.Verb().String(),
 					Path: route.Path().String(),
-				})
+				}
+				for _, tok := range route.Success() {
+					code, _ := strconv.Atoi(tok.String())
+					r.Success = append(r.Success, code)
+				}
+				m.Routes = append(m.Routes, r)
 			}
 
 			methods = append(methods, m)

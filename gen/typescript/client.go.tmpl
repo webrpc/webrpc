@@ -94,7 +94,7 @@ export class {{$service.Name}} implements {{$service.Name}}Client {
       {{- if MethodHasFileDownload $method }}
       return buildFileResponse(res)
       {{- else }}
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, {{if MethodHasEmptyResponse $method}}true{{else}}false{{end}}).then(_data => {
         return JsonDecode<{{$methodRespName}}>(_data, '{{$methodRespName}}')
       })
       {{- end }}
@@ -126,7 +126,7 @@ export class {{$service.Name}} implements {{$service.Name}}Client {
       createHttpRequest('{}', headers, signal)).then((res) => {
       {{- end }}
       {{- end }}
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, {{if MethodHasEmptyResponse $method}}true{{else}}false{{end}}).then(_data => {
         return JsonDecode<{{$methodRespName}}>(_data, '{{$methodRespName}}')
       })
     }, (error) => {

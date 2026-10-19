@@ -14,6 +14,10 @@ type MethodRoute struct {
 	Verb string `json:"verb"` // GET, POST, PUT, PATCH, DELETE or QUERY
 	Path string `json:"path"` // absolute path template relative to {basepath}, e.g. /users/{userId}
 
+	// Success is the set of success HTTP status codes declared by
+	// `+ @success 200|201`; the first is the default. Empty means the default 200.
+	Success []int `json:"success,omitempty"`
+
 	Method *Method `json:"-"` // denormalize/back-reference
 }
 
@@ -260,6 +264,19 @@ func (s *WebRPCSchema) validateMethodRoute(svc *Service, m *Method, route *Metho
 	params, err := validateRoutePathSyntax(route.Path)
 	if err != nil {
 		return fmt.Errorf("schema error: invalid route of method '%s': %w", methodID, err)
+	}
+	seenCodes := map[int]bool{}
+	for _, code := range route.Success {
+		if code < 200 || code > 299 {
+			return fmt.Errorf("schema error: invalid @success status code '%d' of route '%s %s' of method '%s': must be a 2xx code (200-299)", code, route.Verb, route.Path, methodID)
+		}
+		if seenCodes[code] {
+			return fmt.Errorf("schema error: duplicate @success status code '%d' of route '%s %s' of method '%s'", code, route.Verb, route.Path, methodID)
+		}
+		seenCodes[code] = true
+		if (code == 204 || code == 205) && !MethodHasEmptyResponse(m) {
+			return fmt.Errorf("schema error: invalid @success status code '%d' of route '%s %s' of method '%s': 204/205 require an empty response (no outputs or an empty struct)", code, route.Verb, route.Path, methodID)
+		}
 	}
 
 	seenParams := map[string]bool{}

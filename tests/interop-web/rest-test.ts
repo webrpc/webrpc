@@ -20,8 +20,8 @@ import http from 'node:http'
 import { once } from 'node:events'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
-import { TestApiRest, Status, WebrpcBadRequestError } from './restClient.gen'
-import { TestApiRestServer, Item, UnexpectedValueError, serveTestApiRestRpc } from './restServer.gen'
+import { TestApiRest, Status, WebrpcBadRequestError, WebrpcBadResponseError } from './restClient.gen'
+import { TestApiRestServer, Item, UnexpectedValueError, serveTestApiRestRpc, withStatus } from './restServer.gen'
 import { ParamRest, WebrpcBadRequestError as ParamBadRequestError } from './paramRestClient.gen'
 import { ParamRestServer, serveParamRestRpc } from './paramRestServer.gen'
 
@@ -72,10 +72,25 @@ const createRestService = (): TestApiRestServer => {
       return { item }
     },
 
+    // Multi-code route (declared 200|201): 201 on create, 200 on update,
+    // mirroring the Go handler's WriteHeader in tests/server/rest.go.
+    async upsertItem(_ctx, { item }) {
+      const created = !items.has(item.id)
+      items.set(item.id, item)
+      return withStatus(created ? 201 : 200, { item })
+    },
+
+    // Multi-code route (declared 200|204): the handler picks the bodyless
+    // 204, except id 10 which picks 200 to mirror the Go handler.
     async deleteItem(_ctx, { id }) {
       if (!items.delete(id)) {
         throw new UnexpectedValueError({ cause: `no item ${id}` })
       }
+      return withStatus(id === 10 ? 200 : 204, {})
+    },
+
+    async purgeItems() {
+      items.clear()
       return {}
     },
 
@@ -90,6 +105,14 @@ const createRestService = (): TestApiRestServer => {
 
     async getChild(_ctx, { id, childId }) {
       return { path: `/items/${id}/children/${childId}` }
+    },
+
+    async getItemStatus(_ctx, { id }) {
+      const item = items.get(id)
+      if (!item) {
+        throw new UnexpectedValueError({ cause: `no item ${id}` })
+      }
+      return { status: `latest status of item ${id}: ${item.name}` }
     },
 
     async lookupItem(_ctx, { id }) {
@@ -213,9 +236,16 @@ const echoQuery = (overrides: { [key: string]: string } = {}): string =>
 const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   const api = new TestApiRest(addr, fetch)
 
-  // POST /rpc/items — request fields in the JSON body.
-  const { item: created } = await api.createItem({ item: { id: 7, name: 'alice' } })
-  assert.equal(created.name, 'alice', 'createItem name mismatch')
+  // POST /rpc/items — request fields in the JSON body; the route declares
+  // `+ @success 201`, so the success status must be 201, not the default 200.
+  const create = await fetch(`${addr}/rpc/items`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ item: { id: 7, name: 'alice' } }),
+  })
+  assert.equal(create.status, 201, 'createItem must answer the declared @success status')
+  const created = (await create.json()) as { item: Item }
+  assert.equal(created.item.name, 'alice', 'createItem name mismatch')
 
   // GET /rpc/items/{id} — path param plus optional query param.
   const { item: got } = await api.getItem({ id: 7, details: true })
@@ -262,6 +292,14 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   // GET /rpc/items/{id}/children/{childId} — multiple path params.
   const { path } = await api.getChild({ id: 1, childId: 2 })
   assert.equal(path, '/items/1/children/2', 'getChild path mismatch')
+
+  // GET /rpc/items/{id}/status/latest — literal segments after the path param.
+  const { status } = await api.getItemStatus({ id: 7 })
+  assert.equal(status, 'latest status of item 7: carol', 'getItemStatus mismatch')
+
+  // A different literal after the param is a different path: 404.
+  const statusMiss = await fetch(`${addr}/rpc/items/7/wrong`)
+  assert.equal(statusMiss.status, 404, 'wrong trailing literal must not match')
 
   // LookupItem: the client calls the canonical GET; the alias at its RPC path is a POST with a JSON body.
   const { item: looked } = await api.lookupItem({ id: 7 })
@@ -397,9 +435,48 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   }
   assert.equal(sent.length, before, 'dot and empty path values must not be sent')
 
-  // DELETE /rpc/items/{id}.
+  // PUT /rpc/items — upsert, declared `+ @success 200|201`. Both handlers
+  // pick the status at runtime (Go via WriteHeader, TypeScript via
+  // withStatus): 201 on create, the declared default 200 on update.
+  const upsertCreate = await fetch(`${addr}/rpc/items`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"item": {"id": 10, "name": "zoe"}}',
+  })
+  assert.equal(upsertCreate.status, 201, 'upsert create status mismatch')
+  assert.equal((await upsertCreate.json()).item.name, 'zoe', 'upsert create name mismatch')
+  const upsertUpdate = await fetch(`${addr}/rpc/items`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"item": {"id": 10, "name": "zoe"}}',
+  })
+  assert.equal(upsertUpdate.status, 200, 'upsert update status must be the declared default 200')
+  await upsertUpdate.body?.cancel()
+
+  // DELETE /rpc/items/{id} — declared `+ @success 200|204`. Both handlers
+  // pick the status at runtime (Go via WriteHeader, TypeScript via
+  // withStatus): 204 for id 7, 200 for id 10.
   await api.deleteItem({ id: 7 })
   await assert.rejects(api.getItem({ id: 7 }), 'getItem after deleteItem must fail')
+
+  // A bodyless 200 on the 200|204 route: the Go server writes no body at
+  // all, the TypeScript server an empty object. The generated client must
+  // resolve against both instead of failing JSON.parse on the empty text.
+  await api.deleteItem({ id: 10 })
+  await assert.rejects(api.getItem({ id: 10 }), 'getItem after deleteItem must fail')
+  await api.upsertItem({ item: { id: 10, name: 'zoe' } })
+  const deleted200 = await fetch(`${addr}/rpc/items/10`, { method: 'DELETE' })
+  assert.equal(deleted200.status, 200, 'bodyless 200 delete status mismatch')
+  assert.equal(await deleted200.text(), server === 'go' ? '' : '{}', 'bodyless 200 body mismatch')
+
+  // The raw wire response of the bodyless 204. Bodyless responses carry no
+  // Content-Type on either server (the Response constructor allows a null
+  // body without leaking Content-Length either).
+  await api.upsertItem({ item: { id: 8, name: 'eight' } })
+  const deleted = await fetch(`${addr}/rpc/items/8`, { method: 'DELETE' })
+  assert.equal(deleted.status, 204, 'delete status mismatch')
+  assert.equal(await deleted.text(), '', '204 must carry no body')
+  assert.equal(deleted.headers.get('Content-Type'), null, '204 must carry no Content-Type')
 
   // Path params overwrite conflicting JSON body fields (decode order:
   // body -> path).
@@ -430,15 +507,17 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   assert.equal(badParam.status, 400, 'bad path param must return 400')
   await badParam.body?.cancel()
 
-  // Body routes reject non-JSON requests, so cross-site form posts (sent
-  // without a CORS preflight) can't reach handlers — with or without inputs.
+  // A body route with body fields rejects non-JSON requests, so cross-site
+  // form posts (sent without a CORS preflight) can't reach handlers. A route
+  // with zero body fields drops the check, so its body is parsed as JSON and
+  // unknown fields are ignored.
   for (const path of ['/rpc/items', '/rpc/items/reset']) {
     const csrf = await fetch(`${addr}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: '{"item":{"id":5,"name":"csrf"}}',
     })
-    assert.equal(csrf.status, 400, `text/plain POST ${path} must return 400`)
+    assert.equal(csrf.status, path === '/rpc/items/reset' ? 200 : 400, `text/plain POST ${path} status mismatch`)
     await csrf.body?.cancel()
   }
   await assert.rejects(api.getItem({ id: 5 }), 'the text/plain POST must not have created an item')
@@ -454,6 +533,37 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   // An empty required list sends no query keys and decodes as empty.
   const { items: emptyList } = await api.listItems({ tags: [], limit: 1 })
   assert.equal(emptyList[0]?.name, 'q=false tags=[] limit=1', 'empty tags list mismatch')
+
+  // POST /rpc/items/purge — declared `+ @success 204`: both servers answer
+  // 204 with no body (the Response constructor would throw on one).
+  const purged = await fetch(`${addr}/rpc/items/purge`, { method: 'POST' })
+  assert.equal(purged.status, 204, 'purge must answer the declared 204')
+  assert.equal(await purged.text(), '', '204 must carry no body')
+  assert.equal(purged.headers.get('Content-Type'), null, '204 must carry no Content-Type')
+
+  // A whitespace-only body is a payload: 400 without Content-Type, and a
+  // zero-value request with 'application/json' (parity with the Go server).
+  await api.upsertItem({ item: { id: 11, name: 'eleven' } })
+  const whitespaceNoCT = await fetch(`${addr}/rpc/items/11`, { method: 'PATCH', body: '   ' })
+  assert.equal(whitespaceNoCT.status, 400, 'whitespace-only body without Content-Type must return 400')
+  await whitespaceNoCT.body?.cancel()
+  const whitespaceJSON = await fetch(`${addr}/rpc/items/11`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: '   ' })
+  assert.equal(whitespaceJSON.status, 200, 'whitespace-only JSON body must return 200')
+  const { item: whitespaceItem } = await api.getItem({ id: 11 })
+  assert.equal(whitespaceItem.name, 'eleven', 'whitespace-only JSON body must decode as zero-value')
+
+  // A raw fetch returning an empty body on an error status (e.g. a 500) must
+  // surface the HTTP status (WebrpcBadResponseError) instead of a generic
+  // error, even on a method with an empty response.
+  const errApi = new TestApiRest(addr, async () => new Response('', { status: 500 }))
+  await assert.rejects(
+    errApi.deleteItem({ id: 10 }),
+    (err: any) => {
+      assert.ok(err instanceof WebrpcBadResponseError, 'empty 500 must throw WebrpcBadResponseError')
+      assert.equal(err.status, 500, 'empty 500 must carry the HTTP status')
+      return true
+    },
+  )
 }
 
 // paramSuite covers the param parsing rules of the Go server: bool spellings,

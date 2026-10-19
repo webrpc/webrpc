@@ -2,6 +2,7 @@ package ridl
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/webrpc/webrpc/schema"
@@ -170,11 +171,17 @@ func parserStateServiceMethod(s *ServiceNode) parserState {
 
 			default:
 				// any other word ends the service block
+				if err := pendingAnnotationsError(s); err != nil {
+					return p.stateError(err)
+				}
 				p.emit(s)
 				return parserDefaultState
 			}
 
 		default:
+			if err := pendingAnnotationsError(s); err != nil {
+				return p.stateError(err)
+			}
 			p.emit(s)
 			return parserDefaultState
 
@@ -182,6 +189,16 @@ func parserStateServiceMethod(s *ServiceNode) parserState {
 
 		return parserStateServiceMethod(s)
 	}
+}
+
+// pendingAnnotationsError reports annotations buffered after the last method;
+// they would otherwise be silently dropped when the service block ends.
+func pendingAnnotationsError(s *ServiceNode) error {
+	if len(s.methodAnnotations) == 0 {
+		return nil
+	}
+	ann := s.methodAnnotations[0]
+	return fmt.Errorf("annotation '@%s' must be placed directly above a '- Method' line", ann.AnnotationType().String())
 }
 
 // parseMethodRoute parses a route meta line, e.g. `+ GET /users/{userId}`,
@@ -192,6 +209,15 @@ func parseMethodRoute(p *parser, s *ServiceNode) error {
 	}
 	if p.cursor().tt == tokenWhitespace {
 		p.next()
+	}
+
+	if p.cursor().tt == tokenAt {
+		// A '+ @success' line is a method-level annotation, so a pending method
+		// annotation above it can no longer attach to the method below.
+		if err := pendingAnnotationsError(s); err != nil {
+			return err
+		}
+		return parseRouteSuccess(p, s)
 	}
 
 	if len(s.methods) == 0 {
@@ -227,6 +253,73 @@ func parseMethodRoute(p *parser, s *ServiceNode) error {
 	}
 
 	mn.routes = append(mn.routes, &RouteNode{verb: newTokenNode(verbTok), path: newTokenNode(pathToken)})
+	return nil
+}
+
+// parseRouteSuccess parses a `+ @success <code>` meta line and attaches the
+// status code to the route line directly above it.
+func parseRouteSuccess(p *parser, s *ServiceNode) error {
+	if _, err := p.match(tokenAt); err != nil {
+		return err
+	}
+	nameTok := p.cursor()
+	if nameTok.tt != tokenWord || nameTok.val != "success" {
+		return fmt.Errorf("expecting '@success <code>' after '+', e.g. '+ @success 201'")
+	}
+	p.next()
+
+	if len(s.methods) == 0 {
+		return fmt.Errorf("@success must be declared under a service method")
+	}
+	mn := s.methods[len(s.methods)-1]
+	if len(mn.routes) == 0 {
+		return fmt.Errorf("@success must directly follow a route line of method '%s', e.g. '+ POST /webhooks' then '+ @success 201'", mn.name.String())
+	}
+	route := mn.routes[len(mn.routes)-1]
+	if len(route.success) > 0 {
+		return fmt.Errorf("route '%s %s' of method '%s' already declares @success", route.verb.String(), route.path.String(), mn.name.String())
+	}
+
+	if _, err := p.match(tokenWhitespace); err != nil {
+		return fmt.Errorf("expecting status code after '@success': %w", err)
+	}
+	codeTok := p.cursor()
+	if codeTok.tt != tokenWord {
+		return fmt.Errorf("expecting '@success' status code to be a number but got '%s'", codeTok.val)
+	}
+	// A pipe-separated set of allowed success codes, e.g. `+ @success 200|201`;
+	// the first is the default the handler can override at runtime.
+	codes := []*TokenNode{}
+	seen := map[int]bool{}
+	for _, val := range strings.Split(codeTok.val, "|") {
+		if expectNumber(codeTok, val) != nil {
+			return fmt.Errorf("expecting '@success' status code to be a number but got '%s'", codeTok.val)
+		}
+		code, err := strconv.Atoi(val)
+		if err != nil {
+			return fmt.Errorf("expecting '@success' status code to be a number but got '%s'", codeTok.val)
+		}
+		if code < 200 || code > 299 {
+			return fmt.Errorf("invalid @success status code '%s' of method '%s': must be a 2xx code (200-299)", val, mn.name.String())
+		}
+		if seen[code] {
+			return fmt.Errorf("duplicate @success status code '%s' of method '%s'", val, mn.name.String())
+		}
+		seen[code] = true
+		// A single output may still be an empty struct, which only the schema
+		// validation (always run next) can resolve.
+		if (code == 204 || code == 205) && len(mn.outputs.arguments) > 1 {
+			return fmt.Errorf("invalid @success status code '%s' of method '%s': 204/205 require an empty response (no outputs or an empty struct)", val, mn.name.String())
+		}
+		codes = append(codes, newTokenNode(&token{tt: codeTok.tt, val: val, pos: codeTok.pos, line: codeTok.line, col: codeTok.col}))
+	}
+	p.next()
+
+	if err := p.expectOptionalCommentOrEOL(); err != nil {
+		return err
+	}
+
+	route.success = codes
 	return nil
 }
 

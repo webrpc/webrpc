@@ -87,6 +87,25 @@ func (s *TestRESTServer) PatchItem(ctx context.Context, id uint64, name *string)
 	return item, nil
 }
 
+func (s *TestRESTServer) UpsertItem(ctx context.Context, item *Item) (*Item, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if item == nil {
+		return nil, ErrMissingArgument.WithCausef("item is required")
+	}
+	_, exists := s.items[item.Id]
+	s.items[item.Id] = item
+	// Multi-code route (declared 200|201): the handler owns WriteHeader —
+	// 201 on create, the declared default 200 on update.
+	if exists {
+		ResponseWriterFromContext(ctx).WriteHeader(200)
+	} else {
+		ResponseWriterFromContext(ctx).WriteHeader(201)
+	}
+	return item, nil
+}
+
 func (s *TestRESTServer) DeleteItem(ctx context.Context, id uint64) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -95,6 +114,22 @@ func (s *TestRESTServer) DeleteItem(ctx context.Context, id uint64) error {
 		return ErrUnexpectedValue.WithCausef("no item %d", id)
 	}
 	delete(s.items, id)
+	// Multi-code bodyless route (declared 200|204, empty response): the
+	// handler owns WriteHeader and the route never carries a body. ID 10
+	// picks 200, so a bodyless 200 also reaches the TS client.
+	if id == 10 {
+		ResponseWriterFromContext(ctx).WriteHeader(200)
+	} else {
+		ResponseWriterFromContext(ctx).WriteHeader(204)
+	}
+	return nil
+}
+
+func (s *TestRESTServer) PurgeItems(ctx context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.items = map[uint64]*Item{}
 	return nil
 }
 
@@ -122,6 +157,17 @@ func (s *TestRESTServer) EchoParams(ctx context.Context, str string, num int64, 
 
 func (s *TestRESTServer) GetChild(ctx context.Context, id uint64, childId uint64) (string, error) {
 	return fmt.Sprintf("/items/%d/children/%d", id, childId), nil
+}
+
+func (s *TestRESTServer) GetItemStatus(ctx context.Context, id uint64) (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	item, ok := s.items[id]
+	if !ok {
+		return "", ErrUnexpectedValue.WithCausef("no item %d", id)
+	}
+	return fmt.Sprintf("latest status of item %d: %s", id, item.Name), nil
 }
 
 func (s *TestRESTServer) ResetItems(ctx context.Context) error {

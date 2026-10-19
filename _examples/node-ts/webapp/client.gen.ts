@@ -148,7 +148,7 @@ export class Example implements ExampleClient {
     return this.fetch(
       this.url('Ping'),
       createHttpRequest(JsonEncode(req), headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, true).then(_data => {
         return JsonDecode<PingResponse>(_data, 'PingResponse')
       })
     }, (error) => {
@@ -160,7 +160,7 @@ export class Example implements ExampleClient {
     return this.fetch(
       this.url('GetUser'),
       createHttpRequest(JsonEncode(req), headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<GetUserResponse>(_data, 'GetUserResponse')
       })
     }, (error) => {
@@ -172,7 +172,7 @@ export class Example implements ExampleClient {
     return this.fetch(
       this.url('GetArticle'),
       createHttpRequest(JsonEncode(req), headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<GetArticleResponse>(_data, 'GetArticleResponse')
       })
     }, (error) => {
@@ -187,7 +187,7 @@ export class Example implements ExampleClient {
     return this.fetch(
       this.url('UploadAvatar'),
       createHttpUploadRequest(form, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<UploadAvatarResponse>(_data, 'UploadAvatarResponse')
       })
     }, (error) => {
@@ -212,10 +212,13 @@ const createHttpRequest = (body: string = '{}', headers: object = {}, signal: Ab
   return { method: 'POST', headers: reqHeaders, body, signal }
 }
 
-const buildResponse = (res: Response): Promise<any> => {
+const buildResponse = (res: Response, emptyOk: boolean = false): Promise<any> => {
   return res.text().then(text => {
     let data
     try {
+      if (text.trim() === '' && emptyOk && res.ok) {
+        return {} // empty body on an empty-response method: the zero result
+      }
       data = JSON.parse(text)
     } catch(error) {
       throw WebrpcBadResponseError.new({

@@ -125,6 +125,23 @@ service Users
 	assert.Empty(t, users.Methods[1].Routes)
 }
 
+func TestRIDLRouteAnnotationAttachesToNextMethod(t *testing.T) {
+	s, err := parseRouteRIDL(t, routeRIDLHeader+`
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      + GET /users/{userId}
+  @auth:required
+  - List(ListUsersRequest) => (ListUsersResponse)
+`)
+	require.NoError(t, err)
+
+	users := s.Services[0]
+	assert.Empty(t, users.Methods[0].Annotations)
+	require.Contains(t, users.Methods[1].Annotations, "auth")
+	assert.Equal(t, "required", users.Methods[1].Annotations["auth"].Value)
+	assert.Empty(t, users.Methods[1].Routes)
+}
+
 func TestRIDLRouteAfterErrorsClause(t *testing.T) {
 	s, err := parseRouteRIDL(t, `webrpc = v1
 name = example
@@ -282,6 +299,45 @@ service Users
 			wantErr: "route must directly follow its method",
 		},
 		{
+			name: "annotation above a success route line",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      @auth:x
+      + @success 201
+      + GET /users/{userId}
+`,
+			wantErr: "annotation '@auth' must be placed directly above a '- Method' line",
+		},
+		{
+			name: "annotation after last method's routes at end of service",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      + GET /users/{userId}
+  @auth:x
+`,
+			wantErr: "annotation '@auth' must be placed directly above a '- Method' line",
+		},
+		{
+			name: "annotation after routeless last method at end of service",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+  @auth:x
+`,
+			wantErr: "annotation '@auth' must be placed directly above a '- Method' line",
+		},
+		{
+			name: "annotation after last method's routes at EOF without trailing newline",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      + GET /users/{userId}
+  @auth:x`,
+			wantErr: "annotation '@auth' must be placed directly above a '- Method' line",
+		},
+		{
 			name: "route on stream method",
 			input: routeRIDLHeader + `
 service Users
@@ -289,6 +345,203 @@ service Users
       + GET /users/{userId}/watch
 `,
 			wantErr: "stream methods are POST-only",
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := parseRouteRIDL(t, tc.input)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tc.wantErr)
+		})
+	}
+}
+
+func TestRIDLRouteSuccessStatus(t *testing.T) {
+	s, err := parseRouteRIDL(t, routeRIDLHeader+`
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success 201
+  - Commit(GetUserRequest) => (GetUserResponse)
+      + POST /commits
+      + @success 202
+      + POST /Users/Commit     # the alias keeps the default 200
+  - Upsert(User) => (User)
+      + PUT /users
+      + @success 200|201
+  - Delete()
+      + DELETE /users
+      + @success 200|204
+`)
+	require.NoError(t, err)
+
+	create := s.Services[0].Methods[0]
+	require.Len(t, create.Routes, 1)
+	assert.Equal(t, []int{201}, create.Routes[0].Success)
+
+	// Each route line carries its own @success; a route without one keeps the default.
+	commit := s.Services[0].Methods[1]
+	require.Len(t, commit.Routes, 2)
+	assert.Equal(t, []int{202}, commit.Routes[0].Success)
+	assert.Empty(t, commit.Routes[1].Success)
+	assert.Equal(t, 200, schema.RouteSuccessStatus(commit.Routes[1]))
+
+	// A pipe-separated set declares every allowed success code; the first is
+	// the default. 204 requires an empty response.
+	upsert := s.Services[0].Methods[2]
+	require.Len(t, upsert.Routes, 1)
+	assert.Equal(t, []int{200, 201}, upsert.Routes[0].Success)
+	assert.Equal(t, 200, schema.RouteSuccessStatus(upsert.Routes[0]))
+	deleteMethod := s.Services[0].Methods[3]
+	require.Len(t, deleteMethod.Routes, 1)
+	assert.Equal(t, []int{200, 204}, deleteMethod.Routes[0].Success)
+}
+
+func TestRIDLRouteSuccessStatusErrors(t *testing.T) {
+	tt := []struct {
+		name    string
+		input   string
+		wantErr string
+	}{
+		{
+			name: "before any route",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + @success 201
+      + POST /users
+`,
+			wantErr: "@success must directly follow a route line of method 'Create'",
+		},
+		{
+			name: "method without routes",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + @success 201
+`,
+			wantErr: "@success must directly follow a route line of method 'Create'",
+		},
+		{
+			name: "before any method",
+			input: routeRIDLHeader + `
+service Users
+  + @success 201
+  - Create(CreateUserRequest) => (CreateUserResponse)
+`,
+			wantErr: "@success must be declared under a service method",
+		},
+		{
+			name: "non-2xx code",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success 404
+`,
+			wantErr: "invalid @success status code '404' of method 'Create': must be a 2xx code (200-299)",
+		},
+		{
+			name: "1xx code",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success 100
+`,
+			wantErr: "must be a 2xx code (200-299)",
+		},
+		{
+			name: "204 on a non-empty response",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success 204
+`,
+			wantErr: "invalid @success status code '204' of route 'POST /users' of method 'Users.Create': 204/205 require an empty response (no outputs or an empty struct)",
+		},
+		{
+			name: "205 on a multi-output response",
+			input: routeRIDLHeader + `
+service Users
+  - Create() => (a: string, b: string)
+      + POST /users
+      + @success 205
+`,
+			wantErr: "invalid @success status code '205' of method 'Create': 204/205 require an empty response (no outputs or an empty struct)",
+		},
+		{
+			name: "duplicate code in the set",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success 200|200
+`,
+			wantErr: "duplicate @success status code '200' of method 'Create'",
+		},
+		{
+			name: "non-2xx code in the set",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success 200|404
+`,
+			wantErr: "invalid @success status code '404' of method 'Create': must be a 2xx code (200-299)",
+		},
+		{
+			name: "non-numeric code in the set",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success 200|abc
+`,
+			wantErr: "expecting '@success' status code to be a number but got '200|abc'",
+		},
+		{
+			name: "non-numeric code",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success created
+`,
+			wantErr: "expecting '@success' status code to be a number but got 'created'",
+		},
+		{
+			name: "missing code",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success
+`,
+			wantErr: "expecting '@success' status code to be a number",
+		},
+		{
+			name: "unknown at-meta",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @created 201
+`,
+			wantErr: "expecting '@success <code>' after '+'",
+		},
+		{
+			name: "duplicate @success on one route",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + @success 201
+      + @success 202
+`,
+			wantErr: "route 'POST /users' of method 'Create' already declares @success",
 		},
 	}
 

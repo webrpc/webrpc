@@ -95,14 +95,14 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 		server.OnError = options[0].OnError
 		server.OnRequest = options[0].OnRequest
 	}
-	server.restIndex = restHandler("GET /{$}", "RestOverrides", "Index", false,
+	server.restIndex = restHandler("GET /{$}", "RestOverrides", "Index", false, false, 200, true,
 		func(ctx context.Context, req restOverridesServiceIndexArgs) (restOverridesServiceIndexResult, error) {
 			err := server.RestOverridesServer.Index(ctx)
 			return restOverridesServiceIndexResult{}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restSearch = restHandler("GET /by/{lbl}", "RestOverrides", "Search", false,
+	server.restSearch = restHandler("GET /by/{lbl}", "RestOverrides", "Search", false, false, 200, true,
 		server.RestOverridesServer.Search,
 		func(p *restParams, req *SearchRequest) error {
 			if err := restPath(p, "lbl", "string", &req.Key, restJSONString); err != nil {
@@ -117,7 +117,7 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restScale = restHandler("GET /scale/{factor}", "RestOverrides", "Scale", false,
+	server.restScale = restHandler("GET /scale/{factor}", "RestOverrides", "Scale", false, false, 200, true,
 		func(ctx context.Context, req restOverridesServiceScaleArgs) (restOverridesServiceScaleResult, error) {
 			ret0, err := server.RestOverridesServer.Scale(ctx, req.Arg0)
 			return restOverridesServiceScaleResult{Ret0: ret0}, err
@@ -129,7 +129,7 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restScaleGet = restHandler("GET /scale/{factor}/half", "RestOverrides", "Scale", false,
+	server.restScaleGet = restHandler("GET /scale/{factor}/half", "RestOverrides", "Scale", false, false, 200, true,
 		func(ctx context.Context, req restOverridesServiceScaleArgs) (restOverridesServiceScaleResult, error) {
 			ret0, err := server.RestOverridesServer.Scale(ctx, req.Arg0)
 			return restOverridesServiceScaleResult{Ret0: ret0}, err
@@ -407,8 +407,13 @@ func (p *restParams) values() map[string][]string {
 	return p.query
 }
 
-// restHandler runs one REST route: body decode, param binding, then fn.
-func restHandler[I, O any](pattern, service, method string, hasBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+// restHandler runs one REST route: body decode, param binding, then fn. A
+// non-zero status means the framework writes it after fn returns nil
+// (single-code routes); status 0 leaves WriteHeader to the handler via
+// ResponseWriterFromContext(ctx) on multi-code routes. writeBody is false for
+// routes with an empty response whose declared set contains 204 or 205 — they
+// never write a body or Content-Type.
+func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, status int, writeBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Identify the route before user code can run: MethodCtx resolves the
 		// method from r.Pattern (the dispatcher already set the path values).
@@ -420,8 +425,14 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, fn fun
 		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
 		r = r.WithContext(ctx)
 
-		if hasBody {
-			// Requiring JSON forces a CORS preflight, so cross-site form posts can't reach handlers.
+		// A payload is detected without reading the body: ContentLength 0 means
+		// no body (http.NoBody too), -1 means chunked and counts as a payload.
+		hasPayload := hasBody && r.Body != nil && r.Body != http.NoBody && r.ContentLength != 0
+
+		// An empty body yields a zero-value request and bypasses the Content-Type
+		// check. A non-empty body must still declare 'application/json': the
+		// check is a CSRF guard that forces a CORS preflight for cross-site form posts.
+		if hasBodyFields && hasPayload {
 			contentType, _, _ := strings.Cut(r.Header.Get("Content-Type"), ";")
 			if !strings.EqualFold(strings.TrimSpace(contentType), "application/json") {
 				sendError(w, r, ErrWebrpcBadRequest.WithCausef("unsupported Content-Type %q (only application/json is allowed)", r.Header.Get("Content-Type")))
@@ -441,18 +452,17 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, fn fun
 		}
 
 		var req I
-		if hasBody {
-			body, err := io.ReadAll(r.Body)
-			if err != nil {
-				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
+		if hasPayload {
+			dec := json.NewDecoder(r.Body)
+			// io.EOF means an empty (or hook-consumed) body: a zero-value request.
+			if err := dec.Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 				return
 			}
-			// A "null" or empty body leaves the struct unchanged.
-			if len(body) > 0 {
-				if err := json.Unmarshal(body, &req); err != nil {
-					sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
-					return
-				}
+			// Parity with TS JSON.parse: reject any trailing data after a successful JSON value.
+			if dec.More() {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: unexpected trailing data"))
+				return
 			}
 		}
 
@@ -461,6 +471,12 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, fn fun
 				sendError(w, r, ErrWebrpcBadRequest.WithCause(err))
 				return
 			}
+		}
+
+		// Content-Type is declared before user code runs; bodyless routes carry
+		// none, and sendError sets its own on the error path.
+		if writeBody {
+			w.Header().Set("Content-Type", "application/json")
 		}
 
 		out, err := fn(ctx, req)
@@ -473,15 +489,22 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, fn fun
 			return
 		}
 
-		respBody, err := json.Marshal(out)
-		if err != nil {
-			sendError(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
-			return
+		var respBody []byte
+		if writeBody && r.Method != "HEAD" {
+			respBody, err = json.Marshal(out)
+			if err != nil {
+				sendError(w, r, ErrWebrpcBadResponse.WithCausef("failed to marshal json response: %w", err))
+				return
+			}
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		if r.Method != "HEAD" { // HEAD gets the GET status and headers, but no body.
+		// Single-code routes: the framework owns WriteHeader. Multi-code
+		// routes: the handler already wrote one of the declared codes; if it
+		// forgot, the first Write gets an implicit 200.
+		if status != 0 {
+			w.WriteHeader(status)
+		}
+		if respBody != nil {
 			w.Write(respBody)
 		}
 	}

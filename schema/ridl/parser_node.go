@@ -404,8 +404,9 @@ func (mn *MethodNode) Routes() []*RouteNode {
 }
 
 type RouteNode struct {
-	verb *TokenNode
-	path *TokenNode
+	verb    *TokenNode
+	path    *TokenNode
+	success []*TokenNode // `+ @success 200|201` meta line directly below the route
 }
 
 func (rn *RouteNode) Verb() *TokenNode {
@@ -414,6 +415,10 @@ func (rn *RouteNode) Verb() *TokenNode {
 
 func (rn *RouteNode) Path() *TokenNode {
 	return rn.path
+}
+
+func (rn *RouteNode) Success() []*TokenNode {
+	return rn.success
 }
 
 type ServiceNode struct {

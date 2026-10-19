@@ -124,7 +124,7 @@ export const serveExampleRpc = async <Context>(service: ExampleServer<Context>, 
   }
 }
 
-const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, ctx: Context, method: string, request: Request): Promise<Response> => {
+const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, ctx: Context, method: string, request: Request, status = 200): Promise<Response> => {
   switch (method) {
     case 'Ping': {
       const payload: any = webrpcParseRequestBody(await webrpcRequestBodyText(request), 'PingRequest')
@@ -132,7 +132,8 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: counter" })
       }
       const result = await service.ping(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'GetUser': {
@@ -144,7 +145,8 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: userId" })
       }
       const result = await service.getUser(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'GetArticle': {
@@ -153,7 +155,8 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: getArticleRequest" })
       }
       const result = await service.getArticle(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'UploadAvatar': {
@@ -173,7 +176,8 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: avatar" })
       }
       const result = await service.uploadAvatar(ctx, payload || {})
-      return webrpcJsonResponse(result ?? {})
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcSuccessResponse((tagged ? tagged.result : result) ?? {}, tagged ? tagged.status : status)
     }
   
     case 'DownloadAvatar': {
@@ -185,7 +189,8 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
         throw new WebrpcBadRequestError({ cause: "invalid argument: userId" })
       }
       const result = await service.downloadAvatar(ctx, payload || {})
-      return webrpcFileResponse(result)
+      const tagged = webrpcTaggedStatus(result)
+      return webrpcFileResponse(tagged ? tagged.result : result)
     }
   
     default:
@@ -194,16 +199,36 @@ const dispatchExampleRequest = async <Context>(service: ExampleServer<Context>, 
 }
 
 
-const webrpcRequestBodyText = async (request: Request): Promise<string> => {
+const webrpcRequestBodyText = async (request: Request, skipContentTypeCheck: boolean = false): Promise<string> => {
   const contentType = (request.headers.get('Content-Type') || '').split(';')[0]!.trim().toLowerCase()
-  if (contentType !== 'application/json') {
-    throw new WebrpcBadRequestError({ cause: `unsupported Content-Type '${request.headers.get('Content-Type') || ''}' (only application/json is allowed)` })
+  const checkContentType = () => {
+    if (contentType !== 'application/json' && !skipContentTypeCheck) {
+      throw new WebrpcBadRequestError({ cause: `unsupported Content-Type '${request.headers.get('Content-Type') || ''}' (only application/json is allowed)` })
+    }
   }
-  return request.text()
+  // Reject a declared body before buffering it: a non-zero Content-Length must
+  // already declare 'application/json' (a CSRF guard forcing a CORS preflight
+  // for cross-site form posts).
+  let checked = false
+  const contentLength = parseInt(request.headers.get('Content-Length') || '0', 10)
+  if (!skipContentTypeCheck && contentLength > 0) {
+    checkContentType()
+    checked = true
+  }
+  const text = await request.text()
+  // Only a zero-byte body is an empty request; whitespace-only counts as a
+  // payload and must still declare 'application/json'.
+  if (text === '') {
+    return ''
+  }
+  if (!checked) {
+    checkContentType()
+  }
+  return text
 }
 
 const webrpcParseRequestBody = (body: unknown, typ: string): any => {
-  if (typeof body !== 'string' || body === '') {
+  if (typeof body !== 'string' || body.trim() === '') {
     return {}
   }
   let data: any
@@ -219,12 +244,42 @@ const webrpcParseRequestBody = (body: unknown, typ: string): any => {
   }
 }
 
-const webrpcJsonResponse = (data: any): Response => {
+const webrpcJsonResponse = (data: any, status = 200): Response => {
   return new Response(JsonEncode(data), {
-    status: 200,
+    status,
     headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
   })
 }
+
+// A route's declared default status applies unless the method result was
+// tagged with withStatus; 204/205 carry no body, and the Response constructor
+// throws on one.
+const webrpcSuccessResponse = (data: any, status = 200): Response => {
+  if (status === 204 || status === 205) {
+    // Bodyless: the Go server sends no Content-Type here either.
+    return new Response(null, { status, headers: { [WebrpcHeader]: WebrpcHeaderValue } })
+  }
+  return webrpcJsonResponse(data, status)
+}
+
+// webrpcStatusKey tags a withStatus wrapper; being module-local, it can never
+// collide with a real payload field.
+const webrpcStatusKey = Symbol('webrpcStatus')
+
+// withStatus tags a method result with an explicit success status, which the
+// dispatcher uses instead of the route's declared default — the TypeScript
+// counterpart of the Go server's handler-written status via
+// ResponseWriterFromContext(ctx).WriteHeader(code). Advisory: the status is
+// not validated against the route's declared set.
+export const withStatus = <T>(status: number, result?: T): T =>
+  ({ [webrpcStatusKey]: status, result }) as unknown as T
+
+// webrpcTaggedStatus splits a withStatus wrapper; null when the result is
+// untagged and the route's declared default status applies.
+const webrpcTaggedStatus = (result: any): { status: number, result: any } | null =>
+  result !== null && typeof result === 'object' && webrpcStatusKey in result
+    ? { status: result[webrpcStatusKey] as number, result: result.result }
+    : null
 
 const webrpcErrorResponse = (err: unknown, headers?: { [key: string]: string }): Response => {
   const rpcErr = err instanceof WebrpcError ? err : new WebrpcEndpointError({ cause: err instanceof Error ? err.message : String(err) })

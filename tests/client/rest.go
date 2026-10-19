@@ -107,6 +107,26 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 		errs = append(errs, fmt.Errorf("GetChild(): unexpected response %q", childPath))
 	}
 
+	// GET /rpc/items/{id}/status/latest — literal segments after the path
+	// param (trailing-literal route): the suffix must match, the param bind.
+	status, err := api.GetItemStatus(ctx, 7)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("GetItemStatus(): %w", err))
+	} else if status != "latest status of item 7: carol" {
+		errs = append(errs, fmt.Errorf("GetItemStatus(): unexpected response %q", status))
+	}
+
+	// A different literal after the param is a different path: 404.
+	missResp, err := http.Get(serverURL + "/rpc/items/7/wrong")
+	if err != nil {
+		errs = append(errs, fmt.Errorf("GET /rpc/items/7/wrong: %w", err))
+	} else {
+		missResp.Body.Close()
+		if missResp.StatusCode != http.StatusNotFound {
+			errs = append(errs, fmt.Errorf("GET /rpc/items/7/wrong: expected 404, got %d", missResp.StatusCode))
+		}
+	}
+
 	// A method without a route keeps the default webrpc dispatch.
 	item, err := api.RpcMethod(ctx, 7)
 	if err != nil {
@@ -161,6 +181,38 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 		}
 	}
 
+	// PUT /rpc/items — upsert (declared 200|201): the handler writes the
+	// status 201 on create and the declared default 200 on update.
+	upserted, err := api.UpsertItem(ctx, &Item{Id: 10, Name: "zoe"})
+	if err != nil {
+		errs = append(errs, fmt.Errorf("UpsertItem(): %w", err))
+	} else if upserted == nil || upserted.Name != "zoe" {
+		errs = append(errs, fmt.Errorf("UpsertItem(): unexpected response %+v", upserted))
+	}
+	for _, id := range []uint64{10, 11} {
+		upsertReq, err := http.NewRequestWithContext(ctx, "PUT", serverURL+"/rpc/items", strings.NewReader(fmt.Sprintf(`{"item": {"id": %d, "name": "kiwi"}}`, id)))
+		if err != nil {
+			errs = append(errs, fmt.Errorf("PUT /rpc/items (%d): %w", id, err))
+			continue
+		}
+		upsertReq.Header.Set("Content-Type", "application/json")
+		upsertResp, err := http.DefaultClient.Do(upsertReq)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("PUT /rpc/items (%d): %w", id, err))
+			continue
+		}
+		body, _ := io.ReadAll(upsertResp.Body)
+		upsertResp.Body.Close()
+		// Both are declared: the Go server writes 201 on create, the
+		// TypeScript server keeps the static default 200.
+		if upsertResp.StatusCode != http.StatusOK && upsertResp.StatusCode != http.StatusCreated {
+			errs = append(errs, fmt.Errorf("PUT /rpc/items (%d): expected 200 or 201, got %d", id, upsertResp.StatusCode))
+		}
+		if !strings.Contains(string(body), `"name":"kiwi"`) {
+			errs = append(errs, fmt.Errorf("PUT /rpc/items (%d): unexpected body %s", id, body))
+		}
+	}
+
 	// A routed method answers only on its REST route.
 	resp, err = http.Post(serverURL+"/rpc/TestApiRest/GetItem", "application/json", strings.NewReader(`{"id": 7}`))
 	if err != nil {
@@ -172,12 +224,33 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 		}
 	}
 
-	// DELETE /rpc/items/{id}.
+	// DELETE /rpc/items/{id} — the handler writes the declared 204; the
+	// client skips the (empty) body and the round-trip succeeds.
 	if err := api.DeleteItem(ctx, 7); err != nil {
 		errs = append(errs, fmt.Errorf("DeleteItem(): %w", err))
 	}
 	if _, err := api.GetItem(ctx, GetItemRequest{Id: 7}); err == nil {
 		errs = append(errs, fmt.Errorf("GetItem() after DeleteItem(): expected error, got nil"))
+	}
+
+	// A raw DELETE reports a declared status: 204 with no body from the Go
+	// server's handler-written status, or the TypeScript server's static 200.
+	delReq, err := http.NewRequestWithContext(ctx, "DELETE", serverURL+"/rpc/items/10", nil)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("DELETE /rpc/items/10: %w", err))
+	} else {
+		delResp, err := http.DefaultClient.Do(delReq)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("DELETE /rpc/items/10: %w", err))
+		} else {
+			delBody, _ := io.ReadAll(delResp.Body)
+			delResp.Body.Close()
+			if delResp.StatusCode == http.StatusNoContent && len(delBody) != 0 {
+				errs = append(errs, fmt.Errorf("DELETE /rpc/items/10: expected no body for 204, got %q", delBody))
+			} else if delResp.StatusCode != http.StatusOK && delResp.StatusCode != http.StatusNoContent {
+				errs = append(errs, fmt.Errorf("DELETE /rpc/items/10: expected 200 or 204, got %d", delResp.StatusCode))
+			}
+		}
 	}
 
 	// Path params overwrite conflicting JSON body fields (decode order:
@@ -238,8 +311,10 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 		}
 	}
 
-	// Body routes reject non-JSON requests, so cross-site form posts (sent
-	// without a CORS preflight) can't reach handlers — with or without inputs.
+	// A body route with body fields rejects non-JSON requests, so cross-site
+	// form posts (sent without a CORS preflight) can't reach handlers. A route
+	// with zero body fields drops the check, so its body is parsed as JSON and
+	// unknown fields are ignored.
 	for _, path := range []string{"/rpc/items", "/rpc/items/reset"} {
 		resp, err := http.Post(serverURL+path, "text/plain", strings.NewReader(`{"item":{"id":5,"name":"csrf"}}`))
 		if err != nil {
@@ -247,8 +322,12 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 			continue
 		}
 		resp.Body.Close()
-		if resp.StatusCode != http.StatusBadRequest {
-			errs = append(errs, fmt.Errorf("text/plain POST %s: expected 400, got %d", path, resp.StatusCode))
+		want := http.StatusBadRequest
+		if path == "/rpc/items/reset" {
+			want = http.StatusOK // zero body fields: JSON is parsed, unknown fields ignored
+		}
+		if resp.StatusCode != want {
+			errs = append(errs, fmt.Errorf("text/plain POST %s: expected %d, got %d", path, want, resp.StatusCode))
 		}
 	}
 	if _, err := api.GetItem(ctx, GetItemRequest{Id: 5}); err == nil {
@@ -258,6 +337,12 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 	// A body route without inputs still works from the generated client.
 	if err := api.ResetItems(ctx); err != nil {
 		errs = append(errs, fmt.Errorf("ResetItems(): %w", err))
+	}
+
+	// POST /rpc/items/purge — declared `+ @success 204` (static): the client
+	// skips the empty body and the round-trip succeeds.
+	if err := api.PurgeItems(ctx); err != nil {
+		errs = append(errs, fmt.Errorf("PurgeItems(): %w", err))
 	}
 
 	// A missing required query param is a 400, not a zero value.

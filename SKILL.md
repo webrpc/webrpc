@@ -81,6 +81,8 @@ service Example
   - Ping() => (version: string)                    # no-payload inline return is fine
 ```
 - Group error codes by range (1xxx auth, 2xxx validation, 3xxx not-found, 4xxx business).
+- Annotations attach only directly above the `- Method` line; anywhere else in the method
+  block is a parse error.
 - Go: a `WebRPCError` must reach the transport unwrapped (the server type-asserts it) —
   use `proto.ErrXxx.WithCause(err)`, not `fmt.Errorf` chains.
 - Custom annotations (`@access:`, `@perms:`) are readable at runtime: middleware calls
@@ -101,6 +103,30 @@ service Users
   List it as a route to keep it.
 - `{id}` binds to a required scalar request field. `GET`/`DELETE` send other fields as query
   params; `POST`/`PUT`/`PATCH`/`QUERY` send them in the JSON body.
+- An empty body is a zero-value request and needs no `Content-Type` — empty means zero
+  bytes: a whitespace-only body is a payload and still requires `application/json`, then
+  decodes as the zero-value request. A route with zero body fields drops the check
+  entirely: any Content-Type is accepted, and a non-empty body is parsed as JSON (unknown
+  fields ignored; malformed JSON is a 400). A route *with* body fields still requires
+  `application/json` for non-empty bodies: a cross-site form POST (`text/plain`) triggers
+  no CORS preflight, so this check is the CSRF guard. Note the classic RPC dispatcher
+  requires `application/json` on every request; the relaxed REST rules assume
+  header/token auth — cookie-auth deployments need their own CSRF defense.
+- `+ @success <codes>` directly below a route line declares the route's allowed success
+  statuses as a pipe-separated set, e.g. `+ @success 200|201`. The first is the default;
+  no `+ @success` line means 200. Codes must be 2xx and unique, and 204/205 are allowed
+  only for methods with an empty response (no outputs or an empty struct); such routes
+  never carry a response body or `Content-Type`. The WriteHeader responsibility is fixed
+  at codegen time: on a single-code route (or no `+ @success` line) the framework writes
+  the declared status and the handler must not; on a multi-code route the Go handler
+  picks one with `ResponseWriterFromContext(ctx).WriteHeader(code)` — not validated, the
+  declared set is the contract. The TypeScript server picks it the same way via the
+  generated `withStatus(status, result)` helper (an untagged result uses the declared
+  default).
+- Unit-testing a Go handler that writes a status needs a ResponseWriter in ctx: inject
+  one with `context.WithValue(ctx, HTTPResponseWriterCtxKey, httptest.NewRecorder())`.
+- Routed endpoints ignore unknown fields in the JSON body. A strict-decode opt-in is
+  proposed in [#530](https://github.com/webrpc/webrpc/issues/530).
 - Only the golang and typescript targets support routes. Other targets exit with an error.
 
 ## Field metadata
