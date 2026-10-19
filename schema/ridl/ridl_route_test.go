@@ -366,7 +366,7 @@ service Users
   - Commit(GetUserRequest) => (GetUserResponse)
       + POST /commits
       + @success 202
-      + POST /Users/Commit     # the alias keeps the default 200
+      + POST /Users/Commit     # the alias shares the method's @success
   - Upsert(User) => (User)
       + PUT /users
       + @success 200|201
@@ -541,6 +541,16 @@ service Users
 			assert.Contains(t, err.Error(), tc.wantErr)
 		})
 	}
+}
+
+func TestRIDLRouteSuccessWithoutRouteErrorHasPosition(t *testing.T) {
+	_, err := parseRouteRIDL(t, routeRIDLHeader+`
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + @success 201
+`)
+	require.Error(t, err)
+	assert.Regexp(t, `^\d+:\d+: @success requires at least one route on method 'Create'`, err.Error())
 }
 
 func TestRIDLRoutePathSyntaxErrorHasPosition(t *testing.T) {

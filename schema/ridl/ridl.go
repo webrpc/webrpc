@@ -418,12 +418,12 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 				Succinct:     succinctInput && succinctOutput,
 			}
 			// Method-level `+ @success` applies to every route of the method.
-			if method.SuccessCodes() != nil {
+			if codes := method.SuccessCodes(); codes != nil {
 				if len(method.Routes()) == 0 {
-					return nil, fmt.Errorf("@success requires at least one route on method '%s'", method.Name().String())
+					return nil, fmt.Errorf("%d:%d: @success requires at least one route on method '%s'", codes[0].tok.line, codes[0].tok.col, method.Name().String())
 				}
 				for _, route := range method.Routes() {
-					route.success = method.SuccessCodes()
+					route.success = codes
 				}
 			}
 			for _, route := range method.Routes() {

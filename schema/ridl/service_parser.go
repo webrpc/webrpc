@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/webrpc/webrpc/schema"
 )
@@ -68,10 +69,9 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 			name := ann.AnnotationType().String()
 			annStr := "+ @" + name
 			if ann.value != nil {
-				// Quote values the bare to-EOL form cannot represent: empty,
-				// padded, or containing '#' (a comment start in the new syntax).
+				// Quote unless the bare to-EOL form would re-read the value exactly.
 				v := ann.value.String()
-				if v == "" || strings.TrimSpace(v) != v || strings.Contains(v, "#") {
+				if !bareAnnotationValueReproducible(v) {
 					v = strconv.Quote(v)
 				}
 				annStr += ":" + v
@@ -279,6 +279,27 @@ func parseMethodRoute(p *parser, s *ServiceNode) error {
 
 	mn.routes = append(mn.routes, &RouteNode{verb: newTokenNode(verbTok), path: newTokenNode(pathToken)})
 	return nil
+}
+
+// bareAnnotationValueReproducible reports whether the new bare to-EOL syntax
+// would re-read v exactly. Bare values collapse whitespace runs to one space,
+// and a '#' starts a comment, so anything else needs quotes.
+func bareAnnotationValueReproducible(v string) bool {
+	if v == "" || strings.TrimSpace(v) != v || strings.HasPrefix(v, `"`) || strings.Contains(v, "#") {
+		return false
+	}
+	prevSpace := false
+	for _, r := range v {
+		if !unicode.IsSpace(r) {
+			prevSpace = false
+			continue
+		}
+		if r != ' ' || prevSpace {
+			return false
+		}
+		prevSpace = true
+	}
+	return true
 }
 
 // parseMethodAnnotations parses a single `+ @name[:value]` annotation (one

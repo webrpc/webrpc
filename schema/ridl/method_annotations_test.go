@@ -230,16 +230,36 @@ service Example
 }
 
 func TestRIDLDeprecationWarningQuotesUnrepresentableValues(t *testing.T) {
-	_, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + `
-service Example
-  @see:"https://a.com/#frag"
-  @plain:simple
-  - Ping(PingRequest) => (PingResponse)
-`)
-	require.NoError(t, err)
-	require.Len(t, warnings, 2)
-	assert.Contains(t, warnings[0], `+ @see:"https://a.com/#frag"`)
-	assert.Contains(t, warnings[1], "+ @plain:simple")
+	for _, tc := range []struct {
+		name string
+		line string
+		want string
+	}{
+		{"bare word", `@plain:simple`, "+ @plain:simple"},
+		{"fragment", `@see:"https://a.com/#frag"`, `+ @see:"https://a.com/#frag"`},
+		{"double space run", `@msg:"hello  world"`, `+ @msg:"hello  world"`},
+		{"padded", `@pad:" padded "`, `+ @pad:" padded "`},
+		{"tab", `@tab:"a\tb"`, `+ @tab:"a\tb"`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + "\nservice Example\n  " + tc.line + "\n  - Ping(PingRequest) => (PingResponse)\n")
+			require.NoError(t, err)
+			require.Len(t, warnings, 1)
+			assert.Contains(t, warnings[0], tc.want)
+		})
+	}
+
+	// A value starting with '"' would trigger the new syntax's escape hatch.
+	// The lexer cannot produce one from a quoted annotation, so assert on the
+	// predicate directly alongside the other unrepresentable cases.
+	assert.True(t, bareAnnotationValueReproducible("hello world"))
+	assert.True(t, bareAnnotationValueReproducible("foo-bar"))
+	assert.False(t, bareAnnotationValueReproducible(""))
+	assert.False(t, bareAnnotationValueReproducible(`"hi"`))
+	assert.False(t, bareAnnotationValueReproducible("hello  world"))
+	assert.False(t, bareAnnotationValueReproducible(" padded"))
+	assert.False(t, bareAnnotationValueReproducible("https://a.com/#frag"))
+	assert.False(t, bareAnnotationValueReproducible("a\tb"))
 }
 
 func TestRIDLSuccessBeforeBetweenAfterRoutes(t *testing.T) {

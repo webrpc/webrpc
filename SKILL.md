@@ -83,10 +83,10 @@ service Example
 - Group error codes by range (1xxx auth, 2xxx validation, 3xxx not-found, 4xxx business).
 - A method block holds `+ @name[:value]` annotations and `+ VERB /path` routes; the two
   interleave freely below the `- Method` line. Anything else in the block is a parse error.
-  One annotation per line.
-  The value after `:` runs to the end of the line; quotes are only needed for leading,
-  trailing, or reserved spaces. Above-method annotations are deprecated, warn, and will be
-  removed in a future release.
+  One annotation per line: the value after `:` runs to the end of the line, collapsing
+  whitespace runs to one space. Quote it for leading/trailing space, a literal `#`, or
+  internal space runs. Above-method annotations are deprecated, warn, and will be removed
+  in a future release.
 - Go: a `WebRPCError` must reach the transport unwrapped (the server type-asserts it) —
   use `proto.ErrXxx.WithCause(err)`, not `fmt.Errorf` chains.
 - Custom annotations (`@access:`, `@perms:`) are readable at runtime: middleware calls
