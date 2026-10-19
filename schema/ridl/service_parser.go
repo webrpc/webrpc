@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/webrpc/webrpc/schema"
 )
@@ -68,7 +69,12 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 			name := ann.AnnotationType().String()
 			annStr := "+ @" + name
 			if ann.value != nil {
-				annStr += ":" + quoteIfNeeded(ann.value.String())
+				// Quote unless the bare to-EOL form would re-read the value exactly.
+				v := ann.value.String()
+				if !bareAnnotationValueReproducible(v) {
+					v = strconv.Quote(v)
+				}
+				annStr += ":" + v
 			}
 			if name == "success" {
 				// '+ @success' below a method is route-scoped; the annotation must be renamed there.
@@ -155,7 +161,7 @@ func parserStateServiceMethod(s *ServiceNode) parserState {
 			p.next()
 
 		case tokenAt:
-			anns, err := parseAnnotations(p)
+			anns, err := parseAnnotations(p, false)
 			if err != nil {
 				return p.stateError(err)
 			}
@@ -272,73 +278,66 @@ func parseMethodRoute(p *parser, s *ServiceNode) error {
 	}
 
 	mn.routes = append(mn.routes, &RouteNode{verb: newTokenNode(verbTok), path: newTokenNode(pathToken)})
-	s.lastMetaRoute = true
 	return nil
 }
 
-// quoteIfNeeded renders an annotation value as valid RIDL in deprecation
-// warnings: bare only when the lexer reads it as a single word token (a word
-// beginning followed by no word-break runes), quoted otherwise.
-func quoteIfNeeded(val string) string {
-	runes := []rune(val)
-	bare := len(runes) > 0 && isWord(runes[0])
-	for i := 1; bare && i < len(runes); i++ {
-		bare = !isWordBreak(runes[i])
+// bareAnnotationValueReproducible reports whether the new bare to-EOL syntax
+// would re-read v exactly. Bare values collapse whitespace runs to one space,
+// and a '#' starts a comment, so anything else needs quotes.
+func bareAnnotationValueReproducible(v string) bool {
+	if v == "" || strings.TrimSpace(v) != v || strings.HasPrefix(v, `"`) || strings.Contains(v, "#") {
+		return false
 	}
-	if !bare {
-		return strconv.Quote(val)
+	prevSpace := false
+	for _, r := range v {
+		if !unicode.IsSpace(r) {
+			prevSpace = false
+			continue
+		}
+		if r != ' ' || prevSpace {
+			return false
+		}
+		prevSpace = true
 	}
-	return val
+	return true
 }
 
-// parseMethodAnnotations parses `+ @name[:value]` annotations (one or more
-// groups per line) and attaches them to the method defined just above it.
+// parseMethodAnnotations parses a single `+ @name[:value]` annotation (one
+// annotation per line) and attaches it to the method defined just above it.
 func parseMethodAnnotations(p *parser, s *ServiceNode) error {
-	s.lastMetaRoute = false
 	if len(s.methods) == 0 {
 		return fmt.Errorf("annotation must be declared under a service method")
 	}
 	mn := s.methods[len(s.methods)-1]
 
-	anns := []*AnnotationNode{}
-	seen := map[string]struct{}{}
-	for _, existing := range mn.annotations {
-		seen[existing.AnnotationType().String()] = struct{}{}
+	anns, err := parseAnnotations(p, true)
+	if err != nil {
+		return err
 	}
-	lastName := ""
-	for p.cursor().tt == tokenAt {
-		more, err := parseAnnotations(p)
-		if err != nil {
-			return err
-		}
-		if len(more) == 0 {
-			return fmt.Errorf("expecting annotation name after '@', e.g. '+ @internal'")
-		}
-		for _, ann := range more {
-			key := ann.AnnotationType().String()
-			lastName = key
-			if _, ok := seen[key]; ok {
-				return fmt.Errorf("duplicate annotation type: %s", key)
-			}
-			seen[key] = struct{}{}
-		}
-		anns = append(anns, more...)
-		for p.cursor().tt == tokenWhitespace {
-			p.next()
+	if len(anns) == 0 {
+		return fmt.Errorf("expecting annotation name after '@', e.g. '+ @internal'")
+	}
+	if len(anns) > 1 {
+		return fmt.Errorf("unexpected '@': one annotation per line")
+	}
+	ann := anns[0]
+	for _, existing := range mn.annotations {
+		if existing.AnnotationType().String() == ann.AnnotationType().String() {
+			return fmt.Errorf("duplicate annotation type: %s", ann.AnnotationType().String())
 		}
 	}
 	if err := p.expectOptionalCommentOrEOL(); err != nil {
-		if tok := p.cursor(); tok.tt == tokenWord && lastName != "" {
-			return fmt.Errorf("expecting ':' before the annotation value, e.g. '+ @%s:%s'", lastName, tok.val)
+		if tok := p.cursor(); tok.tt == tokenWord {
+			return fmt.Errorf("expecting ':' before the annotation value, e.g. '+ @%s:%s'", ann.AnnotationType().String(), tok.val)
 		}
 		return fmt.Errorf("expecting comment or end of line after annotation, got %q", p.cursor().val)
 	}
-	mn.annotations = append(mn.annotations, anns...)
+	mn.annotations = append(mn.annotations, ann)
 	return nil
 }
 
-// parseRouteSuccess parses a `+ @success <code>` meta line and attaches the
-// status code to the route line directly above it.
+// parseRouteSuccess parses a `+ @success <code>` meta line and records the
+// method's success codes; ridl.go applies them to every route of the method.
 func parseRouteSuccess(p *parser, s *ServiceNode) error {
 	if _, err := p.match(tokenAt); err != nil {
 		return err
@@ -353,12 +352,8 @@ func parseRouteSuccess(p *parser, s *ServiceNode) error {
 		return fmt.Errorf("@success must be declared under a service method")
 	}
 	mn := s.methods[len(s.methods)-1]
-	if len(mn.routes) == 0 || !s.lastMetaRoute {
-		return fmt.Errorf("@success must directly follow a route line of method '%s', e.g. '+ POST /webhooks' then '+ @success 201'", mn.name.String())
-	}
-	route := mn.routes[len(mn.routes)-1]
-	if len(route.success) > 0 {
-		return fmt.Errorf("route '%s %s' of method '%s' already declares @success", route.verb.String(), route.path.String(), mn.name.String())
+	if mn.successCodes != nil {
+		return fmt.Errorf("method '%s' already declares @success", mn.name.String())
 	}
 
 	if _, err := p.match(tokenWhitespace); err != nil {
@@ -400,7 +395,7 @@ func parseRouteSuccess(p *parser, s *ServiceNode) error {
 		return err
 	}
 
-	route.success = codes
+	mn.successCodes = codes
 	return nil
 }
 
@@ -429,7 +424,11 @@ func parserStateService(p *parser) parserState {
 	})
 }
 
-func parseAnnotations(p *parser) ([]*AnnotationNode, error) {
+// parseAnnotations parses `@name[:value]` annotation groups. When toEOL is
+// false (the deprecated above-method form) it loops over multiple annotations
+// on one line; when true it parses exactly one, with the value running to the
+// end of the line.
+func parseAnnotations(p *parser, toEOL bool) ([]*AnnotationNode, error) {
 	annotations := []*AnnotationNode{}
 	annotationsMap := map[string]struct{}{}
 
@@ -440,6 +439,9 @@ func parseAnnotations(p *parser) ([]*AnnotationNode, error) {
 	for {
 		annotationMatches, err := p.match(matcher...)
 		if err != nil {
+			if toEOL && len(annotations) == 0 {
+				return nil, fmt.Errorf("expecting annotation name after '@', e.g. '+ @internal'")
+			}
 			break
 		}
 
@@ -456,32 +458,87 @@ func parseAnnotations(p *parser) ([]*AnnotationNode, error) {
 
 		if p.cursor().tt != tokenColon {
 			annotations = append(annotations, annotation)
-			continue
-		}
-
-		p.next()
-
-		switch tok := p.cursor(); tok.tt {
-		// @acl:admin
-		case tokenWord:
-			annotation.value = newTokenNode(tok)
+		} else {
 			p.next()
 
-		// @auth:"cookies,authorization,query"
-		case tokenQuote:
-			// expectStringValue advances the cursor past the closing quote.
-			annotationValue, err := p.expectStringValue()
-			if err != nil {
-				return nil, fmt.Errorf("parse string value: %w", err)
+			if toEOL {
+				// + @key:"quoted value" — escape hatch for leading/trailing
+				// spaces or a literal ` #`.
+				if p.cursor() != eofToken && p.cursor().tt == tokenQuote {
+					annotationValue, err := p.expectStringValue()
+					if err != nil {
+						return nil, fmt.Errorf("parse string value: %w", err)
+					}
+					annotation.value = newTokenNode(annotationValue)
+					annotations = append(annotations, annotation)
+					for p.cursor().tt == tokenWhitespace {
+						p.next()
+					}
+					if p.cursor().tt == tokenAt {
+						return nil, fmt.Errorf("unexpected '@': one annotation per line")
+					}
+					break
+				}
+
+				// + @key:value — value is everything after the first colon to
+				// end of line; a `#` starts a comment like everywhere in RIDL.
+				valToks := []*token{}
+				for p.cursor().tt != tokenNewLine && p.cursor().tt != tokenHash && p.cursor() != eofToken {
+					if p.cursor().tt != tokenWhitespace {
+						valToks = append(valToks, p.cursor())
+					}
+					p.next()
+				}
+				if len(valToks) == 0 {
+					return nil, fmt.Errorf("expecting value after ':' in annotation '@%s'", annotation.annotationType.String())
+				}
+				// Rejoin tokens using their columns so adjacent tokens (e.g.
+				// `a,b`) stay adjacent, with single spaces for source whitespace.
+				var val strings.Builder
+				prev := (*token)(nil)
+				for _, tok := range valToks {
+					// tok.col is a rune-based END column; compare rune counts so multibyte values keep their spaces.
+					if prev != nil && tok.col > prev.col+len([]rune(tok.val)) {
+						val.WriteString(" ")
+					}
+					val.WriteString(tok.val)
+					prev = tok
+				}
+				annotation.value = newTokenNode(&token{tt: tokenWord, val: val.String(), pos: valToks[0].pos, line: valToks[0].line, col: valToks[0].col})
+			} else {
+				switch tok := p.cursor(); tok.tt {
+				// @acl:admin
+				case tokenWord:
+					annotation.value = newTokenNode(tok)
+					p.next()
+
+				// @auth:"cookies,authorization,query"
+				case tokenQuote:
+					// expectStringValue advances the cursor past the closing quote.
+					annotationValue, err := p.expectStringValue()
+					if err != nil {
+						return nil, fmt.Errorf("parse string value: %w", err)
+					}
+
+					annotation.value = newTokenNode(annotationValue)
+
+				default:
+					return nil, fmt.Errorf("expecting value after ':' in annotation '@%s'", annotation.annotationType.String())
+				}
 			}
 
-			annotation.value = newTokenNode(annotationValue)
-
-		default:
-			return nil, fmt.Errorf("expecting value after ':' in annotation '@%s'", annotation.annotationType.String())
+			annotations = append(annotations, annotation)
 		}
 
-		annotations = append(annotations, annotation)
+		if toEOL {
+			for p.cursor().tt == tokenWhitespace {
+				p.next()
+			}
+			if p.cursor().tt == tokenAt {
+				return nil, fmt.Errorf("unexpected '@': one annotation per line")
+			}
+			break
+		}
 	}
 
 	return annotations, nil

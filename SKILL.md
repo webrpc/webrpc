@@ -83,7 +83,10 @@ service Example
 - Group error codes by range (1xxx auth, 2xxx validation, 3xxx not-found, 4xxx business).
 - A method block holds `+ @name[:value]` annotations and `+ VERB /path` routes; the two
   interleave freely below the `- Method` line. Anything else in the block is a parse error.
-  Above-method annotations are deprecated, warn, and will be removed in a future release.
+  One annotation per line: the value after `:` runs to the end of the line, collapsing
+  whitespace runs to one space. Quote it for leading/trailing space, a literal `#`, or
+  internal space runs. Above-method annotations are deprecated, warn, and will be removed
+  in a future release.
 - Go: a `WebRPCError` must reach the transport unwrapped (the server type-asserts it) —
   use `proto.ErrXxx.WithCause(err)`, not `fmt.Errorf` chains.
 - Custom annotations (`@access:`, `@perms:`) are readable at runtime: middleware calls
@@ -113,9 +116,11 @@ service Users
   no CORS preflight, so this check is the CSRF guard. Note the classic RPC dispatcher
   requires `application/json` on every request; the relaxed REST rules assume
   header/token auth — cookie-auth deployments need their own CSRF defense.
-- `+ @success <codes>` directly below a route line declares the route's allowed success
-  statuses as a pipe-separated set, e.g. `+ @success 200|201`. The first is the default;
-  no `+ @success` line means 200. Codes must be 2xx and unique, and 204/205 are allowed
+- `+ @success <codes>` declares the method's allowed success statuses as a
+  pipe-separated set, e.g. `+ @success 200|201`. It applies to every route of the
+  method, wherever the `+ @success` line sits in the method block. One per method;
+  it requires at least one route. The first is the default; no `+ @success` line
+  means 200. Codes must be 2xx and unique, and 204/205 are allowed
   only for methods with an empty response (no outputs or an empty struct); such routes
   never carry a response body or `Content-Type`. The WriteHeader responsibility is fixed
   at codegen time: on a single-code route (or no `+ @success` line) the framework writes

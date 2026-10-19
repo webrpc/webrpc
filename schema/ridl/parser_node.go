@@ -361,6 +361,14 @@ type MethodNode struct {
 	errors      []*TokenNode // List of error names this method can throw
 
 	routes []*RouteNode // `+ GET /users/{userId}` lines, in declaration order
+
+	// Method-level `+ @success 200|201` meta line. Fills every route of the
+	// method; nil means the default (200) applies.
+	successCodes []*TokenNode
+}
+
+func (mn *MethodNode) SuccessCodes() []*TokenNode {
+	return mn.successCodes
 }
 
 func (mn *MethodNode) Name() *TokenNode {
@@ -406,7 +414,7 @@ func (mn *MethodNode) Routes() []*RouteNode {
 type RouteNode struct {
 	verb    *TokenNode
 	path    *TokenNode
-	success []*TokenNode // `+ @success 200|201` meta line directly below the route
+	success []*TokenNode // method-level `+ @success 200|201`, applied to every route
 }
 
 func (rn *RouteNode) Verb() *TokenNode {
@@ -428,10 +436,6 @@ type ServiceNode struct {
 	methods           []*MethodNode
 	methodAnnotations []*AnnotationNode
 	comment           string
-
-	// true while the previous service meta-line is a route, so that
-	// route-scoped meta-lines like `+ @success` can require adjacency.
-	lastMetaRoute bool
 }
 
 func (sn ServiceNode) Type() NodeType {

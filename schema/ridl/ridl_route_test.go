@@ -366,7 +366,7 @@ service Users
   - Commit(GetUserRequest) => (GetUserResponse)
       + POST /commits
       + @success 202
-      + POST /Users/Commit     # the alias keeps the default 200
+      + POST /Users/Commit     # the alias shares the method's @success
   - Upsert(User) => (User)
       + PUT /users
       + @success 200|201
@@ -380,12 +380,11 @@ service Users
 	require.Len(t, create.Routes, 1)
 	assert.Equal(t, []int{201}, create.Routes[0].Success)
 
-	// Each route line carries its own @success; a route without one keeps the default.
+	// The method's @success set fills every route of the method.
 	commit := s.Services[0].Methods[1]
 	require.Len(t, commit.Routes, 2)
 	assert.Equal(t, []int{202}, commit.Routes[0].Success)
-	assert.Empty(t, commit.Routes[1].Success)
-	assert.Equal(t, 200, schema.RouteSuccessStatus(commit.Routes[1]))
+	assert.Equal(t, []int{202}, commit.Routes[1].Success)
 
 	// A pipe-separated set declares every allowed success code; the first is
 	// the default. 204 requires an empty response.
@@ -405,23 +404,13 @@ func TestRIDLRouteSuccessStatusErrors(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name: "before any route",
-			input: routeRIDLHeader + `
-service Users
-  - Create(CreateUserRequest) => (CreateUserResponse)
-      + @success 201
-      + POST /users
-`,
-			wantErr: "@success must directly follow a route line of method 'Create'",
-		},
-		{
 			name: "method without routes",
 			input: routeRIDLHeader + `
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
       + @success 201
 `,
-			wantErr: "@success must directly follow a route line of method 'Create'",
+			wantErr: "@success requires at least one route on method 'Create'",
 		},
 		{
 			name: "before any method",
@@ -533,7 +522,7 @@ service Users
 			wantErr: "expecting ':' before the annotation value, e.g. '+ @created:201'",
 		},
 		{
-			name: "duplicate @success on one route",
+			name: "duplicate @success on one method",
 			input: routeRIDLHeader + `
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
@@ -541,7 +530,7 @@ service Users
       + @success 201
       + @success 202
 `,
-			wantErr: "route 'POST /users' of method 'Create' already declares @success",
+			wantErr: "method 'Create' already declares @success",
 		},
 	}
 
@@ -552,6 +541,16 @@ service Users
 			assert.Contains(t, err.Error(), tc.wantErr)
 		})
 	}
+}
+
+func TestRIDLRouteSuccessWithoutRouteErrorHasPosition(t *testing.T) {
+	_, err := parseRouteRIDL(t, routeRIDLHeader+`
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + @success 201
+`)
+	require.Error(t, err)
+	assert.Regexp(t, `^\d+:\d+: @success requires at least one route on method 'Create'`, err.Error())
 }
 
 func TestRIDLRoutePathSyntaxErrorHasPosition(t *testing.T) {
