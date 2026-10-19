@@ -103,13 +103,15 @@ service Users
   List it as a route to keep it.
 - `{id}` binds to a required scalar request field. `GET`/`DELETE` send other fields as query
   params; `POST`/`PUT`/`PATCH`/`QUERY` send them in the JSON body.
-- An empty body is a zero-value request and needs no `Content-Type`. A route with zero body
-  fields drops the check entirely: any Content-Type is accepted, and a non-empty body is
-  parsed as JSON (unknown fields ignored; malformed JSON is a 400). A route *with* body
-  fields still requires `application/json` for non-empty bodies: a cross-site form POST
-  (`text/plain`) triggers no CORS preflight, so this check is the CSRF guard. Note the
-  classic RPC dispatcher requires `application/json` on every request; the relaxed REST
-  rules assume header/token auth — cookie-auth deployments need their own CSRF defense.
+- An empty body is a zero-value request and needs no `Content-Type` — empty means zero
+  bytes: a whitespace-only body is a payload and still requires `application/json`, then
+  decodes as the zero-value request. A route with zero body fields drops the check
+  entirely: any Content-Type is accepted, and a non-empty body is parsed as JSON (unknown
+  fields ignored; malformed JSON is a 400). A route *with* body fields still requires
+  `application/json` for non-empty bodies: a cross-site form POST (`text/plain`) triggers
+  no CORS preflight, so this check is the CSRF guard. Note the classic RPC dispatcher
+  requires `application/json` on every request; the relaxed REST rules assume
+  header/token auth — cookie-auth deployments need their own CSRF defense.
 - `+ @success <codes>` directly below a route line declares the route's allowed success
   statuses as a pipe-separated set, e.g. `+ @success 200|201`. The first is the default;
   no `+ @success` line means 200. Codes must be 2xx and unique, and 204/205 are allowed

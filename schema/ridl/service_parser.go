@@ -212,6 +212,11 @@ func parseMethodRoute(p *parser, s *ServiceNode) error {
 	}
 
 	if p.cursor().tt == tokenAt {
+		// A '+ @success' line is a method-level annotation, so a pending method
+		// annotation above it can no longer attach to the method below.
+		if err := pendingAnnotationsError(s); err != nil {
+			return err
+		}
 		return parseRouteSuccess(p, s)
 	}
 

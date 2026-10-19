@@ -299,6 +299,17 @@ service Users
 			wantErr: "route must directly follow its method",
 		},
 		{
+			name: "annotation above a success route line",
+			input: routeRIDLHeader + `
+service Users
+  - Get(GetUserRequest) => (GetUserResponse)
+      @auth:x
+      + @success 201
+      + GET /users/{userId}
+`,
+			wantErr: "annotation '@auth' must be placed directly above a '- Method' line",
+		},
+		{
 			name: "annotation after last method's routes at end of service",
 			input: routeRIDLHeader + `
 service Users
