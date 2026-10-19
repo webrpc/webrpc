@@ -62,6 +62,16 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 			commentLine = sn.methodAnnotations[len(sn.methodAnnotations)-1].AnnotationType().tok.line
 		}
 
+		// Emit deprecation warnings for above-method annotations now that we
+		// know the method they belong to.
+		for _, ann := range sn.methodAnnotations {
+			annStr := "+ @" + ann.AnnotationType().String()
+			if ann.value != nil {
+				annStr += ":" + quoteIfNeeded(ann.value.String())
+			}
+			p.warn(fmt.Sprintf("%s:%d: warning: deprecated annotation syntax: move '%s' below the '- %s' method line (above-method annotations are deprecated and will be removed in a future release)", p.file, ann.AnnotationType().tok.line, annStr, methodName.val))
+		}
+
 		mn := &MethodNode{
 			name:    newTokenNode(methodName),
 			proxy:   proxy,
@@ -212,12 +222,15 @@ func parseMethodRoute(p *parser, s *ServiceNode) error {
 	}
 
 	if p.cursor().tt == tokenAt {
-		// A '+ @success' line is a method-level annotation, so a pending method
+		// A '+ @...' line is a method-level meta line, so a pending method
 		// annotation above it can no longer attach to the method below.
 		if err := pendingAnnotationsError(s); err != nil {
 			return err
 		}
-		return parseRouteSuccess(p, s)
+		if next := p.peek(); next.tt == tokenWord && next.val == "success" {
+			return parseRouteSuccess(p, s)
+		}
+		return parseMethodAnnotations(p, s)
 	}
 
 	if len(s.methods) == 0 {
@@ -253,6 +266,63 @@ func parseMethodRoute(p *parser, s *ServiceNode) error {
 	}
 
 	mn.routes = append(mn.routes, &RouteNode{verb: newTokenNode(verbTok), path: newTokenNode(pathToken)})
+	s.lastMetaRoute = true
+	return nil
+}
+
+// quoteIfNeeded renders an annotation value as valid RIDL in deprecation
+// warnings: bare only when the lexer reads it as a single word token (a word
+// beginning followed by no word-break runes), quoted otherwise.
+func quoteIfNeeded(val string) string {
+	runes := []rune(val)
+	bare := len(runes) > 0 && isWord(runes[0])
+	for i := 1; bare && i < len(runes); i++ {
+		bare = !isWordBreak(runes[i])
+	}
+	if !bare {
+		return strconv.Quote(val)
+	}
+	return val
+}
+
+// parseMethodAnnotations parses `+ @name[:value]` annotations (one or more
+// groups per line) and attaches them to the method defined just above it.
+func parseMethodAnnotations(p *parser, s *ServiceNode) error {
+	s.lastMetaRoute = false
+	if len(s.methods) == 0 {
+		return fmt.Errorf("annotation must be declared under a service method")
+	}
+	mn := s.methods[len(s.methods)-1]
+
+	anns := []*AnnotationNode{}
+	seen := map[string]struct{}{}
+	for _, existing := range mn.annotations {
+		seen[existing.AnnotationType().String()] = struct{}{}
+	}
+	for p.cursor().tt == tokenAt {
+		more, err := parseAnnotations(p)
+		if err != nil {
+			return err
+		}
+		if len(more) == 0 {
+			return fmt.Errorf("expecting annotation name after '@', e.g. '+ @internal'")
+		}
+		for _, ann := range more {
+			key := ann.AnnotationType().String()
+			if _, ok := seen[key]; ok {
+				return fmt.Errorf("duplicate annotation type: %s", key)
+			}
+			seen[key] = struct{}{}
+		}
+		anns = append(anns, more...)
+		for p.cursor().tt == tokenWhitespace {
+			p.next()
+		}
+	}
+	if err := p.expectOptionalCommentOrEOL(); err != nil {
+		return fmt.Errorf("expecting comment or end of line after annotation, got %q", p.cursor().val)
+	}
+	mn.annotations = append(mn.annotations, anns...)
 	return nil
 }
 
@@ -272,7 +342,7 @@ func parseRouteSuccess(p *parser, s *ServiceNode) error {
 		return fmt.Errorf("@success must be declared under a service method")
 	}
 	mn := s.methods[len(s.methods)-1]
-	if len(mn.routes) == 0 {
+	if len(mn.routes) == 0 || !s.lastMetaRoute {
 		return fmt.Errorf("@success must directly follow a route line of method '%s', e.g. '+ POST /webhooks' then '+ @success 201'", mn.name.String())
 	}
 	route := mn.routes[len(mn.routes)-1]
@@ -369,6 +439,7 @@ func parseAnnotations(p *parser) ([]*AnnotationNode, error) {
 		if _, ok := annotationsMap[annotation.annotationType.String()]; ok {
 			return nil, fmt.Errorf("duplicate annotation type: %s", annotation.annotationType.String())
 		}
+		// annotationsMap is reset per call; the caller checks duplicates across lines.
 
 		annotationsMap[annotation.annotationType.String()] = struct{}{}
 
@@ -392,9 +463,10 @@ func parseAnnotations(p *parser) ([]*AnnotationNode, error) {
 			}
 
 			annotation.value = newTokenNode(annotationValue)
+		} else {
+			// expectStringValue already advanced the cursor past the closing quote.
+			p.next()
 		}
-
-		p.next()
 
 		annotations = append(annotations, annotation)
 	}

@@ -5,8 +5,8 @@ version = v1.0.0
 basepath = /v1
 
 service Example
-  @deprecated:"Use /health endpoint instead."
   - Ping(counter?: bigint) => ()
+    + @deprecated:"Use /health endpoint instead."
 
   # GetUser returns a user by ID.
   - GetUser(userId: uint64) => (code: uint32, user: User)

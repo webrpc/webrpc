@@ -5,8 +5,8 @@ version = v1.0.0
 basepath = /
 
 service Example
-    @deprecated:"Use /ping endpoint instead."
   - Ping() => (status: bool)
+    + @deprecated:"Use /ping endpoint instead."
 
   # GetUser returns a user by ID.
   - GetUser(userID: uint64) => (user: User)

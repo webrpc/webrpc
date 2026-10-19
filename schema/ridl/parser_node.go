@@ -428,6 +428,10 @@ type ServiceNode struct {
 	methods           []*MethodNode
 	methodAnnotations []*AnnotationNode
 	comment           string
+
+	// true while the previous service meta-line is a route, so that
+	// route-scoped meta-lines like `+ @success` can require adjacency.
+	lastMetaRoute bool
 }
 
 func (sn ServiceNode) Type() NodeType {

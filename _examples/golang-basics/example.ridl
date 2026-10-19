@@ -5,31 +5,31 @@ version = v1.0.0 # version of your schema
 basepath = /v1   # basepath for the API
 
 service Example
-    @internal
   - Ping()
+    + @internal
 
-    @internal
   - Status() => (status: bool)
+    + @internal
 
-    @internal
   - Version() => (version: Version)
+    + @internal
 
-    @deprecated:"Use GetUserV2 instead."
-    @internal
   - GetUser(GetUserRequest) => (GetUserResponse)
+    + @deprecated:"Use GetUserV2 instead."
+    + @internal
 
-    @public
-    @auth:"X-Access-Key,S2S,Cookies"
   - GetUserV2(GetUserRequest) => (GetUserResponse)
+    + @public
+    + @auth:"X-Access-Key,S2S,Cookies"
 
-    @public
   - FindUser(s: SearchFilter) => (name: string, user: User)
+    + @public
 
-    @public
   - GetIntents() => (intents: []Intent)
+    + @public
 
-    @public
   - CountIntents(userId: uint64) => (count: map<Intent,uint32>)
+    + @public
 
   - UploadAvatar(UploadAvatarRequest) => (UploadAvatarResponse)
 
@@ -40,18 +40,18 @@ service ExampleV2
   - Status() => (status: bool)
 
 service Admin
-    @public
-    @deprecated:"Use Auth instead."
   - AuthOld() => (jwt: string)
+    + @public
+    + @deprecated:"Use Auth instead."
 
-    @public
   - Auth() => (jwt: string, role: string)
+    + @public
 
-    @internal
   - Status() => (status: bool)
+    + @internal
 
-    @internal
   - Version() => (version: Version)
+    + @internal
 
 
 enum Kind: uint32
