@@ -46,6 +46,8 @@ type parser struct {
 	words    chan interface{}
 	comments map[int]string
 
+	warnings []string
+
 	root RootNode
 }
 
@@ -63,6 +65,10 @@ func newParser(file string, src []byte) (*parser, error) {
 		comments: comments,
 	}
 	return p, nil
+}
+
+func (p *parser) warn(msg string) {
+	p.warnings = append(p.warnings, msg)
 }
 
 func (p *parser) emit(message interface{}) {
@@ -186,6 +192,13 @@ func (p *parser) cursor() *token {
 		return eofToken
 	}
 	return &p.tokens[p.pos]
+}
+
+func (p *parser) peek() *token {
+	if p.pos+1 >= p.length {
+		return eofToken
+	}
+	return &p.tokens[p.pos+1]
 }
 
 func (p *parser) expectStringValue() (*token, error) {

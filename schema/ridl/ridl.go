@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"os"
 	"path"
 	"path/filepath"
 	"slices"
@@ -26,9 +27,10 @@ type Parser struct {
 	imports *graph.Graph[string]
 	cache   map[string]*schema.WebRPCSchema // cache for already parsed schemas
 
-	path string
-	root string
-	fsys fs.FS
+	path     string
+	root     string
+	fsys     fs.FS
+	warnings []string
 }
 
 func NewParser(fsys fs.FS, root, path string) *Parser {
@@ -47,6 +49,14 @@ func (p *Parser) Parse() (*schema.WebRPCSchema, error) {
 		return nil, err
 	}
 
+	// Only the root parser prints: imported files' warnings are propagated up
+	// to it, so every warning reaches stderr exactly once.
+	if p.parent == nil {
+		for _, w := range p.warnings {
+			fmt.Fprintln(os.Stderr, w)
+		}
+	}
+
 	// run through schema validator, last step to ensure all is good.
 	err = s.Validate()
 	if err != nil {
@@ -54,6 +64,12 @@ func (p *Parser) Parse() (*schema.WebRPCSchema, error) {
 	}
 
 	return s, nil
+}
+
+// Warnings returns the deprecation and other warnings collected while parsing
+// this file and its imports. Populated after a successful Parse.
+func (p *Parser) Warnings() []string {
+	return p.warnings
 }
 
 func (p *Parser) importParser(filename string) (*Parser, error) {
@@ -125,6 +141,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 	if err = q.run(); err != nil {
 		return nil, err
 	}
+	p.warnings = append(p.warnings, q.warnings...)
 
 	s := &schema.WebRPCSchema{
 		Types:    []*schema.Type{},
@@ -174,6 +191,8 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			if p.cache[importPath], err = parser.Parse(); err != nil {
 				return nil, newImportError(parser, err)
 			}
+			// The child's warnings carry their own file:line prefix.
+			p.warnings = append(p.warnings, parser.warnings...)
 		}
 
 		members := []string{}

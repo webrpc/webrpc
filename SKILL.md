@@ -75,14 +75,15 @@ error 1000 Unauthorized "unauthorized" HTTP 401    # status defaults to 400
 error 4001 InvalidTransition "invalid state" HTTP 409
 
 service Example
-  @deprecated:"use NewMethod instead"
-  @access:s2s
   - GetUser(GetUserRequest) => (GetUserResponse)   # succinct form, preferred
+    + @deprecated:"use NewMethod instead"
+    + @access:s2s
   - Ping() => (version: string)                    # no-payload inline return is fine
 ```
 - Group error codes by range (1xxx auth, 2xxx validation, 3xxx not-found, 4xxx business).
-- Annotations attach only directly above the `- Method` line; anywhere else in the method
-  block is a parse error.
+- A method block holds `+ @name[:value]` annotations and `+ VERB /path` routes; the two
+  interleave freely below the `- Method` line. Anything else in the block is a parse error.
+  Above-method annotations are deprecated, warn, and will be removed in a future release.
 - Go: a `WebRPCError` must reach the transport unwrapped (the server type-asserts it) —
   use `proto.ErrXxx.WithCause(err)`, not `fmt.Errorf` chains.
 - Custom annotations (`@access:`, `@perms:`) are readable at runtime: middleware calls

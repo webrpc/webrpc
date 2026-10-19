@@ -530,7 +530,7 @@ service Users
       + POST /users
       + @created 201
 `,
-			wantErr: "expecting '@success <code>' after '+'",
+			wantErr: "expecting ':' before the annotation value, e.g. '+ @created:201'",
 		},
 		{
 			name: "duplicate @success on one route",
