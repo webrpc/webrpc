@@ -65,9 +65,15 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 		// Emit deprecation warnings for above-method annotations now that we
 		// know the method they belong to.
 		for _, ann := range sn.methodAnnotations {
-			annStr := "+ @" + ann.AnnotationType().String()
+			name := ann.AnnotationType().String()
+			annStr := "+ @" + name
 			if ann.value != nil {
 				annStr += ":" + quoteIfNeeded(ann.value.String())
+			}
+			if name == "success" {
+				// '+ @success' below a method is route-scoped; the annotation must be renamed there.
+				p.warn(fmt.Sprintf("%s:%d: warning: deprecated annotation syntax: move '%s' below the '- %s' method line and rename it (e.g. '+ @successful:ok'): '+ @success' is reserved for route success codes", p.file, ann.AnnotationType().tok.line, annStr, methodName.val))
+				continue
 			}
 			p.warn(fmt.Sprintf("%s:%d: warning: deprecated annotation syntax: move '%s' below the '- %s' method line (above-method annotations are deprecated and will be removed in a future release)", p.file, ann.AnnotationType().tok.line, annStr, methodName.val))
 		}
@@ -237,7 +243,7 @@ func parseMethodRoute(p *parser, s *ServiceNode) error {
 		return fmt.Errorf("route must be declared under a service method")
 	}
 	if len(s.methodAnnotations) > 0 {
-		return fmt.Errorf("route must directly follow its method: move the annotations above the next method")
+		return fmt.Errorf("route must directly follow its method: declare annotations as '+ @name' under a method, not above it")
 	}
 	mn := s.methods[len(s.methods)-1]
 
@@ -299,6 +305,7 @@ func parseMethodAnnotations(p *parser, s *ServiceNode) error {
 	for _, existing := range mn.annotations {
 		seen[existing.AnnotationType().String()] = struct{}{}
 	}
+	lastName := ""
 	for p.cursor().tt == tokenAt {
 		more, err := parseAnnotations(p)
 		if err != nil {
@@ -309,6 +316,7 @@ func parseMethodAnnotations(p *parser, s *ServiceNode) error {
 		}
 		for _, ann := range more {
 			key := ann.AnnotationType().String()
+			lastName = key
 			if _, ok := seen[key]; ok {
 				return fmt.Errorf("duplicate annotation type: %s", key)
 			}
@@ -320,6 +328,9 @@ func parseMethodAnnotations(p *parser, s *ServiceNode) error {
 		}
 	}
 	if err := p.expectOptionalCommentOrEOL(); err != nil {
+		if tok := p.cursor(); tok.tt == tokenWord && lastName != "" {
+			return fmt.Errorf("expecting ':' before the annotation value, e.g. '+ @%s:%s'", lastName, tok.val)
+		}
 		return fmt.Errorf("expecting comment or end of line after annotation, got %q", p.cursor().val)
 	}
 	mn.annotations = append(mn.annotations, anns...)
@@ -450,22 +461,24 @@ func parseAnnotations(p *parser) ([]*AnnotationNode, error) {
 
 		p.next()
 
+		switch tok := p.cursor(); tok.tt {
 		// @acl:admin
-		if p.cursor() != eofToken && p.cursor().tt == tokenWord {
-			annotation.value = newTokenNode(p.cursor())
-		}
+		case tokenWord:
+			annotation.value = newTokenNode(tok)
+			p.next()
 
 		// @auth:"cookies,authorization,query"
-		if p.cursor() != eofToken && p.cursor().tt == tokenQuote {
+		case tokenQuote:
+			// expectStringValue advances the cursor past the closing quote.
 			annotationValue, err := p.expectStringValue()
 			if err != nil {
 				return nil, fmt.Errorf("parse string value: %w", err)
 			}
 
 			annotation.value = newTokenNode(annotationValue)
-		} else {
-			// expectStringValue already advanced the cursor past the closing quote.
-			p.next()
+
+		default:
+			return nil, fmt.Errorf("expecting value after ':' in annotation '@%s'", annotation.annotationType.String())
 		}
 
 		annotations = append(annotations, annotation)

@@ -530,7 +530,7 @@ service Users
       + POST /users
       + @created 201
 `,
-			wantErr: "expecting comment or end of line after annotation, got \"201\"",
+			wantErr: "expecting ':' before the annotation value, e.g. '+ @created:201'",
 		},
 		{
 			name: "duplicate @success on one route",

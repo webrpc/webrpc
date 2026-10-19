@@ -1,6 +1,9 @@
 package ridl
 
 import (
+	"io"
+	"os"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -8,6 +11,24 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/webrpc/webrpc/schema"
 )
+
+// captureStderr collects everything written to os.Stderr while fn runs.
+func captureStderr(t *testing.T, fn func()) string {
+	t.Helper()
+
+	r, w, err := os.Pipe()
+	require.NoError(t, err)
+	orig := os.Stderr
+	os.Stderr = w
+	defer func() { os.Stderr = orig }()
+
+	fn()
+
+	require.NoError(t, w.Close())
+	out, err := io.ReadAll(r)
+	require.NoError(t, err)
+	return string(out)
+}
 
 func parseStringWithWarnings(src string) (*schema.WebRPCSchema, []string, error) {
 	fsys := fstest.MapFS{
@@ -213,4 +234,113 @@ service Example
 `)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "@success must directly follow a route line")
+}
+
+// An imported file's warnings must reach both Warnings() and stderr, and stderr
+// exactly once.
+func TestRIDLImportedFileWarnings(t *testing.T) {
+	fsys := fstest.MapFS{
+		"main.ridl": {Data: []byte(`webrpc = v1
+name = example
+version = v0.0.1
+
+import
+- types.ridl
+
+service Example
+  - Ping() => (ok: bool)
+`)},
+		"types.ridl": {Data: []byte(`webrpc = v1
+name = types
+version = v0.0.1
+
+service TypesService
+  @internal
+  - Ping() => (ok: bool)
+`)},
+	}
+
+	var (
+		warnings []string
+		parseErr error
+	)
+	stderr := captureStderr(t, func() {
+		p := NewParser(fsys, "/", "main.ridl")
+		_, parseErr = p.Parse()
+		warnings = p.Warnings()
+	})
+
+	require.NoError(t, parseErr)
+	require.Len(t, warnings, 1)
+	assert.Contains(t, warnings[0], "types.ridl:6: warning: deprecated annotation syntax")
+	assert.Equal(t, 1, strings.Count(stderr, "deprecated annotation syntax"))
+}
+
+func TestRIDLMethodAnnotationOnProxyMethod(t *testing.T) {
+	s, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  - proxy ContactsService.GetContact
+    + @internal
+`)
+	require.NoError(t, err)
+	assert.Empty(t, warnings)
+
+	method := s.Services[0].Methods[0]
+	require.Contains(t, method.Annotations, "internal")
+}
+
+func TestRIDLMethodAnnotationMissingNameError(t *testing.T) {
+	_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  - proxy ContactsService.GetContact
+    + @
+`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "expecting annotation name after '@'")
+}
+
+func TestRIDLMethodAnnotationLastMethodBeforeNextService(t *testing.T) {
+	s, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  - Ping(PingRequest) => (PingResponse)
+    + @internal
+
+service Second
+  - Pong(PingRequest) => (PingResponse)
+`)
+	require.NoError(t, err)
+	assert.Empty(t, warnings)
+
+	require.Len(t, s.Services, 2)
+	require.Contains(t, s.Services[0].Methods[0].Annotations, "internal")
+	assert.Empty(t, s.Services[1].Methods[0].Annotations)
+}
+
+func TestRIDLMethodAnnotationMissingColonError(t *testing.T) {
+	_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  - Ping(PingRequest) => (PingResponse)
+    + @auth admin
+`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "expecting ':' before the annotation value, e.g. '+ @auth:admin'")
+}
+
+func TestRIDLMethodAnnotationEmptyValueAtEOFError(t *testing.T) {
+	t.Run("new syntax", func(t *testing.T) {
+		_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  - Ping(PingRequest) => (PingResponse)
+    + @auth:`)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "expecting value after ':' in annotation '@auth'")
+	})
+
+	t.Run("old syntax", func(t *testing.T) {
+		_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  @auth:`)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "expecting value after ':' in annotation '@auth'")
+	})
 }

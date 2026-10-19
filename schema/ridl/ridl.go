@@ -49,8 +49,12 @@ func (p *Parser) Parse() (*schema.WebRPCSchema, error) {
 		return nil, err
 	}
 
-	for _, w := range p.warnings {
-		fmt.Fprintln(os.Stderr, w)
+	// Only the root parser prints: imported files' warnings are propagated up
+	// to it, so every warning reaches stderr exactly once.
+	if p.parent == nil {
+		for _, w := range p.warnings {
+			fmt.Fprintln(os.Stderr, w)
+		}
 	}
 
 	// run through schema validator, last step to ensure all is good.
@@ -63,7 +67,7 @@ func (p *Parser) Parse() (*schema.WebRPCSchema, error) {
 }
 
 // Warnings returns the deprecation and other warnings collected while parsing
-// this file. Populated after a successful Parse.
+// this file and its imports. Populated after a successful Parse.
 func (p *Parser) Warnings() []string {
 	return p.warnings
 }
@@ -187,6 +191,8 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 			if p.cache[importPath], err = parser.Parse(); err != nil {
 				return nil, newImportError(parser, err)
 			}
+			// The child's warnings carry their own file:line prefix.
+			p.warnings = append(p.warnings, parser.warnings...)
 		}
 
 		members := []string{}
