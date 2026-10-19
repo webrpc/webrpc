@@ -81,7 +81,7 @@ export class Chat implements ChatClient {
     return this.fetch(
       this.url('SendMessage'),
       createHttpRequest(JsonEncode(req), headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, true).then(_data => {
         return JsonDecode<SendMessageResponse>(_data, 'SendMessageResponse')
       })
     }, (error) => {
@@ -244,11 +244,14 @@ const createHttpRequest = (body: string = '{}', headers: object = {}, signal: Ab
   return { method: 'POST', headers: reqHeaders, body, signal }
 }
 
-const buildResponse = (res: Response): Promise<any> => {
+const buildResponse = (res: Response, emptyOk: boolean = false): Promise<any> => {
   return res.text().then(text => {
     let data
     try {
-      data = text.trim() === '' ? {} : JSON.parse(text) // empty body (e.g. 204/205, or a Go server's bodyless 200): the zero result
+      if (text.trim() === '' && emptyOk && res.ok) {
+        return {} // empty body on an empty-response method: the zero result
+      }
+      data = JSON.parse(text)
     } catch(error) {
       throw WebrpcBadResponseError.new({
         status: res.status,

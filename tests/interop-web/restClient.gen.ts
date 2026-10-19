@@ -297,7 +297,7 @@ export class TestApiRest implements TestApiRestClient {
   getItem = async (req: GetItemRequest, headers?: object, signal?: AbortSignal): Promise<GetItemResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items/{id}', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<GetItemResponse>(_data, 'GetItemResponse')
       })
     }, (error) => {
@@ -308,7 +308,7 @@ export class TestApiRest implements TestApiRestClient {
   listItems = async (req: ListItemsRequest, headers?: object, signal?: AbortSignal): Promise<ListItemsResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<ListItemsResponse>(_data, 'ListItemsResponse')
       })
     }, (error) => {
@@ -319,7 +319,7 @@ export class TestApiRest implements TestApiRestClient {
   createItem = async (req: CreateItemRequest, headers?: object, signal?: AbortSignal): Promise<CreateItemResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'POST', '/rpc/items', true, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<CreateItemResponse>(_data, 'CreateItemResponse')
       })
     }, (error) => {
@@ -330,7 +330,7 @@ export class TestApiRest implements TestApiRestClient {
   updateItem = async (req: UpdateItemRequest, headers?: object, signal?: AbortSignal): Promise<UpdateItemResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'PUT', '/rpc/items/{id}', true, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<UpdateItemResponse>(_data, 'UpdateItemResponse')
       })
     }, (error) => {
@@ -341,7 +341,7 @@ export class TestApiRest implements TestApiRestClient {
   patchItem = async (req: PatchItemRequest, headers?: object, signal?: AbortSignal): Promise<PatchItemResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'PATCH', '/rpc/items/{id}', true, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<PatchItemResponse>(_data, 'PatchItemResponse')
       })
     }, (error) => {
@@ -352,7 +352,7 @@ export class TestApiRest implements TestApiRestClient {
   upsertItem = async (req: UpsertItemRequest, headers?: object, signal?: AbortSignal): Promise<UpsertItemResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'PUT', '/rpc/items', true, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<UpsertItemResponse>(_data, 'UpsertItemResponse')
       })
     }, (error) => {
@@ -363,7 +363,7 @@ export class TestApiRest implements TestApiRestClient {
   deleteItem = async (req: DeleteItemRequest, headers?: object, signal?: AbortSignal): Promise<DeleteItemResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'DELETE', '/rpc/items/{id}', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, true).then(_data => {
         return JsonDecode<DeleteItemResponse>(_data, 'DeleteItemResponse')
       })
     }, (error) => {
@@ -374,7 +374,7 @@ export class TestApiRest implements TestApiRestClient {
   purgeItems = async (headers?: object, signal?: AbortSignal): Promise<PurgeItemsResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'POST', '/rpc/items/purge', true, {}, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, true).then(_data => {
         return JsonDecode<PurgeItemsResponse>(_data, 'PurgeItemsResponse')
       })
     }, (error) => {
@@ -385,7 +385,7 @@ export class TestApiRest implements TestApiRestClient {
   queryItems = async (req: QueryItemsRequest, headers?: object, signal?: AbortSignal): Promise<QueryItemsResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'QUERY', '/rpc/items/search', true, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<QueryItemsResponse>(_data, 'QueryItemsResponse')
       })
     }, (error) => {
@@ -396,7 +396,7 @@ export class TestApiRest implements TestApiRestClient {
   echoParams = async (req: EchoParamsRequest, headers?: object, signal?: AbortSignal): Promise<EchoParamsResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items/echo/params', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<EchoParamsResponse>(_data, 'EchoParamsResponse')
       })
     }, (error) => {
@@ -407,7 +407,7 @@ export class TestApiRest implements TestApiRestClient {
   getChild = async (req: GetChildRequest, headers?: object, signal?: AbortSignal): Promise<GetChildResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items/{id}/children/{childId}', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<GetChildResponse>(_data, 'GetChildResponse')
       })
     }, (error) => {
@@ -418,7 +418,7 @@ export class TestApiRest implements TestApiRestClient {
   getItemStatus = async (req: GetItemStatusRequest, headers?: object, signal?: AbortSignal): Promise<GetItemStatusResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items/{id}/status/latest', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<GetItemStatusResponse>(_data, 'GetItemStatusResponse')
       })
     }, (error) => {
@@ -429,7 +429,7 @@ export class TestApiRest implements TestApiRestClient {
   resetItems = async (headers?: object, signal?: AbortSignal): Promise<ResetItemsResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'POST', '/rpc/items/reset', true, {}, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, true).then(_data => {
         return JsonDecode<ResetItemsResponse>(_data, 'ResetItemsResponse')
       })
     }, (error) => {
@@ -440,7 +440,7 @@ export class TestApiRest implements TestApiRestClient {
   lookupItem = async (req: LookupItemRequest, headers?: object, signal?: AbortSignal): Promise<LookupItemResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items/lookup/{id}', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<LookupItemResponse>(_data, 'LookupItemResponse')
       })
     }, (error) => {
@@ -451,7 +451,7 @@ export class TestApiRest implements TestApiRestClient {
   findItems = async (req: FindItemsRequest, headers?: object, signal?: AbortSignal): Promise<FindItemsResponse> => {
     return this.fetch(
       ...createHttpRestRequest(this.hostname, 'GET', '/rpc/items/find', false, req, headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<FindItemsResponse>(_data, 'FindItemsResponse')
       })
     }, (error) => {
@@ -463,7 +463,7 @@ export class TestApiRest implements TestApiRestClient {
     return this.fetch(
       this.url('RpcMethod'),
       createHttpRequest(JsonEncode(req), headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, false).then(_data => {
         return JsonDecode<RpcMethodResponse>(_data, 'RpcMethodResponse')
       })
     }, (error) => {
@@ -510,11 +510,14 @@ const createHttpRestRequest = (hostname: string, method: string, path: string, h
   return [hostname + path + (qs ? '?' + qs : ''), { method, headers: reqHeaders, body: hasBody ? JsonEncode(req) : undefined, signal }]
 }
 
-const buildResponse = (res: Response): Promise<any> => {
+const buildResponse = (res: Response, emptyOk: boolean = false): Promise<any> => {
   return res.text().then(text => {
     let data
     try {
-      data = text.trim() === '' ? {} : JSON.parse(text) // empty body (e.g. 204/205, or a Go server's bodyless 200): the zero result
+      if (text.trim() === '' && emptyOk && res.ok) {
+        return {} // empty body on an empty-response method: the zero result
+      }
+      data = JSON.parse(text)
     } catch(error) {
       throw WebrpcBadResponseError.new({
         status: res.status,

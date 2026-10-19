@@ -139,8 +139,9 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"RouteHasBodyFields":   schema.RouteHasBodyFields,   // v0.47.0
 		"RoutePath":            schema.RoutePath,            // v0.47.0
 		"RoutePattern":         schema.RoutePattern,         // v0.47.0
-		"RouteSuccessStatus":   schema.RouteSuccessStatus,   // v0.47.0
-		"RouteSuccessCodes":    schema.RouteSuccessCodes,    // v0.47.0
+		"RouteSuccessStatus":      schema.RouteSuccessStatus,      // v0.47.0
+		"RouteSuccessCodes":       schema.RouteSuccessCodes,       // v0.47.0
+		"MethodHasEmptyResponse": schema.MethodHasEmptyResponse, // v0.47.0
 		"RouteRestBehavior":    routeRestBehavior,           // static WriteHeader split
 		"RouteParams":          schema.RouteParams,          // v0.47.0
 		"RouteShapeOf":         schema.RouteShapeOf,         // switch-based REST router

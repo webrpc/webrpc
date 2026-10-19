@@ -20,7 +20,7 @@ import http from 'node:http'
 import { once } from 'node:events'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
-import { TestApiRest, Status, WebrpcBadRequestError } from './restClient.gen'
+import { TestApiRest, Status, WebrpcBadRequestError, WebrpcBadResponseError } from './restClient.gen'
 import { TestApiRestServer, Item, UnexpectedValueError, serveTestApiRestRpc, withStatus } from './restServer.gen'
 import { ParamRest, WebrpcBadRequestError as ParamBadRequestError } from './paramRestClient.gen'
 import { ParamRestServer, serveParamRestRpc } from './paramRestServer.gen'
@@ -469,11 +469,14 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   assert.equal(deleted200.status, 200, 'bodyless 200 delete status mismatch')
   assert.equal(await deleted200.text(), server === 'go' ? '' : '{}', 'bodyless 200 body mismatch')
 
-  // The raw wire response of the bodyless 204.
+  // The raw wire response of the bodyless 204. Bodyless responses carry no
+  // Content-Type on either server (the Response constructor allows a null
+  // body without leaking Content-Length either).
   await api.upsertItem({ item: { id: 8, name: 'eight' } })
   const deleted = await fetch(`${addr}/rpc/items/8`, { method: 'DELETE' })
   assert.equal(deleted.status, 204, 'delete status mismatch')
   assert.equal(await deleted.text(), '', '204 must carry no body')
+  assert.equal(deleted.headers.get('Content-Type'), null, '204 must carry no Content-Type')
 
   // Path params overwrite conflicting JSON body fields (decode order:
   // body -> path).
@@ -536,6 +539,31 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   const purged = await fetch(`${addr}/rpc/items/purge`, { method: 'POST' })
   assert.equal(purged.status, 204, 'purge must answer the declared 204')
   assert.equal(await purged.text(), '', '204 must carry no body')
+  assert.equal(purged.headers.get('Content-Type'), null, '204 must carry no Content-Type')
+
+  // A whitespace-only body is a payload: 400 without Content-Type, and a
+  // zero-value request with 'application/json' (parity with the Go server).
+  await api.upsertItem({ item: { id: 11, name: 'eleven' } })
+  const whitespaceNoCT = await fetch(`${addr}/rpc/items/11`, { method: 'PATCH', body: '   ' })
+  assert.equal(whitespaceNoCT.status, 400, 'whitespace-only body without Content-Type must return 400')
+  await whitespaceNoCT.body?.cancel()
+  const whitespaceJSON = await fetch(`${addr}/rpc/items/11`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: '   ' })
+  assert.equal(whitespaceJSON.status, 200, 'whitespace-only JSON body must return 200')
+  const { item: whitespaceItem } = await api.getItem({ id: 11 })
+  assert.equal(whitespaceItem.name, 'eleven', 'whitespace-only JSON body must decode as zero-value')
+
+  // A raw fetch returning an empty body on an error status (e.g. a 500) must
+  // surface the HTTP status (WebrpcBadResponseError) instead of a generic
+  // error, even on a method with an empty response.
+  const errApi = new TestApiRest(addr, async () => new Response('', { status: 500 }))
+  await assert.rejects(
+    errApi.deleteItem({ id: 10 }),
+    (err: any) => {
+      assert.ok(err instanceof WebrpcBadResponseError, 'empty 500 must throw WebrpcBadResponseError')
+      assert.equal(err.status, 500, 'empty 500 must carry the HTTP status')
+      return true
+    },
+  )
 }
 
 // paramSuite covers the param parsing rules of the Go server: bool spellings,
