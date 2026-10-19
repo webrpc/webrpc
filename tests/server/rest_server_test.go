@@ -124,6 +124,14 @@ func TestRESTContentTypeRelaxation(t *testing.T) {
 	if rec := serveTest(t, srv, "POST", "/rpc/items/reset", "text/plain", `{"unknown":`); rec.Code != http.StatusBadRequest {
 		t.Errorf("POST /rpc/items/reset with malformed body: status %d, want 400", rec.Code)
 	}
+
+	// Trailing data after a valid JSON value must fail: parity with the
+	// TypeScript client's JSON.parse.
+	for _, body := range []string{"{} garbage", "{} {}"} {
+		if rec := serveTest(t, srv, "POST", "/rpc/items/reset", "application/json", body); rec.Code != http.StatusBadRequest {
+			t.Errorf("POST /rpc/items/reset with trailing data %q: status %d, want 400", body, rec.Code)
+		}
+	}
 }
 
 // TestRESTOnRequestReadsBody pins that OnRequest runs before any body read

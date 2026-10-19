@@ -319,16 +319,29 @@ const dispatchParamRestRequest = async <Context>(service: ParamRestServer<Contex
 
 
 const webrpcRequestBodyText = async (request: Request, skipContentTypeCheck: boolean = false): Promise<string> => {
+  const contentType = (request.headers.get('Content-Type') || '').split(';')[0]!.trim().toLowerCase()
+  const checkContentType = () => {
+    if (contentType !== 'application/json' && !skipContentTypeCheck) {
+      throw new WebrpcBadRequestError({ cause: `unsupported Content-Type '${request.headers.get('Content-Type') || ''}' (only application/json is allowed)` })
+    }
+  }
+  // Reject a declared body before buffering it: a non-zero Content-Length must
+  // already declare 'application/json' (a CSRF guard forcing a CORS preflight
+  // for cross-site form posts).
+  let checked = false
+  const contentLength = parseInt(request.headers.get('Content-Length') || '0', 10)
+  if (!skipContentTypeCheck && contentLength > 0) {
+    checkContentType()
+    checked = true
+  }
   const text = await request.text()
-  // An empty body (no data or whitespace only) yields a zero-value request and bypasses
-  // the Content-Type check. A non-empty body must still declare 'application/json': the
-  // check is a CSRF guard that forces a CORS preflight for cross-site form posts.
-  if (text.trim() === '') {
+  // Only a zero-byte body is an empty request; whitespace-only counts as a
+  // payload and must still declare 'application/json'.
+  if (text === '') {
     return ''
   }
-  const contentType = (request.headers.get('Content-Type') || '').split(';')[0]!.trim().toLowerCase()
-  if (contentType !== 'application/json' && !skipContentTypeCheck) {
-    throw new WebrpcBadRequestError({ cause: `unsupported Content-Type '${request.headers.get('Content-Type') || ''}' (only application/json is allowed)` })
+  if (!checked) {
+    checkContentType()
   }
   return text
 }
@@ -345,10 +358,8 @@ const webrpcJsonResponse = (data: any, status = 200): Response => {
 // throws on one.
 const webrpcSuccessResponse = (data: any, status = 200): Response => {
   if (status === 204 || status === 205) {
-    return new Response(null, {
-      status,
-      headers: { [WebrpcHeader]: WebrpcHeaderValue, 'Content-Type': 'application/json' },
-    })
+    // Bodyless: the Go server sends no Content-Type here either.
+    return new Response(null, { status, headers: { [WebrpcHeader]: WebrpcHeaderValue } })
   }
   return webrpcJsonResponse(data, status)
 }
@@ -522,8 +533,9 @@ const webrpcRestParam = (value: string, type: string): any => {
 }
 
 // webrpcJsonBody parses a JSON request body into the request data object.
+// Whitespace-only counts as an empty body (like Go's io.EOF): the zero value.
 const webrpcJsonBody = (body: string): { [key: string]: any } => {
-  if (body === '') {
+  if (body.trim() === '') {
     return {}
   }
   let data: any

@@ -1934,9 +1934,15 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 
 		var req I
 		if hasPayload {
+			dec := json.NewDecoder(r.Body)
 			// io.EOF means an empty (or hook-consumed) body: a zero-value request.
-			if err := json.NewDecoder(r.Body).Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+			if err := dec.Decode(&req); err != nil && !errors.Is(err, io.EOF) {
 				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
+				return
+			}
+			// Parity with TS JSON.parse: reject any trailing data after a successful JSON value.
+			if dec.More() {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: unexpected trailing data"))
 				return
 			}
 		}
