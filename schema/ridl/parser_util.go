@@ -3,6 +3,7 @@ package ridl
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 func expectWord(tok *token, value string) error {
@@ -32,7 +33,7 @@ func expectNumber(tok *token, value string) error {
 
 func unescapeString(in string) (string, error) {
 	size := len(in)
-	out := ""
+	out := strings.Builder{}
 
 	for i := 0; i < size; i++ {
 		c := in[i]
@@ -42,21 +43,22 @@ func unescapeString(in string) (string, error) {
 			if i < size {
 				switch n := in[i]; n {
 				case 'n':
-					out = out + "\n"
+					out.WriteString("\n")
 				case 't':
-					out = out + "\t"
+					out.WriteString("\t")
 				case '"':
-					out = out + string(n)
+					out.WriteByte(n)
 				default:
-					return "", fmt.Errorf("unexpected character %q after backslash", c)
+					return "", fmt.Errorf("unexpected character %q after backslash", n)
 				}
 			} else {
 				return "", errors.New("unexpected end after backslash")
 			}
 		} else {
-			out = out + string(c)
+			// Write the raw byte so multi-byte UTF-8 characters survive.
+			out.WriteByte(c)
 		}
 	}
 
-	return out, nil
+	return out.String(), nil
 }

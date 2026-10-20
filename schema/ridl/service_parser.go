@@ -74,11 +74,11 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 				if !bareAnnotationValueReproducible(v) {
 					v = strconv.Quote(v)
 				}
-				annStr += ":" + v
+				annStr += " = " + v
 			}
 			if name == "success" {
 				// '+ @success' below a method is route-scoped; the annotation must be renamed there.
-				p.warn(fmt.Sprintf("%s:%d: warning: deprecated annotation syntax: move '%s' below the '- %s' method line and rename it (e.g. '+ @successful:ok'): '+ @success' is reserved for route success codes", p.file, ann.AnnotationType().tok.line, annStr, methodName.val))
+				p.warn(fmt.Sprintf("%s:%d: warning: deprecated annotation syntax: move '%s' below the '- %s' method line and rename it (e.g. '+ @successful = ok'): '+ @success' is reserved for route success codes", p.file, ann.AnnotationType().tok.line, annStr, methodName.val))
 				continue
 			}
 			p.warn(fmt.Sprintf("%s:%d: warning: deprecated annotation syntax: move '%s' below the '- %s' method line (above-method annotations are deprecated and will be removed in a future release)", p.file, ann.AnnotationType().tok.line, annStr, methodName.val))
@@ -281,28 +281,22 @@ func parseMethodRoute(p *parser, s *ServiceNode) error {
 	return nil
 }
 
-// bareAnnotationValueReproducible reports whether the new bare to-EOL syntax
-// would re-read v exactly. Bare values collapse whitespace runs to one space,
-// and a '#' starts a comment, so anything else needs quotes.
+// bareAnnotationValueReproducible reports whether the below-method `=` syntax
+// would re-read v exactly from a bare value. A bare value ends at the first
+// whitespace and a '#' starts a comment, so anything else needs quotes.
 func bareAnnotationValueReproducible(v string) bool {
-	if v == "" || strings.TrimSpace(v) != v || strings.HasPrefix(v, `"`) || strings.Contains(v, "#") {
+	if v == "" || strings.HasPrefix(v, `"`) || strings.Contains(v, "#") {
 		return false
 	}
-	prevSpace := false
 	for _, r := range v {
-		if !unicode.IsSpace(r) {
-			prevSpace = false
-			continue
-		}
-		if r != ' ' || prevSpace {
+		if unicode.IsSpace(r) {
 			return false
 		}
-		prevSpace = true
 	}
 	return true
 }
 
-// parseMethodAnnotations parses a single `+ @name[:value]` annotation (one
+// parseMethodAnnotations parses a single `+ @name[ = value]` annotation (one
 // annotation per line) and attaches it to the method defined just above it.
 func parseMethodAnnotations(p *parser, s *ServiceNode) error {
 	if len(s.methods) == 0 {
@@ -328,7 +322,7 @@ func parseMethodAnnotations(p *parser, s *ServiceNode) error {
 	}
 	if err := p.expectOptionalCommentOrEOL(); err != nil {
 		if tok := p.cursor(); tok.tt == tokenWord {
-			return fmt.Errorf("expecting ':' before the annotation value, e.g. '+ @%s:%s'", ann.AnnotationType().String(), tok.val)
+			return fmt.Errorf("expecting '=' before the annotation value, e.g. '+ @%s = %s'", ann.AnnotationType().String(), tok.val)
 		}
 		return fmt.Errorf("expecting comment or end of line after annotation, got %q", p.cursor().val)
 	}
@@ -424,10 +418,10 @@ func parserStateService(p *parser) parserState {
 	})
 }
 
-// parseAnnotations parses `@name[:value]` annotation groups. When toEOL is
-// false (the deprecated above-method form) it loops over multiple annotations
-// on one line; when true it parses exactly one, with the value running to the
-// end of the line.
+// parseAnnotations parses annotation groups. When toEOL is false (the
+// deprecated above-method form) it reads `@name[:value]` pairs and loops over
+// several of them on one line; when true it parses exactly one below-method
+// `+ @name[ = value]` annotation, with struct-tag value rules.
 func parseAnnotations(p *parser, toEOL bool) ([]*AnnotationNode, error) {
 	annotations := []*AnnotationNode{}
 	annotationsMap := map[string]struct{}{}
@@ -456,81 +450,39 @@ func parseAnnotations(p *parser, toEOL bool) ([]*AnnotationNode, error) {
 
 		annotationsMap[annotation.annotationType.String()] = struct{}{}
 
-		if p.cursor().tt != tokenColon {
-			annotations = append(annotations, annotation)
-		} else {
-			p.next()
-
-			if toEOL {
-				// + @key:"quoted value" — escape hatch for leading/trailing
-				// spaces or a literal ` #`.
-				if p.cursor() != eofToken && p.cursor().tt == tokenQuote {
-					annotationValue, err := p.expectStringValue()
-					if err != nil {
-						return nil, fmt.Errorf("parse string value: %w", err)
-					}
-					annotation.value = newTokenNode(annotationValue)
-					annotations = append(annotations, annotation)
-					for p.cursor().tt == tokenWhitespace {
-						p.next()
-					}
-					if p.cursor().tt == tokenAt {
-						return nil, fmt.Errorf("unexpected '@': one annotation per line")
-					}
-					break
-				}
-
-				// + @key:value — value is everything after the first colon to
-				// end of line; a `#` starts a comment like everywhere in RIDL.
-				valToks := []*token{}
-				for p.cursor().tt != tokenNewLine && p.cursor().tt != tokenHash && p.cursor() != eofToken {
-					if p.cursor().tt != tokenWhitespace {
-						valToks = append(valToks, p.cursor())
-					}
+		if toEOL {
+			for p.cursor().tt == tokenWhitespace {
+				p.next()
+			}
+			// + @name = value — a quoted value keeps its spaces and escapes, a
+			// bare value ends at the first whitespace or '#' and keeps
+			// backslashes literal.
+			if p.cursor().tt == tokenEqual {
+				p.next()
+				for p.cursor().tt == tokenWhitespace {
 					p.next()
 				}
-				if len(valToks) == 0 {
-					return nil, fmt.Errorf("expecting value after ':' in annotation '@%s'", annotation.annotationType.String())
+				switch p.cursor().tt {
+				case tokenHash, tokenNewLine, tokenEOF:
+					return nil, fmt.Errorf("expecting value after '=' in annotation '@%s'", annotation.annotationType.String())
 				}
-				// Rejoin tokens using their columns so adjacent tokens (e.g.
-				// `a,b`) stay adjacent, with single spaces for source whitespace.
-				var val strings.Builder
-				prev := (*token)(nil)
-				for _, tok := range valToks {
-					// tok.col is a rune-based END column; compare rune counts so multibyte values keep their spaces.
-					if prev != nil && tok.col > prev.col+len([]rune(tok.val)) {
-						val.WriteString(" ")
-					}
-					val.WriteString(tok.val)
-					prev = tok
+				annotationValue, err := p.expectAnnotationValue()
+				if err != nil {
+					return nil, fmt.Errorf("expecting value after '=' in annotation '@%s': %w", annotation.annotationType.String(), err)
 				}
-				annotation.value = newTokenNode(&token{tt: tokenWord, val: val.String(), pos: valToks[0].pos, line: valToks[0].line, col: valToks[0].col})
-			} else {
-				switch tok := p.cursor(); tok.tt {
-				// @acl:admin
-				case tokenWord:
-					annotation.value = newTokenNode(tok)
+				annotation.value = newTokenNode(annotationValue)
+				for p.cursor().tt == tokenWhitespace {
 					p.next()
-
-				// @auth:"cookies,authorization,query"
-				case tokenQuote:
-					// expectStringValue advances the cursor past the closing quote.
-					annotationValue, err := p.expectStringValue()
-					if err != nil {
-						return nil, fmt.Errorf("parse string value: %w", err)
-					}
-
-					annotation.value = newTokenNode(annotationValue)
-
-				default:
-					return nil, fmt.Errorf("expecting value after ':' in annotation '@%s'", annotation.annotationType.String())
 				}
+				if tok := p.cursor(); tok.tt != tokenAt && tok != eofToken && tok.tt != tokenNewLine && tok.tt != tokenHash {
+					return nil, fmt.Errorf("unexpected %q after the value of annotation '@%s': quote values containing spaces, e.g. '+ @%s = \"two words\"'", tok.val, annotation.annotationType.String(), annotation.annotationType.String())
+				}
+			} else if p.cursor().tt == tokenColon {
+				return nil, fmt.Errorf("expecting '=' before the annotation value, e.g. '+ @%s = value'", annotation.annotationType.String())
 			}
 
 			annotations = append(annotations, annotation)
-		}
 
-		if toEOL {
 			for p.cursor().tt == tokenWhitespace {
 				p.next()
 			}
@@ -538,6 +490,33 @@ func parseAnnotations(p *parser, toEOL bool) ([]*AnnotationNode, error) {
 				return nil, fmt.Errorf("unexpected '@': one annotation per line")
 			}
 			break
+		}
+
+		if p.cursor().tt != tokenColon {
+			annotations = append(annotations, annotation)
+		} else {
+			p.next()
+			switch tok := p.cursor(); tok.tt {
+			// @acl:admin
+			case tokenWord:
+				annotation.value = newTokenNode(tok)
+				p.next()
+
+			// @auth:"cookies,authorization,query"
+			case tokenQuote:
+				// expectStringValue advances the cursor past the closing quote.
+				annotationValue, err := p.expectStringValue()
+				if err != nil {
+					return nil, fmt.Errorf("parse string value: %w", err)
+				}
+
+				annotation.value = newTokenNode(annotationValue)
+
+			default:
+				return nil, fmt.Errorf("expecting value after ':' in annotation '@%s'", annotation.annotationType.String())
+			}
+
+			annotations = append(annotations, annotation)
 		}
 	}
 

@@ -404,6 +404,32 @@ loop:
 	return composedValue(tokens)
 }
 
+// expectAnnotationValue reads a `+ @name = value` annotation value. Unlike
+// expectMetadataValue it does not unescape bare values, so a backslash stays
+// literal; a quoted value keeps the usual string escapes.
+func (p *parser) expectAnnotationValue() (*token, error) {
+	if p.cursor().tt == tokenQuote {
+		return p.expectStringValue()
+	}
+
+	tokens := []*token{}
+
+loop:
+	for {
+		tok := p.cursor()
+
+		switch tok.tt {
+		case tokenWhitespace, tokenNewLine, tokenEOF, tokenHash:
+			break loop
+		}
+
+		tokens = append(tokens, tok)
+		p.next()
+	}
+
+	return composedRawValue(tokens)
+}
+
 func parserStateEOL(p *parser) parserState {
 	err := p.expectOptionalCommentOrEOL()
 	if err != nil {
@@ -550,6 +576,24 @@ func composedValue(tokens []*token) (*token, error) {
 		val:  stringValue,
 		line: baseToken.line,
 		col:  baseToken.col,
+	}, nil
+}
+
+func composedRawValue(tokens []*token) (*token, error) {
+	if len(tokens) < 1 {
+		return nil, errors.New("expecting token")
+	}
+
+	values := []string{}
+	for _, t := range tokens {
+		values = append(values, t.val)
+	}
+
+	return &token{
+		tt:   tokenComposed,
+		val:  strings.Join(values, ""),
+		line: tokens[0].line,
+		col:  tokens[0].col,
 	}, nil
 }
 
