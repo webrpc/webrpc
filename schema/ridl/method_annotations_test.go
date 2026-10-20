@@ -56,9 +56,9 @@ func TestRIDLMethodAnnotationsNewSyntax(t *testing.T) {
 service Example
   - Ping(PingRequest) => (PingResponse)
     + @internal
-    + @auth:admin
-    + @auth2:"cookies,authorization"
-    + @rateLimit:100
+    + @auth = admin
+    + @auth2 = "cookies,authorization"
+    + @rateLimit = 100
     + GET /ping
 `)
 	require.NoError(t, err)
@@ -79,34 +79,54 @@ service Example
 	assert.Empty(t, ping.Routes[0].Success)
 }
 
-func TestRIDLMethodAnnotationsBareValueToEOL(t *testing.T) {
+func TestRIDLMethodAnnotationsBareValue(t *testing.T) {
 	s, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + `
 service Example
   - Ping(PingRequest) => (PingResponse)
-    + @deprecated:Use GetUserV2 instead.
-    + @headers:X-Access-Key,S2S,Cookies
+    + @ratelimit = 12rpm
+    + @headers = X-Access-Key,S2S,Cookies
     + @public
 `)
 	require.NoError(t, err)
 	assert.Empty(t, warnings)
 
 	ping := s.Services[0].Methods[0]
-	assert.Equal(t, "Use GetUserV2 instead.", ping.Annotations["deprecated"].Value)
+	assert.Equal(t, "12rpm", ping.Annotations["ratelimit"].Value)
 	assert.Equal(t, "X-Access-Key,S2S,Cookies", ping.Annotations["headers"].Value)
 	assert.Empty(t, ping.Annotations["public"].Value)
+}
+
+// The documented below-method form, comments included.
+func TestRIDLMethodAnnotationsTargetSyntax(t *testing.T) {
+	s, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service ExampleService
+  - Ping()
+    + @deprecated # comment
+    + @ratelimit = 12rpm # comment
+    + @string2 = "Very Long Here" # comment
+`)
+	require.NoError(t, err)
+	assert.Empty(t, warnings)
+
+	ping := s.Services[0].Methods[0]
+	assert.Empty(t, ping.Annotations["deprecated"].Value)
+	assert.Equal(t, "12rpm", ping.Annotations["ratelimit"].Value)
+	assert.Equal(t, "Very Long Here", ping.Annotations["string2"].Value)
 }
 
 func TestRIDLMethodAnnotationsQuotedValueEscapeHatch(t *testing.T) {
 	s, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + `
 service Example
   - Ping(PingRequest) => (PingResponse)
-    + @padded:" leading and trailing "
-    + @hashTag:"value with # comment look"
+    + @deprecated = "Use GetUserV2 instead."
+    + @padded = " leading and trailing "
+    + @hashTag = "value with # comment look"
 `)
 	require.NoError(t, err)
 	assert.Empty(t, warnings)
 
 	ping := s.Services[0].Methods[0]
+	assert.Equal(t, "Use GetUserV2 instead.", ping.Annotations["deprecated"].Value)
 	assert.Equal(t, " leading and trailing ", ping.Annotations["padded"].Value)
 	assert.Equal(t, "value with # comment look", ping.Annotations["hashTag"].Value)
 }
@@ -145,6 +165,7 @@ service Example
 	ping := s.Services[0].Methods[0]
 	require.Contains(t, ping.Annotations, "internal")
 	require.Contains(t, ping.Annotations, "deprecated")
+	assert.Equal(t, "Use PingV2 instead.", ping.Annotations["deprecated"].Value)
 }
 
 func TestRIDLMethodAnnotationsCommentPlacement(t *testing.T) {
@@ -197,29 +218,91 @@ func TestRIDLMethodAnnotationsOnePerLineError(t *testing.T) {
 	_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
 service Example
   - Ping(PingRequest) => (PingResponse)
-    + @public @cache:60
+    + @public @cache = 60
 `)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "unexpected '@': one annotation per line")
 }
 
-func TestRIDLMethodAnnotationsEmptyValueError(t *testing.T) {
+func TestRIDLMethodAnnotationColonSeparatorError(t *testing.T) {
+	for _, line := range []string{
+		"+ @internal:",
+		"+ @auth:admin",
+	} {
+		t.Run(line, func(t *testing.T) {
+			_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  - Ping(PingRequest) => (PingResponse)
+    ` + line + `
+`)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "expecting '=' before the annotation value")
+		})
+	}
+}
+
+func TestRIDLMethodAnnotationsBareValueKeepsBackslashes(t *testing.T) {
+	s, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  - Ping(PingRequest) => (PingResponse)
+    + @path = C:\temp
+    + @glob = foo\bar
+    + @trailing = C:\
+`)
+	require.NoError(t, err)
+	assert.Empty(t, warnings)
+
+	ping := s.Services[0].Methods[0]
+	assert.Equal(t, `C:\temp`, ping.Annotations["path"].Value)
+	assert.Equal(t, `foo\bar`, ping.Annotations["glob"].Value)
+	assert.Equal(t, `C:\`, ping.Annotations["trailing"].Value)
+}
+
+func TestRIDLMethodAnnotationEqualsThenNewlineError(t *testing.T) {
 	_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
 service Example
   - Ping(PingRequest) => (PingResponse)
-    + @internal:
+    + @auth =
+    + @internal
 `)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "expecting value after ':' in annotation '@internal'")
+	assert.Contains(t, err.Error(), "expecting value after '=' in annotation '@auth'")
+	assert.NotContains(t, err.Error(), "expecting token")
+}
+
+func TestRIDLMethodAnnotationEqualsThenCommentError(t *testing.T) {
+	_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  - Ping(PingRequest) => (PingResponse)
+    + @path = # C:\temp
+`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "expecting value after '=' in annotation '@path'")
+	assert.NotContains(t, err.Error(), "quote values containing spaces")
+}
+
+func TestRIDLMethodAnnotationsBareValueKeepsBackslashesReproducible(t *testing.T) {
+	assert.True(t, bareAnnotationValueReproducible(`C:\temp`))
+	assert.True(t, bareAnnotationValueReproducible(`foo\bar`))
+}
+
+func TestRIDLMethodAnnotationsBareMultiWordValueError(t *testing.T) {
+	_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  - Ping(PingRequest) => (PingResponse)
+    + @label = Very Long Here
+`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "quote values containing spaces")
 }
 
 func TestRIDLMethodAnnotationTrailingComment(t *testing.T) {
 	s, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
 service Example
   - Ping(PingRequest) => (PingResponse)
-    + @auth:admin # only admins
-    + @see:"https://a.com/#frag"
-    + @label:hello é and more
+    + @auth = admin # only admins
+    + @see = "https://a.com/#frag"
+    + @label = "hello é and more"
 `)
 	require.NoError(t, err)
 
@@ -235,11 +318,12 @@ func TestRIDLDeprecationWarningQuotesUnrepresentableValues(t *testing.T) {
 		line string
 		want string
 	}{
-		{"bare word", `@plain:simple`, "+ @plain:simple"},
-		{"fragment", `@see:"https://a.com/#frag"`, `+ @see:"https://a.com/#frag"`},
-		{"double space run", `@msg:"hello  world"`, `+ @msg:"hello  world"`},
-		{"padded", `@pad:" padded "`, `+ @pad:" padded "`},
-		{"tab", `@tab:"a\tb"`, `+ @tab:"a\tb"`},
+		{"bare word", `@plain:simple`, "+ @plain = simple"},
+		{"fragment", `@see:"https://a.com/#frag"`, `+ @see = "https://a.com/#frag"`},
+		{"single space", `@msg:"hello world"`, `+ @msg = "hello world"`},
+		{"double space run", `@msg:"hello  world"`, `+ @msg = "hello  world"`},
+		{"padded", `@pad:" padded "`, `+ @pad = " padded "`},
+		{"tab", `@tab:"a\tb"`, `+ @tab = "a\tb"`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + "\nservice Example\n  " + tc.line + "\n  - Ping(PingRequest) => (PingResponse)\n")
@@ -252,10 +336,11 @@ func TestRIDLDeprecationWarningQuotesUnrepresentableValues(t *testing.T) {
 	// A value starting with '"' would trigger the new syntax's escape hatch.
 	// The lexer cannot produce one from a quoted annotation, so assert on the
 	// predicate directly alongside the other unrepresentable cases.
-	assert.True(t, bareAnnotationValueReproducible("hello world"))
 	assert.True(t, bareAnnotationValueReproducible("foo-bar"))
+	assert.True(t, bareAnnotationValueReproducible("12rpm"))
 	assert.False(t, bareAnnotationValueReproducible(""))
 	assert.False(t, bareAnnotationValueReproducible(`"hi"`))
+	assert.False(t, bareAnnotationValueReproducible("hello world"))
 	assert.False(t, bareAnnotationValueReproducible("hello  world"))
 	assert.False(t, bareAnnotationValueReproducible(" padded"))
 	assert.False(t, bareAnnotationValueReproducible("https://a.com/#frag"))
@@ -412,14 +497,14 @@ service Second
 	assert.Empty(t, s.Services[1].Methods[0].Annotations)
 }
 
-func TestRIDLMethodAnnotationMissingColonError(t *testing.T) {
+func TestRIDLMethodAnnotationMissingSeparatorError(t *testing.T) {
 	_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
 service Example
   - Ping(PingRequest) => (PingResponse)
     + @auth admin
 `)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "expecting ':' before the annotation value, e.g. '+ @auth:admin'")
+	assert.Contains(t, err.Error(), "expecting '=' before the annotation value, e.g. '+ @auth = admin'")
 }
 
 func TestRIDLMethodAnnotationEmptyValueAtEOFError(t *testing.T) {
@@ -427,9 +512,9 @@ func TestRIDLMethodAnnotationEmptyValueAtEOFError(t *testing.T) {
 		_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
 service Example
   - Ping(PingRequest) => (PingResponse)
-    + @auth:`)
+    + @auth =`)
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "expecting value after ':' in annotation '@auth'")
+		assert.Contains(t, err.Error(), "expecting value after '=' in annotation '@auth'")
 	})
 
 	t.Run("old syntax", func(t *testing.T) {
