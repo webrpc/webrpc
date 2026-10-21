@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The generated clients (*.gen.cs), built without warnings for every target:
+    netstandard2.0 with C# 8 is the floor of the supported runtimes (eg. Unity),
+    net8.0 builds against the latest nullable-annotated framework.
+  -->
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net8.0</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
+    <!-- Also checks the generated XML doc comments. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The code is generated with -visibility=internal. -->
+    <InternalsVisibleTo Include="Interop.Newtonsoft" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+  </ItemGroup>
+</Project>

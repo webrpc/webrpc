@@ -1,0 +1,269 @@
+{{- define "json" -}}
+{{- $opts := .Ctx.Opts -}}
+{{- $vis := $opts.visibility }}
+
+    /// <summary>
+    /// JSON serialization of the webrpc wire format, used by the generated
+    /// clients. Use it to (de)serialize the generated types yourself.
+    /// </summary>
+    {{$vis}} static class WebrpcJson
+    {
+{{- if eq $opts.json "stj" }}
+        /// <summary>Serializer options of the webrpc wire format (read-only once used).</summary>
+        public static global::System.Text.Json.JsonSerializerOptions Options { get; } = CreateOptions();
+
+        private static global::System.Text.Json.JsonSerializerOptions CreateOptions()
+        {
+            var options = new global::System.Text.Json.JsonSerializerOptions();
+            options.Converters.Add(new WebrpcTimestampJsonConverter());
+            options.Converters.Add(new WebrpcBigIntegerJsonConverter());
+            return options;
+        }
+
+        public static string Serialize<T>(T value)
+        {
+            return global::System.Text.Json.JsonSerializer.Serialize(value, Options);
+        }
+
+        public static T Deserialize<T>(string json)
+        {
+            return global::System.Text.Json.JsonSerializer.Deserialize<T>(json, Options)!;
+        }
+
+        // Reads an enum value: a string, or null.
+        internal static string? ReadEnum(ref global::System.Text.Json.Utf8JsonReader reader, string enumName)
+        {
+            if (reader.TokenType != global::System.Text.Json.JsonTokenType.String && reader.TokenType != global::System.Text.Json.JsonTokenType.Null)
+            {
+                throw new global::System.Text.Json.JsonException("expected a string value of enum " + enumName + ", got " + reader.TokenType);
+            }
+            return reader.GetString();
+        }
+{{- else }}
+        /// <summary>
+        /// Serializer settings of the webrpc wire format. The clients use a
+        /// serializer created from them once: later changes don't affect them.
+        /// </summary>
+        public static global::Newtonsoft.Json.JsonSerializerSettings Settings { get; } = CreateSettings();
+
+        // NOTE: JsonSerializer.Create() ignores the global JsonConvert.DefaultSettings,
+        // which could otherwise change the wire format (eg. property naming).
+        private static readonly global::Newtonsoft.Json.JsonSerializer Serializer = global::Newtonsoft.Json.JsonSerializer.Create(Settings);
+
+        private static global::Newtonsoft.Json.JsonSerializerSettings CreateSettings()
+        {
+            var settings = new global::Newtonsoft.Json.JsonSerializerSettings
+            {
+                ContractResolver = new global::Newtonsoft.Json.Serialization.DefaultContractResolver(),
+                DateParseHandling = global::Newtonsoft.Json.DateParseHandling.None,
+                FloatParseHandling = global::Newtonsoft.Json.FloatParseHandling.Double,
+                MissingMemberHandling = global::Newtonsoft.Json.MissingMemberHandling.Ignore,
+                NullValueHandling = global::Newtonsoft.Json.NullValueHandling.Include,
+                TypeNameHandling = global::Newtonsoft.Json.TypeNameHandling.None,
+                MaxDepth = 64,
+            };
+            settings.Converters.Add(new WebrpcTimestampJsonConverter());
+            settings.Converters.Add(new WebrpcBigIntegerJsonConverter());
+            return settings;
+        }
+
+        public static string Serialize<T>(T value)
+        {
+            var writer = new global::System.IO.StringWriter(global::System.Globalization.CultureInfo.InvariantCulture);
+            Serializer.Serialize(writer, value, typeof(T));
+            return writer.ToString();
+        }
+
+        public static T Deserialize<T>(string json)
+        {
+            using (var reader = new global::Newtonsoft.Json.JsonTextReader(new global::System.IO.StringReader(json)))
+            {
+                reader.DateParseHandling = global::Newtonsoft.Json.DateParseHandling.None;
+                reader.MaxDepth = 64;
+                return Serializer.Deserialize<T>(reader)!;
+            }
+        }
+
+        // Reads an enum value: a string, or null.
+        internal static string? ReadEnum(global::Newtonsoft.Json.JsonReader reader, string enumName)
+        {
+            if (reader.TokenType != global::Newtonsoft.Json.JsonToken.String && reader.TokenType != global::Newtonsoft.Json.JsonToken.Null)
+            {
+                throw new global::Newtonsoft.Json.JsonSerializationException("expected a string value of enum " + enumName + ", got " + reader.TokenType);
+            }
+            return (string?)reader.Value;
+        }
+{{- end }}
+    }
+
+    /// <summary>
+    /// The webrpc timestamp wire format: ISO 8601 in UTC, eg. 2006-01-02T15:04:05.999Z.
+    /// </summary>
+    internal static class WebrpcTimestamp
+    {
+        public static string Format(global::System.DateTimeOffset value)
+        {
+            return value.UtcDateTime.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFFFFF'Z'", global::System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        public static global::System.DateTimeOffset Parse(string value)
+        {
+            // Fractional seconds beyond the 100ns precision of DateTimeOffset
+            // (eg. Go's nanoseconds) are truncated, not rounded.
+            var dot = value.IndexOf('.');
+            if (dot >= 0)
+            {
+                var end = dot + 1;
+                while (end < value.Length && value[end] >= '0' && value[end] <= '9')
+                {
+                    end++;
+                }
+                if (end - dot - 1 > 7)
+                {
+                    value = value.Substring(0, dot + 8) + value.Substring(end);
+                }
+            }
+            return global::System.DateTimeOffset.Parse(value, global::System.Globalization.CultureInfo.InvariantCulture, global::System.Globalization.DateTimeStyles.AssumeUniversal);
+        }
+    }
+{{- if eq $opts.json "stj" }}
+
+    internal sealed class WebrpcTimestampJsonConverter : global::System.Text.Json.Serialization.JsonConverter<global::System.DateTimeOffset>
+    {
+        public override global::System.DateTimeOffset Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
+        {
+            if (reader.TokenType != global::System.Text.Json.JsonTokenType.String)
+            {
+                throw new global::System.Text.Json.JsonException("expected a timestamp string, got " + reader.TokenType);
+            }
+            try
+            {
+                return WebrpcTimestamp.Parse(reader.GetString()!);
+            }
+            catch (global::System.FormatException ex)
+            {
+                throw new global::System.Text.Json.JsonException("invalid timestamp: " + ex.Message, ex);
+            }
+        }
+
+        public override void Write(global::System.Text.Json.Utf8JsonWriter writer, global::System.DateTimeOffset value, global::System.Text.Json.JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(WebrpcTimestamp.Format(value));
+        }
+    }
+
+    // bigint travels as a decimal string, as numbers above 2^53 lose precision in JavaScript.
+    internal sealed class WebrpcBigIntegerJsonConverter : global::System.Text.Json.Serialization.JsonConverter<global::System.Numerics.BigInteger>
+    {
+        public override global::System.Numerics.BigInteger Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
+        {
+            string text;
+            if (reader.TokenType == global::System.Text.Json.JsonTokenType.String)
+            {
+                text = reader.GetString()!;
+            }
+            else if (reader.TokenType == global::System.Text.Json.JsonTokenType.Number)
+            {
+                var bytes = reader.HasValueSequence ? global::System.Buffers.BuffersExtensions.ToArray(reader.ValueSequence) : reader.ValueSpan.ToArray();
+                text = global::System.Text.Encoding.UTF8.GetString(bytes);
+            }
+            else
+            {
+                throw new global::System.Text.Json.JsonException("expected a bigint string, got " + reader.TokenType);
+            }
+            if (!global::System.Numerics.BigInteger.TryParse(text, global::System.Globalization.NumberStyles.AllowLeadingSign, global::System.Globalization.CultureInfo.InvariantCulture, out var value))
+            {
+                throw new global::System.Text.Json.JsonException("invalid bigint: " + text);
+            }
+            return value;
+        }
+
+        public override void Write(global::System.Text.Json.Utf8JsonWriter writer, global::System.Numerics.BigInteger value, global::System.Text.Json.JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString(global::System.Globalization.CultureInfo.InvariantCulture));
+        }
+    }
+{{- else }}
+
+    internal sealed class WebrpcTimestampJsonConverter : global::Newtonsoft.Json.JsonConverter
+    {
+        public override bool CanConvert(global::System.Type objectType) => objectType == typeof(global::System.DateTimeOffset) || objectType == typeof(global::System.DateTimeOffset?);
+
+        public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer)
+        {
+            switch (reader.TokenType)
+            {
+                case global::Newtonsoft.Json.JsonToken.Null:
+                    if (objectType == typeof(global::System.DateTimeOffset?))
+                    {
+                        return null;
+                    }
+                    throw new global::Newtonsoft.Json.JsonSerializationException("expected a timestamp string, got null");
+                case global::Newtonsoft.Json.JsonToken.String:
+                    try
+                    {
+                        return WebrpcTimestamp.Parse((string)reader.Value!);
+                    }
+                    catch (global::System.FormatException ex)
+                    {
+                        throw new global::Newtonsoft.Json.JsonSerializationException("invalid timestamp: " + ex.Message, ex);
+                    }
+                case global::Newtonsoft.Json.JsonToken.Date:
+                    return reader.Value is global::System.DateTimeOffset dto ? dto : new global::System.DateTimeOffset(((global::System.DateTime)reader.Value!).ToUniversalTime());
+                default:
+                    throw new global::Newtonsoft.Json.JsonSerializationException("expected a timestamp string, got " + reader.TokenType);
+            }
+        }
+
+        public override void WriteJson(global::Newtonsoft.Json.JsonWriter writer, object? value, global::Newtonsoft.Json.JsonSerializer serializer)
+        {
+            if (value == null)
+            {
+                writer.WriteNull();
+                return;
+            }
+            writer.WriteValue(WebrpcTimestamp.Format((global::System.DateTimeOffset)value));
+        }
+    }
+
+    // bigint travels as a decimal string, as numbers above 2^53 lose precision in JavaScript.
+    internal sealed class WebrpcBigIntegerJsonConverter : global::Newtonsoft.Json.JsonConverter
+    {
+        public override bool CanConvert(global::System.Type objectType) => objectType == typeof(global::System.Numerics.BigInteger) || objectType == typeof(global::System.Numerics.BigInteger?);
+
+        public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer)
+        {
+            switch (reader.TokenType)
+            {
+                case global::Newtonsoft.Json.JsonToken.Null:
+                    if (objectType == typeof(global::System.Numerics.BigInteger?))
+                    {
+                        return null;
+                    }
+                    throw new global::Newtonsoft.Json.JsonSerializationException("expected a bigint string, got null");
+                case global::Newtonsoft.Json.JsonToken.String:
+                    var text = (string)reader.Value!;
+                    if (!global::System.Numerics.BigInteger.TryParse(text, global::System.Globalization.NumberStyles.AllowLeadingSign, global::System.Globalization.CultureInfo.InvariantCulture, out var value))
+                    {
+                        throw new global::Newtonsoft.Json.JsonSerializationException("invalid bigint: " + text);
+                    }
+                    return value;
+                case global::Newtonsoft.Json.JsonToken.Integer:
+                    return reader.Value is global::System.Numerics.BigInteger big ? big : new global::System.Numerics.BigInteger(global::System.Convert.ToInt64(reader.Value, global::System.Globalization.CultureInfo.InvariantCulture));
+                default:
+                    throw new global::Newtonsoft.Json.JsonSerializationException("expected a bigint string, got " + reader.TokenType);
+            }
+        }
+
+        public override void WriteJson(global::Newtonsoft.Json.JsonWriter writer, object? value, global::Newtonsoft.Json.JsonSerializer serializer)
+        {
+            if (value == null)
+            {
+                writer.WriteNull();
+                return;
+            }
+            writer.WriteValue(((global::System.Numerics.BigInteger)value).ToString(global::System.Globalization.CultureInfo.InvariantCulture));
+        }
+    }
+{{- end }}
+{{- end -}}

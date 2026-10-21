@@ -1,0 +1,110 @@
+{{- define "errors" -}}
+{{- $ctx := .Ctx -}}
+{{- $opts := $ctx.Opts -}}
+{{- $vis := $opts.visibility }}
+
+    /// <summary>
+    /// An error returned by a webrpc server, or raised by the client. Schema
+    /// errors are thrown as their subclasses, eg. catch (WebrpcBadRequestException).
+    /// </summary>
+    {{$vis}} class WebrpcException : global::System.Exception
+    {
+        public WebrpcException(string name, int code, string message, int httpStatus, string? cause = null, global::System.Exception? innerException = null)
+            : base(message, innerException)
+        {
+            Name = name;
+            Code = code;
+            HttpStatus = httpStatus;
+            Cause = cause;
+        }
+
+        /// <summary>The unique error name, eg. "WebrpcBadRequest".</summary>
+        public string Name { get; }
+
+        /// <summary>The unique error code: 0 or negative for webrpc errors, positive for schema errors.</summary>
+        public int Code { get; }
+
+        /// <summary>The HTTP status code of the error.</summary>
+        public int HttpStatus { get; }
+
+        /// <summary>The underlying cause of the error, if any.</summary>
+        public string? Cause { get; }
+
+        public override string ToString()
+        {
+            var text = GetType().FullName + ": " + Name + " " + Code + ": " + Message;
+            if (Cause != null)
+            {
+                text += ": " + Cause;
+            }
+            if (InnerException != null)
+            {
+                text += " ---> " + InnerException;
+            }
+            if (StackTrace != null)
+            {
+                text += global::System.Environment.NewLine + StackTrace;
+            }
+            return text;
+        }
+
+        internal static WebrpcException FromEnvelope(WebrpcErrorEnvelope envelope, int httpStatus)
+        {
+            var status = envelope.Status ?? httpStatus;
+            switch (envelope.Code ?? 0)
+            {
+                {{- range $_, $error := .WebrpcErrors }}
+                case {{$error.Code}}:
+                    return new {{$error.Name}}Exception(envelope.Error ?? {{ template "str" $error.Name }}, envelope.Msg ?? {{ template "str" $error.Message }}, status, envelope.Cause);
+                {{- end }}
+                {{- range $_, $error := .SchemaErrors }}
+                case {{$error.Code}}:
+                    return new {{$error.Name}}Exception(envelope.Error ?? {{ template "str" $error.Name }}, envelope.Msg ?? {{ template "str" $error.Message }}, status, envelope.Cause);
+                {{- end }}
+                default:
+                    return new WebrpcException(envelope.Error ?? "WebrpcEndpoint", envelope.Code ?? 0, envelope.Msg ?? "endpoint error", status, envelope.Cause);
+            }
+        }
+    }
+
+{{- range $_, $error := .WebrpcErrors }}
+{{ template "errorClass" dict "Error" $error "Ctx" $ctx }}
+{{- end }}
+
+{{- range $_, $error := .SchemaErrors }}
+{{ template "errorClass" dict "Error" $error "Ctx" $ctx }}
+{{- end }}
+
+    /// <summary>The JSON error response of a webrpc server.</summary>
+    internal sealed class WebrpcErrorEnvelope
+    {
+        {{ template "jsonProperty" dict "Name" "error" "Optional" true "Ctx" $ctx }}
+        public string? Error { get; set; }
+
+        {{ template "jsonProperty" dict "Name" "code" "Optional" true "Ctx" $ctx }}
+        public int? Code { get; set; }
+
+        {{ template "jsonProperty" dict "Name" "msg" "Optional" true "Ctx" $ctx }}
+        public string? Msg { get; set; }
+
+        {{ template "jsonProperty" dict "Name" "cause" "Optional" true "Ctx" $ctx }}
+        public string? Cause { get; set; }
+
+        {{ template "jsonProperty" dict "Name" "status" "Optional" true "Ctx" $ctx }}
+        public int? Status { get; set; }
+    }
+{{- end -}}
+
+{{- define "errorClass" -}}
+{{- $error := .Error -}}
+{{- $vis := .Ctx.Opts.visibility }}
+    /// <summary>{{ template "xml" $error.Message }} ({{$error.Name}}, code {{$error.Code}}, HTTP {{$error.HTTPStatus}}).</summary>
+    {{$vis}} class {{$error.Name}}Exception : WebrpcException
+    {
+        public const int ErrorCode = {{$error.Code}};
+
+        public {{$error.Name}}Exception(string? cause = null, global::System.Exception? innerException = null) : base({{ template "str" $error.Name }}, {{$error.Code}}, {{ template "str" $error.Message }}, {{$error.HTTPStatus}}, cause, innerException) { }
+
+        internal {{$error.Name}}Exception(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, {{$error.Code}}, message, httpStatus, cause, innerException) { }
+    }
+{{- end -}}

@@ -1,0 +1,174 @@
+webrpc = v1
+
+name = CSharp
+version = v1.0.0
+basepath = /rpc
+
+# Interop schema of the C# generator: types, names and transports not covered
+# by the shared test schema (tests/schema/test.ridl).
+service CSharp
+  # Types round-trip: the server sends and checks its fixture.
+  - GetTypes() => (types: Types)
+  - SendTypes(types: Types)
+
+  # Enum values unknown to the client are preserved.
+  - GetUnknownEnum() => (color: Color, colors: []Color, byColor: map<Color,uint32>)
+  - SendUnknownEnum(color: Color, colors: []Color)
+
+  # C# keywords and reserved member names.
+  - Keywords(class: string, cancellationToken: string, params?: []string) => (event: string, keywords: Keywords)
+
+  # Arguments named like the generated parameters, locals and fields.
+  - Shadow(__json: string, _baseUrl: string, cancellationToken_: string, cancellationToken: string) => (echo: string)
+
+  # Optional arguments and outputs.
+  - Optional(str?: string, num?: uint64, ts?: timestamp) => (str?: string, num?: uint64, ts?: timestamp)
+
+  - Deprecated() => (ok: bool)
+    + @deprecated = "Use Optional() instead."
+
+  # Schema types named like framework types (System.Threading.Tasks.Task, ...).
+  - GetShadowed() => (task: Task, version: Version, list: List)
+
+  # Streaming: multiple outputs, a succinct method, and an error mid-stream.
+  - Countdown(from: uint32) => stream (n: uint32, at: timestamp)
+  - Watch(WatchRequest) => stream (WatchResponse)
+  - CountdownFail(from: uint32) => stream (n: uint32)
+
+  # REST route with a string path param.
+  - GetByName(name: string, suffix?: string) => (name: string, suffix?: string)
+      + GET /names/{name}
+
+  # Fields renamed with + go.tag.json: their Go wire name names the REST params and file parts.
+  - GetTagged(TaggedRequest) => (TaggedResponse)
+      + GET /tagged/{tagId}
+  - UploadTagged(TaggedUpload) => (TaggedResponse)
+
+  # Request headers seen by the server.
+  - Headers() => (webrpc: string, custom: string)
+
+  # File fields inside a (non-succinct) struct argument, and a succinct request.
+  - UploadDoc(doc: Doc) => (name: string, contentType: string, size: uint64, title: string)
+  - Attach(AttachRequest) => (AttachResponse)
+  - DownloadDoc(name: string) => (data: file)
+
+type Address: string
+type Labels: []Address
+type Wallet: Address
+
+enum Kind: uint32
+  - User
+    + json = USER
+  - Admin
+    + json = ADMIN
+
+enum Country: string
+  - US = "United States"
+  - CA = "Canada"
+
+enum Color: string
+  - red
+  - green
+
+# Enum value names that clash with members of the generated C# type.
+enum Reserved: string
+  - Value
+  - IsKnown
+  - KnownValues
+  - Reserved
+  - class
+
+# Types holds every core type <&> container.
+struct Types
+  - b: bool
+  - u8: uint8
+  - u16: uint16
+  - u32: uint32
+  - u64: uint64
+  - i8: int8
+  - i16: int16
+  - i32: int32
+  - i64: int64
+  - f32: float32
+  - f64: float64
+  - str: string
+  - bytes: []byte
+  - u8s: []uint8
+  - ts: timestamp
+  - tsList: []timestamp
+  - big: bigint
+  - bigList: []bigint
+  - bigMap: map<string,bigint>
+  - address: Address
+  - wallet: Wallet
+  - labels: Labels
+  - kind: Kind
+  - kinds: map<Kind,uint32>
+  - country: Country
+  - reserved: Reserved
+  - byId: map<int64,string>
+  - nested: map<uint32,[]string>
+  - anything: any
+  - optStr?: string
+  - optBig?: bigint
+  - optTs?: timestamp
+  - optKind?: Kind
+  - optList?: []string
+  - renamed: string
+    + json = RENAMED_field
+  - hidden: string
+    + json = -
+
+struct Keywords
+  - class: string
+  - string: string
+  - event: string
+  - keywords: string
+  - toString: string
+  - equals: string
+
+struct Task
+  - id: uint64
+
+struct Version
+  - major: uint32
+
+struct List
+  - items: []string
+
+struct Doc
+  - title: string
+  - file: file
+
+struct AttachRequest
+  - id: uint64
+  - files: []file
+
+struct AttachResponse
+  - id: uint64
+  - names: []string
+  - sizes: []uint64
+
+struct TaggedRequest
+  - id: string
+    + go.tag.json = tagId
+  - label?: string
+    + go.tag.json = lbl
+
+struct TaggedUpload
+  - doc: file
+    + go.tag.json = document
+
+struct TaggedResponse
+  - echo: string
+
+struct WatchRequest
+  - key: string
+  - count: uint32
+
+struct WatchResponse
+  - key: string
+  - seq: uint32
+
+error 1000 CountdownFailed "countdown failed" HTTP 500
+error 1001 Mismatch        "mismatch"

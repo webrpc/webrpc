@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <DefineConstants>$(DefineConstants);NEWTONSOFT</DefineConstants>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The shared TestApi suites run with System.Text.Json only (see ../../Makefile). -->
+    <Compile Include="../*.cs" Exclude="../TestApi*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../lib/newtonsoft/Generated.Newtonsoft.csproj" />
+  </ItemGroup>
+</Project>

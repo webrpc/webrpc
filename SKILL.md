@@ -1,6 +1,6 @@
 ---
 name: webrpc-ridl-schema
-description: Write and edit webrpc .ridl schema files and run webrpc-gen code generation. Use when working with RIDL syntax, webrpc schemas, generated *.gen.go / *.gen.ts files, or designing webrpc API contracts (Go/TypeScript/JavaScript/Kotlin/Dart/OpenAPI).
+description: Write and edit webrpc .ridl schema files and run webrpc-gen code generation. Use when working with RIDL syntax, webrpc schemas, generated *.gen.go / *.gen.ts files, or designing webrpc API contracts (Go/TypeScript/JavaScript/Kotlin/Dart/C#/OpenAPI).
 ---
 
 # webrpc RIDL schemas and codegen
@@ -173,4 +173,4 @@ webrpc-gen -schema=main.ridl -target=./schema/templates/validate-go -pkg=proto -
 
 ## References
 `_examples/golang-basics/example.ridl`, `schema/README.md`, `schema/ridl/README.md`.
-Official targets: `gen/{golang,typescript,javascript,kotlin,dart,openapi}` (embedded in `webrpc-gen`).
+Official targets: `gen/{golang,typescript,javascript,kotlin,dart,csharp,openapi}` (embedded in `webrpc-gen`).
