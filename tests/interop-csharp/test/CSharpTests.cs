@@ -296,6 +296,18 @@ namespace Interop.Tests
                 }
             });
 
+            await check.Run("CSharp.GetTagged(+ go.tag.json REST params)", async () =>
+            {
+                Assert.Equal("a/b x", (await api.GetTaggedAsync(new TaggedRequest { Id = "a/b", Label = "x" })).Echo, "echo");
+                Assert.Equal("c <nil>", (await api.GetTaggedAsync(new TaggedRequest { Id = "c" })).Echo, "echo (no label)");
+            });
+
+            await check.Run("CSharp.UploadTagged(+ go.tag.json file part)", async () =>
+            {
+                var resp = await api.UploadTaggedAsync(new TaggedUpload { Doc = WebrpcFile.FromBytes(new byte[] { 1, 2 }, "t.bin") });
+                Assert.Equal("t.bin 2", resp.Echo, "echo");
+            });
+
             await check.Run("CSharp.Headers", async () =>
             {
                 using var custom = new HttpClient(new HeaderHandler("X-Custom", "custom value") { InnerHandler = new HttpClientHandler() });

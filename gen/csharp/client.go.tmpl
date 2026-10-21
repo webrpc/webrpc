@@ -178,7 +178,9 @@ __url.
   {{- $input := index $method.Inputs 0 -}}
   {{- range $_, $field := $input.Type.Struct.Type.Fields -}}
     {{- $jsonName := $field.Name -}}
-    {{- range $_, $meta := $field.Meta }}{{ if exists $meta "json" }}{{ $jsonName = printf "%v" (get $meta "json") }}{{ end }}{{ end -}}
+    {{- /* The param name is the field's wire name, as in schema.fieldJSONName. */ -}}
+    {{- range $_, $meta := $field.Meta }}{{ if exists $meta "json" }}{{ $jsonName = printf "%v" (get $meta "json") }}{{ end }}{{ if exists $meta "go.tag.json" }}{{ $jsonName = printf "%v" (get $meta "go.tag.json") }}{{ end }}{{ end -}}
+    {{- $jsonName = first (split "," $jsonName) -}}
     {{- if eq $jsonName $param.Name }}request.{{ template "propName" dict "Name" $field.Name "Owner" (printf "%v" $input.Type) "Ctx" $ctx }}{{ end -}}
   {{- end -}}
 {{- else -}}
@@ -199,7 +201,9 @@ __content.Add{{ if $part.Repeated }}Files{{ else }}File{{ end }}({{ template "st
     {{- if ne $part.FieldName "" -}}
       {{- range $_, $field := $input.Type.Struct.Type.Fields -}}
         {{- $jsonName := $field.Name -}}
-        {{- range $_, $meta := $field.Meta }}{{ if exists $meta "json" }}{{ $jsonName = printf "%v" (get $meta "json") }}{{ end }}{{ end -}}
+        {{- /* The part name is the field's wire name, as in schema.fieldJSONName. */ -}}
+        {{- range $_, $meta := $field.Meta }}{{ if exists $meta "json" }}{{ $jsonName = printf "%v" (get $meta "json") }}{{ end }}{{ if exists $meta "go.tag.json" }}{{ $jsonName = printf "%v" (get $meta "go.tag.json") }}{{ end }}{{ end -}}
+        {{- $jsonName = first (split "," $jsonName) -}}
         {{- if eq $jsonName $part.PartName }}?.{{ template "propName" dict "Name" $field.Name "Owner" (printf "%v" $input.Type) "Ctx" $ctx }}{{ end -}}
       {{- end -}}
     {{- end -}}

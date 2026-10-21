@@ -174,6 +174,26 @@ func (s *server) GetByName(ctx context.Context, name string, suffix *string) (st
 	return name, suffix, nil
 }
 
+func (s *server) GetTagged(ctx context.Context, req TaggedRequest) (*TaggedResponse, error) {
+	label := "<nil>"
+	if req.Label != nil {
+		label = *req.Label
+	}
+	return &TaggedResponse{Echo: req.Id + " " + label}, nil
+}
+
+func (s *server) UploadTagged(ctx context.Context, req TaggedUpload) (*TaggedResponse, error) {
+	if req.Doc == nil {
+		return nil, ErrMismatch.WithCausef("doc is missing")
+	}
+	defer req.Doc.Body.Close()
+	content, err := io.ReadAll(req.Doc.Body)
+	if err != nil {
+		return nil, err
+	}
+	return &TaggedResponse{Echo: fmt.Sprintf("%s %d", req.Doc.Name, len(content))}, nil
+}
+
 func (s *server) Headers(ctx context.Context) (string, string, error) {
 	r, ok := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	if !ok {

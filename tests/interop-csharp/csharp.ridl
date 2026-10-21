@@ -39,6 +39,11 @@ service CSharp
   - GetByName(name: string, suffix?: string) => (name: string, suffix?: string)
       + GET /names/{name}
 
+  # Fields renamed with + go.tag.json: their Go wire name names the REST params and file parts.
+  - GetTagged(TaggedRequest) => (TaggedResponse)
+      + GET /tagged/{tagId}
+  - UploadTagged(TaggedUpload) => (TaggedResponse)
+
   # Request headers seen by the server.
   - Headers() => (webrpc: string, custom: string)
 
@@ -143,6 +148,19 @@ struct AttachResponse
   - id: uint64
   - names: []string
   - sizes: []uint64
+
+struct TaggedRequest
+  - id: string
+    + go.tag.json = tagId
+  - label?: string
+    + go.tag.json = lbl
+
+struct TaggedUpload
+  - doc: file
+    + go.tag.json = document
+
+struct TaggedResponse
+  - echo: string
 
 struct WatchRequest
   - key: string
