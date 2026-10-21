@@ -87,10 +87,10 @@ service Example
   One annotation per line: the value after `=` follows struct-tag rules — a bare value is a
   single word (backslashes stay literal), so quote anything with spaces, a literal `#`, or escapes. Above-method
   annotations are deprecated, warn, and will be removed in a future release.
-- A method lists the errors it can throw with the `errors A|B` clause on the `- Method`
-  line, or with one or more `+ error A|B` option lines below it. Both forms merge into one
-  list. Names are case-sensitive and must match a schema `error` declaration; a repeated
-  name is a parse error.
+- A method lists the errors it can throw with one or more `+ error A|B` option lines below
+  the `- Method` line; the list merges in order across lines. The old `errors A|B` clause on
+  the `- Method` line is a parse error. Names are case-sensitive and must match a schema
+  `error` declaration; a repeated name is a parse error.
 - Go: a `WebRPCError` must reach the transport unwrapped (the server type-asserts it) —
   use `proto.ErrXxx.WithCause(err)`, not `fmt.Errorf` chains.
 - Custom annotations (`@access`, `@perms`) are readable at runtime: middleware calls

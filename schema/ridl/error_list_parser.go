@@ -67,7 +67,7 @@ func (p *parser) pointAtErrorName(tok *token, idx int, err error) {
 }
 
 // splitErrorNames splits one word token on '|': a list without spaces around
-// the bar, e.g. `errors A|B`, lexes as a single word. Each name carries the
+// the bar, e.g. `+ error A|B`, lexes as a single word. Each name carries the
 // pos and col of its own segment.
 func splitErrorNames(tok *token) ([]*TokenNode, error) {
 	if !strings.Contains(tok.val, "|") {

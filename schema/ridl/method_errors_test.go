@@ -1,6 +1,7 @@
 package ridl
 
 import (
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -18,7 +19,7 @@ func parseRIDLString(src string) (*schema.WebRPCSchema, error) {
 	return NewParser(fsys, "/", "test.ridl").Parse()
 }
 
-func TestMethodErrorsKeyword_SingleError(t *testing.T) {
+func TestErrorsClauseRejected_SingleError(t *testing.T) {
 	ridlContent := `webrpc = v1
 
 name = MethodErrorsTest
@@ -37,30 +38,13 @@ service UserService
   - GetUser(userID: uint64) => (user: User) errors UserNotFound
 `
 
-	// Now the parser should succeed since we implemented 'errors' support!
-	schema, err := parseRIDLString(ridlContent)
+	_, err := parseRIDLString(ridlContent)
 
-	require.NoError(t, err, "Parser should now succeed with 'errors' keyword")
-	require.NotNil(t, schema, "Schema should not be nil")
-
-	// Validate that the schema has the expected service
-	require.Len(t, schema.Services, 1, "Should have exactly one service")
-	service := schema.Services[0]
-	require.Equal(t, "UserService", service.Name)
-
-	// Validate that the method has the expected error specification
-	require.Len(t, service.Methods, 1, "Should have exactly one method")
-	getUserMethod := service.Methods[0]
-	require.Equal(t, "GetUser", getUserMethod.Name)
-
-	// This is the key assertion - the method should have the error specified
-	require.Len(t, getUserMethod.Errors, 1, "Method should throw exactly one error")
-	require.Equal(t, "UserNotFound", getUserMethod.Errors[0], "Method should throw UserNotFound error")
-
-	t.Logf("✅ Test passes! Method errors: %v", getUserMethod.Errors)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "'errors A|B' after the method signature is no longer supported")
 }
 
-func TestMethodErrorsKeyword_MultipleErrors(t *testing.T) {
+func TestErrorsClauseRejected_MultipleErrors(t *testing.T) {
 	ridlContent := `webrpc = v1
 
 name = MultipleMethodErrorsTest
@@ -80,27 +64,10 @@ service UserService
   - UpdateUser(user: User) => (user: User) errors Unauthorized | ValidationError | ServiceError
 `
 
-	// Now the parser should succeed since we implemented 'errors' support!
-	schema, err := parseRIDLString(ridlContent)
+	_, err := parseRIDLString(ridlContent)
 
-	require.NoError(t, err, "Parser should now succeed with 'errors' keyword")
-	require.NotNil(t, schema, "Schema should not be nil")
-
-	// Validate that the schema has the expected service
-	require.Len(t, schema.Services, 1, "Should have exactly one service")
-	service := schema.Services[0]
-	require.Equal(t, "UserService", service.Name)
-
-	// Validate that the method has the expected error specification
-	require.Len(t, service.Methods, 1, "Should have exactly one method")
-	updateMethod := service.Methods[0]
-	require.Equal(t, "UpdateUser", updateMethod.Name)
-
-	// This is the key assertion - the method should have multiple errors specified
-	require.Len(t, updateMethod.Errors, 3, "Method should throw exactly three errors")
-	assert.Equal(t, []string{"Unauthorized", "ValidationError", "ServiceError"}, updateMethod.Errors)
-
-	t.Logf("✅ Test passes! Method errors: %v", updateMethod.Errors)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "'errors A|B' after the method signature is no longer supported")
 }
 
 func TestMethodErrorsKeyword_BackwardCompatibility(t *testing.T) {
@@ -117,7 +84,7 @@ struct User
   - username: string
 
 service UserService
-  # Method without errors clause - should work normally
+  # Method without errors - should work normally
   - GetUser(userID: uint64) => (user: User)
   # Another method without errors
   - ListUsers() => (users: []User)
@@ -275,13 +242,7 @@ service UserService
 `,
 			wantErrors: []string{"ErrOne", "ErrTwo", "ErrThree"},
 		},
-		{
-			name: "merges with the errors clause",
-			methods: `  - GetUser(id: uint64) => (user: User) errors ErrOne
-    + error ErrTwo
-`,
-			wantErrors: []string{"ErrOne", "ErrTwo"},
-		},
+
 		{
 			name: "duplicate within one line",
 			methods: `  - GetUser(id: uint64) => (user: User)
@@ -307,13 +268,6 @@ service UserService
 			name: "duplicate across lines",
 			methods: `  - GetUser(id: uint64) => (user: User)
     + error ErrOne
-    + error ErrOne
-`,
-			wantErr: "method 'GetUser' declares error 'ErrOne' twice",
-		},
-		{
-			name: "duplicate against the errors clause",
-			methods: `  - GetUser(id: uint64) => (user: User) errors ErrOne
     + error ErrOne
 `,
 			wantErr: "method 'GetUser' declares error 'ErrOne' twice",
@@ -371,7 +325,7 @@ service UserService
 	}
 }
 
-func TestMethodErrorsClause(t *testing.T) {
+func TestMethodErrorsClauseRejected(t *testing.T) {
 	const header = `webrpc = v1
 
 name = MethodErrorsClauseTest
@@ -386,46 +340,21 @@ struct User
 service UserService
 `
 
-	tt := []struct {
-		name       string
-		method     string
-		wantErrors []string
-		wantErr    string
-	}{
-		{
-			name:       "list without spaces around the bars",
-			method:     "  - GetUser(id: uint64) => (user: User) errors ErrOne|ErrTwo\n",
-			wantErrors: []string{"ErrOne", "ErrTwo"},
-		},
-		{
-			name:       "list with spaces around the bars",
-			method:     "  - GetUser(id: uint64) => (user: User) errors ErrOne | ErrTwo\n",
-			wantErrors: []string{"ErrOne", "ErrTwo"},
-		},
-		{
-			name:    "duplicate within the clause",
-			method:  "  - GetUser(id: uint64) => (user: User) errors ErrOne|ErrOne\n",
-			wantErr: "method 'GetUser' declares error 'ErrOne' twice",
-		},
-		{
-			name:    "empty name in the clause",
-			method:  "  - GetUser(id: uint64) => (user: User) errors ErrOne|\n",
-			wantErr: "empty error name in 'ErrOne|'",
-		},
+	// Every clause form is rejected with the migration hint, whatever the
+	// separator or list contents.
+	methods := []string{
+		"  - GetUser(id: uint64) => (user: User) errors ErrOne|ErrTwo\n",
+		"  - GetUser(id: uint64) => (user: User) errors ErrOne | ErrTwo\n",
+		"  - GetUser(id: uint64) => (user: User) errors ErrOne|ErrOne\n",
+		"  - GetUser(id: uint64) => (user: User) errors ErrOne|\n",
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			s, err := parseRIDLString(header + tc.method)
-			if tc.wantErr != "" {
-				require.Error(t, err)
-				assert.Contains(t, err.Error(), tc.wantErr)
-				return
-			}
-
-			require.NoError(t, err)
-			require.Len(t, s.Services[0].Methods, 1)
-			assert.Equal(t, tc.wantErrors, s.Services[0].Methods[0].Errors)
+	const wantErr = "'errors A|B' after the method signature is no longer supported: declare errors below the method as '+ error A|B'"
+	for _, method := range methods {
+		t.Run(strings.TrimSpace(method), func(t *testing.T) {
+			_, err := parseRIDLString(header + method)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), wantErr)
 		})
 	}
 }

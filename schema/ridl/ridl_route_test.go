@@ -142,7 +142,7 @@ service Users
 	assert.Empty(t, users.Methods[1].Routes)
 }
 
-func TestRIDLRouteAfterErrorsClause(t *testing.T) {
+func TestRIDLRouteAfterErrorsOption(t *testing.T) {
 	s, err := parseRouteRIDL(t, `webrpc = v1
 name = example
 version = v0.0.1
@@ -150,7 +150,8 @@ version = v0.0.1
 error 100 NotFound "not found" HTTP 404
 
 service Users
-  - Get(userId: uint64) => (name: string) errors NotFound
+  - Get(userId: uint64) => (name: string)
+      + error NotFound
       + GET /users/{userId}
 `)
 	require.NoError(t, err)

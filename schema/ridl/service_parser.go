@@ -134,21 +134,13 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 			mn.outputs.arguments = outputArguments
 		}
 
-		// Check for optional errors clause
+		// The 'errors A|B' clause was replaced by the '+ error A|B' option line.
 		pos := p.pos
 		matches, err = p.match(tokenWhitespace, tokenWord)
 		if err == nil && matches[1].val == wordErrors {
-			// Parse bar-separated list of error names
-			errorNames, err := p.expectErrorList()
-			if err != nil {
-				return p.stateError(err)
-			}
-			if err := addMethodErrors(mn, errorNames); err != nil {
-				return p.stateError(err)
-			}
-		} else {
-			p.pos = pos // not an errors clause, e.g. a route line on the next line
+			return p.stateError(fmt.Errorf("'errors A|B' after the method signature is no longer supported: declare errors below the method as '+ error A|B'"))
 		}
+		p.pos = pos // not an errors clause, e.g. a route line on the next line
 
 		sn.methods = append(sn.methods, mn)
 
@@ -433,14 +425,8 @@ func parseMethodErrors(p *parser, s *ServiceNode) error {
 		return err
 	}
 
-	return addMethodErrors(mn, errorNames)
-}
-
-// addMethodErrors appends names to the method, rejecting a name declared twice
-// within the list, across '+ error' lines, or against the 'errors A|B' clause,
-// so both forms behave identically.
-func addMethodErrors(mn *MethodNode, names []*TokenNode) error {
-	for _, name := range names {
+	// Reject a name declared twice, within one list or across '+ error' lines.
+	for _, name := range errorNames {
 		for _, declared := range mn.errors {
 			if declared.String() == name.String() {
 				return fmt.Errorf("method '%s' declares error '%s' twice", mn.name.String(), name.String())

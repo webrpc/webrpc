@@ -21,8 +21,8 @@ func parserStateError(p *parser) parserState {
 		return p.stateError(fmt.Errorf("expecting error code to be a number but got '%s'", matches[2].val))
 	}
 
-	// A '|' in the name would make the method's `errors A|B` clause unable to
-	// reference it, since the clause splits the list on the bar.
+	// A '|' in the name would make the method's `+ error A|B` option unable to
+	// reference it, since the option splits the list on the bar.
 	if strings.Contains(matches[4].val, "|") {
 		return p.stateError(fmt.Errorf("error name may not contain '|': got '%s'", matches[4].val))
 	}
