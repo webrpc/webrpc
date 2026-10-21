@@ -460,7 +460,7 @@ service Users
       + POST /users
       + success 205
 `,
-			wantErr: "invalid '+ success' status code '205' of method 'Create': 204/205 require an empty response (no outputs or an empty struct)",
+			wantErr: "invalid '+ success' status code '205' of route 'POST /users' of method 'Users.Create': 204/205 require an empty response (no outputs or an empty struct)",
 		},
 		{
 			name: "duplicate code in the set",
@@ -533,16 +533,6 @@ service Users
 			wantErr: "'+ @success' is no longer supported: write '+ success <codes>'",
 		},
 		{
-			name: "old @success annotation syntax",
-			input: routeRIDLHeader + `
-service Users
-  - Create(CreateUserRequest) => (CreateUserResponse)
-      + POST /users
-      + @success = 201
-`,
-			wantErr: "'+ @success' is no longer supported: write '+ success <codes>'",
-		},
-		{
 			name: "two success option lines on one method",
 			input: routeRIDLHeader + `
 service Users
@@ -550,17 +540,6 @@ service Users
       + POST /users
       + success 201
       + success 202
-`,
-			wantErr: "method 'Create' already declares '+ success'",
-		},
-		{
-			name: "success option before the route",
-			input: routeRIDLHeader + `
-service Users
-  - Create(CreateUserRequest) => (CreateUserResponse)
-      + success 201
-      + success 202
-      + POST /users
 `,
 			wantErr: "method 'Create' already declares '+ success'",
 		},

@@ -1,7 +1,6 @@
 package ridl
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -380,11 +379,6 @@ func parseRouteSuccess(p *parser, s *ServiceNode) error {
 			return fmt.Errorf("duplicate '+ success' status code '%s' of method '%s'", val, mn.name.String())
 		}
 		seen[code] = true
-		// A single output may still be an empty struct, which only the schema
-		// validation (always run next) can resolve.
-		if (code == 204 || code == 205) && len(mn.outputs.arguments) > 1 {
-			return fmt.Errorf("invalid '+ success' status code '%s' of method '%s': 204/205 require an empty response (no outputs or an empty struct)", val, mn.name.String())
-		}
 		codes = append(codes, newTokenNode(&token{tt: codeTok.tt, val: val, pos: codeTok.pos, line: codeTok.line, col: codeTok.col}))
 	}
 	p.next()
@@ -413,12 +407,6 @@ func parseMethodErrors(p *parser, s *ServiceNode) error {
 
 	errorNames, err := p.expectErrorList()
 	if err != nil {
-		// The empty-segment message is already exact; wrapping it would hide
-		// the name it was rejected from.
-		var empty *emptyErrorNameError
-		if errors.As(err, &empty) {
-			return err
-		}
 		return fmt.Errorf("expecting error name after '+ error', e.g. '+ error NotFound': %w", err)
 	}
 	if err := p.expectOptionalCommentOrEOL(); err != nil {

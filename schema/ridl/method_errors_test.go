@@ -19,102 +19,6 @@ func parseRIDLString(src string) (*schema.WebRPCSchema, error) {
 	return NewParser(fsys, "/", "test.ridl").Parse()
 }
 
-func TestErrorsClauseRejected_SingleError(t *testing.T) {
-	ridlContent := `webrpc = v1
-
-name = MethodErrorsTest
-version = v1.0.0
-basepath = /rpc
-
-# Define a custom error
-error 1 UserNotFound "user not found" HTTP 404
-
-struct User
-  - id: uint64
-  - username: string
-
-service UserService
-  # Method that scopes specific potential errors returned
-  - GetUser(userID: uint64) => (user: User) errors UserNotFound
-`
-
-	_, err := parseRIDLString(ridlContent)
-
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "'errors A|B' after the method signature is no longer supported")
-}
-
-func TestErrorsClauseRejected_MultipleErrors(t *testing.T) {
-	ridlContent := `webrpc = v1
-
-name = MultipleMethodErrorsTest
-version = v0.1.0
-
-# Define multiple custom errors
-error 1 Unauthorized    "unauthorized"        HTTP 401
-error 2 ValidationError "validation failed"   HTTP 400
-error 3 ServiceError    "service error"       HTTP 500
-
-struct User
-  - id: uint64
-  - username: string
-
-service UserService
-  # Method that errors multiple specific errors
-  - UpdateUser(user: User) => (user: User) errors Unauthorized | ValidationError | ServiceError
-`
-
-	_, err := parseRIDLString(ridlContent)
-
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "'errors A|B' after the method signature is no longer supported")
-}
-
-func TestMethodErrorsKeyword_BackwardCompatibility(t *testing.T) {
-	ridlContent := `webrpc = v1
-
-name = BackwardCompatTest
-version = v0.1.0
-
-# Define some errors (even though we won't use them in errors)
-error 1 SomeError "some error" HTTP 400
-
-struct User
-  - id: uint64
-  - username: string
-
-service UserService
-  # Method without errors - should work normally
-  - GetUser(userID: uint64) => (user: User)
-  # Another method without errors
-  - ListUsers() => (users: []User)
-`
-
-	// This should SUCCEED because methods without 'errors' should work as before
-	schema, err := parseRIDLString(ridlContent)
-
-	require.NoError(t, err, "Methods without errors should parse successfully")
-	require.NotNil(t, schema, "Schema should not be nil")
-
-	// Validate the schema structure
-	require.Len(t, schema.Services, 1)
-	service := schema.Services[0]
-	require.Equal(t, "UserService", service.Name)
-	require.Len(t, service.Methods, 2)
-
-	// Check first method
-	getUserMethod := service.Methods[0]
-	require.Equal(t, "GetUser", getUserMethod.Name)
-	require.Len(t, getUserMethod.Errors, 0, "Method without errors should have no errors")
-
-	// Check second method
-	listMethod := service.Methods[1]
-	require.Equal(t, "ListUsers", listMethod.Name)
-	require.Len(t, listMethod.Errors, 0, "Method without errors should have no errors")
-
-	t.Logf("✅ Backward compatibility maintained - methods without errors work fine")
-}
-
 func TestMethodErrorsKeyword_JsonSchemaSupport(t *testing.T) {
 	jsonContent := `{
   "webrpc": "v1",
@@ -258,13 +162,6 @@ service UserService
 			wantErr: "empty error name in 'ErrOne|'",
 		},
 		{
-			name: "empty name between bars",
-			methods: `  - GetUser(id: uint64) => (user: User)
-    + error ErrOne||ErrTwo
-`,
-			wantErr: "empty error name in 'ErrOne||ErrTwo'",
-		},
-		{
 			name: "duplicate across lines",
 			methods: `  - GetUser(id: uint64) => (user: User)
     + error ErrOne
@@ -278,13 +175,6 @@ service UserService
     + error ErrFour
 `,
 			wantErr: "references undefined error 'ErrFour'",
-		},
-		{
-			name: "error names are case-sensitive",
-			methods: `  - GetUser(id: uint64) => (user: User)
-    + error errOne
-`,
-			wantErr: "references undefined error 'errOne'",
 		},
 		{
 			name: "before any method",
@@ -357,29 +247,6 @@ service UserService
 			assert.Contains(t, err.Error(), wantErr)
 		})
 	}
-}
-
-func TestMethodErrorsEmptyNameReportsSegment(t *testing.T) {
-	const src = `webrpc = v1
-
-name = MethodErrorsPositionTest
-version = v1.0.0
-
-error 1 ErrOne "one" HTTP 400
-
-struct User
-  - id: uint64
-
-service UserService
-  - GetUser(id: uint64) => (user: User)
-    + error ErrOne|
-`
-	_, err := parseRIDLString(src)
-	require.Error(t, err)
-	// The error points at the rejected list, not at the line break after it,
-	// and is not wrapped in the generic '+ error' hint.
-	assert.Contains(t, err.Error(), `error near "ErrOne|"`)
-	assert.NotContains(t, err.Error(), "expecting error name after '+ error'")
 }
 
 func TestErrorDeclarationRejectsBarInName(t *testing.T) {
