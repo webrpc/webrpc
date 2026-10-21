@@ -1514,7 +1514,7 @@ namespace Interop.Test
             using (var response = await SendAsync(client, request, global::System.Net.Http.HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false))
             {
                 var status = (int)response.StatusCode;
-                var body = await ReadBodyAsync(response).ConfigureAwait(false);
+                var body = await ReadBodyAsync(response, cancellationToken).ConfigureAwait(false);
                 if (status < 200 || status > 299)
                 {
                     throw DecodeError(status, body);
@@ -1542,7 +1542,7 @@ namespace Interop.Test
                 var status = (int)response.StatusCode;
                 if (status < 200 || status > 299)
                 {
-                    throw DecodeError(status, await ReadBodyAsync(response).ConfigureAwait(false));
+                    throw DecodeError(status, await ReadBodyAsync(response, cancellationToken).ConfigureAwait(false));
                 }
             }
         }
@@ -1557,7 +1557,7 @@ namespace Interop.Test
             {
                 using (response)
                 {
-                    throw DecodeError(status, await ReadBodyAsync(response).ConfigureAwait(false));
+                    throw DecodeError(status, await ReadBodyAsync(response, cancellationToken).ConfigureAwait(false));
                 }
             }
             return response;
@@ -1602,15 +1602,28 @@ namespace Interop.Test
             return text.ToString();
         }
 
-        private static async global::System.Threading.Tasks.Task<string> ReadBodyAsync(global::System.Net.Http.HttpResponseMessage response)
+        // Reads the response body. Cancellation disposes the response, which
+        // aborts a body still streaming in.
+        private static async global::System.Threading.Tasks.Task<string> ReadBodyAsync(global::System.Net.Http.HttpResponseMessage response, global::System.Threading.CancellationToken cancellationToken)
         {
-            try
+            if (response.Content == null)
             {
-                return response.Content == null ? "" : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                return "";
             }
-            catch (global::System.Exception ex)
+            using (cancellationToken.Register(response.Dispose))
             {
-                throw new WebrpcBadResponseException("WebrpcBadResponse", "bad response", (int)response.StatusCode, "failed to read response body: " + ex.Message, ex);
+                try
+                {
+                    return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                }
+                catch (global::System.Exception ex) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw new global::System.OperationCanceledException("the request was canceled", ex, cancellationToken);
+                }
+                catch (global::System.Exception ex)
+                {
+                    throw new WebrpcBadResponseException("WebrpcBadResponse", "bad response", (int)response.StatusCode, "failed to read response body: " + ex.Message, ex);
+                }
             }
         }
 

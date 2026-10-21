@@ -101,7 +101,7 @@ method takes a `CancellationToken`.
 | `timestamp` | `DateTimeOffset` (ISO 8601 in UTC on the wire) |
 | `bigint` | `System.Numerics.BigInteger` (decimal string on the wire) |
 | `any`, `null` | `object?`: decoded as a `JsonElement` (System.Text.Json), or a `JToken` or primitive (Newtonsoft.Json) |
-| `[]byte` | `byte[]` (base64 on the wire) |
+| `[]byte`, `[]uint8` | `byte[]` (base64 on the wire, like Go) |
 | `[]T` | `List<T>` |
 | `map<K,V>` | `Dictionary<K,V>` |
 | `file` | `WebrpcFile` |
@@ -115,7 +115,8 @@ to empty values. Fields with `+ json = name` are renamed on the wire, and fields
 with `+ json = -` are left out.
 
 Identifiers that are C# keywords are escaped (`@class`), and members that would
-clash with their type or with `System.Object` members get a `_` suffix (`ToString_`).
+clash with their type or with `System.Object` members get a `_` suffix (`ToString_`),
+as do arguments named like the generated parameters (`cancellationToken_`).
 
 ### Enums
 

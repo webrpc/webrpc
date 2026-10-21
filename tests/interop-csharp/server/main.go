@@ -32,6 +32,14 @@ func main() {
 		w.WriteHeader(http.StatusBadGateway)
 		w.Write([]byte("<html>502 Bad Gateway</html>"))
 	})
+	// An error response whose body stalls until the client gives up.
+	mux.HandleFunc("/stall-error/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":`))
+		w.(http.Flusher).Flush()
+		<-r.Context().Done()
+	})
 	log.Fatal(http.ListenAndServe(addr, mux))
 }
 
@@ -63,6 +71,7 @@ func fixtureTypes() *Types {
 		F64:      -0.000123456789,
 		Str:      "héllo \"wörld\" <&> ☃ \U0001F600",
 		Bytes:    []byte{0x00, 0x01, 0xfe, 0xff},
+		U8s:      []uint8{0x01, 0x02},
 		Ts:       time.Date(2026, 9, 3, 12, 30, 15, 123456700, time.UTC),
 		TsList:   []time.Time{time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2026, 12, 31, 23, 59, 59, 0, time.UTC)},
 		Big:      bigInt("-123456789012345678901234567890"),
@@ -117,6 +126,10 @@ func (s *server) SendUnknownEnum(ctx context.Context, color Color, colors []Colo
 func (s *server) Keywords(ctx context.Context, class string, cancellationToken string, params []string) (string, *Keywords, error) {
 	event := fmt.Sprintf("class=%s cancellationToken=%s params=%s", class, cancellationToken, strings.Join(params, ","))
 	return event, &Keywords{Class: "class", String: "string", Event: "event", Keywords: "keywords", ToString: "toString", Equals: "equals"}, nil
+}
+
+func (s *server) Shadow(ctx context.Context, json string, baseUrl string, cancellationToken_ string, cancellationToken string) (string, error) {
+	return strings.Join([]string{json, baseUrl, cancellationToken_, cancellationToken}, ","), nil
 }
 
 func (s *server) Optional(ctx context.Context, str *string, num *uint64, ts *time.Time) (*string, *uint64, *time.Time, error) {

@@ -50,12 +50,12 @@
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             {{- range $_, $input := $method.Inputs }}
             {{- if $input.Optional }}
-            if ({{ template "argName" dict "Name" $input.Name "Ctx" $ctx }} != null)
+            if ({{ template "argName" dict "Name" $input.Name "Method" $method "Ctx" $ctx }} != null)
             {
-                __args[{{ template "str" $input.Name }}] = {{ template "argName" dict "Name" $input.Name "Ctx" $ctx }};
+                __args[{{ template "str" $input.Name }}] = {{ template "argName" dict "Name" $input.Name "Method" $method "Ctx" $ctx }};
             }
             {{- else }}
-            __args[{{ template "str" $input.Name }}] = {{ template "argName" dict "Name" $input.Name "Ctx" $ctx }};
+            __args[{{ template "str" $input.Name }}] = {{ template "argName" dict "Name" $input.Name "Method" $method "Ctx" $ctx }};
             {{- end }}
             {{- end }}
             var __json = WebrpcJson.Serialize(__args);
@@ -158,7 +158,7 @@ global::System.Threading.Tasks.Task<{{ $ctx.Ns }}.{{ .ClientName }}.{{ $method.N
 {{ template "type" dict "Type" (index $method.Inputs 0).Type "Ctx" $ctx }} request{{ ", " }}
 {{- else -}}
 {{- range $_, $input := $method.Inputs -}}
-{{ template "fieldType" dict "Type" $input.Type "Optional" $input.Optional "Ctx" $ctx }} {{ template "argName" dict "Name" $input.Name "Ctx" $ctx }}{{ ", " }}
+{{ template "fieldType" dict "Type" $input.Type "Optional" $input.Optional "Ctx" $ctx }} {{ template "argName" dict "Name" $input.Name "Method" $method "Ctx" $ctx }}{{ ", " }}
 {{- end -}}
 {{- end -}}
 {{ if and .Impl $method.StreamOutput }}[global::System.Runtime.CompilerServices.EnumeratorCancellation] {{ end }}global::System.Threading.CancellationToken cancellationToken = default)
@@ -182,7 +182,7 @@ __url.
     {{- if eq $jsonName $param.Name }}request.{{ template "propName" dict "Name" $field.Name "Owner" (printf "%v" $input.Type) "Ctx" $ctx }}{{ end -}}
   {{- end -}}
 {{- else -}}
-{{ template "argName" dict "Name" $param.Name "Ctx" $ctx }}
+{{ template "argName" dict "Name" $param.Name "Method" $method "Ctx" $ctx }}
 {{- end -}}
 );
 {{- end -}}
@@ -195,7 +195,7 @@ __url.
 __content.Add{{ if $part.Repeated }}Files{{ else }}File{{ end }}({{ template "str" $part.PartName }}{{ ", " }}
 {{- range $_, $input := $method.Inputs -}}
   {{- if eq $input.Name $part.ArgName -}}
-    {{- if $method.Succinct }}request{{ else }}{{ template "argName" dict "Name" $input.Name "Ctx" $ctx }}{{ end -}}
+    {{- if $method.Succinct }}request{{ else }}{{ template "argName" dict "Name" $input.Name "Method" $method "Ctx" $ctx }}{{ end -}}
     {{- if ne $part.FieldName "" -}}
       {{- range $_, $field := $input.Type.Struct.Type.Fields -}}
         {{- $jsonName := $field.Name -}}

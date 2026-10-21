@@ -22,9 +22,10 @@
 {{- template "memberName" dict "Name" .Name "Owner" .Owner "Upper" true "Ctx" .Ctx -}}
 {{- end -}}
 
-{{- /* argName is the camelCase C# parameter name of a method argument. */ -}}
+{{- /* argName is the C# parameter name of a method argument, see $argNames in main. */ -}}
 {{- define "argName" -}}
-{{- if eq .Name "cancellationToken" }}cancellationToken_{{ else }}{{ template "ident" dict "Name" .Name "Ctx" .Ctx }}{{ end -}}
+{{- $names := get .Ctx.ArgNames (printf "%s.%s" .Method.Service.Name .Method.Name) -}}
+{{ template "ident" dict "Name" (get $names .Name) "Ctx" .Ctx }}
 {{- end -}}
 
 {{- /* str renders a C# string literal. */ -}}
@@ -61,7 +62,7 @@ global::System.Collections.Generic.Dictionary<{{ template "type" dict "Type" (ma
 {{- else if isListType $type -}}
   {{- $elem := printf "%v" (listElemType $type) -}}
   {{- if exists $ctx.Aliases $elem }}{{ $elem = get $ctx.Aliases $elem }}{{ end -}}
-  {{- if eq $elem "byte" -}}
+  {{- if in $elem "byte" "uint8" -}}
 byte[]
   {{- else -}}
 global::System.Collections.Generic.List<{{ template "type" dict "Type" $elem "Ctx" $ctx }}>
@@ -93,7 +94,7 @@ global::System.Collections.Generic.List<{{ template "type" dict "Type" $elem "Ct
   {{- else if or (isMapType $type) (isListType $type) -}}
     {{- $elem := "" -}}
     {{- if isListType $type }}{{ $elem = printf "%v" (listElemType $type) }}{{ if exists $ctx.Aliases $elem }}{{ $elem = get $ctx.Aliases $elem }}{{ end }}{{ end -}}
-    {{- if eq $elem "byte" -}}
+    {{- if in $elem "byte" "uint8" -}}
 {{ " " }}= global::System.Array.Empty<byte>();
     {{- else -}}
 {{ " " }}= new {{ template "type" dict "Type" $type "Ctx" $ctx }}();

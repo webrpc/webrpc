@@ -18,6 +18,9 @@ service CSharp
   # C# keywords and reserved member names.
   - Keywords(class: string, cancellationToken: string, params?: []string) => (event: string, keywords: Keywords)
 
+  # Arguments named like the generated parameters, locals and fields.
+  - Shadow(__json: string, _baseUrl: string, cancellationToken_: string, cancellationToken: string) => (echo: string)
+
   # Optional arguments and outputs.
   - Optional(str?: string, num?: uint64, ts?: timestamp) => (str?: string, num?: uint64, ts?: timestamp)
 
@@ -85,6 +88,7 @@ struct Types
   - f64: float64
   - str: string
   - bytes: []byte
+  - u8s: []uint8
   - ts: timestamp
   - tsList: []timestamp
   - big: bigint

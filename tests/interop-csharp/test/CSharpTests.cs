@@ -32,6 +32,7 @@ namespace Interop.Tests
             F64 = -0.000123456789,
             Str = "héllo \"wörld\" <&> ☃ \U0001F600",
             Bytes = new byte[] { 0x00, 0x01, 0xfe, 0xff },
+            U8s = new byte[] { 0x01, 0x02 },
             Ts = new DateTimeOffset(2026, 9, 3, 12, 30, 15, TimeSpan.Zero).AddTicks(1234567),
             TsList = { new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero), new DateTimeOffset(2026, 12, 31, 23, 59, 59, TimeSpan.Zero) },
             Big = BigInteger.Parse("-123456789012345678901234567890"),
@@ -72,6 +73,7 @@ namespace Interop.Tests
                 Assert.True(json.Contains("\"country\":\"Canada\""), "string enums use their value: " + json);
                 Assert.True(json.Contains("\"byId\":{\"-1\":\"minus one\",\"42\":\"answer\"}"), "integer map keys are strings: " + json);
                 Assert.True(json.Contains("\"bytes\":\"AAH+/w==\""), "[]byte is base64: " + json);
+                Assert.True(json.Contains("\"u8s\":\"AQI=\""), "[]uint8 is base64: " + json);
             });
 
             check.Run("Unit.Deserialize(Types)", () =>
@@ -140,6 +142,7 @@ namespace Interop.Tests
                 Assert.Equal(expected.F64, got.F64, "f64");
                 Assert.Equal(expected.Str, got.Str, "str");
                 Assert.SequenceEqual(expected.Bytes, got.Bytes, "bytes");
+                Assert.SequenceEqual(expected.U8s, got.U8s, "u8s");
                 Assert.Equal(expected.Ts, got.Ts, "ts");
                 Assert.SequenceEqual(expected.TsList, got.TsList, "tsList");
                 Assert.Equal(expected.Big, got.Big, "big");
@@ -192,6 +195,11 @@ namespace Interop.Tests
                 Assert.Equal("toString", resp.Keywords.ToString_, "keywords.toString");
                 var omitted = await api.KeywordsAsync("c", "t", null, CancellationToken.None);
                 Assert.Equal("class=c cancellationToken=t params=", omitted.Event, "event (params omitted)");
+            });
+
+            await check.Run("CSharp.Shadow", async () =>
+            {
+                Assert.Equal("a,b,c,d", await api.ShadowAsync("a", "b", "c", "d"), "echo");
             });
 
             await check.Run("CSharp.Optional", async () =>
@@ -332,6 +340,26 @@ namespace Interop.Tests
                 using var cts = new CancellationTokenSource();
                 cts.Cancel();
                 await Assert.Throws<OperationCanceledException>(() => api.GetTypesAsync(cts.Token));
+            });
+
+            // The caller's token interrupts a stalled error response body.
+            await check.Run("CSharp.Cancellation(stalled error body)", async () =>
+            {
+                var stalled = new CSharpClient(url + "/stall-error", http);
+                var calls = new (string Name, Func<CancellationToken, Task> Call)[]
+                {
+                    ("download", async ct => (await stalled.DownloadDocAsync("x", ct)).Dispose()),
+                    ("stream", async ct => { await foreach (var _ in stalled.CountdownAsync(1, ct)) { } }),
+                    ("unary", ct => stalled.GetTypesAsync(ct)),
+                };
+                foreach (var (name, call) in calls)
+                {
+                    using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(300));
+                    var pending = call(cts.Token);
+                    var finished = await Task.WhenAny(pending, Task.Delay(TimeSpan.FromSeconds(5)));
+                    Assert.True(finished == pending, name + ": still pending 5s after cancellation");
+                    await Assert.Throws<OperationCanceledException>(() => pending, name);
+                }
             });
 
             await check.Run("CSharp.RequestFailed", async () =>
