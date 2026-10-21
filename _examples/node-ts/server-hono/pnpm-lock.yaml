@@ -10,13 +10,13 @@ importers:
     devDependencies:
       '@hono/node-server':
         specifier: ^1.13.3
-        version: 1.19.15(hono@4.13.7)
+        version: 1.19.15(hono@4.13.11)
       '@types/node':
         specifier: ^24.8.1
         version: 24.8.1
       hono:
         specifier: ^4.4.7
-        version: 4.13.7
+        version: 4.13.11
       tsx:
         specifier: ^4.20.6
         version: 4.20.6
@@ -204,8 +204,8 @@ packages:
   get-tsconfig@4.12.0:
     resolution: {integrity: sha512-LScr2aNr2FbjAjZh2C6X6BxRx1/x+aTDExct/xyq2XKbYOiG5c0aK7pMsSuyc0brz3ibr/lbQiHD9jzt4lccJw==}
 
-  hono@4.13.7:
-    resolution: {integrity: sha512-c8/gF9ac8Y78/agExVocyLevgR+JlpNB444Py0FSX8pJoPdYUfUzRcXtYEYGwt6l19qIlVZPN5Mfsw9jFShmQQ==}
+  hono@4.13.11:
+    resolution: {integrity: sha512-/SMX/RQNJn7oNmFwH6DtwDqcrzZU2otm1FD6OJe2cWF6cfy/F8hq0XVBv7xW3FTJshRQwuBnXHDq2kNsdZnshg==}
     engines: {node: '>=16.9.0'}
 
   resolve-pkg-maps@1.0.0:
@@ -304,9 +304,9 @@ snapshots:
   '@esbuild/win32-x64@0.25.11':
     optional: true
 
-  '@hono/node-server@1.19.15(hono@4.13.7)':
+  '@hono/node-server@1.19.15(hono@4.13.11)':
     dependencies:
-      hono: 4.13.7
+      hono: 4.13.11
 
   '@types/node@24.8.1':
     dependencies:
@@ -348,7 +348,7 @@ snapshots:
     dependencies:
       resolve-pkg-maps: 1.0.0
 
-  hono@4.13.7: {}
+  hono@4.13.11: {}
 
   resolve-pkg-maps@1.0.0: {}
 
