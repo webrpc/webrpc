@@ -1,0 +1,187 @@
+{{- define "types" -}}
+{{- $ctx := .Ctx -}}
+{{- $opts := $ctx.Opts -}}
+{{- $vis := $opts.visibility -}}
+
+{{- range $_, $type := .Types -}}
+
+{{- if isEnumType $type }}
+{{- $name := $type.Name }}
+{{- $isString := eq (printf "%v" $type.Type) "string" }}
+{{- $reserved := dict "Value" true "KnownValues" true "IsKnown" true "WebrpcJsonConverter" true }}
+{{- /* The zero value of an integer enum is its 0 member, like in Go. */ -}}
+{{- $zero := "" }}
+{{- if not $isString }}
+  {{- range $_, $field := $type.Fields }}
+    {{- if eq $field.Value "0" }}{{ $zero = enumWireValue $field }}{{ end }}
+  {{- end }}
+{{- end }}
+{{ template "doc" dict "Comments" $type.Comments "Indent" "    " }}
+    /// <remarks>
+    /// Enum values are serialized as strings. Values unknown to this client
+    /// (eg. added to the server's schema later) are preserved, see <see cref="IsKnown"/>.
+    /// </remarks>
+    {{- if eq $opts.json "stj" }}
+    [global::System.Text.Json.Serialization.JsonConverter(typeof({{$name}}.WebrpcJsonConverter))]
+    {{- else }}
+    [global::Newtonsoft.Json.JsonConverter(typeof({{$name}}.WebrpcJsonConverter))]
+    {{- end }}
+    {{$vis}} readonly partial struct {{$name}} : global::System.IEquatable<{{$name}}>
+    {
+        {{- range $_, $field := $type.Fields }}
+{{- template "doc" dict "Comments" $field.Comments "Indent" "        " }}
+        public static readonly {{$name}} {{ template "memberName" dict "Name" $field.Name "Owner" $name "Extra" $reserved "Ctx" $ctx }} = new {{$name}}({{ template "str" (ternary $isString $field.Value (enumWireValue $field)) }});
+        {{- end }}
+
+        /// <summary>The values defined in the schema.</summary>
+        public static global::System.Collections.Generic.IReadOnlyList<{{$name}}> KnownValues { get; } = new {{$name}}[]
+        {
+            {{- range $i, $field := $type.Fields }}
+            {{ template "memberName" dict "Name" $field.Name "Owner" $name "Extra" $reserved "Ctx" $ctx }},
+            {{- end }}
+        };
+
+        private readonly string? _value;
+
+        public {{$name}}(string value)
+        {
+            _value = value;
+        }
+
+        /// <summary>The value sent over the wire.</summary>
+        public string Value => _value ?? {{ template "str" $zero }};
+
+        /// <summary>Whether the value is defined in the schema this client was generated from.</summary>
+        public bool IsKnown
+        {
+            get
+            {
+                {{- if $type.Fields }}
+                switch (Value)
+                {
+                    {{- range $_, $field := $type.Fields }}
+                    case {{ template "str" (ternary $isString $field.Value (enumWireValue $field)) }}:
+                    {{- end }}
+                        return true;
+                    default:
+                        return false;
+                }
+                {{- else }}
+                return false;
+                {{- end }}
+            }
+        }
+
+        public bool Equals({{$name}} other) => string.Equals(Value, other.Value, global::System.StringComparison.Ordinal);
+
+        public override bool Equals(object? obj) => obj is {{$name}} other && Equals(other);
+
+        public override int GetHashCode() => global::System.StringComparer.Ordinal.GetHashCode(Value);
+
+        public override string ToString() => Value;
+
+        public static bool operator ==({{$name}} left, {{$name}} right) => left.Equals(right);
+
+        public static bool operator !=({{$name}} left, {{$name}} right) => !left.Equals(right);
+
+        public static implicit operator {{$name}}(string value) => new {{$name}}(value);
+        {{- if eq $opts.json "stj" }}
+
+        internal sealed class WebrpcJsonConverter : global::System.Text.Json.Serialization.JsonConverter<{{$name}}>
+        {
+            public override {{$name}} Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
+            {
+                if (reader.TokenType == global::System.Text.Json.JsonTokenType.Null)
+                {
+                    return default;
+                }
+                if (reader.TokenType != global::System.Text.Json.JsonTokenType.String)
+                {
+                    throw new global::System.Text.Json.JsonException("expected a string value of enum {{$name}}, got " + reader.TokenType);
+                }
+                return new {{$name}}(reader.GetString()!);
+            }
+
+            public override void Write(global::System.Text.Json.Utf8JsonWriter writer, {{$name}} value, global::System.Text.Json.JsonSerializerOptions options)
+            {
+                writer.WriteStringValue(value.Value);
+            }
+
+            public override {{$name}} ReadAsPropertyName(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
+            {
+                return new {{$name}}(reader.GetString()!);
+            }
+
+            public override void WriteAsPropertyName(global::System.Text.Json.Utf8JsonWriter writer, {{$name}} value, global::System.Text.Json.JsonSerializerOptions options)
+            {
+                writer.WritePropertyName(value.Value);
+            }
+        }
+        {{- else }}
+
+        internal sealed class WebrpcJsonConverter : global::Newtonsoft.Json.JsonConverter
+        {
+            public override bool CanConvert(global::System.Type objectType) => objectType == typeof({{$name}}) || objectType == typeof({{$name}}?);
+
+            public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer)
+            {
+                if (reader.TokenType == global::Newtonsoft.Json.JsonToken.Null)
+                {
+                    return objectType == typeof({{$name}}?) ? null : (object)default({{$name}});
+                }
+                if (reader.TokenType != global::Newtonsoft.Json.JsonToken.String)
+                {
+                    throw new global::Newtonsoft.Json.JsonSerializationException("expected a string value of enum {{$name}}, got " + reader.TokenType);
+                }
+                return new {{$name}}((string)reader.Value!);
+            }
+
+            public override void WriteJson(global::Newtonsoft.Json.JsonWriter writer, object? value, global::Newtonsoft.Json.JsonSerializer serializer)
+            {
+                if (value == null)
+                {
+                    writer.WriteNull();
+                    return;
+                }
+                writer.WriteValue((({{$name}})value).Value);
+            }
+        }
+        {{- end }}
+    }
+{{- end }}
+
+{{- if isStructType $type }}
+{{- $name := $type.Name }}
+{{ template "doc" dict "Comments" $type.Comments "Indent" "    " }}
+    {{$vis}} partial class {{$name}}
+    {
+        {{- range $i, $field := $type.Fields }}
+        {{- $jsonName := $field.Name }}
+        {{- range $_, $meta := $field.Meta }}
+          {{- if exists $meta "json" }}{{ $jsonName = printf "%v" (get $meta "json") }}{{ end }}
+        {{- end }}
+        {{- if ne $jsonName "-" }}
+        {{- if $i }}
+{{ end }}
+{{- template "doc" dict "Comments" $field.Comments "Indent" "        " }}
+        {{ template "jsonProperty" dict "Name" $jsonName "Optional" $field.Optional "Ctx" $ctx }}
+        public {{ template "fieldType" dict "Type" $field.Type "Optional" $field.Optional "Ctx" $ctx }} {{ template "propName" dict "Name" $field.Name "Owner" $name "Ctx" $ctx }} { get; set; }{{ template "initializer" dict "Type" $field.Type "Optional" $field.Optional "Ctx" $ctx }}
+        {{- end }}
+        {{- end }}
+    }
+{{- end }}
+
+{{- end }}
+{{- end -}}
+
+{{- /* jsonProperty renders the serializer attributes of a struct field. */ -}}
+{{- define "jsonProperty" -}}
+{{- if eq .Ctx.Opts.json "stj" -}}
+[global::System.Text.Json.Serialization.JsonPropertyName({{ template "str" .Name }})]
+{{- if .Optional }}
+        [global::System.Text.Json.Serialization.JsonIgnore(Condition = global::System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+{{- end }}
+{{- else -}}
+[global::Newtonsoft.Json.JsonProperty({{ template "str" .Name }}{{ if .Optional }}, NullValueHandling = global::Newtonsoft.Json.NullValueHandling.Ignore{{ end }})]
+{{- end -}}
+{{- end -}}

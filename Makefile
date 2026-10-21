@@ -34,6 +34,7 @@ generate: build
 	go generate -v -x ./...
 	for i in _examples/*; do echo $$i; make -C $$i generate || exit 1; done
 	make -C tests/interop-web generate
+	make -C tests/interop-csharp generate
 	# Replace webrpc version in all generated files to avoid git conflicts.
 	git grep -l "$(VERSION)" | xargs perl -i -pe "s/\@$(VERSION)//g"
 	perl -i -ne "print unless /$(VERSION)/" tests/schema/test.debug.gen.txt
@@ -47,7 +48,7 @@ diff:
 	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
 
 # Run all tests
-test: test-go test-interoperability test-interop
+test: test-go test-interoperability test-interop test-interop-csharp
 
 # Run Go tests
 test-go: generate
@@ -64,6 +65,10 @@ test-interoperability: build-test
 # Run TypeScript/JavaScript <-> Go interoperability tests for the file core type (requires node)
 test-interop:
 	make -C tests/interop-web test
+
+# Run C# client <-> Go server interoperability tests (requires the .NET SDK)
+test-interop-csharp:
+	make -C tests/interop-csharp test
 
 # Update ridl golden examples
 update-ridl-test-golden-examples:

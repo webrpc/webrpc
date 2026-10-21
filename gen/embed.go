@@ -15,7 +15,7 @@ import (
 // To propose a new officially supported target template,
 // please submit an issue at https://github.com/webrpc/webrpc/issues/new.
 //
-//go:embed golang/*.go.tmpl typescript/*.go.tmpl javascript/*.go.tmpl openapi/*.go.tmpl kotlin/*.go.tmpl dart/*.go.tmpl swift/*.go.tmpl
+//go:embed golang/*.go.tmpl typescript/*.go.tmpl javascript/*.go.tmpl openapi/*.go.tmpl kotlin/*.go.tmpl dart/*.go.tmpl swift/*.go.tmpl csharp/*.go.tmpl
 var templatesFS embed.FS
 
 var EmbeddedTargetNames = []string{
@@ -26,6 +26,7 @@ var EmbeddedTargetNames = []string{
 	"kotlin",
 	"dart",
 	"swift",
+	"csharp",
 }
 
 // The values are computed in init() function.

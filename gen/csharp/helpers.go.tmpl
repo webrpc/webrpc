@@ -1,0 +1,106 @@
+{{- /* ident escapes C# keywords: class => @class. */ -}}
+{{- define "ident" -}}
+{{- if exists .Ctx.Keywords .Name }}@{{ end }}{{ .Name }}
+{{- end -}}
+
+{{- /* memberName renders the C# member name of a schema field (or enum value)
+       inside the type named .Owner. A member can't share its enclosing type's
+       name, or hide System.Object members; .Extra lists further names
+       reserved by the generated type. */ -}}
+{{- define "memberName" -}}
+{{- $name := .Name -}}
+{{- if .Upper }}{{ $name = firstLetterToUpper $name }}{{ end -}}
+{{- if or (eq $name .Owner) (exists .Ctx.Reserved $name) (and .Extra (exists .Extra $name)) -}}
+{{ $name }}_
+{{- else -}}
+{{ template "ident" dict "Name" $name "Ctx" .Ctx }}
+{{- end -}}
+{{- end -}}
+
+{{- /* propName is the PascalCase C# property name of a struct field. */ -}}
+{{- define "propName" -}}
+{{- template "memberName" dict "Name" .Name "Owner" .Owner "Upper" true "Ctx" .Ctx -}}
+{{- end -}}
+
+{{- /* argName is the camelCase C# parameter name of a method argument. */ -}}
+{{- define "argName" -}}
+{{- if eq .Name "cancellationToken" }}cancellationToken_{{ else }}{{ template "ident" dict "Name" .Name "Ctx" .Ctx }}{{ end -}}
+{{- end -}}
+
+{{- /* str renders a C# string literal. */ -}}
+{{- define "str" -}}
+"{{ replace "\"" "\\\"" (replace "\\" "\\\\" (printf "%v" .)) | replace "\n" "\\n" | replace "\r" "\\r" }}"
+{{- end -}}
+
+{{- /* xml escapes text for XML doc comments. */ -}}
+{{- define "xml" -}}
+{{ replace ">" "&gt;" (replace "<" "&lt;" (replace "&" "&amp;" (printf "%v" .))) }}
+{{- end -}}
+
+{{- /* doc renders .Comments as an XML <summary> doc comment. */ -}}
+{{- define "doc" -}}
+{{- if .Comments }}
+{{ .Indent }}/// <summary>
+{{- range $_, $line := .Comments }}
+{{ $.Indent }}/// {{ template "xml" $line }}
+{{- end }}
+{{ .Indent }}/// </summary>
+{{- end -}}
+{{- end -}}
+
+{{- /* type renders the C# type of a webrpc type expression. */ -}}
+{{- define "type" -}}
+{{- $ctx := .Ctx -}}
+{{- $type := printf "%v" .Type -}}
+{{- if exists $ctx.Aliases $type -}}
+  {{- $type = get $ctx.Aliases $type -}}
+{{- end -}}
+
+{{- if isMapType $type -}}
+global::System.Collections.Generic.Dictionary<{{ template "type" dict "Type" (mapKeyType $type) "Ctx" $ctx }}, {{ template "type" dict "Type" (mapValueType $type) "Ctx" $ctx }}>
+{{- else if isListType $type -}}
+  {{- $elem := printf "%v" (listElemType $type) -}}
+  {{- if exists $ctx.Aliases $elem }}{{ $elem = get $ctx.Aliases $elem }}{{ end -}}
+  {{- if eq $elem "byte" -}}
+byte[]
+  {{- else -}}
+global::System.Collections.Generic.List<{{ template "type" dict "Type" $elem "Ctx" $ctx }}>
+  {{- end -}}
+{{- else if isCoreType $type -}}
+{{ get $ctx.TypeMap $type }}
+{{- else -}}
+{{ $ctx.Ns }}.{{ $type }}
+{{- end -}}
+{{- end -}}
+
+{{- /* fieldType renders the C# type of a struct field or argument: optional
+       values are nullable; any/null are always nullable. */ -}}
+{{- define "fieldType" -}}
+{{- $type := printf "%v" .Type -}}
+{{- if exists .Ctx.Aliases $type }}{{ $type = get .Ctx.Aliases $type }}{{ end -}}
+{{ template "type" dict "Type" .Type "Ctx" .Ctx }}{{ if and .Optional (not (in $type "any" "null")) }}?{{ end }}
+{{- end -}}
+
+{{- /* initializer renders the default value of a required reference-typed
+       struct field, so a new object never holds unexpected nulls. */ -}}
+{{- define "initializer" -}}
+{{- $ctx := .Ctx -}}
+{{- $type := printf "%v" .Type -}}
+{{- if exists $ctx.Aliases $type }}{{ $type = get $ctx.Aliases $type }}{{ end -}}
+{{- if not .Optional -}}
+  {{- if eq $type "string" -}}
+{{ " " }}= "";
+  {{- else if or (isMapType $type) (isListType $type) -}}
+    {{- $elem := "" -}}
+    {{- if isListType $type }}{{ $elem = printf "%v" (listElemType $type) }}{{ if exists $ctx.Aliases $elem }}{{ $elem = get $ctx.Aliases $elem }}{{ end }}{{ end -}}
+    {{- if eq $elem "byte" -}}
+{{ " " }}= global::System.Array.Empty<byte>();
+    {{- else -}}
+{{ " " }}= new {{ template "type" dict "Type" $type "Ctx" $ctx }}();
+    {{- end -}}
+  {{- else if or (in $type "any" "null") (exists $ctx.Enums $type) (and (isCoreType $type) (ne $type "file")) -}}
+  {{- else -}}
+{{ " " }}= null!;
+  {{- end -}}
+{{- end -}}
+{{- end -}}

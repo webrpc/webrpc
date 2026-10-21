@@ -1,0 +1,188 @@
+{{- define "main" -}}
+
+{{- /* Options with default values. */ -}}
+{{- $opts := dict -}}
+{{- set $opts "client" (ternary (in .Opts.client "" "true") true false) -}}
+{{- set $opts "server" (ternary (in .Opts.server "" "true") true false) -}}
+{{- set $opts "namespace" (default .Opts.namespace (pascalCase .SchemaName)) -}}
+{{- set $opts "json" (default .Opts.json "stj") -}}
+{{- set $opts "visibility" (default .Opts.visibility "public") -}}
+{{- set $opts "schemaHash" (ternary (eq (default .Opts.schemaHash "true") "false") false true) -}}
+{{- set $opts "webrpcHeader" (ternary (eq (default .Opts.webrpcHeader "true") "false") false true) -}}
+
+{{- /* Print help on -help. */ -}}
+{{- if exists .Opts "help" -}}
+  {{- template "help" $opts -}}
+  {{- exit 0 -}}
+{{- end -}}
+
+{{- /* Print help on unsupported option. */ -}}
+{{- range $k, $v := .Opts }}
+  {{- if not (exists $opts $k) -}}
+    {{- stderrPrintf "-%v=%q is not supported target option\n\nUsage:\n" $k $v -}}
+    {{- template "help" $opts -}}
+    {{- exit 1 -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if ne .WebrpcVersion "v1" -}}
+  {{- stderrPrintf "%s generator error: unsupported webrpc version %s\n" .WebrpcTarget .WebrpcVersion -}}
+  {{- exit 1 -}}
+{{- end -}}
+
+{{- if not (minVersion .WebrpcGenVersion "v0.47.0") -}}
+  {{- stderrPrintf "%s generator error: unsupported webrpc-gen version %s, please update\n" .WebrpcTarget .WebrpcGenVersion -}}
+  {{- exit 1 -}}
+{{- end -}}
+
+{{- if $opts.server -}}
+  {{- stderrPrintf "%s generator error: the C# target generates clients only, -server is not supported\n" .WebrpcTarget -}}
+  {{- exit 1 -}}
+{{- end -}}
+
+{{- if not (in $opts.json "stj" "newtonsoft") -}}
+  {{- stderrPrintf "%s generator error: -json=%q is not supported, must be \"stj\" (System.Text.Json) or \"newtonsoft\" (Newtonsoft.Json)\n" .WebrpcTarget $opts.json -}}
+  {{- exit 1 -}}
+{{- end -}}
+
+{{- if not (in $opts.visibility "public" "internal") -}}
+  {{- stderrPrintf "%s generator error: -visibility=%q is not supported, must be \"public\" or \"internal\"\n" .WebrpcTarget $opts.visibility -}}
+  {{- exit 1 -}}
+{{- end -}}
+
+{{- if not (regexMatch "^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*$" $opts.namespace) -}}
+  {{- stderrPrintf "%s generator error: -namespace=%q is not a valid C# namespace\n" .WebrpcTarget $opts.namespace -}}
+  {{- exit 1 -}}
+{{- end -}}
+
+{{- /* Schema features, used to emit only the runtime helpers this schema needs. */ -}}
+{{- range $_, $service := .Services -}}
+  {{- range $_, $method := $service.Methods -}}
+    {{- if $method.StreamInput -}}
+      {{- stderrPrintf "%s generator error: streaming input is not supported (%s.%s)\n" $.WebrpcTarget $service.Name $method.Name -}}
+      {{- exit 1 -}}
+    {{- end -}}
+    {{- if $method.StreamOutput -}}
+      {{- set $opts "streaming" true -}}
+    {{- end -}}
+    {{- if MethodHasFileUpload $method -}}
+      {{- set $opts "fileUpload" true -}}
+    {{- end -}}
+    {{- if MethodHasFileDownload $method -}}
+      {{- set $opts "fileDownload" true -}}
+    {{- end -}}
+    {{- if MethodHasRoute $method -}}
+      {{- set $opts "restRoutes" true -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Map webrpc core types to C#. */ -}}
+{{- $typeMap := dict -}}
+{{- set $typeMap "null" "object?" -}}
+{{- set $typeMap "any" "object?" -}}
+{{- set $typeMap "byte" "byte" -}}
+{{- set $typeMap "bool" "bool" -}}
+{{- set $typeMap "uint" "uint" -}}
+{{- set $typeMap "uint8" "byte" -}}
+{{- set $typeMap "uint16" "ushort" -}}
+{{- set $typeMap "uint32" "uint" -}}
+{{- set $typeMap "uint64" "ulong" -}}
+{{- set $typeMap "int" "int" -}}
+{{- set $typeMap "int8" "sbyte" -}}
+{{- set $typeMap "int16" "short" -}}
+{{- set $typeMap "int32" "int" -}}
+{{- set $typeMap "int64" "long" -}}
+{{- set $typeMap "bigint" "global::System.Numerics.BigInteger" -}}
+{{- set $typeMap "float32" "float" -}}
+{{- set $typeMap "float64" "double" -}}
+{{- set $typeMap "string" "string" -}}
+{{- set $typeMap "timestamp" "global::System.DateTimeOffset" -}}
+{{- set $typeMap "file" (printf "global::%s.WebrpcFile" $opts.namespace) -}}
+
+{{- /* Alias name => underlying type expression; C# has no type aliases, so they are inlined. */ -}}
+{{- $aliases := dict -}}
+{{- range $_, $type := .Types -}}
+  {{- if isAliasType $type -}}
+    {{- set $aliases $type.Name (printf "%v" $type.Type) -}}
+  {{- end -}}
+{{- end -}}
+{{- /* Resolve aliases of aliases. */ -}}
+{{- range $_, $i := (until 8) -}}
+  {{- range $name, $expr := $aliases -}}
+    {{- if exists $aliases $expr -}}
+      {{- set $aliases $name (get $aliases $expr) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Enum names, rendered as C# value types. */ -}}
+{{- $enums := dict -}}
+{{- range $_, $type := .Types -}}
+  {{- if isEnumType $type -}}
+    {{- set $enums $type.Name true -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* C# keywords, escaped with '@' when used as identifiers. */ -}}
+{{- $keywords := dict -}}
+{{- range $_, $kw := (list "abstract" "as" "base" "bool" "break" "byte" "case" "catch" "char" "checked" "class" "const" "continue" "decimal" "default" "delegate" "do" "double" "else" "enum" "event" "explicit" "extern" "false" "finally" "fixed" "float" "for" "foreach" "goto" "if" "implicit" "in" "int" "interface" "internal" "is" "lock" "long" "namespace" "new" "null" "object" "operator" "out" "override" "params" "private" "protected" "public" "readonly" "ref" "return" "sbyte" "sealed" "short" "sizeof" "stackalloc" "static" "string" "struct" "switch" "this" "throw" "true" "try" "typeof" "uint" "ulong" "unchecked" "unsafe" "ushort" "using" "virtual" "void" "volatile" "while" "await" "yield") -}}
+  {{- set $keywords $kw true -}}
+{{- end -}}
+
+{{- /* Member names that would clash with (or hide) members of System.Object. */ -}}
+{{- $reservedMembers := dict -}}
+{{- range $_, $name := (list "Equals" "GetHashCode" "GetType" "ToString" "MemberwiseClone" "Finalize" "ReferenceEquals") -}}
+  {{- set $reservedMembers $name true -}}
+{{- end -}}
+
+{{- $ctx := dict "TypeMap" $typeMap "Aliases" $aliases "Enums" $enums "Keywords" $keywords "Reserved" $reservedMembers "Opts" $opts "Ns" (printf "global::%s" $opts.namespace) -}}
+
+// <auto-generated />
+// {{.SchemaName}} {{.SchemaVersion}}{{if $opts.schemaHash}} {{.SchemaHash}}{{end}}
+// --
+// Code generated by webrpc-gen@{{.WebrpcGenVersion}} with {{.WebrpcTarget}} generator. DO NOT EDIT.
+//
+// {{.WebrpcGenCommand}}
+
+#nullable enable
+#pragma warning disable CS0612, CS0618 // Generated code may reference members marked [Obsolete] in the schema.
+#pragma warning disable CS1591 // Not every generated member has an XML doc comment.
+
+namespace {{$opts.namespace}}
+{
+    {{$opts.visibility}} static class Webrpc
+    {
+        {{- if $opts.schemaHash }}
+        /// <summary>webrpc protocol version.</summary>
+        public const string Version = "{{.WebrpcVersion}}";
+
+        /// <summary>Schema version of your RIDL schema.</summary>
+        public const string SchemaVersion = "{{.SchemaVersion}}";
+
+        /// <summary>Schema hash generated from your RIDL schema.</summary>
+        public const string SchemaHash = "{{.SchemaHash}}";
+        {{- end }}
+
+        /// <summary>Name of the HTTP header carrying the webrpc versions.</summary>
+        public const string Header = "Webrpc";
+
+        /// <summary>Value of the <see cref="Header"/> request header sent by this client.</summary>
+        public const string HeaderValue = "{{.WebrpcHeader}}";
+    }
+
+{{- template "types" dict "Types" .Types "Ctx" $ctx }}
+
+{{- if $opts.client }}
+{{- template "client" dict "Services" .Services "Ctx" $ctx }}
+{{- template "errors" dict "WebrpcErrors" .WebrpcErrors "SchemaErrors" .Errors "Ctx" $ctx }}
+{{- template "runtime" dict "Ctx" $ctx }}
+{{- end }}
+
+{{- template "json" dict "Ctx" $ctx }}
+
+{{- if or $opts.fileUpload $opts.fileDownload }}
+{{- template "file" dict "Ctx" $ctx }}
+{{- end }}
+}
+{{ end -}}

@@ -1,0 +1,446 @@
+{{- define "runtime" -}}
+{{- $opts := .Ctx.Opts }}
+
+    internal static class WebrpcHttp
+    {
+        internal static global::System.Net.Http.HttpRequestMessage NewRequest(global::System.Net.Http.HttpMethod method, string url, global::System.Net.Http.HttpContent? content)
+        {
+            var request = new global::System.Net.Http.HttpRequestMessage(method, url);
+            request.Headers.TryAddWithoutValidation("Accept", "application/json");
+            {{- if $opts.webrpcHeader }}
+            request.Headers.TryAddWithoutValidation(Webrpc.Header, Webrpc.HeaderValue);
+            {{- end }}
+            request.Content = content;
+            return request;
+        }
+
+        internal static global::System.Net.Http.HttpContent JsonContent(string json)
+        {
+            var content = new global::System.Net.Http.ByteArrayContent(global::System.Text.Encoding.UTF8.GetBytes(json));
+            content.Headers.ContentType = new global::System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            return content;
+        }
+
+        // Sends the request, failing with WebrpcRequestFailedException when no
+        // response is received. Cancellation by the caller's token is rethrown.
+        private static async global::System.Threading.Tasks.Task<global::System.Net.Http.HttpResponseMessage> SendAsync(global::System.Net.Http.HttpClient client, global::System.Net.Http.HttpRequestMessage request, global::System.Net.Http.HttpCompletionOption completionOption, global::System.Threading.CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await client.SendAsync(request, completionOption, cancellationToken).ConfigureAwait(false);
+            }
+            catch (global::System.OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (global::System.Exception ex) when (!(ex is WebrpcException))
+            {
+                throw new WebrpcRequestFailedException(ex.Message, ex);
+            }
+        }
+
+        // Sends a request and decodes the JSON response. A null or empty
+        // response body (when allowed) decodes as the zero value.
+        internal static async global::System.Threading.Tasks.Task<T> CallAsync<T>(global::System.Net.Http.HttpClient client, global::System.Net.Http.HttpRequestMessage request, bool emptyOk, global::System.Threading.CancellationToken cancellationToken)
+            where T : class, new()
+        {
+            using (var response = await SendAsync(client, request, global::System.Net.Http.HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false))
+            {
+                var status = (int)response.StatusCode;
+                var body = await ReadBodyAsync(response).ConfigureAwait(false);
+                if (status < 200 || status > 299)
+                {
+                    throw DecodeError(status, body);
+                }
+                if (status == 204 || status == 205 || (emptyOk && body.Trim().Length == 0))
+                {
+                    return new T();
+                }
+                try
+                {
+                    return WebrpcJson.Deserialize<T?>(body) ?? new T();
+                }
+                catch (global::System.Exception ex)
+                {
+                    throw new WebrpcBadResponseException("WebrpcBadResponse", "bad response", status, "failed to unmarshal JSON response body: " + ex.Message, ex);
+                }
+            }
+        }
+
+        // Sends a request of a method without outputs.
+        internal static async global::System.Threading.Tasks.Task CallAsync(global::System.Net.Http.HttpClient client, global::System.Net.Http.HttpRequestMessage request, global::System.Threading.CancellationToken cancellationToken)
+        {
+            using (var response = await SendAsync(client, request, global::System.Net.Http.HttpCompletionOption.ResponseContentRead, cancellationToken).ConfigureAwait(false))
+            {
+                var status = (int)response.StatusCode;
+                if (status < 200 || status > 299)
+                {
+                    throw DecodeError(status, await ReadBodyAsync(response).ConfigureAwait(false));
+                }
+            }
+        }
+        {{- if or $opts.fileDownload $opts.streaming }}
+
+        // Sends a request and returns the response once its headers arrive, so
+        // the body can be streamed. The caller must dispose the response.
+        internal static async global::System.Threading.Tasks.Task<global::System.Net.Http.HttpResponseMessage> OpenAsync(global::System.Net.Http.HttpClient client, global::System.Net.Http.HttpRequestMessage request, global::System.Threading.CancellationToken cancellationToken)
+        {
+            var response = await SendAsync(client, request, global::System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+            var status = (int)response.StatusCode;
+            if (status < 200 || status > 299)
+            {
+                using (response)
+                {
+                    throw DecodeError(status, await ReadBodyAsync(response).ConfigureAwait(false));
+                }
+            }
+            return response;
+        }
+        {{- end }}
+        {{- if $opts.fileDownload }}
+
+        // Wraps a successful response as a file; disposing the file disposes the response.
+        internal static async global::System.Threading.Tasks.Task<WebrpcFile> ReadFileAsync(global::System.Net.Http.HttpResponseMessage response)
+        {
+            try
+            {
+                var headers = response.Content.Headers;
+                var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                var name = headers.ContentDisposition?.FileNameStar;
+                if (string.IsNullOrEmpty(name))
+                {
+                    name = Unquote(headers.ContentDisposition?.FileName);
+                }
+                return new WebrpcFile(body, string.IsNullOrEmpty(name) ? null : name, headers.ContentType?.ToString(), headers.ContentLength, response);
+            }
+            catch (global::System.Exception ex)
+            {
+                response.Dispose();
+                throw new WebrpcBadResponseException("WebrpcBadResponse", "bad response", (int)response.StatusCode, "failed to read file response: " + ex.Message, ex);
+            }
+        }
+
+        private static string? Unquote(string? value)
+        {
+            if (value == null || value.Length < 2 || value[0] != '"' || value[value.Length - 1] != '"')
+            {
+                return value;
+            }
+            var text = new global::System.Text.StringBuilder(value.Length);
+            for (var i = 1; i < value.Length - 1; i++)
+            {
+                if (value[i] == '\\' && i + 1 < value.Length - 1)
+                {
+                    i++;
+                }
+                text.Append(value[i]);
+            }
+            return text.ToString();
+        }
+        {{- end }}
+        {{- if $opts.streaming }}
+
+        // Reads a stream of newline-delimited JSON messages; empty lines are
+        // keep-alive pings. The stream ends when the server closes it.
+        internal static async global::System.Collections.Generic.IAsyncEnumerable<T> ReadStreamAsync<T>(global::System.Net.Http.HttpResponseMessage response, [global::System.Runtime.CompilerServices.EnumeratorCancellation] global::System.Threading.CancellationToken cancellationToken)
+            where T : class, new()
+        {
+            using (response)
+            using (cancellationToken.Register(response.Dispose))
+            {
+                var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                using (var reader = new global::System.IO.StreamReader(body, new global::System.Text.UTF8Encoding(false)))
+                {
+                    while (true)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var line = await ReadLineAsync(reader, cancellationToken).ConfigureAwait(false);
+                        if (line == null)
+                        {
+                            yield break;
+                        }
+                        if (line.Trim().Length == 0)
+                        {
+                            continue;
+                        }
+                        yield return DecodeStreamMessage<T>(line, (int)response.StatusCode);
+                    }
+                }
+            }
+        }
+
+        private static async global::System.Threading.Tasks.Task<string?> ReadLineAsync(global::System.IO.StreamReader reader, global::System.Threading.CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await reader.ReadLineAsync().ConfigureAwait(false);
+            }
+            catch (global::System.Exception ex) when (!(ex is WebrpcException))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                throw new WebrpcStreamLostException("WebrpcStreamLost", "stream lost", 400, "reading stream: " + ex.Message, ex);
+            }
+        }
+
+        private static T DecodeStreamMessage<T>(string line, int status)
+            where T : class, new()
+        {
+            WebrpcStreamError? streamError = null;
+            T? message;
+            try
+            {
+                if (line.IndexOf("\"webrpcError\"", global::System.StringComparison.Ordinal) >= 0)
+                {
+                    streamError = WebrpcJson.Deserialize<WebrpcStreamError?>(line);
+                }
+                message = streamError?.WebrpcError == null ? WebrpcJson.Deserialize<T?>(line) : null;
+            }
+            catch (global::System.Exception ex)
+            {
+                throw new WebrpcBadResponseException("WebrpcBadResponse", "bad response", status, "failed to unmarshal JSON stream message: " + ex.Message, ex);
+            }
+            if (streamError?.WebrpcError != null)
+            {
+                throw WebrpcException.FromEnvelope(streamError.WebrpcError, 400);
+            }
+            return message ?? new T();
+        }
+        {{- end }}
+
+        private static async global::System.Threading.Tasks.Task<string> ReadBodyAsync(global::System.Net.Http.HttpResponseMessage response)
+        {
+            try
+            {
+                return response.Content == null ? "" : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            }
+            catch (global::System.Exception ex)
+            {
+                throw new WebrpcBadResponseException("WebrpcBadResponse", "bad response", (int)response.StatusCode, "failed to read response body: " + ex.Message, ex);
+            }
+        }
+
+        // Decodes the JSON error response of a webrpc server.
+        internal static WebrpcException DecodeError(int status, string body)
+        {
+            WebrpcErrorEnvelope? envelope = null;
+            global::System.Exception? error = null;
+            try
+            {
+                envelope = WebrpcJson.Deserialize<WebrpcErrorEnvelope?>(body);
+            }
+            catch (global::System.Exception ex)
+            {
+                error = ex;
+            }
+            if (envelope == null)
+            {
+                var text = body.Length > 512 ? body.Substring(0, 512) + "..." : body;
+                return new WebrpcBadResponseException("WebrpcBadResponse", "bad response", status, "failed to unmarshal server error (HTTP " + status + "): " + text, error);
+            }
+            return WebrpcException.FromEnvelope(envelope, status);
+        }
+    }
+    {{- if $opts.streaming }}
+
+    internal sealed class WebrpcStreamError
+    {
+        {{ template "jsonProperty" dict "Name" "webrpcError" "Optional" true "Ctx" .Ctx }}
+        public WebrpcErrorEnvelope? WebrpcError { get; set; }
+    }
+    {{- end }}
+    {{- if $opts.restRoutes }}
+
+    // Builds the URL of a REST route: path params fill the {name} placeholders,
+    // the other GET/DELETE request fields travel as query params.
+    internal sealed class WebrpcRestUrl
+    {
+        private readonly global::System.Collections.Generic.Dictionary<string, string> _path = new global::System.Collections.Generic.Dictionary<string, string>();
+        private readonly global::System.Text.StringBuilder _query = new global::System.Text.StringBuilder();
+
+        public void SetPath(string name, object? value)
+        {
+            _path[name] = value == null ? "" : Format(value);
+        }
+
+        public void AddQuery(string name, object? value)
+        {
+            if (value == null)
+            {
+                return;
+            }
+            _query.Append(_query.Length == 0 ? '?' : '&');
+            _query.Append(global::System.Uri.EscapeDataString(name));
+            _query.Append('=');
+            _query.Append(global::System.Uri.EscapeDataString(Format(value)));
+        }
+
+        public void AddQueryList<T>(string name, global::System.Collections.Generic.IEnumerable<T>? values)
+        {
+            if (values == null)
+            {
+                return;
+            }
+            foreach (var value in values)
+            {
+                AddQuery(name, value);
+            }
+        }
+
+        // Expands the {name} placeholders in one pass, so a value is never expanded again.
+        public string Build(string baseUrl, string route)
+        {
+            var url = new global::System.Text.StringBuilder(baseUrl);
+            var pos = 0;
+            while (pos < route.Length)
+            {
+                var open = route.IndexOf('{', pos);
+                if (open < 0)
+                {
+                    url.Append(route, pos, route.Length - pos);
+                    break;
+                }
+                var close = route.IndexOf('}', open);
+                if (close < 0)
+                {
+                    throw new WebrpcBadRequestException("unclosed placeholder in route " + route);
+                }
+                var name = route.Substring(open + 1, close - open - 1);
+                _path.TryGetValue(name, out var value);
+                // A dot segment is normalized away by URL parsers, and encoding can't fix it.
+                if (string.IsNullOrEmpty(value) || value == "." || value == "..")
+                {
+                    throw new WebrpcBadRequestException("invalid path param '" + name + "': \"" + value + "\" is not a valid path segment");
+                }
+                url.Append(route, pos, open - pos);
+                url.Append(global::System.Uri.EscapeDataString(value));
+                pos = close + 1;
+            }
+            url.Append(_query);
+            return url.ToString();
+        }
+
+        // Formats a route param the way webrpc servers parse it.
+        private static string Format(object value)
+        {
+            switch (value)
+            {
+                case string s:
+                    return s;
+                case bool b:
+                    return b ? "true" : "false";
+                case float f:
+                    return f.ToString("R", global::System.Globalization.CultureInfo.InvariantCulture);
+                case double d:
+                    return d.ToString("R", global::System.Globalization.CultureInfo.InvariantCulture);
+                case global::System.DateTimeOffset t:
+                    return WebrpcTimestamp.Format(t);
+                case global::System.IFormattable formattable:
+                    return formattable.ToString(null, global::System.Globalization.CultureInfo.InvariantCulture);
+                default:
+                    return value.ToString() ?? "";
+            }
+        }
+    }
+    {{- end }}
+    {{- if $opts.fileUpload }}
+
+    // A multipart/form-data request body: the "json" part with the JSON-encoded
+    // arguments goes first, then one part per file. Files are streamed, not buffered.
+    internal sealed class WebrpcMultipartContent : global::System.Net.Http.HttpContent
+    {
+        private static readonly global::System.Text.Encoding Utf8 = new global::System.Text.UTF8Encoding(false);
+
+        private readonly string _boundary = "webrpc-" + global::System.Guid.NewGuid().ToString("N");
+        private readonly byte[] _json;
+        private readonly global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<string, WebrpcFile>> _files = new global::System.Collections.Generic.List<global::System.Collections.Generic.KeyValuePair<string, WebrpcFile>>();
+
+        public WebrpcMultipartContent(string json)
+        {
+            _json = Utf8.GetBytes(json);
+            Headers.ContentType = global::System.Net.Http.Headers.MediaTypeHeaderValue.Parse("multipart/form-data; boundary=" + _boundary);
+        }
+
+        public void AddFile(string name, WebrpcFile? file)
+        {
+            if (file != null)
+            {
+                _files.Add(new global::System.Collections.Generic.KeyValuePair<string, WebrpcFile>(name, file));
+            }
+        }
+
+        public void AddFiles(string name, global::System.Collections.Generic.IEnumerable<WebrpcFile>? files)
+        {
+            if (files == null)
+            {
+                return;
+            }
+            foreach (var file in files)
+            {
+                AddFile(name, file);
+            }
+        }
+
+        protected override async global::System.Threading.Tasks.Task SerializeToStreamAsync(global::System.IO.Stream stream, global::System.Net.TransportContext? context)
+        {
+            await WriteAsync(stream, JsonPartHeader()).ConfigureAwait(false);
+            await stream.WriteAsync(_json, 0, _json.Length).ConfigureAwait(false);
+            foreach (var file in _files)
+            {
+                await WriteAsync(stream, FilePartHeader(file.Key, file.Value)).ConfigureAwait(false);
+                await file.Value.Body.CopyToAsync(stream).ConfigureAwait(false);
+            }
+            await WriteAsync(stream, Trailer()).ConfigureAwait(false);
+        }
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = Utf8.GetByteCount(JsonPartHeader()) + _json.Length + Utf8.GetByteCount(Trailer());
+            foreach (var file in _files)
+            {
+                var body = file.Value.Body;
+                if (!body.CanSeek)
+                {
+                    length = -1;
+                    return false;
+                }
+                length += Utf8.GetByteCount(FilePartHeader(file.Key, file.Value)) + (body.Length - body.Position);
+            }
+            return true;
+        }
+
+        private string JsonPartHeader()
+        {
+            return "--" + _boundary + "\r\nContent-Disposition: form-data; name=\"json\"\r\n\r\n";
+        }
+
+        private string FilePartHeader(string name, WebrpcFile file)
+        {
+            var fileName = string.IsNullOrEmpty(file.Name) ? name : file.Name!;
+            // NOTE: the name and filename params are always quoted, like browsers
+            // do; unquoted params are rejected by strict multipart parsers.
+            return "\r\n--" + _boundary + "\r\nContent-Disposition: form-data; name=\"" + Escape(name) + "\"; filename=\"" + Escape(fileName) + "\"\r\nContent-Type: " + StripNewlines(file.ContentType) + "\r\n\r\n";
+        }
+
+        private string Trailer()
+        {
+            return "\r\n--" + _boundary + "--\r\n";
+        }
+
+        private static string Escape(string value)
+        {
+            return StripNewlines(value.Replace("\\", "\\\\").Replace("\"", "\\\""));
+        }
+
+        private static string StripNewlines(string value)
+        {
+            return value.Replace("\r", "%0D").Replace("\n", "%0A");
+        }
+
+        private static global::System.Threading.Tasks.Task WriteAsync(global::System.IO.Stream stream, string text)
+        {
+            var bytes = Utf8.GetBytes(text);
+            return stream.WriteAsync(bytes, 0, bytes.Length);
+        }
+    }
+    {{- end }}
+{{- end -}}

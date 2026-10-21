@@ -1,7 +1,7 @@
 # webrpc — agent guide
 
 webrpc is a schema-driven codegen tool: an API schema in RIDL (or JSON) generates
-strongly-typed servers and clients (Go, TypeScript, JavaScript, Kotlin, Dart, OpenAPI)
+strongly-typed servers and clients (Go, TypeScript, JavaScript, Kotlin, Dart, C#, OpenAPI)
 that speak HTTP + JSON.
 
 This file is for agents contributing to **this repo** (the schema parser and codegen
@@ -19,7 +19,8 @@ CLI). For helping a user *write RIDL schemas*, see `SKILL.md` instead.
 ## Commands
 
 - `make build` — build `./bin/webrpc-gen`
-- `make test` — full suite (Go tests + interoperability suite)
+- `make test` — full suite (Go tests + interoperability suites; needs node and the .NET SDK)
+- `make test-interop-csharp` — C# client interoperability tests (`tests/interop-csharp`)
 - `make generate` — regenerate all examples and tests using latest templates
 - `make diff` — fail if the working tree has changes (CI runs this after generate)
 - `make update-ridl-test-golden-examples` — refresh RIDL parser golden JSON files
