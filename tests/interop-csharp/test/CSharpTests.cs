@@ -306,11 +306,24 @@ namespace Interop.Tests
                 Assert.Equal("T", resp.Title, "title");
             });
 
+            await check.Run("CSharp.Attach(succinct upload)", async () =>
+            {
+                var resp = await api.AttachAsync(new AttachRequest
+                {
+                    Id = 9,
+                    Files = { WebrpcFile.FromBytes(new byte[] { 1, 2, 3 }, "a.bin"), new WebrpcFile(new NonSeekableStream(new byte[] { 4 }), "b.bin") },
+                });
+                Assert.Equal(9ul, resp.Id, "id");
+                Assert.SequenceEqual(new[] { "a.bin", "b.bin" }, resp.Names, "names");
+                Assert.SequenceEqual(new ulong[] { 3, 1 }, resp.Sizes, "sizes");
+            });
+
             await check.Run("CSharp.DownloadDoc", async () =>
             {
                 using var file = await api.DownloadDocAsync("naïve résumé.txt");
                 Assert.Equal("naïve résumé.txt", file.Name, "name (RFC 5987)");
                 Assert.Equal("text/plain; charset=utf-8", file.ContentType, "contentType");
+                Assert.Equal((long?)Encoding.UTF8.GetByteCount("doc:naïve résumé.txt"), file.Size, "size");
                 Assert.Equal("doc:naïve résumé.txt", Encoding.UTF8.GetString(await file.ReadAllBytesAsync()), "content");
             });
 

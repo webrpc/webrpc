@@ -181,6 +181,20 @@ func (s *server) UploadDoc(ctx context.Context, doc *Doc) (string, string, uint6
 	return doc.File.Name, doc.File.ContentType, uint64(len(content)), doc.Title, nil
 }
 
+func (s *server) Attach(ctx context.Context, req AttachRequest) (*AttachResponse, error) {
+	resp := &AttachResponse{Id: req.Id}
+	for _, file := range req.Files {
+		content, err := io.ReadAll(file.Body)
+		file.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+		resp.Names = append(resp.Names, file.Name)
+		resp.Sizes = append(resp.Sizes, uint64(len(content)))
+	}
+	return resp, nil
+}
+
 func (s *server) DownloadDoc(ctx context.Context, name string) (*WebrpcFile, error) {
 	content := []byte("doc:" + name)
 	return &WebrpcFile{

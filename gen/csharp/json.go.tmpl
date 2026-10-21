@@ -29,6 +29,16 @@
         {
             return global::System.Text.Json.JsonSerializer.Deserialize<T>(json, Options)!;
         }
+
+        // Reads an enum value: a string, or null.
+        internal static string? ReadEnum(ref global::System.Text.Json.Utf8JsonReader reader, string enumName)
+        {
+            if (reader.TokenType != global::System.Text.Json.JsonTokenType.String && reader.TokenType != global::System.Text.Json.JsonTokenType.Null)
+            {
+                throw new global::System.Text.Json.JsonException("expected a string value of enum " + enumName + ", got " + reader.TokenType);
+            }
+            return reader.GetString();
+        }
 {{- else }}
         /// <summary>
         /// Serializer settings of the webrpc wire format. The clients use a
@@ -72,6 +82,16 @@
                 reader.MaxDepth = 64;
                 return Serializer.Deserialize<T>(reader)!;
             }
+        }
+
+        // Reads an enum value: a string, or null.
+        internal static string? ReadEnum(global::Newtonsoft.Json.JsonReader reader, string enumName)
+        {
+            if (reader.TokenType != global::Newtonsoft.Json.JsonToken.String && reader.TokenType != global::Newtonsoft.Json.JsonToken.Null)
+            {
+                throw new global::Newtonsoft.Json.JsonSerializationException("expected a string value of enum " + enumName + ", got " + reader.TokenType);
+            }
+            return (string?)reader.Value;
         }
 {{- end }}
     }

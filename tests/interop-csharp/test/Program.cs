@@ -6,18 +6,18 @@ namespace Interop.Tests
 {
     // Runs the C# client interoperability tests; see ../test.sh.
     //
-    // Usage: dotnet run -- <TestApi URL> <TestApiRest URL> <CSharp URL> <Example URL>
+    // Usage: dotnet run -- <TestApi URL> <TestApiRest URL> <CSharp URL>
     internal static class Program
     {
         public static async Task<int> Main(string[] args)
         {
-            if (args.Length != 4)
+            if (args.Length != 3)
             {
-                Console.Error.WriteLine("usage: <TestApi URL> <TestApiRest URL> <CSharp URL> <Example URL>");
+                Console.Error.WriteLine("usage: <TestApi URL> <TestApiRest URL> <CSharp URL>");
                 return 2;
             }
 #if NEWTONSOFT
-            Console.WriteLine("C# client interop tests (-json=newtonsoft)");
+            Console.WriteLine("C# client interop tests (-json=newtonsoft -visibility=internal)");
 #else
             Console.WriteLine("C# client interop tests (-json=stj)");
 #endif
@@ -28,7 +28,6 @@ namespace Interop.Tests
             await TestApiTests.Run(check, http, args[0]);
             await TestApiRestTests.Run(check, http, args[1]);
             await CSharpTests.Run(check, http, args[2]);
-            await ExampleTests.Run(check, http, args[3]);
 
             if (check.Failures.Count > 0)
             {

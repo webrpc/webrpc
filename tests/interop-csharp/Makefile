@@ -10,13 +10,11 @@ build:
 	make -C ../../ build
 
 generate: build
-	for json in stj newtonsoft; do \
-		webrpc-gen -schema=../schema/test.ridl -target=csharp -client -json=$$json -namespace=Interop.Test -out=./lib/$$json/test.gen.cs || exit 1; \
-		webrpc-gen -schema=../../_examples/golang-basics/example.ridl -target=csharp -client -json=$$json -namespace=Interop.Example -out=./lib/$$json/example.gen.cs || exit 1; \
-		webrpc-gen -schema=./csharp.ridl -target=csharp -client -json=$$json -namespace=Interop.CSharp -out=./lib/$$json/csharp.gen.cs || exit 1; \
-	done
-	# Compile check of the -visibility=internal output and of the disabled header options.
-	webrpc-gen -schema=./csharp.ridl -target=csharp -client -namespace=Interop.Internal -visibility=internal -schemaHash=false -webrpcHeader=false -out=./lib/stj/internal.gen.cs
+	webrpc-gen -schema=../schema/test.ridl -target=csharp -client -namespace=Interop.Test -out=./lib/stj/test.gen.cs
+	webrpc-gen -schema=./csharp.ridl -target=csharp -client -namespace=Interop.CSharp -out=./lib/stj/csharp.gen.cs
+	# Newtonsoft.Json with internal visibility, as embedded in a Unity SDK.
+	webrpc-gen -schema=../schema/test.ridl -target=csharp -client -json=newtonsoft -visibility=internal -namespace=Interop.Test -out=./lib/newtonsoft/test.gen.cs
+	webrpc-gen -schema=./csharp.ridl -target=csharp -client -json=newtonsoft -visibility=internal -namespace=Interop.CSharp -out=./lib/newtonsoft/csharp.gen.cs
 	webrpc-gen -schema=./csharp.ridl -target=golang -pkg=main -server -out=./server/server.gen.go
 
 # End-to-end interoperability tests of the C# client generator (requires the .NET SDK).

@@ -178,12 +178,13 @@ var http = new HttpClient(new AuthHandler { InnerHandler = new HttpClientHandler
 
 ## Testing
 
-[tests/interop-csharp](../../tests/interop-csharp) runs the generated clients,
-with both JSON libraries, against the webrpc interoperability test servers
-(`webrpc-test`), a Go server of a C#-specific schema and the golang-basics
-example server. It also builds the generated code without warnings for
-`netstandard2.0` with C# 8. It requires the .NET SDK:
+[tests/interop-csharp](../../tests/interop-csharp) runs the generated clients
+against the webrpc interoperability test servers (`webrpc-test`, RPC and REST
+suites) and a Go server of a C#-specific schema, once with System.Text.Json and
+once with Newtonsoft.Json and `-visibility=internal`. It also builds the
+generated code without warnings for `netstandard2.0` with C# 8. It runs as part
+of `make test` and requires the .NET SDK:
 
 ```sh
-make test-interop-csharp
+make -C tests/interop-csharp test
 ```

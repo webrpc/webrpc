@@ -39,8 +39,9 @@ service CSharp
   # Request headers seen by the server.
   - Headers() => (webrpc: string, custom: string)
 
-  # A file field inside a (non-succinct) struct argument.
+  # File fields inside a (non-succinct) struct argument, and a succinct request.
   - UploadDoc(doc: Doc) => (name: string, contentType: string, size: uint64, title: string)
+  - Attach(AttachRequest) => (AttachResponse)
   - DownloadDoc(name: string) => (data: file)
 
 type Address: string
@@ -129,6 +130,15 @@ struct List
 struct Doc
   - title: string
   - file: file
+
+struct AttachRequest
+  - id: uint64
+  - files: []file
+
+struct AttachResponse
+  - id: uint64
+  - names: []string
+  - sizes: []uint64
 
 struct WatchRequest
   - key: string

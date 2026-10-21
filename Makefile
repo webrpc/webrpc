@@ -48,7 +48,7 @@ diff:
 	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
 
 # Run all tests
-test: test-go test-interoperability test-interop test-interop-csharp
+test: test-go test-interoperability test-interop
 
 # Run Go tests
 test-go: generate
@@ -62,12 +62,9 @@ test-interoperability: build-test
 		./bin/webrpc-test -client -url=http://localhost:9988; \
 		wait
 
-# Run TypeScript/JavaScript <-> Go interoperability tests for the file core type (requires node)
+# Run TypeScript/JavaScript and C# <-> Go interoperability tests (requires node and the .NET SDK)
 test-interop:
 	make -C tests/interop-web test
-
-# Run C# client <-> Go server interoperability tests (requires the .NET SDK)
-test-interop-csharp:
 	make -C tests/interop-csharp test
 
 # Update ridl golden examples
