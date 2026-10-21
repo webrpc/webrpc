@@ -987,15 +987,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 0;
 
-        public WebrpcEndpointException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcEndpoint", 0, "endpoint error", 400, cause, innerException)
-        {
-        }
+        public WebrpcEndpointException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcEndpoint", 0, "endpoint error", 400, cause, innerException) { }
 
-        internal WebrpcEndpointException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 0, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcEndpointException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 0, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>request failed (WebrpcRequestFailed, code -1, HTTP 400).</summary>
@@ -1003,15 +997,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = -1;
 
-        public WebrpcRequestFailedException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcRequestFailed", -1, "request failed", 400, cause, innerException)
-        {
-        }
+        public WebrpcRequestFailedException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcRequestFailed", -1, "request failed", 400, cause, innerException) { }
 
-        internal WebrpcRequestFailedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -1, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcRequestFailedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -1, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>bad route (WebrpcBadRoute, code -2, HTTP 404).</summary>
@@ -1019,15 +1007,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = -2;
 
-        public WebrpcBadRouteException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcBadRoute", -2, "bad route", 404, cause, innerException)
-        {
-        }
+        public WebrpcBadRouteException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcBadRoute", -2, "bad route", 404, cause, innerException) { }
 
-        internal WebrpcBadRouteException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -2, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcBadRouteException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -2, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>bad method (WebrpcBadMethod, code -3, HTTP 405).</summary>
@@ -1035,15 +1017,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = -3;
 
-        public WebrpcBadMethodException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcBadMethod", -3, "bad method", 405, cause, innerException)
-        {
-        }
+        public WebrpcBadMethodException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcBadMethod", -3, "bad method", 405, cause, innerException) { }
 
-        internal WebrpcBadMethodException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -3, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcBadMethodException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -3, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>bad request (WebrpcBadRequest, code -4, HTTP 400).</summary>
@@ -1051,15 +1027,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = -4;
 
-        public WebrpcBadRequestException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcBadRequest", -4, "bad request", 400, cause, innerException)
-        {
-        }
+        public WebrpcBadRequestException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcBadRequest", -4, "bad request", 400, cause, innerException) { }
 
-        internal WebrpcBadRequestException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -4, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcBadRequestException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -4, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>bad response (WebrpcBadResponse, code -5, HTTP 500).</summary>
@@ -1067,15 +1037,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = -5;
 
-        public WebrpcBadResponseException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcBadResponse", -5, "bad response", 500, cause, innerException)
-        {
-        }
+        public WebrpcBadResponseException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcBadResponse", -5, "bad response", 500, cause, innerException) { }
 
-        internal WebrpcBadResponseException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -5, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcBadResponseException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -5, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>server panic (WebrpcServerPanic, code -6, HTTP 500).</summary>
@@ -1083,15 +1047,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = -6;
 
-        public WebrpcServerPanicException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcServerPanic", -6, "server panic", 500, cause, innerException)
-        {
-        }
+        public WebrpcServerPanicException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcServerPanic", -6, "server panic", 500, cause, innerException) { }
 
-        internal WebrpcServerPanicException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -6, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcServerPanicException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -6, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>internal error (WebrpcInternalError, code -7, HTTP 500).</summary>
@@ -1099,15 +1057,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = -7;
 
-        public WebrpcInternalErrorException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcInternalError", -7, "internal error", 500, cause, innerException)
-        {
-        }
+        public WebrpcInternalErrorException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcInternalError", -7, "internal error", 500, cause, innerException) { }
 
-        internal WebrpcInternalErrorException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -7, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcInternalErrorException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -7, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>request aborted by client (WebrpcClientAborted, code -8, HTTP 400).</summary>
@@ -1115,15 +1067,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = -8;
 
-        public WebrpcClientAbortedException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcClientAborted", -8, "request aborted by client", 400, cause, innerException)
-        {
-        }
+        public WebrpcClientAbortedException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcClientAborted", -8, "request aborted by client", 400, cause, innerException) { }
 
-        internal WebrpcClientAbortedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -8, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcClientAbortedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -8, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>stream lost (WebrpcStreamLost, code -9, HTTP 400).</summary>
@@ -1131,15 +1077,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = -9;
 
-        public WebrpcStreamLostException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcStreamLost", -9, "stream lost", 400, cause, innerException)
-        {
-        }
+        public WebrpcStreamLostException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcStreamLost", -9, "stream lost", 400, cause, innerException) { }
 
-        internal WebrpcStreamLostException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -9, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcStreamLostException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -9, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>stream finished (WebrpcStreamFinished, code -10, HTTP 200).</summary>
@@ -1147,15 +1087,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = -10;
 
-        public WebrpcStreamFinishedException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcStreamFinished", -10, "stream finished", 200, cause, innerException)
-        {
-        }
+        public WebrpcStreamFinishedException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcStreamFinished", -10, "stream finished", 200, cause, innerException) { }
 
-        internal WebrpcStreamFinishedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -10, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcStreamFinishedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -10, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>unauthorized (Unauthorized, code 1, HTTP 401).</summary>
@@ -1163,15 +1097,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 1;
 
-        public UnauthorizedException(string? cause = null, global::System.Exception? innerException = null)
-            : base("Unauthorized", 1, "unauthorized", 401, cause, innerException)
-        {
-        }
+        public UnauthorizedException(string? cause = null, global::System.Exception? innerException = null) : base("Unauthorized", 1, "unauthorized", 401, cause, innerException) { }
 
-        internal UnauthorizedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 1, message, httpStatus, cause, innerException)
-        {
-        }
+        internal UnauthorizedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 1, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>expired token (ExpiredToken, code 2, HTTP 401).</summary>
@@ -1179,15 +1107,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 2;
 
-        public ExpiredTokenException(string? cause = null, global::System.Exception? innerException = null)
-            : base("ExpiredToken", 2, "expired token", 401, cause, innerException)
-        {
-        }
+        public ExpiredTokenException(string? cause = null, global::System.Exception? innerException = null) : base("ExpiredToken", 2, "expired token", 401, cause, innerException) { }
 
-        internal ExpiredTokenException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 2, message, httpStatus, cause, innerException)
-        {
-        }
+        internal ExpiredTokenException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 2, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>invalid token (InvalidToken, code 3, HTTP 401).</summary>
@@ -1195,15 +1117,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 3;
 
-        public InvalidTokenException(string? cause = null, global::System.Exception? innerException = null)
-            : base("InvalidToken", 3, "invalid token", 401, cause, innerException)
-        {
-        }
+        public InvalidTokenException(string? cause = null, global::System.Exception? innerException = null) : base("InvalidToken", 3, "invalid token", 401, cause, innerException) { }
 
-        internal InvalidTokenException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 3, message, httpStatus, cause, innerException)
-        {
-        }
+        internal InvalidTokenException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 3, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>account deactivated (Deactivated, code 4, HTTP 403).</summary>
@@ -1211,15 +1127,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 4;
 
-        public DeactivatedException(string? cause = null, global::System.Exception? innerException = null)
-            : base("Deactivated", 4, "account deactivated", 403, cause, innerException)
-        {
-        }
+        public DeactivatedException(string? cause = null, global::System.Exception? innerException = null) : base("Deactivated", 4, "account deactivated", 403, cause, innerException) { }
 
-        internal DeactivatedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 4, message, httpStatus, cause, innerException)
-        {
-        }
+        internal DeactivatedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 4, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>confirm your email (ConfirmAccount, code 5, HTTP 403).</summary>
@@ -1227,15 +1137,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 5;
 
-        public ConfirmAccountException(string? cause = null, global::System.Exception? innerException = null)
-            : base("ConfirmAccount", 5, "confirm your email", 403, cause, innerException)
-        {
-        }
+        public ConfirmAccountException(string? cause = null, global::System.Exception? innerException = null) : base("ConfirmAccount", 5, "confirm your email", 403, cause, innerException) { }
 
-        internal ConfirmAccountException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 5, message, httpStatus, cause, innerException)
-        {
-        }
+        internal ConfirmAccountException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 5, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>access denied (AccessDenied, code 6, HTTP 403).</summary>
@@ -1243,15 +1147,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 6;
 
-        public AccessDeniedException(string? cause = null, global::System.Exception? innerException = null)
-            : base("AccessDenied", 6, "access denied", 403, cause, innerException)
-        {
-        }
+        public AccessDeniedException(string? cause = null, global::System.Exception? innerException = null) : base("AccessDenied", 6, "access denied", 403, cause, innerException) { }
 
-        internal AccessDeniedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 6, message, httpStatus, cause, innerException)
-        {
-        }
+        internal AccessDeniedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 6, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>missing argument (MissingArgument, code 7, HTTP 400).</summary>
@@ -1259,15 +1157,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 7;
 
-        public MissingArgumentException(string? cause = null, global::System.Exception? innerException = null)
-            : base("MissingArgument", 7, "missing argument", 400, cause, innerException)
-        {
-        }
+        public MissingArgumentException(string? cause = null, global::System.Exception? innerException = null) : base("MissingArgument", 7, "missing argument", 400, cause, innerException) { }
 
-        internal MissingArgumentException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 7, message, httpStatus, cause, innerException)
-        {
-        }
+        internal MissingArgumentException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 7, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>unexpected value (UnexpectedValue, code 8, HTTP 400).</summary>
@@ -1275,15 +1167,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 8;
 
-        public UnexpectedValueException(string? cause = null, global::System.Exception? innerException = null)
-            : base("UnexpectedValue", 8, "unexpected value", 400, cause, innerException)
-        {
-        }
+        public UnexpectedValueException(string? cause = null, global::System.Exception? innerException = null) : base("UnexpectedValue", 8, "unexpected value", 400, cause, innerException) { }
 
-        internal UnexpectedValueException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 8, message, httpStatus, cause, innerException)
-        {
-        }
+        internal UnexpectedValueException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 8, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>too many requests (RateLimited, code 100, HTTP 429).</summary>
@@ -1291,15 +1177,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 100;
 
-        public RateLimitedException(string? cause = null, global::System.Exception? innerException = null)
-            : base("RateLimited", 100, "too many requests", 429, cause, innerException)
-        {
-        }
+        public RateLimitedException(string? cause = null, global::System.Exception? innerException = null) : base("RateLimited", 100, "too many requests", 429, cause, innerException) { }
 
-        internal RateLimitedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 100, message, httpStatus, cause, innerException)
-        {
-        }
+        internal RateLimitedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 100, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>service outage (DatabaseDown, code 101, HTTP 503).</summary>
@@ -1307,15 +1187,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 101;
 
-        public DatabaseDownException(string? cause = null, global::System.Exception? innerException = null)
-            : base("DatabaseDown", 101, "service outage", 503, cause, innerException)
-        {
-        }
+        public DatabaseDownException(string? cause = null, global::System.Exception? innerException = null) : base("DatabaseDown", 101, "service outage", 503, cause, innerException) { }
 
-        internal DatabaseDownException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 101, message, httpStatus, cause, innerException)
-        {
-        }
+        internal DatabaseDownException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 101, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>search is degraded (ElasticDown, code 102, HTTP 503).</summary>
@@ -1323,15 +1197,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 102;
 
-        public ElasticDownException(string? cause = null, global::System.Exception? innerException = null)
-            : base("ElasticDown", 102, "search is degraded", 503, cause, innerException)
-        {
-        }
+        public ElasticDownException(string? cause = null, global::System.Exception? innerException = null) : base("ElasticDown", 102, "search is degraded", 503, cause, innerException) { }
 
-        internal ElasticDownException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 102, message, httpStatus, cause, innerException)
-        {
-        }
+        internal ElasticDownException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 102, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>not implemented (NotImplemented, code 103, HTTP 501).</summary>
@@ -1339,15 +1207,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 103;
 
-        public NotImplementedException(string? cause = null, global::System.Exception? innerException = null)
-            : base("NotImplemented", 103, "not implemented", 501, cause, innerException)
-        {
-        }
+        public NotImplementedException(string? cause = null, global::System.Exception? innerException = null) : base("NotImplemented", 103, "not implemented", 501, cause, innerException) { }
 
-        internal NotImplementedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 103, message, httpStatus, cause, innerException)
-        {
-        }
+        internal NotImplementedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 103, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>user not found (UserNotFound, code 200, HTTP 400).</summary>
@@ -1355,15 +1217,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 200;
 
-        public UserNotFoundException(string? cause = null, global::System.Exception? innerException = null)
-            : base("UserNotFound", 200, "user not found", 400, cause, innerException)
-        {
-        }
+        public UserNotFoundException(string? cause = null, global::System.Exception? innerException = null) : base("UserNotFound", 200, "user not found", 400, cause, innerException) { }
 
-        internal UserNotFoundException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 200, message, httpStatus, cause, innerException)
-        {
-        }
+        internal UserNotFoundException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 200, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>user busy (UserBusy, code 201, HTTP 400).</summary>
@@ -1371,15 +1227,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 201;
 
-        public UserBusyException(string? cause = null, global::System.Exception? innerException = null)
-            : base("UserBusy", 201, "user busy", 400, cause, innerException)
-        {
-        }
+        public UserBusyException(string? cause = null, global::System.Exception? innerException = null) : base("UserBusy", 201, "user busy", 400, cause, innerException) { }
 
-        internal UserBusyException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 201, message, httpStatus, cause, innerException)
-        {
-        }
+        internal UserBusyException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 201, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>invalid username (InvalidUsername, code 202, HTTP 400).</summary>
@@ -1387,15 +1237,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 202;
 
-        public InvalidUsernameException(string? cause = null, global::System.Exception? innerException = null)
-            : base("InvalidUsername", 202, "invalid username", 400, cause, innerException)
-        {
-        }
+        public InvalidUsernameException(string? cause = null, global::System.Exception? innerException = null) : base("InvalidUsername", 202, "invalid username", 400, cause, innerException) { }
 
-        internal InvalidUsernameException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 202, message, httpStatus, cause, innerException)
-        {
-        }
+        internal InvalidUsernameException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 202, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>file is too big (max 1GB) (FileTooBig, code 300, HTTP 400).</summary>
@@ -1403,15 +1247,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 300;
 
-        public FileTooBigException(string? cause = null, global::System.Exception? innerException = null)
-            : base("FileTooBig", 300, "file is too big (max 1GB)", 400, cause, innerException)
-        {
-        }
+        public FileTooBigException(string? cause = null, global::System.Exception? innerException = null) : base("FileTooBig", 300, "file is too big (max 1GB)", 400, cause, innerException) { }
 
-        internal FileTooBigException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 300, message, httpStatus, cause, innerException)
-        {
-        }
+        internal FileTooBigException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 300, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>file is infected (FileInfected, code 301, HTTP 400).</summary>
@@ -1419,15 +1257,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 301;
 
-        public FileInfectedException(string? cause = null, global::System.Exception? innerException = null)
-            : base("FileInfected", 301, "file is infected", 400, cause, innerException)
-        {
-        }
+        public FileInfectedException(string? cause = null, global::System.Exception? innerException = null) : base("FileInfected", 301, "file is infected", 400, cause, innerException) { }
 
-        internal FileInfectedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 301, message, httpStatus, cause, innerException)
-        {
-        }
+        internal FileInfectedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 301, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>unsupported file type (FileType, code 302, HTTP 400).</summary>
@@ -1435,15 +1267,9 @@ namespace Interop.Test
     {
         public const int ErrorCode = 302;
 
-        public FileTypeException(string? cause = null, global::System.Exception? innerException = null)
-            : base("FileType", 302, "unsupported file type", 400, cause, innerException)
-        {
-        }
+        public FileTypeException(string? cause = null, global::System.Exception? innerException = null) : base("FileType", 302, "unsupported file type", 400, cause, innerException) { }
 
-        internal FileTypeException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 302, message, httpStatus, cause, innerException)
-        {
-        }
+        internal FileTypeException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 302, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>The JSON error response of a webrpc server.</summary>

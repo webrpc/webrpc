@@ -7,7 +7,8 @@
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../*.cs" />
+    <!-- The shared TestApi suites run with System.Text.Json only (see ../../Makefile). -->
+    <Compile Include="../*.cs" Exclude="../TestApi*.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../lib/newtonsoft/Generated.Newtonsoft.csproj" />

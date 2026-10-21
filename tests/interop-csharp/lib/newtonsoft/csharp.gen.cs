@@ -918,15 +918,9 @@ namespace Interop.CSharp
     {
         public const int ErrorCode = 0;
 
-        public WebrpcEndpointException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcEndpoint", 0, "endpoint error", 400, cause, innerException)
-        {
-        }
+        public WebrpcEndpointException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcEndpoint", 0, "endpoint error", 400, cause, innerException) { }
 
-        internal WebrpcEndpointException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 0, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcEndpointException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 0, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>request failed (WebrpcRequestFailed, code -1, HTTP 400).</summary>
@@ -934,15 +928,9 @@ namespace Interop.CSharp
     {
         public const int ErrorCode = -1;
 
-        public WebrpcRequestFailedException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcRequestFailed", -1, "request failed", 400, cause, innerException)
-        {
-        }
+        public WebrpcRequestFailedException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcRequestFailed", -1, "request failed", 400, cause, innerException) { }
 
-        internal WebrpcRequestFailedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -1, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcRequestFailedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -1, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>bad route (WebrpcBadRoute, code -2, HTTP 404).</summary>
@@ -950,15 +938,9 @@ namespace Interop.CSharp
     {
         public const int ErrorCode = -2;
 
-        public WebrpcBadRouteException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcBadRoute", -2, "bad route", 404, cause, innerException)
-        {
-        }
+        public WebrpcBadRouteException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcBadRoute", -2, "bad route", 404, cause, innerException) { }
 
-        internal WebrpcBadRouteException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -2, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcBadRouteException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -2, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>bad method (WebrpcBadMethod, code -3, HTTP 405).</summary>
@@ -966,15 +948,9 @@ namespace Interop.CSharp
     {
         public const int ErrorCode = -3;
 
-        public WebrpcBadMethodException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcBadMethod", -3, "bad method", 405, cause, innerException)
-        {
-        }
+        public WebrpcBadMethodException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcBadMethod", -3, "bad method", 405, cause, innerException) { }
 
-        internal WebrpcBadMethodException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -3, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcBadMethodException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -3, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>bad request (WebrpcBadRequest, code -4, HTTP 400).</summary>
@@ -982,15 +958,9 @@ namespace Interop.CSharp
     {
         public const int ErrorCode = -4;
 
-        public WebrpcBadRequestException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcBadRequest", -4, "bad request", 400, cause, innerException)
-        {
-        }
+        public WebrpcBadRequestException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcBadRequest", -4, "bad request", 400, cause, innerException) { }
 
-        internal WebrpcBadRequestException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -4, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcBadRequestException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -4, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>bad response (WebrpcBadResponse, code -5, HTTP 500).</summary>
@@ -998,15 +968,9 @@ namespace Interop.CSharp
     {
         public const int ErrorCode = -5;
 
-        public WebrpcBadResponseException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcBadResponse", -5, "bad response", 500, cause, innerException)
-        {
-        }
+        public WebrpcBadResponseException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcBadResponse", -5, "bad response", 500, cause, innerException) { }
 
-        internal WebrpcBadResponseException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -5, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcBadResponseException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -5, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>server panic (WebrpcServerPanic, code -6, HTTP 500).</summary>
@@ -1014,15 +978,9 @@ namespace Interop.CSharp
     {
         public const int ErrorCode = -6;
 
-        public WebrpcServerPanicException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcServerPanic", -6, "server panic", 500, cause, innerException)
-        {
-        }
+        public WebrpcServerPanicException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcServerPanic", -6, "server panic", 500, cause, innerException) { }
 
-        internal WebrpcServerPanicException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -6, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcServerPanicException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -6, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>internal error (WebrpcInternalError, code -7, HTTP 500).</summary>
@@ -1030,15 +988,9 @@ namespace Interop.CSharp
     {
         public const int ErrorCode = -7;
 
-        public WebrpcInternalErrorException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcInternalError", -7, "internal error", 500, cause, innerException)
-        {
-        }
+        public WebrpcInternalErrorException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcInternalError", -7, "internal error", 500, cause, innerException) { }
 
-        internal WebrpcInternalErrorException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -7, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcInternalErrorException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -7, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>request aborted by client (WebrpcClientAborted, code -8, HTTP 400).</summary>
@@ -1046,15 +998,9 @@ namespace Interop.CSharp
     {
         public const int ErrorCode = -8;
 
-        public WebrpcClientAbortedException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcClientAborted", -8, "request aborted by client", 400, cause, innerException)
-        {
-        }
+        public WebrpcClientAbortedException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcClientAborted", -8, "request aborted by client", 400, cause, innerException) { }
 
-        internal WebrpcClientAbortedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -8, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcClientAbortedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -8, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>stream lost (WebrpcStreamLost, code -9, HTTP 400).</summary>
@@ -1062,15 +1008,9 @@ namespace Interop.CSharp
     {
         public const int ErrorCode = -9;
 
-        public WebrpcStreamLostException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcStreamLost", -9, "stream lost", 400, cause, innerException)
-        {
-        }
+        public WebrpcStreamLostException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcStreamLost", -9, "stream lost", 400, cause, innerException) { }
 
-        internal WebrpcStreamLostException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -9, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcStreamLostException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -9, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>stream finished (WebrpcStreamFinished, code -10, HTTP 200).</summary>
@@ -1078,15 +1018,9 @@ namespace Interop.CSharp
     {
         public const int ErrorCode = -10;
 
-        public WebrpcStreamFinishedException(string? cause = null, global::System.Exception? innerException = null)
-            : base("WebrpcStreamFinished", -10, "stream finished", 200, cause, innerException)
-        {
-        }
+        public WebrpcStreamFinishedException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcStreamFinished", -10, "stream finished", 200, cause, innerException) { }
 
-        internal WebrpcStreamFinishedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, -10, message, httpStatus, cause, innerException)
-        {
-        }
+        internal WebrpcStreamFinishedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -10, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>countdown failed (CountdownFailed, code 1000, HTTP 500).</summary>
@@ -1094,15 +1028,9 @@ namespace Interop.CSharp
     {
         public const int ErrorCode = 1000;
 
-        public CountdownFailedException(string? cause = null, global::System.Exception? innerException = null)
-            : base("CountdownFailed", 1000, "countdown failed", 500, cause, innerException)
-        {
-        }
+        public CountdownFailedException(string? cause = null, global::System.Exception? innerException = null) : base("CountdownFailed", 1000, "countdown failed", 500, cause, innerException) { }
 
-        internal CountdownFailedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 1000, message, httpStatus, cause, innerException)
-        {
-        }
+        internal CountdownFailedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 1000, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>mismatch (Mismatch, code 1001, HTTP 400).</summary>
@@ -1110,15 +1038,9 @@ namespace Interop.CSharp
     {
         public const int ErrorCode = 1001;
 
-        public MismatchException(string? cause = null, global::System.Exception? innerException = null)
-            : base("Mismatch", 1001, "mismatch", 400, cause, innerException)
-        {
-        }
+        public MismatchException(string? cause = null, global::System.Exception? innerException = null) : base("Mismatch", 1001, "mismatch", 400, cause, innerException) { }
 
-        internal MismatchException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, 1001, message, httpStatus, cause, innerException)
-        {
-        }
+        internal MismatchException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, 1001, message, httpStatus, cause, innerException) { }
     }
 
     /// <summary>The JSON error response of a webrpc server.</summary>

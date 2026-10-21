@@ -25,8 +25,10 @@ namespace Interop.Tests
             using var http = new HttpClient();
 
             CSharpTests.RunUnit(check);
+#if !NEWTONSOFT
             await TestApiTests.Run(check, http, args[0]);
             await TestApiRestTests.Run(check, http, args[1]);
+#endif
             await CSharpTests.Run(check, http, args[2]);
 
             if (check.Failures.Count > 0)

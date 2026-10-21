@@ -181,8 +181,9 @@ var http = new HttpClient(new AuthHandler { InnerHandler = new HttpClientHandler
 
 [tests/interop-csharp](../../tests/interop-csharp) runs the generated clients
 against the webrpc interoperability test servers (`webrpc-test`, RPC and REST
-suites) and a Go server of a C#-specific schema, once with System.Text.Json and
-once with Newtonsoft.Json and `-visibility=internal`. It also builds the
+suites) and a Go server of a C#-specific schema, with System.Text.Json. The
+C#-specific suite, which covers every serializer-specific code path, also runs
+with Newtonsoft.Json and `-visibility=internal`. It also builds the
 generated code without warnings for `netstandard2.0` with C# 8. It runs as part
 of `make test` and requires the .NET SDK:
 

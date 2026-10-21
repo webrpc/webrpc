@@ -103,14 +103,8 @@
     {
         public const int ErrorCode = {{$error.Code}};
 
-        public {{$error.Name}}Exception(string? cause = null, global::System.Exception? innerException = null)
-            : base({{ template "str" $error.Name }}, {{$error.Code}}, {{ template "str" $error.Message }}, {{$error.HTTPStatus}}, cause, innerException)
-        {
-        }
+        public {{$error.Name}}Exception(string? cause = null, global::System.Exception? innerException = null) : base({{ template "str" $error.Name }}, {{$error.Code}}, {{ template "str" $error.Message }}, {{$error.HTTPStatus}}, cause, innerException) { }
 
-        internal {{$error.Name}}Exception(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null)
-            : base(name, {{$error.Code}}, message, httpStatus, cause, innerException)
-        {
-        }
+        internal {{$error.Name}}Exception(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, {{$error.Code}}, message, httpStatus, cause, innerException) { }
     }
 {{- end -}}
