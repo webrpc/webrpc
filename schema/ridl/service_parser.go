@@ -1,6 +1,7 @@
 package ridl
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -67,6 +68,12 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 		// know the method they belong to.
 		for _, ann := range sn.methodAnnotations {
 			name := ann.AnnotationType().String()
+			if name == wordSuccess {
+				// '@success' is not an annotation anymore, so the generic hint
+				// would name a form that is itself a hard error.
+				p.warn(fmt.Sprintf("%s:%d: warning: deprecated annotation syntax: '@success' is no longer supported: move it below the '- %s' method line as '+ success <codes>' (above-method annotations are deprecated and will be removed in a future release)", p.file, ann.AnnotationType().tok.line, methodName.val))
+				continue
+			}
 			annStr := "+ @" + name
 			if ann.value != nil {
 				// Quote unless the bare to-EOL form would re-read the value exactly.
@@ -75,11 +82,6 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 					v = strconv.Quote(v)
 				}
 				annStr += " = " + v
-			}
-			if name == "success" {
-				// '+ @success' below a method is route-scoped; the annotation must be renamed there.
-				p.warn(fmt.Sprintf("%s:%d: warning: deprecated annotation syntax: move '%s' below the '- %s' method line and rename it (e.g. '+ @successful = ok'): '+ @success' is reserved for route success codes", p.file, ann.AnnotationType().tok.line, annStr, methodName.val))
-				continue
 			}
 			p.warn(fmt.Sprintf("%s:%d: warning: deprecated annotation syntax: move '%s' below the '- %s' method line (above-method annotations are deprecated and will be removed in a future release)", p.file, ann.AnnotationType().tok.line, annStr, methodName.val))
 		}
@@ -141,7 +143,9 @@ func parseStateServiceMethodDefinition(sn *ServiceNode) parserState {
 			if err != nil {
 				return p.stateError(err)
 			}
-			mn.errors = errorNames
+			if err := addMethodErrors(mn, errorNames); err != nil {
+				return p.stateError(err)
+			}
 		} else {
 			p.pos = pos // not an errors clause, e.g. a route line on the next line
 		}
@@ -239,10 +243,21 @@ func parseMethodRoute(p *parser, s *ServiceNode) error {
 		if err := pendingAnnotationsError(s); err != nil {
 			return err
 		}
-		if next := p.peek(); next.tt == tokenWord && next.val == "success" {
-			return parseRouteSuccess(p, s)
+		if next := p.peek(); next.tt == tokenWord && next.val == wordSuccess {
+			return fmt.Errorf("'+ @success' is no longer supported: write '+ success <codes>' without '@', e.g. '+ success 201'")
 		}
 		return parseMethodAnnotations(p, s)
+	}
+
+	tok := p.cursor()
+	if tok.tt == tokenWord && (tok.val == wordSuccess || tok.val == wordError) {
+		if err := pendingAnnotationsError(s); err != nil {
+			return err
+		}
+		if tok.val == wordSuccess {
+			return parseRouteSuccess(p, s)
+		}
+		return parseMethodErrors(p, s)
 	}
 
 	if len(s.methods) == 0 {
@@ -330,56 +345,53 @@ func parseMethodAnnotations(p *parser, s *ServiceNode) error {
 	return nil
 }
 
-// parseRouteSuccess parses a `+ @success <code>` meta line and records the
+// parseRouteSuccess parses a `+ success <code>` option line and records the
 // method's success codes; ridl.go applies them to every route of the method.
 func parseRouteSuccess(p *parser, s *ServiceNode) error {
-	if _, err := p.match(tokenAt); err != nil {
-		return err
-	}
 	nameTok := p.cursor()
-	if nameTok.tt != tokenWord || nameTok.val != "success" {
-		return fmt.Errorf("expecting '@success <code>' after '+', e.g. '+ @success 201'")
+	if nameTok.tt != tokenWord || nameTok.val != wordSuccess {
+		return fmt.Errorf("expecting 'success <code>' after '+', e.g. '+ success 201'")
 	}
 	p.next()
 
 	if len(s.methods) == 0 {
-		return fmt.Errorf("@success must be declared under a service method")
+		return fmt.Errorf("'+ success' must be declared under a service method")
 	}
 	mn := s.methods[len(s.methods)-1]
 	if mn.successCodes != nil {
-		return fmt.Errorf("method '%s' already declares @success", mn.name.String())
+		return fmt.Errorf("method '%s' already declares '+ success'", mn.name.String())
 	}
 
 	if _, err := p.match(tokenWhitespace); err != nil {
-		return fmt.Errorf("expecting status code after '@success': %w", err)
+		return fmt.Errorf("expecting status code after '+ success': %w", err)
 	}
 	codeTok := p.cursor()
 	if codeTok.tt != tokenWord {
-		return fmt.Errorf("expecting '@success' status code to be a number but got '%s'", codeTok.val)
+		return fmt.Errorf("expecting '+ success' status code to be a number but got '%s'", codeTok.val)
 	}
-	// A pipe-separated set of allowed success codes, e.g. `+ @success 200|201`;
+	// A pipe-separated set of allowed success codes, e.g. `+ success 200|201`;
 	// the first is the default the handler can override at runtime.
 	codes := []*TokenNode{}
 	seen := map[int]bool{}
 	for _, val := range strings.Split(codeTok.val, "|") {
 		if expectNumber(codeTok, val) != nil {
-			return fmt.Errorf("expecting '@success' status code to be a number but got '%s'", codeTok.val)
+			return fmt.Errorf("expecting '+ success' status code to be a number but got '%s'", codeTok.val)
 		}
 		code, err := strconv.Atoi(val)
 		if err != nil {
-			return fmt.Errorf("expecting '@success' status code to be a number but got '%s'", codeTok.val)
+			return fmt.Errorf("expecting '+ success' status code to be a number but got '%s'", codeTok.val)
 		}
 		if code < 200 || code > 299 {
-			return fmt.Errorf("invalid @success status code '%s' of method '%s': must be a 2xx code (200-299)", val, mn.name.String())
+			return fmt.Errorf("invalid '+ success' status code '%s' of method '%s': must be a 2xx code (200-299)", val, mn.name.String())
 		}
 		if seen[code] {
-			return fmt.Errorf("duplicate @success status code '%s' of method '%s'", val, mn.name.String())
+			return fmt.Errorf("duplicate '+ success' status code '%s' of method '%s'", val, mn.name.String())
 		}
 		seen[code] = true
 		// A single output may still be an empty struct, which only the schema
 		// validation (always run next) can resolve.
 		if (code == 204 || code == 205) && len(mn.outputs.arguments) > 1 {
-			return fmt.Errorf("invalid @success status code '%s' of method '%s': 204/205 require an empty response (no outputs or an empty struct)", val, mn.name.String())
+			return fmt.Errorf("invalid '+ success' status code '%s' of method '%s': 204/205 require an empty response (no outputs or an empty struct)", val, mn.name.String())
 		}
 		codes = append(codes, newTokenNode(&token{tt: codeTok.tt, val: val, pos: codeTok.pos, line: codeTok.line, col: codeTok.col}))
 	}
@@ -390,6 +402,52 @@ func parseRouteSuccess(p *parser, s *ServiceNode) error {
 	}
 
 	mn.successCodes = codes
+	return nil
+}
+
+// parseMethodErrors parses a `+ error ErrOne|ErrTwo` option line and appends the
+// names to the method's error list; ridl.go maps them onto schema.Method.Errors.
+func parseMethodErrors(p *parser, s *ServiceNode) error {
+	nameTok := p.cursor()
+	if nameTok.tt != tokenWord || nameTok.val != wordError {
+		return fmt.Errorf("expecting 'error <Name>' after '+', e.g. '+ error NotFound'")
+	}
+	p.next()
+
+	if len(s.methods) == 0 {
+		return fmt.Errorf("'+ error' must be declared under a service method")
+	}
+	mn := s.methods[len(s.methods)-1]
+
+	errorNames, err := p.expectErrorList()
+	if err != nil {
+		// The empty-segment message is already exact; wrapping it would hide
+		// the name it was rejected from.
+		var empty *emptyErrorNameError
+		if errors.As(err, &empty) {
+			return err
+		}
+		return fmt.Errorf("expecting error name after '+ error', e.g. '+ error NotFound': %w", err)
+	}
+	if err := p.expectOptionalCommentOrEOL(); err != nil {
+		return err
+	}
+
+	return addMethodErrors(mn, errorNames)
+}
+
+// addMethodErrors appends names to the method, rejecting a name declared twice
+// within the list, across '+ error' lines, or against the 'errors A|B' clause,
+// so both forms behave identically.
+func addMethodErrors(mn *MethodNode, names []*TokenNode) error {
+	for _, name := range names {
+		for _, declared := range mn.errors {
+			if declared.String() == name.String() {
+				return fmt.Errorf("method '%s' declares error '%s' twice", mn.name.String(), name.String())
+			}
+		}
+		mn.errors = append(mn.errors, name)
+	}
 	return nil
 }
 

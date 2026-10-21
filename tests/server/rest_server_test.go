@@ -231,21 +231,21 @@ func TestRESTHeadOnGetRouteHasNoBody(t *testing.T) {
 	}
 }
 
-// TestRESTDeclaredSuccessStatus pins `+ @success 201`: the route writes the
-// declared 2xx status on success, while routes without @success keep 200.
+// TestRESTDeclaredSuccessStatus pins `+ success 201`: the route writes the
+// declared 2xx status on success, while routes without a success line keep 200.
 func TestRESTDeclaredSuccessStatus(t *testing.T) {
 	impl := NewTestRESTServer()
 	srv := NewTestApiRestServer(impl)
 
 	rec := serveTest(t, srv, "POST", "/rpc/items", "application/json", `{"item":{"id":7,"name":"alice"}}`)
 	if rec.Code != http.StatusCreated {
-		t.Errorf("POST /rpc/items: status %d, want 201 (@success)", rec.Code)
+		t.Errorf("POST /rpc/items: status %d, want 201 (+ success)", rec.Code)
 	}
 	if !strings.Contains(rec.Body.String(), `"name":"alice"`) {
 		t.Errorf("POST /rpc/items: unexpected response %s", rec.Body)
 	}
 
-	// A route without @success keeps the default 200.
+	// A route without a success line keeps the default 200.
 	rec = serveTest(t, srv, "GET", "/rpc/items/7", "", "")
 	if rec.Code != http.StatusOK {
 		t.Errorf("GET /rpc/items/7: status %d, want 200", rec.Code)

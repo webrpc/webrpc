@@ -103,7 +103,7 @@ namespace Interop.Tests
                 Assert.Equal("carol", found[0].Name, "name");
             });
 
-            // PUT /rpc/items: declared `+ @success 200|201`.
+            // PUT /rpc/items: declared `+ success 200|201`.
             await check.Run("TestApiRest.UpsertItem", async () =>
             {
                 var upserted = await api.UpsertItemAsync(new Item { Id = 10, Name = "zoe" });
@@ -120,7 +120,7 @@ namespace Interop.Tests
             // A body route without inputs.
             await check.Run("TestApiRest.ResetItems", () => api.ResetItemsAsync());
 
-            // POST /rpc/items/purge: declared `+ @success 204`.
+            // POST /rpc/items/purge: declared `+ success 204`.
             await check.Run("TestApiRest.PurgeItems", () => api.PurgeItemsAsync());
 
             // An empty required list sends no query keys and decodes as empty.

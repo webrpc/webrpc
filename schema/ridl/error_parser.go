@@ -2,6 +2,7 @@ package ridl
 
 import (
 	"fmt"
+	"strings"
 )
 
 // error <code> <name> <message> [HTTP <status code>]
@@ -18,6 +19,12 @@ func parserStateError(p *parser) parserState {
 
 	if err := expectNumber(matches[2], matches[2].val); err != nil {
 		return p.stateError(fmt.Errorf("expecting error code to be a number but got '%s'", matches[2].val))
+	}
+
+	// A '|' in the name would make the method's `errors A|B` clause unable to
+	// reference it, since the clause splits the list on the bar.
+	if strings.Contains(matches[4].val, "|") {
+		return p.stateError(fmt.Errorf("error name may not contain '|': got '%s'", matches[4].val))
 	}
 
 	return parserStateErrorMessage(&ErrorNode{

@@ -20,6 +20,7 @@ const (
 	wordService  = "service"
 	wordStream   = "stream"
 	wordErrors   = "errors"
+	wordSuccess  = "success"
 	wordPath     = "path"
 	wordBasepath = "basepath"
 	wordVersion  = "version"

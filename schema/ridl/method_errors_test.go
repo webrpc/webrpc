@@ -223,3 +223,245 @@ func TestMethodErrorsKeyword_JsonSchemaSupport(t *testing.T) {
 
 	t.Logf("✅ JSON schema support works! Methods have proper errors specifications")
 }
+
+func TestMethodErrorsOption(t *testing.T) {
+	const header = `webrpc = v1
+
+name = MethodErrorsOptionTest
+version = v1.0.0
+
+error 1 ErrOne   "one"   HTTP 400
+error 2 ErrTwo   "two"   HTTP 409
+error 3 ErrThree "three" HTTP 500
+
+struct User
+  - id: uint64
+
+service UserService
+`
+
+	tt := []struct {
+		name       string
+		methods    string
+		wantErrors []string
+		wantErr    string
+	}{
+		{
+			name: "single error",
+			methods: `  - GetUser(id: uint64) => (user: User)
+    + error ErrOne
+`,
+			wantErrors: []string{"ErrOne"},
+		},
+		{
+			name: "several errors on one line",
+			methods: `  - GetUser(id: uint64) => (user: User)
+    + error ErrOne|ErrTwo|ErrThree
+`,
+			wantErrors: []string{"ErrOne", "ErrTwo", "ErrThree"},
+		},
+		{
+			name: "several errors with spaces around the bars",
+			methods: `  - GetUser(id: uint64) => (user: User)
+    + error ErrOne | ErrTwo | ErrThree
+`,
+			wantErrors: []string{"ErrOne", "ErrTwo", "ErrThree"},
+		},
+		{
+			name: "several error lines append in order",
+			methods: `  - GetUser(id: uint64) => (user: User)
+    + error ErrOne
+    + error ErrTwo|ErrThree
+`,
+			wantErrors: []string{"ErrOne", "ErrTwo", "ErrThree"},
+		},
+		{
+			name: "merges with the errors clause",
+			methods: `  - GetUser(id: uint64) => (user: User) errors ErrOne
+    + error ErrTwo
+`,
+			wantErrors: []string{"ErrOne", "ErrTwo"},
+		},
+		{
+			name: "duplicate within one line",
+			methods: `  - GetUser(id: uint64) => (user: User)
+    + error ErrOne|ErrOne
+`,
+			wantErr: "method 'GetUser' declares error 'ErrOne' twice",
+		},
+		{
+			name: "empty name after a trailing bar",
+			methods: `  - GetUser(id: uint64) => (user: User)
+    + error ErrOne|
+`,
+			wantErr: "empty error name in 'ErrOne|'",
+		},
+		{
+			name: "empty name between bars",
+			methods: `  - GetUser(id: uint64) => (user: User)
+    + error ErrOne||ErrTwo
+`,
+			wantErr: "empty error name in 'ErrOne||ErrTwo'",
+		},
+		{
+			name: "duplicate across lines",
+			methods: `  - GetUser(id: uint64) => (user: User)
+    + error ErrOne
+    + error ErrOne
+`,
+			wantErr: "method 'GetUser' declares error 'ErrOne' twice",
+		},
+		{
+			name: "duplicate against the errors clause",
+			methods: `  - GetUser(id: uint64) => (user: User) errors ErrOne
+    + error ErrOne
+`,
+			wantErr: "method 'GetUser' declares error 'ErrOne' twice",
+		},
+		{
+			name: "unknown error name",
+			methods: `  - GetUser(id: uint64) => (user: User)
+    + error ErrFour
+`,
+			wantErr: "references undefined error 'ErrFour'",
+		},
+		{
+			name: "error names are case-sensitive",
+			methods: `  - GetUser(id: uint64) => (user: User)
+    + error errOne
+`,
+			wantErr: "references undefined error 'errOne'",
+		},
+		{
+			name: "before any method",
+			methods: `  + error ErrOne
+  - GetUser(id: uint64) => (user: User)
+`,
+			wantErr: "'+ error' must be declared under a service method",
+		},
+		{
+			name: "missing error name",
+			methods: `  - GetUser(id: uint64) => (user: User)
+    + error
+`,
+			wantErr: "expecting error name after '+ error'",
+		},
+		{
+			name: "trailing comment",
+			methods: `  - GetUser(id: uint64) => (user: User)
+    + error ErrOne  # scope the error
+`,
+			wantErrors: []string{"ErrOne"},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			s, err := parseRIDLString(header + tc.methods)
+			if tc.wantErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Len(t, s.Services[0].Methods, 1)
+			assert.Equal(t, tc.wantErrors, s.Services[0].Methods[0].Errors)
+		})
+	}
+}
+
+func TestMethodErrorsClause(t *testing.T) {
+	const header = `webrpc = v1
+
+name = MethodErrorsClauseTest
+version = v1.0.0
+
+error 1 ErrOne "one" HTTP 400
+error 2 ErrTwo "two" HTTP 409
+
+struct User
+  - id: uint64
+
+service UserService
+`
+
+	tt := []struct {
+		name       string
+		method     string
+		wantErrors []string
+		wantErr    string
+	}{
+		{
+			name:       "list without spaces around the bars",
+			method:     "  - GetUser(id: uint64) => (user: User) errors ErrOne|ErrTwo\n",
+			wantErrors: []string{"ErrOne", "ErrTwo"},
+		},
+		{
+			name:       "list with spaces around the bars",
+			method:     "  - GetUser(id: uint64) => (user: User) errors ErrOne | ErrTwo\n",
+			wantErrors: []string{"ErrOne", "ErrTwo"},
+		},
+		{
+			name:    "duplicate within the clause",
+			method:  "  - GetUser(id: uint64) => (user: User) errors ErrOne|ErrOne\n",
+			wantErr: "method 'GetUser' declares error 'ErrOne' twice",
+		},
+		{
+			name:    "empty name in the clause",
+			method:  "  - GetUser(id: uint64) => (user: User) errors ErrOne|\n",
+			wantErr: "empty error name in 'ErrOne|'",
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			s, err := parseRIDLString(header + tc.method)
+			if tc.wantErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Len(t, s.Services[0].Methods, 1)
+			assert.Equal(t, tc.wantErrors, s.Services[0].Methods[0].Errors)
+		})
+	}
+}
+
+func TestMethodErrorsEmptyNameReportsSegment(t *testing.T) {
+	const src = `webrpc = v1
+
+name = MethodErrorsPositionTest
+version = v1.0.0
+
+error 1 ErrOne "one" HTTP 400
+
+struct User
+  - id: uint64
+
+service UserService
+  - GetUser(id: uint64) => (user: User)
+    + error ErrOne|
+`
+	_, err := parseRIDLString(src)
+	require.Error(t, err)
+	// The error points at the rejected list, not at the line break after it,
+	// and is not wrapped in the generic '+ error' hint.
+	assert.Contains(t, err.Error(), `error near "ErrOne|"`)
+	assert.NotContains(t, err.Error(), "expecting error name after '+ error'")
+}
+
+func TestErrorDeclarationRejectsBarInName(t *testing.T) {
+	const src = `webrpc = v1
+
+name = ErrorNamePipeTest
+version = v1.0.0
+
+error 1 Foo|Bar "msg" HTTP 400
+`
+	_, err := parseRIDLString(src)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "error name may not contain '|'")
+}
