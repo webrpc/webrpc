@@ -12,10 +12,33 @@
 {{- /* declare registers a top-level declaration, failing on a name clash. */ -}}
 {{- define "declare" -}}
 {{- if exists .Decls .Name -}}
-  {{- stderrPrintf "%s generator error: %q, %s, clashes with %s; rename one of them in the schema\n" .Target .Name .What (get .Decls .Name) -}}
+  {{- $other := get .Decls .Name -}}
+  {{- stderrPrintf "%s generator error: %q, %s, clashes with %s; %s\n" .Target .Name .What $other (ternary (eq $other "a generated runtime helper") "rename it in the schema" "rename one of them in the schema") -}}
   {{- exit 1 -}}
 {{- end -}}
 {{- set .Decls .Name .What -}}
+{{- end -}}
+
+{{- /* allocate names the members of a type (or the arguments of a method):
+       .Items maps each schema name to its natural C# name. Names in .Taken are
+       reserved. Members whose natural name is free get it first, so adding a
+       member never renames an existing one; the others get "_" suffixes until
+       unique. The result goes to .Names. */ -}}
+{{- define "allocate" -}}
+{{- range $key, $natural := .Items -}}
+  {{- if not (exists $.Taken $natural) }}{{ set $.Taken $natural true }}{{ set $.Names $key $natural }}{{ end -}}
+{{- end -}}
+{{- range $key, $natural := .Items -}}
+  {{- if not (exists $.Names $key) -}}
+    {{- $name := printf "%s_" $natural -}}
+    {{- range $_, $i := (until 32) }}{{ if exists $.Taken $name }}{{ $name = printf "%s_" $name }}{{ end }}{{ end -}}
+    {{- if exists $.Taken $name -}}
+      {{- stderrPrintf "%s generator error: can't find a unique C# name for %q in %s\n" $.Target $key $.Owner -}}
+      {{- exit 1 -}}
+    {{- end -}}
+    {{- set $.Taken $name true }}{{ set $.Names $key $name -}}
+  {{- end -}}
+{{- end -}}
 {{- end -}}
 
 {{- /* argName is the C# parameter name of a method argument, see $argNames in main. */ -}}

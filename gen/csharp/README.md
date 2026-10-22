@@ -116,10 +116,12 @@ with `+ json = -` are left out.
 
 Identifiers that are C# keywords are escaped (`@class`). Members that would
 clash with their type, `System.Object` members or other generated names get `_`
-suffixes until they're unique (`toString` becomes `ToString_`, and a `toString_`
-field then `ToString__`), as do arguments named like the generated parameters
-(`cancellationToken_`). Generation fails when a top-level name clashes, eg. a
-`DemoClient` struct with the client of service `Demo`.
+suffixes until they're unique (`toString` becomes `ToString_`), as do arguments
+named like the generated parameters (`cancellationToken_`). Members whose name
+is free keep it, so adding a member never renames an existing one: with a
+`toString_` field, `toString` becomes `ToString__`. Generation fails when a
+top-level name clashes, eg. a `DemoClient` struct with the client of service
+`Demo`.
 
 ### Enums
 

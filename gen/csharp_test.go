@@ -90,6 +90,49 @@ func TestCSharpOptions(t *testing.T) {
 	}
 }
 
+// The contextual keyword yield is a valid namespace segment.
+func TestCSharpNamespaceYield(t *testing.T) {
+	out, err := Generate(parseCSharpTestSchema(t, csharpTestSchema), "csharp", &Config{TemplateOptions: map[string]interface{}{"client": "", "namespace": "Finance.yield"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out.Code, "namespace Finance.yield\n") {
+		t.Errorf("expected namespace Finance.yield")
+	}
+}
+
+// Generated code references its runtime helpers by their full name, so schema
+// names (enum values, arguments) can't hide them.
+func TestCSharpQualifiedHelpers(t *testing.T) {
+	out, err := Generate(parseCSharpTestSchema(t, `
+webrpc = v1
+
+name = helpers
+version = v1.0.0
+basepath = /rpc
+
+enum Kind: string
+  - WebrpcJson
+
+service Svc
+  - Ping(WebrpcJson: string, WebrpcHttp: string) => (kind: Kind)
+`), "csharp", &Config{TemplateOptions: map[string]interface{}{"client": ""}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, want := range []string{
+		"global::Helpers.WebrpcJson.ReadEnum(",
+		"global::Helpers.WebrpcJson.Serialize(__args)",
+		"global::Helpers.WebrpcHttp.NewRequest(",
+		"global::Helpers.WebrpcHttp.CallAsync<",
+	} {
+		if !strings.Contains(out.Code, want) {
+			t.Errorf("expected generated code to contain %q", want)
+		}
+	}
+}
+
 func TestCSharpTypesOnly(t *testing.T) {
 	out, err := Generate(parseCSharpTestSchema(t, csharpTestSchema), "csharp", &Config{})
 	if err != nil {
@@ -119,6 +162,17 @@ struct Item
   - item: string
   - item_: string
 
+# Field order doesn't matter: toString_ keeps its name.
+struct Reordered
+  - toString_: string
+  - toString: string
+
+# A field left out with + json = - doesn't take a name.
+struct Hidden
+  - equals: string
+    + json = -
+  - equals_: string
+
 enum Flag: string
   - Value
   - Value_
@@ -136,17 +190,28 @@ service Items
 		"public string ToString__ { get; set; }",
 		"public string Item_ { get; set; }",
 		"public string Item__ { get; set; }",
-		`public static readonly Flag Value_ = new Flag("Value");`,
-		`public static readonly Flag Value__ = new Flag("Value_");`,
+		`public static readonly Flag Value_ = new Flag("Value_");`,
+		`public static readonly Flag Value__ = new Flag("Value");`,
+		"public string Equals_ { get; set; }",
 	} {
 		if !strings.Contains(out.Code, want) {
 			t.Errorf("expected generated code to contain %q", want)
 		}
 	}
+	// The JSON field of each renamed property doesn't depend on field order.
+	for _, want := range []string{
+		"JsonPropertyName(\"toString_\")]\n        public string ToString_ { get; set; }",
+		"JsonPropertyName(\"toString\")]\n        public string ToString__ { get; set; }",
+	} {
+		if n := strings.Count(out.Code, want); n != 2 {
+			t.Errorf("expected %q in Item and Reordered, got %d", want, n)
+		}
+	}
+
 	// The GetResponse class renames its outputs the same way.
 	for _, prop := range []string{"ToString_", "ToString__"} {
-		if n := strings.Count(out.Code, "public string "+prop+" { get; set; }"); n != 2 {
-			t.Errorf("expected %s in Item and GetResponse, got %d", prop, n)
+		if n := strings.Count(out.Code, "public string "+prop+" { get; set; }"); n != 3 {
+			t.Errorf("expected %s in Item, Reordered and GetResponse, got %d", prop, n)
 		}
 	}
 }
@@ -177,6 +242,8 @@ func TestCSharpErrors(t *testing.T) {
 		{name: "namespace", opts: map[string]interface{}{"namespace": "My.1Api"}, err: `-namespace="My.1Api" is not a valid C# namespace`},
 		{name: "unknown option", opts: map[string]interface{}{"pkg": "api"}, err: `-pkg="api" is not supported target option`},
 		{name: "namespace keyword", opts: map[string]interface{}{"namespace": "My.class"}, err: `-namespace="My.class" is not a valid C# namespace: "class" is a C# keyword`},
+		{name: "namespace __arglist", opts: map[string]interface{}{"namespace": "My.__arglist"}, err: `"__arglist" is a C# keyword`},
+		{name: "namespace await", opts: map[string]interface{}{"namespace": "My.await"}, err: `-namespace="My.await" is not a valid C# namespace: "await" is a C# keyword`},
 		{
 			name:   "client names",
 			schema: csharpTestSchema + "\nservice IItems\n  - Ping()\n",
@@ -198,7 +265,7 @@ func TestCSharpErrors(t *testing.T) {
 		{
 			name:   "type and runtime helper",
 			schema: csharpTestSchema + "\nstruct WebrpcJson\n  - id: uint64\n",
-			err:    `"WebrpcJson", a schema type, clashes with a generated runtime helper`,
+			err:    `"WebrpcJson", a schema type, clashes with a generated runtime helper; rename it in the schema`,
 		},
 		{
 			name:   "stream input",

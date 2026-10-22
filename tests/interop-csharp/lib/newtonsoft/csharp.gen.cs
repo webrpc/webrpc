@@ -61,7 +61,7 @@ namespace Interop.CSharp
         internal sealed class WebrpcJsonConverter : global::Newtonsoft.Json.JsonConverter
         {
             public override bool CanConvert(global::System.Type objectType) => objectType == typeof(Kind) || objectType == typeof(Kind?);
-            public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer) => WebrpcJson.ReadEnum(reader, "Kind") is string value ? new Kind(value) : objectType == typeof(Kind?) ? null : (object)default(Kind);
+            public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer) => global::Interop.CSharp.WebrpcJson.ReadEnum(reader, "Kind") is string value ? new Kind(value) : objectType == typeof(Kind?) ? null : (object)default(Kind);
             public override void WriteJson(global::Newtonsoft.Json.JsonWriter writer, object? value, global::Newtonsoft.Json.JsonSerializer serializer) => writer.WriteValue(value is Kind e ? e.Value : null);
         }
     }
@@ -98,7 +98,7 @@ namespace Interop.CSharp
         internal sealed class WebrpcJsonConverter : global::Newtonsoft.Json.JsonConverter
         {
             public override bool CanConvert(global::System.Type objectType) => objectType == typeof(Country) || objectType == typeof(Country?);
-            public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer) => WebrpcJson.ReadEnum(reader, "Country") is string value ? new Country(value) : objectType == typeof(Country?) ? null : (object)default(Country);
+            public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer) => global::Interop.CSharp.WebrpcJson.ReadEnum(reader, "Country") is string value ? new Country(value) : objectType == typeof(Country?) ? null : (object)default(Country);
             public override void WriteJson(global::Newtonsoft.Json.JsonWriter writer, object? value, global::Newtonsoft.Json.JsonSerializer serializer) => writer.WriteValue(value is Country e ? e.Value : null);
         }
     }
@@ -135,7 +135,7 @@ namespace Interop.CSharp
         internal sealed class WebrpcJsonConverter : global::Newtonsoft.Json.JsonConverter
         {
             public override bool CanConvert(global::System.Type objectType) => objectType == typeof(Color) || objectType == typeof(Color?);
-            public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer) => WebrpcJson.ReadEnum(reader, "Color") is string value ? new Color(value) : objectType == typeof(Color?) ? null : (object)default(Color);
+            public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer) => global::Interop.CSharp.WebrpcJson.ReadEnum(reader, "Color") is string value ? new Color(value) : objectType == typeof(Color?) ? null : (object)default(Color);
             public override void WriteJson(global::Newtonsoft.Json.JsonWriter writer, object? value, global::Newtonsoft.Json.JsonSerializer serializer) => writer.WriteValue(value is Color e ? e.Value : null);
         }
     }
@@ -175,7 +175,7 @@ namespace Interop.CSharp
         internal sealed class WebrpcJsonConverter : global::Newtonsoft.Json.JsonConverter
         {
             public override bool CanConvert(global::System.Type objectType) => objectType == typeof(Reserved) || objectType == typeof(Reserved?);
-            public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer) => WebrpcJson.ReadEnum(reader, "Reserved") is string value ? new Reserved(value) : objectType == typeof(Reserved?) ? null : (object)default(Reserved);
+            public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer) => global::Interop.CSharp.WebrpcJson.ReadEnum(reader, "Reserved") is string value ? new Reserved(value) : objectType == typeof(Reserved?) ? null : (object)default(Reserved);
             public override void WriteJson(global::Newtonsoft.Json.JsonWriter writer, object? value, global::Newtonsoft.Json.JsonSerializer serializer) => writer.WriteValue(value is Reserved e ? e.Value : null);
         }
     }
@@ -509,9 +509,9 @@ namespace Interop.CSharp
         public async global::System.Threading.Tasks.Task<global::Interop.CSharp.Types> GetTypesAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/GetTypes", WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/GetTypes", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.CallAsync<GetTypesResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.CSharp.WebrpcHttp.CallAsync<GetTypesResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Types;
             }
         }
@@ -526,10 +526,10 @@ namespace Interop.CSharp
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["types"] = types;
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/SendTypes", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.CSharp.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/SendTypes", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                await WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await global::Interop.CSharp.WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -539,9 +539,9 @@ namespace Interop.CSharp
         public async global::System.Threading.Tasks.Task<global::Interop.CSharp.CSharpClient.GetUnknownEnumResponse> GetUnknownEnumAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/GetUnknownEnum", WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/GetUnknownEnum", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                return await WebrpcHttp.CallAsync<GetUnknownEnumResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.CSharp.WebrpcHttp.CallAsync<GetUnknownEnumResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -562,10 +562,10 @@ namespace Interop.CSharp
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["color"] = color;
             __args["colors"] = colors;
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/SendUnknownEnum", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.CSharp.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/SendUnknownEnum", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                await WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await global::Interop.CSharp.WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -581,10 +581,10 @@ namespace Interop.CSharp
             {
                 __args["params"] = @params;
             }
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Keywords", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.CSharp.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Keywords", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                return await WebrpcHttp.CallAsync<KeywordsResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.CSharp.WebrpcHttp.CallAsync<KeywordsResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -607,10 +607,10 @@ namespace Interop.CSharp
             __args["_baseUrl"] = _baseUrl_;
             __args["cancellationToken_"] = cancellationToken_;
             __args["cancellationToken"] = cancellationToken__;
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Shadow", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.CSharp.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Shadow", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.CallAsync<ShadowResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.CSharp.WebrpcHttp.CallAsync<ShadowResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Echo;
             }
         }
@@ -639,10 +639,10 @@ namespace Interop.CSharp
             {
                 __args["ts"] = ts;
             }
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Optional", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.CSharp.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Optional", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                return await WebrpcHttp.CallAsync<OptionalResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.CSharp.WebrpcHttp.CallAsync<OptionalResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -662,9 +662,9 @@ namespace Interop.CSharp
         public async global::System.Threading.Tasks.Task<bool> DeprecatedAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Deprecated", WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Deprecated", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.CallAsync<DeprecatedResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.CSharp.WebrpcHttp.CallAsync<DeprecatedResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Ok;
             }
         }
@@ -681,9 +681,9 @@ namespace Interop.CSharp
         public async global::System.Threading.Tasks.Task<global::Interop.CSharp.CSharpClient.GetShadowedResponse> GetShadowedAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/GetShadowed", WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/GetShadowed", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                return await WebrpcHttp.CallAsync<GetShadowedResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.CSharp.WebrpcHttp.CallAsync<GetShadowedResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -706,11 +706,11 @@ namespace Interop.CSharp
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["from"] = from;
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Countdown", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.CSharp.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Countdown", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
-                await foreach (var __message in global::System.Threading.Tasks.TaskAsyncEnumerableExtensions.ConfigureAwait(WebrpcHttp.ReadStreamAsync<CountdownResponse>(__response, cancellationToken), false))
+                var __response = await global::Interop.CSharp.WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await foreach (var __message in global::System.Threading.Tasks.TaskAsyncEnumerableExtensions.ConfigureAwait(global::Interop.CSharp.WebrpcHttp.ReadStreamAsync<CountdownResponse>(__response, cancellationToken), false))
                 {
                     yield return __message;
                 }
@@ -728,11 +728,11 @@ namespace Interop.CSharp
 
         public async global::System.Collections.Generic.IAsyncEnumerable<global::Interop.CSharp.WatchResponse> WatchAsync(global::Interop.CSharp.WatchRequest request, [global::System.Runtime.CompilerServices.EnumeratorCancellation] global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __json = WebrpcJson.Serialize(request);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Watch", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.CSharp.WebrpcJson.Serialize(request);
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Watch", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
-                await foreach (var __message in global::System.Threading.Tasks.TaskAsyncEnumerableExtensions.ConfigureAwait(WebrpcHttp.ReadStreamAsync<global::Interop.CSharp.WatchResponse>(__response, cancellationToken), false))
+                var __response = await global::Interop.CSharp.WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await foreach (var __message in global::System.Threading.Tasks.TaskAsyncEnumerableExtensions.ConfigureAwait(global::Interop.CSharp.WebrpcHttp.ReadStreamAsync<global::Interop.CSharp.WatchResponse>(__response, cancellationToken), false))
                 {
                     yield return __message;
                 }
@@ -743,11 +743,11 @@ namespace Interop.CSharp
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["from"] = from;
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/CountdownFail", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.CSharp.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/CountdownFail", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
-                await foreach (var __message in global::System.Threading.Tasks.TaskAsyncEnumerableExtensions.ConfigureAwait(WebrpcHttp.ReadStreamAsync<CountdownFailResponse>(__response, cancellationToken), false))
+                var __response = await global::Interop.CSharp.WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await foreach (var __message in global::System.Threading.Tasks.TaskAsyncEnumerableExtensions.ConfigureAwait(global::Interop.CSharp.WebrpcHttp.ReadStreamAsync<CountdownFailResponse>(__response, cancellationToken), false))
                 {
                     yield return __message.N;
                 }
@@ -765,12 +765,12 @@ namespace Interop.CSharp
         /// </summary>
         public async global::System.Threading.Tasks.Task<global::Interop.CSharp.CSharpClient.GetByNameResponse> GetByNameAsync(string name, string? suffix, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __url = new WebrpcRestUrl();
+            var __url = new global::Interop.CSharp.WebrpcRestUrl();
             __url.SetPath("name", name);
             __url.AddQuery("suffix", suffix);
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/names/{name}"), null))
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/names/{name}"), null))
             {
-                return await WebrpcHttp.CallAsync<GetByNameResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.CSharp.WebrpcHttp.CallAsync<GetByNameResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -788,23 +788,23 @@ namespace Interop.CSharp
         /// </summary>
         public async global::System.Threading.Tasks.Task<global::Interop.CSharp.TaggedResponse> GetTaggedAsync(global::Interop.CSharp.TaggedRequest request, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __url = new WebrpcRestUrl();
+            var __url = new global::Interop.CSharp.WebrpcRestUrl();
             __url.SetPath("tagId", request.Id);
             __url.AddQuery("lbl", request.Label);
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/tagged/{tagId}"), null))
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/tagged/{tagId}"), null))
             {
-                return await WebrpcHttp.CallAsync<global::Interop.CSharp.TaggedResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.CSharp.WebrpcHttp.CallAsync<global::Interop.CSharp.TaggedResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
         public async global::System.Threading.Tasks.Task<global::Interop.CSharp.TaggedResponse> UploadTaggedAsync(global::Interop.CSharp.TaggedUpload request, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __json = WebrpcJson.Serialize(request);
-            var __content = new WebrpcMultipartContent(__json);
+            var __json = global::Interop.CSharp.WebrpcJson.Serialize(request);
+            var __content = new global::Interop.CSharp.WebrpcMultipartContent(__json);
             __content.AddFile("document", request?.Doc);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/UploadTagged", __content))
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/UploadTagged", __content))
             {
-                return await WebrpcHttp.CallAsync<global::Interop.CSharp.TaggedResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.CSharp.WebrpcHttp.CallAsync<global::Interop.CSharp.TaggedResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -814,9 +814,9 @@ namespace Interop.CSharp
         public async global::System.Threading.Tasks.Task<global::Interop.CSharp.CSharpClient.HeadersResponse> HeadersAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Headers", WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Headers", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                return await WebrpcHttp.CallAsync<HeadersResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.CSharp.WebrpcHttp.CallAsync<HeadersResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -836,12 +836,12 @@ namespace Interop.CSharp
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["doc"] = doc;
-            var __json = WebrpcJson.Serialize(__args);
-            var __content = new WebrpcMultipartContent(__json);
+            var __json = global::Interop.CSharp.WebrpcJson.Serialize(__args);
+            var __content = new global::Interop.CSharp.WebrpcMultipartContent(__json);
             __content.AddFile("file", doc?.File);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/UploadDoc", __content))
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/UploadDoc", __content))
             {
-                return await WebrpcHttp.CallAsync<UploadDocResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.CSharp.WebrpcHttp.CallAsync<UploadDocResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -862,12 +862,12 @@ namespace Interop.CSharp
 
         public async global::System.Threading.Tasks.Task<global::Interop.CSharp.AttachResponse> AttachAsync(global::Interop.CSharp.AttachRequest request, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __json = WebrpcJson.Serialize(request);
-            var __content = new WebrpcMultipartContent(__json);
+            var __json = global::Interop.CSharp.WebrpcJson.Serialize(request);
+            var __content = new global::Interop.CSharp.WebrpcMultipartContent(__json);
             __content.AddFiles("files", request?.Files);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Attach", __content))
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/Attach", __content))
             {
-                return await WebrpcHttp.CallAsync<global::Interop.CSharp.AttachResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.CSharp.WebrpcHttp.CallAsync<global::Interop.CSharp.AttachResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -875,11 +875,11 @@ namespace Interop.CSharp
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["name"] = name;
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/DownloadDoc", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.CSharp.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.CSharp.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/CSharp/DownloadDoc", global::Interop.CSharp.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
-                return await WebrpcHttp.ReadFileAsync(__response).ConfigureAwait(false);
+                var __response = await global::Interop.CSharp.WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.CSharp.WebrpcHttp.ReadFileAsync(__response).ConfigureAwait(false);
             }
         }
     }

@@ -126,13 +126,15 @@
 
 {{- /* C# keywords, escaped with '@' when used as identifiers. */ -}}
 {{- $keywords := dict -}}
-{{- range $_, $kw := (list "abstract" "as" "base" "bool" "break" "byte" "case" "catch" "char" "checked" "class" "const" "continue" "decimal" "default" "delegate" "do" "double" "else" "enum" "event" "explicit" "extern" "false" "finally" "fixed" "float" "for" "foreach" "goto" "if" "implicit" "in" "int" "interface" "internal" "is" "lock" "long" "namespace" "new" "null" "object" "operator" "out" "override" "params" "private" "protected" "public" "readonly" "ref" "return" "sbyte" "sealed" "short" "sizeof" "stackalloc" "static" "string" "struct" "switch" "this" "throw" "true" "try" "typeof" "uint" "ulong" "unchecked" "unsafe" "ushort" "using" "virtual" "void" "volatile" "while" "await" "yield") -}}
+{{- range $_, $kw := (list "abstract" "as" "base" "bool" "break" "byte" "case" "catch" "char" "checked" "class" "const" "continue" "decimal" "default" "delegate" "do" "double" "else" "enum" "event" "explicit" "extern" "false" "finally" "fixed" "float" "for" "foreach" "goto" "if" "implicit" "in" "int" "interface" "internal" "is" "lock" "long" "namespace" "new" "null" "object" "operator" "out" "override" "params" "private" "protected" "public" "readonly" "ref" "return" "sbyte" "sealed" "short" "sizeof" "stackalloc" "static" "string" "struct" "switch" "this" "throw" "true" "try" "typeof" "uint" "ulong" "unchecked" "unsafe" "ushort" "using" "virtual" "void" "volatile" "while" "await" "yield" "__arglist" "__makeref" "__reftype" "__refvalue") -}}
   {{- set $keywords $kw true -}}
 {{- end -}}
 
-{{- /* Namespace segments must be identifiers; "@" escaping is rejected above. */ -}}
+{{- /* Namespace segments must be identifiers; "@" escaping is rejected above.
+       The contextual keyword yield is a valid identifier there, but await is
+       not: the generated async methods reference the namespace. */ -}}
 {{- range $_, $segment := (split "." $opts.namespace) -}}
-  {{- if exists $keywords $segment -}}
+  {{- if and (exists $keywords $segment) (ne $segment "yield") -}}
     {{- stderrPrintf "%s generator error: -namespace=%q is not a valid C# namespace: %q is a C# keyword\n" $.WebrpcTarget $opts.namespace $segment -}}
     {{- exit 1 -}}
   {{- end -}}
@@ -172,9 +174,9 @@
   {{- end -}}
 {{- end -}}
 
-{{- /* Member names, unique within their type: a "_" suffix is added until a
-       name doesn't clash with the type, its other members, System.Object
-       members or the members generated into the type. */ -}}
+{{- /* Member names, unique within their type (see "allocate"): a name that
+       clashes with the type, System.Object members or the members generated
+       into the type gets "_" suffixes. */ -}}
 {{- $objectMembers := list "Equals" "GetHashCode" "GetType" "ToString" "MemberwiseClone" "Finalize" "ReferenceEquals" -}}
 {{- $members := dict -}}
 {{- range $_, $type := .Types -}}
@@ -184,14 +186,17 @@
     {{- if isEnumType $type -}}
       {{- range $_, $name := (list "Value" "KnownValues" "IsKnown" "WebrpcJsonConverter" "_known" "_value") }}{{ set $taken $name true }}{{ end -}}
     {{- end -}}
-    {{- $names := dict -}}
+    {{- $items := dict -}}
     {{- range $_, $field := $type.Fields -}}
-      {{- $name := $field.Name -}}
-      {{- if isStructType $type }}{{ $name = firstLetterToUpper $name }}{{ end -}}
-      {{- range $_, $i := (until 16) }}{{ if exists $taken $name }}{{ $name = printf "%s_" $name }}{{ end }}{{ end -}}
-      {{- set $taken $name true -}}
-      {{- set $names $field.Name $name -}}
+      {{- $ignored := false -}}
+      {{- range $_, $meta := $field.Meta }}{{ if exists $meta "json" }}{{ if eq (printf "%v" (get $meta "json")) "-" }}{{ $ignored = true }}{{ end }}{{ end }}{{ end -}}
+      {{- /* Fields left out with + json = - have no member to name. */ -}}
+      {{- if not $ignored -}}
+        {{- set $items $field.Name (ternary (isStructType $type) (firstLetterToUpper $field.Name) $field.Name) -}}
+      {{- end -}}
     {{- end -}}
+    {{- $names := dict -}}
+    {{- template "allocate" dict "Items" $items "Taken" $taken "Names" $names "Owner" (printf "type %s" $type.Name) "Target" $.WebrpcTarget -}}
     {{- set $members $type.Name $names -}}
   {{- end -}}
 {{- end -}}
@@ -201,32 +206,24 @@
     {{- $owner := printf "%sResponse" $method.Name -}}
     {{- $taken := dict $owner true -}}
     {{- range $_, $name := $objectMembers }}{{ set $taken $name true }}{{ end -}}
+    {{- $items := dict -}}
+    {{- range $_, $output := $method.Outputs }}{{ set $items $output.Name (firstLetterToUpper $output.Name) }}{{ end -}}
     {{- $names := dict -}}
-    {{- range $_, $output := $method.Outputs -}}
-      {{- $name := firstLetterToUpper $output.Name -}}
-      {{- range $_, $i := (until 16) }}{{ if exists $taken $name }}{{ $name = printf "%s_" $name }}{{ end }}{{ end -}}
-      {{- set $taken $name true -}}
-      {{- set $names $output.Name $name -}}
-    {{- end -}}
+    {{- template "allocate" dict "Items" $items "Taken" $taken "Names" $names "Owner" (printf "the outputs of method %s.%s" $service.Name $method.Name) "Target" $.WebrpcTarget -}}
     {{- set $members (printf "%s.%s" $service.Name $owner) $names -}}
   {{- end -}}
 {{- end -}}
 
-{{- /* Method argument names, renamed (with a "_" suffix) where they would clash
+{{- /* Method argument names (see "allocate"), renamed where they would clash
        with the parameters, locals and fields of the generated methods. */ -}}
 {{- $argNames := dict -}}
 {{- range $_, $service := .Services -}}
   {{- range $_, $method := $service.Methods -}}
     {{- $taken := dict "cancellationToken" true "request" true "__json" true "__args" true "__url" true "__content" true "__request" true "__response" true "__message" true "_baseUrl" true "_httpClient" true -}}
+    {{- $items := dict -}}
+    {{- range $_, $input := $method.Inputs }}{{ set $items $input.Name $input.Name }}{{ end -}}
     {{- $names := dict -}}
-    {{- range $_, $input := $method.Inputs -}}
-      {{- $name := $input.Name -}}
-      {{- range $_, $i := (until 16) -}}
-        {{- if exists $taken $name }}{{ $name = printf "%s_" $name }}{{ end -}}
-      {{- end -}}
-      {{- set $taken $name true -}}
-      {{- set $names $input.Name $name -}}
-    {{- end -}}
+    {{- template "allocate" dict "Items" $items "Taken" $taken "Names" $names "Owner" (printf "the arguments of method %s.%s" $service.Name $method.Name) "Target" $.WebrpcTarget -}}
     {{- set $argNames (printf "%s.%s" $service.Name $method.Name) $names -}}
   {{- end -}}
 {{- end -}}

@@ -54,7 +54,7 @@
 
         internal sealed class WebrpcJsonConverter : global::System.Text.Json.Serialization.JsonConverter<{{$name}}>
         {
-            public override {{$name}} Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options) => new {{$name}}(WebrpcJson.ReadEnum(ref reader, {{ template "str" $name }})!);
+            public override {{$name}} Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options) => new {{$name}}({{ $ctx.Ns }}.WebrpcJson.ReadEnum(ref reader, {{ template "str" $name }})!);
             public override void Write(global::System.Text.Json.Utf8JsonWriter writer, {{$name}} value, global::System.Text.Json.JsonSerializerOptions options) => writer.WriteStringValue(value.Value);
             public override {{$name}} ReadAsPropertyName(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options) => new {{$name}}(reader.GetString()!);
             public override void WriteAsPropertyName(global::System.Text.Json.Utf8JsonWriter writer, {{$name}} value, global::System.Text.Json.JsonSerializerOptions options) => writer.WritePropertyName(value.Value);
@@ -64,7 +64,7 @@
         internal sealed class WebrpcJsonConverter : global::Newtonsoft.Json.JsonConverter
         {
             public override bool CanConvert(global::System.Type objectType) => objectType == typeof({{$name}}) || objectType == typeof({{$name}}?);
-            public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer) => WebrpcJson.ReadEnum(reader, {{ template "str" $name }}) is string value ? new {{$name}}(value) : objectType == typeof({{$name}}?) ? null : (object)default({{$name}});
+            public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer) => {{ $ctx.Ns }}.WebrpcJson.ReadEnum(reader, {{ template "str" $name }}) is string value ? new {{$name}}(value) : objectType == typeof({{$name}}?) ? null : (object)default({{$name}});
             public override void WriteJson(global::Newtonsoft.Json.JsonWriter writer, object? value, global::Newtonsoft.Json.JsonSerializer serializer) => writer.WriteValue(value is {{$name}} e ? e.Value : null);
         }
         {{- end }}
