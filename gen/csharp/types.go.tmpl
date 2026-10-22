@@ -8,7 +8,6 @@
 {{- if isEnumType $type }}
 {{- $name := $type.Name }}
 {{- $isString := eq (printf "%v" $type.Type) "string" }}
-{{- $reserved := dict "Value" true "KnownValues" true "IsKnown" true "WebrpcJsonConverter" true "_known" true "_value" true }}
 {{- /* The zero value of an integer enum is its 0 member, like in Go. */ -}}
 {{- $zero := "" }}
 {{- if not $isString }}
@@ -27,10 +26,10 @@
     {
         {{- range $_, $field := $type.Fields }}
 {{- template "doc" dict "Comments" $field.Comments "Indent" "        " }}
-        public static readonly {{$name}} {{ template "memberName" dict "Name" $field.Name "Owner" $name "Extra" $reserved "Ctx" $ctx }} = new {{$name}}({{ template "str" (ternary $isString $field.Value (enumWireValue $field)) }});
+        public static readonly {{$name}} {{ template "member" dict "Key" $name "Name" $field.Name "Ctx" $ctx }} = new {{$name}}({{ template "str" (ternary $isString $field.Value (enumWireValue $field)) }});
         {{- end }}
 
-        private static readonly {{$name}}[] _known = { {{- range $i, $field := $type.Fields }}{{ if $i }}, {{ else }} {{ end }}{{ template "memberName" dict "Name" $field.Name "Owner" $name "Extra" $reserved "Ctx" $ctx }}{{ end }} };
+        private static readonly {{$name}}[] _known = { {{- range $i, $field := $type.Fields }}{{ if $i }}, {{ else }} {{ end }}{{ template "member" dict "Key" $name "Name" $field.Name "Ctx" $ctx }}{{ end }} };
         private readonly string? _value;
 
         public {{$name}}(string value) => _value = value;
@@ -87,7 +86,7 @@
 {{ end }}
 {{- template "doc" dict "Comments" $field.Comments "Indent" "        " }}
         {{ template "jsonProperty" dict "Name" $jsonName "Optional" $field.Optional "Ctx" $ctx }}
-        public {{ template "fieldType" dict "Type" $field.Type "Optional" $field.Optional "Ctx" $ctx }} {{ template "propName" dict "Name" $field.Name "Owner" $name "Ctx" $ctx }} { get; set; }{{ template "initializer" dict "Type" $field.Type "Optional" $field.Optional "Ctx" $ctx }}
+        public {{ template "fieldType" dict "Type" $field.Type "Optional" $field.Optional "Ctx" $ctx }} {{ template "member" dict "Key" $name "Name" $field.Name "Ctx" $ctx }} { get; set; }{{ template "initializer" dict "Type" $field.Type "Optional" $field.Optional "Ctx" $ctx }}
         {{- end }}
         {{- end }}
     }

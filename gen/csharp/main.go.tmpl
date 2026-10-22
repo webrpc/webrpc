@@ -130,10 +130,86 @@
   {{- set $keywords $kw true -}}
 {{- end -}}
 
-{{- /* Member names that would clash with (or hide) members of System.Object. */ -}}
-{{- $reservedMembers := dict -}}
-{{- range $_, $name := (list "Equals" "GetHashCode" "GetType" "ToString" "MemberwiseClone" "Finalize" "ReferenceEquals") -}}
-  {{- set $reservedMembers $name true -}}
+{{- /* Namespace segments must be identifiers; "@" escaping is rejected above. */ -}}
+{{- range $_, $segment := (split "." $opts.namespace) -}}
+  {{- if exists $keywords $segment -}}
+    {{- stderrPrintf "%s generator error: -namespace=%q is not a valid C# namespace: %q is a C# keyword\n" $.WebrpcTarget $opts.namespace $segment -}}
+    {{- exit 1 -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Top-level declarations: generated names must not clash with each other or
+       with the schema types, else the C# would not compile (or, as partial
+       classes, silently merge). */ -}}
+{{- $decls := dict -}}
+{{- range $_, $name := (list "Webrpc" "WebrpcJson" "WebrpcTimestamp" "WebrpcTimestampJsonConverter" "WebrpcBigIntegerJsonConverter") -}}
+  {{- template "declare" dict "Decls" $decls "Name" $name "What" "a generated runtime helper" "Target" $.WebrpcTarget -}}
+{{- end -}}
+{{- if or $opts.fileUpload $opts.fileDownload -}}
+  {{- template "declare" dict "Decls" $decls "Name" "WebrpcFile" "What" "a generated runtime helper" "Target" $.WebrpcTarget -}}
+{{- end -}}
+{{- if $opts.client -}}
+  {{- range $_, $name := (list "WebrpcHttp" "WebrpcException" "WebrpcErrorEnvelope") -}}
+    {{- template "declare" dict "Decls" $decls "Name" $name "What" "a generated runtime helper" "Target" $.WebrpcTarget -}}
+  {{- end -}}
+  {{- if $opts.streaming }}{{ template "declare" dict "Decls" $decls "Name" "WebrpcStreamError" "What" "a generated runtime helper" "Target" $.WebrpcTarget }}{{ end -}}
+  {{- if $opts.restRoutes }}{{ template "declare" dict "Decls" $decls "Name" "WebrpcRestUrl" "What" "a generated runtime helper" "Target" $.WebrpcTarget }}{{ end -}}
+  {{- if $opts.fileUpload }}{{ template "declare" dict "Decls" $decls "Name" "WebrpcMultipartContent" "What" "a generated runtime helper" "Target" $.WebrpcTarget }}{{ end -}}
+  {{- range $_, $error := .WebrpcErrors -}}
+    {{- template "declare" dict "Decls" $decls "Name" (printf "%sException" $error.Name) "What" (printf "the exception of error %s" $error.Name) "Target" $.WebrpcTarget -}}
+  {{- end -}}
+  {{- range $_, $error := .Errors -}}
+    {{- template "declare" dict "Decls" $decls "Name" (printf "%sException" $error.Name) "What" (printf "the exception of error %s" $error.Name) "Target" $.WebrpcTarget -}}
+  {{- end -}}
+  {{- range $_, $service := .Services -}}
+    {{- template "declare" dict "Decls" $decls "Name" (printf "I%sClient" $service.Name) "What" (printf "the client interface of service %s" $service.Name) "Target" $.WebrpcTarget -}}
+    {{- template "declare" dict "Decls" $decls "Name" (printf "%sClient" $service.Name) "What" (printf "the client class of service %s" $service.Name) "Target" $.WebrpcTarget -}}
+  {{- end -}}
+{{- end -}}
+{{- range $_, $type := .Types -}}
+  {{- if not (isAliasType $type) -}}
+    {{- template "declare" dict "Decls" $decls "Name" $type.Name "What" "a schema type" "Target" $.WebrpcTarget -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Member names, unique within their type: a "_" suffix is added until a
+       name doesn't clash with the type, its other members, System.Object
+       members or the members generated into the type. */ -}}
+{{- $objectMembers := list "Equals" "GetHashCode" "GetType" "ToString" "MemberwiseClone" "Finalize" "ReferenceEquals" -}}
+{{- $members := dict -}}
+{{- range $_, $type := .Types -}}
+  {{- if or (isStructType $type) (isEnumType $type) -}}
+    {{- $taken := dict $type.Name true -}}
+    {{- range $_, $name := $objectMembers }}{{ set $taken $name true }}{{ end -}}
+    {{- if isEnumType $type -}}
+      {{- range $_, $name := (list "Value" "KnownValues" "IsKnown" "WebrpcJsonConverter" "_known" "_value") }}{{ set $taken $name true }}{{ end -}}
+    {{- end -}}
+    {{- $names := dict -}}
+    {{- range $_, $field := $type.Fields -}}
+      {{- $name := $field.Name -}}
+      {{- if isStructType $type }}{{ $name = firstLetterToUpper $name }}{{ end -}}
+      {{- range $_, $i := (until 16) }}{{ if exists $taken $name }}{{ $name = printf "%s_" $name }}{{ end }}{{ end -}}
+      {{- set $taken $name true -}}
+      {{- set $names $field.Name $name -}}
+    {{- end -}}
+    {{- set $members $type.Name $names -}}
+  {{- end -}}
+{{- end -}}
+{{- /* Properties of the {Method}Response classes nested in the clients. */ -}}
+{{- range $_, $service := .Services -}}
+  {{- range $_, $method := $service.Methods -}}
+    {{- $owner := printf "%sResponse" $method.Name -}}
+    {{- $taken := dict $owner true -}}
+    {{- range $_, $name := $objectMembers }}{{ set $taken $name true }}{{ end -}}
+    {{- $names := dict -}}
+    {{- range $_, $output := $method.Outputs -}}
+      {{- $name := firstLetterToUpper $output.Name -}}
+      {{- range $_, $i := (until 16) }}{{ if exists $taken $name }}{{ $name = printf "%s_" $name }}{{ end }}{{ end -}}
+      {{- set $taken $name true -}}
+      {{- set $names $output.Name $name -}}
+    {{- end -}}
+    {{- set $members (printf "%s.%s" $service.Name $owner) $names -}}
+  {{- end -}}
 {{- end -}}
 
 {{- /* Method argument names, renamed (with a "_" suffix) where they would clash
@@ -155,7 +231,7 @@
   {{- end -}}
 {{- end -}}
 
-{{- $ctx := dict "ArgNames" $argNames "TypeMap" $typeMap "Aliases" $aliases "Enums" $enums "Keywords" $keywords "Reserved" $reservedMembers "Opts" $opts "Ns" (printf "global::%s" $opts.namespace) -}}
+{{- $ctx := dict "ArgNames" $argNames "Members" $members "TypeMap" $typeMap "Aliases" $aliases "Enums" $enums "Keywords" $keywords "Opts" $opts "Ns" (printf "global::%s" $opts.namespace) -}}
 
 // <auto-generated />
 // {{.SchemaName}} {{.SchemaVersion}}{{if $opts.schemaHash}} {{.SchemaHash}}{{end}}

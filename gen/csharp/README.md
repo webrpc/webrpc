@@ -114,9 +114,12 @@ out of the JSON when null. Required strings, lists and maps are initialized
 to empty values. Fields with `+ json = name` are renamed on the wire, and fields
 with `+ json = -` are left out.
 
-Identifiers that are C# keywords are escaped (`@class`), and members that would
-clash with their type or with `System.Object` members get a `_` suffix (`ToString_`),
-as do arguments named like the generated parameters (`cancellationToken_`).
+Identifiers that are C# keywords are escaped (`@class`). Members that would
+clash with their type, `System.Object` members or other generated names get `_`
+suffixes until they're unique (`toString` becomes `ToString_`, and a `toString_`
+field then `ToString__`), as do arguments named like the generated parameters
+(`cancellationToken_`). Generation fails when a top-level name clashes, eg. a
+`DemoClient` struct with the client of service `Demo`.
 
 ### Enums
 

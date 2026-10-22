@@ -3,23 +3,19 @@
 {{- if exists .Ctx.Keywords .Name }}@{{ end }}{{ .Name }}
 {{- end -}}
 
-{{- /* memberName renders the C# member name of a schema field (or enum value)
-       inside the type named .Owner. A member can't share its enclosing type's
-       name, or hide System.Object members; .Extra lists further names
-       reserved by the generated type. */ -}}
-{{- define "memberName" -}}
-{{- $name := .Name -}}
-{{- if .Upper }}{{ $name = firstLetterToUpper $name }}{{ end -}}
-{{- if or (eq $name .Owner) (exists .Ctx.Reserved $name) (and .Extra (exists .Extra $name)) -}}
-{{ $name }}_
-{{- else -}}
-{{ template "ident" dict "Name" $name "Ctx" .Ctx }}
-{{- end -}}
+{{- /* member renders the C# name of a struct field, enum value or response
+       output, allocated in main ($members) under the key of its type. */ -}}
+{{- define "member" -}}
+{{ template "ident" dict "Name" (get (get .Ctx.Members .Key) .Name) "Ctx" .Ctx }}
 {{- end -}}
 
-{{- /* propName is the PascalCase C# property name of a struct field. */ -}}
-{{- define "propName" -}}
-{{- template "memberName" dict "Name" .Name "Owner" .Owner "Upper" true "Ctx" .Ctx -}}
+{{- /* declare registers a top-level declaration, failing on a name clash. */ -}}
+{{- define "declare" -}}
+{{- if exists .Decls .Name -}}
+  {{- stderrPrintf "%s generator error: %q, %s, clashes with %s; rename one of them in the schema\n" .Target .Name .What (get .Decls .Name) -}}
+  {{- exit 1 -}}
+{{- end -}}
+{{- set .Decls .Name .What -}}
 {{- end -}}
 
 {{- /* argName is the C# parameter name of a method argument, see $argNames in main. */ -}}

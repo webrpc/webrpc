@@ -104,6 +104,53 @@ func TestCSharpTypesOnly(t *testing.T) {
 	}
 }
 
+// Members renamed to avoid a clash get "_" suffixes until they are unique.
+func TestCSharpMemberNames(t *testing.T) {
+	schema := parseCSharpTestSchema(t, `
+webrpc = v1
+
+name = names
+version = v1.0.0
+basepath = /rpc
+
+struct Item
+  - toString: string
+  - toString_: string
+  - item: string
+  - item_: string
+
+enum Flag: string
+  - Value
+  - Value_
+
+service Items
+  - Get() => (toString: string, toString_: string)
+`)
+	out, err := Generate(schema, "csharp", &Config{TemplateOptions: map[string]interface{}{"client": ""}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, want := range []string{
+		"public string ToString_ { get; set; }",
+		"public string ToString__ { get; set; }",
+		"public string Item_ { get; set; }",
+		"public string Item__ { get; set; }",
+		`public static readonly Flag Value_ = new Flag("Value");`,
+		`public static readonly Flag Value__ = new Flag("Value_");`,
+	} {
+		if !strings.Contains(out.Code, want) {
+			t.Errorf("expected generated code to contain %q", want)
+		}
+	}
+	// The GetResponse class renames its outputs the same way.
+	for _, prop := range []string{"ToString_", "ToString__"} {
+		if n := strings.Count(out.Code, "public string "+prop+" { get; set; }"); n != 2 {
+			t.Errorf("expected %s in Item and GetResponse, got %d", prop, n)
+		}
+	}
+}
+
 // The templates exit the process on invalid options, so the error cases run
 // in a subprocess of the test binary.
 func TestCSharpErrors(t *testing.T) {
@@ -129,6 +176,30 @@ func TestCSharpErrors(t *testing.T) {
 		{name: "visibility", opts: map[string]interface{}{"visibility": "private"}, err: `-visibility="private" is not supported`},
 		{name: "namespace", opts: map[string]interface{}{"namespace": "My.1Api"}, err: `-namespace="My.1Api" is not a valid C# namespace`},
 		{name: "unknown option", opts: map[string]interface{}{"pkg": "api"}, err: `-pkg="api" is not supported target option`},
+		{name: "namespace keyword", opts: map[string]interface{}{"namespace": "My.class"}, err: `-namespace="My.class" is not a valid C# namespace: "class" is a C# keyword`},
+		{
+			name:   "client names",
+			schema: csharpTestSchema + "\nservice IItems\n  - Ping()\n",
+			opts:   map[string]interface{}{"client": ""},
+			err:    `"IItemsClient", the client class of service IItems, clashes with the client interface of service Items`,
+		},
+		{
+			name:   "type and client",
+			schema: csharpTestSchema + "\nstruct ItemsClient\n  - id: uint64\n",
+			opts:   map[string]interface{}{"client": ""},
+			err:    `"ItemsClient", a schema type, clashes with the client class of service Items`,
+		},
+		{
+			name:   "type and error",
+			schema: csharpTestSchema + "\nstruct NotFoundException\n  - id: uint64\n\nerror 1 NotFound \"not found\" HTTP 404\n",
+			opts:   map[string]interface{}{"client": ""},
+			err:    `"NotFoundException", a schema type, clashes with the exception of error NotFound`,
+		},
+		{
+			name:   "type and runtime helper",
+			schema: csharpTestSchema + "\nstruct WebrpcJson\n  - id: uint64\n",
+			err:    `"WebrpcJson", a schema type, clashes with a generated runtime helper`,
+		},
 		{
 			name:   "stream input",
 			schema: strings.Replace(csharpTestSchema, "  - GetItem(id: uint64) => (item: Item)", "  - stream Send(id: uint64)", 1),
