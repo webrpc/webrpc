@@ -1,0 +1,23 @@
+webrpc = v1
+
+name = enum-fixtures
+version = v0.1.0
+
+# Go-only fixtures for the generated enum helpers. Kept out of
+# schema/test.ridl so the interoperability contract stays unchanged.
+
+enum Status: uint32
+  - AVAILABLE
+  - NOT_AVAILABLE
+
+enum Kind: uint32
+  - User
+    + json = USER
+  - Admin
+    + json = ADMIN
+
+enum Tier: string
+  - Free = "free"
+  - Pro = "pro"
+
+enum Empty: string

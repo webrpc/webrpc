@@ -136,6 +136,7 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 
 		// ensure enum fields have value key set
 		jsonValueList := map[string]string{}
+		valueList := map[string]string{}
 		for _, field := range t.Fields {
 			if field.Value == "" {
 				return fmt.Errorf("schema error: enum '%s' with field '%s' is missing value", t.Name, field.Name)
@@ -174,6 +175,11 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 				}
 				jsonValueList[jsonMetaString] = field.Name
 			}
+
+			if existing, ok := valueList[field.Value]; ok {
+				return fmt.Errorf("schema error: detected duplicate value '%s' in enum '%s' fields '%s' and '%s'", field.Value, t.Name, existing, field.Name)
+			}
+			valueList[field.Value] = field.Name
 		}
 	}
 
