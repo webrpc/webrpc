@@ -356,7 +356,7 @@ func TestRIDLSuccessBeforeBetweenAfterRoutes(t *testing.T) {
 			name: "before",
 			ridl: `
   - Ping(PingRequest) => (PingResponse)
-    + @success 200|201
+    + success 200|201
     + GET /ping
     + POST /pings
 `,
@@ -366,7 +366,7 @@ func TestRIDLSuccessBeforeBetweenAfterRoutes(t *testing.T) {
 			ridl: `
   - Ping(PingRequest) => (PingResponse)
     + GET /ping
-    + @success 200|201
+    + success 200|201
     + POST /pings
 `,
 		},
@@ -376,7 +376,7 @@ func TestRIDLSuccessBeforeBetweenAfterRoutes(t *testing.T) {
   - Ping(PingRequest) => (PingResponse)
     + GET /ping
     + POST /pings
-    + @success 200|201
+    + success 200|201
 `,
 		},
 	} {
@@ -399,10 +399,10 @@ func TestRIDLSuccessWithoutRoutesError(t *testing.T) {
 	_, _, err := parseStringWithWarnings(annotationsRIDLHeader + `
 service Example
   - Ping(PingRequest) => (PingResponse)
-    + @success 200
+    + success 200
 `)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "@success requires at least one route on method 'Ping'")
+	assert.Contains(t, err.Error(), "'+ success' requires at least one route on method 'Ping'")
 }
 
 func TestRIDLSuccessDuplicateMethodLevelError(t *testing.T) {
@@ -410,11 +410,11 @@ func TestRIDLSuccessDuplicateMethodLevelError(t *testing.T) {
 service Example
   - Ping(PingRequest) => (PingResponse)
     + GET /ping
-    + @success 200
-    + @success 201
+    + success 200
+    + success 201
 `)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "method 'Ping' already declares @success")
+	assert.Contains(t, err.Error(), "method 'Ping' already declares '+ success'")
 }
 
 // An imported file's warnings must reach both Warnings() and stderr, and stderr
@@ -524,4 +524,18 @@ service Example
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "expecting value after ':' in annotation '@auth'")
 	})
+}
+
+func TestRIDLMethodAnnotationsOldSuccessWarnsWithNewSyntax(t *testing.T) {
+	_, warnings, err := parseStringWithWarnings(annotationsRIDLHeader + `
+service Example
+  @success:201
+  - Ping(PingRequest) => (PingResponse)
+`)
+	require.NoError(t, err)
+	require.Len(t, warnings, 1)
+	assert.Contains(t, warnings[0], "main.ridl:13: warning: deprecated annotation syntax")
+	assert.Contains(t, warnings[0], "'@success' is no longer supported")
+	assert.Contains(t, warnings[0], "as '+ success <codes>'")
+	assert.NotContains(t, warnings[0], "+ @success")
 }

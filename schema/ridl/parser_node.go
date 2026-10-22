@@ -362,7 +362,7 @@ type MethodNode struct {
 
 	routes []*RouteNode // `+ GET /users/{userId}` lines, in declaration order
 
-	// Method-level `+ @success 200|201` meta line. Fills every route of the
+	// Method-level `+ success 200|201` option line. Fills every route of the
 	// method; nil means the default (200) applies.
 	successCodes []*TokenNode
 }
@@ -414,7 +414,7 @@ func (mn *MethodNode) Routes() []*RouteNode {
 type RouteNode struct {
 	verb    *TokenNode
 	path    *TokenNode
-	success []*TokenNode // method-level `+ @success 200|201`, applied to every route
+	success []*TokenNode // method-level `+ success 200|201`, applied to every route
 }
 
 func (rn *RouteNode) Verb() *TokenNode {

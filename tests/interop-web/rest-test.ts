@@ -237,13 +237,13 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   const api = new TestApiRest(addr, fetch)
 
   // POST /rpc/items — request fields in the JSON body; the route declares
-  // `+ @success 201`, so the success status must be 201, not the default 200.
+  // `+ success 201`, so the success status must be 201, not the default 200.
   const create = await fetch(`${addr}/rpc/items`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ item: { id: 7, name: 'alice' } }),
   })
-  assert.equal(create.status, 201, 'createItem must answer the declared @success status')
+  assert.equal(create.status, 201, 'createItem must answer the declared success status')
   const created = (await create.json()) as { item: Item }
   assert.equal(created.item.name, 'alice', 'createItem name mismatch')
 
@@ -435,7 +435,7 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   }
   assert.equal(sent.length, before, 'dot and empty path values must not be sent')
 
-  // PUT /rpc/items — upsert, declared `+ @success 200|201`. Both handlers
+  // PUT /rpc/items — upsert, declared `+ success 200|201`. Both handlers
   // pick the status at runtime (Go via WriteHeader, TypeScript via
   // withStatus): 201 on create, the declared default 200 on update.
   const upsertCreate = await fetch(`${addr}/rpc/items`, {
@@ -453,7 +453,7 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   assert.equal(upsertUpdate.status, 200, 'upsert update status must be the declared default 200')
   await upsertUpdate.body?.cancel()
 
-  // DELETE /rpc/items/{id} — declared `+ @success 200|204`. Both handlers
+  // DELETE /rpc/items/{id} — declared `+ success 200|204`. Both handlers
   // pick the status at runtime (Go via WriteHeader, TypeScript via
   // withStatus): 204 for id 7, 200 for id 10.
   await api.deleteItem({ id: 7 })
@@ -534,7 +534,7 @@ const restSuite = async (addr: string, server: 'typescript' | 'go') => {
   const { items: emptyList } = await api.listItems({ tags: [], limit: 1 })
   assert.equal(emptyList[0]?.name, 'q=false tags=[] limit=1', 'empty tags list mismatch')
 
-  // POST /rpc/items/purge — declared `+ @success 204`: both servers answer
+  // POST /rpc/items/purge — declared `+ success 204`: both servers answer
   // 204 with no body (the Response constructor would throw on one).
   const purged = await fetch(`${addr}/rpc/items/purge`, { method: 'POST' })
   assert.equal(purged.status, 204, 'purge must answer the declared 204')

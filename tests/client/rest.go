@@ -339,7 +339,7 @@ func RunRESTTests(ctx context.Context, serverURL string, skip ...string) error {
 		errs = append(errs, fmt.Errorf("ResetItems(): %w", err))
 	}
 
-	// POST /rpc/items/purge — declared `+ @success 204` (static): the client
+	// POST /rpc/items/purge — declared `+ success 204` (static): the client
 	// skips the empty body and the round-trip succeeds.
 	if err := api.PurgeItems(ctx); err != nil {
 		errs = append(errs, fmt.Errorf("PurgeItems(): %w", err))

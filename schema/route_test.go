@@ -721,7 +721,7 @@ func TestRouteInvalidSchemas(t *testing.T) {
 					"outputs": []
 				}]
 			}`,
-			wantErr: "duplicate @success status code '200'",
+			wantErr: "duplicate '+ success' status code '200'",
 		},
 		{
 			name: "non-2xx success code in the set",
@@ -734,7 +734,7 @@ func TestRouteInvalidSchemas(t *testing.T) {
 					"outputs": []
 				}]
 			}`,
-			wantErr: "invalid @success status code '404'",
+			wantErr: "invalid '+ success' status code '404'",
 		},
 		{
 			name:     "param route overlapping another service's default dispatch path",

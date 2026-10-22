@@ -76,7 +76,7 @@ func RoutePath(r *MethodRoute) string {
 }
 
 // RouteSuccessStatus returns the route's default success status code: the
-// first declared `+ @success` code, or 200 when the route has no `+ @success`
+// first declared `+ success` code, or 200 when the route has no `+ success`
 // line.
 func RouteSuccessStatus(r *MethodRoute) int {
 	codes := RouteSuccessCodes(r)
@@ -84,7 +84,7 @@ func RouteSuccessStatus(r *MethodRoute) int {
 }
 
 // RouteSuccessCodes returns the route's full declared set of success status
-// codes, or [200] when the route has no `+ @success` line.
+// codes, or [200] when the route has no `+ success` line.
 func RouteSuccessCodes(r *MethodRoute) []int {
 	if r == nil || len(r.Success) == 0 {
 		return []int{200}

@@ -142,7 +142,7 @@ service Users
 	assert.Empty(t, users.Methods[1].Routes)
 }
 
-func TestRIDLRouteAfterErrorsClause(t *testing.T) {
+func TestRIDLRouteAfterErrorsOption(t *testing.T) {
 	s, err := parseRouteRIDL(t, `webrpc = v1
 name = example
 version = v0.0.1
@@ -150,7 +150,8 @@ version = v0.0.1
 error 100 NotFound "not found" HTTP 404
 
 service Users
-  - Get(userId: uint64) => (name: string) errors NotFound
+  - Get(userId: uint64) => (name: string)
+      + error NotFound
       + GET /users/{userId}
 `)
 	require.NoError(t, err)
@@ -299,12 +300,12 @@ service Users
 			wantErr: "route must directly follow its method",
 		},
 		{
-			name: "annotation above a success route line",
+			name: "annotation above a success option line",
 			input: routeRIDLHeader + `
 service Users
   - Get(GetUserRequest) => (GetUserResponse)
       @auth:x
-      + @success 201
+      + success 201
       + GET /users/{userId}
 `,
 			wantErr: "annotation '@auth' must be placed directly above a '- Method' line",
@@ -362,17 +363,17 @@ func TestRIDLRouteSuccessStatus(t *testing.T) {
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
       + POST /users
-      + @success 201
+      + success 201
   - Commit(GetUserRequest) => (GetUserResponse)
       + POST /commits
-      + @success 202
-      + POST /Users/Commit     # the alias shares the method's @success
+      + success 202
+      + POST /Users/Commit     # the alias shares the method's success set
   - Upsert(User) => (User)
       + PUT /users
-      + @success 200|201
+      + success 200|201
   - Delete()
       + DELETE /users
-      + @success 200|204
+      + success 200|204
 `)
 	require.NoError(t, err)
 
@@ -380,7 +381,7 @@ service Users
 	require.Len(t, create.Routes, 1)
 	assert.Equal(t, []int{201}, create.Routes[0].Success)
 
-	// The method's @success set fills every route of the method.
+	// The method's '+ success' set fills every route of the method.
 	commit := s.Services[0].Methods[1]
 	require.Len(t, commit.Routes, 2)
 	assert.Equal(t, []int{202}, commit.Routes[0].Success)
@@ -408,18 +409,18 @@ func TestRIDLRouteSuccessStatusErrors(t *testing.T) {
 			input: routeRIDLHeader + `
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
-      + @success 201
+      + success 201
 `,
-			wantErr: "@success requires at least one route on method 'Create'",
+			wantErr: "'+ success' requires at least one route on method 'Create'",
 		},
 		{
 			name: "before any method",
 			input: routeRIDLHeader + `
 service Users
-  + @success 201
+  + success 201
   - Create(CreateUserRequest) => (CreateUserResponse)
 `,
-			wantErr: "@success must be declared under a service method",
+			wantErr: "'+ success' must be declared under a service method",
 		},
 		{
 			name: "non-2xx code",
@@ -427,9 +428,9 @@ service Users
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
       + POST /users
-      + @success 404
+      + success 404
 `,
-			wantErr: "invalid @success status code '404' of method 'Create': must be a 2xx code (200-299)",
+			wantErr: "invalid '+ success' status code '404' of method 'Create': must be a 2xx code (200-299)",
 		},
 		{
 			name: "1xx code",
@@ -437,7 +438,7 @@ service Users
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
       + POST /users
-      + @success 100
+      + success 100
 `,
 			wantErr: "must be a 2xx code (200-299)",
 		},
@@ -447,9 +448,9 @@ service Users
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
       + POST /users
-      + @success 204
+      + success 204
 `,
-			wantErr: "invalid @success status code '204' of route 'POST /users' of method 'Users.Create': 204/205 require an empty response (no outputs or an empty struct)",
+			wantErr: "invalid '+ success' status code '204' of route 'POST /users' of method 'Users.Create': 204/205 require an empty response (no outputs or an empty struct)",
 		},
 		{
 			name: "205 on a multi-output response",
@@ -457,9 +458,9 @@ service Users
 service Users
   - Create() => (a: string, b: string)
       + POST /users
-      + @success 205
+      + success 205
 `,
-			wantErr: "invalid @success status code '205' of method 'Create': 204/205 require an empty response (no outputs or an empty struct)",
+			wantErr: "invalid '+ success' status code '205' of route 'POST /users' of method 'Users.Create': 204/205 require an empty response (no outputs or an empty struct)",
 		},
 		{
 			name: "duplicate code in the set",
@@ -467,9 +468,9 @@ service Users
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
       + POST /users
-      + @success 200|200
+      + success 200|200
 `,
-			wantErr: "duplicate @success status code '200' of method 'Create'",
+			wantErr: "duplicate '+ success' status code '200' of method 'Create'",
 		},
 		{
 			name: "non-2xx code in the set",
@@ -477,9 +478,9 @@ service Users
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
       + POST /users
-      + @success 200|404
+      + success 200|404
 `,
-			wantErr: "invalid @success status code '404' of method 'Create': must be a 2xx code (200-299)",
+			wantErr: "invalid '+ success' status code '404' of method 'Create': must be a 2xx code (200-299)",
 		},
 		{
 			name: "non-numeric code in the set",
@@ -487,9 +488,9 @@ service Users
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
       + POST /users
-      + @success 200|abc
+      + success 200|abc
 `,
-			wantErr: "expecting '@success' status code to be a number but got '200|abc'",
+			wantErr: "expecting '+ success' status code to be a number but got '200|abc'",
 		},
 		{
 			name: "non-numeric code",
@@ -497,9 +498,9 @@ service Users
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
       + POST /users
-      + @success created
+      + success created
 `,
-			wantErr: "expecting '@success' status code to be a number but got 'created'",
+			wantErr: "expecting '+ success' status code to be a number but got 'created'",
 		},
 		{
 			name: "missing code",
@@ -507,9 +508,9 @@ service Users
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
       + POST /users
-      + @success
+      + success
 `,
-			wantErr: "expecting '@success' status code to be a number",
+			wantErr: "expecting '+ success' status code to be a number",
 		},
 		{
 			name: "unknown at-meta",
@@ -522,15 +523,25 @@ service Users
 			wantErr: "expecting '=' before the annotation value, e.g. '+ @created = 201'",
 		},
 		{
-			name: "duplicate @success on one method",
+			name: "old @success syntax",
 			input: routeRIDLHeader + `
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
       + POST /users
       + @success 201
-      + @success 202
 `,
-			wantErr: "method 'Create' already declares @success",
+			wantErr: "'+ @success' is no longer supported: write '+ success <codes>'",
+		},
+		{
+			name: "two success option lines on one method",
+			input: routeRIDLHeader + `
+service Users
+  - Create(CreateUserRequest) => (CreateUserResponse)
+      + POST /users
+      + success 201
+      + success 202
+`,
+			wantErr: "method 'Create' already declares '+ success'",
 		},
 	}
 
@@ -547,10 +558,11 @@ func TestRIDLRouteSuccessWithoutRouteErrorHasPosition(t *testing.T) {
 	_, err := parseRouteRIDL(t, routeRIDLHeader+`
 service Users
   - Create(CreateUserRequest) => (CreateUserResponse)
-      + @success 201
+      + success 201
 `)
 	require.Error(t, err)
-	assert.Regexp(t, `^\d+:\d+: @success requires at least one route on method 'Create'`, err.Error())
+	assert.Regexp(t, `^\d+:\d+: `, err.Error())
+	assert.Contains(t, err.Error(), "'+ success' requires at least one route on method 'Create'")
 }
 
 func TestRIDLRoutePathSyntaxErrorHasPosition(t *testing.T) {
