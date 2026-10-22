@@ -60,7 +60,7 @@ namespace Interop.Test
 
         internal sealed class WebrpcJsonConverter : global::System.Text.Json.Serialization.JsonConverter<Status>
         {
-            public override Status Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options) => new Status(WebrpcJson.ReadEnum(ref reader, "Status")!);
+            public override Status Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options) => new Status(global::Interop.Test.WebrpcJson.ReadEnum(ref reader, "Status")!);
             public override void Write(global::System.Text.Json.Utf8JsonWriter writer, Status value, global::System.Text.Json.JsonSerializerOptions options) => writer.WriteStringValue(value.Value);
             public override Status ReadAsPropertyName(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options) => new Status(reader.GetString()!);
             public override void WriteAsPropertyName(global::System.Text.Json.Utf8JsonWriter writer, Status value, global::System.Text.Json.JsonSerializerOptions options) => writer.WritePropertyName(value.Value);
@@ -101,7 +101,7 @@ namespace Interop.Test
 
         internal sealed class WebrpcJsonConverter : global::System.Text.Json.Serialization.JsonConverter<Access>
         {
-            public override Access Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options) => new Access(WebrpcJson.ReadEnum(ref reader, "Access")!);
+            public override Access Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options) => new Access(global::Interop.Test.WebrpcJson.ReadEnum(ref reader, "Access")!);
             public override void Write(global::System.Text.Json.Utf8JsonWriter writer, Access value, global::System.Text.Json.JsonSerializerOptions options) => writer.WriteStringValue(value.Value);
             public override Access ReadAsPropertyName(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options) => new Access(reader.GetString()!);
             public override void WriteAsPropertyName(global::System.Text.Json.Utf8JsonWriter writer, Access value, global::System.Text.Json.JsonSerializerOptions options) => writer.WritePropertyName(value.Value);
@@ -328,27 +328,27 @@ namespace Interop.Test
         public async global::System.Threading.Tasks.Task GetEmptyAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetEmpty", WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetEmpty", global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                await WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await global::Interop.Test.WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
             }
         }
 
         public async global::System.Threading.Tasks.Task GetErrorAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetError", WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetError", global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                await WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await global::Interop.Test.WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
             }
         }
 
         public async global::System.Threading.Tasks.Task<global::Interop.Test.Simple> GetOneAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetOne", WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetOne", global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.CallAsync<GetOneResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<GetOneResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.One;
             }
         }
@@ -363,19 +363,19 @@ namespace Interop.Test
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["one"] = one;
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/SendOne", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.Test.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/SendOne", global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                await WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await global::Interop.Test.WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
             }
         }
 
         public async global::System.Threading.Tasks.Task<global::Interop.Test.TestApiClient.GetMultiResponse> GetMultiAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetMulti", WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetMulti", global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                return await WebrpcHttp.CallAsync<GetMultiResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.Test.WebrpcHttp.CallAsync<GetMultiResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -397,19 +397,19 @@ namespace Interop.Test
             __args["one"] = one;
             __args["two"] = two;
             __args["three"] = three;
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/SendMulti", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.Test.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/SendMulti", global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                await WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await global::Interop.Test.WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
             }
         }
 
         public async global::System.Threading.Tasks.Task<global::Interop.Test.Complex> GetComplexAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetComplex", WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetComplex", global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.CallAsync<GetComplexResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<GetComplexResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Complex;
             }
         }
@@ -424,19 +424,19 @@ namespace Interop.Test
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["complex"] = complex;
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/SendComplex", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.Test.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/SendComplex", global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                await WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await global::Interop.Test.WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
             }
         }
 
         public async global::System.Threading.Tasks.Task<global::System.Collections.Generic.List<global::Interop.Test.Status>> GetEnumListAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetEnumList", WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetEnumList", global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.CallAsync<GetEnumListResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<GetEnumListResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.List;
             }
         }
@@ -450,9 +450,9 @@ namespace Interop.Test
         public async global::System.Threading.Tasks.Task<global::System.Collections.Generic.Dictionary<global::Interop.Test.Access, ulong>> GetEnumMapAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetEnumMap", WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetEnumMap", global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.CallAsync<GetEnumMapResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<GetEnumMapResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Map;
             }
         }
@@ -470,10 +470,10 @@ namespace Interop.Test
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["code"] = code;
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetSchemaError", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.Test.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/GetSchemaError", global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                await WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await global::Interop.Test.WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -485,12 +485,12 @@ namespace Interop.Test
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["name"] = name;
             __args["data"] = data;
-            var __json = WebrpcJson.Serialize(__args);
-            var __content = new WebrpcMultipartContent(__json);
+            var __json = global::Interop.Test.WebrpcJson.Serialize(__args);
+            var __content = new global::Interop.Test.WebrpcMultipartContent(__json);
             __content.AddFile("data", data);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/UploadFile", __content))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/UploadFile", __content))
             {
-                var __response = await WebrpcHttp.CallAsync<UploadFileResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<UploadFileResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Size;
             }
         }
@@ -505,12 +505,12 @@ namespace Interop.Test
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["files"] = files;
-            var __json = WebrpcJson.Serialize(__args);
-            var __content = new WebrpcMultipartContent(__json);
+            var __json = global::Interop.Test.WebrpcJson.Serialize(__args);
+            var __content = new global::Interop.Test.WebrpcMultipartContent(__json);
             __content.AddFiles("files", files);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/UploadFiles", __content))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/UploadFiles", __content))
             {
-                var __response = await WebrpcHttp.CallAsync<UploadFilesResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<UploadFilesResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Count;
             }
         }
@@ -525,11 +525,11 @@ namespace Interop.Test
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["name"] = name;
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/DownloadFile", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.Test.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/DownloadFile", global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
-                return await WebrpcHttp.ReadFileAsync(__response).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.Test.WebrpcHttp.ReadFileAsync(__response).ConfigureAwait(false);
             }
         }
 
@@ -537,13 +537,13 @@ namespace Interop.Test
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["data"] = data;
-            var __json = WebrpcJson.Serialize(__args);
-            var __content = new WebrpcMultipartContent(__json);
+            var __json = global::Interop.Test.WebrpcJson.Serialize(__args);
+            var __content = new global::Interop.Test.WebrpcMultipartContent(__json);
             __content.AddFile("data", data);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/EchoFile", __content))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApi/EchoFile", __content))
             {
-                var __response = await WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
-                return await WebrpcHttp.ReadFileAsync(__response).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.Test.WebrpcHttp.ReadFileAsync(__response).ConfigureAwait(false);
             }
         }
     }
@@ -612,34 +612,34 @@ namespace Interop.Test
 
         public async global::System.Threading.Tasks.Task<global::Interop.Test.GetItemResponse> GetItemAsync(global::Interop.Test.GetItemRequest request, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __url = new WebrpcRestUrl();
+            var __url = new global::Interop.Test.WebrpcRestUrl();
             __url.SetPath("id", request.Id);
             __url.AddQuery("details", request.Details);
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items/{id}"), null))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items/{id}"), null))
             {
-                return await WebrpcHttp.CallAsync<global::Interop.Test.GetItemResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.Test.WebrpcHttp.CallAsync<global::Interop.Test.GetItemResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
         public async global::System.Threading.Tasks.Task<global::Interop.Test.ListItemsResponse> ListItemsAsync(global::Interop.Test.ListItemsRequest request, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __url = new WebrpcRestUrl();
+            var __url = new global::Interop.Test.WebrpcRestUrl();
             __url.AddQuery("q", request.Q);
             __url.AddQueryList("tags", request.Tags);
             __url.AddQuery("limit", request.Limit);
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items"), null))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items"), null))
             {
-                return await WebrpcHttp.CallAsync<global::Interop.Test.ListItemsResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.Test.WebrpcHttp.CallAsync<global::Interop.Test.ListItemsResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
         public async global::System.Threading.Tasks.Task<global::Interop.Test.CreateItemResponse> CreateItemAsync(global::Interop.Test.CreateItemRequest request, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __json = WebrpcJson.Serialize(request);
-            var __url = new WebrpcRestUrl();
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("POST"), __url.Build(_baseUrl, "/rpc/items"), WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.Test.WebrpcJson.Serialize(request);
+            var __url = new global::Interop.Test.WebrpcRestUrl();
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("POST"), __url.Build(_baseUrl, "/rpc/items"), global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                return await WebrpcHttp.CallAsync<global::Interop.Test.CreateItemResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await global::Interop.Test.WebrpcHttp.CallAsync<global::Interop.Test.CreateItemResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -648,12 +648,12 @@ namespace Interop.Test
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["id"] = id;
             __args["name"] = name;
-            var __json = WebrpcJson.Serialize(__args);
-            var __url = new WebrpcRestUrl();
+            var __json = global::Interop.Test.WebrpcJson.Serialize(__args);
+            var __url = new global::Interop.Test.WebrpcRestUrl();
             __url.SetPath("id", id);
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("PUT"), __url.Build(_baseUrl, "/rpc/items/{id}"), WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("PUT"), __url.Build(_baseUrl, "/rpc/items/{id}"), global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.CallAsync<UpdateItemResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<UpdateItemResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Item;
             }
         }
@@ -672,12 +672,12 @@ namespace Interop.Test
             {
                 __args["name"] = name;
             }
-            var __json = WebrpcJson.Serialize(__args);
-            var __url = new WebrpcRestUrl();
+            var __json = global::Interop.Test.WebrpcJson.Serialize(__args);
+            var __url = new global::Interop.Test.WebrpcRestUrl();
             __url.SetPath("id", id);
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("PATCH"), __url.Build(_baseUrl, "/rpc/items/{id}"), WebrpcHttp.JsonContent(__json)))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("PATCH"), __url.Build(_baseUrl, "/rpc/items/{id}"), global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.CallAsync<PatchItemResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<PatchItemResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Item;
             }
         }
@@ -692,11 +692,11 @@ namespace Interop.Test
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["item"] = item;
-            var __json = WebrpcJson.Serialize(__args);
-            var __url = new WebrpcRestUrl();
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("PUT"), __url.Build(_baseUrl, "/rpc/items"), WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.Test.WebrpcJson.Serialize(__args);
+            var __url = new global::Interop.Test.WebrpcRestUrl();
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("PUT"), __url.Build(_baseUrl, "/rpc/items"), global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.CallAsync<UpsertItemResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<UpsertItemResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Item;
             }
         }
@@ -709,21 +709,21 @@ namespace Interop.Test
 
         public async global::System.Threading.Tasks.Task DeleteItemAsync(ulong id, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __url = new WebrpcRestUrl();
+            var __url = new global::Interop.Test.WebrpcRestUrl();
             __url.SetPath("id", id);
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("DELETE"), __url.Build(_baseUrl, "/rpc/items/{id}"), null))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("DELETE"), __url.Build(_baseUrl, "/rpc/items/{id}"), null))
             {
-                await WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await global::Interop.Test.WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
             }
         }
 
         public async global::System.Threading.Tasks.Task PurgeItemsAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            var __url = new WebrpcRestUrl();
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("POST"), __url.Build(_baseUrl, "/rpc/items/purge"), WebrpcHttp.JsonContent(__json)))
+            var __url = new global::Interop.Test.WebrpcRestUrl();
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("POST"), __url.Build(_baseUrl, "/rpc/items/purge"), global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                await WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await global::Interop.Test.WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -731,11 +731,11 @@ namespace Interop.Test
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["q"] = q;
-            var __json = WebrpcJson.Serialize(__args);
-            var __url = new WebrpcRestUrl();
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("QUERY"), __url.Build(_baseUrl, "/rpc/items/search"), WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.Test.WebrpcJson.Serialize(__args);
+            var __url = new global::Interop.Test.WebrpcRestUrl();
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("QUERY"), __url.Build(_baseUrl, "/rpc/items/search"), global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.CallAsync<QueryItemsResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<QueryItemsResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Items;
             }
         }
@@ -748,7 +748,7 @@ namespace Interop.Test
 
         public async global::System.Threading.Tasks.Task<string> EchoParamsAsync(string str, long num, bool flag, double fl, global::System.DateTimeOffset ts, global::Interop.Test.Status status, global::System.Collections.Generic.List<string> tags, string? opt, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __url = new WebrpcRestUrl();
+            var __url = new global::Interop.Test.WebrpcRestUrl();
             __url.AddQuery("str", str);
             __url.AddQuery("num", num);
             __url.AddQuery("flag", flag);
@@ -757,9 +757,9 @@ namespace Interop.Test
             __url.AddQuery("status", status);
             __url.AddQueryList("tags", tags);
             __url.AddQuery("opt", opt);
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items/echo/params"), null))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items/echo/params"), null))
             {
-                var __response = await WebrpcHttp.CallAsync<EchoParamsResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<EchoParamsResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Echo;
             }
         }
@@ -772,12 +772,12 @@ namespace Interop.Test
 
         public async global::System.Threading.Tasks.Task<string> GetChildAsync(ulong id, ulong childId, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __url = new WebrpcRestUrl();
+            var __url = new global::Interop.Test.WebrpcRestUrl();
             __url.SetPath("id", id);
             __url.SetPath("childId", childId);
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items/{id}/children/{childId}"), null))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items/{id}/children/{childId}"), null))
             {
-                var __response = await WebrpcHttp.CallAsync<GetChildResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<GetChildResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Path;
             }
         }
@@ -790,11 +790,11 @@ namespace Interop.Test
 
         public async global::System.Threading.Tasks.Task<string> GetItemStatusAsync(ulong id, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __url = new WebrpcRestUrl();
+            var __url = new global::Interop.Test.WebrpcRestUrl();
             __url.SetPath("id", id);
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items/{id}/status/latest"), null))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items/{id}/status/latest"), null))
             {
-                var __response = await WebrpcHttp.CallAsync<GetItemStatusResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<GetItemStatusResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Status;
             }
         }
@@ -808,20 +808,20 @@ namespace Interop.Test
         public async global::System.Threading.Tasks.Task ResetItemsAsync(global::System.Threading.CancellationToken cancellationToken = default)
         {
             var __json = "{}";
-            var __url = new WebrpcRestUrl();
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("POST"), __url.Build(_baseUrl, "/rpc/items/reset"), WebrpcHttp.JsonContent(__json)))
+            var __url = new global::Interop.Test.WebrpcRestUrl();
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("POST"), __url.Build(_baseUrl, "/rpc/items/reset"), global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                await WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await global::Interop.Test.WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
             }
         }
 
         public async global::System.Threading.Tasks.Task<global::Interop.Test.Item> LookupItemAsync(ulong id, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __url = new WebrpcRestUrl();
+            var __url = new global::Interop.Test.WebrpcRestUrl();
             __url.SetPath("id", id);
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items/lookup/{id}"), null))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items/lookup/{id}"), null))
             {
-                var __response = await WebrpcHttp.CallAsync<LookupItemResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<LookupItemResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Item;
             }
         }
@@ -834,11 +834,11 @@ namespace Interop.Test
 
         public async global::System.Threading.Tasks.Task<global::System.Collections.Generic.List<global::Interop.Test.Item>> FindItemsAsync(string q, global::System.Threading.CancellationToken cancellationToken = default)
         {
-            var __url = new WebrpcRestUrl();
+            var __url = new global::Interop.Test.WebrpcRestUrl();
             __url.AddQuery("q", q);
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items/find"), null))
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod("GET"), __url.Build(_baseUrl, "/rpc/items/find"), null))
             {
-                var __response = await WebrpcHttp.CallAsync<FindItemsResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<FindItemsResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Items;
             }
         }
@@ -853,10 +853,10 @@ namespace Interop.Test
         {
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             __args["id"] = id;
-            var __json = WebrpcJson.Serialize(__args);
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApiRest/RpcMethod", WebrpcHttp.JsonContent(__json)))
+            var __json = global::Interop.Test.WebrpcJson.Serialize(__args);
+            using (var __request = global::Interop.Test.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + "/rpc/TestApiRest/RpcMethod", global::Interop.Test.WebrpcHttp.JsonContent(__json)))
             {
-                var __response = await WebrpcHttp.CallAsync<RpcMethodResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                var __response = await global::Interop.Test.WebrpcHttp.CallAsync<RpcMethodResponse>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
                 return __response.Item;
             }
         }

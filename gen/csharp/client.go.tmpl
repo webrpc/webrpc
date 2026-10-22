@@ -45,7 +45,7 @@
             {{- /* Request body. */ -}}
             {{- if and (MethodHasRoute $method) (not (RouteHasBody $route)) }}
             {{- else if $method.Succinct }}
-            var __json = WebrpcJson.Serialize(request);
+            var __json = {{ $ctx.Ns }}.WebrpcJson.Serialize(request);
             {{- else if $method.Inputs }}
             var __args = new global::System.Collections.Generic.Dictionary<string, object?>();
             {{- range $_, $input := $method.Inputs }}
@@ -58,7 +58,7 @@
             __args[{{ template "str" $input.Name }}] = {{ template "argName" dict "Name" $input.Name "Method" $method "Ctx" $ctx }};
             {{- end }}
             {{- end }}
-            var __json = WebrpcJson.Serialize(__args);
+            var __json = {{ $ctx.Ns }}.WebrpcJson.Serialize(__args);
             {{- else }}
             var __json = "{}";
             {{- end }}
@@ -66,44 +66,44 @@
             {{- /* Request URL. */ -}}
             {{- if MethodHasRoute $method }}
             {{- $routePath := RoutePath $route }}
-            var __url = new WebrpcRestUrl();
+            var __url = new {{ $ctx.Ns }}.WebrpcRestUrl();
             {{- range $_, $param := RouteParams $route }}
             {{ template "restParam" dict "Param" $param "Method" $method "RoutePath" $routePath "Ctx" $ctx }}
             {{- end }}
-            using (var __request = WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod({{ template "str" $route.Verb }}), __url.Build(_baseUrl, {{ template "str" $routePath }}), {{ if RouteHasBody $route }}WebrpcHttp.JsonContent(__json){{ else }}null{{ end }}))
+            using (var __request = {{ $ctx.Ns }}.WebrpcHttp.NewRequest(new global::System.Net.Http.HttpMethod({{ template "str" $route.Verb }}), __url.Build(_baseUrl, {{ template "str" $routePath }}), {{ if RouteHasBody $route }}{{ $ctx.Ns }}.WebrpcHttp.JsonContent(__json){{ else }}null{{ end }}))
             {{- else }}
             {{- if MethodHasFileUpload $method }}
-            var __content = new WebrpcMultipartContent(__json);
+            var __content = new {{ $ctx.Ns }}.WebrpcMultipartContent(__json);
             {{- range $_, $part := MethodFileParts $method }}
             {{ template "filePart" dict "Part" $part "Method" $method "Ctx" $ctx }}
             {{- end }}
             {{- end }}
-            using (var __request = WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + {{ template "str" (printf "%s%s/%s" $service.Schema.BasePath $service.Name $method.Name) }}, {{ if MethodHasFileUpload $method }}__content{{ else }}WebrpcHttp.JsonContent(__json){{ end }}))
+            using (var __request = {{ $ctx.Ns }}.WebrpcHttp.NewRequest(global::System.Net.Http.HttpMethod.Post, _baseUrl + {{ template "str" (printf "%s%s/%s" $service.Schema.BasePath $service.Name $method.Name) }}, {{ if MethodHasFileUpload $method }}__content{{ else }}{{ $ctx.Ns }}.WebrpcHttp.JsonContent(__json){{ end }}))
             {{- end }}
             {
             {{- /* Response. */ -}}
             {{- if $method.StreamOutput }}
-                var __response = await WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
-                await foreach (var __message in global::System.Threading.Tasks.TaskAsyncEnumerableExtensions.ConfigureAwait(WebrpcHttp.ReadStreamAsync<{{ if $method.Succinct }}{{ template "type" dict "Type" (index $method.Outputs 0).Type "Ctx" $ctx }}{{ else }}{{$method.Name}}Response{{ end }}>(__response, cancellationToken), false))
+                var __response = await {{ $ctx.Ns }}.WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await foreach (var __message in global::System.Threading.Tasks.TaskAsyncEnumerableExtensions.ConfigureAwait({{ $ctx.Ns }}.WebrpcHttp.ReadStreamAsync<{{ if $method.Succinct }}{{ template "type" dict "Type" (index $method.Outputs 0).Type "Ctx" $ctx }}{{ else }}{{$method.Name}}Response{{ end }}>(__response, cancellationToken), false))
                 {
                     {{- if and (not $method.Succinct) (eq (len $method.Outputs) 1) }}
-                    yield return __message.{{ template "propName" dict "Name" (index $method.Outputs 0).Name "Owner" (printf "%sResponse" $method.Name) "Ctx" $ctx }};
+                    yield return __message.{{ template "member" dict "Key" (printf "%s.%sResponse" $service.Name $method.Name) "Name" (index $method.Outputs 0).Name "Ctx" $ctx }};
                     {{- else }}
                     yield return __message;
                     {{- end }}
                 }
             {{- else if MethodHasFileDownload $method }}
-                var __response = await WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
-                return await WebrpcHttp.ReadFileAsync(__response).ConfigureAwait(false);
+                var __response = await {{ $ctx.Ns }}.WebrpcHttp.OpenAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                return await {{ $ctx.Ns }}.WebrpcHttp.ReadFileAsync(__response).ConfigureAwait(false);
             {{- else if $method.Succinct }}
-                return await WebrpcHttp.CallAsync<{{ template "type" dict "Type" (index $method.Outputs 0).Type "Ctx" $ctx }}>(_httpClient, __request, {{ if MethodHasEmptyResponse $method }}true{{ else }}false{{ end }}, cancellationToken).ConfigureAwait(false);
+                return await {{ $ctx.Ns }}.WebrpcHttp.CallAsync<{{ template "type" dict "Type" (index $method.Outputs 0).Type "Ctx" $ctx }}>(_httpClient, __request, {{ if MethodHasEmptyResponse $method }}true{{ else }}false{{ end }}, cancellationToken).ConfigureAwait(false);
             {{- else if eq (len $method.Outputs) 0 }}
-                await WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
+                await {{ $ctx.Ns }}.WebrpcHttp.CallAsync(_httpClient, __request, cancellationToken).ConfigureAwait(false);
             {{- else if eq (len $method.Outputs) 1 }}
-                var __response = await WebrpcHttp.CallAsync<{{$method.Name}}Response>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
-                return __response.{{ template "propName" dict "Name" (index $method.Outputs 0).Name "Owner" (printf "%sResponse" $method.Name) "Ctx" $ctx }};
+                var __response = await {{ $ctx.Ns }}.WebrpcHttp.CallAsync<{{$method.Name}}Response>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return __response.{{ template "member" dict "Key" (printf "%s.%sResponse" $service.Name $method.Name) "Name" (index $method.Outputs 0).Name "Ctx" $ctx }};
             {{- else }}
-                return await WebrpcHttp.CallAsync<{{$method.Name}}Response>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
+                return await {{ $ctx.Ns }}.WebrpcHttp.CallAsync<{{$method.Name}}Response>(_httpClient, __request, false, cancellationToken).ConfigureAwait(false);
             {{- end }}
             }
         }
@@ -115,7 +115,7 @@
             {{- if $i }}
 {{ end }}
             {{ template "jsonProperty" dict "Name" $output.Name "Optional" $output.Optional "Ctx" $ctx }}
-            public {{ template "fieldType" dict "Type" $output.Type "Optional" $output.Optional "Ctx" $ctx }} {{ template "propName" dict "Name" $output.Name "Owner" (printf "%sResponse" $method.Name) "Ctx" $ctx }} { get; set; }{{ template "initializer" dict "Type" $output.Type "Optional" $output.Optional "Ctx" $ctx }}
+            public {{ template "fieldType" dict "Type" $output.Type "Optional" $output.Optional "Ctx" $ctx }} {{ template "member" dict "Key" (printf "%s.%sResponse" $service.Name $method.Name) "Name" $output.Name "Ctx" $ctx }} { get; set; }{{ template "initializer" dict "Type" $output.Type "Optional" $output.Optional "Ctx" $ctx }}
             {{- end }}
         }
         {{- end }}
@@ -181,7 +181,7 @@ __url.
     {{- /* The param name is the field's wire name, as in schema.fieldJSONName. */ -}}
     {{- range $_, $meta := $field.Meta }}{{ if exists $meta "json" }}{{ $jsonName = printf "%v" (get $meta "json") }}{{ end }}{{ if exists $meta "go.tag.json" }}{{ $jsonName = printf "%v" (get $meta "go.tag.json") }}{{ end }}{{ end -}}
     {{- $jsonName = first (split "," $jsonName) -}}
-    {{- if eq $jsonName $param.Name }}request.{{ template "propName" dict "Name" $field.Name "Owner" (printf "%v" $input.Type) "Ctx" $ctx }}{{ end -}}
+    {{- if eq $jsonName $param.Name }}request.{{ template "member" dict "Key" (printf "%v" $input.Type) "Name" $field.Name "Ctx" $ctx }}{{ end -}}
   {{- end -}}
 {{- else -}}
 {{ template "argName" dict "Name" $param.Name "Method" $method "Ctx" $ctx }}
@@ -204,7 +204,7 @@ __content.Add{{ if $part.Repeated }}Files{{ else }}File{{ end }}({{ template "st
         {{- /* The part name is the field's wire name, as in schema.fieldJSONName. */ -}}
         {{- range $_, $meta := $field.Meta }}{{ if exists $meta "json" }}{{ $jsonName = printf "%v" (get $meta "json") }}{{ end }}{{ if exists $meta "go.tag.json" }}{{ $jsonName = printf "%v" (get $meta "go.tag.json") }}{{ end }}{{ end -}}
         {{- $jsonName = first (split "," $jsonName) -}}
-        {{- if eq $jsonName $part.PartName }}?.{{ template "propName" dict "Name" $field.Name "Owner" (printf "%v" $input.Type) "Ctx" $ctx }}{{ end -}}
+        {{- if eq $jsonName $part.PartName }}?.{{ template "member" dict "Key" (printf "%v" $input.Type) "Name" $field.Name "Ctx" $ctx }}{{ end -}}
       {{- end -}}
     {{- end -}}
   {{- end -}}
