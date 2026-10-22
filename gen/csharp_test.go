@@ -207,6 +207,11 @@ enum Accessor: string
   - get_Value
   - op_Implicit
 
+# On an integer enum value, + json = - is a wire value, not an omission.
+enum Status: uint32
+  - Unknown
+    + json = -
+
 # The last + json wins.
 struct Renamed
   - id: string
@@ -232,6 +237,7 @@ service Items
 		`public static readonly Accessor get_Value_ = new Accessor("get_Value");`,
 		`public static readonly Accessor op_Implicit_ = new Accessor("op_Implicit");`,
 		"JsonPropertyName(\"ident\")]\n        public string Id { get; set; }",
+		`public static readonly Status Unknown = new Status("-");`,
 	} {
 		if !strings.Contains(out.Code, want) {
 			t.Errorf("expected generated code to contain %q", want)

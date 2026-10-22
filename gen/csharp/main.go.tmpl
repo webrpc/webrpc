@@ -188,11 +188,12 @@
     {{- end -}}
     {{- $items := dict -}}
     {{- range $_, $field := $type.Fields -}}
-      {{- /* Fields left out with + json = - (the last + json wins, as in "types")
-             have no member to name. */ -}}
+      {{- /* Struct fields left out with + json = - (the last + json wins, as in
+             "types") have no member to name. On an integer enum value, + json
+             is its wire value, and "-" is a valid one. */ -}}
       {{- $jsonName := $field.Name -}}
       {{- range $_, $meta := $field.Meta }}{{ if exists $meta "json" }}{{ $jsonName = printf "%v" (get $meta "json") }}{{ end }}{{ end -}}
-      {{- if ne $jsonName "-" -}}
+      {{- if or (isEnumType $type) (ne $jsonName "-") -}}
         {{- set $items $field.Name (ternary (isStructType $type) (firstLetterToUpper $field.Name) $field.Name) -}}
       {{- end -}}
     {{- end -}}
