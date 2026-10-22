@@ -133,6 +133,31 @@ service Svc
 	}
 }
 
+// Arguments named like the generated parameters, locals and fields are renamed.
+func TestCSharpArgumentNames(t *testing.T) {
+	out, err := Generate(parseCSharpTestSchema(t, `
+webrpc = v1
+
+name = args
+version = v1.0.0
+basepath = /rpc
+
+service Svc
+  - Do(__json: string, _baseUrl: string, cancellationToken: string, cancellationToken_: string) => (ok: bool)
+`), "csharp", &Config{TemplateOptions: map[string]interface{}{"client": ""}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := "DoAsync(string __json_, string _baseUrl_, string cancellationToken__, string cancellationToken_, global::System.Threading.CancellationToken cancellationToken = default)"
+	if !strings.Contains(out.Code, want) {
+		t.Errorf("expected generated code to contain %q", want)
+	}
+	if !strings.Contains(out.Code, `__args["cancellationToken"] = cancellationToken__;`) {
+		t.Errorf("expected the renamed argument to keep its JSON name")
+	}
+}
+
 func TestCSharpTypesOnly(t *testing.T) {
 	out, err := Generate(parseCSharpTestSchema(t, csharpTestSchema), "csharp", &Config{})
 	if err != nil {
@@ -177,6 +202,17 @@ enum Flag: string
   - Value
   - Value_
 
+# Names the compiler reserves for the generated accessors and operators.
+enum Accessor: string
+  - get_Value
+  - op_Implicit
+
+# The last + json wins.
+struct Renamed
+  - id: string
+    + json = -
+    + json = ident
+
 service Items
   - Get() => (toString: string, toString_: string)
 `)
@@ -193,6 +229,9 @@ service Items
 		`public static readonly Flag Value_ = new Flag("Value_");`,
 		`public static readonly Flag Value__ = new Flag("Value");`,
 		"public string Equals_ { get; set; }",
+		`public static readonly Accessor get_Value_ = new Accessor("get_Value");`,
+		`public static readonly Accessor op_Implicit_ = new Accessor("op_Implicit");`,
+		"JsonPropertyName(\"ident\")]\n        public string Id { get; set; }",
 	} {
 		if !strings.Contains(out.Code, want) {
 			t.Errorf("expected generated code to contain %q", want)
@@ -268,6 +307,30 @@ func TestCSharpErrors(t *testing.T) {
 			err:    `"WebrpcJson", a schema type, clashes with a generated runtime helper; rename it in the schema`,
 		},
 		{
+			name:   "duplicate arguments",
+			schema: strings.Replace(csharpTestSchema, "  - GetItem(id: uint64) => (item: Item)", "  - GetItem(id: uint64, id: string) => (item: Item)", 1),
+			opts:   map[string]interface{}{"client": ""},
+			err:    `method Items.GetItem has two arguments named "id"`,
+		},
+		{
+			name:   "duplicate outputs",
+			schema: strings.Replace(csharpTestSchema, "  - GetItem(id: uint64) => (item: Item)", "  - GetItem(id: uint64) => (item: Item, item: Item)", 1),
+			opts:   map[string]interface{}{"client": ""},
+			err:    `method Items.GetItem has two outputs named "item"`,
+		},
+		{
+			name: "ignored route field",
+			schema: strings.Replace(csharpTestSchema, "  - GetItem(id: uint64) => (item: Item)", "  - Find(FindRequest) => (FindResponse)\n      + GET /items/{id}", 1) +
+				"\nstruct FindRequest\n  - ident: string\n    + json = -\n    + go.tag.json = id\n\nstruct FindResponse\n  - ok: bool\n",
+			opts: map[string]interface{}{"client": ""},
+			err:  "field FindRequest.ident is left out with + json = -, but a REST route or file upload of a method uses it",
+		},
+		{
+			name:   "no unique name",
+			schema: csharpTestSchema + "\nenum Kind: string\n  - Value\n" + csharpUnderscoreChain("  - Value", 33),
+			err:    `can't find a unique C# name for "Value" in type Kind`,
+		},
+		{
 			name:   "stream input",
 			schema: strings.Replace(csharpTestSchema, "  - GetItem(id: uint64) => (item: Item)", "  - stream Send(id: uint64)", 1),
 			opts:   map[string]interface{}{"client": ""},
@@ -299,4 +362,13 @@ func TestCSharpErrors(t *testing.T) {
 			}
 		})
 	}
+}
+
+// csharpUnderscoreChain renders the RIDL lines prefix_, prefix__, ... up to n underscores.
+func csharpUnderscoreChain(prefix string, n int) string {
+	var b strings.Builder
+	for i := 1; i <= n; i++ {
+		b.WriteString(prefix + strings.Repeat("_", i) + "\n")
+	}
+	return b.String()
 }

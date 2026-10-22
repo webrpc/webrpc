@@ -6,7 +6,12 @@
 {{- /* member renders the C# name of a struct field, enum value or response
        output, allocated in main ($members) under the key of its type. */ -}}
 {{- define "member" -}}
-{{ template "ident" dict "Name" (get (get .Ctx.Members .Key) .Name) "Ctx" .Ctx }}
+{{- $names := get .Ctx.Members .Key -}}
+{{- if not (exists $names .Name) -}}
+  {{- stderrPrintf "%s generator error: field %s.%s is left out with + json = -, but a REST route or file upload of a method uses it\n" .Ctx.Target .Key .Name -}}
+  {{- exit 1 -}}
+{{- end -}}
+{{ template "ident" dict "Name" (get $names .Name) "Ctx" .Ctx }}
 {{- end -}}
 
 {{- /* declare registers a top-level declaration, failing on a name clash. */ -}}
@@ -21,9 +26,11 @@
 
 {{- /* allocate names the members of a type (or the arguments of a method):
        .Items maps each schema name to its natural C# name. Names in .Taken are
-       reserved. Members whose natural name is free get it first, so adding a
-       member never renames an existing one; the others get "_" suffixes until
-       unique. The result goes to .Names. */ -}}
+       reserved. Members whose natural name is free get it first, so their
+       names don't depend on member order; the others get "_" suffixes until
+       unique. A renamed member can still move if a member named like its
+       rename is added (toString is ToString_ until a toString_ field appears,
+       then ToString__). The result goes to .Names. */ -}}
 {{- define "allocate" -}}
 {{- range $key, $natural := .Items -}}
   {{- if not (exists $.Taken $natural) }}{{ set $.Taken $natural true }}{{ set $.Names $key $natural }}{{ end -}}
