@@ -20,7 +20,7 @@ class {{$service.Name}}Server:
         self._service = service
         self._routes = {
 {{- range $_, $method := $service.Methods}}
-            "{{$basepath}}{{$service.Name}}/{{$method.Name}}": self._{{snakeCase $method.Name}},
+            "{{$basepath}}{{$service.Name}}/{{$method.Name}}": self._rpc_{{snakeCase $method.Name}},
 {{- end}}
         }
 
@@ -74,7 +74,7 @@ class {{$service.Name}}Server:
         return [body]
 {{- range $_, $method := $service.Methods}}
 
-    def _{{snakeCase $method.Name}}(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_{{snakeCase $method.Name}}(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.{{template "pyMethod" $method}}(
 {{- if $method.Succinct}}
 {{- $in := index $method.Inputs 0}}

@@ -818,17 +818,17 @@ class TestApiServer:
     def __init__(self, service: "TestApi"):
         self._service = service
         self._routes = {
-            "/rpc/TestApi/GetEmpty": self._get_empty,
-            "/rpc/TestApi/GetError": self._get_error,
-            "/rpc/TestApi/GetOne": self._get_one,
-            "/rpc/TestApi/SendOne": self._send_one,
-            "/rpc/TestApi/GetMulti": self._get_multi,
-            "/rpc/TestApi/SendMulti": self._send_multi,
-            "/rpc/TestApi/GetComplex": self._get_complex,
-            "/rpc/TestApi/SendComplex": self._send_complex,
-            "/rpc/TestApi/GetEnumList": self._get_enum_list,
-            "/rpc/TestApi/GetEnumMap": self._get_enum_map,
-            "/rpc/TestApi/GetSchemaError": self._get_schema_error,
+            "/rpc/TestApi/GetEmpty": self._rpc_get_empty,
+            "/rpc/TestApi/GetError": self._rpc_get_error,
+            "/rpc/TestApi/GetOne": self._rpc_get_one,
+            "/rpc/TestApi/SendOne": self._rpc_send_one,
+            "/rpc/TestApi/GetMulti": self._rpc_get_multi,
+            "/rpc/TestApi/SendMulti": self._rpc_send_multi,
+            "/rpc/TestApi/GetComplex": self._rpc_get_complex,
+            "/rpc/TestApi/SendComplex": self._rpc_send_complex,
+            "/rpc/TestApi/GetEnumList": self._rpc_get_enum_list,
+            "/rpc/TestApi/GetEnumMap": self._rpc_get_enum_map,
+            "/rpc/TestApi/GetSchemaError": self._rpc_get_schema_error,
         }
 
     def __call__(self, environ, start_response):
@@ -880,28 +880,28 @@ class TestApiServer:
         start_response(f"{err.status} ", headers)
         return [body]
 
-    def _get_empty(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_get_empty(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.get_empty(
         )
         return {}
 
-    def _get_error(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_get_error(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.get_error(
         )
         return {}
 
-    def _get_one(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_get_one(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.get_one(
         )
         return {"one": _to_value(result)}
 
-    def _send_one(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_send_one(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.send_one(
             one=Simple.from_dict(data.get("one")),
         )
         return {}
 
-    def _get_multi(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_get_multi(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.get_multi(
         )
         out: dict[str, Any] = {
@@ -911,7 +911,7 @@ class TestApiServer:
         }
         return out
 
-    def _send_multi(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_send_multi(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.send_multi(
             one=Simple.from_dict(data.get("one")),
             two=Simple.from_dict(data.get("two")),
@@ -919,28 +919,28 @@ class TestApiServer:
         )
         return {}
 
-    def _get_complex(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_get_complex(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.get_complex(
         )
         return {"complex": _to_value(result)}
 
-    def _send_complex(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_send_complex(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.send_complex(
             complex=Complex.from_dict(data.get("complex")),
         )
         return {}
 
-    def _get_enum_list(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_get_enum_list(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.get_enum_list(
         )
         return {"list": [_to_value(_e0) for _e0 in (result or [])]}
 
-    def _get_enum_map(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_get_enum_map(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.get_enum_map(
         )
         return {"map": { _to_value(_k0): _to_value(_v0) for _k0, _v0 in (result or {}).items() }}
 
-    def _get_schema_error(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_get_schema_error(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.get_schema_error(
             code=data.get("code"),
         )

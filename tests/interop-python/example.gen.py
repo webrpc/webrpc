@@ -454,13 +454,13 @@ class ExampleServiceServer:
     def __init__(self, service: "ExampleService"):
         self._service = service
         self._routes = {
-            "/v1/ExampleService/GetItems": self._get_items,
-            "/v1/ExampleService/GetItem": self._get_item,
-            "/v1/ExampleService/CreateItem": self._create_item,
-            "/v1/ExampleService/PutOne": self._put_one,
-            "/v1/ExampleService/TakeOne": self._take_one,
-            "/v1/ExampleService/DeleteItem": self._delete_item,
-            "/v1/ExampleService/CountByTier": self._count_by_tier,
+            "/v1/ExampleService/GetItems": self._rpc_get_items,
+            "/v1/ExampleService/GetItem": self._rpc_get_item,
+            "/v1/ExampleService/CreateItem": self._rpc_create_item,
+            "/v1/ExampleService/PutOne": self._rpc_put_one,
+            "/v1/ExampleService/TakeOne": self._rpc_take_one,
+            "/v1/ExampleService/DeleteItem": self._rpc_delete_item,
+            "/v1/ExampleService/CountByTier": self._rpc_count_by_tier,
         }
 
     def __call__(self, environ, start_response):
@@ -512,42 +512,42 @@ class ExampleServiceServer:
         start_response(f"{err.status} ", headers)
         return [body]
 
-    def _get_items(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_get_items(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.get_items(
         )
         return {"items": [_to_value(_e0) for _e0 in (result or [])]}
 
-    def _get_item(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_get_item(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.get_item(
             itemId=data.get("itemId"),
         )
         return {"item": _to_value(result)}
 
-    def _create_item(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_create_item(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.create_item(
             item=CreateItemRequest.from_dict(data.get("item")),
         )
         return {}
 
-    def _put_one(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_put_one(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.put_one(
             itemId=data.get("itemId"),
         )
         return {}
 
-    def _take_one(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_take_one(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.take_one(
             itemId=data.get("itemId"),
         )
         return {}
 
-    def _delete_item(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_delete_item(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.delete_item(
             itemId=data.get("itemId"),
         )
         return {}
 
-    def _count_by_tier(self, data: dict[str, Any]) -> dict[str, Any]:
+    def _rpc_count_by_tier(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.count_by_tier(
         )
         return {"counts": { _to_value(_k0): _to_value(_v0) for _k0, _v0 in (result or {}).items() }}
