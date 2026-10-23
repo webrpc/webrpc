@@ -1,0 +1,9 @@
+webrpc = v1
+
+name = filefield
+version = v1.0.0
+basepath = /rpc
+
+struct Upload
+    - name: string
+    - data: file
