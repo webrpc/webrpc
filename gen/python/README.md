@@ -47,11 +47,13 @@ Requires Python 3.11+. The client requires `httpx`.
   meta) of a numeric one.
 - Timestamps keep microsecond precision: the nanoseconds of a Go timestamp are
   truncated on decode.
-- Request validation is stricter than the Go server for values Go decodes
-  leniently: an unknown enum value or a missing non-optional timestamp is a
-  `400 WebrpcBadRequest`, as is a scalar of the wrong JSON type.
-- Alias-typed struct fields are deserialized through the alias name; only
-  scalar aliases are covered by the tests.
+- Request validation differs from the Go server in a few places. An unknown
+  enum value and a missing or null non-optional timestamp are a
+  `400 WebrpcBadRequest`, where Go decodes the zero value. Integer width and
+  sign are not range-checked (a `uint8` of 300 is accepted). On Python 3.11 and
+  later, a date-only timestamp is accepted.
+- Alias-typed struct fields are deserialized through the alias name, for
+  scalar aliases and aliases of user types alike.
 
 ## Tests
 
