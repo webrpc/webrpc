@@ -28,11 +28,15 @@ struct Data
 struct FlattenRequest
   - a: string
 
+struct Import
+  - a: string
+
 struct FlattenResponse
   - b: string
 
 service Wire
   - Flatten(FlattenRequest) => (FlattenResponse)
+  - Go(Import) => (FlattenResponse)
   - From(class: string) => (ok: bool)
   - Import() => ()
   - Get(self: string) => (ok: bool)

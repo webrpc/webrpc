@@ -79,8 +79,8 @@ class {{$service.Name}}Server:
         try:
             args = {
 {{- if $method.Succinct}}
-{{- $in := index $method.Inputs 0}}
-                "{{$in.Name}}": {{template "fromValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "data"}},
+{{- $in := index $method.Inputs 0}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}
+                "{{$ip}}": {{template "fromValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "data"}},
 {{- else}}
 {{- range $_, $in := $method.Inputs}}
 {{- $ik := $in.Name -}}{{- $ip := $ik -}}{{- if has $ik $kw -}}{{- $ip = printf "%s_" $ik -}}{{- end}}

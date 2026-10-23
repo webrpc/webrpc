@@ -33,8 +33,8 @@ class {{$service.Name}}Client:
         _resp = self._client.post(
             self._base + "{{$method.Name}}",
 {{- if $method.Succinct}}
-{{- $in := index $method.Inputs 0}}
-            json={{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $in.Name}},
+{{- $in := index $method.Inputs 0}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}
+            json={{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $ip}},
 {{- else}}
             json=_body,
 {{- end}}
