@@ -135,6 +135,17 @@ def test_methods_named_like_server_internals():
         assert _call(Impl(), method, {}) == (200, want), method
 
 
+def test_unknown_error_code_keeps_what_the_server_sent():
+    body = {"error": "Custom", "code": 777, "msg": "m", "cause": "c", "status": 422}
+    try:
+        _client(lambda request: httpx.Response(422, json=body)).get("s")
+    except api.WebRPCError as err:
+        got = (type(err), err.name, err.code, err.message, err.cause, err.status)
+    else:
+        raise AssertionError("expected an error")
+    assert got == (api.WebRPCError, "Custom", 777, "m", "c", 422)
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

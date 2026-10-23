@@ -65,7 +65,7 @@ class {{$service.Name}}Client:
                 body = resp.json()
             except Exception:
                 raise WebRPCError(message="invalid response from server")
-            raise _error_from_code(body.get("code"), body.get("msg"), body.get("cause"))
+            raise _error_from_code(body.get("code"), body.get("msg"), body.get("cause"), body.get("error"), body.get("status"))
         if not resp.content:
             return {}
         return resp.json()

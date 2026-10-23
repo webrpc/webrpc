@@ -278,9 +278,18 @@ _errors_by_code: dict[int, type[WebRPCError]] = {
 }
 
 
-def _error_from_code(code: Any, message: Optional[str] = None, cause: Optional[str] = None) -> WebRPCError:
-    cls = _errors_by_code.get(code, WebRPCError)
-    return cls(message=message, cause=cause)
+def _error_from_code(code: Any, message: Optional[str] = None, cause: Optional[str] = None, name: Optional[str] = None, status: Optional[int] = None) -> WebRPCError:
+    cls = _errors_by_code.get(code)
+    if cls is not None:
+        return cls(message=message, cause=cause)
+    err = WebRPCError(message=message, cause=cause)
+    if isinstance(code, int):
+        err.code = code
+    if isinstance(name, str):
+        err.name = name
+    if isinstance(status, int):
+        err.status = status
+    return err
 def _to_value(v: Any) -> Any:
     if v is None:
         return None
@@ -425,7 +434,7 @@ class WireClient:
                 body = resp.json()
             except Exception:
                 raise WebRPCError(message="invalid response from server")
-            raise _error_from_code(body.get("code"), body.get("msg"), body.get("cause"))
+            raise _error_from_code(body.get("code"), body.get("msg"), body.get("cause"), body.get("error"), body.get("status"))
         if not resp.content:
             return {}
         return resp.json()
