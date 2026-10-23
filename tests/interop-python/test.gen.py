@@ -54,10 +54,11 @@ class Item:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "id": _to_value(self.id),
             "name": _to_value(self.name),
         }
+        return out
 
 @dataclass
 class GetItemRequest:
@@ -74,10 +75,12 @@ class GetItemRequest:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "id": _to_value(self.id),
-            "details": None if self.details is None else _to_value(self.details),
         }
+        if self.details is not None:
+            out["details"] = _to_value(self.details)
+        return out
 
 @dataclass
 class GetItemResponse:
@@ -92,9 +95,10 @@ class GetItemResponse:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "item": _to_value(self.item),
         }
+        return out
 
 @dataclass
 class ListItemsRequest:
@@ -113,11 +117,13 @@ class ListItemsRequest:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-            "q": None if self.q is None else _to_value(self.q),
+        out: dict[str, Any] = {
             "tags": [_to_value(_e0) for _e0 in (self.tags or [])],
             "limit": _to_value(self.limit),
         }
+        if self.q is not None:
+            out["q"] = _to_value(self.q)
+        return out
 
 @dataclass
 class ListItemsResponse:
@@ -132,9 +138,10 @@ class ListItemsResponse:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "items": [_to_value(_e0) for _e0 in (self.items or [])],
         }
+        return out
 
 @dataclass
 class OptFields:
@@ -167,18 +174,24 @@ class OptFields:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "reqBool": _to_value(self.reqBool),
             "reqInt": _to_value(self.reqInt),
             "reqString": _to_value(self.reqString),
             "reqList": [_to_value(_e0) for _e0 in (self.reqList or [])],
             "reqMap": { _to_value(_k0): _to_value(_v0) for _k0, _v0 in (self.reqMap or {}).items() },
-            "optBool": None if self.optBool is None else _to_value(self.optBool),
-            "optInt": None if self.optInt is None else _to_value(self.optInt),
-            "optString": None if self.optString is None else _to_value(self.optString),
-            "optList": None if self.optList is None else [_to_value(_e0) for _e0 in (self.optList or [])],
-            "optMap": None if self.optMap is None else { _to_value(_k0): _to_value(_v0) for _k0, _v0 in (self.optMap or {}).items() },
         }
+        if self.optBool is not None:
+            out["optBool"] = _to_value(self.optBool)
+        if self.optInt is not None:
+            out["optInt"] = _to_value(self.optInt)
+        if self.optString is not None:
+            out["optString"] = _to_value(self.optString)
+        if self.optList is not None:
+            out["optList"] = [_to_value(_e0) for _e0 in (self.optList or [])]
+        if self.optMap is not None:
+            out["optMap"] = { _to_value(_k0): _to_value(_v0) for _k0, _v0 in (self.optMap or {}).items() }
+        return out
 
 @dataclass
 class CreateItemRequest:
@@ -193,9 +206,10 @@ class CreateItemRequest:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "item": _to_value(self.item),
         }
+        return out
 
 @dataclass
 class CreateItemResponse:
@@ -210,9 +224,10 @@ class CreateItemResponse:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "item": _to_value(self.item),
         }
+        return out
 
 @dataclass
 class Simple:
@@ -229,10 +244,11 @@ class Simple:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "id": _to_value(self.id),
             "name": _to_value(self.name),
         }
+        return out
 
 @dataclass
 class User:
@@ -251,11 +267,12 @@ class User:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "id": _to_value(self.id),
             "USERNAME": _to_value(self.USERNAME),
             "role": _to_value(self.role),
         }
+        return out
 
 @dataclass
 class Complex:
@@ -288,7 +305,7 @@ class Complex:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "meta": { _to_value(_k0): _to_value(_v0) for _k0, _v0 in (self.meta or {}).items() },
             "metaNestedExample": { _to_value(_k0): { _to_value(_k1): _to_value(_v1) for _k1, _v1 in (_v0 or {}).items() } for _k0, _v0 in (self.metaNestedExample or {}).items() },
             "namesList": [_to_value(_e0) for _e0 in (self.namesList or [])],
@@ -300,6 +317,7 @@ class Complex:
             "user": _to_value(self.user),
             "status": _to_value(self.status),
         }
+        return out
 
 @dataclass
 class EnumData:
@@ -316,10 +334,11 @@ class EnumData:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "dict": { _to_value(_k0): _to_value(_v0) for _k0, _v0 in (self.dict or {}).items() },
             "list": [_to_value(_e0) for _e0 in (self.list or [])],
         }
+        return out
 class WebRPCError(Exception):
     name: str = "WebRPCError"
     code: int = 0
@@ -626,51 +645,56 @@ class TestApiClient:
         self._client = client
 
     def get_empty(self) -> None:
+        _body: dict[str, Any] = {
+        }
         _resp = self._client.post(
             self._base + "GetEmpty",
-            json={
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return None
 
     def get_error(self) -> None:
+        _body: dict[str, Any] = {
+        }
         _resp = self._client.post(
             self._base + "GetError",
-            json={
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return None
 
     def get_one(self) -> Simple:
+        _body: dict[str, Any] = {
+        }
         _resp = self._client.post(
             self._base + "GetOne",
-            json={
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return Simple.from_dict(_data.get("one"))
 
     def send_one(self, one: Simple) -> None:
+        _body: dict[str, Any] = {
+            "one": _to_value(one),
+        }
         _resp = self._client.post(
             self._base + "SendOne",
-            json={
-                "one": _to_value(one),
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return None
 
     def get_multi(self) -> tuple[Simple, Simple, Simple]:
+        _body: dict[str, Any] = {
+        }
         _resp = self._client.post(
             self._base + "GetMulti",
-            json={
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
@@ -681,65 +705,71 @@ class TestApiClient:
         )
 
     def send_multi(self, one: Simple, two: Simple, three: Simple) -> None:
+        _body: dict[str, Any] = {
+            "one": _to_value(one),
+            "two": _to_value(two),
+            "three": _to_value(three),
+        }
         _resp = self._client.post(
             self._base + "SendMulti",
-            json={
-                "one": _to_value(one),
-                "two": _to_value(two),
-                "three": _to_value(three),
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return None
 
     def get_complex(self) -> Complex:
+        _body: dict[str, Any] = {
+        }
         _resp = self._client.post(
             self._base + "GetComplex",
-            json={
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return Complex.from_dict(_data.get("complex"))
 
     def send_complex(self, complex: Complex) -> None:
+        _body: dict[str, Any] = {
+            "complex": _to_value(complex),
+        }
         _resp = self._client.post(
             self._base + "SendComplex",
-            json={
-                "complex": _to_value(complex),
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return None
 
     def get_enum_list(self) -> list[Status]:
+        _body: dict[str, Any] = {
+        }
         _resp = self._client.post(
             self._base + "GetEnumList",
-            json={
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return [Status.from_dict(_e0) for _e0 in (_data.get("list") or [])]
 
     def get_enum_map(self) -> dict[Access, int]:
+        _body: dict[str, Any] = {
+        }
         _resp = self._client.post(
             self._base + "GetEnumMap",
-            json={
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return { Access.from_dict(_k0):_v0 for _k0, _v0 in (_data.get("map") or {}).items() }
 
     def get_schema_error(self, code: int) -> None:
+        _body: dict[str, Any] = {
+            "code": _to_value(code),
+        }
         _resp = self._client.post(
             self._base + "GetSchemaError",
-            json={
-                "code": _to_value(code),
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
@@ -874,11 +904,12 @@ class TestApiServer:
     def _get_multi(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.get_multi(
         )
-        return {
+        out: dict[str, Any] = {
             "one": _to_value(result[0]),
             "two": _to_value(result[1]),
             "three": _to_value(result[2]),
         }
+        return out
 
     def _send_multi(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.send_multi(
