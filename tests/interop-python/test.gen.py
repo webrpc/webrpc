@@ -9,7 +9,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Optional, Protocol
+from typing import Any, Callable, Optional, Protocol
 
 WEBRPC_HEADER = "Webrpc"
 WEBRPC_HEADER_VALUE = "webrpc;python;Test@v1.0.0"
@@ -661,8 +661,7 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return None
+        self._handle_response(_resp)
 
     def get_error(self) -> None:
         _body: dict[str, Any] = {
@@ -672,8 +671,7 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return None
+        self._handle_response(_resp)
 
     def get_one(self) -> Simple:
         _body: dict[str, Any] = {
@@ -683,8 +681,7 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return Simple.from_dict(_data.get("one"))
+        return self._handle_response(_resp, lambda _data: Simple.from_dict(_data.get("one")))
 
     def send_one(self, one: Simple) -> None:
         _body: dict[str, Any] = {
@@ -695,8 +692,7 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return None
+        self._handle_response(_resp)
 
     def get_multi(self) -> tuple[Simple, Simple, Simple]:
         _body: dict[str, Any] = {
@@ -706,12 +702,11 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return (
+        return self._handle_response(_resp, lambda _data: (
             Simple.from_dict(_data.get("one")),
             Simple.from_dict(_data.get("two")),
             Simple.from_dict(_data.get("three")),
-        )
+        ))
 
     def send_multi(self, one: Simple, two: Simple, three: Simple) -> None:
         _body: dict[str, Any] = {
@@ -724,8 +719,7 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return None
+        self._handle_response(_resp)
 
     def get_complex(self) -> Complex:
         _body: dict[str, Any] = {
@@ -735,8 +729,7 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return Complex.from_dict(_data.get("complex"))
+        return self._handle_response(_resp, lambda _data: Complex.from_dict(_data.get("complex")))
 
     def send_complex(self, complex: Complex) -> None:
         _body: dict[str, Any] = {
@@ -747,8 +740,7 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return None
+        self._handle_response(_resp)
 
     def get_enum_list(self) -> list[Status]:
         _body: dict[str, Any] = {
@@ -758,8 +750,7 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return [Status.from_dict(_e0) for _e0 in (_data.get("list") or [])]
+        return self._handle_response(_resp, lambda _data: [Status.from_dict(_e0) for _e0 in (_data.get("list") or [])])
 
     def get_enum_map(self) -> dict[Access, int]:
         _body: dict[str, Any] = {
@@ -769,8 +760,7 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return { Access.from_dict(_k0):_v0 for _k0, _v0 in (_data.get("map") or {}).items() }
+        return self._handle_response(_resp, lambda _data: { Access.from_dict(_k0):_v0 for _k0, _v0 in (_data.get("map") or {}).items() })
 
     def get_schema_error(self, code: int) -> None:
         _body: dict[str, Any] = {
@@ -781,19 +771,27 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return None
+        self._handle_response(_resp)
 
-    def _handle_response(self, resp: "httpx.Response") -> dict[str, Any]:
-        if resp.status_code >= 400:
-            try:
-                body = resp.json()
-            except Exception:
-                raise WebRPCError(message="invalid response from server")
+    def _handle_response(self, resp: "httpx.Response", decode: Optional[Callable[[dict[str, Any]], Any]] = None) -> Any:
+        try:
+            body = resp.json() if resp.content else None
+        except ValueError as err:
+            raise WebrpcBadResponse(cause=f"failed to decode response body (status {resp.status_code}): {err}") from err
+        if not 200 <= resp.status_code < 300:
+            if not isinstance(body, dict) or not isinstance(body.get("code"), int):
+                raise WebrpcBadResponse(cause=f"unexpected response (status {resp.status_code})")
             raise _error_from_code(body.get("code"), body.get("msg"), body.get("cause"), body.get("error"), body.get("status"))
-        if not resp.content:
-            return {}
-        return resp.json()
+        if body is None:
+            body = {}
+        if not isinstance(body, dict):
+            raise WebrpcBadResponse(cause="response body must be a JSON object")
+        if decode is None:
+            return None
+        try:
+            return decode(body)
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadResponse(cause=f"failed to decode response: {err}") from err
 
 
 class TestApi(Protocol):

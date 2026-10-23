@@ -9,7 +9,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Optional, Protocol
+from typing import Any, Callable, Optional, Protocol
 
 WEBRPC_HEADER = "Webrpc"
 WEBRPC_HEADER_VALUE = "webrpc;python;example@v1.0.0"
@@ -354,8 +354,7 @@ class ExampleServiceClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return [ItemSummary.from_dict(_e0) for _e0 in (_data.get("items") or [])]
+        return self._handle_response(_resp, lambda _data: [ItemSummary.from_dict(_e0) for _e0 in (_data.get("items") or [])])
 
     def get_item(self, itemId: str) -> Item:
         _body: dict[str, Any] = {
@@ -366,8 +365,7 @@ class ExampleServiceClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return Item.from_dict(_data.get("item"))
+        return self._handle_response(_resp, lambda _data: Item.from_dict(_data.get("item")))
 
     def create_item(self, item: CreateItemRequest) -> None:
         _body: dict[str, Any] = {
@@ -378,8 +376,7 @@ class ExampleServiceClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return None
+        self._handle_response(_resp)
 
     def put_one(self, itemId: str) -> None:
         _body: dict[str, Any] = {
@@ -390,8 +387,7 @@ class ExampleServiceClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return None
+        self._handle_response(_resp)
 
     def take_one(self, itemId: str) -> None:
         _body: dict[str, Any] = {
@@ -402,8 +398,7 @@ class ExampleServiceClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return None
+        self._handle_response(_resp)
 
     def delete_item(self, itemId: str) -> None:
         _body: dict[str, Any] = {
@@ -414,8 +409,7 @@ class ExampleServiceClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return None
+        self._handle_response(_resp)
 
     def count_by_tier(self) -> dict[ItemTier, int]:
         _body: dict[str, Any] = {
@@ -425,19 +419,27 @@ class ExampleServiceClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        _data = self._handle_response(_resp)
-        return { ItemTier.from_dict(_k0):_v0 for _k0, _v0 in (_data.get("counts") or {}).items() }
+        return self._handle_response(_resp, lambda _data: { ItemTier.from_dict(_k0):_v0 for _k0, _v0 in (_data.get("counts") or {}).items() })
 
-    def _handle_response(self, resp: "httpx.Response") -> dict[str, Any]:
-        if resp.status_code >= 400:
-            try:
-                body = resp.json()
-            except Exception:
-                raise WebRPCError(message="invalid response from server")
+    def _handle_response(self, resp: "httpx.Response", decode: Optional[Callable[[dict[str, Any]], Any]] = None) -> Any:
+        try:
+            body = resp.json() if resp.content else None
+        except ValueError as err:
+            raise WebrpcBadResponse(cause=f"failed to decode response body (status {resp.status_code}): {err}") from err
+        if not 200 <= resp.status_code < 300:
+            if not isinstance(body, dict) or not isinstance(body.get("code"), int):
+                raise WebrpcBadResponse(cause=f"unexpected response (status {resp.status_code})")
             raise _error_from_code(body.get("code"), body.get("msg"), body.get("cause"), body.get("error"), body.get("status"))
-        if not resp.content:
-            return {}
-        return resp.json()
+        if body is None:
+            body = {}
+        if not isinstance(body, dict):
+            raise WebrpcBadResponse(cause="response body must be a JSON object")
+        if decode is None:
+            return None
+        try:
+            return decode(body)
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadResponse(cause=f"failed to decode response: {err}") from err
 
 
 class ExampleService(Protocol):

@@ -40,34 +40,42 @@ class {{$service.Name}}Client:
 {{- end}}
             headers={"Content-Type": "application/json", "Accept": "application/json"{{if $webrpcHeader}}, "Webrpc": WEBRPC_HEADER_VALUE{{end}}},
         )
-        _data = self._handle_response(_resp)
 {{- if eq (len $method.Outputs) 0}}
-        return None
+        self._handle_response(_resp)
 {{- else if $method.Succinct}}
 {{- $out := index $method.Outputs 0}}
-        return {{template "fromValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "_data"}}
+        return self._handle_response(_resp, lambda _data: {{template "fromValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "_data"}})
 {{- else if eq (len $method.Outputs) 1}}
 {{- range $_, $out := $method.Outputs}}
-        return {{if .Optional}}None if _data.get("{{$out.Name}}") is None else {{end}}{{template "fromValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "_data.get(%q)" $out.Name)}}
+        return self._handle_response(_resp, lambda _data: {{if .Optional}}None if _data.get("{{$out.Name}}") is None else {{end}}{{template "fromValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "_data.get(%q)" $out.Name)}})
 {{- end}}
 {{- else}}
-        return (
+        return self._handle_response(_resp, lambda _data: (
 {{- range $_, $out := $method.Outputs}}
             {{if .Optional}}None if _data.get("{{$out.Name}}") is None else {{end}}{{template "fromValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "_data.get(%q)" $out.Name)}},
 {{- end}}
-        )
+        ))
 {{- end}}
 {{- end}}
 
-    def _handle_response(self, resp: "httpx.Response") -> dict[str, Any]:
-        if resp.status_code >= 400:
-            try:
-                body = resp.json()
-            except Exception:
-                raise WebRPCError(message="invalid response from server")
+    def _handle_response(self, resp: "httpx.Response", decode: Optional[Callable[[dict[str, Any]], Any]] = None) -> Any:
+        try:
+            body = resp.json() if resp.content else None
+        except ValueError as err:
+            raise WebrpcBadResponse(cause=f"failed to decode response body (status {resp.status_code}): {err}") from err
+        if not 200 <= resp.status_code < 300:
+            if not isinstance(body, dict) or not isinstance(body.get("code"), int):
+                raise WebrpcBadResponse(cause=f"unexpected response (status {resp.status_code})")
             raise _error_from_code(body.get("code"), body.get("msg"), body.get("cause"), body.get("error"), body.get("status"))
-        if not resp.content:
-            return {}
-        return resp.json()
+        if body is None:
+            body = {}
+        if not isinstance(body, dict):
+            raise WebrpcBadResponse(cause="response body must be a JSON object")
+        if decode is None:
+            return None
+        try:
+            return decode(body)
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadResponse(cause=f"failed to decode response: {err}") from err
 {{- end}}
 {{- end -}}
