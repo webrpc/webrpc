@@ -33,6 +33,8 @@ class {{$type.Name}}:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "{{$type.Name}}":
+        if data is None:
+            return None
         return cls(
 {{- range $_, $field := $type.Fields}}
 {{- $key := $field.Name -}}{{- range $meta := $field.Meta}}{{- if exists $meta "json"}}{{- $key = get $meta "json" | split "," | first}}{{- end}}{{- end}}
