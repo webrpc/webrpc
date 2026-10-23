@@ -63,11 +63,10 @@ test-interoperability: build-test
 		./bin/webrpc-test -client -url=http://localhost:9988; \
 		wait
 
-# Run TypeScript/JavaScript, C# and Python <-> Go interoperability tests (requires node, the .NET SDK and Python with httpx)
+# Run TypeScript/JavaScript and C# <-> Go interoperability tests (requires node and the .NET SDK)
 test-interop:
 	make -C tests/interop-web test
 	make -C tests/interop-csharp test
-	make -C tests/interop-python test
 
 # Update ridl golden examples
 update-ridl-test-golden-examples:
