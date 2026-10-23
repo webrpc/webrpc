@@ -40,6 +40,7 @@ service Wire
   - Error() => (v: string)
   - Headers() => (v: string)
   - GetKind() => (kind: Kind)
+  - Check(kind: Kind, at: timestamp, code: int, tags: []string, ok: bool, f: float64) => (ok: bool)
   - Maybe(x?: string, y: string) => (z?: string, w: string)
 
 struct User

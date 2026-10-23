@@ -18,6 +18,46 @@ def _to_value(v: Any) -> Any:
     return v
 
 
+def _as_list(v: Any) -> list:
+    if v is None:
+        return []
+    if isinstance(v, list):
+        return v
+    raise TypeError(f"expected a list, got {type(v).__name__}")
+
+
+def _as_dict(v: Any) -> dict:
+    if v is None:
+        return {}
+    if isinstance(v, dict):
+        return v
+    raise TypeError(f"expected an object, got {type(v).__name__}")
+
+
+def _check_int(v: Any) -> Any:
+    if v is None or (isinstance(v, int) and not isinstance(v, bool)):
+        return v
+    raise TypeError(f"expected an integer, got {type(v).__name__}")
+
+
+def _check_float(v: Any) -> Any:
+    if v is None or (isinstance(v, (int, float)) and not isinstance(v, bool)):
+        return v
+    raise TypeError(f"expected a number, got {type(v).__name__}")
+
+
+def _check_bool(v: Any) -> Any:
+    if v is None or isinstance(v, bool):
+        return v
+    raise TypeError(f"expected a boolean, got {type(v).__name__}")
+
+
+def _check_str(v: Any) -> Any:
+    if v is None or isinstance(v, str):
+        return v
+    raise TypeError(f"expected a string, got {type(v).__name__}")
+
+
 def _parse_datetime(v: Any) -> datetime:
     if isinstance(v, datetime):
         return v
