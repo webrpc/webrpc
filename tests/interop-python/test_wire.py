@@ -163,12 +163,24 @@ def test_unknown_error_code_keeps_what_the_server_sent():
     assert got == (api.WebRPCError, "Custom", 777, "m", "c", 422)
 
 
+def test_error_body_without_a_code_keeps_its_message():
+    body = {"error": "Custom", "msg": "m", "cause": "c", "status": 500}
+    try:
+        _client(lambda request: httpx.Response(500, json=body)).get("s")
+    except api.WebRPCError as err:
+        got = (type(err), err.name, err.code, err.message, err.cause, err.status)
+    else:
+        raise AssertionError("expected an error")
+    assert got == (api.WebRPCError, "Custom", 0, "m", "c", 500)
+
+
 def test_unusable_responses_are_bad_responses():
     cases = {
         "redirect without body": httpx.Response(302),
         "error status with a JSON array": httpx.Response(500, json=["x"]),
         "error status with HTML": httpx.Response(502, content=b"<html>bad gateway</html>"),
-        "error status with a JSON object without a code": httpx.Response(500, json={"msg": "x"}),
+        "error status with a boolean code": httpx.Response(500, json={"code": True, "msg": "x"}),
+        "error status with a string code": httpx.Response(500, json={"code": "1", "msg": "x"}),
         "success with a JSON array": httpx.Response(200, json=[1]),
         "success with HTML": httpx.Response(200, content=b"<html>"),
         "success with an undecodable value": httpx.Response(200, json={"kind": "NOPE"}),
