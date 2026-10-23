@@ -38,8 +38,8 @@ Requires Python 3.11+. The client requires `httpx`.
 
 ## Known gaps
 
-- Streaming methods and the `file` core type are not supported: the generator
-  fails when the schema uses them.
+- Streaming methods, the `file` core type and `[]byte` are not supported: the
+  generator fails when the schema uses them.
 - REST routes (`+ GET /path`) are ignored; every method is served and called
   as `POST <basepath><Service>/<Method>`.
 - Enums are serialized as their wire value, like the Go and TypeScript

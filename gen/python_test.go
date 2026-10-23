@@ -84,6 +84,31 @@ func TestPythonErrors(t *testing.T) {
 			err:    "python generator error: the file type is not supported (Blob.data)",
 		},
 		{
+			name:   "byte field",
+			schema: pythonTestSchema + "\nstruct Blob\n  - data: []byte\n",
+			err:    "python generator error: the []byte type is not supported (Blob.data)",
+		},
+		{
+			name:   "nested byte field",
+			schema: pythonTestSchema + "\nstruct Blob\n  - data: map<string,[]byte>\n",
+			err:    "python generator error: the []byte type is not supported (Blob.data)",
+		},
+		{
+			name:   "byte alias",
+			schema: pythonTestSchema + "\ntype Blob: []byte\n",
+			err:    "python generator error: the []byte type is not supported (Blob)",
+		},
+		{
+			name:   "byte method argument",
+			schema: pythonTestSchema + "  - Put(data: []byte)\n",
+			err:    "python generator error: the []byte type is not supported (Items.Put)",
+		},
+		{
+			name:   "byte method result",
+			schema: pythonTestSchema + "  - Fetch() => (data: []byte)\n",
+			err:    "python generator error: the []byte type is not supported (Items.Fetch)",
+		},
+		{
 			name: "unknown option",
 			opts: map[string]interface{}{"pkg": "api"},
 			err:  `-pkg="api" is not supported target option`,
