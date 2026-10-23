@@ -167,6 +167,17 @@ def test_server_request_validation():
     assert cap["headers"].get("Webrpc")
 
 
+def test_server_accepts_null_body():
+    # The Go client sends a literal null body for methods without inputs.
+    _, server = _client()
+    cap, body = _wsgi(server, "POST", "/v1/ExampleService/GetItems", body=b"null")
+    assert cap["status"].startswith("200"), cap["status"]
+    assert body["items"] == [{"id": "1", "name": "widget"}], body
+
+    cap, body = _wsgi(server, "POST", "/v1/ExampleService/GetItems", body=b"[]")
+    assert cap["status"].startswith("400") and body["error"] == "WebrpcBadRequest"
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
