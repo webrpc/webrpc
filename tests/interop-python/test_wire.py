@@ -61,6 +61,23 @@ def test_succinct_method_uses_bare_structs():
     assert _call(Impl(), "Flatten", {"a": "in"}) == (200, {"b": "in!"})
 
 
+def test_succinct_method_with_keyword_named_argument():
+    seen = []
+
+    def respond(request):
+        seen.append(json.loads(request.content))
+        return httpx.Response(200, json={"b": "out"})
+
+    assert _client(respond).go(api.Import(a="in")) == api.FlattenResponse(b="out")
+    assert seen == [{"a": "in"}]
+
+    class Impl:
+        def go(self, import_):
+            return api.FlattenResponse(b=import_.a + "!")
+
+    assert _call(Impl(), "Go", {"a": "in"}) == (200, {"b": "in!"})
+
+
 def test_aliases_of_user_types():
     wire = {"users": [{"id": 1}], "nested": [{"id": 2}], "kind": "User"}
     team = api.Team.from_dict(wire)
