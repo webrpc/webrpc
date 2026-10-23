@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 )
@@ -33,7 +34,9 @@ func Wait(serverURL string, timeout time.Duration) error {
 	}
 }
 
-func RunTests(ctx context.Context, serverURL string) error {
+// RunTests runs the TestApi cases; skip lists case names to leave out, eg. "files"
+// for a server whose generator doesn't support the file type.
+func RunTests(ctx context.Context, serverURL string, skip ...string) error {
 	var errs []error // Note: We can't use Go 1.20's errors.Join() until we drop support for older Go versions.
 
 	testApi := NewTestApiClient(serverURL, &http.Client{})
@@ -86,8 +89,9 @@ func RunTests(ctx context.Context, serverURL string) error {
 		errs = append(errs, fmt.Errorf("GetEnumMap(): expected 2 items, got %v", len(enumMap)))
 	}
 
-	fileErrs := testFiles(ctx, testApi)
-	errs = append(errs, fileErrs...)
+	if !slices.Contains(skip, "files") {
+		errs = append(errs, testFiles(ctx, testApi)...)
+	}
 
 	schemaErrs := testSchemaErrors(ctx, testApi)
 	errs = append(errs, schemaErrs...)
