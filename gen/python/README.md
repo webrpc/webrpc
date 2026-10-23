@@ -34,7 +34,7 @@ webrpc-gen -schema=example.ridl -target=python -client -server -out=./example_ap
   `<Service>Server` WSGI app that routes requests, deserializes inputs and
   serializes outputs.
 
-Requires Python 3.9+. The client requires `httpx`.
+Requires Python 3.11+. The client requires `httpx`.
 
 ## Known gaps
 

@@ -27,6 +27,6 @@ venv:
 	python3 -m venv .venv
 	.venv/bin/pip install --quiet httpx
 
-# End-to-end tests of the Python generator (requires Python 3.9+ and httpx).
+# End-to-end tests of the Python generator (requires Python 3.11+ and httpx).
 test: build
 	PYTHON=$(PYTHON) ./test.sh

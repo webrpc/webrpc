@@ -52,7 +52,7 @@ plugin for RIDL synx highlighting.
 | [dart](./gen/dart)             | Dart 3.1+                         | v1     | ✅     |        |
 | [swift](./gen/swift)           | Swift 5.9+                        | v1     | ✅     |        |
 | [csharp](./gen/csharp)         | C# 8+ (.NET Standard 2.0, Unity)  | v1     | ✅     |        |
-| [python](./gen/python)         | Python 3.9+ (dataclasses, httpx, WSGI) | v1     | ✅     | ✅     |
+| [python](./gen/python)         | Python 3.11+ (dataclasses, httpx, WSGI) | v1     | ✅     | ✅     |
 | [openapi](./gen/openapi)       | OpenAPI 3.0.0 (Swagger)           | v1     | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview) | ✅ [*](https://github.com/swagger-api/swagger-codegen#overview)  |
 
 ..contribute more! [webrpc generators](./gen/) are just Go templates (similar to [Hugo](https://gohugo.io/templates/) or [Helm](https://helm.sh/docs/chart_best_practices/templates/)).

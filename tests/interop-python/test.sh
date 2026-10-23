@@ -3,7 +3,7 @@
 # checks of the generator's input validation, and the interoperability tests
 # against the Go reference implementation (webrpc-test): the generated client
 # against the Go server, and the Go client against the generated WSGI server.
-# Requires go and Python 3.9+ with httpx (see `make venv`), or set $PYTHON.
+# Requires go and Python 3.11+ with httpx (see `make venv`), or set $PYTHON.
 set -eu
 
 cd "$(dirname "$0")"
