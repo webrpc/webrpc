@@ -225,3 +225,17 @@ if __name__ == "__main__":
         if name.startswith("test_") and callable(fn):
             fn()
     print("WIRE OK")
+
+
+def test_empty_success_body_is_accepted_only_without_outputs():
+    empty = lambda request: httpx.Response(200)
+    assert _client(empty).import_() is None
+    for name, call in {
+        "get": lambda c: c.get("x"),
+        "flatten": lambda c: c.flatten(api.FlattenRequest(a="a")),
+    }.items():
+        try:
+            call(_client(empty))
+        except api.WebrpcBadResponse:
+            continue
+        raise AssertionError(f"{name}: expected WebrpcBadResponse")
