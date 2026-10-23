@@ -12,8 +12,15 @@ all:
 build:
 	make -C ../../ build
 
+# test.ridl is the TestApi schema without the file methods and the REST
+# service, which the Python generator doesn't support.
+TEST_SCHEMA = ../schema/test.ridl
+FILTER_TEST_SCHEMA = awk 'BEGIN { print "\# Code generated from $(TEST_SCHEMA) without its file methods and REST service. DO NOT EDIT.\n" } /^service TestApiRest/ {skip = 1; next} skip && /^[a-z]/ {skip = 0} !skip && !/^  - (UploadFile|UploadFiles|DownloadFile|EchoFile)\(/'
+
 generate: build
 	webrpc-gen -schema=./example.ridl -target=python -client -server -out=./example.gen.py
+	$(FILTER_TEST_SCHEMA) $(TEST_SCHEMA) > ./test.ridl
+	webrpc-gen -schema=./test.ridl -target=python -client -server -out=./test.gen.py
 
 # Create ./.venv with the generated client's dependency.
 venv:
