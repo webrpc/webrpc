@@ -48,5 +48,8 @@ Requires Python 3.9+. The client requires `httpx`.
 
 ## Tests
 
-`tests/interop-python` holds an example schema and a roundtrip test: a
-generated Python client against a generated Python WSGI server.
+`tests/interop-python` runs the generated code against the Go reference
+implementation (`webrpc-test`): a generated Python client against the Go
+server, and the Go client against a generated Python WSGI server. The
+interop schema is `tests/schema/test.ridl` without its `file` methods and
+REST service.
