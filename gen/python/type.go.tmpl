@@ -2,12 +2,15 @@
 {{- /* Renders a webrpc type as a Python type annotation. */ -}}
 {{- $type := .Type -}}
 {{- $typeMap := .TypeMap -}}
+{{- $aliasMap := .AliasMap -}}
 {{- if isMapType $type -}}
-dict[{{template "type" dict "Type" (mapKeyType $type) "TypeMap" $typeMap}}, {{template "type" dict "Type" (mapValueType $type) "TypeMap" $typeMap}}]
+dict[{{template "type" dict "Type" (mapKeyType $type) "TypeMap" $typeMap "AliasMap" $aliasMap}}, {{template "type" dict "Type" (mapValueType $type) "TypeMap" $typeMap "AliasMap" $aliasMap}}]
 {{- else if isListType $type -}}
-list[{{template "type" dict "Type" (listElemType $type) "TypeMap" $typeMap}}]
+list[{{template "type" dict "Type" (listElemType $type) "TypeMap" $typeMap "AliasMap" $aliasMap}}]
 {{- else if isCoreType $type -}}
 {{get $typeMap $type}}
+{{- else if and $aliasMap (hasKey $aliasMap (printf "%v" $type)) -}}
+{{template "type" dict "Type" (get $aliasMap (printf "%v" $type)) "TypeMap" $typeMap "AliasMap" $aliasMap}}
 {{- else -}}
 {{$type}}
 {{- end -}}

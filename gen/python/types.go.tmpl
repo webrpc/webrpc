@@ -16,10 +16,6 @@ class {{$type.Name}}(Enum):
     def from_dict(cls, v: Any) -> "{{$type.Name}}":
         return cls(v)
 {{- end}}
-{{- if isAliasType $type}}
-
-{{$type.Name}} = {{template "type" dict "Type" $type.Type "TypeMap" $typeMap}}
-{{- end}}
 {{- if isStructType $type}}
 {{- $fields := list -}}
 {{- range $_, $field := $type.Fields -}}
@@ -64,6 +60,12 @@ class {{$type.Name}}:
             "{{$key}}": {{if $field.Optional}}None if self.{{$py}} is None else {{end}}{{template "toValue" dict "Type" $field.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "self.%s" $py)}},
 {{- end}}
         }
+{{- end}}
+{{- end}}
+{{- range $_, $type := $types}}
+{{- if isAliasType $type}}
+
+{{$type.Name}} = {{template "type" dict "Type" $type.Type "TypeMap" $typeMap "AliasMap" $aliasMap}}
 {{- end}}
 {{- end}}
 {{- end -}}
