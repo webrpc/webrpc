@@ -119,6 +119,22 @@ def test_reserved_names_in_methods_and_arguments():
     assert _call(Impl(), "Get", {"self": "s"}) == (200, {"ok": True})
 
 
+def test_methods_named_like_server_internals():
+    class Impl:
+        def respond(self):
+            return "r"
+
+        def error(self):
+            return "e"
+
+        def headers(self):
+            return "h"
+
+    for method in ("Respond", "Error", "Headers"):
+        want = {"v": method[0].lower()}
+        assert _call(Impl(), method, {}) == (200, want), method
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
