@@ -61,6 +61,14 @@ def test_succinct_method_uses_bare_structs():
     assert _call(Impl(), "Flatten", {"a": "in"}) == (200, {"b": "in!"})
 
 
+def test_aliases_of_user_types():
+    wire = {"users": [{"id": 1}], "nested": [{"id": 2}], "kind": "User"}
+    team = api.Team.from_dict(wire)
+    assert team == api.Team(users=[api.User(id=1)], nested=[api.User(id=2)], kind=api.Kind.User)
+    assert team.to_dict() == wire
+    assert api.K2 is api.Kind
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

@@ -20,10 +20,6 @@ WEBRPC_SCHEMA_HASH = "2aba57eb6def7746098c9602e2f668ea27028307"
 
 
 
-ItemName = str
-
-Quantity = int
-
 class ItemTier(Enum):
     REGULAR = "REGULAR"
     PREMIUM = "PREMIUM"
@@ -144,6 +140,10 @@ class Credentials:
             "user": _to_value(self.user),
             "note": None if self.note is None else _to_value(self.note),
         }
+
+ItemName = str
+
+Quantity = int
 class WebRPCError(Exception):
     name: str = "WebRPCError"
     code: int = 0
