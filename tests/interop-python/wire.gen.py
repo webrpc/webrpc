@@ -522,6 +522,8 @@ class WireClient:
                 raise WebrpcBadResponse(cause=f"unexpected response (status {resp.status_code})")
             raise _error_from_code(body.get("code"), body.get("msg"), body.get("cause"), body.get("error"), body.get("status"))
         if body is None:
+            if decode is not None:
+                raise WebrpcBadResponse(cause=f"empty response body (status {resp.status_code})")
             body = {}
         if not isinstance(body, dict):
             raise WebrpcBadResponse(cause="response body must be a JSON object")
