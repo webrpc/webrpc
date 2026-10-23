@@ -95,6 +95,13 @@ def _client():
     return api.ExampleServiceClient("http://testserver", client=httpx.Client(transport=transport)), server
 
 
+def test_go_nanosecond_timestamp():
+    # Go encodes time.Time as RFC3339Nano: up to 9 fractional digits.
+    d = _make_item().to_dict()
+    d["createdAt"] = "2020-01-01T00:00:00.123456789Z"
+    assert api.Item.from_dict(d).createdAt == datetime(2020, 1, 1, 0, 0, 0, 123456, tzinfo=timezone.utc)
+
+
 def test_client_server_roundtrip():
     client, _ = _client()
 
