@@ -189,6 +189,20 @@ def test_invalid_request_arguments_are_bad_requests():
         assert status == 400 and body["error"] == "WebrpcBadRequest" and body["cause"], (name, status, body)
 
 
+def test_handler_exceptions_are_endpoint_errors():
+    class Impl:
+        def respond(self):
+            raise RuntimeError("boom")
+
+        def error(self):
+            raise api.WebrpcBadRoute(cause="kept")
+
+    status, body = _call(Impl(), "Respond", {})
+    assert (status, body["error"], body["code"], body["cause"]) == (400, "WebrpcEndpoint", 0, "boom"), body
+    status, body = _call(Impl(), "Error", {})
+    assert (status, body["error"], body["cause"]) == (404, "WebrpcBadRoute", "kept"), body
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

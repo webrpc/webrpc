@@ -541,7 +541,7 @@ class ExampleServiceServer:
         except WebRPCError as err:
             return self._error(start_response, err)
         except Exception as err:
-            return self._error(start_response, WebrpcServerPanic(cause=str(err)))
+            return self._error(start_response, WebrpcEndpoint(cause=str(err)))
 
     def _headers(self, body: bytes):
         return [
