@@ -178,6 +178,20 @@ def test_server_accepts_null_body():
     assert cap["status"].startswith("400") and body["error"] == "WebrpcBadRequest"
 
 
+def test_null_struct_argument():
+    received = []
+
+    class Recording(Impl):
+        def create_item(self, item):
+            received.append(item)
+
+    server = api.ExampleServiceServer(Recording())
+    cap, _ = _wsgi(server, "POST", "/v1/ExampleService/CreateItem", body=b'{"item": null}')
+    assert cap["status"].startswith("200"), cap["status"]
+    assert received == [None]
+    assert api.CreateItemRequest.from_dict(None) is None
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):

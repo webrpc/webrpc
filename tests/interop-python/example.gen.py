@@ -50,6 +50,8 @@ class Item:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Item":
+        if data is None:
+            return None
         return cls(
             id=data.get("id"),
             name=data.get("name"),
@@ -90,6 +92,8 @@ class CreateItemRequest:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "CreateItemRequest":
+        if data is None:
+            return None
         return cls(
             name=data.get("name"),
             tier=ItemTier.from_dict(data.get("tier")),
@@ -108,6 +112,8 @@ class ItemSummary:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "ItemSummary":
+        if data is None:
+            return None
         return cls(
             id=data.get("id"),
             name=data.get("name"),
