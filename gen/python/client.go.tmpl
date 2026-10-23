@@ -4,7 +4,7 @@
 {{- $basepath := .BasePath -}}
 {{- $services := .Services -}}
 {{- $webrpcHeader := .WebrpcHeader -}}
-{{- $kw := list "False" "None" "True" "and" "as" "assert" "async" "await" "break" "class" "continue" "def" "del" "elif" "else" "except" "finally" "for" "from" "global" "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "raise" "return" "try" "while" "with" "yield" -}}
+{{- $kw := list "False" "None" "True" "and" "as" "assert" "async" "await" "break" "class" "continue" "def" "del" "elif" "else" "except" "finally" "for" "from" "global" "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "raise" "return" "try" "while" "with" "yield" "self" -}}
 {{- range $_, $service := $services}}
 
 class {{$service.Name}}Client:
@@ -16,7 +16,7 @@ class {{$service.Name}}Client:
         self._client = client
 {{- range $_, $method := $service.Methods}}
 
-    def {{snakeCase $method.Name}}(self{{range $_, $in := $method.Inputs}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}, {{$ip}}: {{template "type" dict "Type" $in.Type "TypeMap" $typeMap}}{{end}}) -> {{template "methodReturn" dict "Method" $method "TypeMap" $typeMap}}:
+    def {{template "pyMethod" $method}}(self{{range $_, $in := $method.Inputs}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}, {{$ip}}: {{template "type" dict "Type" $in.Type "TypeMap" $typeMap}}{{end}}) -> {{template "methodReturn" dict "Method" $method "TypeMap" $typeMap}}:
 {{- if not $method.Succinct}}
         _body: dict[str, Any] = {
 {{- range $_, $in := $method.Inputs}}{{if not $in.Optional}}
