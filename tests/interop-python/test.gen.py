@@ -819,9 +819,12 @@ class TestApiClient:
         except ValueError as err:
             raise WebrpcBadResponse(cause=f"failed to decode response body (status {resp.status_code}): {err}") from err
         if not 200 <= resp.status_code < 300:
-            if not isinstance(body, dict) or not isinstance(body.get("code"), int):
+            if not isinstance(body, dict):
                 raise WebrpcBadResponse(cause=f"unexpected response (status {resp.status_code})")
-            raise _error_from_code(body.get("code"), body.get("msg"), body.get("cause"), body.get("error"), body.get("status"))
+            code = body.get("code")
+            if "code" in body and (not isinstance(code, int) or isinstance(code, bool)):
+                raise WebrpcBadResponse(cause=f"unexpected response (status {resp.status_code})")
+            raise _error_from_code(code, body.get("msg"), body.get("cause"), body.get("error"), body.get("status"))
         if body is None:
             if decode is not None:
                 raise WebrpcBadResponse(cause=f"empty response body (status {resp.status_code})")
