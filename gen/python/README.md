@@ -45,6 +45,11 @@ Requires Python 3.11+. The client requires `httpx`.
 - Enums are serialized as their wire value, like the Go and TypeScript
   generators: the value of a string enum, the member name (or its `json`
   meta) of a numeric one.
+- Timestamps keep microsecond precision: the nanoseconds of a Go timestamp are
+  truncated on decode.
+- Request validation is stricter than the Go server for values Go decodes
+  leniently: an unknown enum value or a missing non-optional timestamp is a
+  `400 WebrpcBadRequest`, as is a scalar of the wrong JSON type.
 - Alias-typed struct fields are deserialized through the alias name; only
   scalar aliases are covered by the tests.
 
