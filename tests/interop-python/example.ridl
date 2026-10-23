@@ -46,3 +46,9 @@ struct ItemSummary
 error 1 ItemExists "item already exists" HTTP 409
 error 2 NoSuchItem "no such item"  HTTP 404
 error 3 OutOfStock "item out of stock"  HTTP 409
+
+struct Credentials
+    - user: string
+    - password: string
+        + json = -
+    - note?: string

@@ -192,6 +192,15 @@ def test_null_struct_argument():
     assert api.CreateItemRequest.from_dict(None) is None
 
 
+def test_skipped_json_field():
+    # "+ json = -" excludes a field from the wire and from the dataclass.
+    creds = api.Credentials(user="u", note="n")
+    assert creds.to_dict() == {"user": "u", "note": "n"}
+    decoded = api.Credentials.from_dict({"user": "u", "password": "secret"})
+    assert decoded == api.Credentials(user="u")
+    assert not hasattr(decoded, "password") and not hasattr(decoded, "-")
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
