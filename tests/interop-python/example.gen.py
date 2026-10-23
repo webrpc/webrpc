@@ -49,19 +49,19 @@ class Item:
         if data is None:
             return None
         return cls(
-            id=data.get("id"),
-            name=data.get("name"),
+            id=_check_str(data.get("id")),
+            name=_check_str(data.get("name")),
             tier=ItemTier.from_dict(data.get("tier")),
-            count=data.get("count"),
-            quantity=data.get("quantity"),
+            count=_check_int(data.get("count")),
+            quantity=_check_int(data.get("quantity")),
             balance=_parse_bigint(data.get("balance")),
-            tags=[_e0 for _e0 in (data.get("tags") or [])],
-            attributes={ _k0:_v0 for _k0, _v0 in (data.get("attributes") or {}).items() },
-            class_=data.get("class"),
+            tags=[_check_str(_e0) for _e0 in _as_list(data.get("tags"))],
+            attributes={ _k0:_check_str(_v0) for _k0, _v0 in _as_dict(data.get("attributes")).items() },
+            class_=_check_str(data.get("class")),
             createdAt=_parse_datetime(data.get("createdAt")),
             lastUpdate=None if data.get("lastUpdate") is None else _parse_datetime(data.get("lastUpdate")),
-            notes=None if data.get("notes") is None else [_e0 for _e0 in (data.get("notes") or [])],
-            labels=None if data.get("labels") is None else { _k0:_v0 for _k0, _v0 in (data.get("labels") or {}).items() },
+            notes=None if data.get("notes") is None else [_check_str(_e0) for _e0 in _as_list(data.get("notes"))],
+            labels=None if data.get("labels") is None else { _k0:_check_str(_v0) for _k0, _v0 in _as_dict(data.get("labels")).items() },
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -95,7 +95,7 @@ class CreateItemRequest:
         if data is None:
             return None
         return cls(
-            name=data.get("name"),
+            name=_check_str(data.get("name")),
             tier=ItemTier.from_dict(data.get("tier")),
         )
 
@@ -116,8 +116,8 @@ class ItemSummary:
         if data is None:
             return None
         return cls(
-            id=data.get("id"),
-            name=data.get("name"),
+            id=_check_str(data.get("id")),
+            name=_check_str(data.get("name")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -137,8 +137,8 @@ class Credentials:
         if data is None:
             return None
         return cls(
-            user=data.get("user"),
-            note=None if data.get("note") is None else data.get("note"),
+            user=_check_str(data.get("user")),
+            note=None if data.get("note") is None else _check_str(data.get("note")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -320,6 +320,46 @@ def _to_value(v: Any) -> Any:
     return v
 
 
+def _as_list(v: Any) -> list:
+    if v is None:
+        return []
+    if isinstance(v, list):
+        return v
+    raise TypeError(f"expected a list, got {type(v).__name__}")
+
+
+def _as_dict(v: Any) -> dict:
+    if v is None:
+        return {}
+    if isinstance(v, dict):
+        return v
+    raise TypeError(f"expected an object, got {type(v).__name__}")
+
+
+def _check_int(v: Any) -> Any:
+    if v is None or (isinstance(v, int) and not isinstance(v, bool)):
+        return v
+    raise TypeError(f"expected an integer, got {type(v).__name__}")
+
+
+def _check_float(v: Any) -> Any:
+    if v is None or (isinstance(v, (int, float)) and not isinstance(v, bool)):
+        return v
+    raise TypeError(f"expected a number, got {type(v).__name__}")
+
+
+def _check_bool(v: Any) -> Any:
+    if v is None or isinstance(v, bool):
+        return v
+    raise TypeError(f"expected a boolean, got {type(v).__name__}")
+
+
+def _check_str(v: Any) -> Any:
+    if v is None or isinstance(v, str):
+        return v
+    raise TypeError(f"expected a string, got {type(v).__name__}")
+
+
 def _parse_datetime(v: Any) -> datetime:
     if isinstance(v, datetime):
         return v
@@ -354,7 +394,7 @@ class ExampleServiceClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        return self._handle_response(_resp, lambda _data: [ItemSummary.from_dict(_e0) for _e0 in (_data.get("items") or [])])
+        return self._handle_response(_resp, lambda _data: [ItemSummary.from_dict(_e0) for _e0 in _as_list(_data.get("items"))])
 
     def get_item(self, itemId: str) -> Item:
         _body: dict[str, Any] = {
@@ -419,7 +459,7 @@ class ExampleServiceClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        return self._handle_response(_resp, lambda _data: { ItemTier.from_dict(_k0):_v0 for _k0, _v0 in (_data.get("counts") or {}).items() })
+        return self._handle_response(_resp, lambda _data: { ItemTier.from_dict(_k0):_check_int(_v0) for _k0, _v0 in _as_dict(_data.get("counts")).items() })
 
     def _handle_response(self, resp: "httpx.Response", decode: Optional[Callable[[dict[str, Any]], Any]] = None) -> Any:
         try:
@@ -524,41 +564,59 @@ class ExampleServiceServer:
         return [body]
 
     def _rpc_get_items(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.get_items(
-        )
+        result = self._service.get_items()
         return {"items": [_to_value(_e0) for _e0 in (result or [])]}
 
     def _rpc_get_item(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.get_item(
-            itemId=data.get("itemId"),
-        )
+        try:
+            args = {
+                "itemId": _check_str(data.get("itemId")),
+            }
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadRequest(cause=f"invalid request: {err}") from err
+        result = self._service.get_item(**args)
         return {"item": _to_value(result)}
 
     def _rpc_create_item(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.create_item(
-            item=CreateItemRequest.from_dict(data.get("item")),
-        )
+        try:
+            args = {
+                "item": CreateItemRequest.from_dict(data.get("item")),
+            }
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadRequest(cause=f"invalid request: {err}") from err
+        result = self._service.create_item(**args)
         return {}
 
     def _rpc_put_one(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.put_one(
-            itemId=data.get("itemId"),
-        )
+        try:
+            args = {
+                "itemId": _check_str(data.get("itemId")),
+            }
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadRequest(cause=f"invalid request: {err}") from err
+        result = self._service.put_one(**args)
         return {}
 
     def _rpc_take_one(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.take_one(
-            itemId=data.get("itemId"),
-        )
+        try:
+            args = {
+                "itemId": _check_str(data.get("itemId")),
+            }
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadRequest(cause=f"invalid request: {err}") from err
+        result = self._service.take_one(**args)
         return {}
 
     def _rpc_delete_item(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.delete_item(
-            itemId=data.get("itemId"),
-        )
+        try:
+            args = {
+                "itemId": _check_str(data.get("itemId")),
+            }
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadRequest(cause=f"invalid request: {err}") from err
+        result = self._service.delete_item(**args)
         return {}
 
     def _rpc_count_by_tier(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.count_by_tier(
-        )
+        result = self._service.count_by_tier()
         return {"counts": { _to_value(_k0): _to_value(_v0) for _k0, _v0 in (result or {}).items() }}

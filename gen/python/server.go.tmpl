@@ -75,17 +75,23 @@ class {{$service.Name}}Server:
 {{- range $_, $method := $service.Methods}}
 
     def _rpc_{{snakeCase $method.Name}}(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.{{template "pyMethod" $method}}(
+{{- if $method.Inputs}}
+        try:
+            args = {
 {{- if $method.Succinct}}
 {{- $in := index $method.Inputs 0}}
-            {{$in.Name}}={{template "fromValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "data"}},
+                "{{$in.Name}}": {{template "fromValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "data"}},
 {{- else}}
 {{- range $_, $in := $method.Inputs}}
 {{- $ik := $in.Name -}}{{- $ip := $ik -}}{{- if has $ik $kw -}}{{- $ip = printf "%s_" $ik -}}{{- end}}
-            {{$ip}}={{if $in.Optional}}None if data.get("{{$ik}}") is None else {{end}}{{template "fromValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "data.get(%q)" $ik)}},
+                "{{$ip}}": {{if $in.Optional}}None if data.get("{{$ik}}") is None else {{end}}{{template "fromValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "data.get(%q)" $ik)}},
 {{- end}}
 {{- end}}
-        )
+            }
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadRequest(cause=f"invalid request: {err}") from err
+{{- end}}
+        result = self._service.{{template "pyMethod" $method}}({{if $method.Inputs}}**args{{end}})
 {{- if eq (len $method.Outputs) 0}}
         return {}
 {{- else if $method.Succinct}}

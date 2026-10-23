@@ -49,8 +49,8 @@ class Item:
         if data is None:
             return None
         return cls(
-            id=data.get("id"),
-            name=data.get("name"),
+            id=_check_int(data.get("id")),
+            name=_check_str(data.get("name")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -70,8 +70,8 @@ class GetItemRequest:
         if data is None:
             return None
         return cls(
-            id=data.get("id"),
-            details=None if data.get("details") is None else data.get("details"),
+            id=_check_int(data.get("id")),
+            details=None if data.get("details") is None else _check_bool(data.get("details")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -111,9 +111,9 @@ class ListItemsRequest:
         if data is None:
             return None
         return cls(
-            q=None if data.get("q") is None else data.get("q"),
-            tags=[_e0 for _e0 in (data.get("tags") or [])],
-            limit=data.get("limit"),
+            q=None if data.get("q") is None else _check_str(data.get("q")),
+            tags=[_check_str(_e0) for _e0 in _as_list(data.get("tags"))],
+            limit=_check_int(data.get("limit")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -134,7 +134,7 @@ class ListItemsResponse:
         if data is None:
             return None
         return cls(
-            items=[Item.from_dict(_e0) for _e0 in (data.get("items") or [])],
+            items=[Item.from_dict(_e0) for _e0 in _as_list(data.get("items"))],
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -161,16 +161,16 @@ class OptFields:
         if data is None:
             return None
         return cls(
-            reqBool=data.get("reqBool"),
-            reqInt=data.get("reqInt"),
-            reqString=data.get("reqString"),
-            reqList=[_e0 for _e0 in (data.get("reqList") or [])],
-            reqMap={ _k0:_v0 for _k0, _v0 in (data.get("reqMap") or {}).items() },
-            optBool=None if data.get("optBool") is None else data.get("optBool"),
-            optInt=None if data.get("optInt") is None else data.get("optInt"),
-            optString=None if data.get("optString") is None else data.get("optString"),
-            optList=None if data.get("optList") is None else [_e0 for _e0 in (data.get("optList") or [])],
-            optMap=None if data.get("optMap") is None else { _k0:_v0 for _k0, _v0 in (data.get("optMap") or {}).items() },
+            reqBool=_check_bool(data.get("reqBool")),
+            reqInt=_check_int(data.get("reqInt")),
+            reqString=_check_str(data.get("reqString")),
+            reqList=[_check_str(_e0) for _e0 in _as_list(data.get("reqList"))],
+            reqMap={ _k0:_check_int(_v0) for _k0, _v0 in _as_dict(data.get("reqMap")).items() },
+            optBool=None if data.get("optBool") is None else _check_bool(data.get("optBool")),
+            optInt=None if data.get("optInt") is None else _check_int(data.get("optInt")),
+            optString=None if data.get("optString") is None else _check_str(data.get("optString")),
+            optList=None if data.get("optList") is None else [_check_str(_e0) for _e0 in _as_list(data.get("optList"))],
+            optMap=None if data.get("optMap") is None else { _k0:_check_int(_v0) for _k0, _v0 in _as_dict(data.get("optMap")).items() },
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -239,8 +239,8 @@ class Simple:
         if data is None:
             return None
         return cls(
-            id=data.get("id"),
-            name=data.get("name"),
+            id=_check_int(data.get("id")),
+            name=_check_str(data.get("name")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -261,9 +261,9 @@ class User:
         if data is None:
             return None
         return cls(
-            id=data.get("id"),
-            USERNAME=data.get("USERNAME"),
-            role=data.get("role"),
+            id=_check_int(data.get("id")),
+            USERNAME=_check_str(data.get("USERNAME")),
+            role=_check_str(data.get("role")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -292,14 +292,14 @@ class Complex:
         if data is None:
             return None
         return cls(
-            meta={ _k0:_v0 for _k0, _v0 in (data.get("meta") or {}).items() },
-            metaNestedExample={ _k0:{ _k1:_v1 for _k1, _v1 in (_v0 or {}).items() } for _k0, _v0 in (data.get("metaNestedExample") or {}).items() },
-            namesList=[_e0 for _e0 in (data.get("namesList") or [])],
-            numsList=[_e0 for _e0 in (data.get("numsList") or [])],
-            doubleArray=[[_e1 for _e1 in (_e0 or [])] for _e0 in (data.get("doubleArray") or [])],
-            listOfMaps=[{ _k1:_v1 for _k1, _v1 in (_e0 or {}).items() } for _e0 in (data.get("listOfMaps") or [])],
-            listOfUsers=[User.from_dict(_e0) for _e0 in (data.get("listOfUsers") or [])],
-            mapOfUsers={ _k0:User.from_dict(_v0) for _k0, _v0 in (data.get("mapOfUsers") or {}).items() },
+            meta={ _k0:_v0 for _k0, _v0 in _as_dict(data.get("meta")).items() },
+            metaNestedExample={ _k0:{ _k1:_check_int(_v1) for _k1, _v1 in _as_dict(_v0).items() } for _k0, _v0 in _as_dict(data.get("metaNestedExample")).items() },
+            namesList=[_check_str(_e0) for _e0 in _as_list(data.get("namesList"))],
+            numsList=[_check_int(_e0) for _e0 in _as_list(data.get("numsList"))],
+            doubleArray=[[_check_str(_e1) for _e1 in _as_list(_e0)] for _e0 in _as_list(data.get("doubleArray"))],
+            listOfMaps=[{ _k1:_check_int(_v1) for _k1, _v1 in _as_dict(_e0).items() } for _e0 in _as_list(data.get("listOfMaps"))],
+            listOfUsers=[User.from_dict(_e0) for _e0 in _as_list(data.get("listOfUsers"))],
+            mapOfUsers={ _k0:User.from_dict(_v0) for _k0, _v0 in _as_dict(data.get("mapOfUsers")).items() },
             user=User.from_dict(data.get("user")),
             status=Status.from_dict(data.get("status")),
         )
@@ -329,8 +329,8 @@ class EnumData:
         if data is None:
             return None
         return cls(
-            dict={ Access.from_dict(_k0):_v0 for _k0, _v0 in (data.get("dict") or {}).items() },
-            list=[Status.from_dict(_e0) for _e0 in (data.get("list") or [])],
+            dict={ Access.from_dict(_k0):_check_int(_v0) for _k0, _v0 in _as_dict(data.get("dict")).items() },
+            list=[Status.from_dict(_e0) for _e0 in _as_list(data.get("list"))],
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -627,6 +627,46 @@ def _to_value(v: Any) -> Any:
     return v
 
 
+def _as_list(v: Any) -> list:
+    if v is None:
+        return []
+    if isinstance(v, list):
+        return v
+    raise TypeError(f"expected a list, got {type(v).__name__}")
+
+
+def _as_dict(v: Any) -> dict:
+    if v is None:
+        return {}
+    if isinstance(v, dict):
+        return v
+    raise TypeError(f"expected an object, got {type(v).__name__}")
+
+
+def _check_int(v: Any) -> Any:
+    if v is None or (isinstance(v, int) and not isinstance(v, bool)):
+        return v
+    raise TypeError(f"expected an integer, got {type(v).__name__}")
+
+
+def _check_float(v: Any) -> Any:
+    if v is None or (isinstance(v, (int, float)) and not isinstance(v, bool)):
+        return v
+    raise TypeError(f"expected a number, got {type(v).__name__}")
+
+
+def _check_bool(v: Any) -> Any:
+    if v is None or isinstance(v, bool):
+        return v
+    raise TypeError(f"expected a boolean, got {type(v).__name__}")
+
+
+def _check_str(v: Any) -> Any:
+    if v is None or isinstance(v, str):
+        return v
+    raise TypeError(f"expected a string, got {type(v).__name__}")
+
+
 def _parse_datetime(v: Any) -> datetime:
     if isinstance(v, datetime):
         return v
@@ -750,7 +790,7 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        return self._handle_response(_resp, lambda _data: [Status.from_dict(_e0) for _e0 in (_data.get("list") or [])])
+        return self._handle_response(_resp, lambda _data: [Status.from_dict(_e0) for _e0 in _as_list(_data.get("list"))])
 
     def get_enum_map(self) -> dict[Access, int]:
         _body: dict[str, Any] = {
@@ -760,7 +800,7 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        return self._handle_response(_resp, lambda _data: { Access.from_dict(_k0):_v0 for _k0, _v0 in (_data.get("map") or {}).items() })
+        return self._handle_response(_resp, lambda _data: { Access.from_dict(_k0):_check_int(_v0) for _k0, _v0 in _as_dict(_data.get("map")).items() })
 
     def get_schema_error(self, code: int) -> None:
         _body: dict[str, Any] = {
@@ -888,29 +928,29 @@ class TestApiServer:
         return [body]
 
     def _rpc_get_empty(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.get_empty(
-        )
+        result = self._service.get_empty()
         return {}
 
     def _rpc_get_error(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.get_error(
-        )
+        result = self._service.get_error()
         return {}
 
     def _rpc_get_one(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.get_one(
-        )
+        result = self._service.get_one()
         return {"one": _to_value(result)}
 
     def _rpc_send_one(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.send_one(
-            one=Simple.from_dict(data.get("one")),
-        )
+        try:
+            args = {
+                "one": Simple.from_dict(data.get("one")),
+            }
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadRequest(cause=f"invalid request: {err}") from err
+        result = self._service.send_one(**args)
         return {}
 
     def _rpc_get_multi(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.get_multi(
-        )
+        result = self._service.get_multi()
         out: dict[str, Any] = {
             "one": _to_value(result[0]),
             "two": _to_value(result[1]),
@@ -919,36 +959,45 @@ class TestApiServer:
         return out
 
     def _rpc_send_multi(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.send_multi(
-            one=Simple.from_dict(data.get("one")),
-            two=Simple.from_dict(data.get("two")),
-            three=Simple.from_dict(data.get("three")),
-        )
+        try:
+            args = {
+                "one": Simple.from_dict(data.get("one")),
+                "two": Simple.from_dict(data.get("two")),
+                "three": Simple.from_dict(data.get("three")),
+            }
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadRequest(cause=f"invalid request: {err}") from err
+        result = self._service.send_multi(**args)
         return {}
 
     def _rpc_get_complex(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.get_complex(
-        )
+        result = self._service.get_complex()
         return {"complex": _to_value(result)}
 
     def _rpc_send_complex(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.send_complex(
-            complex=Complex.from_dict(data.get("complex")),
-        )
+        try:
+            args = {
+                "complex": Complex.from_dict(data.get("complex")),
+            }
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadRequest(cause=f"invalid request: {err}") from err
+        result = self._service.send_complex(**args)
         return {}
 
     def _rpc_get_enum_list(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.get_enum_list(
-        )
+        result = self._service.get_enum_list()
         return {"list": [_to_value(_e0) for _e0 in (result or [])]}
 
     def _rpc_get_enum_map(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.get_enum_map(
-        )
+        result = self._service.get_enum_map()
         return {"map": { _to_value(_k0): _to_value(_v0) for _k0, _v0 in (result or {}).items() }}
 
     def _rpc_get_schema_error(self, data: dict[str, Any]) -> dict[str, Any]:
-        result = self._service.get_schema_error(
-            code=data.get("code"),
-        )
+        try:
+            args = {
+                "code": _check_int(data.get("code")),
+            }
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadRequest(cause=f"invalid request: {err}") from err
+        result = self._service.get_schema_error(**args)
         return {}

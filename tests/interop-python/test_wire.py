@@ -165,6 +165,30 @@ def test_unusable_responses_are_bad_responses():
             raise AssertionError(f"{name}: expected WebrpcBadResponse")
 
 
+def test_invalid_request_arguments_are_bad_requests():
+    class Impl:
+        def check(self, kind, at, code, tags, ok, f):
+            return True
+
+    valid = {"kind": "ADMIN", "at": "2020-01-01T00:00:00Z", "code": 1, "tags": ["a"], "ok": True, "f": 1.5}
+    assert _call(Impl(), "Check", valid) == (200, {"ok": True})
+    invalid = {
+        "unknown enum value": {"kind": "NOPE"},
+        "missing timestamp": {"at": None},
+        "malformed timestamp": {"at": "yesterday"},
+        "string for int": {"code": "abc"},
+        "float for int": {"code": 1.5},
+        "bool for int": {"code": True},
+        "number for string list": {"tags": [1]},
+        "string for list": {"tags": "abc"},
+        "string for bool": {"ok": "yes"},
+        "string for float": {"f": "1.5"},
+    }
+    for name, change in invalid.items():
+        status, body = _call(Impl(), "Check", {**valid, **change})
+        assert status == 400 and body["error"] == "WebrpcBadRequest" and body["cause"], (name, status, body)
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
