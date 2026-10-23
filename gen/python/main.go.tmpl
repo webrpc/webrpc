@@ -52,6 +52,32 @@
   {{- end -}}
 {{- end -}}
 
+{{- /* []byte is base64 on the wire and not decoded yet; fail loudly rather than emit a list of characters. */ -}}
+{{- range $_, $type := .Types -}}
+  {{- if isStructType $type -}}
+    {{- range $_, $field := $type.Fields -}}
+      {{- if contains "[]byte" (printf "%v" $field.Type) -}}
+        {{- stderrPrintf "%s generator error: the []byte type is not supported (%s.%s)\n" $.WebrpcTarget $type.Name $field.Name -}}
+        {{- exit 1 -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if and (isAliasType $type) (contains "[]byte" (printf "%v" $type.Type)) -}}
+    {{- stderrPrintf "%s generator error: the []byte type is not supported (%s)\n" $.WebrpcTarget $type.Name -}}
+    {{- exit 1 -}}
+  {{- end -}}
+{{- end -}}
+{{- range $_, $service := .Services -}}
+  {{- range $_, $method := $service.Methods -}}
+    {{- range $_, $arg := concat $method.Inputs $method.Outputs -}}
+      {{- if contains "[]byte" (printf "%v" $arg.Type) -}}
+        {{- stderrPrintf "%s generator error: the []byte type is not supported (%s.%s)\n" $.WebrpcTarget $service.Name $method.Name -}}
+        {{- exit 1 -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
 {{- /* Map webrpc core types to Python. */ -}}
 {{- $typeMap := dict -}}
 {{- set $typeMap "null" "None" -}}
