@@ -51,7 +51,16 @@ _errors_by_code: dict[int, type[WebRPCError]] = {
 }
 
 
-def _error_from_code(code: Any, message: Optional[str] = None, cause: Optional[str] = None) -> WebRPCError:
-    cls = _errors_by_code.get(code, WebRPCError)
-    return cls(message=message, cause=cause)
+def _error_from_code(code: Any, message: Optional[str] = None, cause: Optional[str] = None, name: Optional[str] = None, status: Optional[int] = None) -> WebRPCError:
+    cls = _errors_by_code.get(code)
+    if cls is not None:
+        return cls(message=message, cause=cause)
+    err = WebRPCError(message=message, cause=cause)
+    if isinstance(code, int):
+        err.code = code
+    if isinstance(name, str):
+        err.name = name
+    if isinstance(status, int):
+        err.status = status
+    return err
 {{- end -}}
