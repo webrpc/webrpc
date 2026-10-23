@@ -76,13 +76,21 @@ class {{$service.Name}}Server:
 
     def _{{snakeCase $method.Name}}(self, data: dict[str, Any]) -> dict[str, Any]:
         result = self._service.{{snakeCase $method.Name}}(
+{{- if $method.Succinct}}
+{{- $in := index $method.Inputs 0}}
+            {{$in.Name}}={{template "fromValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "data"}},
+{{- else}}
 {{- range $_, $in := $method.Inputs}}
 {{- $ik := $in.Name -}}{{- $ip := $ik -}}{{- if has $ik $kw -}}{{- $ip = printf "%s_" $ik -}}{{- end}}
             {{$ip}}={{if $in.Optional}}None if data.get("{{$ik}}") is None else {{end}}{{template "fromValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "data.get(%q)" $ik)}},
 {{- end}}
+{{- end}}
         )
 {{- if eq (len $method.Outputs) 0}}
         return {}
+{{- else if $method.Succinct}}
+{{- $out := index $method.Outputs 0}}
+        return {{template "toValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "result"}}
 {{- else if eq (len $method.Outputs) 1}}
 {{- range $_, $out := $method.Outputs}}
         return {"{{$out.Name}}": {{if $out.Optional}}None if result is None else {{end}}{{template "toValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "result"}}}
