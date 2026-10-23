@@ -91,6 +91,34 @@ def test_unset_optionals_are_omitted():
     assert _call(Impl(), "Maybe", {"x": None, "y": "y"}) == (200, {"w": "w"})
 
 
+def test_reserved_names_in_methods_and_arguments():
+    seen = []
+
+    def respond(request):
+        seen.append(json.loads(request.content))
+        return httpx.Response(200, json={"ok": True})
+
+    client = _client(respond)
+    assert client.from_("c") is True
+    assert client.import_() is None
+    assert client.get("s") is True
+    assert seen == [{"class": "c"}, {}, {"self": "s"}]
+
+    class Impl:
+        def from_(self, class_):
+            return class_ == "c"
+
+        def import_(self):
+            pass
+
+        def get(self, self_):
+            return self_ == "s"
+
+    assert _call(Impl(), "From", {"class": "c"}) == (200, {"ok": True})
+    assert _call(Impl(), "Import", {}) == (200, {})
+    assert _call(Impl(), "Get", {"self": "s"}) == (200, {"ok": True})
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
