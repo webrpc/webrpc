@@ -1,0 +1,86 @@
+{{- define "client" -}}
+{{- $typeMap := .TypeMap -}}
+{{- $aliasMap := .AliasMap -}}
+{{- $basepath := .BasePath -}}
+{{- $services := .Services -}}
+{{- $webrpcHeader := .WebrpcHeader -}}
+{{- $kw := list "False" "None" "True" "and" "as" "assert" "async" "await" "break" "class" "continue" "def" "del" "elif" "else" "except" "finally" "for" "from" "global" "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "raise" "return" "try" "while" "with" "yield" "self" -}}
+{{- range $_, $service := $services}}
+
+class {{$service.Name}}Client:
+    def __init__(self, base_url: str, client: Optional["httpx.Client"] = None):
+        if client is None:
+            import httpx
+            client = httpx.Client()
+        self._base = base_url.rstrip("/") + "{{$basepath}}{{$service.Name}}/"
+        self._client = client
+{{- range $_, $method := $service.Methods}}
+
+    def {{template "pyMethod" $method}}(self{{range $_, $in := $method.Inputs}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}, {{$ip}}: {{template "type" dict "Type" $in.Type "TypeMap" $typeMap}}{{end}}) -> {{template "methodReturn" dict "Method" $method "TypeMap" $typeMap}}:
+{{- if not $method.Succinct}}
+        _body: dict[str, Any] = {
+{{- range $_, $in := $method.Inputs}}{{if not $in.Optional}}
+{{- $ik := $in.Name -}}{{- $ip := $ik -}}{{- if has $ik $kw -}}{{- $ip = printf "%s_" $ik -}}{{- end}}
+            "{{$ik}}": {{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $ip}},
+{{- end}}{{end}}
+        }
+{{- range $_, $in := $method.Inputs}}{{if $in.Optional}}
+{{- $ik := $in.Name -}}{{- $ip := $ik -}}{{- if has $ik $kw -}}{{- $ip = printf "%s_" $ik -}}{{- end}}
+        if {{$ip}} is not None:
+            _body["{{$ik}}"] = {{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $ip}}
+{{- end}}{{end}}
+{{- end}}
+        _resp = self._client.post(
+            self._base + "{{$method.Name}}",
+{{- if $method.Succinct}}
+{{- $in := index $method.Inputs 0}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}
+            json={{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $ip}},
+{{- else}}
+            json=_body,
+{{- end}}
+            headers={"Content-Type": "application/json", "Accept": "application/json"{{if $webrpcHeader}}, "Webrpc": WEBRPC_HEADER_VALUE{{end}}},
+        )
+{{- if eq (len $method.Outputs) 0}}
+        self._handle_response(_resp)
+{{- else if $method.Succinct}}
+{{- $out := index $method.Outputs 0}}
+        return self._handle_response(_resp, lambda _data: {{template "fromValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "_data"}})
+{{- else if eq (len $method.Outputs) 1}}
+{{- range $_, $out := $method.Outputs}}
+        return self._handle_response(_resp, lambda _data: {{if .Optional}}None if _data.get("{{$out.Name}}") is None else {{end}}{{template "fromValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "_data.get(%q)" $out.Name)}})
+{{- end}}
+{{- else}}
+        return self._handle_response(_resp, lambda _data: (
+{{- range $_, $out := $method.Outputs}}
+            {{if .Optional}}None if _data.get("{{$out.Name}}") is None else {{end}}{{template "fromValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "_data.get(%q)" $out.Name)}},
+{{- end}}
+        ))
+{{- end}}
+{{- end}}
+
+    def _handle_response(self, resp: "httpx.Response", decode: Optional[Callable[[dict[str, Any]], Any]] = None) -> Any:
+        try:
+            body = resp.json() if resp.content else None
+        except ValueError as err:
+            raise WebrpcBadResponse(cause=f"failed to decode response body (status {resp.status_code}): {err}") from err
+        if not 200 <= resp.status_code < 300:
+            if not isinstance(body, dict):
+                raise WebrpcBadResponse(cause=f"unexpected response (status {resp.status_code})")
+            code = body.get("code")
+            if "code" in body and (not isinstance(code, int) or isinstance(code, bool)):
+                raise WebrpcBadResponse(cause=f"unexpected response (status {resp.status_code})")
+            raise _error_from_code(code, body.get("msg"), body.get("cause"), body.get("error"), body.get("status"))
+        if body is None:
+            if decode is not None:
+                raise WebrpcBadResponse(cause=f"empty response body (status {resp.status_code})")
+            body = {}
+        if not isinstance(body, dict):
+            raise WebrpcBadResponse(cause="response body must be a JSON object")
+        if decode is None:
+            return None
+        try:
+            return decode(body)
+        except (ValueError, TypeError, KeyError, AttributeError) as err:
+            raise WebrpcBadResponse(cause=f"failed to decode response: {err}") from err
+{{- end}}
+{{- end -}}

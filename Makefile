@@ -35,6 +35,7 @@ generate: build
 	for i in _examples/*; do echo $$i; make -C $$i generate || exit 1; done
 	make -C tests/interop-web generate
 	make -C tests/interop-csharp generate
+	make -C tests/interop-python generate
 	# Replace webrpc version in all generated files to avoid git conflicts.
 	git grep -l "$(VERSION)" | xargs perl -i -pe "s/\@$(VERSION)//g"
 	perl -i -ne "print unless /$(VERSION)/" tests/schema/test.debug.gen.txt

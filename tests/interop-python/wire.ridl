@@ -1,0 +1,60 @@
+webrpc = v1
+
+name = t
+version = v0.1.0
+basepath = /rpc
+
+type Outer: Inner
+
+type Inner: []User
+
+type Users: []User
+
+type K2: Kind
+
+enum Kind: uint32
+  - Admin
+    + json = ADMIN
+  - User
+
+enum Country: string
+  - CA = "Canada"
+  - US = "USA"
+
+struct Data
+  - k: Kind
+  - c: Country
+
+struct FlattenRequest
+  - a: string
+
+struct Import
+  - a: string
+
+struct FlattenResponse
+  - b: string
+
+service Wire
+  - Flatten(FlattenRequest) => (FlattenResponse)
+  - Go(Import) => (FlattenResponse)
+  - From(class: string) => (ok: bool)
+  - Import() => ()
+  - Get(self: string) => (ok: bool)
+  - Respond() => (v: string)
+  - Error() => (v: string)
+  - Headers() => (v: string)
+  - GetKind() => (kind: Kind)
+  - Check(kind: Kind, at: timestamp, code: int, tags: []string, ok: bool, f: float64) => (ok: bool)
+  - Maybe(x?: string, y: string) => (z?: string, w: string)
+
+struct User
+  - id: uint64
+
+struct Team
+  - users: Users
+  - nested: Outer
+  - kind: K2
+
+struct Opt
+  - need: string
+  - may?: string

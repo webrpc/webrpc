@@ -29,7 +29,7 @@ var (
 	clientFlags    = flag.NewFlagSet("webrpc-test -client", flag.ExitOnError)
 	clientUrlFlag  = clientFlags.String("url", "http://localhost:9988", "run client against given server URL")
 	clientRestFlag = clientFlags.Bool("rest", false, "run the REST routes suite (TestApiRest) instead")
-	clientSkipFlag = clientFlags.String("skip", "", "REST suite: comma-separated case names to skip, e.g. PatchItem(nil)")
+	clientSkipFlag = clientFlags.String("skip", "", "comma-separated case names to skip: \"files\" for the RPC suite, e.g. PatchItem(nil) for the REST suite")
 
 	// webrpc-test -server -port=9988 -timeout=1m
 	serverFlags       = flag.NewFlagSet("webrpc-test -server", flag.ExitOnError)
@@ -66,9 +66,9 @@ func main() {
 			os.Exit(1)
 		}
 
-		run := func(ctx context.Context, url string) error { return client.RunTests(ctx, url) }
+		skip := strings.Split(*clientSkipFlag, ",")
+		run := func(ctx context.Context, url string) error { return client.RunTests(ctx, url, skip...) }
 		if *clientRestFlag {
-			skip := strings.Split(*clientSkipFlag, ",")
 			run = func(ctx context.Context, url string) error { return client.RunRESTTests(ctx, url, skip...) }
 		}
 		if err := run(context.Background(), *clientUrlFlag); err != nil {

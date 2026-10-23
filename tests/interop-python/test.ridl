@@ -1,0 +1,129 @@
+# Code generated from ../schema/test.ridl without its file methods and REST service. DO NOT EDIT.
+
+webrpc = v1
+
+name = Test
+version = v1.0.0
+basepath = /rpc
+
+service TestApi
+  - GetEmpty()
+  - GetError()
+  
+  - GetOne() => (one: Simple)
+  - SendOne(one: Simple)
+
+  - GetMulti() => (one: Simple, two: Simple, three: Simple)
+  - SendMulti(one: Simple, two: Simple, three: Simple)
+  
+  - GetComplex() => (complex: Complex)
+  - SendComplex(complex: Complex)
+
+  - GetEnumList() => (list: []Status)
+  - GetEnumMap() => (map: map<Access, uint64>)
+
+  # added in v0.11.0
+  - GetSchemaError(code: int)
+
+  # added in v0.46.0
+
+# added in v0.47.0 (REST routes)
+struct Item
+  - id: uint64
+  - name: string
+
+struct GetItemRequest
+  - id: uint64
+  - details?: bool
+
+struct GetItemResponse
+  - item: Item
+
+struct ListItemsRequest
+  - q?: string
+  - tags: []string
+  - limit: uint32
+
+struct ListItemsResponse
+  - items: []Item
+
+struct OptFields
+  - reqBool: bool
+  - reqInt: int64
+  - reqString: string
+  - reqList: []string
+  - reqMap: map<string,uint32>
+  - optBool?: bool
+  - optInt?: int64
+  - optString?: string
+  - optList?: []string
+  - optMap?: map<string,uint32>
+
+struct CreateItemRequest
+  - item: Item
+
+struct CreateItemResponse
+  - item: Item
+
+struct Simple
+  - id: int
+  - name: string
+
+struct User
+  - id: uint64
+    + json = id
+    + go.field.name = ID
+    + go.tag.db = id
+
+  - username: string
+    + json = USERNAME
+    + go.tag.db = username
+
+  - role: string
+    + go.tag.db = -
+
+enum Status: uint32
+  - AVAILABLE
+  - NOT_AVAILABLE
+
+enum Access: uint32
+  - NONE
+  - READ
+  - WRITE
+  - ADMIN
+  - OWNER
+
+struct Complex
+  - meta: map<string,any>
+  - metaNestedExample: map<string,map<string,uint32>>
+  - namesList: []string
+  - numsList: []int64
+  - doubleArray: [][]string
+  - listOfMaps: []map<string,uint32>
+  - listOfUsers: []User
+  - mapOfUsers: map<string,User>
+  - user: User
+  - status: Status
+
+struct EnumData
+  - dict: map<Access,uint64>
+  - list: []Status
+
+error   1 Unauthorized    "unauthorized"        HTTP 401
+error   2 ExpiredToken    "expired token"       HTTP 401
+error   3 InvalidToken    "invalid token"       HTTP 401
+error   4 Deactivated     "account deactivated" HTTP 403
+error   5 ConfirmAccount  "confirm your email"  HTTP 403
+error   6 AccessDenied    "access denied"       HTTP 403
+error   7 MissingArgument "missing argument"    HTTP 400
+error   8 UnexpectedValue "unexpected value"    HTTP 400
+error 100 RateLimited     "too many requests"   HTTP 429
+error 101 DatabaseDown    "service outage"      HTTP 503
+error 102 ElasticDown     "search is degraded"  HTTP 503
+error 103 NotImplemented  "not implemented"     HTTP 501
+error 200 UserNotFound    "user not found"
+error 201 UserBusy        "user busy"
+error 202 InvalidUsername "invalid username"
+error 300 FileTooBig      "file is too big (max 1GB)"
+error 301 FileInfected    "file is infected"
+error 302 FileType        "unsupported file type"
