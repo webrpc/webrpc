@@ -42,7 +42,9 @@ Requires Python 3.11+. The client requires `httpx`.
   fails when the schema uses them.
 - REST routes (`+ GET /path`) are ignored; every method is served and called
   as `POST <basepath><Service>/<Method>`.
-- Enums are serialized as their member-name string, like the Go generator.
+- Enums are serialized as their wire value, like the Go and TypeScript
+  generators: the value of a string enum, the member name (or its `json`
+  meta) of a numeric one.
 - Alias-typed struct fields are deserialized through the alias name; only
   scalar aliases are covered by the tests.
 

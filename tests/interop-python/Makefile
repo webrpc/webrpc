@@ -21,6 +21,7 @@ generate: build
 	webrpc-gen -schema=./example.ridl -target=python -client -server -out=./example.gen.py
 	$(FILTER_TEST_SCHEMA) $(TEST_SCHEMA) > ./test.ridl
 	webrpc-gen -schema=./test.ridl -target=python -client -server -out=./test.gen.py
+	webrpc-gen -schema=./wire.ridl -target=python -client -server -out=./wire.gen.py
 
 # Create ./.venv with the generated client's dependency.
 venv:
