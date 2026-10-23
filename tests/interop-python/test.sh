@@ -39,6 +39,9 @@ expect_rejected() {
     esac
 }
 
+echo "wire format"
+"$PYTHON" test_wire.py
+
 echo "streaming and file schemas are rejected"
 for schema in streaming.ridl file.ridl file-field.ridl; do
     expect_rejected $schema

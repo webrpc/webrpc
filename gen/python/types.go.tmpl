@@ -9,7 +9,7 @@
 class {{$type.Name}}(Enum):
 {{- range $_, $field := $type.Fields}}
 {{- $m := $field.Name -}}{{- if has $field.Name $kw -}}{{- $m = printf "%s_" $field.Name -}}{{- end}}
-    {{$m}} = "{{$field.Name}}"
+    {{$m}} = "{{if eq $type.Type.Expr "string"}}{{$field.Value}}{{else}}{{enumWireValue $field}}{{end}}"
 {{- end}}
 
     @classmethod
