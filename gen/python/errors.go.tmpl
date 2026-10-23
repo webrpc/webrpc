@@ -1,0 +1,57 @@
+{{- define "errors" -}}
+{{- $rpcErrors := .WebrpcErrors -}}
+{{- $schemaErrors := .Errors -}}
+
+class WebRPCError(Exception):
+    name: str = "WebRPCError"
+    code: int = 0
+    message: str = "webrpc error"
+    status: int = 400
+
+    def __init__(self, message: Optional[str] = None, cause: Optional[str] = None):
+        self.message = message if message is not None else type(self).message
+        self.cause = cause
+        super().__init__(self.message)
+
+    def to_dict(self) -> dict[str, Any]:
+        out: dict[str, Any] = {
+            "error": self.name,
+            "code": self.code,
+            "msg": self.message,
+            "status": self.status,
+        }
+        if self.cause:
+            out["cause"] = self.cause
+        return out
+
+{{range $_, $err := $rpcErrors}}
+class {{$err.Name}}(WebRPCError):
+    name = "{{$err.Name}}"
+    code = {{$err.Code}}
+    message = "{{$err.Message}}"
+    status = {{$err.HTTPStatus}}
+
+{{end -}}
+{{- range $_, $err := $schemaErrors}}
+class {{$err.Name}}(WebRPCError):
+    name = "{{$err.Name}}"
+    code = {{$err.Code}}
+    message = "{{$err.Message}}"
+    status = {{$err.HTTPStatus}}
+
+{{end -}}
+
+_errors_by_code: dict[int, type[WebRPCError]] = {
+{{- range $_, $err := $rpcErrors}}
+    {{$err.Code}}: {{$err.Name}},
+{{- end}}
+{{- range $_, $err := $schemaErrors}}
+    {{$err.Code}}: {{$err.Name}},
+{{- end}}
+}
+
+
+def _error_from_code(code: Any, message: Optional[str] = None, cause: Optional[str] = None) -> WebRPCError:
+    cls = _errors_by_code.get(code, WebRPCError)
+    return cls(message=message, cause=cause)
+{{- end -}}

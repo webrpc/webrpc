@@ -1,0 +1,27 @@
+{{- define "fromValue" -}}
+{{- /* Emits a Python expression that converts .Var (already JSON-decoded) into .Type. */ -}}
+{{- $type := .Type -}}
+{{- $typeMap := .TypeMap -}}
+{{- $aliasMap := .AliasMap -}}
+{{- $var := .Var -}}
+{{- $depth := (or .Depth 0) -}}
+{{- $tn := printf "%v" $type -}}
+{{- if isMapType $type -}}
+{{- $kt := mapKeyType $type -}}
+{ {{if not (isCoreType $kt)}}{{$kt}}.from_dict(_k{{$depth}}){{else if eq (get $typeMap $kt) "int"}}int(_k{{$depth}}){{else}}_k{{$depth}}{{end}}:{{template "fromValue" dict "Type" (mapValueType $type) "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "_v%d" $depth) "Depth" (add $depth 1)}} for _k{{$depth}}, _v{{$depth}} in ({{$var}} or {}).items() }
+{{- else if isListType $type -}}
+[{{template "fromValue" dict "Type" (listElemType $type) "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "_e%d" $depth) "Depth" (add $depth 1)}} for _e{{$depth}} in ({{$var}} or [])]
+{{- else if isCoreType $type -}}
+{{- if eq $tn "timestamp" -}}
+_parse_datetime({{$var}})
+{{- else if eq $tn "bigint" -}}
+_parse_bigint({{$var}})
+{{- else -}}
+{{$var}}
+{{- end -}}
+{{- else if hasKey $aliasMap $tn -}}
+{{template "fromValue" dict "Type" (get $aliasMap $tn) "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $var "Depth" $depth}}
+{{- else -}}
+{{$type}}.from_dict({{$var}})
+{{- end -}}
+{{- end -}}

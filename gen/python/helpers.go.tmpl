@@ -1,0 +1,37 @@
+{{- define "helpers" -}}
+
+def _to_value(v: Any) -> Any:
+    if v is None:
+        return None
+    if isinstance(v, datetime):
+        if v.tzinfo is None:
+            v = v.replace(tzinfo=timezone.utc)
+        return v.isoformat()
+    if isinstance(v, Enum):
+        return v.value
+    if isinstance(v, list):
+        return [_to_value(x) for x in v]
+    if isinstance(v, dict):
+        return {_to_value(k): _to_value(x) for k, x in v.items()}
+    if hasattr(v, "to_dict"):
+        return v.to_dict()
+    return v
+
+
+def _parse_datetime(v: Any) -> datetime:
+    if isinstance(v, datetime):
+        return v
+    if isinstance(v, str) and v.endswith("Z"):
+        v = v[:-1] + "+00:00"
+    return datetime.fromisoformat(v)
+
+
+def _parse_bigint(v: Any) -> int:
+    # webrpc transports bigint as a decimal string; tolerate a JSON number too.
+    return int(v)
+
+
+def _bigint_to_value(v: Any) -> Any:
+    # webrpc expects bigint on the wire as a decimal string.
+    return None if v is None else str(v)
+{{- end -}}

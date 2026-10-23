@@ -1,0 +1,57 @@
+{{- define "client" -}}
+{{- $typeMap := .TypeMap -}}
+{{- $aliasMap := .AliasMap -}}
+{{- $basepath := .BasePath -}}
+{{- $services := .Services -}}
+{{- $webrpcHeader := .WebrpcHeader -}}
+{{- $kw := list "False" "None" "True" "and" "as" "assert" "async" "await" "break" "class" "continue" "def" "del" "elif" "else" "except" "finally" "for" "from" "global" "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "raise" "return" "try" "while" "with" "yield" -}}
+{{- range $_, $service := $services}}
+
+class {{$service.Name}}Client:
+    def __init__(self, base_url: str, client: Optional["httpx.Client"] = None):
+        if client is None:
+            import httpx
+            client = httpx.Client()
+        self._base = base_url.rstrip("/") + "{{$basepath}}{{$service.Name}}/"
+        self._client = client
+{{- range $_, $method := $service.Methods}}
+
+    def {{snakeCase $method.Name}}(self{{range $_, $in := $method.Inputs}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}, {{$ip}}: {{template "type" dict "Type" $in.Type "TypeMap" $typeMap}}{{end}}) -> {{template "methodReturn" dict "Method" $method "TypeMap" $typeMap}}:
+        _resp = self._client.post(
+            self._base + "{{$method.Name}}",
+            json={
+{{- range $_, $in := $method.Inputs}}
+{{- $ik := $in.Name -}}{{- $ip := $ik -}}{{- if has $ik $kw -}}{{- $ip = printf "%s_" $ik -}}{{- end}}
+                "{{$ik}}": {{if $in.Optional}}None if {{$ip}} is None else {{end}}{{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $ip}},
+{{- end}}
+            },
+            headers={"Content-Type": "application/json", "Accept": "application/json"{{if $webrpcHeader}}, "Webrpc": WEBRPC_HEADER_VALUE{{end}}},
+        )
+        _data = self._handle_response(_resp)
+{{- if eq (len $method.Outputs) 0}}
+        return None
+{{- else if eq (len $method.Outputs) 1}}
+{{- range $_, $out := $method.Outputs}}
+        return {{if .Optional}}None if _data.get("{{$out.Name}}") is None else {{end}}{{template "fromValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "_data.get(%q)" $out.Name)}}
+{{- end}}
+{{- else}}
+        return (
+{{- range $_, $out := $method.Outputs}}
+            {{if .Optional}}None if _data.get("{{$out.Name}}") is None else {{end}}{{template "fromValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "_data.get(%q)" $out.Name)}},
+{{- end}}
+        )
+{{- end}}
+{{- end}}
+
+    def _handle_response(self, resp: "httpx.Response") -> dict[str, Any]:
+        if resp.status_code >= 400:
+            try:
+                body = resp.json()
+            except Exception:
+                raise WebRPCError(message="invalid response from server")
+            raise _error_from_code(body.get("code"), body.get("msg"), body.get("cause"))
+        if not resp.content:
+            return {}
+        return resp.json()
+{{- end}}
+{{- end -}}

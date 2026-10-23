@@ -1,7 +1,7 @@
 # webrpc — agent guide
 
 webrpc is a schema-driven codegen tool: an API schema in RIDL (or JSON) generates
-strongly-typed servers and clients (Go, TypeScript, JavaScript, Kotlin, Dart, C#, OpenAPI)
+strongly-typed servers and clients (Go, TypeScript, JavaScript, Kotlin, Dart, C#, Python, OpenAPI)
 that speak HTTP + JSON.
 
 This file is for agents contributing to **this repo** (the schema parser and codegen

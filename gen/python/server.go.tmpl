@@ -1,0 +1,97 @@
+{{- define "server" -}}
+{{- $typeMap := .TypeMap -}}
+{{- $aliasMap := .AliasMap -}}
+{{- $basepath := .BasePath -}}
+{{- $services := .Services -}}
+{{- $kw := list "False" "None" "True" "and" "as" "assert" "async" "await" "break" "class" "continue" "def" "del" "elif" "else" "except" "finally" "for" "from" "global" "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "raise" "return" "try" "while" "with" "yield" -}}
+{{- range $_, $service := $services}}
+
+class {{$service.Name}}(Protocol):
+{{- range $_, $method := $service.Methods}}
+    def {{snakeCase $method.Name}}(self{{range $_, $in := $method.Inputs}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}, {{$ip}}: {{template "type" dict "Type" $in.Type "TypeMap" $typeMap}}{{end}}) -> {{template "methodReturn" dict "Method" $method "TypeMap" $typeMap}}:
+        ...
+{{- end}}
+
+
+class {{$service.Name}}Server:
+    """Framework-agnostic WSGI application that serves a {{$service.Name}} implementation."""
+
+    def __init__(self, service: "{{$service.Name}}"):
+        self._service = service
+        self._routes = {
+{{- range $_, $method := $service.Methods}}
+            "{{$basepath}}{{$service.Name}}/{{$method.Name}}": self._{{snakeCase $method.Name}},
+{{- end}}
+        }
+
+    def __call__(self, environ, start_response):
+        if environ.get("REQUEST_METHOD") != "POST":
+            return self._error(start_response, WebrpcBadMethod(), [("Allow", "POST")])
+        handler = self._routes.get(environ.get("PATH_INFO", ""))
+        if handler is None:
+            return self._error(start_response, WebrpcBadRoute())
+        content_type = environ.get("CONTENT_TYPE", "").split(";")[0].strip().lower()
+        if content_type != "application/json":
+            return self._error(start_response, WebrpcBadRequest(message="Content-Type must be application/json"))
+        try:
+            length = int(environ.get("CONTENT_LENGTH") or 0)
+        except (TypeError, ValueError):
+            return self._error(start_response, WebrpcBadRequest(message="invalid Content-Length"))
+        raw = environ["wsgi.input"].read(length) if length else b""
+        try:
+            data = json.loads(raw) if raw else {}
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return self._error(start_response, WebrpcBadRequest(message="invalid JSON body"))
+        if not isinstance(data, dict):
+            return self._error(start_response, WebrpcBadRequest(message="request body must be a JSON object"))
+        try:
+            return self._respond(start_response, 200, handler(data))
+        except WebRPCError as err:
+            return self._error(start_response, err)
+        except Exception as err:
+            return self._error(start_response, WebrpcServerPanic(cause=str(err)))
+
+    def _headers(self, body: bytes):
+        return [
+            ("Content-Type", "application/json"),
+            ("Content-Length", str(len(body))),
+            ("Webrpc", WEBRPC_HEADER_VALUE),
+        ]
+
+    def _respond(self, start_response, status: int, payload: dict[str, Any]):
+        body = json.dumps(payload).encode("utf-8")
+        start_response(f"{status} ", self._headers(body))
+        return [body]
+
+    def _error(self, start_response, err: "WebRPCError", extra_headers=None):
+        body = json.dumps(err.to_dict()).encode("utf-8")
+        headers = self._headers(body)
+        if extra_headers:
+            headers.extend(extra_headers)
+        start_response(f"{err.status} ", headers)
+        return [body]
+{{- range $_, $method := $service.Methods}}
+
+    def _{{snakeCase $method.Name}}(self, data: dict[str, Any]) -> dict[str, Any]:
+        result = self._service.{{snakeCase $method.Name}}(
+{{- range $_, $in := $method.Inputs}}
+{{- $ik := $in.Name -}}{{- $ip := $ik -}}{{- if has $ik $kw -}}{{- $ip = printf "%s_" $ik -}}{{- end}}
+            {{$ip}}={{if $in.Optional}}None if data.get("{{$ik}}") is None else {{end}}{{template "fromValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "data.get(%q)" $ik)}},
+{{- end}}
+        )
+{{- if eq (len $method.Outputs) 0}}
+        return {}
+{{- else if eq (len $method.Outputs) 1}}
+{{- range $_, $out := $method.Outputs}}
+        return {"{{$out.Name}}": {{if $out.Optional}}None if result is None else {{end}}{{template "toValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "result"}}}
+{{- end}}
+{{- else}}
+        return {
+{{- range $i, $out := $method.Outputs}}
+            "{{$out.Name}}": {{if $out.Optional}}None if result[{{$i}}] is None else {{end}}{{template "toValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "result[%d]" $i)}},
+{{- end}}
+        }
+{{- end}}
+{{- end}}
+{{- end}}
+{{- end -}}
