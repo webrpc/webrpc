@@ -32,6 +32,26 @@
   {{- end -}}
 {{- end -}}
 
+{{- /* The file core type is not supported; fail loudly rather than emit broken code. */ -}}
+{{- range $_, $service := .Services -}}
+  {{- range $_, $method := $service.Methods -}}
+    {{- if or (MethodHasFileUpload $method) (MethodHasFileDownload $method) -}}
+      {{- stderrPrintf "%s generator error: the file type is not supported (%s.%s)\n" $.WebrpcTarget $service.Name $method.Name -}}
+      {{- exit 1 -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- range $_, $type := .Types -}}
+  {{- if isStructType $type -}}
+    {{- range $_, $field := $type.Fields -}}
+      {{- if or (eq (printf "%v" $field.Type) "file") (eq (printf "%v" $field.Type) "[]file") -}}
+        {{- stderrPrintf "%s generator error: the file type is not supported (%s.%s)\n" $.WebrpcTarget $type.Name $field.Name -}}
+        {{- exit 1 -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
 {{- /* Map webrpc core types to Python. */ -}}
 {{- $typeMap := dict -}}
 {{- set $typeMap "null" "None" -}}
