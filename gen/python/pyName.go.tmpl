@@ -1,0 +1,13 @@
+{{- define "pyName" -}}
+{{- /* Python identifier for a field/param: the JSON wire name, with a trailing
+       underscore if it collides with a Python keyword. */ -}}
+{{- $field := .Field -}}
+{{- $name := $field.Name -}}
+{{- range $meta := $field.Meta -}}
+    {{- if exists $meta "json" -}}
+    {{- $name = get $meta "json" | split "," | first -}}
+    {{- end -}}
+{{- end -}}
+{{- $kw := list "False" "None" "True" "and" "as" "assert" "async" "await" "break" "class" "continue" "def" "del" "elif" "else" "except" "finally" "for" "from" "global" "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "raise" "return" "try" "while" "with" "yield" -}}
+{{- if has $name $kw -}}{{$name}}_{{- else -}}{{$name}}{{- end -}}
+{{- end -}}

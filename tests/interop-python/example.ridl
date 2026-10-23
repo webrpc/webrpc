@@ -1,0 +1,48 @@
+webrpc = v1
+
+name = example
+version = v1.0.0
+basepath = /v1
+
+service ExampleService
+    - GetItems() => (items: []ItemSummary)
+    - GetItem(itemId: string) => (item: Item)
+    - CreateItem(item: CreateItemRequest)
+    - PutOne(itemId: string)
+    - TakeOne(itemId: string)
+    - DeleteItem(itemId: string)
+    - CountByTier() => (counts: map<ItemTier,uint32>)
+
+type ItemName: string
+type Quantity: uint32
+
+enum ItemTier: uint32
+    - REGULAR
+    - PREMIUM
+
+struct Item
+    - id: string
+    - name: ItemName
+    - tier: ItemTier
+    - count: uint32
+    - quantity: Quantity
+    - balance: bigint
+    - tags: []string
+    - attributes: map<string,string>
+    - class: string
+    - createdAt: timestamp
+    - lastUpdate?: timestamp
+    - notes?: []string
+    - labels?: map<string,string>
+
+struct CreateItemRequest
+    - name: ItemName
+    - tier: ItemTier
+
+struct ItemSummary
+    - id: string
+    - name: ItemName
+
+error 1 ItemExists "item already exists" HTTP 409
+error 2 NoSuchItem "no such item"  HTTP 404
+error 3 OutOfStock "item out of stock"  HTTP 409

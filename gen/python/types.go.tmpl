@@ -1,0 +1,53 @@
+{{- define "types" -}}
+{{- $typeMap := .TypeMap -}}
+{{- $aliasMap := .AliasMap -}}
+{{- $types := .Types -}}
+{{- $kw := list "False" "None" "True" "and" "as" "assert" "async" "await" "break" "class" "continue" "def" "del" "elif" "else" "except" "finally" "for" "from" "global" "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "raise" "return" "try" "while" "with" "yield" -}}
+{{- range $_, $type := $types}}
+{{- if isEnumType $type}}
+
+class {{$type.Name}}(Enum):
+{{- range $_, $field := $type.Fields}}
+{{- $m := $field.Name -}}{{- if has $field.Name $kw -}}{{- $m = printf "%s_" $field.Name -}}{{- end}}
+    {{$m}} = "{{$field.Name}}"
+{{- end}}
+
+    @classmethod
+    def from_dict(cls, v: Any) -> "{{$type.Name}}":
+        return cls(v)
+{{- end}}
+{{- if isAliasType $type}}
+
+{{$type.Name}} = {{template "type" dict "Type" $type.Type "TypeMap" $typeMap}}
+{{- end}}
+{{- if isStructType $type}}
+
+@dataclass
+class {{$type.Name}}:
+{{- range $_, $field := $type.Fields}}{{if not $field.Optional}}
+    {{template "pyName" dict "Field" $field}}: {{template "type" dict "Type" $field.Type "TypeMap" $typeMap}}
+{{- end}}{{end}}
+{{- range $_, $field := $type.Fields}}{{if $field.Optional}}
+    {{template "pyName" dict "Field" $field}}: Optional[{{template "type" dict "Type" $field.Type "TypeMap" $typeMap}}] = None
+{{- end}}{{end}}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "{{$type.Name}}":
+        return cls(
+{{- range $_, $field := $type.Fields}}
+{{- $key := $field.Name -}}{{- range $meta := $field.Meta}}{{- if exists $meta "json"}}{{- $key = get $meta "json" | split "," | first}}{{- end}}{{- end}}
+            {{template "pyName" dict "Field" $field}}={{if $field.Optional}}None if data.get("{{$key}}") is None else {{end}}{{template "fromValue" dict "Type" $field.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "data.get(%q)" $key)}},
+{{- end}}
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+{{- range $_, $field := $type.Fields}}
+{{- $key := $field.Name -}}{{- range $meta := $field.Meta}}{{- if exists $meta "json"}}{{- $key = get $meta "json" | split "," | first}}{{- end}}{{- end}}
+{{- $py := $key -}}{{- if has $key $kw -}}{{- $py = printf "%s_" $key -}}{{- end}}
+            "{{$key}}": {{if $field.Optional}}None if self.{{$py}} is None else {{end}}{{template "toValue" dict "Type" $field.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "self.%s" $py)}},
+{{- end}}
+        }
+{{- end}}
+{{- end}}
+{{- end -}}

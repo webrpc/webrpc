@@ -35,6 +35,7 @@ generate: build
 	for i in _examples/*; do echo $$i; make -C $$i generate || exit 1; done
 	make -C tests/interop-web generate
 	make -C tests/interop-csharp generate
+	make -C tests/interop-python generate
 	# Replace webrpc version in all generated files to avoid git conflicts.
 	git grep -l "$(VERSION)" | xargs perl -i -pe "s/\@$(VERSION)//g"
 	perl -i -ne "print unless /$(VERSION)/" tests/schema/test.debug.gen.txt
@@ -62,10 +63,11 @@ test-interoperability: build-test
 		./bin/webrpc-test -client -url=http://localhost:9988; \
 		wait
 
-# Run TypeScript/JavaScript and C# <-> Go interoperability tests (requires node and the .NET SDK)
+# Run TypeScript/JavaScript, C# and Python <-> Go interoperability tests (requires node, the .NET SDK and Python with httpx)
 test-interop:
 	make -C tests/interop-web test
 	make -C tests/interop-csharp test
+	make -C tests/interop-python test
 
 # Update ridl golden examples
 update-ridl-test-golden-examples:

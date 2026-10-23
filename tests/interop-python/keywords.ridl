@@ -1,0 +1,17 @@
+webrpc = v1
+
+name = keywords
+version = v1.0.0
+basepath = /rpc
+
+enum Kind: uint32
+    - class
+    - normal
+
+struct Thing
+    - class: string
+    - from: string
+    - kind: Kind
+
+service KeywordService
+    - Do(import: string) => (return: string)
