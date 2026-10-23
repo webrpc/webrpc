@@ -440,6 +440,8 @@ class ExampleServiceServer:
             data = json.loads(raw) if raw else {}
         except (json.JSONDecodeError, UnicodeDecodeError):
             return self._error(start_response, WebrpcBadRequest(message="invalid JSON body"))
+        if data is None:
+            data = {}
         if not isinstance(data, dict):
             return self._error(start_response, WebrpcBadRequest(message="request body must be a JSON object"))
         try:
