@@ -17,18 +17,26 @@ class {{$service.Name}}Client:
 {{- range $_, $method := $service.Methods}}
 
     def {{snakeCase $method.Name}}(self{{range $_, $in := $method.Inputs}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}, {{$ip}}: {{template "type" dict "Type" $in.Type "TypeMap" $typeMap}}{{end}}) -> {{template "methodReturn" dict "Method" $method "TypeMap" $typeMap}}:
+{{- if not $method.Succinct}}
+        _body: dict[str, Any] = {
+{{- range $_, $in := $method.Inputs}}{{if not $in.Optional}}
+{{- $ik := $in.Name -}}{{- $ip := $ik -}}{{- if has $ik $kw -}}{{- $ip = printf "%s_" $ik -}}{{- end}}
+            "{{$ik}}": {{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $ip}},
+{{- end}}{{end}}
+        }
+{{- range $_, $in := $method.Inputs}}{{if $in.Optional}}
+{{- $ik := $in.Name -}}{{- $ip := $ik -}}{{- if has $ik $kw -}}{{- $ip = printf "%s_" $ik -}}{{- end}}
+        if {{$ip}} is not None:
+            _body["{{$ik}}"] = {{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $ip}}
+{{- end}}{{end}}
+{{- end}}
         _resp = self._client.post(
             self._base + "{{$method.Name}}",
 {{- if $method.Succinct}}
 {{- $in := index $method.Inputs 0}}
             json={{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $in.Name}},
 {{- else}}
-            json={
-{{- range $_, $in := $method.Inputs}}
-{{- $ik := $in.Name -}}{{- $ip := $ik -}}{{- if has $ik $kw -}}{{- $ip = printf "%s_" $ik -}}{{- end}}
-                "{{$ik}}": {{if $in.Optional}}None if {{$ip}} is None else {{end}}{{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $ip}},
-{{- end}}
-            },
+            json=_body,
 {{- end}}
             headers={"Content-Type": "application/json", "Accept": "application/json"{{if $webrpcHeader}}, "Webrpc": WEBRPC_HEADER_VALUE{{end}}},
         )

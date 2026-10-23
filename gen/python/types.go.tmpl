@@ -53,13 +53,20 @@ class {{$type.Name}}:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
-{{- range $_, $field := $fields}}
+        out: dict[str, Any] = {
+{{- range $_, $field := $fields}}{{if not $field.Optional}}
 {{- $key := $field.Name -}}{{- range $meta := $field.Meta}}{{- if exists $meta "json"}}{{- $key = get $meta "json" | split "," | first}}{{- end}}{{- end}}
 {{- $py := $key -}}{{- if has $key $kw -}}{{- $py = printf "%s_" $key -}}{{- end}}
-            "{{$key}}": {{if $field.Optional}}None if self.{{$py}} is None else {{end}}{{template "toValue" dict "Type" $field.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "self.%s" $py)}},
-{{- end}}
+            "{{$key}}": {{template "toValue" dict "Type" $field.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "self.%s" $py)}},
+{{- end}}{{end}}
         }
+{{- range $_, $field := $fields}}{{if $field.Optional}}
+{{- $key := $field.Name -}}{{- range $meta := $field.Meta}}{{- if exists $meta "json"}}{{- $key = get $meta "json" | split "," | first}}{{- end}}{{- end}}
+{{- $py := $key -}}{{- if has $key $kw -}}{{- $py = printf "%s_" $key -}}{{- end}}
+        if self.{{$py}} is not None:
+            out["{{$key}}"] = {{template "toValue" dict "Type" $field.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "self.%s" $py)}}
+{{- end}}{{end}}
+        return out
 {{- end}}
 {{- end}}
 {{- range $_, $type := $types}}

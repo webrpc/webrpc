@@ -65,7 +65,7 @@ class Item:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "id": _to_value(self.id),
             "name": _to_value(self.name),
             "tier": _to_value(self.tier),
@@ -76,10 +76,14 @@ class Item:
             "attributes": { _to_value(_k0): _to_value(_v0) for _k0, _v0 in (self.attributes or {}).items() },
             "class": _to_value(self.class_),
             "createdAt": _to_value(self.createdAt),
-            "lastUpdate": None if self.lastUpdate is None else _to_value(self.lastUpdate),
-            "notes": None if self.notes is None else [_to_value(_e0) for _e0 in (self.notes or [])],
-            "labels": None if self.labels is None else { _to_value(_k0): _to_value(_v0) for _k0, _v0 in (self.labels or {}).items() },
         }
+        if self.lastUpdate is not None:
+            out["lastUpdate"] = _to_value(self.lastUpdate)
+        if self.notes is not None:
+            out["notes"] = [_to_value(_e0) for _e0 in (self.notes or [])]
+        if self.labels is not None:
+            out["labels"] = { _to_value(_k0): _to_value(_v0) for _k0, _v0 in (self.labels or {}).items() }
+        return out
 
 @dataclass
 class CreateItemRequest:
@@ -96,10 +100,11 @@ class CreateItemRequest:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "name": _to_value(self.name),
             "tier": _to_value(self.tier),
         }
+        return out
 
 @dataclass
 class ItemSummary:
@@ -116,10 +121,11 @@ class ItemSummary:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "id": _to_value(self.id),
             "name": _to_value(self.name),
         }
+        return out
 
 @dataclass
 class Credentials:
@@ -136,10 +142,12 @@ class Credentials:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        out: dict[str, Any] = {
             "user": _to_value(self.user),
-            "note": None if self.note is None else _to_value(self.note),
         }
+        if self.note is not None:
+            out["note"] = _to_value(self.note)
+        return out
 
 ItemName = str
 
@@ -330,75 +338,82 @@ class ExampleServiceClient:
         self._client = client
 
     def get_items(self) -> list[ItemSummary]:
+        _body: dict[str, Any] = {
+        }
         _resp = self._client.post(
             self._base + "GetItems",
-            json={
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return [ItemSummary.from_dict(_e0) for _e0 in (_data.get("items") or [])]
 
     def get_item(self, itemId: str) -> Item:
+        _body: dict[str, Any] = {
+            "itemId": _to_value(itemId),
+        }
         _resp = self._client.post(
             self._base + "GetItem",
-            json={
-                "itemId": _to_value(itemId),
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return Item.from_dict(_data.get("item"))
 
     def create_item(self, item: CreateItemRequest) -> None:
+        _body: dict[str, Any] = {
+            "item": _to_value(item),
+        }
         _resp = self._client.post(
             self._base + "CreateItem",
-            json={
-                "item": _to_value(item),
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return None
 
     def put_one(self, itemId: str) -> None:
+        _body: dict[str, Any] = {
+            "itemId": _to_value(itemId),
+        }
         _resp = self._client.post(
             self._base + "PutOne",
-            json={
-                "itemId": _to_value(itemId),
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return None
 
     def take_one(self, itemId: str) -> None:
+        _body: dict[str, Any] = {
+            "itemId": _to_value(itemId),
+        }
         _resp = self._client.post(
             self._base + "TakeOne",
-            json={
-                "itemId": _to_value(itemId),
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return None
 
     def delete_item(self, itemId: str) -> None:
+        _body: dict[str, Any] = {
+            "itemId": _to_value(itemId),
+        }
         _resp = self._client.post(
             self._base + "DeleteItem",
-            json={
-                "itemId": _to_value(itemId),
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)
         return None
 
     def count_by_tier(self) -> dict[ItemTier, int]:
+        _body: dict[str, Any] = {
+        }
         _resp = self._client.post(
             self._base + "CountByTier",
-            json={
-            },
+            json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
         _data = self._handle_response(_resp)

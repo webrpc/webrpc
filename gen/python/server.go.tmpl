@@ -93,14 +93,23 @@ class {{$service.Name}}Server:
         return {{template "toValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "result"}}
 {{- else if eq (len $method.Outputs) 1}}
 {{- range $_, $out := $method.Outputs}}
-        return {"{{$out.Name}}": {{if $out.Optional}}None if result is None else {{end}}{{template "toValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "result"}}}
+{{- if $out.Optional}}
+        if result is None:
+            return {}
+{{- end}}
+        return {"{{$out.Name}}": {{template "toValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "result"}}}
 {{- end}}
 {{- else}}
-        return {
-{{- range $i, $out := $method.Outputs}}
-            "{{$out.Name}}": {{if $out.Optional}}None if result[{{$i}}] is None else {{end}}{{template "toValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "result[%d]" $i)}},
-{{- end}}
+        out: dict[str, Any] = {
+{{- range $i, $out := $method.Outputs}}{{if not $out.Optional}}
+            "{{$out.Name}}": {{template "toValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "result[%d]" $i)}},
+{{- end}}{{end}}
         }
+{{- range $i, $out := $method.Outputs}}{{if $out.Optional}}
+        if result[{{$i}}] is not None:
+            out["{{$out.Name}}"] = {{template "toValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "result[%d]" $i)}}
+{{- end}}{{end}}
+        return out
 {{- end}}
 {{- end}}
 {{- end}}

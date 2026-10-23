@@ -73,7 +73,7 @@ def test_wire_shape():
     assert d["class"] == "reserved-name"                      # keyword field uses wire key
     assert d["attributes"] == {"k": "v"}
     assert d["notes"] == ["n1"]
-    assert d["labels"] is None                                # optional map None -> null, not {}
+    assert "labels" not in d                                  # unset optional map is omitted, not {} or null
 
 
 def test_type_serde_roundtrip():

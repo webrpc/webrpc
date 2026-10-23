@@ -69,6 +69,28 @@ def test_aliases_of_user_types():
     assert api.K2 is api.Kind
 
 
+def test_unset_optionals_are_omitted():
+    assert api.Opt(need="n").to_dict() == {"need": "n"}
+    assert api.Opt(need="n", may="m").to_dict() == {"need": "n", "may": "m"}
+    assert api.Opt.from_dict({"need": "n", "may": None}) == api.Opt(need="n")
+
+    seen = []
+
+    def respond(request):
+        seen.append(json.loads(request.content))
+        return httpx.Response(200, json={"z": None, "w": "w"})
+
+    assert _client(respond).maybe(None, "y") == (None, "w")
+    assert seen == [{"y": "y"}]
+
+    class Impl:
+        def maybe(self, x, y):
+            assert x is None
+            return None, "w"
+
+    assert _call(Impl(), "Maybe", {"x": None, "y": "y"}) == (200, {"w": "w"})
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_") and callable(fn):
