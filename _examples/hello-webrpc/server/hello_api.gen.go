@@ -251,7 +251,7 @@ func (s *exampleService) serveGetUserJSON(ctx context.Context, w http.ResponseWr
 	reqPayload := struct {
 		Arg0 uint64 `json:"userID"`
 	}{}
-	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
+	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -294,7 +294,7 @@ func (s *exampleService) serveFindUsersJSON(ctx context.Context, w http.Response
 	reqPayload := struct {
 		Arg0 string `json:"q"`
 	}{}
-	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
+	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -619,4 +619,28 @@ func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
 		SchemaName:       schemaName,
 		SchemaVersion:    schemaVersion,
 	}, nil
+}
+
+// jsonEncode writes v as JSON to w, terminated by a newline like json.Encoder.Encode.
+func jsonEncode(w io.Writer, v any) error {
+	return json.NewEncoder(w).Encode(v)
+}
+
+// jsonUnmarshal decodes data into v. encoding/json/v2 matches field names
+// case-sensitively by default; v1 matched them case-insensitively.
+func jsonUnmarshal(data []byte, v any) error {
+	return json.Unmarshal(data, v)
+}
+
+// jsonDecode reads one JSON value from r into v and rejects trailing data.
+// An empty body returns io.EOF so callers can treat it as a zero-value request.
+func jsonDecode(r io.Reader, v any) error {
+	dec := json.NewDecoder(r)
+	if err := dec.Decode(v); err != nil {
+		return err
+	}
+	if dec.More() {
+		return errors.New("unexpected trailing data")
+	}
+	return nil
 }

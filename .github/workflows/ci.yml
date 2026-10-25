@@ -37,6 +37,34 @@ jobs:
       - name: Test
         run: make test
 
+  # The -json=v2 generated output needs Go 1.27+, or Go 1.25/1.26 with this experiment.
+  test-jsonv2:
+    runs-on: ubuntu-latest
+    env:
+      GOEXPERIMENT: jsonv2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+        #  fetch-tags: true # Bug: https://github.com/actions/checkout/issues/1781
+      - run: git fetch --tags
+      - run: git describe --tags
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.25"
+      - name: Set up webrpc cache folder
+        uses: actions/cache@v4
+        with:
+          key: webrpc-cache
+          path: /tmp/webrpc-cache
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Test
+        run: make test
+
   examples:
     runs-on: ubuntu-latest
     steps:

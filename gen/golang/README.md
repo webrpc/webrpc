@@ -30,6 +30,7 @@ Change any of the following values by passing `-option="Value"` CLI flag to `web
 | `-types=false`        | `true`    | don't generate types                                                        | v0.13.0  |
 | `-json=sonic`         |           | use [sonic](https://github.com/bytedance/sonic) for JSON encoding           | v0.18.0  |
 | `-json=jsoniter`      |           | deprecated, unsupported: jsoniter is archived upstream; does not support omitzero | v0.12.0  |
+| `-json=v2`            |           | use [`encoding/json/v2`][jsonv2] for JSON encoding (alias of `-json=encoding/json/v2`) | v0.49.0  |
 | `-json=<pkg>`         |           | use alternative drop-in replacement import path for JSON encoding package   | v0.18.0  |
 | `-fixEmptyArrays`     | `false`   | `encoding/json`: fix `null` arrays with reflect (see Go [#27589][go27589])  | v0.13.0  |
 | `-errorStackTrace`    | `false`   | enables error stack traces                                                  | v0.14.0  |
@@ -40,6 +41,34 @@ Example:
 ```
 webrpc-gen -schema=./proto.json -target=golang -out server.gen.go -pkg=main -server
 ```
+
+## JSON wire-format guarantees
+
+The encoder decides what a nil slice, a nil map or a zero `time.Time` looks like on the wire.
+Generated Go output that talks to JavaScript should never send `null` where the schema says `list` or `map`.
+
+| Field state | stdlib (default) | sonic (`-json=sonic`) | v2 (`-json=v2`) |
+|---|---|---|---|
+| required scalar/string unset | `0` / `""` / `false` | same | same |
+| required time.Time zero | renders `"0001-01-01T00:00:00Z"` | renders | renders |
+| required list nil | `null` | `[]` | `[]` |
+| required map nil | `null` | `{}` | `{}` |
+| required struct `&T{}` | `{}` | `{}` | `{}` |
+| required struct nil | `null` | `null` | `null` |
+| optional (`?`) unset | key omitted (`,omitzero`) | omitted | omitted |
+
+- JS-facing services: use `-json=sonic`. Nil required containers render `[]`/`{}` instead of `null`.
+- `sonic` needs >= 1.12 for `,omitzero` support.
+- Required struct fields must be initialized (`&T{}`). A nil struct renders `null` under every encoder.
+- `-json=jsoniter` is deprecated: it does not support `,omitzero`, so optional fields cannot be omitted.
+- `-json=v2` requires Go 1.27+, or Go 1.25/1.26 with `GOEXPERIMENT=jsonv2`.
+  Generated client/server files carry a `//go:build go1.27 || goexperiment.jsonv2` constraint;
+  types-only output carries no constraint, since it never uses `encoding/json/v2`.
+- `-json=v2` decodes with v1's case-insensitive field matching.
+  Remaining decode differences: duplicate object members and invalid UTF-8 are rejected
+  as errors (HTTP 400) instead of silently accepted.
+- The stdlib encoder renders **nil** slices and maps as `null`; empty-but-non-nil ones render `[]`/`{}`.
+  The `-fixEmptyArrays` option patches `null` arrays at runtime with reflect (see Go [#27589][go27589]).
 
 ## Set custom Go field meta tags in your RIDL file
 
@@ -142,3 +171,4 @@ See [_examples](./_examples)
 [MIT LICENSE](./LICENSE)
 
 [go27589]: https://github.com/golang/go/issues/27589
+[jsonv2]: https://pkg.go.dev/encoding/json/v2

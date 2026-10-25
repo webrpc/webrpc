@@ -453,15 +453,9 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 
 		var req I
 		if hasPayload {
-			dec := json.NewDecoder(r.Body)
 			// io.EOF means an empty (or hook-consumed) body: a zero-value request.
-			if err := dec.Decode(&req); err != nil && !errors.Is(err, io.EOF) {
+			if err := jsonDecode(r.Body, &req); err != nil && !errors.Is(err, io.EOF) {
 				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
-				return
-			}
-			// Parity with TS JSON.parse: reject any trailing data after a successful JSON value.
-			if dec.More() {
-				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: unexpected trailing data"))
 				return
 			}
 		}
@@ -631,7 +625,7 @@ func restJSON[T any](s string) (T, error) {
 	if u, ok := any(&v).(encoding.TextUnmarshaler); ok {
 		return v, u.UnmarshalText([]byte(s))
 	}
-	err := json.Unmarshal([]byte(s), &v)
+	err := jsonUnmarshal([]byte(s), &v)
 	return v, err
 }
 
@@ -767,4 +761,28 @@ func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
 		SchemaName:       schemaName,
 		SchemaVersion:    schemaVersion,
 	}, nil
+}
+
+// jsonEncode writes v as JSON to w, terminated by a newline like json.Encoder.Encode.
+func jsonEncode(w io.Writer, v any) error {
+	return json.NewEncoder(w).Encode(v)
+}
+
+// jsonUnmarshal decodes data into v. encoding/json/v2 matches field names
+// case-sensitively by default; v1 matched them case-insensitively.
+func jsonUnmarshal(data []byte, v any) error {
+	return json.Unmarshal(data, v)
+}
+
+// jsonDecode reads one JSON value from r into v and rejects trailing data.
+// An empty body returns io.EOF so callers can treat it as a zero-value request.
+func jsonDecode(r io.Reader, v any) error {
+	dec := json.NewDecoder(r)
+	if err := dec.Decode(v); err != nil {
+		return err
+	}
+	if dec.More() {
+		return errors.New("unexpected trailing data")
+	}
+	return nil
 }

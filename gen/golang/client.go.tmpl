@@ -301,7 +301,7 @@ func (r *streamReader) read(v interface {}) error {
 			continue
 		}
 
-		if err := {{$json}}.Unmarshal(line, &v); err != nil {
+		if err := jsonUnmarshal(line, &v); err != nil {
 			return r.handleReadError(err)
 		}
 		return nil
