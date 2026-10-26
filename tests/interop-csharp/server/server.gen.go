@@ -144,11 +144,15 @@ type jsonEncoder interface {
 	Encode(v any) error
 }
 
-// StreamKeepAliveInterval is a var so it can be shortened in tests.
-// A running keepAlive ticker reads it once, at start.
+// StreamKeepAliveInterval is the stream ping period. Zero or negative disables keepalive.
 var StreamKeepAliveInterval = 10 * time.Second
 
 func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc) {
+	if StreamKeepAliveInterval <= 0 {
+		<-ctx.Done()
+		return
+	}
+
 	ticker := time.NewTicker(StreamKeepAliveInterval)
 	defer ticker.Stop()
 

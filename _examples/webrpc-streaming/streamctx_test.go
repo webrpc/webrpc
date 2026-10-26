@@ -133,9 +133,8 @@ func TestKeepAliveCancelsHandlerOnWriteError(t *testing.T) {
 	require.ErrorIs(t, svc.ctxErr, context.Canceled)
 }
 
-// TestListenKeepAlive proves case 3 plumbing: the example listener is a live
-// TCP listener created with keepalive enabled.
-func TestListenKeepAlive(t *testing.T) {
+// TestListenAcceptsTCP proves the example listener is a live TCP listener.
+func TestListenAcceptsTCP(t *testing.T) {
 	ln, err := listen("127.0.0.1:0")
 	require.NoError(t, err)
 	defer ln.Close()
