@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"net"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -33,12 +34,16 @@ func main() {
 		Handler: rpc.Router(),
 	}
 
+	ln, err := listen(fmt.Sprintf("0.0.0.0:%v", port))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		defer cancel()
 
-		err := server.ListenAndServe()
-		if !errors.Is(err, http.ErrServerClosed) {
+		if err := server.Serve(ln); !errors.Is(err, http.ErrServerClosed) {
 			log.Fatal(err)
 		}
 	}()
@@ -52,12 +57,18 @@ func main() {
 	rpc.close(shutdownCtx)
 
 	// Finish active connections.
-	err := server.Shutdown(shutdownCtx)
+	err = server.Shutdown(shutdownCtx)
 	if err != nil {
 		log.Fatal(fmt.Errorf("shut down HTTP server: %w", err))
 	}
 
 	slog.Info("shut down")
+}
+
+// TCP keepalive probes idle conns so half-open peers surface as write errors.
+func listen(addr string) (net.Listener, error) {
+	lc := net.ListenConfig{KeepAlive: 15 * time.Second}
+	return lc.Listen(context.Background(), "tcp", addr)
 }
 
 func (s *ChatServer) Router() http.Handler {

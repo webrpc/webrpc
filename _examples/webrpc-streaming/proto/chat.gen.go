@@ -80,7 +80,6 @@ func (w *subscribeMessagesStreamWriter) Write(message *Message) error {
 type streamWriter struct {
 	mu sync.Mutex // Guards concurrent writes to w.
 	w  http.ResponseWriter
-	f  http.Flusher
 	e  jsonEncoder
 
 	sendError func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
@@ -90,14 +89,20 @@ type jsonEncoder interface {
 	Encode(v any) error
 }
 
-const StreamKeepAliveInterval = 10 * time.Second
+// StreamKeepAliveInterval is a var so it can be shortened in tests.
+// A running keepAlive ticker reads it once, at start.
+var StreamKeepAliveInterval = 10 * time.Second
 
-func (w *streamWriter) keepAlive(ctx context.Context) {
+func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc) {
+	ticker := time.NewTicker(StreamKeepAliveInterval)
+	defer ticker.Stop()
+
 	for {
 		select {
-		case <-time.After(StreamKeepAliveInterval):
-			err := w.ping()
-			if err != nil {
+		case <-ticker.C:
+			if err := w.ping(); err != nil {
+				// The client is gone; stop the service handler waiting on ctx.
+				cancel()
 				return
 			}
 		case <-ctx.Done():
@@ -108,26 +113,24 @@ func (w *streamWriter) keepAlive(ctx context.Context) {
 
 func (w *streamWriter) ping() error {
 	w.mu.Lock()
-	_, err := w.w.Write([]byte("\n"))
-	w.f.Flush()
-	w.mu.Unlock()
+	defer w.mu.Unlock()
 
-	return err
+	if _, err := w.w.Write([]byte("\n")); err != nil {
+		return err
+	}
+	return http.NewResponseController(w.w).Flush()
 }
 
 func (w *streamWriter) write(respPayload ...interface{}) error {
-	var err error
 	w.mu.Lock()
+	defer w.mu.Unlock()
+
 	for _, respPayload := range respPayload {
-		err = w.e.Encode(respPayload)
-		if err != nil {
-			break
+		if err := w.e.Encode(respPayload); err != nil {
+			return err
 		}
 	}
-	w.f.Flush()
-	w.mu.Unlock()
-
-	return err
+	return http.NewResponseController(w.w).Flush()
 }
 
 //
@@ -425,12 +428,6 @@ func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w ht
 		return
 	}
 
-	f, ok := w.(http.Flusher)
-	if !ok {
-		s.sendErrorJSON(w, r, ErrWebrpcInternalError.WithCausef("server http.ResponseWriter doesn't support .Flush() method"))
-		return
-	}
-
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Content-Type", "application/x-ndjson")
@@ -439,7 +436,7 @@ func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w ht
 
 	e := json.NewEncoder(w)
 	e.SetIndent("", "")
-	streamWriter := &subscribeMessagesStreamWriter{streamWriter{w: w, f: f, e: e, sendError: s.sendErrorJSON}}
+	streamWriter := &subscribeMessagesStreamWriter{streamWriter{w: w, e: e, sendError: s.sendErrorJSON}}
 	if err := streamWriter.ping(); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcStreamLost.WithCausef("failed to establish SSE stream: %w", err))
 		return
@@ -448,7 +445,7 @@ func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w ht
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	go streamWriter.keepAlive(ctx)
+	go streamWriter.keepAlive(ctx, cancel)
 
 	// Call service method implementation.
 	if err := s.ChatServer.SubscribeMessages(ctx, reqPayload.Arg0, reqPayload.Arg1, streamWriter); err != nil {
@@ -459,7 +456,7 @@ func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w ht
 		}
 		streamWriter.mu.Lock()
 		streamWriter.sendError(w, r, rpcErr)
-		streamWriter.f.Flush()
+		_ = http.NewResponseController(w).Flush()
 		streamWriter.mu.Unlock()
 		return
 	}
