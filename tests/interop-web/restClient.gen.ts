@@ -267,7 +267,9 @@ export class TestApiRest implements TestApiRestClient {
   protected path = '/rpc/TestApiRest/'
 
   constructor(hostname: string, fetch: Fetch) {
-    this.hostname = hostname.replace(/\/*$/, '')
+    let hostnameEnd = hostname.length
+    while (hostnameEnd > 0 && hostname.charCodeAt(hostnameEnd - 1) === 47) hostnameEnd--
+    this.hostname = hostnameEnd === hostname.length ? hostname : hostname.slice(0, hostnameEnd)
     this.fetch = (input: RequestInfo, init?: RequestInit) => fetch(input, init)
   }
 
