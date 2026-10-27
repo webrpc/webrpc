@@ -197,6 +197,13 @@ const hostnameNormalizationSuite = async () => {
   await new Example(`https://example.com${'/'.repeat(8192)}`, recordingFetch).ping()
   assert.equal(requested.pop(), 'https://example.com/v1/Example/Ping')
 
+  const interiorSlashes = `https://example.com/${'/'.repeat(8192)}endpoint`
+  await new Example(interiorSlashes, recordingFetch).ping()
+  assert.equal(requested.pop(), `${interiorSlashes}/v1/Example/Ping`)
+
+  await new Example('////', recordingFetch).ping()
+  assert.equal(requested.pop(), '/v1/Example/Ping')
+
   await new Example('https://example.com', recordingFetch).ping()
   assert.equal(requested.pop(), 'https://example.com/v1/Example/Ping')
 }
