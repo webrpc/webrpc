@@ -321,7 +321,7 @@ export class WebrpcClientAbortedError extends WebrpcError {
     this.name = error.name || 'WebrpcClientAborted'
     this.code = typeof error.code === 'number' ? error.code : -8
     this.message = error.message || `request aborted by client`
-    this.status = typeof error.status === 'number' ? error.status : 400
+    this.status = typeof error.status === 'number' ? error.status : 499
     if (error.cause !== undefined) this.cause = error.cause
     Object.setPrototypeOf(this, WebrpcClientAbortedError.prototype)
   }
