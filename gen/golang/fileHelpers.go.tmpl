@@ -384,7 +384,7 @@ func doHTTPUploadRequestRaw(ctx context.Context, client HTTPClient, url string, 
 		}
 
 		var rpcErr WebRPCError
-		if err := {{$json}}.Unmarshal(respBody, &rpcErr); err != nil {
+		if err := {{if eq $opts.json "encoding/json/v2"}}jsonUnmarshal{{else}}{{$json}}.Unmarshal{{end}}(respBody, &rpcErr); err != nil {
 			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal server error: %w", err)
 		}
 		if rpcErr.Cause != "" {
@@ -399,7 +399,7 @@ func doHTTPUploadRequestRaw(ctx context.Context, client HTTPClient, url string, 
 			return nil, ErrWebrpcBadResponse.WithCausef("failed to read response body: %w", err)
 		}
 
-		err = {{$json}}.Unmarshal(respBody, &out)
+		err = {{if eq $opts.json "encoding/json/v2"}}jsonUnmarshal{{else}}{{$json}}.Unmarshal{{end}}(respBody, &out)
 		if err != nil {
 			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal JSON response body: %w", err)
 		}

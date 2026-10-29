@@ -1,0 +1,44 @@
+{{- define "jsonHelpers" -}}
+{{- $opts := .Opts -}}
+{{- $v2 := eq $opts.json "encoding/json/v2" -}}
+
+{{- if and $v2 (or $opts.client $opts.server) }}
+
+{{- /* The stream encoder is only wired up by the server's streaming methods. */ -}}
+{{- if and $opts.server $opts.streaming }}
+
+// jsonStreamEncoder adapts encoding/json/v2 to the jsonEncoder interface.
+type jsonStreamEncoder struct{ w io.Writer }
+
+func (e jsonStreamEncoder) Encode(v any) error { return jsonEncode(e.w, v) }
+{{- end }}
+
+// jsonEncode writes v as JSON to w, terminated by a newline like json.Encoder.Encode.
+func jsonEncode(w io.Writer, v any) error {
+	if err := json.MarshalWrite(w, v); err != nil {
+		return err
+	}
+	_, err := io.WriteString(w, "\n")
+	return err
+}
+
+// jsonUnmarshal decodes data into v. encoding/json/v2 matches field names
+// case-sensitively by default; v1 matched them case-insensitively.
+func jsonUnmarshal(data []byte, v any) error {
+	return json.Unmarshal(data, v, json.MatchCaseInsensitiveNames(true))
+}
+
+// jsonDecode reads one JSON value from r into v and rejects trailing data.
+// An empty body returns io.EOF so callers can treat it as a zero-value request.
+func jsonDecode(r io.Reader, v any) error {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return err
+	}
+	if strings.TrimSpace(string(data)) == "" {
+		return io.EOF
+	}
+	return jsonUnmarshal(data, v)
+}
+{{- end -}}
+{{- end -}}

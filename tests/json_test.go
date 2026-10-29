@@ -3,12 +3,19 @@ package tests
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/webrpc/webrpc/tests/client"
 )
+
+// timestampFields mirrors a generated struct with required/optional timestamp fields.
+type timestampFields struct {
+	Ts    time.Time `json:"ts"`
+	OptTs time.Time `json:"optTs,omitzero"`
+}
 
 // JSON tags on generated structs: required fields always serialize, optional
 // (`?`) fields with `,omitzero` are omitted when unset.
@@ -74,5 +81,32 @@ func TestOptionalFieldsJSONSerialization(t *testing.T) {
 		assert.Equal(t, "", m["reqString"])
 		assert.Equal(t, []any{}, m["reqList"])
 		assert.Equal(t, map[string]any{}, m["reqMap"])
+	})
+
+	t.Run("required nil containers marshal as null with the stdlib encoder", func(t *testing.T) {
+		b, err := json.Marshal(client.OptFields{})
+		require.NoError(t, err)
+
+		var m map[string]any
+		require.NoError(t, json.Unmarshal(b, &m))
+		assert.Equal(t, nil, m["reqList"])
+		assert.Equal(t, nil, m["reqMap"])
+	})
+
+	t.Run("required zero scalars and zero time render", func(t *testing.T) {
+		b, err := json.Marshal(client.OptFields{})
+		require.NoError(t, err)
+
+		var m map[string]any
+		require.NoError(t, json.Unmarshal(b, &m))
+		assert.Equal(t, false, m["reqBool"])
+		assert.Equal(t, float64(0), m["reqInt"])
+		assert.Equal(t, "", m["reqString"])
+
+		b, err = json.Marshal(timestampFields{})
+		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(b, &m))
+		assert.Equal(t, "0001-01-01T00:00:00Z", m["ts"])
+		assert.NotContains(t, m, "optTs")
 	})
 }

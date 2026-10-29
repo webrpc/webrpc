@@ -447,7 +447,7 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}Multipart(ctx
 	{{- end }}
 
 	if len(jsonBody) > 0 {
-		if err := {{$json}}.Unmarshal(jsonBody, &reqPayload); err != nil {
+		if err := {{if eq $opts.json "encoding/json/v2"}}jsonUnmarshal{{else}}{{$json}}.Unmarshal{{end}}(jsonBody, &reqPayload); err != nil {
 			s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 			return
 		}
@@ -560,7 +560,7 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSON(ctx cont
 	{{- end}}
 	}{}
 	{{- end }}
-	if err := {{$json}}.Unmarshal(reqBody, &reqPayload); err != nil {
+	if err := {{if eq $opts.json "encoding/json/v2"}}jsonUnmarshal{{else}}{{$json}}.Unmarshal{{end}}(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -641,7 +641,7 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSONStream(ct
 	{{- end}}
 	}{}
 	{{ end }}
-	if err := {{$json}}.Unmarshal(reqBody, &reqPayload); err != nil {
+	if err := {{if eq $opts.json "encoding/json/v2"}}jsonUnmarshal{{else}}{{$json}}.Unmarshal{{end}}(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -659,9 +659,10 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSONStream(ct
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(http.StatusOK)
 
-	e := {{$json}}.NewEncoder(w)
+{{ if eq $opts.json "encoding/json/v2" }}	e := jsonStreamEncoder{w}
+{{ else }}	e := {{$json}}.NewEncoder(w)
 	e.SetIndent("", "")
-	streamWriter := &{{firstLetterToLower $method.Name}}StreamWriter{streamWriter{w: w, f: f, e: e, sendError: s.sendErrorJSON}}
+{{ end }}	streamWriter := &{{firstLetterToLower $method.Name}}StreamWriter{streamWriter{w: w, f: f, e: e, sendError: s.sendErrorJSON}}
 	if err := streamWriter.ping(); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcStreamLost.WithCausef("failed to establish SSE stream: %w", err))
 		return
@@ -717,7 +718,7 @@ func (s *{{$serviceName}}) sendErrorJSON(w http.ResponseWriter, r *http.Request,
 		out := struct {
 			WebRPCError WebRPCError `json:"webrpcError"`
 		}{ WebRPCError: rpcErr }
-		{{$json}}.NewEncoder(w).Encode(out)
+		{{if eq $opts.json "encoding/json/v2"}}jsonEncode(w, out){{else}}{{$json}}.NewEncoder(w).Encode(out){{end}}
 		return	
 	}
 	{{- end }}
@@ -779,7 +780,7 @@ func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O
 		defer r.Body.Close()
 
 		var reqPayload I
-		if err := {{$json}}.Unmarshal(reqBody, &reqPayload); err != nil {
+		if err := {{if eq $opts.json "encoding/json/v2"}}jsonUnmarshal{{else}}{{$json}}.Unmarshal{{end}}(reqBody, &reqPayload); err != nil {
 			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 			return
 		}
