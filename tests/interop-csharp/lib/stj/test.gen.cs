@@ -1062,12 +1062,12 @@ namespace Interop.Test
         internal WebrpcInternalErrorException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -7, message, httpStatus, cause, innerException) { }
     }
 
-    /// <summary>request aborted by client (WebrpcClientAborted, code -8, HTTP 400).</summary>
+    /// <summary>request aborted by client (WebrpcClientAborted, code -8, HTTP 499).</summary>
     public class WebrpcClientAbortedException : WebrpcException
     {
         public const int ErrorCode = -8;
 
-        public WebrpcClientAbortedException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcClientAborted", -8, "request aborted by client", 400, cause, innerException) { }
+        public WebrpcClientAbortedException(string? cause = null, global::System.Exception? innerException = null) : base("WebrpcClientAborted", -8, "request aborted by client", 499, cause, innerException) { }
 
         internal WebrpcClientAbortedException(string name, string message, int httpStatus, string? cause, global::System.Exception? innerException = null) : base(name, -8, message, httpStatus, cause, innerException) { }
     }

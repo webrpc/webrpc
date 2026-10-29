@@ -92,7 +92,9 @@ export class Example implements ExampleClient {
   protected path = '/Example/'
 
   constructor(hostname: string, fetch: Fetch) {
-    this.hostname = hostname.replace(/\/*$/, '')
+    let hostnameEnd = hostname.length
+    while (hostnameEnd > 0 && hostname.charCodeAt(hostnameEnd - 1) === 47) hostnameEnd--
+    this.hostname = hostnameEnd === hostname.length ? hostname : hostname.slice(0, hostnameEnd)
     this.fetch = (input: RequestInfo, init?: RequestInit) => fetch(input, init)
   }
 
@@ -321,7 +323,7 @@ export class WebrpcClientAbortedError extends WebrpcError {
     this.name = error.name || 'WebrpcClientAborted'
     this.code = typeof error.code === 'number' ? error.code : -8
     this.message = error.message || `request aborted by client`
-    this.status = typeof error.status === 'number' ? error.status : 400
+    this.status = typeof error.status === 'number' ? error.status : 499
     if (error.cause !== undefined) this.cause = error.cause
     Object.setPrototypeOf(this, WebrpcClientAbortedError.prototype)
   }
