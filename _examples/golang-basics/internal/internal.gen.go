@@ -665,7 +665,7 @@ func (s *exampleService) serveUploadAvatarMultipart(ctx context.Context, w http.
 	reqPayload := UploadAvatarRequest{}
 
 	if len(jsonBody) > 0 {
-		if err := jsonUnmarshal(jsonBody, &reqPayload); err != nil {
+		if err := json.Unmarshal(jsonBody, &reqPayload); err != nil {
 			s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 			return
 		}
@@ -711,7 +711,7 @@ func (s *exampleService) serveDownloadAvatarJSON(ctx context.Context, w http.Res
 	defer r.Body.Close()
 
 	reqPayload := DownloadAvatarRequest{}
-	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -942,7 +942,7 @@ func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O
 		defer r.Body.Close()
 
 		var reqPayload I
-		if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+		if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 			return
 		}
@@ -1148,7 +1148,7 @@ func doHTTPRequestRaw(ctx context.Context, client HTTPClient, url string, in, ou
 		}
 
 		var rpcErr WebRPCError
-		if err := jsonUnmarshal(respBody, &rpcErr); err != nil {
+		if err := json.Unmarshal(respBody, &rpcErr); err != nil {
 			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal server error: %w", err)
 		}
 		if rpcErr.Cause != "" {
@@ -1163,7 +1163,7 @@ func doHTTPRequestRaw(ctx context.Context, client HTTPClient, url string, in, ou
 			return nil, ErrWebrpcBadResponse.WithCausef("failed to read response body: %w", err)
 		}
 
-		err = jsonUnmarshal(respBody, &out)
+		err = json.Unmarshal(respBody, &out)
 		if err != nil {
 			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal JSON response body: %w", err)
 		}
@@ -1575,7 +1575,7 @@ func doHTTPUploadRequestRaw(ctx context.Context, client HTTPClient, url string, 
 		}
 
 		var rpcErr WebRPCError
-		if err := jsonUnmarshal(respBody, &rpcErr); err != nil {
+		if err := json.Unmarshal(respBody, &rpcErr); err != nil {
 			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal server error: %w", err)
 		}
 		if rpcErr.Cause != "" {
@@ -1590,7 +1590,7 @@ func doHTTPUploadRequestRaw(ctx context.Context, client HTTPClient, url string, 
 			return nil, ErrWebrpcBadResponse.WithCausef("failed to read response body: %w", err)
 		}
 
-		err = jsonUnmarshal(respBody, &out)
+		err = json.Unmarshal(respBody, &out)
 		if err != nil {
 			return nil, ErrWebrpcBadResponse.WithCausef("failed to unmarshal JSON response body: %w", err)
 		}
@@ -1797,28 +1797,4 @@ func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
 		SchemaName:       schemaName,
 		SchemaVersion:    schemaVersion,
 	}, nil
-}
-
-// jsonEncode writes v as JSON to w, terminated by a newline like json.Encoder.Encode.
-func jsonEncode(w io.Writer, v any) error {
-	return json.NewEncoder(w).Encode(v)
-}
-
-// jsonUnmarshal decodes data into v. encoding/json/v2 matches field names
-// case-sensitively by default; v1 matched them case-insensitively.
-func jsonUnmarshal(data []byte, v any) error {
-	return json.Unmarshal(data, v)
-}
-
-// jsonDecode reads one JSON value from r into v and rejects trailing data.
-// An empty body returns io.EOF so callers can treat it as a zero-value request.
-func jsonDecode(r io.Reader, v any) error {
-	dec := json.NewDecoder(r)
-	if err := dec.Decode(v); err != nil {
-		return err
-	}
-	if dec.More() {
-		return errors.New("unexpected trailing data")
-	}
-	return nil
 }

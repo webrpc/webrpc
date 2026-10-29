@@ -1456,7 +1456,7 @@ func (s *cSharpService) serveSendTypesJSON(ctx context.Context, w http.ResponseW
 	reqPayload := struct {
 		Arg0 *Types `json:"types"`
 	}{}
-	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -1521,7 +1521,7 @@ func (s *cSharpService) serveSendUnknownEnumJSON(ctx context.Context, w http.Res
 		Arg0 Color   `json:"color"`
 		Arg1 []Color `json:"colors"`
 	}{}
-	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -1557,7 +1557,7 @@ func (s *cSharpService) serveKeywordsJSON(ctx context.Context, w http.ResponseWr
 		Arg1 string   `json:"cancellationToken"`
 		Arg2 []string `json:"params,omitzero"`
 	}{}
-	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -1604,7 +1604,7 @@ func (s *cSharpService) serveShadowJSON(ctx context.Context, w http.ResponseWrit
 		Arg2 string `json:"cancellationToken_"`
 		Arg3 string `json:"cancellationToken"`
 	}{}
-	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -1649,7 +1649,7 @@ func (s *cSharpService) serveOptionalJSON(ctx context.Context, w http.ResponseWr
 		Arg1 *uint64    `json:"num,omitzero"`
 		Arg2 *time.Time `json:"ts,omitzero"`
 	}{}
-	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -1753,7 +1753,7 @@ func (s *cSharpService) serveCountdownJSONStream(ctx context.Context, w http.Res
 		Arg0 uint32 `json:"from"`
 	}{}
 
-	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -1809,7 +1809,7 @@ func (s *cSharpService) serveWatchJSONStream(ctx context.Context, w http.Respons
 	defer r.Body.Close()
 
 	reqPayload := WatchRequest{}
-	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -1868,7 +1868,7 @@ func (s *cSharpService) serveCountdownFailJSONStream(ctx context.Context, w http
 		Arg0 uint32 `json:"from"`
 	}{}
 
-	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -1934,7 +1934,7 @@ func (s *cSharpService) serveUploadTaggedMultipart(ctx context.Context, w http.R
 	reqPayload := TaggedUpload{}
 
 	if len(jsonBody) > 0 {
-		if err := jsonUnmarshal(jsonBody, &reqPayload); err != nil {
+		if err := json.Unmarshal(jsonBody, &reqPayload); err != nil {
 			s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 			return
 		}
@@ -2021,7 +2021,7 @@ func (s *cSharpService) serveUploadDocMultipart(ctx context.Context, w http.Resp
 	}{}
 
 	if len(jsonBody) > 0 {
-		if err := jsonUnmarshal(jsonBody, &reqPayload); err != nil {
+		if err := json.Unmarshal(jsonBody, &reqPayload); err != nil {
 			s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 			return
 		}
@@ -2086,7 +2086,7 @@ func (s *cSharpService) serveAttachMultipart(ctx context.Context, w http.Respons
 	reqPayload := AttachRequest{}
 
 	if len(jsonBody) > 0 {
-		if err := jsonUnmarshal(jsonBody, &reqPayload); err != nil {
+		if err := json.Unmarshal(jsonBody, &reqPayload); err != nil {
 			s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 			return
 		}
@@ -2134,7 +2134,7 @@ func (s *cSharpService) serveDownloadDocJSON(ctx context.Context, w http.Respons
 	reqPayload := struct {
 		Arg0 string `json:"name"`
 	}{}
-	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -2176,7 +2176,7 @@ func (s *cSharpService) sendErrorJSON(w http.ResponseWriter, r *http.Request, rp
 		out := struct {
 			WebRPCError WebRPCError `json:"webrpcError"`
 		}{WebRPCError: rpcErr}
-		jsonEncode(w, out)
+		json.NewEncoder(w).Encode(out)
 		return
 	}
 
@@ -2231,7 +2231,7 @@ func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O
 		defer r.Body.Close()
 
 		var reqPayload I
-		if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+		if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 			return
 		}
@@ -2544,9 +2544,15 @@ func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBod
 
 		var req I
 		if hasPayload {
+			dec := json.NewDecoder(r.Body)
 			// io.EOF means an empty (or hook-consumed) body: a zero-value request.
-			if err := jsonDecode(r.Body, &req); err != nil && !errors.Is(err, io.EOF) {
+			if err := dec.Decode(&req); err != nil && !errors.Is(err, io.EOF) {
 				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
+				return
+			}
+			// Parity with TS JSON.parse: reject any trailing data after a successful JSON value.
+			if dec.More() {
+				sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: unexpected trailing data"))
 				return
 			}
 		}
@@ -3240,28 +3246,4 @@ func parseWebrpcGenVersions(header string) (*WebrpcGenVersions, error) {
 		SchemaName:       schemaName,
 		SchemaVersion:    schemaVersion,
 	}, nil
-}
-
-// jsonEncode writes v as JSON to w, terminated by a newline like json.Encoder.Encode.
-func jsonEncode(w io.Writer, v any) error {
-	return json.NewEncoder(w).Encode(v)
-}
-
-// jsonUnmarshal decodes data into v. encoding/json/v2 matches field names
-// case-sensitively by default; v1 matched them case-insensitively.
-func jsonUnmarshal(data []byte, v any) error {
-	return json.Unmarshal(data, v)
-}
-
-// jsonDecode reads one JSON value from r into v and rejects trailing data.
-// An empty body returns io.EOF so callers can treat it as a zero-value request.
-func jsonDecode(r io.Reader, v any) error {
-	dec := json.NewDecoder(r)
-	if err := dec.Decode(v); err != nil {
-		return err
-	}
-	if dec.More() {
-		return errors.New("unexpected trailing data")
-	}
-	return nil
 }

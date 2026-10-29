@@ -447,7 +447,7 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}Multipart(ctx
 	{{- end }}
 
 	if len(jsonBody) > 0 {
-		if err := jsonUnmarshal(jsonBody, &reqPayload); err != nil {
+		if err := {{if eq $opts.json "encoding/json/v2"}}jsonUnmarshal{{else}}{{$json}}.Unmarshal{{end}}(jsonBody, &reqPayload); err != nil {
 			s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 			return
 		}
@@ -560,7 +560,7 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSON(ctx cont
 	{{- end}}
 	}{}
 	{{- end }}
-	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+	if err := {{if eq $opts.json "encoding/json/v2"}}jsonUnmarshal{{else}}{{$json}}.Unmarshal{{end}}(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -641,7 +641,7 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSONStream(ct
 	{{- end}}
 	}{}
 	{{ end }}
-	if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+	if err := {{if eq $opts.json "encoding/json/v2"}}jsonUnmarshal{{else}}{{$json}}.Unmarshal{{end}}(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 		return
 	}
@@ -718,7 +718,7 @@ func (s *{{$serviceName}}) sendErrorJSON(w http.ResponseWriter, r *http.Request,
 		out := struct {
 			WebRPCError WebRPCError `json:"webrpcError"`
 		}{ WebRPCError: rpcErr }
-		jsonEncode(w, out)
+		{{if eq $opts.json "encoding/json/v2"}}jsonEncode(w, out){{else}}{{$json}}.NewEncoder(w).Encode(out){{end}}
 		return	
 	}
 	{{- end }}
@@ -780,7 +780,7 @@ func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O
 		defer r.Body.Close()
 
 		var reqPayload I
-		if err := jsonUnmarshal(reqBody, &reqPayload); err != nil {
+		if err := {{if eq $opts.json "encoding/json/v2"}}jsonUnmarshal{{else}}{{$json}}.Unmarshal{{end}}(reqBody, &reqPayload); err != nil {
 			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
 			return
 		}
