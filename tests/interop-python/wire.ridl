@@ -12,6 +12,12 @@ type Users: []User
 
 type K2: Kind
 
+type UserAlias: User
+
+type UserAlias2: UserAlias
+
+type TextAlias: string
+
 enum Kind: uint32
   - Admin
     + json = ADMIN
@@ -46,6 +52,8 @@ service Wire
   - GetKind() => (kind: Kind)
   - Check(kind: Kind, at: timestamp, code: int, tags: []string, ok: bool, f: float64) => (ok: bool)
   - Maybe(x?: string, y: string) => (z?: string, w: string)
+  - AliasStruct(user: UserAlias2) => (user: UserAlias2)
+  - AliasText(text: TextAlias) => (text: TextAlias)
 
 struct User
   - id: uint64
@@ -58,3 +66,9 @@ struct Team
 struct Opt
   - need: string
   - may?: string
+
+struct Big
+  - n: bigint
+
+struct AliasHolder
+  - user: UserAlias2

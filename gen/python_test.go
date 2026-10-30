@@ -113,6 +113,41 @@ func TestPythonErrors(t *testing.T) {
 			opts: map[string]interface{}{"pkg": "api"},
 			err:  `-pkg="api" is not supported target option`,
 		},
+		{
+			name:   "keyword type name",
+			schema: strings.ReplaceAll(pythonTestSchema, "Item", "None"),
+			err:    `python generator error: the type name "None" is a Python keyword`,
+		},
+		{
+			name:   "keyword service name",
+			schema: strings.Replace(pythonTestSchema, "service Items", "service None", 1),
+			err:    `python generator error: the service name "None" is a Python keyword`,
+		},
+		{
+			name:   "keyword error name",
+			schema: pythonTestSchema + `error 1 None "x"` + "\n",
+			err:    `python generator error: the error name "None" is a Python keyword`,
+		},
+		{
+			name: "method snake case collision",
+			schema: strings.Replace(
+				pythonTestSchema,
+				"  - GetItem(id: uint64) => (item: Item)",
+				"  - GetItem(id: uint64) => (item: Item)\n  - get_item(id: uint64) => (item: Item)",
+				1,
+			),
+			err: `python generator error: methods Items.GetItem and Items.get_item both generate the Python method "get_item"`,
+		},
+		{
+			name:   "struct field shadows generated method",
+			schema: pythonTestSchema + "\nstruct Clash\n  - to_dict: string\n",
+			err:    `python generator error: the field Clash.to_dict generates the Python attribute "to_dict", which shadows a generated method`,
+		},
+		{
+			name:   "enum member uses reserved name",
+			schema: pythonTestSchema + "\nenum Bad: string\n  - from_dict = \"x\"\n",
+			err:    `python generator error: the enum member Bad.from_dict generates the reserved Python member "from_dict"`,
+		},
 	}
 
 	for _, tc := range tt {

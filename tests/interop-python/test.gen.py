@@ -9,6 +9,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
+from http import HTTPStatus as _HTTPStatus
 from typing import Any, Callable, Optional, Protocol
 
 WEBRPC_HEADER = "Webrpc"
@@ -49,8 +50,8 @@ class Item:
         if data is None:
             return None
         return cls(
-            id=_check_int(data.get("id")),
-            name=_check_str(data.get("name")),
+            id=_check_int(_required(data, "id")),
+            name=_check_str(_required(data, "name")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -70,7 +71,7 @@ class GetItemRequest:
         if data is None:
             return None
         return cls(
-            id=_check_int(data.get("id")),
+            id=_check_int(_required(data, "id")),
             details=None if data.get("details") is None else _check_bool(data.get("details")),
         )
 
@@ -112,8 +113,8 @@ class ListItemsRequest:
             return None
         return cls(
             q=None if data.get("q") is None else _check_str(data.get("q")),
-            tags=[_check_str(_e0) for _e0 in _as_list(data.get("tags"))],
-            limit=_check_int(data.get("limit")),
+            tags=[_check_str(_e0) for _e0 in _as_list(_required(data, "tags"))],
+            limit=_check_int(_required(data, "limit")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -134,7 +135,7 @@ class ListItemsResponse:
         if data is None:
             return None
         return cls(
-            items=[Item.from_dict(_e0) for _e0 in _as_list(data.get("items"))],
+            items=[Item.from_dict(_e0) for _e0 in _as_list(_required(data, "items"))],
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -161,11 +162,11 @@ class OptFields:
         if data is None:
             return None
         return cls(
-            reqBool=_check_bool(data.get("reqBool")),
-            reqInt=_check_int(data.get("reqInt")),
-            reqString=_check_str(data.get("reqString")),
-            reqList=[_check_str(_e0) for _e0 in _as_list(data.get("reqList"))],
-            reqMap={ _k0:_check_int(_v0) for _k0, _v0 in _as_dict(data.get("reqMap")).items() },
+            reqBool=_check_bool(_required(data, "reqBool")),
+            reqInt=_check_int(_required(data, "reqInt")),
+            reqString=_check_str(_required(data, "reqString")),
+            reqList=[_check_str(_e0) for _e0 in _as_list(_required(data, "reqList"))],
+            reqMap={ _k0:_check_int(_v0) for _k0, _v0 in _as_dict(_required(data, "reqMap")).items() },
             optBool=None if data.get("optBool") is None else _check_bool(data.get("optBool")),
             optInt=None if data.get("optInt") is None else _check_int(data.get("optInt")),
             optString=None if data.get("optString") is None else _check_str(data.get("optString")),
@@ -239,8 +240,8 @@ class Simple:
         if data is None:
             return None
         return cls(
-            id=_check_int(data.get("id")),
-            name=_check_str(data.get("name")),
+            id=_check_int(_required(data, "id")),
+            name=_check_str(_required(data, "name")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -261,9 +262,9 @@ class User:
         if data is None:
             return None
         return cls(
-            id=_check_int(data.get("id")),
-            USERNAME=_check_str(data.get("USERNAME")),
-            role=_check_str(data.get("role")),
+            id=_check_int(_required(data, "id")),
+            USERNAME=_check_str(_required(data, "USERNAME")),
+            role=_check_str(_required(data, "role")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -292,16 +293,16 @@ class Complex:
         if data is None:
             return None
         return cls(
-            meta={ _k0:_v0 for _k0, _v0 in _as_dict(data.get("meta")).items() },
-            metaNestedExample={ _k0:{ _k1:_check_int(_v1) for _k1, _v1 in _as_dict(_v0).items() } for _k0, _v0 in _as_dict(data.get("metaNestedExample")).items() },
-            namesList=[_check_str(_e0) for _e0 in _as_list(data.get("namesList"))],
-            numsList=[_check_int(_e0) for _e0 in _as_list(data.get("numsList"))],
-            doubleArray=[[_check_str(_e1) for _e1 in _as_list(_e0)] for _e0 in _as_list(data.get("doubleArray"))],
-            listOfMaps=[{ _k1:_check_int(_v1) for _k1, _v1 in _as_dict(_e0).items() } for _e0 in _as_list(data.get("listOfMaps"))],
-            listOfUsers=[User.from_dict(_e0) for _e0 in _as_list(data.get("listOfUsers"))],
-            mapOfUsers={ _k0:User.from_dict(_v0) for _k0, _v0 in _as_dict(data.get("mapOfUsers")).items() },
+            meta={ _k0:_v0 for _k0, _v0 in _as_dict(_required(data, "meta")).items() },
+            metaNestedExample={ _k0:{ _k1:_check_int(_v1) for _k1, _v1 in _as_dict(_v0).items() } for _k0, _v0 in _as_dict(_required(data, "metaNestedExample")).items() },
+            namesList=[_check_str(_e0) for _e0 in _as_list(_required(data, "namesList"))],
+            numsList=[_check_int(_e0) for _e0 in _as_list(_required(data, "numsList"))],
+            doubleArray=[[_check_str(_e1) for _e1 in _as_list(_e0)] for _e0 in _as_list(_required(data, "doubleArray"))],
+            listOfMaps=[{ _k1:_check_int(_v1) for _k1, _v1 in _as_dict(_e0).items() } for _e0 in _as_list(_required(data, "listOfMaps"))],
+            listOfUsers=[User.from_dict(_e0) for _e0 in _as_list(_required(data, "listOfUsers"))],
+            mapOfUsers={ _k0:User.from_dict(_v0) for _k0, _v0 in _as_dict(_required(data, "mapOfUsers")).items() },
             user=User.from_dict(data.get("user")),
-            status=Status.from_dict(data.get("status")),
+            status=Status.from_dict(_required(data, "status")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -329,8 +330,8 @@ class EnumData:
         if data is None:
             return None
         return cls(
-            dict={ Access.from_dict(_k0):_check_int(_v0) for _k0, _v0 in _as_dict(data.get("dict")).items() },
-            list=[Status.from_dict(_e0) for _e0 in _as_list(data.get("list"))],
+            dict={ Access.from_dict(_k0):_check_int(_v0) for _k0, _v0 in _as_dict(_required(data, "dict")).items() },
+            list=[Status.from_dict(_e0) for _e0 in _as_list(_required(data, "list"))],
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -422,7 +423,7 @@ class WebrpcClientAborted(WebRPCError):
     name = "WebrpcClientAborted"
     code = -8
     message = "request aborted by client"
-    status = 400
+    status = 499
 
 
 class WebrpcStreamLost(WebRPCError):
@@ -643,6 +644,15 @@ def _as_dict(v: Any) -> dict:
     raise TypeError(f"expected an object, got {type(v).__name__}")
 
 
+def _required(data: dict[str, Any], key: str) -> Any:
+    if key not in data:
+        raise ValueError(f"missing required value: {key}")
+    value = data[key]
+    if value is None:
+        raise ValueError(f"required value is null: {key}")
+    return value
+
+
 def _check_int(v: Any) -> Any:
     if v is None or (isinstance(v, int) and not isinstance(v, bool)):
         return v
@@ -676,8 +686,17 @@ def _parse_datetime(v: Any) -> datetime:
 
 
 def _parse_bigint(v: Any) -> int:
-    # webrpc transports bigint as a decimal string; tolerate a JSON number too.
-    return int(v)
+    # webrpc transports bigint as a decimal string; tolerate an integer JSON number too.
+    if isinstance(v, bool):
+        raise TypeError(f"expected a bigint, got {type(v).__name__}")
+    if isinstance(v, int):
+        return v
+    if isinstance(v, str):
+        try:
+            return int(v, 10)
+        except ValueError as err:
+            raise TypeError(f"expected a bigint, got {v!r}") from err
+    raise TypeError(f"expected a bigint, got {type(v).__name__}")
 
 
 def _bigint_to_value(v: Any) -> Any:
@@ -790,7 +809,7 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        return self._handle_response(_resp, lambda _data: [Status.from_dict(_e0) for _e0 in _as_list(_data.get("list"))])
+        return self._handle_response(_resp, lambda _data: [Status.from_dict(_e0) for _e0 in _as_list(_required(_data, "list"))])
 
     def get_enum_map(self) -> dict[Access, int]:
         _body: dict[str, Any] = {
@@ -800,7 +819,7 @@ class TestApiClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        return self._handle_response(_resp, lambda _data: { Access.from_dict(_k0):_check_int(_v0) for _k0, _v0 in _as_dict(_data.get("map")).items() })
+        return self._handle_response(_resp, lambda _data: { Access.from_dict(_k0):_check_int(_v0) for _k0, _v0 in _as_dict(_required(_data, "map")).items() })
 
     def get_schema_error(self, code: int) -> None:
         _body: dict[str, Any] = {
@@ -837,6 +856,13 @@ class TestApiClient:
             return decode(body)
         except (ValueError, TypeError, KeyError, AttributeError) as err:
             raise WebrpcBadResponse(cause=f"failed to decode response: {err}") from err
+
+
+def _status_line(status: int) -> str:
+    try:
+        return f"{status} {_HTTPStatus(status).phrase}"
+    except ValueError:
+        return f"{status} Unknown"
 
 
 class TestApi(Protocol):
@@ -892,11 +918,15 @@ class TestApiServer:
         content_type = environ.get("CONTENT_TYPE", "").split(";")[0].strip().lower()
         if content_type != "application/json":
             return self._error(start_response, WebrpcBadRequest(message="Content-Type must be application/json"))
-        try:
-            length = int(environ.get("CONTENT_LENGTH") or 0)
-        except (TypeError, ValueError):
-            return self._error(start_response, WebrpcBadRequest(message="invalid Content-Length"))
-        raw = environ["wsgi.input"].read(length) if length else b""
+        length = environ.get("CONTENT_LENGTH")
+        if length:
+            try:
+                length = int(length)
+            except (TypeError, ValueError):
+                return self._error(start_response, WebrpcBadRequest(message="invalid Content-Length"))
+            raw = environ["wsgi.input"].read(length)
+        else:
+            raw = environ["wsgi.input"].read()
         try:
             data = json.loads(raw) if raw else {}
         except (json.JSONDecodeError, UnicodeDecodeError):
@@ -921,7 +951,7 @@ class TestApiServer:
 
     def _respond(self, start_response, status: int, payload: dict[str, Any]):
         body = json.dumps(payload).encode("utf-8")
-        start_response(f"{status} ", self._headers(body))
+        start_response(_status_line(status), self._headers(body))
         return [body]
 
     def _error(self, start_response, err: "WebRPCError", extra_headers=None):
@@ -929,7 +959,7 @@ class TestApiServer:
         headers = self._headers(body)
         if extra_headers:
             headers.extend(extra_headers)
-        start_response(f"{err.status} ", headers)
+        start_response(_status_line(err.status), headers)
         return [body]
 
     def _rpc_get_empty(self, data: dict[str, Any]) -> dict[str, Any]:
@@ -1000,7 +1030,7 @@ class TestApiServer:
     def _rpc_get_schema_error(self, data: dict[str, Any]) -> dict[str, Any]:
         try:
             args = {
-                "code": _check_int(data.get("code")),
+                "code": _check_int(_required(data, "code")),
             }
         except (ValueError, TypeError, KeyError, AttributeError) as err:
             raise WebrpcBadRequest(cause=f"invalid request: {err}") from err

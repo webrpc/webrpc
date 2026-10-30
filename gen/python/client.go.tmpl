@@ -1,6 +1,7 @@
 {{- define "client" -}}
 {{- $typeMap := .TypeMap -}}
 {{- $aliasMap := .AliasMap -}}
+{{- $nullableStructs := .NullableStructs -}}
 {{- $basepath := .BasePath -}}
 {{- $services := .Services -}}
 {{- $webrpcHeader := .WebrpcHeader -}}
@@ -12,26 +13,26 @@ class {{$service.Name}}Client:
         if client is None:
             import httpx
             client = httpx.Client()
-        self._base = base_url.rstrip("/") + "{{$basepath}}{{$service.Name}}/"
+        self._base = base_url.rstrip("/") + {{template "pyStr" (printf "%s%s/" $basepath $service.Name)}}
         self._client = client
 {{- range $_, $method := $service.Methods}}
 
-    def {{template "pyMethod" $method}}(self{{range $_, $in := $method.Inputs}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}, {{$ip}}: {{template "type" dict "Type" $in.Type "TypeMap" $typeMap}}{{end}}) -> {{template "methodReturn" dict "Method" $method "TypeMap" $typeMap}}:
+    def {{template "pyMethod" $method}}(self{{range $_, $in := $method.Inputs}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}, {{$ip}}: {{if $in.Optional}}Optional[{{end}}{{template "type" dict "Type" $in.Type "TypeMap" $typeMap}}{{if $in.Optional}}]{{end}}{{end}}) -> {{template "methodReturn" dict "Method" $method "TypeMap" $typeMap}}:
 {{- if not $method.Succinct}}
         _body: dict[str, Any] = {
 {{- range $_, $in := $method.Inputs}}{{if not $in.Optional}}
 {{- $ik := $in.Name -}}{{- $ip := $ik -}}{{- if has $ik $kw -}}{{- $ip = printf "%s_" $ik -}}{{- end}}
-            "{{$ik}}": {{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $ip}},
+            {{template "pyStr" $ik}}: {{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $ip}},
 {{- end}}{{end}}
         }
 {{- range $_, $in := $method.Inputs}}{{if $in.Optional}}
 {{- $ik := $in.Name -}}{{- $ip := $ik -}}{{- if has $ik $kw -}}{{- $ip = printf "%s_" $ik -}}{{- end}}
         if {{$ip}} is not None:
-            _body["{{$ik}}"] = {{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $ip}}
+            _body[{{template "pyStr" $ik}}] = {{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $ip}}
 {{- end}}{{end}}
 {{- end}}
         _resp = self._client.post(
-            self._base + "{{$method.Name}}",
+            self._base + {{template "pyStr" $method.Name}},
 {{- if $method.Succinct}}
 {{- $in := index $method.Inputs 0}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}
             json={{template "toValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" $ip}},
@@ -47,12 +48,12 @@ class {{$service.Name}}Client:
         return self._handle_response(_resp, lambda _data: {{template "fromValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "_data"}})
 {{- else if eq (len $method.Outputs) 1}}
 {{- range $_, $out := $method.Outputs}}
-        return self._handle_response(_resp, lambda _data: {{if .Optional}}None if _data.get("{{$out.Name}}") is None else {{end}}{{template "fromValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "_data.get(%q)" $out.Name)}})
+        return self._handle_response(_resp, lambda _data: {{if .Optional}}None if _data.get({{template "pyStr" $out.Name}}) is None else {{end}}{{template "fromValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (ternary (or .Optional (hasKey $nullableStructs (printf "%v" .Type))) (printf "_data.get(%q)" $out.Name) (printf "_required(_data, %q)" $out.Name))}})
 {{- end}}
 {{- else}}
         return self._handle_response(_resp, lambda _data: (
 {{- range $_, $out := $method.Outputs}}
-            {{if .Optional}}None if _data.get("{{$out.Name}}") is None else {{end}}{{template "fromValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "_data.get(%q)" $out.Name)}},
+            {{if .Optional}}None if _data.get({{template "pyStr" $out.Name}}) is None else {{end}}{{template "fromValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (ternary (or .Optional (hasKey $nullableStructs (printf "%v" .Type))) (printf "_data.get(%q)" $out.Name) (printf "_required(_data, %q)" $out.Name))}},
 {{- end}}
         ))
 {{- end}}

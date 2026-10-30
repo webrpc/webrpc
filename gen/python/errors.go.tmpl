@@ -26,17 +26,17 @@ class WebRPCError(Exception):
 
 {{range $_, $err := $rpcErrors}}
 class {{$err.Name}}(WebRPCError):
-    name = "{{$err.Name}}"
+    name = {{template "pyStr" $err.Name}}
     code = {{$err.Code}}
-    message = "{{$err.Message}}"
+    message = {{template "pyStr" $err.Message}}
     status = {{$err.HTTPStatus}}
 
 {{end -}}
 {{- range $_, $err := $schemaErrors}}
 class {{$err.Name}}(WebRPCError):
-    name = "{{$err.Name}}"
+    name = {{template "pyStr" $err.Name}}
     code = {{$err.Code}}
-    message = "{{$err.Message}}"
+    message = {{template "pyStr" $err.Message}}
     status = {{$err.HTTPStatus}}
 
 {{end -}}

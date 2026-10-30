@@ -1,3 +1,8 @@
+{{- /* pyStr renders a Python string literal. */ -}}
+{{- define "pyStr" -}}
+{{ printf "%q" (printf "%v" .) }}
+{{- end -}}
+
 {{- define "helpers" -}}
 
 def _to_value(v: Any) -> Any:
@@ -34,6 +39,15 @@ def _as_dict(v: Any) -> dict:
     raise TypeError(f"expected an object, got {type(v).__name__}")
 
 
+def _required(data: dict[str, Any], key: str) -> Any:
+    if key not in data:
+        raise ValueError(f"missing required value: {key}")
+    value = data[key]
+    if value is None:
+        raise ValueError(f"required value is null: {key}")
+    return value
+
+
 def _check_int(v: Any) -> Any:
     if v is None or (isinstance(v, int) and not isinstance(v, bool)):
         return v
@@ -67,8 +81,17 @@ def _parse_datetime(v: Any) -> datetime:
 
 
 def _parse_bigint(v: Any) -> int:
-    # webrpc transports bigint as a decimal string; tolerate a JSON number too.
-    return int(v)
+    # webrpc transports bigint as a decimal string; tolerate an integer JSON number too.
+    if isinstance(v, bool):
+        raise TypeError(f"expected a bigint, got {type(v).__name__}")
+    if isinstance(v, int):
+        return v
+    if isinstance(v, str):
+        try:
+            return int(v, 10)
+        except ValueError as err:
+            raise TypeError(f"expected a bigint, got {v!r}") from err
+    raise TypeError(f"expected a bigint, got {type(v).__name__}")
 
 
 def _bigint_to_value(v: Any) -> Any:

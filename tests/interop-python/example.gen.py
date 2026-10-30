@@ -9,6 +9,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
+from http import HTTPStatus as _HTTPStatus
 from typing import Any, Callable, Optional, Protocol
 
 WEBRPC_HEADER = "Webrpc"
@@ -49,16 +50,16 @@ class Item:
         if data is None:
             return None
         return cls(
-            id=_check_str(data.get("id")),
-            name=_check_str(data.get("name")),
-            tier=ItemTier.from_dict(data.get("tier")),
-            count=_check_int(data.get("count")),
-            quantity=_check_int(data.get("quantity")),
-            balance=_parse_bigint(data.get("balance")),
-            tags=[_check_str(_e0) for _e0 in _as_list(data.get("tags"))],
-            attributes={ _k0:_check_str(_v0) for _k0, _v0 in _as_dict(data.get("attributes")).items() },
-            class_=_check_str(data.get("class")),
-            createdAt=_parse_datetime(data.get("createdAt")),
+            id=_check_str(_required(data, "id")),
+            name=_check_str(_required(data, "name")),
+            tier=ItemTier.from_dict(_required(data, "tier")),
+            count=_check_int(_required(data, "count")),
+            quantity=_check_int(_required(data, "quantity")),
+            balance=_parse_bigint(_required(data, "balance")),
+            tags=[_check_str(_e0) for _e0 in _as_list(_required(data, "tags"))],
+            attributes={ _k0:_check_str(_v0) for _k0, _v0 in _as_dict(_required(data, "attributes")).items() },
+            class_=_check_str(_required(data, "class")),
+            createdAt=_parse_datetime(_required(data, "createdAt")),
             lastUpdate=None if data.get("lastUpdate") is None else _parse_datetime(data.get("lastUpdate")),
             notes=None if data.get("notes") is None else [_check_str(_e0) for _e0 in _as_list(data.get("notes"))],
             labels=None if data.get("labels") is None else { _k0:_check_str(_v0) for _k0, _v0 in _as_dict(data.get("labels")).items() },
@@ -95,8 +96,8 @@ class CreateItemRequest:
         if data is None:
             return None
         return cls(
-            name=_check_str(data.get("name")),
-            tier=ItemTier.from_dict(data.get("tier")),
+            name=_check_str(_required(data, "name")),
+            tier=ItemTier.from_dict(_required(data, "tier")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -116,8 +117,8 @@ class ItemSummary:
         if data is None:
             return None
         return cls(
-            id=_check_str(data.get("id")),
-            name=_check_str(data.get("name")),
+            id=_check_str(_required(data, "id")),
+            name=_check_str(_required(data, "name")),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -137,7 +138,7 @@ class Credentials:
         if data is None:
             return None
         return cls(
-            user=_check_str(data.get("user")),
+            user=_check_str(_required(data, "user")),
             note=None if data.get("note") is None else _check_str(data.get("note")),
         )
 
@@ -235,7 +236,7 @@ class WebrpcClientAborted(WebRPCError):
     name = "WebrpcClientAborted"
     code = -8
     message = "request aborted by client"
-    status = 400
+    status = 499
 
 
 class WebrpcStreamLost(WebRPCError):
@@ -336,6 +337,15 @@ def _as_dict(v: Any) -> dict:
     raise TypeError(f"expected an object, got {type(v).__name__}")
 
 
+def _required(data: dict[str, Any], key: str) -> Any:
+    if key not in data:
+        raise ValueError(f"missing required value: {key}")
+    value = data[key]
+    if value is None:
+        raise ValueError(f"required value is null: {key}")
+    return value
+
+
 def _check_int(v: Any) -> Any:
     if v is None or (isinstance(v, int) and not isinstance(v, bool)):
         return v
@@ -369,8 +379,17 @@ def _parse_datetime(v: Any) -> datetime:
 
 
 def _parse_bigint(v: Any) -> int:
-    # webrpc transports bigint as a decimal string; tolerate a JSON number too.
-    return int(v)
+    # webrpc transports bigint as a decimal string; tolerate an integer JSON number too.
+    if isinstance(v, bool):
+        raise TypeError(f"expected a bigint, got {type(v).__name__}")
+    if isinstance(v, int):
+        return v
+    if isinstance(v, str):
+        try:
+            return int(v, 10)
+        except ValueError as err:
+            raise TypeError(f"expected a bigint, got {v!r}") from err
+    raise TypeError(f"expected a bigint, got {type(v).__name__}")
 
 
 def _bigint_to_value(v: Any) -> Any:
@@ -394,7 +413,7 @@ class ExampleServiceClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        return self._handle_response(_resp, lambda _data: [ItemSummary.from_dict(_e0) for _e0 in _as_list(_data.get("items"))])
+        return self._handle_response(_resp, lambda _data: [ItemSummary.from_dict(_e0) for _e0 in _as_list(_required(_data, "items"))])
 
     def get_item(self, itemId: str) -> Item:
         _body: dict[str, Any] = {
@@ -459,7 +478,7 @@ class ExampleServiceClient:
             json=_body,
             headers={"Content-Type": "application/json", "Accept": "application/json", "Webrpc": WEBRPC_HEADER_VALUE},
         )
-        return self._handle_response(_resp, lambda _data: { ItemTier.from_dict(_k0):_check_int(_v0) for _k0, _v0 in _as_dict(_data.get("counts")).items() })
+        return self._handle_response(_resp, lambda _data: { ItemTier.from_dict(_k0):_check_int(_v0) for _k0, _v0 in _as_dict(_required(_data, "counts")).items() })
 
     def _handle_response(self, resp: "httpx.Response", decode: Optional[Callable[[dict[str, Any]], Any]] = None) -> Any:
         try:
@@ -485,6 +504,13 @@ class ExampleServiceClient:
             return decode(body)
         except (ValueError, TypeError, KeyError, AttributeError) as err:
             raise WebrpcBadResponse(cause=f"failed to decode response: {err}") from err
+
+
+def _status_line(status: int) -> str:
+    try:
+        return f"{status} {_HTTPStatus(status).phrase}"
+    except ValueError:
+        return f"{status} Unknown"
 
 
 class ExampleService(Protocol):
@@ -528,11 +554,15 @@ class ExampleServiceServer:
         content_type = environ.get("CONTENT_TYPE", "").split(";")[0].strip().lower()
         if content_type != "application/json":
             return self._error(start_response, WebrpcBadRequest(message="Content-Type must be application/json"))
-        try:
-            length = int(environ.get("CONTENT_LENGTH") or 0)
-        except (TypeError, ValueError):
-            return self._error(start_response, WebrpcBadRequest(message="invalid Content-Length"))
-        raw = environ["wsgi.input"].read(length) if length else b""
+        length = environ.get("CONTENT_LENGTH")
+        if length:
+            try:
+                length = int(length)
+            except (TypeError, ValueError):
+                return self._error(start_response, WebrpcBadRequest(message="invalid Content-Length"))
+            raw = environ["wsgi.input"].read(length)
+        else:
+            raw = environ["wsgi.input"].read()
         try:
             data = json.loads(raw) if raw else {}
         except (json.JSONDecodeError, UnicodeDecodeError):
@@ -557,7 +587,7 @@ class ExampleServiceServer:
 
     def _respond(self, start_response, status: int, payload: dict[str, Any]):
         body = json.dumps(payload).encode("utf-8")
-        start_response(f"{status} ", self._headers(body))
+        start_response(_status_line(status), self._headers(body))
         return [body]
 
     def _error(self, start_response, err: "WebRPCError", extra_headers=None):
@@ -565,7 +595,7 @@ class ExampleServiceServer:
         headers = self._headers(body)
         if extra_headers:
             headers.extend(extra_headers)
-        start_response(f"{err.status} ", headers)
+        start_response(_status_line(err.status), headers)
         return [body]
 
     def _rpc_get_items(self, data: dict[str, Any]) -> dict[str, Any]:
@@ -575,7 +605,7 @@ class ExampleServiceServer:
     def _rpc_get_item(self, data: dict[str, Any]) -> dict[str, Any]:
         try:
             args = {
-                "itemId": _check_str(data.get("itemId")),
+                "itemId": _check_str(_required(data, "itemId")),
             }
         except (ValueError, TypeError, KeyError, AttributeError) as err:
             raise WebrpcBadRequest(cause=f"invalid request: {err}") from err
@@ -595,7 +625,7 @@ class ExampleServiceServer:
     def _rpc_put_one(self, data: dict[str, Any]) -> dict[str, Any]:
         try:
             args = {
-                "itemId": _check_str(data.get("itemId")),
+                "itemId": _check_str(_required(data, "itemId")),
             }
         except (ValueError, TypeError, KeyError, AttributeError) as err:
             raise WebrpcBadRequest(cause=f"invalid request: {err}") from err
@@ -605,7 +635,7 @@ class ExampleServiceServer:
     def _rpc_take_one(self, data: dict[str, Any]) -> dict[str, Any]:
         try:
             args = {
-                "itemId": _check_str(data.get("itemId")),
+                "itemId": _check_str(_required(data, "itemId")),
             }
         except (ValueError, TypeError, KeyError, AttributeError) as err:
             raise WebrpcBadRequest(cause=f"invalid request: {err}") from err
@@ -615,7 +645,7 @@ class ExampleServiceServer:
     def _rpc_delete_item(self, data: dict[str, Any]) -> dict[str, Any]:
         try:
             args = {
-                "itemId": _check_str(data.get("itemId")),
+                "itemId": _check_str(_required(data, "itemId")),
             }
         except (ValueError, TypeError, KeyError, AttributeError) as err:
             raise WebrpcBadRequest(cause=f"invalid request: {err}") from err

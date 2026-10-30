@@ -1,6 +1,7 @@
 {{- define "types" -}}
 {{- $typeMap := .TypeMap -}}
 {{- $aliasMap := .AliasMap -}}
+{{- $nullableStructs := .NullableStructs -}}
 {{- $types := .Types -}}
 {{- $kw := list "False" "None" "True" "and" "as" "assert" "async" "await" "break" "class" "continue" "def" "del" "elif" "else" "except" "finally" "for" "from" "global" "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "raise" "return" "try" "while" "with" "yield" "self" -}}
 {{- range $_, $type := $types}}
@@ -9,7 +10,7 @@
 class {{$type.Name}}(Enum):
 {{- range $_, $field := $type.Fields}}
 {{- $m := $field.Name -}}{{- if has $field.Name $kw -}}{{- $m = printf "%s_" $field.Name -}}{{- end}}
-    {{$m}} = "{{if eq $type.Type.Expr "string"}}{{$field.Value}}{{else}}{{enumWireValue $field}}{{end}}"
+    {{$m}} = {{if eq $type.Type.Expr "string"}}{{template "pyStr" $field.Value}}{{else}}{{template "pyStr" (enumWireValue $field)}}{{end}}
 {{- end}}
 
     @classmethod
@@ -48,7 +49,7 @@ class {{$type.Name}}:
         return cls(
 {{- range $_, $field := $fields}}
 {{- $key := $field.Name -}}{{- range $meta := $field.Meta}}{{- if exists $meta "json"}}{{- $key = get $meta "json" | split "," | first}}{{- end}}{{- end}}
-            {{template "pyName" dict "Field" $field}}={{if $field.Optional}}None if data.get("{{$key}}") is None else {{end}}{{template "fromValue" dict "Type" $field.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "data.get(%q)" $key)}},
+            {{template "pyName" dict "Field" $field}}={{if $field.Optional}}None if data.get({{template "pyStr" $key}}) is None else {{end}}{{template "fromValue" dict "Type" $field.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (ternary (or $field.Optional (hasKey $nullableStructs (printf "%v" $field.Type))) (printf "data.get(%q)" $key) (printf "_required(data, %q)" $key))}},
 {{- end}}
         )
 
@@ -57,14 +58,14 @@ class {{$type.Name}}:
 {{- range $_, $field := $fields}}{{if not $field.Optional}}
 {{- $key := $field.Name -}}{{- range $meta := $field.Meta}}{{- if exists $meta "json"}}{{- $key = get $meta "json" | split "," | first}}{{- end}}{{- end}}
 {{- $py := $key -}}{{- if has $key $kw -}}{{- $py = printf "%s_" $key -}}{{- end}}
-            "{{$key}}": {{template "toValue" dict "Type" $field.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "self.%s" $py)}},
+            {{template "pyStr" $key}}: {{template "toValue" dict "Type" $field.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "self.%s" $py)}},
 {{- end}}{{end}}
         }
 {{- range $_, $field := $fields}}{{if $field.Optional}}
 {{- $key := $field.Name -}}{{- range $meta := $field.Meta}}{{- if exists $meta "json"}}{{- $key = get $meta "json" | split "," | first}}{{- end}}{{- end}}
 {{- $py := $key -}}{{- if has $key $kw -}}{{- $py = printf "%s_" $key -}}{{- end}}
         if self.{{$py}} is not None:
-            out["{{$key}}"] = {{template "toValue" dict "Type" $field.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "self.%s" $py)}}
+            out[{{template "pyStr" $key}}] = {{template "toValue" dict "Type" $field.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "self.%s" $py)}}
 {{- end}}{{end}}
         return out
 {{- end}}

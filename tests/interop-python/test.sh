@@ -50,6 +50,19 @@ done
 echo "keyword identifiers generate valid Python"
 gen -schema=keywords.ridl -client -server -out="$TMP/keywords.py" >/dev/null
 "$PYTHON" -m py_compile "$TMP/keywords.py"
+"$PYTHON" - "$TMP/keywords.py" <<'PY'
+import importlib.util
+import sys
+
+spec = importlib.util.spec_from_file_location("keywords_gen", sys.argv[1])
+module = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = module
+spec.loader.exec_module(module)
+
+assert module.Escaped.message == "a\nb\tc", repr(module.Escaped.message)
+assert module.Label.Escaped.value == "a\nb\tc", repr(module.Label.Escaped.value)
+assert module._status_line(200) == "200 OK"
+PY
 
 GO_SERVER_PORT=9994
 PY_SERVER_PORT=9995

@@ -1,14 +1,24 @@
 {{- define "server" -}}
 {{- $typeMap := .TypeMap -}}
 {{- $aliasMap := .AliasMap -}}
+{{- $nullableStructs := .NullableStructs -}}
 {{- $basepath := .BasePath -}}
 {{- $services := .Services -}}
 {{- $kw := list "False" "None" "True" "and" "as" "assert" "async" "await" "break" "class" "continue" "def" "del" "elif" "else" "except" "finally" "for" "from" "global" "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "raise" "return" "try" "while" "with" "yield" "self" -}}
+{{- if $services}}
+
+def _status_line(status: int) -> str:
+    try:
+        return f"{status} {_HTTPStatus(status).phrase}"
+    except ValueError:
+        return f"{status} Unknown"
+{{- end}}
 {{- range $_, $service := $services}}
+
 
 class {{$service.Name}}(Protocol):
 {{- range $_, $method := $service.Methods}}
-    def {{template "pyMethod" $method}}(self{{range $_, $in := $method.Inputs}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}, {{$ip}}: {{template "type" dict "Type" $in.Type "TypeMap" $typeMap}}{{end}}) -> {{template "methodReturn" dict "Method" $method "TypeMap" $typeMap}}:
+    def {{template "pyMethod" $method}}(self{{range $_, $in := $method.Inputs}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}, {{$ip}}: {{if $in.Optional}}Optional[{{end}}{{template "type" dict "Type" $in.Type "TypeMap" $typeMap}}{{if $in.Optional}}]{{end}}{{end}}) -> {{template "methodReturn" dict "Method" $method "TypeMap" $typeMap}}:
         ...
 {{- end}}
 
@@ -20,7 +30,7 @@ class {{$service.Name}}Server:
         self._service = service
         self._routes = {
 {{- range $_, $method := $service.Methods}}
-            "{{$basepath}}{{$service.Name}}/{{$method.Name}}": self._rpc_{{snakeCase $method.Name}},
+            {{template "pyStr" (printf "%s%s/%s" $basepath $service.Name $method.Name)}}: self._rpc_{{snakeCase $method.Name}},
 {{- end}}
         }
 
@@ -33,11 +43,15 @@ class {{$service.Name}}Server:
         content_type = environ.get("CONTENT_TYPE", "").split(";")[0].strip().lower()
         if content_type != "application/json":
             return self._error(start_response, WebrpcBadRequest(message="Content-Type must be application/json"))
-        try:
-            length = int(environ.get("CONTENT_LENGTH") or 0)
-        except (TypeError, ValueError):
-            return self._error(start_response, WebrpcBadRequest(message="invalid Content-Length"))
-        raw = environ["wsgi.input"].read(length) if length else b""
+        length = environ.get("CONTENT_LENGTH")
+        if length:
+            try:
+                length = int(length)
+            except (TypeError, ValueError):
+                return self._error(start_response, WebrpcBadRequest(message="invalid Content-Length"))
+            raw = environ["wsgi.input"].read(length)
+        else:
+            raw = environ["wsgi.input"].read()
         try:
             data = json.loads(raw) if raw else {}
         except (json.JSONDecodeError, UnicodeDecodeError):
@@ -62,7 +76,7 @@ class {{$service.Name}}Server:
 
     def _respond(self, start_response, status: int, payload: dict[str, Any]):
         body = json.dumps(payload).encode("utf-8")
-        start_response(f"{status} ", self._headers(body))
+        start_response(_status_line(status), self._headers(body))
         return [body]
 
     def _error(self, start_response, err: "WebRPCError", extra_headers=None):
@@ -70,7 +84,7 @@ class {{$service.Name}}Server:
         headers = self._headers(body)
         if extra_headers:
             headers.extend(extra_headers)
-        start_response(f"{err.status} ", headers)
+        start_response(_status_line(err.status), headers)
         return [body]
 {{- range $_, $method := $service.Methods}}
 
@@ -80,11 +94,11 @@ class {{$service.Name}}Server:
             args = {
 {{- if $method.Succinct}}
 {{- $in := index $method.Inputs 0}}{{$ik := $in.Name}}{{$ip := $ik}}{{if has $ik $kw}}{{$ip = printf "%s_" $ik}}{{end}}
-                "{{$ip}}": {{template "fromValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "data"}},
+                {{template "pyStr" $ip}}: {{template "fromValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "data"}},
 {{- else}}
 {{- range $_, $in := $method.Inputs}}
 {{- $ik := $in.Name -}}{{- $ip := $ik -}}{{- if has $ik $kw -}}{{- $ip = printf "%s_" $ik -}}{{- end}}
-                "{{$ip}}": {{if $in.Optional}}None if data.get("{{$ik}}") is None else {{end}}{{template "fromValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "data.get(%q)" $ik)}},
+                {{template "pyStr" $ip}}: {{if $in.Optional}}None if data.get({{template "pyStr" $ik}}) is None else {{end}}{{template "fromValue" dict "Type" $in.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (ternary (or $in.Optional (hasKey $nullableStructs (printf "%v" $in.Type))) (printf "data.get(%q)" $ik) (printf "_required(data, %q)" $ik))}},
 {{- end}}
 {{- end}}
             }
@@ -103,17 +117,17 @@ class {{$service.Name}}Server:
         if result is None:
             return {}
 {{- end}}
-        return {"{{$out.Name}}": {{template "toValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "result"}}}
+        return { {{- template "pyStr" $out.Name}}: {{template "toValue" dict "Type" .Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" "result"}}}
 {{- end}}
 {{- else}}
         out: dict[str, Any] = {
 {{- range $i, $out := $method.Outputs}}{{if not $out.Optional}}
-            "{{$out.Name}}": {{template "toValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "result[%d]" $i)}},
+            {{template "pyStr" $out.Name}}: {{template "toValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "result[%d]" $i)}},
 {{- end}}{{end}}
         }
 {{- range $i, $out := $method.Outputs}}{{if $out.Optional}}
         if result[{{$i}}] is not None:
-            out["{{$out.Name}}"] = {{template "toValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "result[%d]" $i)}}
+            out[{{template "pyStr" $out.Name}}] = {{template "toValue" dict "Type" $out.Type "TypeMap" $typeMap "AliasMap" $aliasMap "Var" (printf "result[%d]" $i)}}
 {{- end}}{{end}}
         return out
 {{- end}}
