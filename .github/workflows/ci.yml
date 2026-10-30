@@ -15,23 +15,23 @@ jobs:
         go-version: ["1.24", "1.25"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 20
         #  fetch-tags: true # Bug: https://github.com/actions/checkout/issues/1781
       - run: git fetch --tags
       - run: git describe --tags
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v7
         with:
           go-version: ${{ matrix.go-version }}
       - name: Set up webrpc cache folder
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           key: webrpc-cache
           path: /tmp/webrpc-cache
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "8.0.x"
       - name: Test
@@ -40,18 +40,18 @@ jobs:
   examples:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 20
         #  fetch-tags: true # Bug: https://github.com/actions/checkout/issues/1781
       - run: git fetch --tags
       - run: git describe --tags
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v7
         with:
           go-version-file: "go.mod"
       - name: Set up webrpc cache folder
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           key: webrpc-cache
           path: /tmp/webrpc-cache

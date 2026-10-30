@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------
 # Builder
 # -----------------------------------------------------------------
-FROM golang:1.25-alpine3.22 as builder
+FROM golang:1.26-alpine3.22 as builder
 ARG VERSION
 
 RUN apk add --update git
