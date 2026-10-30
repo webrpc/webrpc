@@ -37,6 +37,29 @@ jobs:
       - name: Test
         run: make test
 
+  python:
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.14"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+      - run: git fetch --tags
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "go.mod"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Python dependencies
+        run: pip install httpx
+      - name: Test
+        run: make -C tests/interop-python test
+
   examples:
     runs-on: ubuntu-latest
     steps:

@@ -1,0 +1,8 @@
+webrpc = v1
+
+name = streaming
+version = v1.0.0
+basepath = /rpc
+
+service StreamService
+    - Subscribe(channel: string) => stream (message: string)

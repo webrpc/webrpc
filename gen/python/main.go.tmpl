@@ -1,0 +1,217 @@
+{{- define "main" -}}
+
+{{- /* Options with default values. */ -}}
+{{- $opts := dict -}}
+{{- set $opts "client" (ternary (in .Opts.client "" "true") true false) -}}
+{{- set $opts "server" (ternary (in .Opts.server "" "true") true false) -}}
+{{- set $opts "schemaHash" (ternary (eq (default .Opts.schemaHash "true") "false") false true) -}}
+{{- set $opts "webrpcHeader" (ternary (eq (default .Opts.webrpcHeader "true") "false") false true) -}}
+
+{{- /* Print help on -help. */ -}}
+{{- if exists .Opts "help" -}}
+  {{- template "help" $opts -}}
+  {{- exit 0 -}}
+{{- end -}}
+
+{{- /* Print help on unsupported option. */ -}}
+{{- range $k, $v := .Opts }}
+  {{- if not (exists $opts $k) -}}
+    {{- stderrPrintf "-%v=%q is not supported target option\n\nUsage:\n" $k $v -}}
+    {{- template "help" $opts -}}
+    {{- exit 1 -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Streaming is not supported; fail loudly rather than emit broken unary code. */ -}}
+{{- range $_, $service := .Services -}}
+  {{- range $_, $method := $service.Methods -}}
+    {{- if or $method.StreamInput $method.StreamOutput -}}
+      {{- stderrPrintf "%s generator error: streaming methods are not supported (%s.%s)\n" $.WebrpcTarget $service.Name $method.Name -}}
+      {{- exit 1 -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* The file core type is not supported; fail loudly rather than emit broken code. */ -}}
+{{- range $_, $service := .Services -}}
+  {{- range $_, $method := $service.Methods -}}
+    {{- if or (MethodHasFileUpload $method) (MethodHasFileDownload $method) -}}
+      {{- stderrPrintf "%s generator error: the file type is not supported (%s.%s)\n" $.WebrpcTarget $service.Name $method.Name -}}
+      {{- exit 1 -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- range $_, $type := .Types -}}
+  {{- if isStructType $type -}}
+    {{- range $_, $field := $type.Fields -}}
+      {{- if or (eq (printf "%v" $field.Type) "file") (eq (printf "%v" $field.Type) "[]file") -}}
+        {{- stderrPrintf "%s generator error: the file type is not supported (%s.%s)\n" $.WebrpcTarget $type.Name $field.Name -}}
+        {{- exit 1 -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* []byte is base64 on the wire and not decoded yet; fail loudly rather than emit a list of characters. */ -}}
+{{- range $_, $type := .Types -}}
+  {{- if isStructType $type -}}
+    {{- range $_, $field := $type.Fields -}}
+      {{- if contains "[]byte" (printf "%v" $field.Type) -}}
+        {{- stderrPrintf "%s generator error: the []byte type is not supported (%s.%s)\n" $.WebrpcTarget $type.Name $field.Name -}}
+        {{- exit 1 -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if and (isAliasType $type) (contains "[]byte" (printf "%v" $type.Type)) -}}
+    {{- stderrPrintf "%s generator error: the []byte type is not supported (%s)\n" $.WebrpcTarget $type.Name -}}
+    {{- exit 1 -}}
+  {{- end -}}
+{{- end -}}
+{{- range $_, $service := .Services -}}
+  {{- range $_, $method := $service.Methods -}}
+    {{- range $_, $arg := concat $method.Inputs $method.Outputs -}}
+      {{- if contains "[]byte" (printf "%v" $arg.Type) -}}
+        {{- stderrPrintf "%s generator error: the []byte type is not supported (%s.%s)\n" $.WebrpcTarget $service.Name $method.Name -}}
+        {{- exit 1 -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Schema names become Python declarations, and several generated members
+       are derived from them. Reject names that would not import or that would
+       silently overwrite generated code, instead of emitting broken Python. */ -}}
+{{- $pyKeywords := list "False" "None" "True" "and" "as" "assert" "async" "await" "break" "class" "continue" "def" "del" "elif" "else" "except" "finally" "for" "from" "global" "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "raise" "return" "try" "while" "with" "yield" -}}
+{{- range $_, $type := .Types -}}
+  {{- if has $type.Name $pyKeywords -}}
+    {{- stderrPrintf "%s generator error: the type name %q is a Python keyword\n" $.WebrpcTarget $type.Name -}}
+    {{- exit 1 -}}
+  {{- end -}}
+{{- end -}}
+{{- range $_, $err := concat .WebrpcErrors .Errors -}}
+  {{- if has $err.Name $pyKeywords -}}
+    {{- stderrPrintf "%s generator error: the error name %q is a Python keyword\n" $.WebrpcTarget $err.Name -}}
+    {{- exit 1 -}}
+  {{- end -}}
+{{- end -}}
+{{- range $_, $service := .Services -}}
+  {{- if has $service.Name $pyKeywords -}}
+    {{- stderrPrintf "%s generator error: the service name %q is a Python keyword\n" $.WebrpcTarget $service.Name -}}
+    {{- exit 1 -}}
+  {{- end -}}
+  {{- $methodNames := dict -}}
+  {{- range $_, $method := $service.Methods -}}
+    {{- $snake := snakeCase $method.Name -}}
+    {{- if has $snake $pyKeywords -}}{{- $snake = printf "%s_" $snake -}}{{- end -}}
+    {{- if exists $methodNames $snake -}}
+      {{- stderrPrintf "%s generator error: methods %s.%s and %s.%s both generate the Python method %q\n" $.WebrpcTarget $service.Name (get $methodNames $snake) $service.Name $method.Name $snake -}}
+      {{- exit 1 -}}
+    {{- end -}}
+    {{- set $methodNames $snake $method.Name -}}
+  {{- end -}}
+{{- end -}}
+{{- range $_, $type := .Types -}}
+  {{- if isStructType $type -}}
+    {{- range $_, $field := $type.Fields -}}
+      {{- $name := $field.Name -}}
+      {{- range $_, $meta := $field.Meta -}}{{- if exists $meta "json" -}}{{- $name = get $meta "json" | split "," | first -}}{{- end -}}{{- end -}}
+      {{- if ne $name "-" -}}
+        {{- $py := $name -}}
+        {{- if has $py $pyKeywords -}}{{- $py = printf "%s_" $py -}}{{- end -}}
+        {{- if in $py "from_dict" "to_dict" -}}
+          {{- stderrPrintf "%s generator error: the field %s.%s generates the Python attribute %q, which shadows a generated method\n" $.WebrpcTarget $type.Name $field.Name $py -}}
+          {{- exit 1 -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- range $_, $type := .Types -}}
+  {{- if isEnumType $type -}}
+    {{- range $_, $field := $type.Fields -}}
+      {{- $m := $field.Name -}}
+      {{- if has $m $pyKeywords -}}{{- $m = printf "%s_" $m -}}{{- end -}}
+      {{- if in $m "from_dict" "name" "value" -}}
+          {{- stderrPrintf "%s generator error: the enum member %s.%s generates the reserved Python member %q\n" $.WebrpcTarget $type.Name $field.Name $m -}}
+        {{- exit 1 -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Map webrpc core types to Python. */ -}}
+{{- $typeMap := dict -}}
+{{- set $typeMap "null" "None" -}}
+{{- set $typeMap "any" "Any" -}}
+{{- set $typeMap "byte" "int" -}}
+{{- set $typeMap "bool" "bool" -}}
+{{- set $typeMap "uint" "int" -}}
+{{- set $typeMap "uint8" "int" -}}
+{{- set $typeMap "uint16" "int" -}}
+{{- set $typeMap "uint32" "int" -}}
+{{- set $typeMap "uint64" "int" -}}
+{{- set $typeMap "int" "int" -}}
+{{- set $typeMap "int8" "int" -}}
+{{- set $typeMap "int16" "int" -}}
+{{- set $typeMap "int32" "int" -}}
+{{- set $typeMap "int64" "int" -}}
+{{- set $typeMap "float32" "float" -}}
+{{- set $typeMap "float64" "float" -}}
+{{- set $typeMap "bigint" "int" -}}
+{{- set $typeMap "string" "str" -}}
+{{- set $typeMap "timestamp" "datetime" -}}
+{{- set $typeMap "map" "dict" -}}
+{{- set $typeMap "[]" "list" -}}
+
+{{- /* Resolve schema type aliases to their underlying type for serde. */ -}}
+{{- $aliasMap := dict -}}
+{{- range $_, $t := .Types -}}
+  {{- if isAliasType $t -}}
+    {{- set $aliasMap $t.Name $t.Type -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Struct values decode null as None, including aliases of structs. */ -}}
+{{- $nullableStructs := dict -}}
+{{- range $_, $t := .Types -}}
+  {{- if isStructType $t -}}{{- set $nullableStructs $t.Name true -}}{{- end -}}
+{{- end -}}
+{{- range $_, $i := until (len .Types) -}}
+  {{- range $_, $t := $.Types -}}
+    {{- if and (isAliasType $t) (hasKey $nullableStructs (printf "%v" $t.Type)) -}}{{- set $nullableStructs $t.Name true -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
+
+# {{.SchemaName}} {{.SchemaVersion}}{{if $opts.schemaHash}} {{.SchemaHash}}{{end}}
+# --
+# Code generated by webrpc-gen@{{.WebrpcGenVersion}} with {{.WebrpcTarget}} generator. DO NOT EDIT.
+#
+# {{.WebrpcGenCommand}}
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum
+{{- if $opts.server}}
+from http import HTTPStatus as _HTTPStatus
+{{- end}}
+from typing import Any, Callable, Optional, Protocol
+
+WEBRPC_HEADER = "Webrpc"
+WEBRPC_HEADER_VALUE = {{template "pyStr" .WebrpcHeader}}
+{{if $opts.schemaHash}}
+WEBRPC_VERSION = {{template "pyStr" .WebrpcVersion}}
+WEBRPC_SCHEMA_VERSION = {{template "pyStr" .SchemaVersion}}
+WEBRPC_SCHEMA_HASH = {{template "pyStr" .SchemaHash}}
+{{end}}
+{{template "types" dict "Types" .Types "TypeMap" $typeMap "AliasMap" $aliasMap "NullableStructs" $nullableStructs}}
+{{template "errors" dict "WebrpcErrors" .WebrpcErrors "Errors" .Errors}}
+{{template "helpers" dict}}
+{{- if $opts.client}}
+{{template "client" dict "BasePath" .BasePath "Services" .Services "TypeMap" $typeMap "AliasMap" $aliasMap "NullableStructs" $nullableStructs "WebrpcHeader" $opts.webrpcHeader}}
+{{- end}}
+{{- if $opts.server}}
+{{template "server" dict "BasePath" .BasePath "Services" .Services "TypeMap" $typeMap "AliasMap" $aliasMap "NullableStructs" $nullableStructs}}
+{{- end}}
+{{- end -}}
