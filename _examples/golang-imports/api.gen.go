@@ -92,6 +92,27 @@ func (x Location) String() string {
 	return Location_name[x]
 }
 
+func (x Location) IsValid() bool {
+	_, ok := Location_name[x]
+	return ok
+}
+
+func (Location) Values() []Location {
+	return []Location{
+		LocationToronto,
+		LocationNewYork,
+	}
+}
+
+func (x *Location) Parse(s string) error {
+	v, ok := Location_value[s]
+	if !ok {
+		return fmt.Errorf("invalid enum Location %q", s)
+	}
+	*x = v
+	return nil
+}
+
 func (x Location) MarshalText() ([]byte, error) {
 	return []byte(Location_name[x]), nil
 }

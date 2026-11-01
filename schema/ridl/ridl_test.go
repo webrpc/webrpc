@@ -1227,3 +1227,21 @@ func TestRIDLTypeAliasUsage(t *testing.T) {
 	setAge := s.Services[0].Methods[1]
 	assert.Equal(t, "Age", setAge.Inputs[0].Type.String())
 }
+
+func TestRIDLDuplicateStringEnumValue(t *testing.T) {
+	fsys := fstest.MapFS{
+		"schema/a.ridl": {Data: []byte(`
+			webrpc = v1
+			version = v0.1.0
+			name = A
+
+			enum Tier: string
+			- Free = "free"
+			- Gratis = "free"
+		`)},
+	}
+
+	s, err := NewParser(fsys, "/", "schema/a.ridl").Parse()
+	assert.ErrorContains(t, err, "duplicate value")
+	assert.Nil(t, s)
+}
