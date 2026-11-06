@@ -65,7 +65,7 @@
 
 {{- else -}}{{- /* structs, enums, aliases */ -}}
     {{- if or (isEnumType $type) (isAliasType $type) -}}
-        {{- $pointer = or $optional false -}}
+        {{- $pointer = $optional -}}
         {{if $pointer}}*{{end}}{{$typePrefix}}{{$type}}
     {{- else -}}
         {{- if $succinct -}}
