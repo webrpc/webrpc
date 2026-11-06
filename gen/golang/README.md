@@ -84,6 +84,25 @@ type User struct {
 }
 ```
 
+## Optional JSON fields
+
+With `encoding/json` or a compatible encoder, optional (`?`) pointer fields
+use `omitempty`: nil is omitted, while a non-nil pointer remains present even
+when its value implements `IsZero()` and returns true. This preserves explicit
+zero amounts and zero timestamps.
+
+Optional slices and maps keep `omitzero`, so nil is omitted but non-nil empty
+collections remain `[]` and `{}`. Non-pointer Go type overrides also keep
+`omitzero`; use a pointer override when zero and unset must be distinct.
+
+An explicit `go.tag.json` still owns the complete tag, including omission
+behavior. Pointer overrides such as `*time.Time` are recognized by their leading
+`*`; named Go types that hide a pointer require an explicit JSON tag.
+
+These rules rely on v1 `omitempty` semantics. Direct `encoding/json/v2` encoding
+uses different emptiness rules and needs legacy omission semantics to preserve
+non-nil pointers to empty strings, objects, and collections.
+
 ## REST routes
 
 Declare routes under a method in RIDL with `+ VERB /path` lines:
