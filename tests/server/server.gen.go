@@ -209,7 +209,7 @@ type Item struct {
 
 type GetItemRequest struct {
 	Id      uint64 `json:"id"`
-	Details *bool  `json:"details,omitzero"`
+	Details *bool  `json:"details,omitempty"`
 }
 
 type GetItemResponse struct {
@@ -217,7 +217,7 @@ type GetItemResponse struct {
 }
 
 type ListItemsRequest struct {
-	Q     *string  `json:"q,omitzero"`
+	Q     *string  `json:"q,omitempty"`
 	Tags  []string `json:"tags"`
 	Limit uint32   `json:"limit"`
 }
@@ -232,9 +232,9 @@ type OptFields struct {
 	ReqString string            `json:"reqString"`
 	ReqList   []string          `json:"reqList"`
 	ReqMap    map[string]uint32 `json:"reqMap"`
-	OptBool   *bool             `json:"optBool,omitzero"`
-	OptInt    *int64            `json:"optInt,omitzero"`
-	OptString *string           `json:"optString,omitzero"`
+	OptBool   *bool             `json:"optBool,omitempty"`
+	OptInt    *int64            `json:"optInt,omitempty"`
+	OptString *string           `json:"optString,omitempty"`
 	OptList   []string          `json:"optList,omitzero"`
 	OptMap    map[string]uint32 `json:"optMap,omitzero"`
 }
@@ -1429,7 +1429,7 @@ type testApiRestServiceUpdateItemResult struct {
 
 type testApiRestServicePatchItemArgs struct {
 	Arg0 uint64  `json:"id"`
-	Arg1 *string `json:"name,omitzero"`
+	Arg1 *string `json:"name,omitempty"`
 }
 
 type testApiRestServicePatchItemResult struct {
@@ -1473,7 +1473,7 @@ type testApiRestServiceEchoParamsArgs struct {
 	Arg4 time.Time `json:"ts"`
 	Arg5 Status    `json:"status"`
 	Arg6 []string  `json:"tags"`
-	Arg7 *string   `json:"opt,omitzero"`
+	Arg7 *string   `json:"opt,omitempty"`
 }
 
 type testApiRestServiceEchoParamsResult struct {

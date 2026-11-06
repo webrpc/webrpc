@@ -178,7 +178,7 @@ func (c *chatClient) SendMessage(ctx context.Context, username string, text stri
 func (c *chatClient) SubscribeMessages(ctx context.Context, username string, lastMessageId *uint64) (SubscribeMessagesStreamReader, error) {
 	in := struct {
 		Arg0 string  `json:"username"`
-		Arg1 *uint64 `json:"lastMessageId,omitzero"`
+		Arg1 *uint64 `json:"lastMessageId,omitempty"`
 	}{username, lastMessageId}
 
 	resp, err := doHTTPRequestRaw(ctx, c.client, c.urls[1], in, nil)
@@ -417,7 +417,7 @@ func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w ht
 
 	reqPayload := struct {
 		Arg0 string  `json:"username"`
-		Arg1 *uint64 `json:"lastMessageId,omitzero"`
+		Arg1 *uint64 `json:"lastMessageId,omitempty"`
 	}{}
 
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
