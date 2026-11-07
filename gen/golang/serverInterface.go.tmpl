@@ -104,12 +104,12 @@ type jsonEncoder interface {
 
 const StreamKeepAliveInterval = 10*time.Second
 
-func (w *streamWriter) keepAlive(ctx context.Context) {
+func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc) {
 	for {
 		select {
 		case <-time.After(StreamKeepAliveInterval):
-			err := w.ping()
-			if err != nil {
+			if err := w.ping(); err != nil {
+				cancel()
 				return
 			}
 		case <-ctx.Done():
