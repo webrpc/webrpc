@@ -10,8 +10,7 @@ import (
 	"github.com/webrpc/webrpc/tests/client"
 )
 
-// JSON tags on generated structs: required fields always serialize, optional
-// (`?`) fields with `,omitzero` are omitted when unset.
+// Required fields always serialize; optional fields are omitted when unset.
 func TestOptionalFieldsJSONSerialization(t *testing.T) {
 	t.Run("unset optional fields are omitted from JSON", func(t *testing.T) {
 		v := client.OptFields{

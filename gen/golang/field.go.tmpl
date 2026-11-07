@@ -14,6 +14,7 @@
 {{- $succinct := or .Succinct false -}}
 
 {{- $customType := "" -}}
+{{- $pointer := false -}}
 {{- $jsonName := $name -}}
 {{- $jsonOverride := false -}}
 {{- $structTags := array -}}
@@ -40,7 +41,7 @@
 
 {{- if $printName}}{{"\t"}}{{$fieldName}} {{end -}}
 {{- if (ne $customType "") -}}
-
+    {{- $pointer = hasPrefix (trim $customType) "*" -}}
     {{$customType}}
 
 {{- else if isMapType $type -}}
@@ -55,26 +56,34 @@
     {{- if eq (toString $type) "file" -}}
         {{- /* file is already a pointer type, no extra indirection when optional;
                the type itself may live in another package (-importTypesFrom) */ -}}
+        {{- $pointer = true -}}
         *{{$typePrefix}}{{trimPrefix (get $typeMap $type) "*"}}
     {{- else -}}
-        {{if and $optional (ne (toString $type) "any")}}*{{end}}{{ get $typeMap $type }}
+        {{- $pointer = and $optional (ne (toString $type) "any") -}}
+        {{if $pointer}}*{{end}}{{ get $typeMap $type }}
     {{- end -}}
 
 {{- else -}}{{- /* structs, enums, aliases */ -}}
     {{- if or (isEnumType $type) (isAliasType $type) -}}
-        {{if $optional}}*{{end}}{{$typePrefix}}{{$type}}
+        {{- $pointer = $optional -}}
+        {{if $pointer}}*{{end}}{{$typePrefix}}{{$type}}
     {{- else -}}
         {{- if $succinct -}}
             {{$typePrefix}}{{$type}}
         {{- else -}}
+            {{- $pointer = true -}}
             *{{$typePrefix}}{{$type}}
         {{- end -}}
     {{- end -}}
 {{- end -}}
 
-{{- /* optional fields omit their zero value (nil pointer / nil slice / nil map) from JSON; a full `go.tag.json` override owns the tag. */ -}}
+{{- /* omitempty checks pointer presence without calling IsZero; omitzero preserves non-nil empty collections. */ -}}
 {{- if $includeJsonTags -}}
-{{- if and $optional (not $jsonOverride) (ne $jsonName "-") -}}{{- $jsonName = printf "%s,omitzero" $jsonName -}}{{- end -}}
+{{- if and $optional (not $jsonOverride) (ne $jsonName "-") -}}
+    {{- $omit := "omitzero" -}}
+    {{- if $pointer -}}{{- $omit = "omitempty" -}}{{- end -}}
+    {{- $jsonName = printf "%s,%s" $jsonName $omit -}}
+{{- end -}}
 {{- $jsonTag := printf "json:%q" $jsonName -}}
 {{" "}}`{{$jsonTag}}{{if and $includeStructTags (len $structTags)}} {{join (sort $structTags) " "}}{{end}}`
 {{- end -}}

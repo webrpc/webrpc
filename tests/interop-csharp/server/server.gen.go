@@ -411,10 +411,10 @@ type Types struct {
 	ById     map[int64]string    `json:"byId"`
 	Nested   map[uint32][]string `json:"nested"`
 	Anything any                 `json:"anything"`
-	OptStr   *string             `json:"optStr,omitzero"`
-	OptBig   *BigInt             `json:"optBig,omitzero"`
-	OptTs    *time.Time          `json:"optTs,omitzero"`
-	OptKind  *Kind               `json:"optKind,omitzero"`
+	OptStr   *string             `json:"optStr,omitempty"`
+	OptBig   *BigInt             `json:"optBig,omitempty"`
+	OptTs    *time.Time          `json:"optTs,omitempty"`
+	OptKind  *Kind               `json:"optKind,omitempty"`
 	OptList  []string            `json:"optList,omitzero"`
 	Renamed  string              `json:"RENAMED_field"`
 	Hidden   string              `json:"-"`
@@ -1645,9 +1645,9 @@ func (s *cSharpService) serveOptionalJSON(ctx context.Context, w http.ResponseWr
 	defer r.Body.Close()
 
 	reqPayload := struct {
-		Arg0 *string    `json:"str,omitzero"`
-		Arg1 *uint64    `json:"num,omitzero"`
-		Arg2 *time.Time `json:"ts,omitzero"`
+		Arg0 *string    `json:"str,omitempty"`
+		Arg1 *uint64    `json:"num,omitempty"`
+		Arg2 *time.Time `json:"ts,omitempty"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
@@ -1666,9 +1666,9 @@ func (s *cSharpService) serveOptionalJSON(ctx context.Context, w http.ResponseWr
 	}
 
 	respPayload := struct {
-		Ret0 *string    `json:"str,omitzero"`
-		Ret1 *uint64    `json:"num,omitzero"`
-		Ret2 *time.Time `json:"ts,omitzero"`
+		Ret0 *string    `json:"str,omitempty"`
+		Ret1 *uint64    `json:"num,omitempty"`
+		Ret2 *time.Time `json:"ts,omitempty"`
 	}{ret0, ret1, ret2}
 	respBody, err := json.Marshal(respPayload)
 	if err != nil {
@@ -2159,12 +2159,12 @@ func (s *cSharpService) serveDownloadDocJSON(ctx context.Context, w http.Respons
 
 type cSharpServiceGetByNameArgs struct {
 	Arg0 string  `json:"name"`
-	Arg1 *string `json:"suffix,omitzero"`
+	Arg1 *string `json:"suffix,omitempty"`
 }
 
 type cSharpServiceGetByNameResult struct {
 	Ret0 string  `json:"name"`
-	Ret1 *string `json:"suffix,omitzero"`
+	Ret1 *string `json:"suffix,omitempty"`
 }
 
 func (s *cSharpService) sendErrorJSON(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError) {
