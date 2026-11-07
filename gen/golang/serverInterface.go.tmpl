@@ -101,6 +101,20 @@ type streamWriter struct {
 type jsonEncoder interface {
 	Encode(v any) error
 }
+{{- if eq $opts.json "encoding/json/v2" }}
+
+// jsonStreamEncoder writes each value as one line of JSON, like json.Encoder.
+type jsonStreamEncoder struct{ w io.Writer }
+
+func (e jsonStreamEncoder) Encode(v any) error {
+	b, err := {{$json}}.Marshal(v)
+	if err != nil {
+		return err
+	}
+	_, err = e.w.Write(append(b, '\n'))
+	return err
+}
+{{- end }}
 
 const StreamKeepAliveInterval = 10*time.Second
 

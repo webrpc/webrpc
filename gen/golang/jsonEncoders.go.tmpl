@@ -18,6 +18,21 @@ var jsonCfg = sonic.Config{
     NoValidateJSONMarshaler: true, // Skip validation of JSON output from types implementing json.Marshaler to enhance performance.
     NoValidateJSONSkip: true,      // Bypass validation when skipping over JSON values during decoding, improving efficiency.
 }.Froze()
+{{- else if eq $opts.json "encoding/json/v2" }}
+
+// Opinionated configuration for -json=v2 encoding.
+// Reference: https://pkg.go.dev/encoding/json/v2
+var jsonCfg = jsonV2{json.JoinOptions(
+	jsonv1.DefaultOptionsV1(),        // Behave like encoding/json (v1).
+	json.FormatNilSliceAsNull(false), // Encode nil slices/maps as '[]'/'{}' instead of 'null' to prevent runtime issues in JavaScript.
+	json.FormatNilMapAsNull(false),
+)}
+
+// jsonV2 calls encoding/json/v2 with the options above.
+type jsonV2 struct{ opts json.Options }
+
+func (j jsonV2) Marshal(v any) ([]byte, error)      { return json.Marshal(v, j.opts) }
+func (j jsonV2) Unmarshal(data []byte, v any) error { return json.Unmarshal(data, v, j.opts) }
 
 {{- end -}}
 {{- end -}}
