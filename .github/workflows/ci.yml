@@ -12,10 +12,10 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: ["1.24", "1.25"]
+        go-version: ["1.25", "1.26", "1.27"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 20
         #  fetch-tags: true # Bug: https://github.com/actions/checkout/issues/1781
@@ -36,6 +36,9 @@ jobs:
           dotnet-version: "8.0.x"
       - name: Test
         run: make test
+      - name: Test encoding/json/v2 (GOEXPERIMENT)
+        if: matrix.go-version != '1.27'
+        run: GOEXPERIMENT=jsonv2 go test ./tests/v2/...
 
   python:
     strategy:
@@ -43,7 +46,7 @@ jobs:
         python-version: ["3.11", "3.14"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 20
       - run: git fetch --tags
@@ -63,7 +66,7 @@ jobs:
   examples:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 20
         #  fetch-tags: true # Bug: https://github.com/actions/checkout/issues/1781

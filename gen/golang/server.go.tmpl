@@ -658,9 +658,12 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSONStream(ct
 	w.Header().Set("Content-Type", "application/x-ndjson")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(http.StatusOK)
-
+{{ if eq $opts.json "encoding/json/v2" }}
+	e := jsonStreamEncoder{w}
+{{- else }}
 	e := {{$json}}.NewEncoder(w)
 	e.SetIndent("", "")
+{{- end }}
 	streamWriter := &{{firstLetterToLower $method.Name}}StreamWriter{streamWriter{w: w, f: f, e: e, sendError: s.sendErrorJSON}}
 	if err := streamWriter.ping(); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcStreamLost.WithCausef("failed to establish SSE stream: %w", err))
@@ -717,7 +720,11 @@ func (s *{{$serviceName}}) sendErrorJSON(w http.ResponseWriter, r *http.Request,
 		out := struct {
 			WebRPCError WebRPCError `json:"webrpcError"`
 		}{ WebRPCError: rpcErr }
+{{- if eq $opts.json "encoding/json/v2" }}
+		jsonStreamEncoder{w}.Encode(out)
+{{- else }}
 		{{$json}}.NewEncoder(w).Encode(out)
+{{- end }}
 		return	
 	}
 	{{- end }}
