@@ -96,47 +96,17 @@ func (s *TemplateSource) loadTemplates() (*template.Template, error) {
 	return tmpl, nil
 }
 
-// inferLocalTemplateVersion attempts to extract a git branch and commit slug from the TmplDir
-// of a TemplateSource if its IsLocal flag is set and appends it to its TmplVersion.
-// If the local directory is not under git control or some other problem happens,
-// TmplVersion will be unchanged.
+// inferLocalTemplateVersion appends the `git describe --tags` version of TmplDir
+// to TmplVersion, e.g. "../gen-golang@v0.7.0-3-g1a2b3c4". If TmplDir is not
+// a git repository or has no tags, TmplVersion is unchanged.
 func (s *TemplateSource) inferLocalTemplateVersion() {
-	if !s.IsLocal {
+	cmd := exec.Command("git", "describe", "--tags")
+	cmd.Dir = s.TmplDir
+	out, err := cmd.Output()
+	if err != nil {
 		return
 	}
-
-	var branch string
-	{
-		cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
-		cmd.Dir = s.TmplDir
-		raw, err := cmd.Output()
-		if err != nil {
-			return
-		}
-		branch = strings.TrimSpace(string(raw))
-	}
-
-	var slug string
-	{
-		cmd := exec.Command("git", "rev-parse", "--short", "HEAD")
-		cmd.Dir = s.TmplDir
-		raw, err := cmd.Output()
-		if err != nil {
-			return
-		}
-		slug = strings.TrimSpace(string(raw))
-	}
-
-	sb := strings.Builder{}
-	sb.WriteString(s.TmplVersion)
-	// this '@' separator is essential for parseWebrpcGenVersions to work properly
-	sb.WriteRune('@')
-	sb.WriteString(branch)
-	// ':' is chosen to separate branch and commit slug because it is deemed illegal
-	// anywhere in refnames according to git-check-ref-format documentation.
-	sb.WriteRune(':')
-	sb.WriteString(slug)
-	s.TmplVersion = sb.String()
+	s.TmplVersion += "@" + strings.TrimSpace(string(out))
 }
 
 func (s *TemplateSource) loadRemote() (*template.Template, error) {
