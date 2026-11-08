@@ -6,6 +6,7 @@ import (
 	"hash/fnv"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -81,6 +82,7 @@ func (s *TemplateSource) loadTemplates() (*template.Template, error) {
 		}
 		s.TmplDir = s.target
 		s.TmplVersion = s.target
+		s.inferLocalTemplateVersion()
 		return tmpl, nil
 	}
 
@@ -92,6 +94,19 @@ func (s *TemplateSource) loadTemplates() (*template.Template, error) {
 		return nil, fmt.Errorf("failed to load templates from %s: %w", s.target, err)
 	}
 	return tmpl, nil
+}
+
+// inferLocalTemplateVersion appends the `git describe --tags` version of TmplDir
+// to TmplVersion, e.g. "../gen-golang@v0.7.0-3-g1a2b3c4". If TmplDir is not
+// a git repository or has no tags, TmplVersion is unchanged.
+func (s *TemplateSource) inferLocalTemplateVersion() {
+	cmd := exec.Command("git", "describe", "--tags")
+	cmd.Dir = s.TmplDir
+	out, err := cmd.Output()
+	if err != nil {
+		return
+	}
+	s.TmplVersion += "@" + strings.TrimSpace(string(out))
 }
 
 func (s *TemplateSource) loadRemote() (*template.Template, error) {
