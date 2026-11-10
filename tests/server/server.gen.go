@@ -311,6 +311,12 @@ type WebrpcEnum[T any] interface {
 	MarshalText() ([]byte, error)
 }
 
+// EnumValues returns the members of T in declaration order.
+func EnumValues[T WebrpcEnum[T]]() []T {
+	var zero T
+	return zero.Values()
+}
+
 // ParseEnum returns the member of T whose wire value is s.
 func ParseEnum[T WebrpcEnum[T]](s string) (T, error) {
 	var zero T

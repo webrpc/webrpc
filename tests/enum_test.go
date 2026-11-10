@@ -38,6 +38,12 @@ func TestEnumHelpers(t *testing.T) {
 		require.False(t, enum.Empty("anything").IsValid())
 	})
 
+	t.Run("EnumValues", func(t *testing.T) {
+		require.Equal(t, enum.Status(0).Values(), enum.EnumValues[enum.Status]())
+		require.Equal(t, enum.Tier("").Values(), enum.EnumValues[enum.Tier]())
+		require.Empty(t, enum.EnumValues[enum.Empty]())
+	})
+
 	t.Run("ParseEnum", func(t *testing.T) {
 		status, err := enum.ParseEnum[enum.Status]("NOT_AVAILABLE")
 		require.NoError(t, err)
