@@ -91,15 +91,6 @@ func (Kind) Values() []Kind {
 	}
 }
 
-func (x *Kind) Parse(s string) error {
-	v, ok := Kind_value[s]
-	if !ok {
-		return fmt.Errorf("invalid enum Kind %q", s)
-	}
-	*x = v
-	return nil
-}
-
 func (x Kind) MarshalText() ([]byte, error) {
 	return []byte(Kind_name[x]), nil
 }

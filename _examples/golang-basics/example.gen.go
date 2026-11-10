@@ -119,15 +119,6 @@ func (Kind) Values() []Kind {
 	}
 }
 
-func (x *Kind) Parse(s string) error {
-	v, ok := Kind_value[s]
-	if !ok {
-		return fmt.Errorf("invalid enum Kind %q", s)
-	}
-	*x = v
-	return nil
-}
-
 func (x Kind) MarshalText() ([]byte, error) {
 	return []byte(Kind_name[x]), nil
 }
@@ -189,15 +180,6 @@ func (Intent) Values() []Intent {
 	}
 }
 
-func (x *Intent) Parse(s string) error {
-	v := Intent(s)
-	if !v.IsValid() {
-		return fmt.Errorf("invalid enum Intent %q", s)
-	}
-	*x = v
-	return nil
-}
-
 func (x Intent) MarshalText() ([]byte, error) {
 	return []byte(x), nil
 }
@@ -254,15 +236,6 @@ func (ProtocolVersion) Values() []ProtocolVersion {
 	}
 }
 
-func (x *ProtocolVersion) Parse(s string) error {
-	v := ProtocolVersion(s)
-	if !v.IsValid() {
-		return fmt.Errorf("invalid enum ProtocolVersion %q", s)
-	}
-	*x = v
-	return nil
-}
-
 func (x ProtocolVersion) MarshalText() ([]byte, error) {
 	return []byte(x), nil
 }
@@ -317,15 +290,6 @@ func (Country) Values() []Country {
 		CountryUs,
 		CountryCa,
 	}
-}
-
-func (x *Country) Parse(s string) error {
-	v := Country(s)
-	if !v.IsValid() {
-		return fmt.Errorf("invalid enum Country %q", s)
-	}
-	*x = v
-	return nil
 }
 
 func (x Country) MarshalText() ([]byte, error) {

@@ -104,15 +104,6 @@ func (Location) Values() []Location {
 	}
 }
 
-func (x *Location) Parse(s string) error {
-	v, ok := Location_value[s]
-	if !ok {
-		return fmt.Errorf("invalid enum Location %q", s)
-	}
-	*x = v
-	return nil
-}
-
 func (x Location) MarshalText() ([]byte, error) {
 	return []byte(Location_name[x]), nil
 }

@@ -46,15 +46,6 @@
     }
     }
 
-    func (x *{{$name}}) Parse(s string) error {
-    v := {{$name}}(s)
-    if !v.IsValid() {
-    return fmt.Errorf("invalid enum {{$name}} %q", s)
-    }
-    *x = v
-    return nil
-    }
-
     func (x {{$name}}) MarshalText() ([]byte, error) {
     return []byte(x), nil
     }

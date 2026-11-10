@@ -5,10 +5,6 @@
 // webrpc-gen -schema=./enum/enum.ridl -target=golang -pkg=enum -out=./enum/enum.gen.go
 package enum
 
-import (
-	"fmt"
-)
-
 //
 // Schema types
 //
@@ -52,15 +48,6 @@ func (Status) Values() []Status {
 		StatusAvailable,
 		StatusNotAvailable,
 	}
-}
-
-func (x *Status) Parse(s string) error {
-	v, ok := Status_value[s]
-	if !ok {
-		return fmt.Errorf("invalid enum Status %q", s)
-	}
-	*x = v
-	return nil
 }
 
 func (x Status) MarshalText() ([]byte, error) {
@@ -125,15 +112,6 @@ func (Kind) Values() []Kind {
 	}
 }
 
-func (x *Kind) Parse(s string) error {
-	v, ok := Kind_value[s]
-	if !ok {
-		return fmt.Errorf("invalid enum Kind %q", s)
-	}
-	*x = v
-	return nil
-}
-
 func (x Kind) MarshalText() ([]byte, error) {
 	return []byte(Kind_name[x]), nil
 }
@@ -190,15 +168,6 @@ func (Tier) Values() []Tier {
 	}
 }
 
-func (x *Tier) Parse(s string) error {
-	v := Tier(s)
-	if !v.IsValid() {
-		return fmt.Errorf("invalid enum Tier %q", s)
-	}
-	*x = v
-	return nil
-}
-
 func (x Tier) MarshalText() ([]byte, error) {
 	return []byte(x), nil
 }
@@ -235,15 +204,6 @@ func (x Empty) IsValid() bool {
 
 func (Empty) Values() []Empty {
 	return []Empty{}
-}
-
-func (x *Empty) Parse(s string) error {
-	v := Empty(s)
-	if !v.IsValid() {
-		return fmt.Errorf("invalid enum Empty %q", s)
-	}
-	*x = v
-	return nil
 }
 
 func (x Empty) MarshalText() ([]byte, error) {

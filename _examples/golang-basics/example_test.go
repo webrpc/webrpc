@@ -209,16 +209,10 @@ func multipartTempFiles(t *testing.T) []string {
 	return files
 }
 
-func TestEnumParse(t *testing.T) {
-	var kind Kind
-	assert.NoError(t, kind.Parse("ADMIN"))
-	assert.Equal(t, KindAdmin, kind)
-	assert.Error(t, kind.Parse("Admin"))
-	assert.Equal(t, KindAdmin, kind)
-
-	var version ProtocolVersion
-	assert.NoError(t, version.Parse("v1.5"))
-	assert.Equal(t, ProtocolVersion("v1.5"), version)
-	assert.Error(t, version.Parse("v1_5"))
+func TestEnumHelpers(t *testing.T) {
+	assert.True(t, KindAdmin.IsValid())
+	assert.False(t, Kind(99).IsValid())
+	assert.True(t, ProtocolVersion("v1.5").IsValid())
+	assert.False(t, ProtocolVersion("v1_5").IsValid())
 	assert.Len(t, ProtocolVersion("").Values(), 2)
 }

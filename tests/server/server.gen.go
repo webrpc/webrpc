@@ -104,15 +104,6 @@ func (Status) Values() []Status {
 	}
 }
 
-func (x *Status) Parse(s string) error {
-	v, ok := Status_value[s]
-	if !ok {
-		return fmt.Errorf("invalid enum Status %q", s)
-	}
-	*x = v
-	return nil
-}
-
 func (x Status) MarshalText() ([]byte, error) {
 	return []byte(Status_name[x]), nil
 }
@@ -191,15 +182,6 @@ func (Access) Values() []Access {
 		AccessAdmin,
 		AccessOwner,
 	}
-}
-
-func (x *Access) Parse(s string) error {
-	v, ok := Access_value[s]
-	if !ok {
-		return fmt.Errorf("invalid enum Access %q", s)
-	}
-	*x = v
-	return nil
 }
 
 func (x Access) MarshalText() ([]byte, error) {
