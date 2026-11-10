@@ -23,6 +23,8 @@ type Method struct {
 	StreamOutput bool `json:"streamOutput,omitempty"`
 	Proxy        bool `json:"-"` // TODO: actual implementation
 
+	Routes []*MethodRoute `json:"routes,omitempty"` // REST routes in declaration order; the first is canonical
+
 	Inputs  []*MethodArgument `json:"inputs"`
 	Outputs []*MethodArgument `json:"outputs"`
 	Errors  []string          `json:"errors,omitempty"` // List of errors this method can throw
@@ -102,6 +104,9 @@ func (m *Method) Parse(schema *WebRPCSchema, service *Service) error {
 		return fmt.Errorf("parse error, service arg cannot be nil")
 	}
 	m.Service = service // back-ref
+	for _, route := range m.Routes {
+		route.Method = m // back-ref
+	}
 	serviceName := service.Name
 
 	// Parse+validate inputs

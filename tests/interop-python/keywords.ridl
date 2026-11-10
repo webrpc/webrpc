@@ -1,0 +1,25 @@
+webrpc = v1
+
+name = keywords
+version = v1.0.0
+basepath = /rpc
+
+enum Kind: uint32
+    - class
+    - normal
+
+enum Label: string
+    - Escaped = "a\nb\tc"
+
+struct Thing
+    - class: string
+    - from: string
+    - kind: Kind
+
+struct HTTPStatus
+    - code: int
+
+error 1 Escaped "a\nb\tc"
+
+service KeywordService
+    - Do(import: string) => (return: string)

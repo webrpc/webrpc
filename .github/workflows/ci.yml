@@ -12,10 +12,10 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: ["1.23", "1.25"]
+        go-version: ["1.25", "1.26", "1.27"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 20
         #  fetch-tags: true # Bug: https://github.com/actions/checkout/issues/1781
@@ -30,13 +30,43 @@ jobs:
         with:
           key: webrpc-cache
           path: /tmp/webrpc-cache
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
       - name: Test
         run: make test
+      - name: Test encoding/json/v2 (GOEXPERIMENT)
+        if: matrix.go-version != '1.27'
+        run: GOEXPERIMENT=jsonv2 go test ./tests/v2/...
+
+  python:
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.14"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 20
+      - run: git fetch --tags
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "go.mod"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Python dependencies
+        run: pip install httpx
+      - name: Test
+        run: make -C tests/interop-python test
 
   examples:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 20
         #  fetch-tags: true # Bug: https://github.com/actions/checkout/issues/1781

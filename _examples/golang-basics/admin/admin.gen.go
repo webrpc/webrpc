@@ -502,7 +502,7 @@ func doHTTPRequestRaw(ctx context.Context, client HTTPClient, url string, in, ou
 		return nil, ErrWebrpcRequestFailed.WithCause(err)
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode < 200 || resp.StatusCode > 299 { // 2xx is success; routes may declare e.g. 201
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, ErrWebrpcBadResponse.WithCausef("failed to read server error response body: %w", err)
@@ -678,7 +678,7 @@ var (
 	ErrWebrpcBadResponse    = WebRPCError{Code: -5, Name: "WebrpcBadResponse", Message: "bad response", HTTPStatus: 500}
 	ErrWebrpcServerPanic    = WebRPCError{Code: -6, Name: "WebrpcServerPanic", Message: "server panic", HTTPStatus: 500}
 	ErrWebrpcInternalError  = WebRPCError{Code: -7, Name: "WebrpcInternalError", Message: "internal error", HTTPStatus: 500}
-	ErrWebrpcClientAborted  = WebRPCError{Code: -8, Name: "WebrpcClientAborted", Message: "request aborted by client", HTTPStatus: 400}
+	ErrWebrpcClientAborted  = WebRPCError{Code: -8, Name: "WebrpcClientAborted", Message: "request aborted by client", HTTPStatus: 499}
 	ErrWebrpcStreamLost     = WebRPCError{Code: -9, Name: "WebrpcStreamLost", Message: "stream lost", HTTPStatus: 400}
 	ErrWebrpcStreamFinished = WebRPCError{Code: -10, Name: "WebrpcStreamFinished", Message: "stream finished", HTTPStatus: 200}
 )

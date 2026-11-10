@@ -1,0 +1,13 @@
+webrpc = v1
+
+name = file
+version = v1.0.0
+basepath = /rpc
+
+struct Upload
+    - name: string
+    - data: file
+
+service FileService
+    - Upload(name: string, data: file) => (size: uint64)
+    - Download(name: string) => (data: file)

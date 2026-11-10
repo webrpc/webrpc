@@ -2,6 +2,7 @@
 export PATH = $(shell echo $$PWD/../../bin:$$PATH)
 
 RIDL = ../../_examples/golang-basics/example.ridl
+REST_RIDL = ../schema/test.ridl
 
 all:
 	@awk -F'[ :]' '!/^all:/ && /^([A-z_-]+):/ {print "make " $$1}' Makefile
@@ -9,14 +10,21 @@ all:
 build:
 	make -C ../../ build
 
+build-test:
+	make -C ../../ build-test
+
 generate: build
 	webrpc-gen -schema=$(RIDL) -target=typescript -client -service=Example -out=./client.gen.ts
 	webrpc-gen -schema=$(RIDL) -target=typescript -server -service=Example -out=./server.gen.ts
 	webrpc-gen -schema=$(RIDL) -target=javascript -client -service=Example -out=./client.gen.mjs
 	webrpc-gen -schema=./validate.ridl -target=typescript -server -out=./validate.gen.ts
+	webrpc-gen -schema=$(REST_RIDL) -target=typescript -client -service=TestApiRest -out=./restClient.gen.ts
+	webrpc-gen -schema=$(REST_RIDL) -target=typescript -server -service=TestApiRest -out=./restServer.gen.ts
+	webrpc-gen -schema=./rest-params.ridl -target=typescript -client -service=ParamRest -out=./paramRestClient.gen.ts
+	webrpc-gen -schema=./rest-params.ridl -target=typescript -server -service=ParamRest -out=./paramRestServer.gen.ts
 
 # End-to-end interoperability tests of the file upload/download wire contract
 # between the Go and TypeScript/JavaScript generators.
-test:
-	npm install --no-audit --no-fund --no-package-lock
+test: build-test
+	npm install --no-audit --no-fund --no-package-lock --include=optional
 	npm test

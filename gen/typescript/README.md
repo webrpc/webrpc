@@ -111,6 +111,50 @@ There are two behavioral differences from a real `enum` to be aware of:
 
 Passing any value other than `enum` or `union` (e.g. `-enumStyle=foo`) prints an error and exits.
 
+## REST routes
+
+Declare a route under a method in RIDL with a `+ VERB /path` line:
+
+```ridl
+basepath = /api
+
+service Users
+  - GetUser(GetUserRequest) => (GetUserResponse)
+      + GET /users/{id}
+```
+
+The full route is `{basepath}{route.path}`, here `GET /api/users/{id}`. Route paths are absolute.
+
+- Declaring any route replaces the method's default RPC path. The old `/api/Users/GetUser` path returns 404.
+- To keep the RPC path, list it explicitly: `+ POST /Users/GetUser`. It then works as a normal REST route.
+- A method can declare several routes, each with its own verb and path params.
+- The first route is canonical. The generated client always calls it.
+- Later routes are server-only aliases. The server binds each by its own verb.
+- Example: `+ GET /items/find` and `+ QUERY /items/find` share one implementation. `GET` reads query params, `QUERY` reads the JSON body.
+- A duplicate verb and path is a generation error.
+- An alias that overlaps an unrouted method's RPC path is a generation error.
+- Routes may not overlap across services.
+- With `GET /a/{id}` and `QUERY /a/find`, `GET /a/find` binds `id=find`.
+- `{id}` binds to the required scalar field `id` on `GetUserRequest`.
+- `GET` and `DELETE`: every other field is a query param.
+- Lists repeat the key: `?ids=1&ids=2`.
+- `POST`, `PUT`, `PATCH` and `QUERY`: other fields come from the JSON body.
+- Precedence: body, then path, then query. A path param wins over a same-named body field.
+- A required list missing from the query binds to `[]`.
+- An optional list missing from the query stays `undefined`.
+- Body verbs require `Content-Type: application/json`, even with an empty body.
+- Other content types get 400. This blocks cross-site `text/plain` posts, which skip CORS preflight.
+- A body of `null` is read as `{}`, as in Go. Other non-object bodies return 400.
+- `HEAD` is served by `GET` routes, without a body.
+- A 405 response sets `Allow`, and it lists `HEAD` next to `GET`.
+- A bad path param returns 400, e.g. `invalid path param 'id'`.
+- Timestamp params must be RFC 3339 with an uppercase `T` and `Z`, as in Go. `2026-02-30T...` returns 400.
+- Float params must be finite decimals. `0x10`, `NaN` and `Inf` return 400, and a `float32` above its max returns 400.
+- A missing required query param returns 400, e.g. `missing query param 'limit'`.
+- Integer params are range-checked per type. `int8` value `300` returns 400.
+- 64-bit integer params must be safe integers (`Number.isSafeInteger`). Larger values return 400.
+- The JavaScript, Kotlin, Dart, Swift and OpenAPI targets exit with an error on routed methods.
+
 ## Usage
 
 ```

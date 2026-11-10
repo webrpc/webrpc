@@ -1,0 +1,133 @@
+{{- /* ident escapes C# keywords: class => @class. */ -}}
+{{- define "ident" -}}
+{{- if exists .Ctx.Keywords .Name }}@{{ end }}{{ .Name }}
+{{- end -}}
+
+{{- /* member renders the C# name of a struct field, enum value or response
+       output, allocated in main ($members) under the key of its type. */ -}}
+{{- define "member" -}}
+{{- $names := get .Ctx.Members .Key -}}
+{{- if not (exists $names .Name) -}}
+  {{- stderrPrintf "%s generator error: field %s.%s is left out with + json = -, but a REST route or file upload of a method uses it\n" .Ctx.Target .Key .Name -}}
+  {{- exit 1 -}}
+{{- end -}}
+{{ template "ident" dict "Name" (get $names .Name) "Ctx" .Ctx }}
+{{- end -}}
+
+{{- /* declare registers a top-level declaration, failing on a name clash. */ -}}
+{{- define "declare" -}}
+{{- if exists .Decls .Name -}}
+  {{- $other := get .Decls .Name -}}
+  {{- stderrPrintf "%s generator error: %q, %s, clashes with %s; %s\n" .Target .Name .What $other (ternary (eq $other "a generated runtime helper") "rename it in the schema" "rename one of them in the schema") -}}
+  {{- exit 1 -}}
+{{- end -}}
+{{- set .Decls .Name .What -}}
+{{- end -}}
+
+{{- /* allocate names the members of a type (or the arguments of a method):
+       .Items maps each schema name to its natural C# name. Names in .Taken are
+       reserved. Members whose natural name is free get it first, so their
+       names don't depend on member order; the others get "_" suffixes until
+       unique. A renamed member can still move if a member named like its
+       rename is added (toString is ToString_ until a toString_ field appears,
+       then ToString__). The result goes to .Names. */ -}}
+{{- define "allocate" -}}
+{{- range $key, $natural := .Items -}}
+  {{- if not (exists $.Taken $natural) }}{{ set $.Taken $natural true }}{{ set $.Names $key $natural }}{{ end -}}
+{{- end -}}
+{{- range $key, $natural := .Items -}}
+  {{- if not (exists $.Names $key) -}}
+    {{- $name := printf "%s_" $natural -}}
+    {{- range $_, $i := (until 32) }}{{ if exists $.Taken $name }}{{ $name = printf "%s_" $name }}{{ end }}{{ end -}}
+    {{- if exists $.Taken $name -}}
+      {{- stderrPrintf "%s generator error: can't find a unique C# name for %q in %s\n" $.Target $key $.Owner -}}
+      {{- exit 1 -}}
+    {{- end -}}
+    {{- set $.Taken $name true }}{{ set $.Names $key $name -}}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- /* argName is the C# parameter name of a method argument, see $argNames in main. */ -}}
+{{- define "argName" -}}
+{{- $names := get .Ctx.ArgNames (printf "%s.%s" .Method.Service.Name .Method.Name) -}}
+{{ template "ident" dict "Name" (get $names .Name) "Ctx" .Ctx }}
+{{- end -}}
+
+{{- /* str renders a C# string literal. */ -}}
+{{- define "str" -}}
+"{{ replace "\"" "\\\"" (replace "\\" "\\\\" (printf "%v" .)) | replace "\n" "\\n" | replace "\r" "\\r" }}"
+{{- end -}}
+
+{{- /* xml escapes text for XML doc comments. */ -}}
+{{- define "xml" -}}
+{{ replace ">" "&gt;" (replace "<" "&lt;" (replace "&" "&amp;" (printf "%v" .))) }}
+{{- end -}}
+
+{{- /* doc renders .Comments as an XML <summary> doc comment. */ -}}
+{{- define "doc" -}}
+{{- if .Comments }}
+{{ .Indent }}/// <summary>
+{{- range $_, $line := .Comments }}
+{{ $.Indent }}/// {{ template "xml" $line }}
+{{- end }}
+{{ .Indent }}/// </summary>
+{{- end -}}
+{{- end -}}
+
+{{- /* type renders the C# type of a webrpc type expression. */ -}}
+{{- define "type" -}}
+{{- $ctx := .Ctx -}}
+{{- $type := printf "%v" .Type -}}
+{{- if exists $ctx.Aliases $type -}}
+  {{- $type = get $ctx.Aliases $type -}}
+{{- end -}}
+
+{{- if isMapType $type -}}
+global::System.Collections.Generic.Dictionary<{{ template "type" dict "Type" (mapKeyType $type) "Ctx" $ctx }}, {{ template "type" dict "Type" (mapValueType $type) "Ctx" $ctx }}>
+{{- else if isListType $type -}}
+  {{- $elem := printf "%v" (listElemType $type) -}}
+  {{- if exists $ctx.Aliases $elem }}{{ $elem = get $ctx.Aliases $elem }}{{ end -}}
+  {{- if in $elem "byte" "uint8" -}}
+byte[]
+  {{- else -}}
+global::System.Collections.Generic.List<{{ template "type" dict "Type" $elem "Ctx" $ctx }}>
+  {{- end -}}
+{{- else if isCoreType $type -}}
+{{ get $ctx.TypeMap $type }}
+{{- else -}}
+{{ $ctx.Ns }}.{{ $type }}
+{{- end -}}
+{{- end -}}
+
+{{- /* fieldType renders the C# type of a struct field or argument: optional
+       values are nullable; any/null are always nullable. */ -}}
+{{- define "fieldType" -}}
+{{- $type := printf "%v" .Type -}}
+{{- if exists .Ctx.Aliases $type }}{{ $type = get .Ctx.Aliases $type }}{{ end -}}
+{{ template "type" dict "Type" .Type "Ctx" .Ctx }}{{ if and .Optional (not (in $type "any" "null")) }}?{{ end }}
+{{- end -}}
+
+{{- /* initializer renders the default value of a required reference-typed
+       struct field, so a new object never holds unexpected nulls. */ -}}
+{{- define "initializer" -}}
+{{- $ctx := .Ctx -}}
+{{- $type := printf "%v" .Type -}}
+{{- if exists $ctx.Aliases $type }}{{ $type = get $ctx.Aliases $type }}{{ end -}}
+{{- if not .Optional -}}
+  {{- if eq $type "string" -}}
+{{ " " }}= "";
+  {{- else if or (isMapType $type) (isListType $type) -}}
+    {{- $elem := "" -}}
+    {{- if isListType $type }}{{ $elem = printf "%v" (listElemType $type) }}{{ if exists $ctx.Aliases $elem }}{{ $elem = get $ctx.Aliases $elem }}{{ end }}{{ end -}}
+    {{- if in $elem "byte" "uint8" -}}
+{{ " " }}= global::System.Array.Empty<byte>();
+    {{- else -}}
+{{ " " }}= new {{ template "type" dict "Type" $type "Ctx" $ctx }}();
+    {{- end -}}
+  {{- else if or (in $type "any" "null") (exists $ctx.Enums $type) (and (isCoreType $type) (ne $type "file")) -}}
+  {{- else -}}
+{{ " " }}= null!;
+  {{- end -}}
+{{- end -}}
+{{- end -}}

@@ -1,0 +1,40 @@
+webrpc = v1
+
+name = OptionalValues
+version = v1.0.0
+
+type ZeroValue: string
+  + go.alias = types.ZeroValue
+  + go.type.import = github.com/webrpc/webrpc/tests/optional/types
+
+struct OptionalValues
+  - required: ZeroValue
+  - inferred?: ZeroValue
+  - custom?: string
+    + go.field.type = *types.ZeroValue
+    + go.type.import = github.com/webrpc/webrpc/tests/optional/types
+  - pointerReceiver?: string
+    + go.field.type = *types.PointerZero
+    + go.type.import = github.com/webrpc/webrpc/tests/optional/types
+  - timestamp?: timestamp
+  - object?: Object
+  - valueOverride?: string
+    + go.field.type = types.ZeroValue
+    + go.type.import = github.com/webrpc/webrpc/tests/optional/types
+  - pointerList?: []string
+    + go.field.type = *[]string
+  - listOverride?: []string
+    + go.field.type = []string
+  - mapOverride?: map<string,string>
+    + go.field.type = map[string]string
+  - explicit?: ZeroValue
+    + go.tag.json = explicit,omitzero
+  - renamed?: ZeroValue
+    + json = renamedValue
+  - hidden?: ZeroValue
+    + json = -
+  - bareTag?: ZeroValue
+    + go.tag.json = bare
+
+struct Object
+  - value: string

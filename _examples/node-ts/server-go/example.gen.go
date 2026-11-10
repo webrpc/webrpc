@@ -148,7 +148,7 @@ type User struct {
 	Meta       map[string]any `json:"meta"`
 	InternalId uint64         `json:"-"`
 	Balance    BigInt         `json:"balance"`
-	CreatedAt  *time.Time     `json:"createdAt"`
+	CreatedAt  *time.Time     `json:"createdAt,omitempty"`
 	Extra      *Extra         `json:"extra"`
 }
 
@@ -169,7 +169,7 @@ type GetArticleRequest struct {
 
 type GetArticleResponse struct {
 	Title    string  `json:"title"`
-	Content  *string `json:"content"`
+	Content  *string `json:"content,omitempty"`
 	LargeNum BigInt  `json:"largeNum"`
 }
 
@@ -223,7 +223,7 @@ func NewExampleClient(addr string, client HTTPClient) ExampleClient {
 
 func (c *exampleClient) Ping(ctx context.Context, counter *BigInt) error {
 	in := struct {
-		Arg0 *BigInt `json:"counter"`
+		Arg0 *BigInt `json:"counter,omitempty"`
 	}{counter}
 
 	err := doHTTPRequest(ctx, c.client, c.urls[0], in, nil)
@@ -419,7 +419,7 @@ func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWrite
 	defer r.Body.Close()
 
 	reqPayload := struct {
-		Arg0 *BigInt `json:"counter"`
+		Arg0 *BigInt `json:"counter,omitempty"`
 	}{}
 	if err := json.Unmarshal(reqBody, &reqPayload); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to unmarshal request data: %w", err))
@@ -825,7 +825,7 @@ func doHTTPRequestRaw(ctx context.Context, client HTTPClient, url string, in, ou
 		return nil, ErrWebrpcRequestFailed.WithCause(err)
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode < 200 || resp.StatusCode > 299 { // 2xx is success; routes may declare e.g. 201
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, ErrWebrpcBadResponse.WithCausef("failed to read server error response body: %w", err)
@@ -1558,7 +1558,7 @@ var (
 	ErrWebrpcBadResponse    = WebRPCError{Code: -5, Name: "WebrpcBadResponse", Message: "bad response", HTTPStatus: 500}
 	ErrWebrpcServerPanic    = WebRPCError{Code: -6, Name: "WebrpcServerPanic", Message: "server panic", HTTPStatus: 500}
 	ErrWebrpcInternalError  = WebRPCError{Code: -7, Name: "WebrpcInternalError", Message: "internal error", HTTPStatus: 500}
-	ErrWebrpcClientAborted  = WebRPCError{Code: -8, Name: "WebrpcClientAborted", Message: "request aborted by client", HTTPStatus: 400}
+	ErrWebrpcClientAborted  = WebRPCError{Code: -8, Name: "WebrpcClientAborted", Message: "request aborted by client", HTTPStatus: 499}
 	ErrWebrpcStreamLost     = WebRPCError{Code: -9, Name: "WebrpcStreamLost", Message: "stream lost", HTTPStatus: 400}
 	ErrWebrpcStreamFinished = WebRPCError{Code: -10, Name: "WebrpcStreamFinished", Message: "stream finished", HTTPStatus: 200}
 )

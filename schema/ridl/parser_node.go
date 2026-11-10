@@ -359,6 +359,16 @@ type MethodNode struct {
 	inputs      argumentList
 	outputs     argumentList
 	errors      []*TokenNode // List of error names this method can throw
+
+	routes []*RouteNode // `+ GET /users/{userId}` lines, in declaration order
+
+	// Method-level `+ success 200|201` option line. Fills every route of the
+	// method; nil means the default (200) applies.
+	successCodes []*TokenNode
+}
+
+func (mn *MethodNode) SuccessCodes() []*TokenNode {
+	return mn.successCodes
 }
 
 func (mn *MethodNode) Name() *TokenNode {
@@ -395,6 +405,28 @@ func (mn *MethodNode) Errors() []*TokenNode {
 
 func (mn *MethodNode) Annotations() []*AnnotationNode {
 	return mn.annotations
+}
+
+func (mn *MethodNode) Routes() []*RouteNode {
+	return mn.routes
+}
+
+type RouteNode struct {
+	verb    *TokenNode
+	path    *TokenNode
+	success []*TokenNode // method-level `+ success 200|201`, applied to every route
+}
+
+func (rn *RouteNode) Verb() *TokenNode {
+	return rn.verb
+}
+
+func (rn *RouteNode) Path() *TokenNode {
+	return rn.path
+}
+
+func (rn *RouteNode) Success() []*TokenNode {
+	return rn.success
 }
 
 type ServiceNode struct {

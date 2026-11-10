@@ -29,6 +29,84 @@ service TestApi
   - DownloadFile(name: string) => (data: file)
   - EchoFile(data: file) => (data: file)
 
+# added in v0.47.0 (REST routes)
+service TestApiRest
+  - GetItem(GetItemRequest) => (GetItemResponse)
+      + GET /items/{id}
+  - ListItems(ListItemsRequest) => (ListItemsResponse)
+      + GET /items
+  - CreateItem(CreateItemRequest) => (CreateItemResponse)
+      + success 201
+      + POST /items
+  - UpdateItem(id: uint64, name: string) => (item: Item)
+      + PUT /items/{id}
+  - PatchItem(id: uint64, name?: string) => (item: Item)
+      + PATCH /items/{id}
+  - UpsertItem(item: Item) => (item: Item)
+      + success 200|201
+      + PUT /items
+  - DeleteItem(id: uint64) => ()
+      + success 200|204
+      + DELETE /items/{id}
+  - PurgeItems()
+      + success 204
+      + POST /items/purge
+  - QueryItems(q: string) => (items: []Item)
+      + QUERY /items/search
+  - EchoParams(str: string, num: int64, flag: bool, fl: float64, ts: timestamp, status: Status, tags: []string, opt?: string) => (echo: string)
+      + GET /items/echo/params
+  - GetChild(id: uint64, childId: uint64) => (path: string)
+      + GET /items/{id}/children/{childId}
+  - GetItemStatus(id: uint64) => (status: string)
+      + GET /items/{id}/status/latest
+  - ResetItems()
+      + POST /items/reset
+  - LookupItem(id: uint64) => (item: Item)
+      + GET /items/lookup/{id}
+      + POST /TestApiRest/LookupItem
+  - FindItems(q: string) => (items: []Item)
+      + GET /items/find
+      + QUERY /items/find
+
+  - RpcMethod(id: uint64) => (item: Item)
+
+struct Item
+  - id: uint64
+  - name: string
+
+struct GetItemRequest
+  - id: uint64
+  - details?: bool
+
+struct GetItemResponse
+  - item: Item
+
+struct ListItemsRequest
+  - q?: string
+  - tags: []string
+  - limit: uint32
+
+struct ListItemsResponse
+  - items: []Item
+
+struct OptFields
+  - reqBool: bool
+  - reqInt: int64
+  - reqString: string
+  - reqList: []string
+  - reqMap: map<string,uint32>
+  - optBool?: bool
+  - optInt?: int64
+  - optString?: string
+  - optList?: []string
+  - optMap?: map<string,uint32>
+
+struct CreateItemRequest
+  - item: Item
+
+struct CreateItemResponse
+  - item: Item
+
 struct Simple
   - id: int
   - name: string

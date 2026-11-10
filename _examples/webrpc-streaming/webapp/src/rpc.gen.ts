@@ -64,7 +64,9 @@ export class Chat implements ChatClient {
   protected path = '/v1/Chat/'
 
   constructor(hostname: string, fetch: Fetch) {
-    this.hostname = hostname.replace(/\/*$/, '')
+    let hostnameEnd = hostname.length
+    while (hostnameEnd > 0 && hostname.charCodeAt(hostnameEnd - 1) === 47) hostnameEnd--
+    this.hostname = hostnameEnd === hostname.length ? hostname : hostname.slice(0, hostnameEnd)
     this.fetch = (input: RequestInfo, init?: RequestInit) => fetch(input, init)
   }
 
@@ -81,7 +83,7 @@ export class Chat implements ChatClient {
     return this.fetch(
       this.url('SendMessage'),
       createHttpRequest(JsonEncode(req), headers, signal)).then((res) => {
-      return buildResponse(res).then(_data => {
+      return buildResponse(res, true).then(_data => {
         return JsonDecode<SendMessageResponse>(_data, 'SendMessageResponse')
       })
     }, (error) => {
@@ -244,10 +246,13 @@ const createHttpRequest = (body: string = '{}', headers: object = {}, signal: Ab
   return { method: 'POST', headers: reqHeaders, body, signal }
 }
 
-const buildResponse = (res: Response): Promise<any> => {
+const buildResponse = (res: Response, emptyOk: boolean = false): Promise<any> => {
   return res.text().then(text => {
     let data
     try {
+      if (text.trim() === '' && emptyOk && res.ok) {
+        return {} // empty body on an empty-response method: the zero result
+      }
       data = JSON.parse(text)
     } catch(error) {
       throw WebrpcBadResponseError.new({
@@ -430,7 +435,7 @@ export class WebrpcClientAbortedError extends WebrpcError {
     this.name = error.name || 'WebrpcClientAborted'
     this.code = typeof error.code === 'number' ? error.code : -8
     this.message = error.message || `request aborted by client`
-    this.status = typeof error.status === 'number' ? error.status : 400
+    this.status = typeof error.status === 'number' ? error.status : 499
     if (error.cause !== undefined) this.cause = error.cause
     Object.setPrototypeOf(this, WebrpcClientAbortedError.prototype)
   }

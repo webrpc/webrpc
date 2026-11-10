@@ -14,11 +14,13 @@
 {{- $succinct := or .Succinct false -}}
 
 {{- $customType := "" -}}
-{{- $jsonTag := printf "json:%q" $name }}
+{{- $pointer := false -}}
+{{- $jsonName := $name -}}
+{{- $jsonOverride := false -}}
 {{- $structTags := array -}}
 {{- range $meta := $typeMeta -}}
     {{- if exists $meta "json" -}}
-        {{- $jsonTag = printf "json:%q" (get $meta "json") -}}
+        {{- $jsonName = get $meta "json" -}}
     {{- end -}}
     {{- if exists $meta "go.field.name" -}}
         {{- $fieldName = get $meta "go.field.name" -}}
@@ -27,7 +29,8 @@
         {{- $customType = get $meta "go.field.type" -}}
     {{- end -}}
     {{- if exists $meta "go.tag.json" -}}
-        {{- $jsonTag = printf "json:%q" (get $meta "go.tag.json") -}}
+        {{- $jsonName = get $meta "go.tag.json" -}}
+        {{- $jsonOverride = true -}}
     {{- end -}}
     {{- range $metaKey, $metaValue := $meta -}}
         {{- if and (hasPrefix $metaKey "go.tag.") (ne $metaKey "go.tag.json") -}}
@@ -38,7 +41,7 @@
 
 {{- if $printName}}{{"\t"}}{{$fieldName}} {{end -}}
 {{- if (ne $customType "") -}}
-
+    {{- $pointer = hasPrefix (trim $customType) "*" -}}
     {{$customType}}
 
 {{- else if isMapType $type -}}
@@ -53,24 +56,35 @@
     {{- if eq (toString $type) "file" -}}
         {{- /* file is already a pointer type, no extra indirection when optional;
                the type itself may live in another package (-importTypesFrom) */ -}}
+        {{- $pointer = true -}}
         *{{$typePrefix}}{{trimPrefix (get $typeMap $type) "*"}}
     {{- else -}}
-        {{if and $optional (ne (toString $type) "any")}}*{{end}}{{ get $typeMap $type }}
+        {{- $pointer = and $optional (ne (toString $type) "any") -}}
+        {{if $pointer}}*{{end}}{{ get $typeMap $type }}
     {{- end -}}
 
 {{- else -}}{{- /* structs, enums, aliases */ -}}
     {{- if or (isEnumType $type) (isAliasType $type) -}}
-        {{if $optional}}*{{end}}{{$typePrefix}}{{$type}}
+        {{- $pointer = $optional -}}
+        {{if $pointer}}*{{end}}{{$typePrefix}}{{$type}}
     {{- else -}}
         {{- if $succinct -}}
             {{$typePrefix}}{{$type}}
         {{- else -}}
+            {{- $pointer = true -}}
             *{{$typePrefix}}{{$type}}
         {{- end -}}
     {{- end -}}
 {{- end -}}
 
+{{- /* omitempty checks pointer presence without calling IsZero; omitzero preserves non-nil empty collections. */ -}}
 {{- if $includeJsonTags -}}
+{{- if and $optional (not $jsonOverride) (ne $jsonName "-") -}}
+    {{- $omit := "omitzero" -}}
+    {{- if $pointer -}}{{- $omit = "omitempty" -}}{{- end -}}
+    {{- $jsonName = printf "%s,%s" $jsonName $omit -}}
+{{- end -}}
+{{- $jsonTag := printf "json:%q" $jsonName -}}
 {{" "}}`{{$jsonTag}}{{if and $includeStructTags (len $structTags)}} {{join (sort $structTags) " "}}{{end}}`
 {{- end -}}
 

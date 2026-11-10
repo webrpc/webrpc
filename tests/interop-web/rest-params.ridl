@@ -1,0 +1,38 @@
+webrpc = v1
+
+name = ParamRest
+version = v1.0.0
+basepath = /rpc
+
+# TypeScript-only REST cases: sized integer bounds, bool spellings, and
+# field names that collide with Object.prototype members.
+#
+# Search binds a query param whose JSON name differs from its field name.
+struct SearchRequest
+  - term: string
+  - dashed?: string
+    + json = dashed_term
+
+struct SearchResponse
+  - echo: string
+
+service ParamRest
+  - Probe(constructor: string, toString?: string, i8: int8, u8: uint8, i32: int32, flag: bool) => (echo: string)
+      + GET /params/probe
+  - Make(constructor: string) => (echo: string)
+      + POST /params/make
+      + POST /ParamRest/OldMake
+  - Tag(name: string) => (echo: string)
+      + GET /params/tags/{name}
+  - Numbers(f32: float32, f64: float64, ts: timestamp) => (echo: string)
+      + GET /params/numbers
+  - Search(SearchRequest) => (SearchResponse)
+      + GET /params/search
+  - Legacy(name: string) => (echo: string)
+      + GET /params/legacy
+      + POST /ParamRest/Legacy
+  - Both(q: string, n: int32) => (echo: string)
+      + GET /params/both
+      + QUERY /params/both
+  - Wild(x: string) => (echo: string)
+      + POST /ParamRest/{x}

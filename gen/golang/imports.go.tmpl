@@ -12,6 +12,9 @@
 
 {{- if eq $opts.json "stdlib" -}}
 	{{- set $stdlibImports "encoding/json" "" -}}
+{{- else if eq $opts.json "encoding/json/v2" -}}
+	{{- set $stdlibImports "encoding/json" "jsonv1" -}}
+	{{- set $stdlibImports "encoding/json/v2" "json" -}}
 {{- end -}}
 
 {{- if $opts.errorStackTrace }}
@@ -22,6 +25,10 @@
 	{{- set $stdlibImports "bytes" "" -}}
 	{{- set $stdlibImports "io" "" -}}
 	{{- set $stdlibImports "net/url" "" -}}
+	{{- if $opts.restRoutes }}
+		{{- set $stdlibImports "encoding" "" -}}
+		{{- set $stdlibImports "strconv" "" -}}
+	{{- end -}}
 {{- end -}}
 
 {{- if $opts.server }}
@@ -31,6 +38,14 @@
 
 	{{- if $opts.fixEmptyArrays }}
 		{{- set $stdlibImports "reflect" "" -}}
+	{{- end -}}
+
+	{{- if $opts.restRoutes }}
+		{{- set $stdlibImports "encoding" "" -}}
+		{{- set $stdlibImports "math" "" -}}
+		{{- set $stdlibImports "net/url" "" -}}
+		{{- set $stdlibImports "strconv" "" -}}
+		{{- set $stdlibImports "unsafe" "" -}}
 	{{- end -}}
 {{- end -}}
 
@@ -94,7 +109,7 @@ import (
 {{- /* Print custom type imports. */ -}}
 {{- $imports := dict -}}
 
-{{- if eq $opts.json "stdlib" -}}
+{{- if or (eq $opts.json "stdlib") (eq $opts.json "encoding/json/v2") -}}
 	{{- /* Already imported in the stdlib section. */ -}}
 {{- else if eq $opts.json "jsoniter" -}}
 	{{- set $imports "github.com/json-iterator/go" "" -}}

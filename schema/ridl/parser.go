@@ -20,6 +20,8 @@ const (
 	wordService  = "service"
 	wordStream   = "stream"
 	wordErrors   = "errors"
+	wordSuccess  = "success"
+	wordPath     = "path"
 	wordBasepath = "basepath"
 	wordVersion  = "version"
 	wordType     = "type"
@@ -45,6 +47,8 @@ type parser struct {
 	words    chan interface{}
 	comments map[int]string
 
+	warnings []string
+
 	root RootNode
 }
 
@@ -62,6 +66,10 @@ func newParser(file string, src []byte) (*parser, error) {
 		comments: comments,
 	}
 	return p, nil
+}
+
+func (p *parser) warn(msg string) {
+	p.warnings = append(p.warnings, msg)
 }
 
 func (p *parser) emit(message interface{}) {
@@ -187,6 +195,13 @@ func (p *parser) cursor() *token {
 	return &p.tokens[p.pos]
 }
 
+func (p *parser) peek() *token {
+	if p.pos+1 >= p.length {
+		return eofToken
+	}
+	return &p.tokens[p.pos+1]
+}
+
 func (p *parser) expectStringValue() (*token, error) {
 	tok := p.cursor()
 	p.next()
@@ -255,6 +270,25 @@ loop:
 		default:
 			break loop
 		}
+	}
+
+	return composedValue(tokens)
+}
+
+// expectRoutePath reads a REST route path template such as /users/{userId},
+// composed of slashes, words (which may contain '-' and '~'), dots, and the
+// '{' / '}' param braces (lexed as tokenExtra).
+func (p *parser) expectRoutePath() (*token, error) {
+	tokens := []*token{}
+
+	for {
+		tok := p.cursor()
+		isBrace := tok.tt == tokenExtra && (tok.val == "{" || tok.val == "}")
+		if tok.tt != tokenSlash && tok.tt != tokenWord && tok.tt != tokenDot && !isBrace {
+			break
+		}
+		tokens = append(tokens, tok)
+		p.next()
 	}
 
 	return composedValue(tokens)
@@ -369,6 +403,32 @@ loop:
 	}
 
 	return composedValue(tokens)
+}
+
+// expectAnnotationValue reads a `+ @name = value` annotation value. Unlike
+// expectMetadataValue it does not unescape bare values, so a backslash stays
+// literal; a quoted value keeps the usual string escapes.
+func (p *parser) expectAnnotationValue() (*token, error) {
+	if p.cursor().tt == tokenQuote {
+		return p.expectStringValue()
+	}
+
+	tokens := []*token{}
+
+loop:
+	for {
+		tok := p.cursor()
+
+		switch tok.tt {
+		case tokenWhitespace, tokenNewLine, tokenEOF, tokenHash:
+			break loop
+		}
+
+		tokens = append(tokens, tok)
+		p.next()
+	}
+
+	return composedRawValue(tokens)
 }
 
 func parserStateEOL(p *parser) parserState {
@@ -517,6 +577,24 @@ func composedValue(tokens []*token) (*token, error) {
 		val:  stringValue,
 		line: baseToken.line,
 		col:  baseToken.col,
+	}, nil
+}
+
+func composedRawValue(tokens []*token) (*token, error) {
+	if len(tokens) < 1 {
+		return nil, errors.New("expecting token")
+	}
+
+	values := []string{}
+	for _, t := range tokens {
+		values = append(values, t.val)
+	}
+
+	return &token{
+		tt:   tokenComposed,
+		val:  strings.Join(values, ""),
+		line: tokens[0].line,
+		col:  tokens[0].col,
 	}, nil
 }
 

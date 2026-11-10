@@ -91,6 +91,10 @@ func (s *WebRPCSchema) Validate() error {
 		return err
 	}
 
+	if err := s.validateRoutes(); err != nil {
+		return err
+	}
+
 	return nil
 }
 

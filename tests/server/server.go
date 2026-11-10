@@ -276,10 +276,19 @@ var (
 )
 
 func RunTestServer(addr string, timeout time.Duration) (*testServer, error) {
+	return runServer(addr, NewTestApiServer(&TestServer{}), timeout)
+}
+
+// RunRESTTestServer serves the TestApiRest service on REST routes.
+func RunRESTTestServer(addr string, timeout time.Duration) (*testServer, error) {
+	return runServer(addr, NewTestApiRestServer(NewTestRESTServer()), timeout)
+}
+
+func runServer(addr string, handler http.Handler, timeout time.Duration) (*testServer, error) {
 	srv := &testServer{
 		Server: &http.Server{
 			Addr:    addr,
-			Handler: NewTestApiServer(&TestServer{}),
+			Handler: handler,
 		},
 		closed: make(chan struct{}),
 	}

@@ -187,7 +187,30 @@ const stopGoServer = async (child: ChildProcess) => {
   }
 }
 
+const hostnameNormalizationSuite = async () => {
+  const requested: string[] = []
+  const recordingFetch: typeof fetch = async (input) => {
+    requested.push(String(input))
+    return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } })
+  }
+
+  await new Example(`https://example.com${'/'.repeat(8192)}`, recordingFetch).ping()
+  assert.equal(requested.pop(), 'https://example.com/v1/Example/Ping')
+
+  const interiorSlashes = `https://example.com/${'/'.repeat(8192)}endpoint`
+  await new Example(interiorSlashes, recordingFetch).ping()
+  assert.equal(requested.pop(), `${interiorSlashes}/v1/Example/Ping`)
+
+  await new Example('////', recordingFetch).ping()
+  assert.equal(requested.pop(), '/v1/Example/Ping')
+
+  await new Example('https://example.com', recordingFetch).ping()
+  assert.equal(requested.pop(), 'https://example.com/v1/Example/Ping')
+}
+
 const main = async () => {
+  await hostnameNormalizationSuite()
+
   // The generated plain-JavaScript client, running the same suite. It ships
   // without type declarations, hence the dynamic import.
   // @ts-expect-error client.gen.mjs has no type declarations

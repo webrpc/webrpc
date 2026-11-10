@@ -1,0 +1,110 @@
+{{- define "file" -}}
+{{- $opts := .Ctx.Opts -}}
+{{- $vis := $opts.visibility }}
+
+    /// <summary>
+    /// A file uploaded to, or downloaded from, a webrpc method. Files travel as
+    /// raw bytes (multipart/form-data uploads, raw response body downloads), never
+    /// inside JSON. Dispose a downloaded file to release its HTTP response.
+    /// </summary>
+    {{- if eq $opts.json "stj" }}
+    [global::System.Text.Json.Serialization.JsonConverter(typeof(WebrpcFile.WebrpcJsonConverter))]
+    {{- else }}
+    [global::Newtonsoft.Json.JsonConverter(typeof(WebrpcFile.WebrpcJsonConverter))]
+    {{- end }}
+    {{$vis}} sealed class WebrpcFile : global::System.IDisposable
+    {
+        private readonly global::System.IDisposable? _owner;
+
+        /// <param name="body">The file content, read when the request is sent.</param>
+        /// <param name="name">The filename, optional.</param>
+        /// <param name="contentType">The MIME type, defaults to application/octet-stream.</param>
+        /// <param name="size">The size in bytes, if known. Defaults to the length of a seekable body.</param>
+        public WebrpcFile(global::System.IO.Stream body, string? name = null, string? contentType = null, long? size = null)
+        {
+            Body = body ?? throw new global::System.ArgumentNullException(nameof(body));
+            Name = name;
+            ContentType = string.IsNullOrEmpty(contentType) ? "application/octet-stream" : contentType!;
+            Size = size ?? (body.CanSeek ? body.Length - body.Position : (long?)null);
+        }
+
+        internal WebrpcFile(global::System.IO.Stream body, string? name, string? contentType, long? size, global::System.IDisposable owner)
+            : this(body, name, contentType, size)
+        {
+            _owner = owner;
+        }
+
+        /// <summary>Creates a file from an in-memory content.</summary>
+        public static WebrpcFile FromBytes(byte[] content, string? name = null, string? contentType = null)
+        {
+            if (content == null)
+            {
+                throw new global::System.ArgumentNullException(nameof(content));
+            }
+            return new WebrpcFile(new global::System.IO.MemoryStream(content, false), name, contentType, content.Length);
+        }
+
+        /// <summary>The filename (Content-Disposition), if any.</summary>
+        public string? Name { get; }
+
+        /// <summary>The MIME type (Content-Type).</summary>
+        public string ContentType { get; }
+
+        /// <summary>The size in bytes (Content-Length), if known.</summary>
+        public long? Size { get; }
+
+        /// <summary>The file content.</summary>
+        public global::System.IO.Stream Body { get; }
+
+        /// <summary>Reads the whole file content into memory.</summary>
+        public async global::System.Threading.Tasks.Task<byte[]> ReadAllBytesAsync(global::System.Threading.CancellationToken cancellationToken = default)
+        {
+            using (var buffer = new global::System.IO.MemoryStream())
+            {
+                await Body.CopyToAsync(buffer, 81920, cancellationToken).ConfigureAwait(false);
+                return buffer.ToArray();
+            }
+        }
+
+        public void Dispose()
+        {
+            Body.Dispose();
+            _owner?.Dispose();
+        }
+        {{- if eq $opts.json "stj" }}
+
+        // Files are serialized as null in JSON, their content travels separately.
+        internal sealed class WebrpcJsonConverter : global::System.Text.Json.Serialization.JsonConverter<WebrpcFile>
+        {
+            public override WebrpcFile? Read(ref global::System.Text.Json.Utf8JsonReader reader, global::System.Type typeToConvert, global::System.Text.Json.JsonSerializerOptions options)
+            {
+                reader.Skip();
+                return null;
+            }
+
+            public override void Write(global::System.Text.Json.Utf8JsonWriter writer, WebrpcFile value, global::System.Text.Json.JsonSerializerOptions options)
+            {
+                writer.WriteNullValue();
+            }
+        }
+        {{- else }}
+
+        // Files are serialized as null in JSON, their content travels separately.
+        internal sealed class WebrpcJsonConverter : global::Newtonsoft.Json.JsonConverter
+        {
+            public override bool CanConvert(global::System.Type objectType) => objectType == typeof(WebrpcFile);
+
+            public override object? ReadJson(global::Newtonsoft.Json.JsonReader reader, global::System.Type objectType, object? existingValue, global::Newtonsoft.Json.JsonSerializer serializer)
+            {
+                reader.Skip();
+                return null;
+            }
+
+            public override void WriteJson(global::Newtonsoft.Json.JsonWriter writer, object? value, global::Newtonsoft.Json.JsonSerializer serializer)
+            {
+                writer.WriteNull();
+            }
+        }
+        {{- end }}
+    }
+{{- end -}}

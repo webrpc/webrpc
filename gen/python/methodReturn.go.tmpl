@@ -1,0 +1,13 @@
+{{- define "methodReturn" -}}
+{{- /* Python return annotation for a method: None, the single output type, or a tuple. */ -}}
+{{- $m := .Method -}}
+{{- $tm := .TypeMap -}}
+{{- $n := len $m.Outputs -}}
+{{- if eq $n 0 -}}
+None
+{{- else if eq $n 1 -}}
+{{- range $m.Outputs}}{{if .Optional}}Optional[{{end}}{{template "type" dict "Type" .Type "TypeMap" $tm}}{{if .Optional}}]{{end}}{{end}}
+{{- else -}}
+tuple[{{range $i, $out := $m.Outputs}}{{if $i}}, {{end}}{{if .Optional}}Optional[{{end}}{{template "type" dict "Type" .Type "TypeMap" $tm}}{{if .Optional}}]{{end}}{{end}}]
+{{- end -}}
+{{- end -}}
