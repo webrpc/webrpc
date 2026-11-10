@@ -224,6 +224,18 @@ func (x Kind) String() string {
 	return Kind_name[x]
 }
 
+func (x Kind) IsValid() bool {
+	_, ok := Kind_name[x]
+	return ok
+}
+
+func (Kind) Values() []Kind {
+	return []Kind{
+		KindUser,
+		KindAdmin,
+	}
+}
+
 func (x Kind) MarshalText() ([]byte, error) {
 	return []byte(Kind_name[x]), nil
 }
@@ -265,6 +277,21 @@ var Country_values = []Country{
 	CountryCa,
 }
 
+func (x Country) IsValid() bool {
+	switch x {
+	case CountryUs, CountryCa:
+		return true
+	}
+	return false
+}
+
+func (Country) Values() []Country {
+	return []Country{
+		CountryUs,
+		CountryCa,
+	}
+}
+
 func (x Country) MarshalText() ([]byte, error) {
 	return []byte(x), nil
 }
@@ -304,6 +331,21 @@ const (
 var Color_values = []Color{
 	ColorRed,
 	ColorGreen,
+}
+
+func (x Color) IsValid() bool {
+	switch x {
+	case ColorRed, ColorGreen:
+		return true
+	}
+	return false
+}
+
+func (Color) Values() []Color {
+	return []Color{
+		ColorRed,
+		ColorGreen,
+	}
 }
 
 func (x Color) MarshalText() ([]byte, error) {
@@ -357,6 +399,24 @@ var Reserved_values = []Reserved{
 	ReservedKnownValues,
 	ReservedReserved,
 	ReservedClass,
+}
+
+func (x Reserved) IsValid() bool {
+	switch x {
+	case ReservedValue, ReservedIsKnown, ReservedKnownValues, ReservedReserved, ReservedClass:
+		return true
+	}
+	return false
+}
+
+func (Reserved) Values() []Reserved {
+	return []Reserved{
+		ReservedValue,
+		ReservedIsKnown,
+		ReservedKnownValues,
+		ReservedReserved,
+		ReservedClass,
+	}
 }
 
 func (x Reserved) MarshalText() ([]byte, error) {
