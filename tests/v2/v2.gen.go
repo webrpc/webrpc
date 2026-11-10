@@ -351,6 +351,25 @@ type EnumData struct {
 	List []Status          `json:"list"`
 }
 
+// WebrpcEnum is satisfied only by the enums of this package.
+type WebrpcEnum[T any] interface {
+	Status | Access
+	IsValid() bool
+	Values() []T
+	MarshalText() ([]byte, error)
+}
+
+// ParseEnum returns the member of T whose wire value is s.
+func ParseEnum[T WebrpcEnum[T]](s string) (T, error) {
+	var zero T
+	for _, v := range zero.Values() {
+		if b, _ := v.MarshalText(); string(b) == s {
+			return v, nil
+		}
+	}
+	return zero, fmt.Errorf("invalid enum %T %q", zero, s)
+}
+
 //
 // File type
 //

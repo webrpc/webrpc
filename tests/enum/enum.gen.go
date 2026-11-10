@@ -5,6 +5,10 @@
 // webrpc-gen -schema=./enum/enum.ridl -target=golang -pkg=enum -out=./enum/enum.gen.go
 package enum
 
+import (
+	"fmt"
+)
+
 //
 // Schema types
 //
@@ -225,4 +229,23 @@ func (x *Empty) Is(values ...Empty) bool {
 		}
 	}
 	return false
+}
+
+// WebrpcEnum is satisfied only by the enums of this package.
+type WebrpcEnum[T any] interface {
+	Status | Kind | Tier | Empty
+	IsValid() bool
+	Values() []T
+	MarshalText() ([]byte, error)
+}
+
+// ParseEnum returns the member of T whose wire value is s.
+func ParseEnum[T WebrpcEnum[T]](s string) (T, error) {
+	var zero T
+	for _, v := range zero.Values() {
+		if b, _ := v.MarshalText(); string(b) == s {
+			return v, nil
+		}
+	}
+	return zero, fmt.Errorf("invalid enum %T %q", zero, s)
 }
