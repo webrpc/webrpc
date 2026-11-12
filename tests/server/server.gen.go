@@ -117,8 +117,11 @@ func (x Status) String() string {
 }
 
 func (x Status) IsValid() bool {
-	_, ok := Status_name[x]
-	return ok
+	switch x {
+	case StatusAvailable, StatusNotAvailable:
+		return true
+	}
+	return false
 }
 
 func (Status) Values() []Status {
@@ -194,8 +197,11 @@ func (x Access) String() string {
 }
 
 func (x Access) IsValid() bool {
-	_, ok := Access_name[x]
-	return ok
+	switch x {
+	case AccessNone, AccessRead, AccessWrite, AccessAdmin, AccessOwner:
+		return true
+	}
+	return false
 }
 
 func (Access) Values() []Access {

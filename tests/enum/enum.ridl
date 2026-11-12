@@ -21,3 +21,9 @@ enum Tier: string
   - Pro = "pro"
 
 enum Empty: string
+
+enum Level: uint32
+  - LOW = 1
+  - HIGH = 2
+
+enum EmptyInt: uint32

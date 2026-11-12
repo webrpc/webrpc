@@ -108,8 +108,11 @@ func (x Kind) String() string {
 }
 
 func (x Kind) IsValid() bool {
-	_, ok := Kind_name[x]
-	return ok
+	switch x {
+	case KindUser, KindAdmin:
+		return true
+	}
+	return false
 }
 
 func (Kind) Values() []Kind {

@@ -45,8 +45,13 @@ func (x {{$name}}) String() string {
 }
 
 func (x {{$name}}) IsValid() bool {
-	_, ok := {{$name}}_name[x]
-	return ok
+{{- if $fields }}
+	switch x {
+	case {{range $i, $field := $fields}}{{if $i}}, {{end}}{{template "enumConstName" dict "EnumName" $name "FieldName" $field.Name}}{{end}}:
+		return true
+	}
+{{- end }}
+	return false
 }
 
 func ({{$name}}) Values() []{{$name}} {

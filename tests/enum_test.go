@@ -23,6 +23,18 @@ func TestEnumHelpers(t *testing.T) {
 		require.False(t, enum.Kind(2).IsValid())
 	})
 
+	t.Run("int enum not starting at zero", func(t *testing.T) {
+		require.Equal(t, []enum.Level{enum.LevelLow, enum.LevelHigh}, enum.Level(0).Values())
+		require.True(t, enum.LevelHigh.IsValid())
+		require.False(t, enum.Level(0).IsValid())
+		require.False(t, enum.Level(3).IsValid())
+	})
+
+	t.Run("int enum without members", func(t *testing.T) {
+		require.Empty(t, enum.EmptyInt(0).Values())
+		require.False(t, enum.EmptyInt(0).IsValid())
+	})
+
 	t.Run("string enum", func(t *testing.T) {
 		require.Equal(t, []enum.Tier{enum.TierFree, enum.TierPro}, enum.Tier("").Values())
 		require.Equal(t, enum.Tier_values, enum.Tier("").Values())

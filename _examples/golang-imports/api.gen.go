@@ -93,8 +93,11 @@ func (x Location) String() string {
 }
 
 func (x Location) IsValid() bool {
-	_, ok := Location_name[x]
-	return ok
+	switch x {
+	case LocationToronto, LocationNewYork:
+		return true
+	}
+	return false
 }
 
 func (Location) Values() []Location {
