@@ -81,7 +81,13 @@ func TestEnumHelpers(t *testing.T) {
 			_, err := enum.ParseEnum[enum.Tier](s)
 			require.Error(t, err, s)
 		}
+		level, err := enum.ParseEnum[enum.Level]("HIGH")
+		require.NoError(t, err)
+		require.Equal(t, enum.LevelHigh, level)
+
 		_, err = enum.ParseEnum[enum.Empty]("anything")
+		require.Error(t, err)
+		_, err = enum.ParseEnum[enum.EmptyInt]("")
 		require.Error(t, err)
 		_, err = enum.ParseEnum[enum.Status]("bogus")
 		require.EqualError(t, err, `invalid enum enum.Status "bogus"`)

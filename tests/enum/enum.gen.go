@@ -57,6 +57,11 @@ func (Status) Values() []Status {
 	}
 }
 
+func (Status) parse(s string) (Status, bool) {
+	x, ok := Status_value[s]
+	return x, ok
+}
+
 func (x Status) MarshalText() ([]byte, error) {
 	return []byte(Status_name[x]), nil
 }
@@ -122,6 +127,11 @@ func (Kind) Values() []Kind {
 	}
 }
 
+func (Kind) parse(s string) (Kind, bool) {
+	x, ok := Kind_value[s]
+	return x, ok
+}
+
 func (x Kind) MarshalText() ([]byte, error) {
 	return []byte(Kind_name[x]), nil
 }
@@ -178,6 +188,11 @@ func (Tier) Values() []Tier {
 	}
 }
 
+func (Tier) parse(s string) (Tier, bool) {
+	x := Tier(s)
+	return x, x.IsValid()
+}
+
 func (x Tier) MarshalText() ([]byte, error) {
 	return []byte(x), nil
 }
@@ -214,6 +229,11 @@ func (x Empty) IsValid() bool {
 
 func (Empty) Values() []Empty {
 	return []Empty{}
+}
+
+func (Empty) parse(s string) (Empty, bool) {
+	x := Empty(s)
+	return x, x.IsValid()
 }
 
 func (x Empty) MarshalText() ([]byte, error) {
@@ -281,6 +301,11 @@ func (Level) Values() []Level {
 	}
 }
 
+func (Level) parse(s string) (Level, bool) {
+	x, ok := Level_value[s]
+	return x, ok
+}
+
 func (x Level) MarshalText() ([]byte, error) {
 	return []byte(Level_name[x]), nil
 }
@@ -325,6 +350,11 @@ func (EmptyInt) Values() []EmptyInt {
 	return []EmptyInt{}
 }
 
+func (EmptyInt) parse(s string) (EmptyInt, bool) {
+	x, ok := EmptyInt_value[s]
+	return x, ok
+}
+
 func (x EmptyInt) MarshalText() ([]byte, error) {
 	return []byte(EmptyInt_name[x]), nil
 }
@@ -348,10 +378,10 @@ func (x *EmptyInt) Is(values ...EmptyInt) bool {
 
 // WebrpcEnum is satisfied only by the enums of this package.
 type WebrpcEnum[T any] interface {
-	Status | Kind | Tier | Empty | Level | EmptyInt
 	IsValid() bool
 	Values() []T
 	MarshalText() ([]byte, error)
+	parse(s string) (T, bool)
 }
 
 // EnumValues returns the members of T in declaration order.
@@ -363,10 +393,9 @@ func EnumValues[T WebrpcEnum[T]]() []T {
 // ParseEnum returns the member of T whose wire value is s.
 func ParseEnum[T WebrpcEnum[T]](s string) (T, error) {
 	var zero T
-	for _, v := range zero.Values() {
-		if b, _ := v.MarshalText(); string(b) == s {
-			return v, nil
-		}
+	v, ok := zero.parse(s)
+	if !ok {
+		return zero, fmt.Errorf("invalid enum %T %q", zero, s)
 	}
-	return zero, fmt.Errorf("invalid enum %T %q", zero, s)
+	return v, nil
 }

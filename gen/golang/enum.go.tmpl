@@ -62,6 +62,11 @@ func ({{$name}}) Values() []{{$name}} {
 	}
 }
 
+func ({{$name}}) parse(s string) ({{$name}}, bool) {
+	x, ok := {{$name}}_value[s]
+	return x, ok
+}
+
 func (x {{$name}}) MarshalText() ([]byte, error) {
 	return []byte({{$name}}_name[x]), nil
 }

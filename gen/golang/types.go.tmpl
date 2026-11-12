@@ -39,20 +39,18 @@
 
 {{- end }}
 
-{{- $enums := "" -}}
+{{- $hasEnums := false -}}
 {{- range $_, $type := $types -}}
-	{{- if eq $type.Kind "enum" -}}
-		{{- if $enums }}{{ $enums = printf "%s | %s" $enums $type.Name }}{{ else }}{{ $enums = $type.Name }}{{ end -}}
-	{{- end -}}
+	{{- if eq $type.Kind "enum" -}}{{- $hasEnums = true -}}{{- end -}}
 {{- end -}}
-{{- if $enums }}
+{{- if $hasEnums }}
 
 // WebrpcEnum is satisfied only by the enums of this package.
 type WebrpcEnum[T any] interface {
-	{{$enums}}
 	IsValid() bool
 	Values() []T
 	MarshalText() ([]byte, error)
+	parse(s string) (T, bool)
 }
 
 // EnumValues returns the members of T in declaration order.
@@ -64,12 +62,11 @@ func EnumValues[T WebrpcEnum[T]]() []T {
 // ParseEnum returns the member of T whose wire value is s.
 func ParseEnum[T WebrpcEnum[T]](s string) (T, error) {
 	var zero T
-	for _, v := range zero.Values() {
-		if b, _ := v.MarshalText(); string(b) == s {
-			return v, nil
-		}
+	v, ok := zero.parse(s)
+	if !ok {
+		return zero, fmt.Errorf("invalid enum %T %q", zero, s)
 	}
-	return zero, fmt.Errorf("invalid enum %T %q", zero, s)
+	return v, nil
 }
 {{- end }}
 

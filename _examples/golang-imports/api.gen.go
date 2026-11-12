@@ -107,6 +107,11 @@ func (Location) Values() []Location {
 	}
 }
 
+func (Location) parse(s string) (Location, bool) {
+	x, ok := Location_value[s]
+	return x, ok
+}
+
 func (x Location) MarshalText() ([]byte, error) {
 	return []byte(Location_name[x]), nil
 }
@@ -130,10 +135,10 @@ func (x *Location) Is(values ...Location) bool {
 
 // WebrpcEnum is satisfied only by the enums of this package.
 type WebrpcEnum[T any] interface {
-	Location
 	IsValid() bool
 	Values() []T
 	MarshalText() ([]byte, error)
+	parse(s string) (T, bool)
 }
 
 // EnumValues returns the members of T in declaration order.
@@ -145,12 +150,11 @@ func EnumValues[T WebrpcEnum[T]]() []T {
 // ParseEnum returns the member of T whose wire value is s.
 func ParseEnum[T WebrpcEnum[T]](s string) (T, error) {
 	var zero T
-	for _, v := range zero.Values() {
-		if b, _ := v.MarshalText(); string(b) == s {
-			return v, nil
-		}
+	v, ok := zero.parse(s)
+	if !ok {
+		return zero, fmt.Errorf("invalid enum %T %q", zero, s)
 	}
-	return zero, fmt.Errorf("invalid enum %T %q", zero, s)
+	return v, nil
 }
 
 //

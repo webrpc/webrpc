@@ -179,6 +179,11 @@ func (Status) Values() []Status {
 	}
 }
 
+func (Status) parse(s string) (Status, bool) {
+	x, ok := Status_value[s]
+	return x, ok
+}
+
 func (x Status) MarshalText() ([]byte, error) {
 	return []byte(Status_name[x]), nil
 }
@@ -260,6 +265,11 @@ func (Access) Values() []Access {
 		AccessAdmin,
 		AccessOwner,
 	}
+}
+
+func (Access) parse(s string) (Access, bool) {
+	x, ok := Access_value[s]
+	return x, ok
 }
 
 func (x Access) MarshalText() ([]byte, error) {
@@ -359,10 +369,10 @@ type EnumData struct {
 
 // WebrpcEnum is satisfied only by the enums of this package.
 type WebrpcEnum[T any] interface {
-	Status | Access
 	IsValid() bool
 	Values() []T
 	MarshalText() ([]byte, error)
+	parse(s string) (T, bool)
 }
 
 // EnumValues returns the members of T in declaration order.
@@ -374,12 +384,11 @@ func EnumValues[T WebrpcEnum[T]]() []T {
 // ParseEnum returns the member of T whose wire value is s.
 func ParseEnum[T WebrpcEnum[T]](s string) (T, error) {
 	var zero T
-	for _, v := range zero.Values() {
-		if b, _ := v.MarshalText(); string(b) == s {
-			return v, nil
-		}
+	v, ok := zero.parse(s)
+	if !ok {
+		return zero, fmt.Errorf("invalid enum %T %q", zero, s)
 	}
-	return zero, fmt.Errorf("invalid enum %T %q", zero, s)
+	return v, nil
 }
 
 //

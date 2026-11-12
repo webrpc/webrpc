@@ -46,6 +46,11 @@
     }
     }
 
+    func ({{$name}}) parse(s string) ({{$name}}, bool) {
+    x := {{$name}}(s)
+    return x, x.IsValid()
+    }
+
     func (x {{$name}}) MarshalText() ([]byte, error) {
     return []byte(x), nil
     }

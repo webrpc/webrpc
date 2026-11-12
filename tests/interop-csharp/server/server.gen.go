@@ -239,6 +239,11 @@ func (Kind) Values() []Kind {
 	}
 }
 
+func (Kind) parse(s string) (Kind, bool) {
+	x, ok := Kind_value[s]
+	return x, ok
+}
+
 func (x Kind) MarshalText() ([]byte, error) {
 	return []byte(Kind_name[x]), nil
 }
@@ -295,6 +300,11 @@ func (Country) Values() []Country {
 	}
 }
 
+func (Country) parse(s string) (Country, bool) {
+	x := Country(s)
+	return x, x.IsValid()
+}
+
 func (x Country) MarshalText() ([]byte, error) {
 	return []byte(x), nil
 }
@@ -349,6 +359,11 @@ func (Color) Values() []Color {
 		ColorRed,
 		ColorGreen,
 	}
+}
+
+func (Color) parse(s string) (Color, bool) {
+	x := Color(s)
+	return x, x.IsValid()
 }
 
 func (x Color) MarshalText() ([]byte, error) {
@@ -420,6 +435,11 @@ func (Reserved) Values() []Reserved {
 		ReservedReserved,
 		ReservedClass,
 	}
+}
+
+func (Reserved) parse(s string) (Reserved, bool) {
+	x := Reserved(s)
+	return x, x.IsValid()
 }
 
 func (x Reserved) MarshalText() ([]byte, error) {
@@ -545,10 +565,10 @@ type WatchResponse struct {
 
 // WebrpcEnum is satisfied only by the enums of this package.
 type WebrpcEnum[T any] interface {
-	Kind | Country | Color | Reserved
 	IsValid() bool
 	Values() []T
 	MarshalText() ([]byte, error)
+	parse(s string) (T, bool)
 }
 
 // EnumValues returns the members of T in declaration order.
@@ -560,12 +580,11 @@ func EnumValues[T WebrpcEnum[T]]() []T {
 // ParseEnum returns the member of T whose wire value is s.
 func ParseEnum[T WebrpcEnum[T]](s string) (T, error) {
 	var zero T
-	for _, v := range zero.Values() {
-		if b, _ := v.MarshalText(); string(b) == s {
-			return v, nil
-		}
+	v, ok := zero.parse(s)
+	if !ok {
+		return zero, fmt.Errorf("invalid enum %T %q", zero, s)
 	}
-	return zero, fmt.Errorf("invalid enum %T %q", zero, s)
+	return v, nil
 }
 
 //
