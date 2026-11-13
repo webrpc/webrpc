@@ -165,11 +165,19 @@ func (x Status) String() string {
 }
 
 func (x Status) MarshalText() ([]byte, error) {
-	return []byte(Status_name[x]), nil
+	v, ok := Status_name[x]
+	if !ok {
+		return nil, fmt.Errorf("invalid Status value %v", x)
+	}
+	return []byte(v), nil
 }
 
 func (x *Status) UnmarshalText(b []byte) error {
-	*x = Status(Status_value[string(b)])
+	v, ok := Status_value[string(b)]
+	if !ok {
+		return fmt.Errorf("invalid Status value %q", string(b))
+	}
+	*x = v
 	return nil
 }
 
@@ -230,11 +238,19 @@ func (x Access) String() string {
 }
 
 func (x Access) MarshalText() ([]byte, error) {
-	return []byte(Access_name[x]), nil
+	v, ok := Access_name[x]
+	if !ok {
+		return nil, fmt.Errorf("invalid Access value %v", x)
+	}
+	return []byte(v), nil
 }
 
 func (x *Access) UnmarshalText(b []byte) error {
-	*x = Access(Access_value[string(b)])
+	v, ok := Access_value[string(b)]
+	if !ok {
+		return fmt.Errorf("invalid Access value %q", string(b))
+	}
+	*x = v
 	return nil
 }
 
