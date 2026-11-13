@@ -23,13 +23,12 @@ func templateFuncMap(opts map[string]interface{}) map[string]interface{} {
 		"hasField":     hasField,     // v0.13.0
 
 		// Schema type helpers.
-		"isBasicType":       isCoreType,       // v0.7.0 (deprecated in v0.9.0)
-		"isCoreType":        isCoreType,       // v0.9.0
-		"isStructType":      isStructType,     // v0.7.0
-		"isEnumType":        isEnumType,       // v0.7.0
-		"isAliasType":       isAliasType,
-		"enumWireValue":     enumWireValue,    // v0.47.0
-		"enumUnknownField":  enumUnknownField, // v0.48.0
+		"isBasicType":   isCoreType,   // v0.7.0 (deprecated in v0.9.0)
+		"isCoreType":    isCoreType,   // v0.9.0
+		"isStructType":  isStructType, // v0.7.0
+		"isEnumType":    isEnumType,   // v0.7.0
+		"isAliasType":   isAliasType,
+		"enumWireValue": enumWireValue, // v0.47.0
 		"isMapType":     isMapType,     // v0.7.0
 		"isListType":    isListType,    // v0.7.0
 		"mapKeyType":    mapKeyType,    // v0.7.0

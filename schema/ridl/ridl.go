@@ -307,11 +307,7 @@ func (p *Parser) parse() (*schema.WebRPCSchema, error) {
 					// UNKNOWN as the last member of an integer enum is assigned
 					// the type's reserved sentinel value instead of the index.
 					if i == len(line.Values())-1 && key == "UNKNOWN" && len(line.Values()) > 1 {
-						sentinel, ok := enumType.Type.EnumUnknownSentinel()
-						if !ok {
-							return nil, fmt.Errorf("enum %q: unknown sentinel for type %v", name, enumType)
-						}
-						val = sentinel
+						val = enumType.Type.EnumUnknownSentinel()
 					} else {
 						val = strconv.Itoa(i)
 					}

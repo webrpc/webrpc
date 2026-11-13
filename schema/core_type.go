@@ -123,24 +123,24 @@ func (t CoreType) String() string {
 }
 
 // EnumUnknownSentinel returns the reserved sentinel value for an integer enum's
-// UNKNOWN member when it is declared last, or false if the type is not an
-// integer type.
-func (t CoreType) EnumUnknownSentinel() (string, bool) {
+// UNKNOWN member when it is declared last. It returns an empty string for
+// non-integer types.
+func (t CoreType) EnumUnknownSentinel() string {
 	switch t {
 	case T_Int8, T_Int16, T_Int32, T_Int64, T_Int:
-		return "-1", true
+		return "-1"
 	case T_Uint8:
-		return "255", true
+		return "255"
 	case T_Uint16:
-		return "65535", true
+		return "65535"
 	case T_Uint32:
-		return "4294967295", true
+		return "4294967295"
 	case T_Uint64:
-		return "18446744073709551615", true
+		return "18446744073709551615"
 	case T_Uint:
-		return strconv.FormatUint(uint64(^uint(0)), 10), true
+		return strconv.FormatUint(uint64(^uint(0)), 10)
 	default:
-		return "", false
+		return ""
 	}
 }
 

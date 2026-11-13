@@ -4,7 +4,12 @@
 {{- $type := .Type -}}
 {{- $fields := .Fields -}}
 {{- $opts := .Opts -}}
-{{- $unknownField := enumUnknownField $fields -}}
+{{- $unknownField := "" -}}
+{{- range $_, $field := $fields }}
+	{{- if eq $field.Name "UNKNOWN" }}
+		{{- $unknownField = $field }}
+	{{- end }}
+{{- end -}}
 
 {{- if $opts.types -}}
 type {{$name}} {{$type}}

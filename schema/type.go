@@ -230,29 +230,26 @@ func validateEnumUnknownMember(t *Type, enumType CoreType) error {
 		return fmt.Errorf("schema error: enum '%s' member 'UNKNOWN' must be the first or last member", t.Name)
 	}
 
-	sentinel, ok := enumType.EnumUnknownSentinel()
-	if !ok {
-		return fmt.Errorf("schema error: enum '%s' has member 'UNKNOWN' but type '%s' is not an integer type", t.Name, enumType)
-	}
+	sentinel := enumType.EnumUnknownSentinel()
 
 	if unknownIdx == 0 {
 		if t.Fields[0].Value != "0" {
-			return fmt.Errorf("schema error: enum '%s' member 'UNKNOWN' first must have value 0, got %s", t.Name, t.Fields[0].Value)
+			return fmt.Errorf("schema error: enum '%s': UNKNOWN as the first member must have value 0, got %s", t.Name, t.Fields[0].Value)
 		}
 	}
 
 	if unknownIdx == len(t.Fields)-1 && len(t.Fields) > 1 {
 		if t.Fields[unknownIdx].Value != sentinel {
-			return fmt.Errorf("schema error: enum '%s' member 'UNKNOWN' last must have value %s, got %s", t.Name, sentinel, t.Fields[unknownIdx].Value)
+			return fmt.Errorf("schema error: enum '%s': UNKNOWN as the last member must have value %s, got %s", t.Name, sentinel, t.Fields[unknownIdx].Value)
 		}
-	}
 
-	for _, field := range t.Fields {
-		if field.Name == "UNKNOWN" {
-			continue
-		}
-		if field.Value == sentinel {
-			return fmt.Errorf("schema error: enum '%s' member '%s' value %s collides with reserved 'UNKNOWN' sentinel value", t.Name, field.Name, sentinel)
+		for _, field := range t.Fields {
+			if field.Name == "UNKNOWN" {
+				continue
+			}
+			if field.Value == sentinel {
+				return fmt.Errorf("schema error: enum '%s' member '%s' value %s collides with reserved 'UNKNOWN' sentinel value", t.Name, field.Name, sentinel)
+			}
 		}
 	}
 

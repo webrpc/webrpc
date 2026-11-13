@@ -71,17 +71,6 @@ func enumWireValue(field *schema.TypeField) string {
 	return field.Name
 }
 
-// enumUnknownField returns the enum's UNKNOWN member if it declares one, or
-// nil. Integer enums with this member use fallback (non-strict) text decoding.
-func enumUnknownField(fields []*schema.TypeField) *schema.TypeField {
-	for _, f := range fields {
-		if f.Name == "UNKNOWN" {
-			return f
-		}
-	}
-	return nil
-}
-
 // Returns true if given type is alias.
 func isAliasType(v interface{}) bool {
 	switch t := v.(type) {

@@ -1250,6 +1250,26 @@ func TestRIDLEnumUnknownMember(t *testing.T) {
 		assert.Equal(t, "0", animal.Fields[0].Value)
 	})
 
+	t.Run("UNKNOWN first allows another member at the type max", func(t *testing.T) {
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum Animal: uint32
+			  - UNKNOWN
+			  - CAT = 4294967295
+		`
+		s, err := parseString(input)
+		require.NoError(t, err)
+
+		animal := s.GetTypeByName("Animal")
+		require.NotNil(t, animal)
+		require.Len(t, animal.Fields, 2)
+		assert.Equal(t, "0", animal.Fields[0].Value)
+		assert.Equal(t, "4294967295", animal.Fields[1].Value)
+	})
+
 	t.Run("UNKNOWN last unsigned", func(t *testing.T) {
 		input := `
 			webrpc = v1
