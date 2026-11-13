@@ -3,6 +3,7 @@ package schema
 import (
 	"bytes"
 	"encoding/json"
+	"strconv"
 )
 
 type CoreType int
@@ -119,6 +120,28 @@ var CoreTypeFromString = map[string]CoreType{
 
 func (t CoreType) String() string {
 	return CoreTypeToString[t]
+}
+
+// EnumUnknownSentinel returns the reserved sentinel value for an integer enum's
+// UNKNOWN member when it is declared last. It returns an empty string for
+// non-integer types.
+func (t CoreType) EnumUnknownSentinel() string {
+	switch t {
+	case T_Int8, T_Int16, T_Int32, T_Int64, T_Int:
+		return "-1"
+	case T_Uint8:
+		return "255"
+	case T_Uint16:
+		return "65535"
+	case T_Uint32:
+		return "4294967295"
+	case T_Uint64:
+		return "18446744073709551615"
+	case T_Uint:
+		return strconv.FormatUint(uint64(^uint(0)), 10)
+	default:
+		return ""
+	}
 }
 
 func (t CoreType) MarshalJSON() ([]byte, error) {

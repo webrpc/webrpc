@@ -93,11 +93,19 @@ func (x Location) String() string {
 }
 
 func (x Location) MarshalText() ([]byte, error) {
-	return []byte(Location_name[x]), nil
+	v, ok := Location_name[x]
+	if !ok {
+		return nil, fmt.Errorf("invalid Location value %v", x)
+	}
+	return []byte(v), nil
 }
 
 func (x *Location) UnmarshalText(b []byte) error {
-	*x = Location(Location_value[string(b)])
+	v, ok := Location_value[string(b)]
+	if !ok {
+		return fmt.Errorf("invalid Location value %q", string(b))
+	}
+	*x = v
 	return nil
 }
 

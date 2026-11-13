@@ -175,6 +175,12 @@ func (t *Type) Parse(schema *WebRPCSchema) error {
 				jsonValueList[jsonMetaString] = field.Name
 			}
 		}
+
+		if !isStringEnum {
+			if err := validateEnumUnknownMember(t, fieldType.Type); err != nil {
+				return err
+			}
+		}
 	}
 
 	// For structs only
@@ -206,6 +212,48 @@ func (t *Type) RequiredFields() []*TypeField {
 	}
 
 	return requiredFields
+}
+
+func validateEnumUnknownMember(t *Type, enumType CoreType) error {
+	unknownIdx := -1
+	for i, field := range t.Fields {
+		if field.Name == "UNKNOWN" {
+			unknownIdx = i
+			break
+		}
+	}
+	if unknownIdx == -1 {
+		return nil
+	}
+
+	if unknownIdx != 0 && unknownIdx != len(t.Fields)-1 {
+		return fmt.Errorf("schema error: enum '%s' member 'UNKNOWN' must be the first or last member", t.Name)
+	}
+
+	sentinel := enumType.EnumUnknownSentinel()
+
+	if unknownIdx == 0 {
+		if t.Fields[0].Value != "0" {
+			return fmt.Errorf("schema error: enum '%s': UNKNOWN as the first member must have value 0, got %s", t.Name, t.Fields[0].Value)
+		}
+	}
+
+	if unknownIdx == len(t.Fields)-1 && len(t.Fields) > 1 {
+		if t.Fields[unknownIdx].Value != sentinel {
+			return fmt.Errorf("schema error: enum '%s': UNKNOWN as the last member must have value %s, got %s", t.Name, sentinel, t.Fields[unknownIdx].Value)
+		}
+
+		for _, field := range t.Fields {
+			if field.Name == "UNKNOWN" {
+				continue
+			}
+			if field.Value == sentinel {
+				return fmt.Errorf("schema error: enum '%s' member '%s' value %s collides with reserved 'UNKNOWN' sentinel value", t.Name, field.Name, sentinel)
+			}
+		}
+	}
+
+	return nil
 }
 
 func startsWithUpper(s string) bool {
