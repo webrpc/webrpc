@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 )
 
@@ -15,8 +16,8 @@ func TestInferLocalTemplateVersion(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		setup   []string // git commands run in the template dir; nil = not a git repo
-		version string   // regexp matched against TmplVersion after the dir
+		setup   [][]string // git commands run in the template dir; nil = not a git repo
+		version string     // regexp matched against TmplVersion after the dir
 	}{
 		{
 			name:    "not a git repo",
@@ -24,22 +25,22 @@ func TestInferLocalTemplateVersion(t *testing.T) {
 		},
 		{
 			name:    "no tags",
-			setup:   []string{"init", "add .", "commit -m init"},
+			setup:   [][]string{{"init"}, {"add", "."}, {"commit", "-m", "init"}},
 			version: `^$`,
 		},
 		{
 			name:    "lightweight tag",
-			setup:   []string{"init", "add .", "commit -m init", "tag v0.7.0"},
+			setup:   [][]string{{"init"}, {"add", "."}, {"commit", "-m", "init"}, {"tag", "v0.7.0"}},
 			version: `^@v0\.7\.0$`,
 		},
 		{
 			name:    "annotated tag",
-			setup:   []string{"init", "add .", "commit -m init", "tag -a v0.7.0 -m v0.7.0"},
+			setup:   [][]string{{"init"}, {"add", "."}, {"commit", "-m", "init"}, {"tag", "-a", "v0.7.0", "-m", "v0.7.0"}},
 			version: `^@v0\.7\.0$`,
 		},
 		{
 			name:    "commits after tag",
-			setup:   []string{"init", "add .", "commit -m init", "tag v0.7.0", "commit --allow-empty -m next"},
+			setup:   [][]string{{"init"}, {"add", "."}, {"commit", "-m", "init"}, {"tag", "v0.7.0"}, {"commit", "--allow-empty", "-m", "next"}},
 			version: `^@v0\.7\.0-1-g[0-9a-f]+$`,
 		},
 	}
@@ -51,7 +52,7 @@ func TestInferLocalTemplateVersion(t *testing.T) {
 				t.Fatal(err)
 			}
 			for _, args := range tt.setup {
-				git(t, dir, args)
+				git(t, dir, args...)
 			}
 
 			s, err := NewTemplateSource(dir, &Config{})
@@ -70,17 +71,13 @@ func TestInferLocalTemplateVersion(t *testing.T) {
 	}
 }
 
-func git(t *testing.T, dir string, args string) {
+func git(t *testing.T, dir string, args ...string) {
 	t.Helper()
-	cmd := exec.Command("git", append([]string{"-c", "user.name=test", "-c", "user.email=test@example.com", "-c", "tag.gpgSign=false", "-c", "commit.gpgSign=false"}, splitArgs(args)...)...)
+	cmd := exec.Command("git", append([]string{"-c", "user.name=test", "-c", "user.email=test@example.com", "-c", "tag.gpgSign=false", "-c", "commit.gpgSign=false"}, args...)...)
 	cmd.Dir = dir
 	// Isolate from the developer's global git config and any enclosing repo.
 	cmd.Env = append(os.Environ(), "GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_NOSYSTEM=1", "GIT_CEILING_DIRECTORIES="+filepath.Dir(dir))
 	if out, err := cmd.CombinedOutput(); err != nil {
-		t.Fatalf("git %s: %v\n%s", args, err, out)
+		t.Fatalf("git %s: %v\n%s", strings.Join(args, " "), err, out)
 	}
-}
-
-func splitArgs(s string) []string {
-	return regexp.MustCompile(`\s+`).Split(s, -1)
 }
