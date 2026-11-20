@@ -7,6 +7,12 @@ that speak HTTP + JSON.
 This file is for agents contributing to **this repo** (the schema parser and codegen
 CLI). For helping a user *write RIDL schemas*, see `SKILL.md` instead.
 
+## Naming & Terminology Conventions
+- **webrpc**: Always write `webrpc` as a single, all-lowercase word (never `WebRPC`, `Webrpc`, or `web RPC`), even at the start of a sentence.
+- **RIDL**: Always write `RIDL` (RPC Interface Design Language) in all uppercase when referring to the schema format, and `.ridl` in lowercase when referring to the file extension.
+- **CLI tools**: Always write `webrpc-gen` and `ridlfmt` in all lowercase.
+- **Code identifiers**: These rules cover prose. Identifiers and wire names (`WebRPCError`, `WebrpcMethods()`, the `Webrpc` HTTP header) follow their language's conventions and must not be renamed.
+
 ## Layout
 
 - `cmd/webrpc-gen/` — codegen CLI; `cmd/webrpc-test/` — interoperability test tool
