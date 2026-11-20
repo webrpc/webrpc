@@ -22,7 +22,7 @@ simplifying the development of backend services for modern Web applications.
 - [Development](#development)
   - [Building from source](#building-from-source)
   - [Writing your own code-generator](#writing-your-own-code-generator)
-  - [Format ridl](#format-ridl)
+  - [Format RIDL](#format-ridl)
 - [Authors](#authors)
 - [Credits](#credits)
 - [License](#license)
@@ -117,7 +117,7 @@ how the [golang-basics](./_examples/golang-basics) example was built.
 like a REST API or gRPC service.
 
   1. Code-generate your client libraries in full -- never write another API client again
-  2. Compatible with the Web. A Webrpc server is just a HTTP/HTTPS server that speaks JSON, and thus
+  2. Compatible with the Web. A webrpc server is just a HTTP/HTTPS server that speaks JSON, and thus
      all existing browsers, http clients, load balancers, proxies, caches, and tools work
      out of the box (versus gRPC). cURL "just works".
   3. Be more productive, write more correct systems.
@@ -189,6 +189,8 @@ The webrpc schema type system is inspired by Go and TypeScript, and is simple an
 to cover the wide variety of language targets, designed to target RPC communication with Web
 applications and other Web services.
 
+> **Terminology note:** `webrpc` is always written as a single all-lowercase word, and `RIDL` (RPC Interface Design Language, `.ridl`) is always written in all uppercase.
+
 High-level features:
 
   * RIDL, aka RPC IDL, aka "RPC interface design language", format - a documentation-like schema
@@ -219,8 +221,8 @@ For more information please see the [schema readme](./schema/README.md).
 
 See [webrpc-gen documentation](./gen).
 
-## Format ridl
-- Use [Ridlfmt](https://github.com/webrpc/ridlfmt)
+## Format RIDL
+- Use [ridlfmt](https://github.com/webrpc/ridlfmt)
 - Supports same arguments as `gofmt` 
 - See: [Example](https://github.com/webrpc/webrpc/blob/master/_examples/golang-basics/Makefile#L4)
 

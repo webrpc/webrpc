@@ -95,7 +95,7 @@ Pinned tool versions:
 - `tool github.com/webrpc/webrpc/cmd/webrpc-gen`
 - `tool github.com/webrpc/webrpc/cmd/webrpc-test`
 
-The generator itself currently supports WebRPC schema version `v1`.
+The generator itself currently supports webrpc schema version `v1`.
 
 Use the pinned tools from this repo with:
 
