@@ -133,56 +133,105 @@ func (w *countdownFailStreamWriter) Write(n uint32) error {
 }
 
 type streamWriter struct {
-	mu sync.Mutex // Guards concurrent writes to w.
-	w  http.ResponseWriter
-	f  http.Flusher
-	e  jsonEncoder
-
-	sendError func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
+	mu     sync.Mutex // Guards concurrent writes to w.
+	w      http.ResponseWriter
+	e      jsonEncoder
+	closed bool // No ping or write reaches w once set.
 }
 
 type jsonEncoder interface {
 	Encode(v any) error
 }
 
-const StreamKeepAliveInterval = 10 * time.Second
+// StreamKeepAliveInterval is the stream ping period. Zero or negative disables keepalive.
+// It must not be changed while streams are being served.
+var StreamKeepAliveInterval = 10 * time.Second
 
-func (w *streamWriter) keepAlive(ctx context.Context) {
-	for {
-		select {
-		case <-time.After(StreamKeepAliveInterval):
-			err := w.ping()
-			if err != nil {
-				return
-			}
-		case <-ctx.Done():
+// keepAlive pings the client every interval. A failed ping cancels ctx,
+// so a service method waiting on ctx learns that the client is gone.
+// The returned stop function ends the pings and closes w.
+func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc, interval time.Duration) (stop func()) {
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+
+		if interval <= 0 {
 			return
 		}
+
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				if err := w.ping(); err != nil {
+					cancel()
+					return
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	return func() {
+		cancel()
+		<-done
+		w.close()
 	}
 }
 
 func (w *streamWriter) ping() error {
 	w.mu.Lock()
-	_, err := w.w.Write([]byte("\n"))
-	w.f.Flush()
-	w.mu.Unlock()
+	defer w.mu.Unlock()
 
-	return err
+	if w.closed {
+		return ErrWebrpcStreamFinished
+	}
+
+	if _, err := w.w.Write([]byte("\n")); err != nil {
+		return err
+	}
+	return http.NewResponseController(w.w).Flush()
 }
 
 func (w *streamWriter) write(respPayload ...interface{}) error {
-	var err error
 	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	if w.closed {
+		return ErrWebrpcStreamFinished
+	}
+
 	for _, respPayload := range respPayload {
-		err = w.e.Encode(respPayload)
-		if err != nil {
-			break
+		if err := w.e.Encode(respPayload); err != nil {
+			return err
 		}
 	}
-	w.f.Flush()
-	w.mu.Unlock()
+	return http.NewResponseController(w.w).Flush()
+}
 
-	return err
+// close waits for a ping or write in progress and fails all later ones.
+func (w *streamWriter) close() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	w.closed = true
+}
+
+// canFlushStream reports whether http.ResponseController can flush w.
+func canFlushStream(w http.ResponseWriter) bool {
+	for {
+		switch t := w.(type) {
+		case interface{ FlushError() error }, http.Flusher:
+			return true
+		case interface{ Unwrap() http.ResponseWriter }:
+			w = t.Unwrap()
+		default:
+			return false
+		}
+	}
 }
 
 //
@@ -1758,8 +1807,7 @@ func (s *cSharpService) serveCountdownJSONStream(ctx context.Context, w http.Res
 		return
 	}
 
-	f, ok := w.(http.Flusher)
-	if !ok {
+	if !canFlushStream(w) {
 		s.sendErrorJSON(w, r, ErrWebrpcInternalError.WithCausef("server http.ResponseWriter doesn't support .Flush() method"))
 		return
 	}
@@ -1772,29 +1820,30 @@ func (s *cSharpService) serveCountdownJSONStream(ctx context.Context, w http.Res
 
 	e := json.NewEncoder(w)
 	e.SetIndent("", "")
-	streamWriter := &countdownStreamWriter{streamWriter{w: w, f: f, e: e, sendError: s.sendErrorJSON}}
+	streamWriter := &countdownStreamWriter{streamWriter{w: w, e: e}}
 	if err := streamWriter.ping(); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcStreamLost.WithCausef("failed to establish SSE stream: %w", err))
 		return
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	go streamWriter.keepAlive(ctx)
+	stop := streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval)
+	defer stop()
 
 	// Call service method implementation.
 	if err := s.CSharpServer.Countdown(ctx, reqPayload.Arg0, streamWriter); err != nil {
-		cancel()
 		var rpcErr WebRPCError
-		if !errors.As(err, &rpcErr) {
+		switch {
+		case errors.As(err, &rpcErr):
+		case errors.Is(ctx.Err(), context.Canceled):
+			rpcErr = ErrWebrpcClientAborted.WithCause(err)
+		default:
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
-		streamWriter.mu.Lock()
-		streamWriter.sendError(w, r, rpcErr)
-		streamWriter.f.Flush()
-		streamWriter.mu.Unlock()
-		return
+		// The error is the last frame of the stream.
+		streamWriter.close()
+		s.sendErrorJSON(w, r, rpcErr)
+		_ = http.NewResponseController(w).Flush()
 	}
 }
 
@@ -1814,8 +1863,7 @@ func (s *cSharpService) serveWatchJSONStream(ctx context.Context, w http.Respons
 		return
 	}
 
-	f, ok := w.(http.Flusher)
-	if !ok {
+	if !canFlushStream(w) {
 		s.sendErrorJSON(w, r, ErrWebrpcInternalError.WithCausef("server http.ResponseWriter doesn't support .Flush() method"))
 		return
 	}
@@ -1828,29 +1876,30 @@ func (s *cSharpService) serveWatchJSONStream(ctx context.Context, w http.Respons
 
 	e := json.NewEncoder(w)
 	e.SetIndent("", "")
-	streamWriter := &watchStreamWriter{streamWriter{w: w, f: f, e: e, sendError: s.sendErrorJSON}}
+	streamWriter := &watchStreamWriter{streamWriter{w: w, e: e}}
 	if err := streamWriter.ping(); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcStreamLost.WithCausef("failed to establish SSE stream: %w", err))
 		return
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	go streamWriter.keepAlive(ctx)
+	stop := streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval)
+	defer stop()
 
 	// Call service method implementation.
 	if err := s.CSharpServer.Watch(ctx, reqPayload, streamWriter); err != nil {
-		cancel()
 		var rpcErr WebRPCError
-		if !errors.As(err, &rpcErr) {
+		switch {
+		case errors.As(err, &rpcErr):
+		case errors.Is(ctx.Err(), context.Canceled):
+			rpcErr = ErrWebrpcClientAborted.WithCause(err)
+		default:
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
-		streamWriter.mu.Lock()
-		streamWriter.sendError(w, r, rpcErr)
-		streamWriter.f.Flush()
-		streamWriter.mu.Unlock()
-		return
+		// The error is the last frame of the stream.
+		streamWriter.close()
+		s.sendErrorJSON(w, r, rpcErr)
+		_ = http.NewResponseController(w).Flush()
 	}
 }
 
@@ -1873,8 +1922,7 @@ func (s *cSharpService) serveCountdownFailJSONStream(ctx context.Context, w http
 		return
 	}
 
-	f, ok := w.(http.Flusher)
-	if !ok {
+	if !canFlushStream(w) {
 		s.sendErrorJSON(w, r, ErrWebrpcInternalError.WithCausef("server http.ResponseWriter doesn't support .Flush() method"))
 		return
 	}
@@ -1887,29 +1935,30 @@ func (s *cSharpService) serveCountdownFailJSONStream(ctx context.Context, w http
 
 	e := json.NewEncoder(w)
 	e.SetIndent("", "")
-	streamWriter := &countdownFailStreamWriter{streamWriter{w: w, f: f, e: e, sendError: s.sendErrorJSON}}
+	streamWriter := &countdownFailStreamWriter{streamWriter{w: w, e: e}}
 	if err := streamWriter.ping(); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcStreamLost.WithCausef("failed to establish SSE stream: %w", err))
 		return
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	go streamWriter.keepAlive(ctx)
+	stop := streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval)
+	defer stop()
 
 	// Call service method implementation.
 	if err := s.CSharpServer.CountdownFail(ctx, reqPayload.Arg0, streamWriter); err != nil {
-		cancel()
 		var rpcErr WebRPCError
-		if !errors.As(err, &rpcErr) {
+		switch {
+		case errors.As(err, &rpcErr):
+		case errors.Is(ctx.Err(), context.Canceled):
+			rpcErr = ErrWebrpcClientAborted.WithCause(err)
+		default:
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
-		streamWriter.mu.Lock()
-		streamWriter.sendError(w, r, rpcErr)
-		streamWriter.f.Flush()
-		streamWriter.mu.Unlock()
-		return
+		// The error is the last frame of the stream.
+		streamWriter.close()
+		s.sendErrorJSON(w, r, rpcErr)
+		_ = http.NewResponseController(w).Flush()
 	}
 }
 

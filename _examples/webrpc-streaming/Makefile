@@ -22,7 +22,7 @@ run-webapp:
 	cd webapp && pnpm run dev
 
 test:
-	go test -v ./
+	go test -race -v ./
 
 curl:
 	curl -v -X POST -H "Content-Type: application/json" -H "Accept: application/x-ndjson" --data '{"username": "'$(shell whoami)'", "serverTimeoutSec": 2}' http://localhost:4848/v1/Chat/SubscribeMessages

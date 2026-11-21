@@ -49,11 +49,15 @@ diff:
 	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
 
 # Run all tests
-test: test-go test-interoperability test-interop
+test: test-go test-examples test-interoperability test-interop
 
 # Run Go tests
 test-go: generate
 	go test -v ./...
+
+# Run example tests (separate Go modules, skipped by ./...)
+test-examples:
+	make -C _examples/webrpc-streaming test
 
 # Run interoperability test suite
 test-interoperability: build-test

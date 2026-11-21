@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"sync"
@@ -34,6 +36,9 @@ func NewChatServer() *ChatServer {
 
 func (s *ChatServer) close(ctx context.Context) {
 	s.SendMessage(ctx, "SYSTEM", "Server shutting down...")
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.messages.Close()
 }
 
@@ -67,28 +72,28 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, las
 	sub := s.messages.Subscribe(ctx, &ringbuf.SubscribeOpts{
 		Name:        username,
 		StartBehind: s.messages.Size() / 2,
-		MaxBehind:   3 * s.messages.Size() / 4,
+		MaxLag:      3 * s.messages.Size() / 4,
 	})
 
-	if lastMessageId != nil {
-		// Reconnection logic.
-		sub.Skip(func(msg *proto.Message) bool {
-			return msg.Id <= *lastMessageId
-		})
-	}
+	// The subscriber observes ctx cancellation only when woken up by a write.
+	stop := context.AfterFunc(ctx, func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		s.messages.Write()
+	})
+	defer stop()
 
-	for msg := range sub.Seq {
+	for msg := range sub.Iter() {
+		if lastMessageId != nil && msg.Id <= *lastMessageId {
+			continue // Delivered before the reconnect.
+		}
 		if err := stream.Write(msg); err != nil {
 			return err
 		}
 	}
 
-	switch sub.Err() {
-	case ringbuf.ErrRingBufferClosed:
-		return proto.ErrWebrpcStreamFinished.WithCausef("stream finished: %w", sub.Err())
-	default:
-		return proto.ErrWebrpcInternalError.WithCausef("failed to stream messages: %w", sub.Err())
+	if err := sub.Err(); !errors.Is(err, io.EOF) {
+		return fmt.Errorf("failed to stream messages: %w", err)
 	}
-
-	return nil // TODO: Shouldn't `nil` actually return `ErrWebrpcStreamFinished` automatically? I think so..
+	return proto.ErrWebrpcStreamFinished
 }
