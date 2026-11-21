@@ -4,7 +4,7 @@ webrpc-gen Dart templates
 ===============================
 
 This repo contains the templates used by the `webrpc-gen` cli to code-generate
-webrpc Dart server and client code.
+webrpc Dart client code.
 
 This generator, from a webrpc schema/design file will code-generate:
 
@@ -49,7 +49,7 @@ Change any of the following values by passing `-option="Value"` CLI flag to `web
 | webrpc-gen -option   | Description                | Default value              |
 |----------------------|----------------------------|----------------------------|
 | `-client`            | generate client code       | unset (`false`)            |
-| `-server`            | generate server code       | unset (`false`)            |
+| `-server`            | not supported yet, prints a warning | unset (`false`)  |
 
 ### Avoid using Records
 Because Dart [Records do not retain runtime information about their structure](https://github.com/dart-lang/language/issues/2826), it's impossible
