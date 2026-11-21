@@ -77,10 +77,10 @@ func (w *subscribeStreamWriter) Write(message string) error {
 }
 
 type streamWriter struct {
-	mu sync.Mutex // Guards concurrent writes to w.
-	w  http.ResponseWriter
-	f  http.Flusher
-	e  jsonEncoder
+	mu     sync.Mutex // Guards concurrent writes to w.
+	w      http.ResponseWriter
+	e      jsonEncoder
+	closed bool // Set once the handler returns; leaked writers must not touch w.
 
 	sendError func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
 }
@@ -101,14 +101,26 @@ func (e jsonStreamEncoder) Encode(v any) error {
 	return err
 }
 
-const StreamKeepAliveInterval = 10 * time.Second
+// StreamKeepAliveInterval is the stream ping period. Zero or negative disables keepalive.
+// Set it before serving: each stream reads it once, without locking.
+var StreamKeepAliveInterval = 10 * time.Second
 
-func (w *streamWriter) keepAlive(ctx context.Context) {
+func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc, interval time.Duration, done chan<- struct{}) {
+	defer close(done)
+
+	if interval <= 0 {
+		return
+	}
+
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
 	for {
 		select {
-		case <-time.After(StreamKeepAliveInterval):
-			err := w.ping()
-			if err != nil {
+		case <-ticker.C:
+			if err := w.ping(); err != nil {
+				// The client is gone; stop the service handler waiting on ctx.
+				cancel()
 				return
 			}
 		case <-ctx.Done():
@@ -119,26 +131,41 @@ func (w *streamWriter) keepAlive(ctx context.Context) {
 
 func (w *streamWriter) ping() error {
 	w.mu.Lock()
-	_, err := w.w.Write([]byte("\n"))
-	w.f.Flush()
-	w.mu.Unlock()
+	defer w.mu.Unlock()
 
-	return err
+	if _, err := w.w.Write([]byte("\n")); err != nil {
+		return err
+	}
+	return http.NewResponseController(w.w).Flush()
 }
 
 func (w *streamWriter) write(respPayload ...interface{}) error {
-	var err error
 	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	if w.closed {
+		return ErrWebrpcStreamFinished
+	}
+
 	for _, respPayload := range respPayload {
-		err = w.e.Encode(respPayload)
-		if err != nil {
-			break
+		if err := w.e.Encode(respPayload); err != nil {
+			return err
 		}
 	}
-	w.f.Flush()
-	w.mu.Unlock()
+	return http.NewResponseController(w.w).Flush()
+}
 
-	return err
+func canFlushStream(w http.ResponseWriter) bool {
+	for {
+		switch t := w.(type) {
+		case interface{ FlushError() error }, http.Flusher:
+			return true
+		case interface{ Unwrap() http.ResponseWriter }:
+			w = t.Unwrap()
+		default:
+			return false
+		}
+	}
 }
 
 //
@@ -378,8 +405,7 @@ func (s *streamServiceService) serveSubscribeJSONStream(ctx context.Context, w h
 		return
 	}
 
-	f, ok := w.(http.Flusher)
-	if !ok {
+	if !canFlushStream(w) {
 		s.sendErrorJSON(w, r, ErrWebrpcInternalError.WithCausef("server http.ResponseWriter doesn't support .Flush() method"))
 		return
 	}
@@ -391,27 +417,39 @@ func (s *streamServiceService) serveSubscribeJSONStream(ctx context.Context, w h
 	w.WriteHeader(http.StatusOK)
 
 	e := jsonStreamEncoder{w}
-	streamWriter := &subscribeStreamWriter{streamWriter{w: w, f: f, e: e, sendError: s.sendErrorJSON}}
+	streamWriter := &subscribeStreamWriter{streamWriter{w: w, e: e, sendError: s.sendErrorJSON}}
 	if err := streamWriter.ping(); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcStreamLost.WithCausef("failed to establish SSE stream: %w", err))
 		return
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 
-	go streamWriter.keepAlive(ctx)
+	// Read the interval here, not in the goroutine.
+	keepAliveDone := make(chan struct{})
+	go streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval, keepAliveDone)
+	defer func() {
+		cancel()
+		<-keepAliveDone
+		streamWriter.mu.Lock()
+		streamWriter.closed = true
+		streamWriter.mu.Unlock()
+	}()
 
 	// Call service method implementation.
 	if err := s.StreamServiceServer.Subscribe(ctx, reqPayload.Arg0, streamWriter); err != nil {
 		cancel()
 		var rpcErr WebRPCError
-		if !errors.As(err, &rpcErr) {
+		switch {
+		case errors.As(err, &rpcErr):
+		case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+			rpcErr = ErrWebrpcClientAborted.WithCause(err)
+		default:
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		streamWriter.mu.Lock()
 		streamWriter.sendError(w, r, rpcErr)
-		streamWriter.f.Flush()
+		_ = http.NewResponseController(w).Flush()
 		streamWriter.mu.Unlock()
 		return
 	}

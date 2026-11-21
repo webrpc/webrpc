@@ -1,8 +1,11 @@
 package main
 
 import (
+	"cmp"
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"sync"
@@ -67,28 +70,42 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, las
 	sub := s.messages.Subscribe(ctx, &ringbuf.SubscribeOpts{
 		Name:        username,
 		StartBehind: s.messages.Size() / 2,
-		MaxBehind:   3 * s.messages.Size() / 4,
+		MaxLag:      3 * s.messages.Size() / 4,
 	})
 
 	if lastMessageId != nil {
 		// Reconnection logic.
-		sub.Skip(func(msg *proto.Message) bool {
-			return msg.Id <= *lastMessageId
+		sub.SeekAfter(func(msg *proto.Message) int {
+			return cmp.Compare(msg.Id, *lastMessageId)
 		})
 	}
 
-	for msg := range sub.Seq {
-		if err := stream.Write(msg); err != nil {
-			return err
+	// ringbuf blocks in cond.Wait() and wakes on the next Write, not on ctx cancel.
+	// Read aside, so a dead client returns (and publishes "left") right away.
+	errCh := make(chan error, 1)
+	go func() {
+		for msg := range sub.Iter() {
+			if err := stream.Write(msg); err != nil {
+				errCh <- err
+				return
+			}
+		}
+		errCh <- sub.Err()
+	}()
+
+	select {
+	case <-ctx.Done():
+		return proto.ErrWebrpcClientAborted.WithCause(ctx.Err())
+	case err := <-errCh:
+		switch {
+		case err == nil:
+			return nil
+		case errors.Is(err, io.EOF):
+			return proto.ErrWebrpcStreamFinished.WithCausef("stream finished: %w", err)
+		case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+			return proto.ErrWebrpcClientAborted.WithCause(err)
+		default:
+			return proto.ErrWebrpcInternalError.WithCausef("failed to stream messages: %w", err)
 		}
 	}
-
-	switch sub.Err() {
-	case ringbuf.ErrRingBufferClosed:
-		return proto.ErrWebrpcStreamFinished.WithCausef("stream finished: %w", sub.Err())
-	default:
-		return proto.ErrWebrpcInternalError.WithCausef("failed to stream messages: %w", sub.Err())
-	}
-
-	return nil // TODO: Shouldn't `nil` actually return `ErrWebrpcStreamFinished` automatically? I think so..
 }

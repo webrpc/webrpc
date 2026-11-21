@@ -11,7 +11,7 @@ require (
 	github.com/go-chi/cors v1.2.1
 	github.com/go-chi/httplog/v3 v3.2.2
 	github.com/golang-cz/devslog v0.0.15
-	github.com/golang-cz/ringbuf v0.0.5
+	github.com/golang-cz/ringbuf v0.6.0
 	github.com/stretchr/testify v1.8.1
 )
 
