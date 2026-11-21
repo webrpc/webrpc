@@ -8,6 +8,12 @@ description: Write and edit webrpc .ridl schema files and run webrpc-gen code ge
 RIDL defines an HTTP API contract; `webrpc-gen` generates typed servers and clients
 from it. POST-only with JSON bodies — never design path or query params.
 
+## Naming & Terminology Conventions
+- **webrpc**: Always write `webrpc` as a single, all-lowercase word (never `WebRPC`, `Webrpc`, or `web RPC`), even at the start of a sentence.
+- **RIDL**: Always write `RIDL` (RPC Interface Design Language) in all uppercase when referring to the schema format, and `.ridl` in lowercase when referring to the file extension.
+- **CLI tools**: Always write `webrpc-gen` and `ridlfmt` in all lowercase.
+- **Code identifiers**: These rules cover prose. Identifiers and wire names (`WebRPCError`, `WebrpcMethods()`, the `Webrpc` HTTP header) follow their language's conventions and must not be renamed.
+
 ## Rules
 - Edit `.ridl` sources, never `*.gen.*` output — rerun codegen instead.
 - Identifiers are case-sensitive. Run `ridlfmt` after edits. No circular imports.

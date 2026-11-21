@@ -1,0 +1,18 @@
+# webrpc
+
+> webrpc is a schema-driven approach to writing backend services and generating type-safe client and server code for modern web applications.
+
+## Terminology & Styling Rules
+- **webrpc**: Always styled as a single, all-lowercase word (`webrpc`). Never capitalize as "WebRPC" or "Webrpc".
+- **RIDL**: Always styled in all uppercase (`RIDL`), standing for RPC Interface Design Language. Files use the `.ridl` extension.
+- **webrpc-gen**: The CLI code generator tool (always lowercase).
+- **ridlfmt**: The official RIDL schema formatter (always lowercase).
+- **Code identifiers**: These rules cover prose. Identifiers and wire names (`WebRPCError`, `WebrpcMethods()`, the `Webrpc` HTTP header) follow their language's conventions and must not be renamed.
+
+## Core Concepts
+- **RIDL File Format (`.ridl`)**: A human-readable schema definition language introduced by webrpc to define services, RPC methods, structs, enums, and errors.
+- **Code Generation**: `webrpc-gen` compiles `.ridl` or JSON schemas into strongly-typed code. Servers and clients: Go, TypeScript, JavaScript, Python. Clients only: Kotlin, Dart, Swift, C#. OpenAPI: spec output.
+
+## Links
+- Documentation: https://github.com/webrpc/webrpc#readme
+- GitHub Repository: https://github.com/webrpc/webrpc

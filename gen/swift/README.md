@@ -30,7 +30,7 @@ webrpc-gen -schema=example.ridl -target=./local-templates-on-disk -client -out=.
 Generated output includes:
 
 - schema constants
-- WebRPC header/version metadata helpers
+- webrpc header/version metadata helpers
 - DTOs and enums
 - transport/error helpers
 - service metadata helpers
