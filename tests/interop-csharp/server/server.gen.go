@@ -147,13 +147,14 @@ type jsonEncoder interface {
 // StreamKeepAliveInterval is the stream ping period. Zero or negative disables keepalive.
 var StreamKeepAliveInterval = 10 * time.Second
 
-func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc) {
-	if StreamKeepAliveInterval <= 0 {
-		<-ctx.Done()
+func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc, interval time.Duration, done chan<- struct{}) {
+	defer close(done)
+
+	if interval <= 0 {
 		return
 	}
 
-	ticker := time.NewTicker(StreamKeepAliveInterval)
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
@@ -1780,9 +1781,14 @@ func (s *cSharpService) serveCountdownJSONStream(ctx context.Context, w http.Res
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 
-	go streamWriter.keepAlive(ctx, cancel)
+	// Read the interval here, not in the goroutine, and never ping after the handler returns.
+	keepAliveDone := make(chan struct{})
+	go streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval, keepAliveDone)
+	defer func() {
+		cancel()
+		<-keepAliveDone
+	}()
 
 	// Call service method implementation.
 	if err := s.CSharpServer.Countdown(ctx, reqPayload.Arg0, streamWriter); err != nil {
@@ -1830,9 +1836,14 @@ func (s *cSharpService) serveWatchJSONStream(ctx context.Context, w http.Respons
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 
-	go streamWriter.keepAlive(ctx, cancel)
+	// Read the interval here, not in the goroutine, and never ping after the handler returns.
+	keepAliveDone := make(chan struct{})
+	go streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval, keepAliveDone)
+	defer func() {
+		cancel()
+		<-keepAliveDone
+	}()
 
 	// Call service method implementation.
 	if err := s.CSharpServer.Watch(ctx, reqPayload, streamWriter); err != nil {
@@ -1883,9 +1894,14 @@ func (s *cSharpService) serveCountdownFailJSONStream(ctx context.Context, w http
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 
-	go streamWriter.keepAlive(ctx, cancel)
+	// Read the interval here, not in the goroutine, and never ping after the handler returns.
+	keepAliveDone := make(chan struct{})
+	go streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval, keepAliveDone)
+	defer func() {
+		cancel()
+		<-keepAliveDone
+	}()
 
 	// Call service method implementation.
 	if err := s.CSharpServer.CountdownFail(ctx, reqPayload.Arg0, streamWriter); err != nil {

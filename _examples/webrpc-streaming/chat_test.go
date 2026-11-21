@@ -44,18 +44,26 @@ func TestStream10k(t *testing.T) {
 	require.Nil(t, err)
 
 	msgCount := 10000
+	sendErr := make(chan error, 1)
 	go func() {
 		for i := 0; i < msgCount; i++ {
 			if err := client.SendMessage(ctx, t.Name(), fmt.Sprintf("Hello %v", i)); err != nil {
-				t.Fatal(err)
+				sendErr <- err
+				return
 			}
 		}
+		sendErr <- nil
 	}()
 
-	for i := 0; i < msgCount; i++ {
-		_, err := stream.Read()
+	// Skip system messages like "joined".
+	for received := 0; received < msgCount; {
+		msg, err := stream.Read()
 		require.Nil(t, err)
+		if msg.Username == t.Name() {
+			received++
+		}
 	}
+	require.NoError(t, <-sendErr)
 
 	cancel() // stop subscription
 

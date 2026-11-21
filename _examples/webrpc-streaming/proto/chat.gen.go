@@ -92,13 +92,14 @@ type jsonEncoder interface {
 // StreamKeepAliveInterval is the stream ping period. Zero or negative disables keepalive.
 var StreamKeepAliveInterval = 10 * time.Second
 
-func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc) {
-	if StreamKeepAliveInterval <= 0 {
-		<-ctx.Done()
+func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc, interval time.Duration, done chan<- struct{}) {
+	defer close(done)
+
+	if interval <= 0 {
 		return
 	}
 
-	ticker := time.NewTicker(StreamKeepAliveInterval)
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
@@ -447,9 +448,14 @@ func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w ht
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 
-	go streamWriter.keepAlive(ctx, cancel)
+	// Read the interval here, not in the goroutine, and never ping after the handler returns.
+	keepAliveDone := make(chan struct{})
+	go streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval, keepAliveDone)
+	defer func() {
+		cancel()
+		<-keepAliveDone
+	}()
 
 	// Call service method implementation.
 	if err := s.ChatServer.SubscribeMessages(ctx, reqPayload.Arg0, reqPayload.Arg1, streamWriter); err != nil {

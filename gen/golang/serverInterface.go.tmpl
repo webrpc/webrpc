@@ -118,13 +118,14 @@ func (e jsonStreamEncoder) Encode(v any) error {
 // StreamKeepAliveInterval is the stream ping period. Zero or negative disables keepalive.
 var StreamKeepAliveInterval = 10 * time.Second
 
-func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc) {
-	if StreamKeepAliveInterval <= 0 {
-		<-ctx.Done()
+func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc, interval time.Duration, done chan<- struct{}) {
+	defer close(done)
+
+	if interval <= 0 {
 		return
 	}
 
-	ticker := time.NewTicker(StreamKeepAliveInterval)
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {

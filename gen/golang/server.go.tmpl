@@ -665,9 +665,14 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSONStream(ct
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 
-	go streamWriter.keepAlive(ctx, cancel)
+	// Read the interval here, not in the goroutine, and never ping after the handler returns.
+	keepAliveDone := make(chan struct{})
+	go streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval, keepAliveDone)
+	defer func() {
+		cancel()
+		<-keepAliveDone
+	}()
 
 	// Call service method implementation.
 	if err {{if or (eq (len $method.Inputs) 0) (gt (len $method.Outputs) 0)}}:{{end}}= s.{{$name}}Server.{{$method.Name}}(ctx{{range $i, $_ := $method.Inputs}}, {{ if $method.Succinct }}reqPayload{{ else }}reqPayload.Arg{{$i}}{{ end }}{{end}}, streamWriter); err != nil {
