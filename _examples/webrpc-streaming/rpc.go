@@ -1,7 +1,6 @@
 package main
 
 import (
-	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -37,6 +36,9 @@ func NewChatServer() *ChatServer {
 
 func (s *ChatServer) close(ctx context.Context) {
 	s.SendMessage(ctx, "SYSTEM", "Server shutting down...")
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	s.messages.Close()
 }
 
@@ -73,32 +75,25 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, las
 		MaxLag:      3 * s.messages.Size() / 4,
 	})
 
-	if lastMessageId != nil {
-		// Reconnection logic.
-		sub.SeekAfter(func(msg *proto.Message) int {
-			return cmp.Compare(msg.Id, *lastMessageId)
-		})
+	// The subscriber observes ctx cancellation only when woken up by a write.
+	stop := context.AfterFunc(ctx, func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		s.messages.Write()
+	})
+	defer stop()
+
+	for msg := range sub.Iter() {
+		if lastMessageId != nil && msg.Id <= *lastMessageId {
+			continue // Delivered before the reconnect.
+		}
+		if err := stream.Write(msg); err != nil {
+			return err
+		}
 	}
 
-	// sub.Iter() wakes on the next Write, not on ctx cancel; it must not block the return.
-	errCh := make(chan error, 1)
-	go func() {
-		for msg := range sub.Iter() {
-			if err := stream.Write(msg); err != nil {
-				errCh <- err
-				return
-			}
-		}
-		errCh <- sub.Err()
-	}()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case err := <-errCh:
-		if errors.Is(err, io.EOF) {
-			return proto.ErrWebrpcStreamFinished.WithCausef("stream finished: %w", err)
-		}
-		return err
+	if err := sub.Err(); !errors.Is(err, io.EOF) {
+		return fmt.Errorf("failed to stream messages: %w", err)
 	}
+	return proto.ErrWebrpcStreamFinished
 }

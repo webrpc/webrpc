@@ -93,9 +93,7 @@ type streamWriter struct {
 	mu     sync.Mutex // Guards concurrent writes to w.
 	w      http.ResponseWriter
 	e      jsonEncoder
-	closed bool // Set when the handler is done with w; later pings and writes fail.
-
-	sendError func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
+	closed bool // No ping or write reaches w once set.
 }
 
 type jsonEncoder interface {
@@ -120,27 +118,38 @@ func (e jsonStreamEncoder) Encode(v any) error {
 // It must not be changed while streams are being served.
 var StreamKeepAliveInterval = 10 * time.Second
 
-func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc, interval time.Duration, done chan<- struct{}) {
-	defer close(done)
+// keepAlive pings the client every interval. A failed ping cancels ctx,
+// so a service method waiting on ctx learns that the client is gone.
+// The returned stop function ends the pings and closes w.
+func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc, interval time.Duration) (stop func()) {
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
 
-	if interval <= 0 {
-		return
-	}
-
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			if err := w.ping(); err != nil {
-				// The client is gone; stop the service handler waiting on ctx.
-				cancel()
-				return
-			}
-		case <-ctx.Done():
+		if interval <= 0 {
 			return
 		}
+
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				if err := w.ping(); err != nil {
+					cancel()
+					return
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	return func() {
+		cancel()
+		<-done
+		w.close()
 	}
 }
 
@@ -172,6 +181,14 @@ func (w *streamWriter) write(respPayload ...interface{}) error {
 		}
 	}
 	return http.NewResponseController(w.w).Flush()
+}
+
+// close waits for a ping or write in progress and fails all later ones.
+func (w *streamWriter) close() {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	w.closed = true
 }
 
 // canFlushStream reports whether http.ResponseController can flush w.

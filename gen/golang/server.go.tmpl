@@ -663,40 +663,30 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSONStream(ct
 	e := {{$json}}.NewEncoder(w)
 	e.SetIndent("", "")
 {{- end }}
-	streamWriter := &{{firstLetterToLower $method.Name}}StreamWriter{streamWriter{w: w, e: e, sendError: s.sendErrorJSON}}
+	streamWriter := &{{firstLetterToLower $method.Name}}StreamWriter{streamWriter{w: w, e: e}}
 	if err := streamWriter.ping(); err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcStreamLost.WithCausef("failed to establish SSE stream: %w", err))
 		return
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-
-	keepAliveDone := make(chan struct{})
-	go streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval, keepAliveDone)
-	defer func() {
-		cancel()
-		<-keepAliveDone
-		streamWriter.mu.Lock()
-		streamWriter.closed = true
-		streamWriter.mu.Unlock()
-	}()
+	stop := streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval)
+	defer stop()
 
 	// Call service method implementation.
 	if err {{if or (eq (len $method.Inputs) 0) (gt (len $method.Outputs) 0)}}:{{end}}= s.{{$name}}Server.{{$method.Name}}(ctx{{range $i, $_ := $method.Inputs}}, {{ if $method.Succinct }}reqPayload{{ else }}reqPayload.Arg{{$i}}{{ end }}{{end}}, streamWriter); err != nil {
 		var rpcErr WebRPCError
 		switch {
 		case errors.As(err, &rpcErr):
-		case ctx.Err() == context.Canceled:
+		case errors.Is(ctx.Err(), context.Canceled):
 			rpcErr = ErrWebrpcClientAborted.WithCause(err)
 		default:
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
-		streamWriter.mu.Lock()
-		streamWriter.closed = true
-		streamWriter.sendError(w, r, rpcErr)
+		// The error is the last frame of the stream.
+		streamWriter.close()
+		s.sendErrorJSON(w, r, rpcErr)
 		_ = http.NewResponseController(w).Flush()
-		streamWriter.mu.Unlock()
-		return
 	}
 }
 {{- end}}

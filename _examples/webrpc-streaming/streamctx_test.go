@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -16,65 +14,58 @@ import (
 	"github.com/webrpc/webrpc/_example/golang-sse/proto"
 )
 
-// blockingChatServer blocks SubscribeMessages until ctx is cancelled, then
-// reports how it was cancelled.
-type blockingChatServer struct {
-	started  chan struct{}
-	returned chan struct{}
-	ctxErr   error
-}
+// subscribeFunc implements proto.ChatServer with a stub SubscribeMessages.
+type subscribeFunc func(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error
 
-func (s *blockingChatServer) SendMessage(ctx context.Context, username string, text string) error {
+func (f subscribeFunc) SendMessage(ctx context.Context, username string, text string) error {
 	return nil
 }
 
-func (s *blockingChatServer) SubscribeMessages(ctx context.Context, username string, lastMessageId *uint64, stream proto.SubscribeMessagesStreamWriter) error {
-	close(s.started)
+func (f subscribeFunc) SubscribeMessages(ctx context.Context, username string, lastMessageId *uint64, stream proto.SubscribeMessagesStreamWriter) error {
+	return f(ctx, stream)
+}
+
+func waitForCancel(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error {
 	<-ctx.Done()
-	s.ctxErr = ctx.Err()
-	close(s.returned)
 	return ctx.Err()
 }
 
-// TestCleanCloseCancelsHandlerContext proves case 1: a client FIN makes
-// net/http cancel r.Context(), unblocking the service handler.
-func TestCleanCloseCancelsHandlerContext(t *testing.T) {
-	svc := &blockingChatServer{started: make(chan struct{}), returned: make(chan struct{})}
-	srv := httptest.NewServer(proto.NewChatServer(svc))
-	defer srv.Close()
+// serve runs a SubscribeMessages request against svc and returns the error
+// the server reported, if any.
+func serve(t *testing.T, ctx context.Context, w http.ResponseWriter, svc subscribeFunc) proto.WebRPCError {
+	t.Helper()
 
-	conn, err := net.Dial("tcp", srv.Listener.Addr().String())
-	require.NoError(t, err)
+	var rpcErr proto.WebRPCError
+	srv := proto.NewChatServer(svc, &proto.Options{
+		OnError: func(r *http.Request, err *proto.WebRPCError) { rpcErr = *err },
+	})
 
-	body := `{"username":"test"}`
-	req := fmt.Sprintf("POST /v1/Chat/SubscribeMessages HTTP/1.1\r\nHost: %s\r\nContent-Type: application/json\r\nContent-Length: %d\r\n\r\n%s",
-		srv.Listener.Addr().String(), len(body), body)
-	_, err = conn.Write([]byte(req))
-	require.NoError(t, err)
+	req := httptest.NewRequest(http.MethodPost, "/v1/Chat/SubscribeMessages", strings.NewReader(`{"username":"test"}`))
+	req.Header.Set("Content-Type", "application/json")
 
-	buf := make([]byte, 64)
-	require.NoError(t, conn.SetReadDeadline(time.Now().Add(2*time.Second)))
-	n, err := conn.Read(buf)
-	require.NoError(t, err)
-	require.Greater(t, n, 0)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		srv.ServeHTTP(w, req.WithContext(ctx))
+	}()
 
 	select {
-	case <-svc.started:
-	case <-time.After(2 * time.Second):
-		t.Fatal("service handler never started")
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("handler did not return")
 	}
-
-	// Close without a request body terminator: the FIN cancels the stream.
-	require.NoError(t, conn.Close())
-
-	select {
-	case <-svc.returned:
-	case <-time.After(2 * time.Second):
-		t.Fatal("handler context was not cancelled on clean close")
-	}
+	return rpcErr
 }
 
-// failWriter fails every Write after the stream's initial ping, as a dead peer would.
+// setKeepAliveInterval changes the package global, so its callers can't run in parallel.
+func setKeepAliveInterval(t *testing.T, d time.Duration) {
+	old := proto.StreamKeepAliveInterval
+	proto.StreamKeepAliveInterval = d
+	t.Cleanup(func() { proto.StreamKeepAliveInterval = old })
+}
+
+// failWriter fails every Write after the stream's initial ping, like a dead
+// peer behind middleware that doesn't cancel the request context.
 type failWriter struct {
 	*httptest.ResponseRecorder
 	writes atomic.Int32
@@ -100,133 +91,73 @@ func (f *flushFailWriter) FlushError() error {
 	return nil
 }
 
-// leakyChatServer returns err at once, leaking its stream writer.
-type leakyChatServer struct {
-	blockingChatServer
-	stream proto.SubscribeMessagesStreamWriter
-	err    error
+func TestKeepAliveWriteErrorCancelsStream(t *testing.T) {
+	setKeepAliveInterval(t, 10*time.Millisecond)
+
+	w := &failWriter{ResponseRecorder: httptest.NewRecorder()}
+	err := serve(t, context.Background(), w, waitForCancel)
+
+	require.ErrorIs(t, err, proto.ErrWebrpcClientAborted)
 }
 
-func (s *leakyChatServer) SubscribeMessages(ctx context.Context, username string, lastMessageId *uint64, stream proto.SubscribeMessagesStreamWriter) error {
-	s.stream = stream
-	return s.err
+func TestKeepAliveFlushErrorCancelsStream(t *testing.T) {
+	setKeepAliveInterval(t, 10*time.Millisecond)
+
+	w := &flushFailWriter{ResponseRecorder: httptest.NewRecorder()}
+	err := serve(t, context.Background(), w, waitForCancel)
+
+	require.ErrorIs(t, err, proto.ErrWebrpcClientAborted)
 }
 
-func newSubscribeRequest() *http.Request {
-	req := httptest.NewRequest(http.MethodPost, "/v1/Chat/SubscribeMessages", strings.NewReader(`{"username":"test"}`))
-	req.Header.Set("Content-Type", "application/json")
-	return req
-}
+func TestKeepAliveDisabled(t *testing.T) {
+	setKeepAliveInterval(t, 0)
 
-// serveAndWait runs the handler until keepalive fails and ServeHTTP returns.
-func serveAndWait(t *testing.T, svc *blockingChatServer, w http.ResponseWriter) {
-	t.Helper()
-
-	var rpcErr proto.WebRPCError
-	srv := proto.NewChatServer(svc, &proto.Options{
-		OnError: func(r *http.Request, err *proto.WebRPCError) { rpcErr = *err },
+	ctx, disconnect := context.WithCancel(context.Background())
+	err := serve(t, ctx, httptest.NewRecorder(), func(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error {
+		disconnect()
+		return waitForCancel(ctx, stream)
 	})
 
-	served := make(chan struct{})
-	go func() {
-		defer close(served)
-		srv.ServeHTTP(w, newSubscribeRequest())
-	}()
-
-	select {
-	case <-served:
-	case <-time.After(2 * time.Second):
-		t.Fatal("handler did not return after keepalive failure")
-	}
-
-	require.ErrorIs(t, svc.ctxErr, context.Canceled)
-	require.ErrorIs(t, rpcErr, proto.ErrWebrpcClientAborted)
+	require.ErrorIs(t, err, proto.ErrWebrpcClientAborted)
 }
 
-func withKeepAliveInterval(t *testing.T, d time.Duration) {
-	// Not t.Parallel: the interval is a package global shared with the
-	// streaming tests, which rely on the default.
-	old := proto.StreamKeepAliveInterval
-	proto.StreamKeepAliveInterval = d
-	t.Cleanup(func() { proto.StreamKeepAliveInterval = old })
+// A context error of the service's own, e.g. a database timeout, is not a client abort.
+func TestServiceContextErrorIsEndpointError(t *testing.T) {
+	err := serve(t, context.Background(), httptest.NewRecorder(), func(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error {
+		return context.DeadlineExceeded
+	})
+
+	require.ErrorIs(t, err, proto.ErrWebrpcEndpoint)
 }
 
-// TestKeepAliveCancelsHandlerOnWriteError proves case 2: a wrapped
-// ResponseWriter that reports a write error without signalling the HTTP
-// server still unblocks the handler, because keepAlive cancels the ctx.
-func TestKeepAliveCancelsHandlerOnWriteError(t *testing.T) {
-	withKeepAliveInterval(t, 50*time.Millisecond)
-
-	svc := &blockingChatServer{started: make(chan struct{}), returned: make(chan struct{})}
-
-	serveAndWait(t, svc, &failWriter{ResponseRecorder: httptest.NewRecorder()})
-}
-
-// TestKeepAliveCancelsHandlerOnFlushError proves a failed flush on a dead peer
-// unblocks the handler.
-func TestKeepAliveCancelsHandlerOnFlushError(t *testing.T) {
-	withKeepAliveInterval(t, 50*time.Millisecond)
-
-	svc := &blockingChatServer{started: make(chan struct{}), returned: make(chan struct{})}
-
-	serveAndWait(t, svc, &flushFailWriter{ResponseRecorder: httptest.NewRecorder()})
-}
-
-// TestNonFlushableWriterFailsBeforeHeaders proves misconfiguration yields a
-// clear 500, not a 200 followed by an error frame.
-func TestNonFlushableWriterFailsBeforeHeaders(t *testing.T) {
-	svc := &blockingChatServer{started: make(chan struct{}), returned: make(chan struct{})}
+// A stream writer that outlives the service method must not write to the response.
+func TestNoWriteAfterErrorFrame(t *testing.T) {
+	var leaked proto.SubscribeMessagesStreamWriter
 	rec := httptest.NewRecorder()
 
+	serve(t, context.Background(), rec, func(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error {
+		leaked = stream
+		return errors.New("failed")
+	})
+	body := rec.Body.String()
+
+	require.ErrorIs(t, leaked.Write(&proto.Message{}), proto.ErrWebrpcStreamFinished)
+	require.Equal(t, body, rec.Body.String())
+
+	frames := strings.Split(strings.TrimSpace(body), "\n")
+	require.Contains(t, frames[len(frames)-1], `"webrpcError"`)
+}
+
+func TestNonFlushableWriterFailsBeforeHeaders(t *testing.T) {
+	rec := httptest.NewRecorder()
+	called := false
+
 	// The anonymous struct hides the recorder's Flush method.
-	proto.NewChatServer(svc).ServeHTTP(struct{ http.ResponseWriter }{rec}, newSubscribeRequest())
-
-	require.Equal(t, http.StatusInternalServerError, rec.Code)
-	select {
-	case <-svc.started:
-		t.Fatal("service method ran on a non-flushable writer")
-	default:
-	}
-}
-
-// TestStreamWriterClosedAfterHandlerReturns proves a leaked stream writer
-// can't touch the recycled ResponseWriter.
-func TestStreamWriterClosedAfterHandlerReturns(t *testing.T) {
-	svc := &leakyChatServer{}
-
-	proto.NewChatServer(svc).ServeHTTP(httptest.NewRecorder(), newSubscribeRequest())
-
-	require.ErrorIs(t, svc.stream.Write(&proto.Message{}), proto.ErrWebrpcStreamFinished)
-}
-
-// TestServiceTimeoutIsNotClientAbort proves a service's own timeout isn't
-// blamed on a client that is still connected.
-func TestServiceTimeoutIsNotClientAbort(t *testing.T) {
-	var rpcErr proto.WebRPCError
-	srv := proto.NewChatServer(&leakyChatServer{err: context.DeadlineExceeded}, &proto.Options{
-		OnError: func(r *http.Request, err *proto.WebRPCError) { rpcErr = *err },
+	serve(t, context.Background(), struct{ http.ResponseWriter }{rec}, func(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error {
+		called = true
+		return nil
 	})
 
-	srv.ServeHTTP(httptest.NewRecorder(), newSubscribeRequest())
-
-	require.ErrorIs(t, rpcErr, proto.ErrWebrpcEndpoint)
-}
-
-// TestKeepAliveDisabled proves a non-positive interval starts no ticker
-// (time.NewTicker would panic) and the handler still returns on ctx cancel.
-func TestKeepAliveDisabled(t *testing.T) {
-	withKeepAliveInterval(t, 0)
-
-	svc := &blockingChatServer{started: make(chan struct{}), returned: make(chan struct{})}
-	ctx, cancel := context.WithCancel(context.Background())
-
-	served := make(chan struct{})
-	go func() {
-		defer close(served)
-		proto.NewChatServer(svc).ServeHTTP(httptest.NewRecorder(), newSubscribeRequest().WithContext(ctx))
-	}()
-
-	<-svc.started
-	cancel()
-	<-served
+	require.Equal(t, http.StatusInternalServerError, rec.Code)
+	require.False(t, called)
 }
