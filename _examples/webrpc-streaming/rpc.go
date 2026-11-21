@@ -95,17 +95,11 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, las
 
 	select {
 	case <-ctx.Done():
-		return proto.ErrWebrpcClientAborted.WithCause(ctx.Err())
+		return ctx.Err()
 	case err := <-errCh:
-		switch {
-		case err == nil:
-			return nil
-		case errors.Is(err, io.EOF):
+		if errors.Is(err, io.EOF) {
 			return proto.ErrWebrpcStreamFinished.WithCausef("stream finished: %w", err)
-		case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
-			return proto.ErrWebrpcClientAborted.WithCause(err)
-		default:
-			return proto.ErrWebrpcInternalError.WithCausef("failed to stream messages: %w", err)
 		}
+		return err
 	}
 }

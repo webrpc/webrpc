@@ -1806,7 +1806,6 @@ func (s *cSharpService) serveCountdownJSONStream(ctx context.Context, w http.Res
 
 	ctx, cancel := context.WithCancel(ctx)
 
-	// Read the interval here, not in the goroutine.
 	keepAliveDone := make(chan struct{})
 	go streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval, keepAliveDone)
 	defer func() {
@@ -1819,16 +1818,16 @@ func (s *cSharpService) serveCountdownJSONStream(ctx context.Context, w http.Res
 
 	// Call service method implementation.
 	if err := s.CSharpServer.Countdown(ctx, reqPayload.Arg0, streamWriter); err != nil {
-		cancel()
 		var rpcErr WebRPCError
 		switch {
 		case errors.As(err, &rpcErr):
-		case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+		case ctx.Err() != nil:
 			rpcErr = ErrWebrpcClientAborted.WithCause(err)
 		default:
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		streamWriter.mu.Lock()
+		streamWriter.closed = true
 		streamWriter.sendError(w, r, rpcErr)
 		_ = http.NewResponseController(w).Flush()
 		streamWriter.mu.Unlock()
@@ -1873,7 +1872,6 @@ func (s *cSharpService) serveWatchJSONStream(ctx context.Context, w http.Respons
 
 	ctx, cancel := context.WithCancel(ctx)
 
-	// Read the interval here, not in the goroutine.
 	keepAliveDone := make(chan struct{})
 	go streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval, keepAliveDone)
 	defer func() {
@@ -1886,16 +1884,16 @@ func (s *cSharpService) serveWatchJSONStream(ctx context.Context, w http.Respons
 
 	// Call service method implementation.
 	if err := s.CSharpServer.Watch(ctx, reqPayload, streamWriter); err != nil {
-		cancel()
 		var rpcErr WebRPCError
 		switch {
 		case errors.As(err, &rpcErr):
-		case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+		case ctx.Err() != nil:
 			rpcErr = ErrWebrpcClientAborted.WithCause(err)
 		default:
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		streamWriter.mu.Lock()
+		streamWriter.closed = true
 		streamWriter.sendError(w, r, rpcErr)
 		_ = http.NewResponseController(w).Flush()
 		streamWriter.mu.Unlock()
@@ -1943,7 +1941,6 @@ func (s *cSharpService) serveCountdownFailJSONStream(ctx context.Context, w http
 
 	ctx, cancel := context.WithCancel(ctx)
 
-	// Read the interval here, not in the goroutine.
 	keepAliveDone := make(chan struct{})
 	go streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval, keepAliveDone)
 	defer func() {
@@ -1956,16 +1953,16 @@ func (s *cSharpService) serveCountdownFailJSONStream(ctx context.Context, w http
 
 	// Call service method implementation.
 	if err := s.CSharpServer.CountdownFail(ctx, reqPayload.Arg0, streamWriter); err != nil {
-		cancel()
 		var rpcErr WebRPCError
 		switch {
 		case errors.As(err, &rpcErr):
-		case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+		case ctx.Err() != nil:
 			rpcErr = ErrWebrpcClientAborted.WithCause(err)
 		default:
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		streamWriter.mu.Lock()
+		streamWriter.closed = true
 		streamWriter.sendError(w, r, rpcErr)
 		_ = http.NewResponseController(w).Flush()
 		streamWriter.mu.Unlock()

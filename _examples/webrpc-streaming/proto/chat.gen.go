@@ -473,7 +473,6 @@ func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w ht
 
 	ctx, cancel := context.WithCancel(ctx)
 
-	// Read the interval here, not in the goroutine.
 	keepAliveDone := make(chan struct{})
 	go streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval, keepAliveDone)
 	defer func() {
@@ -486,16 +485,16 @@ func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w ht
 
 	// Call service method implementation.
 	if err := s.ChatServer.SubscribeMessages(ctx, reqPayload.Arg0, reqPayload.Arg1, streamWriter); err != nil {
-		cancel()
 		var rpcErr WebRPCError
 		switch {
 		case errors.As(err, &rpcErr):
-		case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+		case ctx.Err() != nil:
 			rpcErr = ErrWebrpcClientAborted.WithCause(err)
 		default:
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		streamWriter.mu.Lock()
+		streamWriter.closed = true
 		streamWriter.sendError(w, r, rpcErr)
 		_ = http.NewResponseController(w).Flush()
 		streamWriter.mu.Unlock()

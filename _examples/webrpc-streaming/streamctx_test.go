@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
-	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -74,78 +74,42 @@ func TestCleanCloseCancelsHandlerContext(t *testing.T) {
 	}
 }
 
-// failWriter implements http.Flusher so ResponseController can flush it.
-// Writes succeed failAfter times, then fail as a dead peer would.
+// failWriter fails every Write after the stream's initial ping, as a dead peer would.
 type failWriter struct {
-	hdr       http.Header
-	mu        sync.Mutex
-	writes    int
-	failAfter int
+	*httptest.ResponseRecorder
+	writes atomic.Int32
 }
-
-func (f *failWriter) Header() http.Header {
-	if f.hdr == nil {
-		f.hdr = make(http.Header)
-	}
-	return f.hdr
-}
-
-func (f *failWriter) WriteHeader(int) {}
-func (f *failWriter) Flush()          {}
 
 func (f *failWriter) Write(p []byte) (int, error) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	f.writes++
-	if f.failAfter > 0 && f.writes > f.failAfter {
+	if f.writes.Add(1) > 1 {
 		return 0, errors.New("write: broken pipe")
 	}
 	return len(p), nil
 }
 
-// flushFailWriter accepts every write, but FlushError fails after failAfter flushes.
+// flushFailWriter fails every FlushError after the stream's initial ping.
 type flushFailWriter struct {
-	hdr       http.Header
-	mu        sync.Mutex
-	flushes   int
-	failAfter int
+	*httptest.ResponseRecorder
+	flushes atomic.Int32
 }
-
-func (f *flushFailWriter) Header() http.Header {
-	if f.hdr == nil {
-		f.hdr = make(http.Header)
-	}
-	return f.hdr
-}
-
-func (f *flushFailWriter) WriteHeader(int)             {}
-func (f *flushFailWriter) Write(p []byte) (int, error) { return len(p), nil }
 
 func (f *flushFailWriter) FlushError() error {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	f.flushes++
-	if f.flushes > f.failAfter {
+	if f.flushes.Add(1) > 1 {
 		return errors.New("flush: broken pipe")
 	}
 	return nil
 }
 
-// noFlushWriter supports neither Flush nor FlushError.
-type noFlushWriter struct {
-	hdr    http.Header
-	status int
+// leakyChatServer returns at once, leaking its stream writer.
+type leakyChatServer struct {
+	blockingChatServer
+	stream proto.SubscribeMessagesStreamWriter
 }
 
-func (n *noFlushWriter) Header() http.Header {
-	if n.hdr == nil {
-		n.hdr = make(http.Header)
-	}
-	return n.hdr
+func (s *leakyChatServer) SubscribeMessages(ctx context.Context, username string, lastMessageId *uint64, stream proto.SubscribeMessagesStreamWriter) error {
+	s.stream = stream
+	return nil
 }
-
-func (n *noFlushWriter) WriteHeader(status int)      { n.status = status }
-func (n *noFlushWriter) Write(p []byte) (int, error) { return len(p), nil }
 
 func newSubscribeRequest() *http.Request {
 	req := httptest.NewRequest(http.MethodPost, "/v1/Chat/SubscribeMessages", strings.NewReader(`{"username":"test"}`))
@@ -189,8 +153,7 @@ func TestKeepAliveCancelsHandlerOnWriteError(t *testing.T) {
 
 	svc := &blockingChatServer{started: make(chan struct{}), returned: make(chan struct{})}
 
-	// First write is the stream's initial ping; the next ping fails.
-	serveAndWait(t, svc, &failWriter{failAfter: 1})
+	serveAndWait(t, svc, &failWriter{ResponseRecorder: httptest.NewRecorder()})
 }
 
 // TestKeepAliveCancelsHandlerOnFlushError proves a failed flush on a dead peer
@@ -200,22 +163,32 @@ func TestKeepAliveCancelsHandlerOnFlushError(t *testing.T) {
 
 	svc := &blockingChatServer{started: make(chan struct{}), returned: make(chan struct{})}
 
-	// First flush is the stream's initial ping; the next ping fails.
-	serveAndWait(t, svc, &flushFailWriter{failAfter: 1})
+	serveAndWait(t, svc, &flushFailWriter{ResponseRecorder: httptest.NewRecorder()})
 }
 
 // TestNonFlushableWriterFailsBeforeHeaders proves misconfiguration yields a
 // clear 500, not a 200 followed by an error frame.
 func TestNonFlushableWriterFailsBeforeHeaders(t *testing.T) {
 	svc := &blockingChatServer{started: make(chan struct{}), returned: make(chan struct{})}
-	w := &noFlushWriter{}
+	rec := httptest.NewRecorder()
 
-	proto.NewChatServer(svc).ServeHTTP(w, newSubscribeRequest())
+	// The anonymous struct hides the recorder's Flush method.
+	proto.NewChatServer(svc).ServeHTTP(struct{ http.ResponseWriter }{rec}, newSubscribeRequest())
 
-	require.Equal(t, http.StatusInternalServerError, w.status)
+	require.Equal(t, http.StatusInternalServerError, rec.Code)
 	select {
 	case <-svc.started:
 		t.Fatal("service method ran on a non-flushable writer")
 	default:
 	}
+}
+
+// TestStreamWriterClosedAfterHandlerReturns proves a leaked stream writer
+// can't touch the recycled ResponseWriter.
+func TestStreamWriterClosedAfterHandlerReturns(t *testing.T) {
+	svc := &leakyChatServer{}
+
+	proto.NewChatServer(svc).ServeHTTP(httptest.NewRecorder(), newSubscribeRequest())
+
+	require.ErrorIs(t, svc.stream.Write(&proto.Message{}), proto.ErrWebrpcStreamFinished)
 }
