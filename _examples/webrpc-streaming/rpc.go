@@ -80,8 +80,7 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, las
 		})
 	}
 
-	// ringbuf blocks in cond.Wait() and wakes on the next Write, not on ctx cancel.
-	// Read aside, so a dead client returns (and publishes "left") right away.
+	// sub.Iter() wakes on the next Write, not on ctx cancel; it must not block the return.
 	errCh := make(chan error, 1)
 	go func() {
 		for msg := range sub.Iter() {

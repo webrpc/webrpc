@@ -686,7 +686,7 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSONStream(ct
 		var rpcErr WebRPCError
 		switch {
 		case errors.As(err, &rpcErr):
-		case ctx.Err() != nil:
+		case ctx.Err() == context.Canceled:
 			rpcErr = ErrWebrpcClientAborted.WithCause(err)
 		default:
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)

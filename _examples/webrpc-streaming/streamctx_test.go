@@ -100,15 +100,16 @@ func (f *flushFailWriter) FlushError() error {
 	return nil
 }
 
-// leakyChatServer returns at once, leaking its stream writer.
+// leakyChatServer returns err at once, leaking its stream writer.
 type leakyChatServer struct {
 	blockingChatServer
 	stream proto.SubscribeMessagesStreamWriter
+	err    error
 }
 
 func (s *leakyChatServer) SubscribeMessages(ctx context.Context, username string, lastMessageId *uint64, stream proto.SubscribeMessagesStreamWriter) error {
 	s.stream = stream
-	return nil
+	return s.err
 }
 
 func newSubscribeRequest() *http.Request {
@@ -117,24 +118,29 @@ func newSubscribeRequest() *http.Request {
 	return req
 }
 
-// serveAndWait runs the handler until both the service method and ServeHTTP return.
+// serveAndWait runs the handler until keepalive fails and ServeHTTP returns.
 func serveAndWait(t *testing.T, svc *blockingChatServer, w http.ResponseWriter) {
 	t.Helper()
+
+	var rpcErr proto.WebRPCError
+	srv := proto.NewChatServer(svc, &proto.Options{
+		OnError: func(r *http.Request, err *proto.WebRPCError) { rpcErr = *err },
+	})
 
 	served := make(chan struct{})
 	go func() {
 		defer close(served)
-		proto.NewChatServer(svc).ServeHTTP(w, newSubscribeRequest())
+		srv.ServeHTTP(w, newSubscribeRequest())
 	}()
 
 	select {
-	case <-svc.returned:
+	case <-served:
 	case <-time.After(2 * time.Second):
 		t.Fatal("handler did not return after keepalive failure")
 	}
-	<-served
 
 	require.ErrorIs(t, svc.ctxErr, context.Canceled)
+	require.ErrorIs(t, rpcErr, proto.ErrWebrpcClientAborted)
 }
 
 func withKeepAliveInterval(t *testing.T, d time.Duration) {
@@ -191,4 +197,36 @@ func TestStreamWriterClosedAfterHandlerReturns(t *testing.T) {
 	proto.NewChatServer(svc).ServeHTTP(httptest.NewRecorder(), newSubscribeRequest())
 
 	require.ErrorIs(t, svc.stream.Write(&proto.Message{}), proto.ErrWebrpcStreamFinished)
+}
+
+// TestServiceTimeoutIsNotClientAbort proves a service's own timeout isn't
+// blamed on a client that is still connected.
+func TestServiceTimeoutIsNotClientAbort(t *testing.T) {
+	var rpcErr proto.WebRPCError
+	srv := proto.NewChatServer(&leakyChatServer{err: context.DeadlineExceeded}, &proto.Options{
+		OnError: func(r *http.Request, err *proto.WebRPCError) { rpcErr = *err },
+	})
+
+	srv.ServeHTTP(httptest.NewRecorder(), newSubscribeRequest())
+
+	require.ErrorIs(t, rpcErr, proto.ErrWebrpcEndpoint)
+}
+
+// TestKeepAliveDisabled proves a non-positive interval starts no ticker
+// (time.NewTicker would panic) and the handler still returns on ctx cancel.
+func TestKeepAliveDisabled(t *testing.T) {
+	withKeepAliveInterval(t, 0)
+
+	svc := &blockingChatServer{started: make(chan struct{}), returned: make(chan struct{})}
+	ctx, cancel := context.WithCancel(context.Background())
+
+	served := make(chan struct{})
+	go func() {
+		defer close(served)
+		proto.NewChatServer(svc).ServeHTTP(httptest.NewRecorder(), newSubscribeRequest().WithContext(ctx))
+	}()
+
+	<-svc.started
+	cancel()
+	<-served
 }

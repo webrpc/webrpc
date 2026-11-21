@@ -81,7 +81,7 @@ type streamWriter struct {
 	mu     sync.Mutex // Guards concurrent writes to w.
 	w      http.ResponseWriter
 	e      jsonEncoder
-	closed bool // Set once the handler returns; leaked writers must not touch w.
+	closed bool // Set when the handler is done with w; later pings and writes fail.
 
 	sendError func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
 }
@@ -91,7 +91,7 @@ type jsonEncoder interface {
 }
 
 // StreamKeepAliveInterval is the stream ping period. Zero or negative disables keepalive.
-// Set it before serving: each stream reads it once, without locking.
+// It must not be changed while streams are being served.
 var StreamKeepAliveInterval = 10 * time.Second
 
 func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc, interval time.Duration, done chan<- struct{}) {
@@ -122,6 +122,10 @@ func (w *streamWriter) ping() error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
+	if w.closed {
+		return ErrWebrpcStreamFinished
+	}
+
 	if _, err := w.w.Write([]byte("\n")); err != nil {
 		return err
 	}
@@ -144,6 +148,7 @@ func (w *streamWriter) write(respPayload ...interface{}) error {
 	return http.NewResponseController(w.w).Flush()
 }
 
+// canFlushStream reports whether http.ResponseController can flush w.
 func canFlushStream(w http.ResponseWriter) bool {
 	for {
 		switch t := w.(type) {
@@ -488,7 +493,7 @@ func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w ht
 		var rpcErr WebRPCError
 		switch {
 		case errors.As(err, &rpcErr):
-		case ctx.Err() != nil:
+		case ctx.Err() == context.Canceled:
 			rpcErr = ErrWebrpcClientAborted.WithCause(err)
 		default:
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
