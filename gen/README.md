@@ -33,6 +33,8 @@ The officially supported generators live in this folder (`gen/golang`, `gen/type
 webrpc-gen -schema=api.ridl -target=./local/directory
 ```
 
+If the local directory is a git repository with tags, the generated header includes its `git describe --tags` version, e.g. `directory@v0.7.0-3-g1a2b3c4`. Otherwise the version is `unknown`.
+
 # Interoperability tests
 
 All webrpc generators are expected to implement reference [TestApi schema](../tests/schema/test.ridl) and run client/server interoperability tests against the official [webrpc-test binaries](https://github.com/webrpc/webrpc/releases).

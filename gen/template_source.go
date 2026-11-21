@@ -6,7 +6,10 @@ import (
 	"hash/fnv"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"text/template"
@@ -81,6 +84,7 @@ func (s *TemplateSource) loadTemplates() (*template.Template, error) {
 		}
 		s.TmplDir = s.target
 		s.TmplVersion = s.target
+		s.inferLocalTemplateVersion()
 		return tmpl, nil
 	}
 
@@ -92,6 +96,41 @@ func (s *TemplateSource) loadTemplates() (*template.Template, error) {
 		return nil, fmt.Errorf("failed to load templates from %s: %w", s.target, err)
 	}
 	return tmpl, nil
+}
+
+// safeVersionRe matches tag names that survive the Webrpc-Gen header parsing in gen.go.
+var safeVersionRe = regexp.MustCompile(`^[A-Za-z0-9._+-]+$`)
+
+// inferLocalTemplateVersion appends the `git describe --tags` version of TmplDir
+// to TmplVersion, e.g. "../gen-golang@v0.7.0-3-g1a2b3c4". If TmplDir is not
+// a git repository or has no tags, TmplVersion is unchanged.
+// Tag names that would corrupt the generated header are ignored.
+func (s *TemplateSource) inferLocalTemplateVersion() {
+	cmd := exec.Command("git", "describe", "--tags")
+	cmd.Dir = s.TmplDir
+	cmd.Env = envWithout(os.Environ(), "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE")
+	out, err := cmd.Output()
+	if err != nil {
+		return
+	}
+	version := strings.TrimSpace(string(out))
+	if !safeVersionRe.MatchString(version) {
+		return
+	}
+	s.TmplVersion += "@" + version
+}
+
+// envWithout drops the given keys so an ambient GIT_DIR cannot redirect git to another repo.
+func envWithout(env []string, keys ...string) []string {
+	out := make([]string, 0, len(env))
+	for _, kv := range env {
+		name, _, _ := strings.Cut(kv, "=")
+		if slices.Contains(keys, name) {
+			continue
+		}
+		out = append(out, kv)
+	}
+	return out
 }
 
 func (s *TemplateSource) loadRemote() (*template.Template, error) {
