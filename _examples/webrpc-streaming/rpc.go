@@ -85,11 +85,6 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, las
 	errCh := make(chan error, 1)
 	go func() {
 		for msg := range sub.Iter() {
-			// The handler may have returned already; never touch its ResponseWriter then.
-			if ctx.Err() != nil {
-				errCh <- ctx.Err()
-				return
-			}
 			if err := stream.Write(msg); err != nil {
 				errCh <- err
 				return

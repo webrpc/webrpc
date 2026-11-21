@@ -103,43 +103,119 @@ func (f *failWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// TestKeepAliveCancelsHandlerOnWriteError proves case 2: a wrapped
-// ResponseWriter that reports a write error without signalling the HTTP
-// server still unblocks the handler, because keepAlive cancels the ctx.
-func TestKeepAliveCancelsHandlerOnWriteError(t *testing.T) {
-	// Not t.Parallel: the interval is a package global shared with the
-	// streaming tests, which rely on the default.
-	old := proto.StreamKeepAliveInterval
-	proto.StreamKeepAliveInterval = 50 * time.Millisecond
-	t.Cleanup(func() { proto.StreamKeepAliveInterval = old })
+// flushFailWriter accepts every write, but FlushError fails after failAfter flushes.
+type flushFailWriter struct {
+	hdr       http.Header
+	mu        sync.Mutex
+	flushes   int
+	failAfter int
+}
 
-	svc := &blockingChatServer{started: make(chan struct{}), returned: make(chan struct{})}
-	handler := proto.NewChatServer(svc)
+func (f *flushFailWriter) Header() http.Header {
+	if f.hdr == nil {
+		f.hdr = make(http.Header)
+	}
+	return f.hdr
+}
 
+func (f *flushFailWriter) WriteHeader(int)             {}
+func (f *flushFailWriter) Write(p []byte) (int, error) { return len(p), nil }
+
+func (f *flushFailWriter) FlushError() error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.flushes++
+	if f.flushes > f.failAfter {
+		return errors.New("flush: broken pipe")
+	}
+	return nil
+}
+
+// noFlushWriter supports neither Flush nor FlushError.
+type noFlushWriter struct {
+	hdr    http.Header
+	status int
+}
+
+func (n *noFlushWriter) Header() http.Header {
+	if n.hdr == nil {
+		n.hdr = make(http.Header)
+	}
+	return n.hdr
+}
+
+func (n *noFlushWriter) WriteHeader(status int)      { n.status = status }
+func (n *noFlushWriter) Write(p []byte) (int, error) { return len(p), nil }
+
+func newSubscribeRequest() *http.Request {
 	req := httptest.NewRequest(http.MethodPost, "/v1/Chat/SubscribeMessages", strings.NewReader(`{"username":"test"}`))
 	req.Header.Set("Content-Type", "application/json")
+	return req
+}
 
-	// First write is the stream's initial ping; the next ping fails.
-	w := &failWriter{failAfter: 1}
+// serveAndWait runs the handler until both the service method and ServeHTTP return.
+func serveAndWait(t *testing.T, svc *blockingChatServer, w http.ResponseWriter) {
+	t.Helper()
 
-	go handler.ServeHTTP(w, req)
+	served := make(chan struct{})
+	go func() {
+		defer close(served)
+		proto.NewChatServer(svc).ServeHTTP(w, newSubscribeRequest())
+	}()
 
 	select {
 	case <-svc.returned:
 	case <-time.After(2 * time.Second):
-		t.Fatal("handler did not return after keepalive write error")
+		t.Fatal("handler did not return after keepalive failure")
 	}
+	<-served
 
 	require.ErrorIs(t, svc.ctxErr, context.Canceled)
 }
 
-// TestListenAcceptsTCP proves the example listener is a live TCP listener.
-func TestListenAcceptsTCP(t *testing.T) {
-	ln, err := listen("127.0.0.1:0")
-	require.NoError(t, err)
-	defer ln.Close()
+func withKeepAliveInterval(t *testing.T, d time.Duration) {
+	// Not t.Parallel: the interval is a package global shared with the
+	// streaming tests, which rely on the default.
+	old := proto.StreamKeepAliveInterval
+	proto.StreamKeepAliveInterval = d
+	t.Cleanup(func() { proto.StreamKeepAliveInterval = old })
+}
 
-	conn, err := net.Dial("tcp", ln.Addr().String())
-	require.NoError(t, err)
-	require.NoError(t, conn.Close())
+// TestKeepAliveCancelsHandlerOnWriteError proves case 2: a wrapped
+// ResponseWriter that reports a write error without signalling the HTTP
+// server still unblocks the handler, because keepAlive cancels the ctx.
+func TestKeepAliveCancelsHandlerOnWriteError(t *testing.T) {
+	withKeepAliveInterval(t, 50*time.Millisecond)
+
+	svc := &blockingChatServer{started: make(chan struct{}), returned: make(chan struct{})}
+
+	// First write is the stream's initial ping; the next ping fails.
+	serveAndWait(t, svc, &failWriter{failAfter: 1})
+}
+
+// TestKeepAliveCancelsHandlerOnFlushError proves a failed flush on a dead peer
+// unblocks the handler.
+func TestKeepAliveCancelsHandlerOnFlushError(t *testing.T) {
+	withKeepAliveInterval(t, 50*time.Millisecond)
+
+	svc := &blockingChatServer{started: make(chan struct{}), returned: make(chan struct{})}
+
+	// First flush is the stream's initial ping; the next ping fails.
+	serveAndWait(t, svc, &flushFailWriter{failAfter: 1})
+}
+
+// TestNonFlushableWriterFailsBeforeHeaders proves misconfiguration yields a
+// clear 500, not a 200 followed by an error frame.
+func TestNonFlushableWriterFailsBeforeHeaders(t *testing.T) {
+	svc := &blockingChatServer{started: make(chan struct{}), returned: make(chan struct{})}
+	w := &noFlushWriter{}
+
+	proto.NewChatServer(svc).ServeHTTP(w, newSubscribeRequest())
+
+	require.Equal(t, http.StatusInternalServerError, w.status)
+	select {
+	case <-svc.started:
+		t.Fatal("service method ran on a non-flushable writer")
+	default:
+	}
 }

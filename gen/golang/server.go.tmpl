@@ -647,6 +647,11 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSONStream(ct
 	}
 	{{- end }}
 
+	if !canFlushStream(w) {
+		s.sendErrorJSON(w, r, ErrWebrpcInternalError.WithCausef("server http.ResponseWriter doesn't support .Flush() method"))
+		return
+	}
+
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("Connection", "keep-alive")
 	w.Header().Set("Content-Type", "application/x-ndjson")
@@ -666,19 +671,26 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSONStream(ct
 
 	ctx, cancel := context.WithCancel(ctx)
 
-	// Read the interval here, not in the goroutine, and never ping after the handler returns.
+	// Read the interval here, not in the goroutine.
 	keepAliveDone := make(chan struct{})
 	go streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval, keepAliveDone)
 	defer func() {
 		cancel()
 		<-keepAliveDone
+		streamWriter.mu.Lock()
+		streamWriter.closed = true
+		streamWriter.mu.Unlock()
 	}()
 
 	// Call service method implementation.
 	if err {{if or (eq (len $method.Inputs) 0) (gt (len $method.Outputs) 0)}}:{{end}}= s.{{$name}}Server.{{$method.Name}}(ctx{{range $i, $_ := $method.Inputs}}, {{ if $method.Succinct }}reqPayload{{ else }}reqPayload.Arg{{$i}}{{ end }}{{end}}, streamWriter); err != nil {
 		cancel()
 		var rpcErr WebRPCError
-		if !errors.As(err, &rpcErr) {
+		switch {
+		case errors.As(err, &rpcErr):
+		case errors.Is(err, context.Canceled), errors.Is(err, context.DeadlineExceeded):
+			rpcErr = ErrWebrpcClientAborted.WithCause(err)
+		default:
 			rpcErr = ErrWebrpcEndpoint.WithCause(err)
 		}
 		streamWriter.mu.Lock()
