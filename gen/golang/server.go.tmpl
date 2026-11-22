@@ -112,17 +112,16 @@ type {{$serviceName}} struct {
 }
 
 func New{{firstLetterToUpper $service.Name}}Server(svc {{$typePrefix}}{{.Name}}Server, options ...*Options) *{{$serviceName}} {
+	opts := cmp.Or(cmp.Or(options...), &Options{})
 	server := &{{$serviceName}}{
 		{{.Name}}Server: svc,
-	}
-	if len(options) > 0 && options[0] != nil {
-		server.OnError = options[0].OnError
-		server.OnRequest = options[0].OnRequest
+		OnError: opts.OnError,
+		OnRequest: opts.OnRequest,
 {{- if $serviceHasUpload }}
-		server.MaxUploadSize = options[0].MaxUploadSize
+		MaxUploadSize: cmp.Or(opts.MaxUploadSize, DefaultMaxUploadSize),
 {{- end }}
 {{- if $serviceHasStream }}
-		server.StreamKeepAliveInterval = options[0].StreamKeepAliveInterval
+		StreamKeepAliveInterval: cmp.Or(opts.StreamKeepAliveInterval, DefaultStreamKeepAliveInterval),
 {{- end }}
 	}
 {{- if $serviceHasRoutes }}
@@ -435,11 +434,7 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}Multipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "{{$method.Name}}")
 
-	maxUploadSize := s.MaxUploadSize
-	if maxUploadSize <= 0 {
-		maxUploadSize = DefaultMaxUploadSize
-	}
-	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
 	// may be absent when the method has no non-file arguments) followed by

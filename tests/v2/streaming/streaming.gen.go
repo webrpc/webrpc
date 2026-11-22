@@ -10,6 +10,7 @@ package streaming
 import (
 	"bufio"
 	"bytes"
+	"cmp"
 	"context"
 	jsonv1 "encoding/json"
 	json "encoding/json/v2"
@@ -103,9 +104,9 @@ func (e jsonStreamEncoder) Encode(v any) error {
 // Options.StreamKeepAliveInterval is not set.
 const DefaultStreamKeepAliveInterval = 10 * time.Second
 
-// keepAlive pings the client every interval: DefaultStreamKeepAliveInterval
-// when zero, never when negative. A failed ping cancels ctx, so a service
-// method waiting on ctx learns that the client is gone.
+// keepAlive pings the client every interval, never when it is negative.
+// A failed ping cancels ctx, so a service method waiting on ctx learns that
+// the client is gone.
 // The returned stop function ends the pings and closes w.
 func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc, interval time.Duration) (stop func()) {
 	done := make(chan struct{})
@@ -114,9 +115,6 @@ func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc,
 
 		if interval < 0 {
 			return
-		}
-		if interval == 0 {
-			interval = DefaultStreamKeepAliveInterval
 		}
 
 		ticker := time.NewTicker(interval)
@@ -343,13 +341,12 @@ type streamServiceService struct {
 }
 
 func NewStreamServiceServer(svc StreamServiceServer, options ...*Options) *streamServiceService {
+	opts := cmp.Or(cmp.Or(options...), &Options{})
 	server := &streamServiceService{
-		StreamServiceServer: svc,
-	}
-	if len(options) > 0 && options[0] != nil {
-		server.OnError = options[0].OnError
-		server.OnRequest = options[0].OnRequest
-		server.StreamKeepAliveInterval = options[0].StreamKeepAliveInterval
+		StreamServiceServer:     svc,
+		OnError:                 opts.OnError,
+		OnRequest:               opts.OnRequest,
+		StreamKeepAliveInterval: cmp.Or(opts.StreamKeepAliveInterval, DefaultStreamKeepAliveInterval),
 	}
 	return server
 }

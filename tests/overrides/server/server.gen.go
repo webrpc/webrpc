@@ -6,6 +6,7 @@
 package server
 
 import (
+	"cmp"
 	"context"
 	"encoding"
 	"encoding/json"
@@ -88,12 +89,11 @@ type restOverridesService struct {
 }
 
 func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restOverridesService {
+	opts := cmp.Or(cmp.Or(options...), &Options{})
 	server := &restOverridesService{
 		RestOverridesServer: svc,
-	}
-	if len(options) > 0 && options[0] != nil {
-		server.OnError = options[0].OnError
-		server.OnRequest = options[0].OnRequest
+		OnError:             opts.OnError,
+		OnRequest:           opts.OnRequest,
 	}
 	server.restIndex = restHandler("GET /{$}", "RestOverrides", "Index", false, false, 200, true,
 		func(ctx context.Context, req restOverridesServiceIndexArgs) (restOverridesServiceIndexResult, error) {

@@ -32,6 +32,7 @@
 {{- end -}}
 
 {{- if $opts.server }}
+	{{- set $stdlibImports "cmp" "" -}}
 	{{- set $stdlibImports "io" "" -}}
 	{{- set $stdlibImports "maps" "" -}}
 	{{- set $stdlibImports "slices" "" -}}

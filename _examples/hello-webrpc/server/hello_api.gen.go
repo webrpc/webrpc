@@ -6,6 +6,7 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -133,12 +134,11 @@ type exampleService struct {
 }
 
 func NewExampleServer(svc ExampleServer, options ...*Options) *exampleService {
+	opts := cmp.Or(cmp.Or(options...), &Options{})
 	server := &exampleService{
 		ExampleServer: svc,
-	}
-	if len(options) > 0 && options[0] != nil {
-		server.OnError = options[0].OnError
-		server.OnRequest = options[0].OnRequest
+		OnError:       opts.OnError,
+		OnRequest:     opts.OnRequest,
 	}
 	return server
 }
