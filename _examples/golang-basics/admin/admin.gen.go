@@ -176,20 +176,19 @@ func (s *adminService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "Admin")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "Admin"}
 	r = r.WithContext(ctx)
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	switch r.URL.Path {
 	case "/v1/Admin/Auth":
+		ctx.method = "Auth"
 		handler = s.serveAuthJSON
 	case "/v1/Admin/Status":
+		ctx.method = "Status"
 		handler = s.serveStatusJSON
 	case "/v1/Admin/Version":
+		ctx.method = "Version"
 		handler = s.serveVersionJSON
 	default:
 		err := ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path)
@@ -231,7 +230,6 @@ func (s *adminService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *adminService) serveAuthJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Auth")
 
 	// Call service method implementation.
 	ret0, ret1, err := s.AdminServer.Auth(ctx)
@@ -260,7 +258,6 @@ func (s *adminService) serveAuthJSON(ctx context.Context, w http.ResponseWriter,
 }
 
 func (s *adminService) serveStatusJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Status")
 
 	// Call service method implementation.
 	ret0, err := s.AdminServer.Status(ctx)
@@ -288,7 +285,6 @@ func (s *adminService) serveStatusJSON(ctx context.Context, w http.ResponseWrite
 }
 
 func (s *adminService) serveVersionJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Version")
 
 	// Call service method implementation.
 	ret0, err := s.AdminServer.Version(ctx)
@@ -607,6 +603,31 @@ func MethodNameFromContext(ctx context.Context) string {
 func RequestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	return r
+}
+
+// reqCtx holds the per-request values in one allocation instead of four WithValue wrappers.
+type reqCtx struct {
+	context.Context
+	w       http.ResponseWriter
+	r       *http.Request
+	service any // string, pre-boxed so Value() does not allocate
+	method  any // string; nil until the method is known
+}
+
+func (c *reqCtx) Value(key any) any {
+	switch key {
+	case HTTPResponseWriterCtxKey:
+		return c.w
+	case HTTPRequestCtxKey:
+		return c.r
+	case ServiceNameCtxKey:
+		return c.service
+	case MethodNameCtxKey:
+		if c.method != nil {
+			return c.method
+		}
+	}
+	return c.Context.Value(key)
 }
 
 // Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...

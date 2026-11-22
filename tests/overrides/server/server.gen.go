@@ -386,6 +386,31 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
+// reqCtx holds the per-request values in one allocation instead of four WithValue wrappers.
+type reqCtx struct {
+	context.Context
+	w       http.ResponseWriter
+	r       *http.Request
+	service any // string, pre-boxed so Value() does not allocate
+	method  any // string; nil until the method is known
+}
+
+func (c *reqCtx) Value(key any) any {
+	switch key {
+	case HTTPResponseWriterCtxKey:
+		return c.w
+	case HTTPRequestCtxKey:
+		return c.r
+	case ServiceNameCtxKey:
+		return c.service
+	case MethodNameCtxKey:
+		if c.method != nil {
+			return c.method
+		}
+	}
+	return c.Context.Value(key)
+}
+
 // Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...
 func PtrTo[T any](v T) *T { return &v }
 
@@ -414,15 +439,12 @@ func (p *restParams) values() map[string][]string {
 // routes with an empty response whose declared set contains 204 or 205 — they
 // never write a body or Content-Type.
 func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, status int, writeBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+	serviceV, methodV := any(service), any(method)
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Identify the route before user code can run: MethodCtx resolves the
 		// method from r.Pattern (the dispatcher already set the path values).
 		r.Pattern = pattern
-		ctx := r.Context()
-		ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-		ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-		ctx = context.WithValue(ctx, ServiceNameCtxKey, service)
-		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
+		ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: serviceV, method: methodV}
 		r = r.WithContext(ctx)
 
 		// A payload is detected without reading the body: ContentLength 0 means

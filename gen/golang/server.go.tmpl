@@ -284,11 +284,7 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *{{$serviceName}}) handle{{$method.Name}}(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "{{$basepath}}{{$name}}/{{$method.Name}}" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "{{$service.Name}}")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "{{$service.Name}}", method: "{{$method.Name}}"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -324,7 +320,7 @@ func (s *{{$serviceName}}) handle{{$method.Name}}(w http.ResponseWriter, r *http
 		{{- if MethodHasFileUpload $method }}
 		s.serve{{firstLetterToUpper $method.Name}}Multipart(ctx, w, r)
 		{{- else if and $method.Succinct (not $method.StreamOutput) (not (MethodHasFileDownload $method)) }}
-		succinctHandler("{{$method.Name}}", s.{{$name}}Server.{{$method.Name}}, s.sendErrorJSON)(ctx, w, r)
+		succinctHandler(s.{{$name}}Server.{{$method.Name}}, s.sendErrorJSON)(ctx, w, r)
 		{{- else }}
 		s.serve{{firstLetterToUpper $method.Name}}JSON{{if $method.StreamOutput}}Stream{{end}}(ctx, w, r)
 		{{- end }}
@@ -354,11 +350,7 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "{{.Name}}")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "{{.Name}}"}
 	r = r.WithContext(ctx)
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
@@ -369,11 +361,12 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	{{- range $_, $method := $service.Methods}}
 	{{- if not (MethodHasRoute $method)}}
 	case "{{$basepath}}{{$name}}/{{$method.Name}}":
+		ctx.method = "{{$method.Name}}"
 		{{- if MethodHasFileUpload $method }}
 		handler = s.serve{{$method.Name | firstLetterToUpper}}Multipart
 		expectedContentType = "multipart/form-data"
 		{{- else if and $method.Succinct (not $method.StreamOutput) (not (MethodHasFileDownload $method)) }}
-		handler = succinctHandler("{{$method.Name}}", s.{{$name}}Server.{{$method.Name}}, s.sendErrorJSON)
+		handler = succinctHandler(s.{{$name}}Server.{{$method.Name}}, s.sendErrorJSON)
 		{{- else }}
 		handler = s.serve{{$method.Name | firstLetterToUpper}}JSON{{if $method.StreamOutput}}Stream{{end}}
 		{{- end }}
@@ -432,8 +425,6 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 {{- if MethodHasFileUpload $method }}
 
 func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}Multipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "{{$method.Name}}")
-
 	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
@@ -550,8 +541,6 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}Multipart(ctx
 {{- else if or (not $method.Succinct) (MethodHasFileDownload $method) }}
 
 func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "{{$method.Name}}")
-
 	{{ if gt (len $method.Inputs) 0 -}}
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -631,8 +620,6 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSON(ctx cont
 {{- else }}{{/* StreamOutput = true */}}
 
 func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSONStream(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "{{$method.Name}}")
-
 	{{ if gt (len $method.Inputs) 0 -}}
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -784,10 +771,8 @@ func RespondWithError(w http.ResponseWriter, err error) {
 {{ if $hasSuccinct -}}
 type sendErrorFunc func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
 
-func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O, error), sendError sendErrorFunc) func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func succinctHandler[I any, O any](fn func(context.Context, I) (O, error), sendError sendErrorFunc) func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
-
 		reqBody, err := io.ReadAll(r.Body)
 		if err != nil {
 			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))

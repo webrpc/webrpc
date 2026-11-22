@@ -221,20 +221,19 @@ func (s *exampleAPIService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "ExampleAPI")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "ExampleAPI"}
 	r = r.WithContext(ctx)
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	switch r.URL.Path {
 	case "/v1/ExampleAPI/Ping":
+		ctx.method = "Ping"
 		handler = s.servePingJSON
 	case "/v1/ExampleAPI/Status":
+		ctx.method = "Status"
 		handler = s.serveStatusJSON
 	case "/v1/ExampleAPI/GetUsers":
+		ctx.method = "GetUsers"
 		handler = s.serveGetUsersJSON
 	default:
 		err := ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path)
@@ -276,7 +275,6 @@ func (s *exampleAPIService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *exampleAPIService) servePingJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Ping")
 
 	// Call service method implementation.
 	err := s.ExampleAPIServer.Ping(ctx)
@@ -295,7 +293,6 @@ func (s *exampleAPIService) servePingJSON(ctx context.Context, w http.ResponseWr
 }
 
 func (s *exampleAPIService) serveStatusJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Status")
 
 	// Call service method implementation.
 	ret0, err := s.ExampleAPIServer.Status(ctx)
@@ -323,7 +320,6 @@ func (s *exampleAPIService) serveStatusJSON(ctx context.Context, w http.Response
 }
 
 func (s *exampleAPIService) serveGetUsersJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetUsers")
 
 	// Call service method implementation.
 	ret0, ret1, err := s.ExampleAPIServer.GetUsers(ctx)
@@ -643,6 +639,31 @@ func MethodNameFromContext(ctx context.Context) string {
 func RequestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	return r
+}
+
+// reqCtx holds the per-request values in one allocation instead of four WithValue wrappers.
+type reqCtx struct {
+	context.Context
+	w       http.ResponseWriter
+	r       *http.Request
+	service any // string, pre-boxed so Value() does not allocate
+	method  any // string; nil until the method is known
+}
+
+func (c *reqCtx) Value(key any) any {
+	switch key {
+	case HTTPResponseWriterCtxKey:
+		return c.w
+	case HTTPRequestCtxKey:
+		return c.r
+	case ServiceNameCtxKey:
+		return c.service
+	case MethodNameCtxKey:
+		if c.method != nil {
+			return c.method
+		}
+	}
+	return c.Context.Value(key)
 }
 
 // Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...

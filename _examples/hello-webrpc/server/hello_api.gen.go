@@ -156,20 +156,19 @@ func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "Example")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "Example"}
 	r = r.WithContext(ctx)
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	switch r.URL.Path {
 	case "/Example/Ping":
+		ctx.method = "Ping"
 		handler = s.servePingJSON
 	case "/Example/GetUser":
+		ctx.method = "GetUser"
 		handler = s.serveGetUserJSON
 	case "/Example/FindUsers":
+		ctx.method = "FindUsers"
 		handler = s.serveFindUsersJSON
 	default:
 		err := ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path)
@@ -211,7 +210,6 @@ func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Ping")
 
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.Ping(ctx)
@@ -239,8 +237,6 @@ func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWrite
 }
 
 func (s *exampleService) serveGetUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetUser")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -282,8 +278,6 @@ func (s *exampleService) serveGetUserJSON(ctx context.Context, w http.ResponseWr
 }
 
 func (s *exampleService) serveFindUsersJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "FindUsers")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -485,6 +479,31 @@ func MethodNameFromContext(ctx context.Context) string {
 func RequestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	return r
+}
+
+// reqCtx holds the per-request values in one allocation instead of four WithValue wrappers.
+type reqCtx struct {
+	context.Context
+	w       http.ResponseWriter
+	r       *http.Request
+	service any // string, pre-boxed so Value() does not allocate
+	method  any // string; nil until the method is known
+}
+
+func (c *reqCtx) Value(key any) any {
+	switch key {
+	case HTTPResponseWriterCtxKey:
+		return c.w
+	case HTTPRequestCtxKey:
+		return c.r
+	case ServiceNameCtxKey:
+		return c.service
+	case MethodNameCtxKey:
+		if c.method != nil {
+			return c.method
+		}
+	}
+	return c.Context.Value(key)
 }
 
 // Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...

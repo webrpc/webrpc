@@ -509,26 +509,27 @@ func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "Example")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "Example"}
 	r = r.WithContext(ctx)
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	expectedContentType := "application/json"
 	switch r.URL.Path {
 	case "/v1/Example/Ping":
+		ctx.method = "Ping"
 		handler = s.servePingJSON
 	case "/v1/Example/Status":
+		ctx.method = "Status"
 		handler = s.serveStatusJSON
 	case "/v1/Example/Version":
+		ctx.method = "Version"
 		handler = s.serveVersionJSON
 	case "/v1/Example/UploadAvatar":
+		ctx.method = "UploadAvatar"
 		handler = s.serveUploadAvatarMultipart
 		expectedContentType = "multipart/form-data"
 	case "/v1/Example/DownloadAvatar":
+		ctx.method = "DownloadAvatar"
 		handler = s.serveDownloadAvatarJSON
 	default:
 		err := ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path)
@@ -570,7 +571,6 @@ func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Ping")
 
 	// Call service method implementation.
 	err := s.ExampleServer.Ping(ctx)
@@ -589,7 +589,6 @@ func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWrite
 }
 
 func (s *exampleService) serveStatusJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Status")
 
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.Status(ctx)
@@ -617,7 +616,6 @@ func (s *exampleService) serveStatusJSON(ctx context.Context, w http.ResponseWri
 }
 
 func (s *exampleService) serveVersionJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Version")
 
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.Version(ctx)
@@ -645,8 +643,6 @@ func (s *exampleService) serveVersionJSON(ctx context.Context, w http.ResponseWr
 }
 
 func (s *exampleService) serveUploadAvatarMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "UploadAvatar")
-
 	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
@@ -697,8 +693,6 @@ func (s *exampleService) serveUploadAvatarMultipart(ctx context.Context, w http.
 }
 
 func (s *exampleService) serveDownloadAvatarJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "DownloadAvatar")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -771,18 +765,16 @@ func (s *adminService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "Admin")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "Admin"}
 	r = r.WithContext(ctx)
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	switch r.URL.Path {
 	case "/v1/Admin/Status":
+		ctx.method = "Status"
 		handler = s.serveStatusJSON
 	case "/v1/Admin/Version":
+		ctx.method = "Version"
 		handler = s.serveVersionJSON
 	default:
 		err := ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path)
@@ -824,7 +816,6 @@ func (s *adminService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *adminService) serveStatusJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Status")
 
 	// Call service method implementation.
 	ret0, err := s.AdminServer.Status(ctx)
@@ -852,7 +843,6 @@ func (s *adminService) serveStatusJSON(ctx context.Context, w http.ResponseWrite
 }
 
 func (s *adminService) serveVersionJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Version")
 
 	// Call service method implementation.
 	ret0, err := s.AdminServer.Version(ctx)
@@ -925,10 +915,8 @@ func RespondWithError(w http.ResponseWriter, err error) {
 
 type sendErrorFunc func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
 
-func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O, error), sendError sendErrorFunc) func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func succinctHandler[I any, O any](fn func(context.Context, I) (O, error), sendError sendErrorFunc) func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
-
 		reqBody, err := io.ReadAll(r.Body)
 		if err != nil {
 			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -1241,6 +1229,31 @@ func MethodNameFromContext(ctx context.Context) string {
 func RequestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	return r
+}
+
+// reqCtx holds the per-request values in one allocation instead of four WithValue wrappers.
+type reqCtx struct {
+	context.Context
+	w       http.ResponseWriter
+	r       *http.Request
+	service any // string, pre-boxed so Value() does not allocate
+	method  any // string; nil until the method is known
+}
+
+func (c *reqCtx) Value(key any) any {
+	switch key {
+	case HTTPResponseWriterCtxKey:
+		return c.w
+	case HTTPRequestCtxKey:
+		return c.r
+	case ServiceNameCtxKey:
+		return c.service
+	case MethodNameCtxKey:
+		if c.method != nil {
+			return c.method
+		}
+	}
+	return c.Context.Value(key)
 }
 
 // Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...

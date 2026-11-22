@@ -36,8 +36,8 @@ func TestRestGetItemAllocs(t *testing.T) {
 		clear(w.header)
 		srv.ServeHTTP(w, req)
 	})
-	if allocs > 12 {
-		t.Errorf("GET /rpc/items/7: %v allocs per request, want <= 12", allocs)
+	if allocs > 8 {
+		t.Errorf("GET /rpc/items/7: %v allocs per request, want <= 8", allocs)
 	}
 }
 

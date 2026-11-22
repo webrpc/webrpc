@@ -346,47 +346,58 @@ func (s *testApiService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "TestApi")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "TestApi"}
 	r = r.WithContext(ctx)
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	expectedContentType := "application/json"
 	switch r.URL.Path {
 	case "/rpc/TestApi/GetEmpty":
+		ctx.method = "GetEmpty"
 		handler = s.serveGetEmptyJSON
 	case "/rpc/TestApi/GetError":
+		ctx.method = "GetError"
 		handler = s.serveGetErrorJSON
 	case "/rpc/TestApi/GetOne":
+		ctx.method = "GetOne"
 		handler = s.serveGetOneJSON
 	case "/rpc/TestApi/SendOne":
+		ctx.method = "SendOne"
 		handler = s.serveSendOneJSON
 	case "/rpc/TestApi/GetMulti":
+		ctx.method = "GetMulti"
 		handler = s.serveGetMultiJSON
 	case "/rpc/TestApi/SendMulti":
+		ctx.method = "SendMulti"
 		handler = s.serveSendMultiJSON
 	case "/rpc/TestApi/GetComplex":
+		ctx.method = "GetComplex"
 		handler = s.serveGetComplexJSON
 	case "/rpc/TestApi/SendComplex":
+		ctx.method = "SendComplex"
 		handler = s.serveSendComplexJSON
 	case "/rpc/TestApi/GetEnumList":
+		ctx.method = "GetEnumList"
 		handler = s.serveGetEnumListJSON
 	case "/rpc/TestApi/GetEnumMap":
+		ctx.method = "GetEnumMap"
 		handler = s.serveGetEnumMapJSON
 	case "/rpc/TestApi/GetSchemaError":
+		ctx.method = "GetSchemaError"
 		handler = s.serveGetSchemaErrorJSON
 	case "/rpc/TestApi/UploadFile":
+		ctx.method = "UploadFile"
 		handler = s.serveUploadFileMultipart
 		expectedContentType = "multipart/form-data"
 	case "/rpc/TestApi/UploadFiles":
+		ctx.method = "UploadFiles"
 		handler = s.serveUploadFilesMultipart
 		expectedContentType = "multipart/form-data"
 	case "/rpc/TestApi/DownloadFile":
+		ctx.method = "DownloadFile"
 		handler = s.serveDownloadFileJSON
 	case "/rpc/TestApi/EchoFile":
+		ctx.method = "EchoFile"
 		handler = s.serveEchoFileMultipart
 		expectedContentType = "multipart/form-data"
 	default:
@@ -429,7 +440,6 @@ func (s *testApiService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *testApiService) serveGetEmptyJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetEmpty")
 
 	// Call service method implementation.
 	err := s.TestApiServer.GetEmpty(ctx)
@@ -448,7 +458,6 @@ func (s *testApiService) serveGetEmptyJSON(ctx context.Context, w http.ResponseW
 }
 
 func (s *testApiService) serveGetErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetError")
 
 	// Call service method implementation.
 	err := s.TestApiServer.GetError(ctx)
@@ -467,7 +476,6 @@ func (s *testApiService) serveGetErrorJSON(ctx context.Context, w http.ResponseW
 }
 
 func (s *testApiService) serveGetOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetOne")
 
 	// Call service method implementation.
 	ret0, err := s.TestApiServer.GetOne(ctx)
@@ -495,8 +503,6 @@ func (s *testApiService) serveGetOneJSON(ctx context.Context, w http.ResponseWri
 }
 
 func (s *testApiService) serveSendOneJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendOne")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -529,7 +535,6 @@ func (s *testApiService) serveSendOneJSON(ctx context.Context, w http.ResponseWr
 }
 
 func (s *testApiService) serveGetMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetMulti")
 
 	// Call service method implementation.
 	ret0, ret1, ret2, err := s.TestApiServer.GetMulti(ctx)
@@ -559,8 +564,6 @@ func (s *testApiService) serveGetMultiJSON(ctx context.Context, w http.ResponseW
 }
 
 func (s *testApiService) serveSendMultiJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendMulti")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -595,7 +598,6 @@ func (s *testApiService) serveSendMultiJSON(ctx context.Context, w http.Response
 }
 
 func (s *testApiService) serveGetComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetComplex")
 
 	// Call service method implementation.
 	ret0, err := s.TestApiServer.GetComplex(ctx)
@@ -623,8 +625,6 @@ func (s *testApiService) serveGetComplexJSON(ctx context.Context, w http.Respons
 }
 
 func (s *testApiService) serveSendComplexJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendComplex")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -657,7 +657,6 @@ func (s *testApiService) serveSendComplexJSON(ctx context.Context, w http.Respon
 }
 
 func (s *testApiService) serveGetEnumListJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetEnumList")
 
 	// Call service method implementation.
 	ret0, err := s.TestApiServer.GetEnumList(ctx)
@@ -685,7 +684,6 @@ func (s *testApiService) serveGetEnumListJSON(ctx context.Context, w http.Respon
 }
 
 func (s *testApiService) serveGetEnumMapJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetEnumMap")
 
 	// Call service method implementation.
 	ret0, err := s.TestApiServer.GetEnumMap(ctx)
@@ -713,8 +711,6 @@ func (s *testApiService) serveGetEnumMapJSON(ctx context.Context, w http.Respons
 }
 
 func (s *testApiService) serveGetSchemaErrorJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetSchemaError")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -747,8 +743,6 @@ func (s *testApiService) serveGetSchemaErrorJSON(ctx context.Context, w http.Res
 }
 
 func (s *testApiService) serveUploadFileMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "UploadFile")
-
 	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
@@ -805,8 +799,6 @@ func (s *testApiService) serveUploadFileMultipart(ctx context.Context, w http.Re
 }
 
 func (s *testApiService) serveUploadFilesMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "UploadFiles")
-
 	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
@@ -862,8 +854,6 @@ func (s *testApiService) serveUploadFilesMultipart(ctx context.Context, w http.R
 }
 
 func (s *testApiService) serveDownloadFileJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "DownloadFile")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -898,8 +888,6 @@ func (s *testApiService) serveDownloadFileJSON(ctx context.Context, w http.Respo
 }
 
 func (s *testApiService) serveEchoFileMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "EchoFile")
-
 	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
@@ -1322,11 +1310,7 @@ func (s *testApiRestService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *testApiRestService) handleRpcMethod(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/TestApiRest/RpcMethod" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "TestApiRest")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "TestApiRest", method: "RpcMethod"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1363,8 +1347,6 @@ func (s *testApiRestService) handleRpcMethod(w http.ResponseWriter, r *http.Requ
 }
 
 func (s *testApiRestService) serveRpcMethodJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "RpcMethod")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -1854,6 +1836,31 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
+// reqCtx holds the per-request values in one allocation instead of four WithValue wrappers.
+type reqCtx struct {
+	context.Context
+	w       http.ResponseWriter
+	r       *http.Request
+	service any // string, pre-boxed so Value() does not allocate
+	method  any // string; nil until the method is known
+}
+
+func (c *reqCtx) Value(key any) any {
+	switch key {
+	case HTTPResponseWriterCtxKey:
+		return c.w
+	case HTTPRequestCtxKey:
+		return c.r
+	case ServiceNameCtxKey:
+		return c.service
+	case MethodNameCtxKey:
+		if c.method != nil {
+			return c.method
+		}
+	}
+	return c.Context.Value(key)
+}
+
 // Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...
 func PtrTo[T any](v T) *T { return &v }
 
@@ -1882,15 +1889,12 @@ func (p *restParams) values() map[string][]string {
 // routes with an empty response whose declared set contains 204 or 205 — they
 // never write a body or Content-Type.
 func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, status int, writeBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+	serviceV, methodV := any(service), any(method)
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Identify the route before user code can run: MethodCtx resolves the
 		// method from r.Pattern (the dispatcher already set the path values).
 		r.Pattern = pattern
-		ctx := r.Context()
-		ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-		ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-		ctx = context.WithValue(ctx, ServiceNameCtxKey, service)
-		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
+		ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: serviceV, method: methodV}
 		r = r.WithContext(ctx)
 
 		// A payload is detected without reading the body: ContentLength 0 means

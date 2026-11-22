@@ -726,11 +726,7 @@ func (s *cSharpService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleGetTypes(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/GetTypes" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "GetTypes"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -770,11 +766,7 @@ func (s *cSharpService) handleGetTypes(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleSendTypes(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/SendTypes" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "SendTypes"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -814,11 +806,7 @@ func (s *cSharpService) handleSendTypes(w http.ResponseWriter, r *http.Request) 
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleGetUnknownEnum(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/GetUnknownEnum" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "GetUnknownEnum"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -858,11 +846,7 @@ func (s *cSharpService) handleGetUnknownEnum(w http.ResponseWriter, r *http.Requ
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleSendUnknownEnum(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/SendUnknownEnum" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "SendUnknownEnum"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -902,11 +886,7 @@ func (s *cSharpService) handleSendUnknownEnum(w http.ResponseWriter, r *http.Req
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleKeywords(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Keywords" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Keywords"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -946,11 +926,7 @@ func (s *cSharpService) handleKeywords(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleShadow(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Shadow" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Shadow"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -990,11 +966,7 @@ func (s *cSharpService) handleShadow(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleOptional(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Optional" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Optional"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1034,11 +1006,7 @@ func (s *cSharpService) handleOptional(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleDeprecated(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Deprecated" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Deprecated"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1078,11 +1046,7 @@ func (s *cSharpService) handleDeprecated(w http.ResponseWriter, r *http.Request)
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleGetShadowed(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/GetShadowed" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "GetShadowed"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1122,11 +1086,7 @@ func (s *cSharpService) handleGetShadowed(w http.ResponseWriter, r *http.Request
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleCountdown(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Countdown" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Countdown"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1166,11 +1126,7 @@ func (s *cSharpService) handleCountdown(w http.ResponseWriter, r *http.Request) 
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleWatch(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Watch" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Watch"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1210,11 +1166,7 @@ func (s *cSharpService) handleWatch(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleCountdownFail(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/CountdownFail" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "CountdownFail"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1254,11 +1206,7 @@ func (s *cSharpService) handleCountdownFail(w http.ResponseWriter, r *http.Reque
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleUploadTagged(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/UploadTagged" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "UploadTagged"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1298,11 +1246,7 @@ func (s *cSharpService) handleUploadTagged(w http.ResponseWriter, r *http.Reques
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleHeaders(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Headers" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Headers"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1342,11 +1286,7 @@ func (s *cSharpService) handleHeaders(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleUploadDoc(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/UploadDoc" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "UploadDoc"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1386,11 +1326,7 @@ func (s *cSharpService) handleUploadDoc(w http.ResponseWriter, r *http.Request) 
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleAttach(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Attach" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Attach"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1430,11 +1366,7 @@ func (s *cSharpService) handleAttach(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleDownloadDoc(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/DownloadDoc" // MethodCtx resolves the method by this key.
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "CSharp")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "DownloadDoc"}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1471,7 +1403,6 @@ func (s *cSharpService) handleDownloadDoc(w http.ResponseWriter, r *http.Request
 }
 
 func (s *cSharpService) serveGetTypesJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetTypes")
 
 	// Call service method implementation.
 	ret0, err := s.CSharpServer.GetTypes(ctx)
@@ -1499,8 +1430,6 @@ func (s *cSharpService) serveGetTypesJSON(ctx context.Context, w http.ResponseWr
 }
 
 func (s *cSharpService) serveSendTypesJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendTypes")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -1533,7 +1462,6 @@ func (s *cSharpService) serveSendTypesJSON(ctx context.Context, w http.ResponseW
 }
 
 func (s *cSharpService) serveGetUnknownEnumJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetUnknownEnum")
 
 	// Call service method implementation.
 	ret0, ret1, ret2, err := s.CSharpServer.GetUnknownEnum(ctx)
@@ -1563,8 +1491,6 @@ func (s *cSharpService) serveGetUnknownEnumJSON(ctx context.Context, w http.Resp
 }
 
 func (s *cSharpService) serveSendUnknownEnumJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendUnknownEnum")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -1598,8 +1524,6 @@ func (s *cSharpService) serveSendUnknownEnumJSON(ctx context.Context, w http.Res
 }
 
 func (s *cSharpService) serveKeywordsJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Keywords")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -1644,8 +1568,6 @@ func (s *cSharpService) serveKeywordsJSON(ctx context.Context, w http.ResponseWr
 }
 
 func (s *cSharpService) serveShadowJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Shadow")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -1690,8 +1612,6 @@ func (s *cSharpService) serveShadowJSON(ctx context.Context, w http.ResponseWrit
 }
 
 func (s *cSharpService) serveOptionalJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Optional")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -1737,7 +1657,6 @@ func (s *cSharpService) serveOptionalJSON(ctx context.Context, w http.ResponseWr
 }
 
 func (s *cSharpService) serveDeprecatedJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Deprecated")
 
 	// Call service method implementation.
 	ret0, err := s.CSharpServer.Deprecated(ctx)
@@ -1765,7 +1684,6 @@ func (s *cSharpService) serveDeprecatedJSON(ctx context.Context, w http.Response
 }
 
 func (s *cSharpService) serveGetShadowedJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetShadowed")
 
 	// Call service method implementation.
 	ret0, ret1, ret2, err := s.CSharpServer.GetShadowed(ctx)
@@ -1795,8 +1713,6 @@ func (s *cSharpService) serveGetShadowedJSON(ctx context.Context, w http.Respons
 }
 
 func (s *cSharpService) serveCountdownJSONStream(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Countdown")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -1854,8 +1770,6 @@ func (s *cSharpService) serveCountdownJSONStream(ctx context.Context, w http.Res
 }
 
 func (s *cSharpService) serveWatchJSONStream(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Watch")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -1910,8 +1824,6 @@ func (s *cSharpService) serveWatchJSONStream(ctx context.Context, w http.Respons
 }
 
 func (s *cSharpService) serveCountdownFailJSONStream(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "CountdownFail")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -1969,8 +1881,6 @@ func (s *cSharpService) serveCountdownFailJSONStream(ctx context.Context, w http
 }
 
 func (s *cSharpService) serveUploadTaggedMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "UploadTagged")
-
 	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
@@ -2021,7 +1931,6 @@ func (s *cSharpService) serveUploadTaggedMultipart(ctx context.Context, w http.R
 }
 
 func (s *cSharpService) serveHeadersJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Headers")
 
 	// Call service method implementation.
 	ret0, ret1, err := s.CSharpServer.Headers(ctx)
@@ -2050,8 +1959,6 @@ func (s *cSharpService) serveHeadersJSON(ctx context.Context, w http.ResponseWri
 }
 
 func (s *cSharpService) serveUploadDocMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "UploadDoc")
-
 	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
@@ -2113,8 +2020,6 @@ func (s *cSharpService) serveUploadDocMultipart(ctx context.Context, w http.Resp
 }
 
 func (s *cSharpService) serveAttachMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Attach")
-
 	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
@@ -2165,8 +2070,6 @@ func (s *cSharpService) serveAttachMultipart(ctx context.Context, w http.Respons
 }
 
 func (s *cSharpService) serveDownloadDocJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "DownloadDoc")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -2262,10 +2165,8 @@ func RespondWithError(w http.ResponseWriter, err error) {
 
 type sendErrorFunc func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
 
-func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O, error), sendError sendErrorFunc) func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func succinctHandler[I any, O any](fn func(context.Context, I) (O, error), sendError sendErrorFunc) func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
-
 		reqBody, err := io.ReadAll(r.Body)
 		if err != nil {
 			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -2520,6 +2421,31 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
+// reqCtx holds the per-request values in one allocation instead of four WithValue wrappers.
+type reqCtx struct {
+	context.Context
+	w       http.ResponseWriter
+	r       *http.Request
+	service any // string, pre-boxed so Value() does not allocate
+	method  any // string; nil until the method is known
+}
+
+func (c *reqCtx) Value(key any) any {
+	switch key {
+	case HTTPResponseWriterCtxKey:
+		return c.w
+	case HTTPRequestCtxKey:
+		return c.r
+	case ServiceNameCtxKey:
+		return c.service
+	case MethodNameCtxKey:
+		if c.method != nil {
+			return c.method
+		}
+	}
+	return c.Context.Value(key)
+}
+
 // Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...
 func PtrTo[T any](v T) *T { return &v }
 
@@ -2548,15 +2474,12 @@ func (p *restParams) values() map[string][]string {
 // routes with an empty response whose declared set contains 204 or 205 — they
 // never write a body or Content-Type.
 func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, status int, writeBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+	serviceV, methodV := any(service), any(method)
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Identify the route before user code can run: MethodCtx resolves the
 		// method from r.Pattern (the dispatcher already set the path values).
 		r.Pattern = pattern
-		ctx := r.Context()
-		ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-		ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-		ctx = context.WithValue(ctx, ServiceNameCtxKey, service)
-		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
+		ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: serviceV, method: methodV}
 		r = r.WithContext(ctx)
 
 		// A payload is detected without reading the body: ContentLength 0 means
