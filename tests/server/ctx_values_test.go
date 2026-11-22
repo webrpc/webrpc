@@ -54,8 +54,8 @@ func assertHandlerCtx(t *testing.T, ctx context.Context, method, service, path s
 	if got := ctx.Value(unrelatedKey{}); got != "outer" {
 		t.Errorf("outer middleware value = %v, want \"outer\"", got)
 	}
-	if got := MethodNameFromContext(context.WithValue(ctx, MethodNameCtxKey, "override")); got != "override" {
-		t.Errorf("MethodNameFromContext on derived ctx = %q, want \"override\"", got)
+	if got := MethodNameFromContext(context.WithValue(ctx, MethodNameCtxKey, "override")); got != method {
+		t.Errorf("MethodNameFromContext on derived ctx = %q, want %q (injected key ignored)", got, method)
 	}
 }
 
@@ -96,18 +96,18 @@ func TestHandlerCtxCancelsWithRequest(t *testing.T) {
 	NewTestApiRestServer(probe).ServeHTTP(httptest.NewRecorder(), req)
 }
 
-// A path absent from methods must fall through to the parent ctx, not report a stale name.
-func TestCtxServiceAndMethodFallThroughOnBadRoute(t *testing.T) {
+// A path absent from methods reports no name, even when the parent ctx carries an injected key.
+func TestCtxNamesEmptyOnBadRoute(t *testing.T) {
 	r := httptest.NewRequest("GET", "/rpc/NoSuchService/NoSuchMethod", nil)
 	parent := context.WithValue(context.Background(), MethodNameCtxKey, "parent")
 	ctx := &reqCtx{Context: parent, w: httptest.NewRecorder(), r: r}
 	if got := ServiceNameFromContext(ctx); got != "" {
 		t.Errorf("ServiceNameFromContext on bad route = %q, want \"\"", got)
 	}
-	if got := MethodNameFromContext(ctx); got != "parent" {
-		t.Errorf("MethodNameFromContext on bad route = %q, want parent value", got)
+	if got := MethodNameFromContext(ctx); got != "" {
+		t.Errorf("MethodNameFromContext on bad route = %q, want \"\"", got)
 	}
-	if got := MethodNameFromContext(parent); got != "parent" {
-		t.Errorf("MethodNameFromContext without a request = %q, want injected value", got)
+	if got := MethodNameFromContext(parent); got != "" {
+		t.Errorf("MethodNameFromContext without a request = %q, want \"\"", got)
 	}
 }

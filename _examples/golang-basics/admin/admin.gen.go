@@ -591,9 +591,6 @@ var (
 
 // Deprecated: use MethodCtx(ctx).
 func ServiceNameFromContext(ctx context.Context) string {
-	if v, ok := ctx.Value(ServiceNameCtxKey).(string); ok {
-		return v // set explicitly with context.WithValue
-	}
 	if m, ok := MethodCtx(ctx); ok {
 		return m.service
 	}
@@ -602,9 +599,6 @@ func ServiceNameFromContext(ctx context.Context) string {
 
 // Deprecated: use MethodCtx(ctx).
 func MethodNameFromContext(ctx context.Context) string {
-	if v, ok := ctx.Value(MethodNameCtxKey).(string); ok {
-		return v // set explicitly with context.WithValue
-	}
 	if m, ok := MethodCtx(ctx); ok {
 		return m.name
 	}
