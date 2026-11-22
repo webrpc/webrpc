@@ -2314,7 +2314,7 @@ var methods = map[string]*method{
 
 func MethodCtx(ctx context.Context) (*method, bool) {
 	req := RequestFromContext(ctx)
-	if req == nil {
+	if req == nil || req.URL == nil {
 		return nil, false
 	}
 
@@ -2425,7 +2425,7 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-// reqCtx holds the per-request values in one allocation instead of four WithValue wrappers.
+// reqCtx carries the response writer and request to handlers in one allocation.
 type reqCtx struct {
 	context.Context
 	w http.ResponseWriter

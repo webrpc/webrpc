@@ -47,7 +47,7 @@ func RequestFromContext(ctx context.Context) *http.Request {
 	return r
 }
 
-// reqCtx holds the per-request values in one allocation instead of four WithValue wrappers.
+// reqCtx carries the response writer and request to handlers in one allocation.
 type reqCtx struct {
 	context.Context
 	w http.ResponseWriter

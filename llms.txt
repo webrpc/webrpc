@@ -15,4 +15,5 @@
 
 ## Links
 - Documentation: https://github.com/webrpc/webrpc#readme
+- Migrating: https://github.com/webrpc/webrpc/blob/master/MIGRATING.md (breaking changes per release and how to migrate)
 - GitHub Repository: https://github.com/webrpc/webrpc

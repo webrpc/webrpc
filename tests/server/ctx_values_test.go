@@ -114,3 +114,17 @@ func TestMethodCtxResolvesInjectedRequest(t *testing.T) {
 		t.Errorf("MethodCtx = %v, %v, want RpcMethod on TestApiRest", m, ok)
 	}
 }
+
+// A request without a URL must not panic the name helpers.
+func TestMethodCtxNilURL(t *testing.T) {
+	ctx := context.WithValue(context.Background(), HTTPRequestCtxKey, &http.Request{})
+	if m, ok := MethodCtx(ctx); ok || m != nil {
+		t.Errorf("MethodCtx = %v, %v, want nil, false", m, ok)
+	}
+	if got := MethodNameFromContext(ctx); got != "" {
+		t.Errorf("MethodNameFromContext = %q, want \"\"", got)
+	}
+	if got := ServiceNameFromContext(ctx); got != "" {
+		t.Errorf("ServiceNameFromContext = %q, want \"\"", got)
+	}
+}

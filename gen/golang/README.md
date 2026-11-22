@@ -155,21 +155,9 @@ The full route is `{basepath}{route.path}`, here `GET /api/users/{id}`. Route pa
 - Routes need Go 1.23+ (they use `Request.Pattern`).
 - The JavaScript, Kotlin, Dart, Swift and OpenAPI targets exit with an error on routed methods.
 
-## Migrating from MethodNameCtxKey / ServiceNameCtxKey
+## Migrating
 
-The generated server no longer stores the service and method name in the request context.
-`MethodCtx(ctx)` resolves them from the request instead.
-
-- `ctx.Value(MethodNameCtxKey)` or `MethodNameFromContext(ctx)` becomes `MethodCtx(ctx)`, then `m.Name()`.
-- `ctx.Value(ServiceNameCtxKey)` or `ServiceNameFromContext(ctx)` becomes `MethodCtx(ctx)`, then `m.Service()`.
-- `MethodNameFromContext` and `ServiceNameFromContext` still work, but are deprecated.
-- Tests that injected a name with `context.WithValue` inject a request instead:
-
-```go
-r := httptest.NewRequest("POST", "/Example/Ping", nil)
-ctx := context.WithValue(context.Background(), HTTPRequestCtxKey, r)
-m, ok := MethodCtx(ctx) // m.Name() == "Ping", m.Service() == "Example"
-```
+Breaking changes and how to migrate are listed per release in [MIGRATING.md](../../MIGRATING.md).
 
 ## Examples
 
