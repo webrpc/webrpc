@@ -95,14 +95,14 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 		OnError:             opts.OnError,
 		OnRequest:           opts.OnRequest,
 	}
-	server.restIndex = restHandler("GET /{$}", "RestOverrides", "Index", false, false, 200, true,
+	server.restIndex = restHandler("GET /{$}", false, false, 200, true,
 		func(ctx context.Context, req restOverridesServiceIndexArgs) (restOverridesServiceIndexResult, error) {
 			err := server.RestOverridesServer.Index(ctx)
 			return restOverridesServiceIndexResult{}, err
 		},
 		nil,
 		server.sendErrorJSON, &server.OnRequest)
-	server.restSearch = restHandler("GET /by/{lbl}", "RestOverrides", "Search", false, false, 200, true,
+	server.restSearch = restHandler("GET /by/{lbl}", false, false, 200, true,
 		server.RestOverridesServer.Search,
 		func(p *restParams, req *SearchRequest) error {
 			if err := restPath(p, "lbl", "string", &req.Key, restJSONString); err != nil {
@@ -117,7 +117,7 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restScale = restHandler("GET /scale/{factor}", "RestOverrides", "Scale", false, false, 200, true,
+	server.restScale = restHandler("GET /scale/{factor}", false, false, 200, true,
 		func(ctx context.Context, req restOverridesServiceScaleArgs) (restOverridesServiceScaleResult, error) {
 			ret0, err := server.RestOverridesServer.Scale(ctx, req.Arg0)
 			return restOverridesServiceScaleResult{Ret0: ret0}, err
@@ -129,7 +129,7 @@ func NewRestOverridesServer(svc RestOverridesServer, options ...*Options) *restO
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restScaleGet = restHandler("GET /scale/{factor}/half", "RestOverrides", "Scale", false, false, 200, true,
+	server.restScaleGet = restHandler("GET /scale/{factor}/half", false, false, 200, true,
 		func(ctx context.Context, req restOverridesServiceScaleArgs) (restOverridesServiceScaleResult, error) {
 			ret0, err := server.RestOverridesServer.Scale(ctx, req.Arg0)
 			return restOverridesServiceScaleResult{Ret0: ret0}, err
@@ -295,7 +295,7 @@ var methods = map[string]*method{
 
 func MethodCtx(ctx context.Context) (*method, bool) {
 	req := RequestFromContext(ctx)
-	if req == nil {
+	if req == nil || req.URL == nil {
 		return nil, false
 	}
 
@@ -366,24 +366,45 @@ func (k *contextKey) String() string {
 
 var (
 	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"}
-	MethodNameCtxKey         = &contextKey{"MethodName"}
 	HTTPRequestCtxKey        = &contextKey{"HTTPRequest"}
-	ServiceNameCtxKey        = &contextKey{"ServiceName"}
 )
 
+// Deprecated: use MethodCtx(ctx) and its Service().
 func ServiceNameFromContext(ctx context.Context) string {
-	service, _ := ctx.Value(ServiceNameCtxKey).(string)
-	return service
+	if m, ok := MethodCtx(ctx); ok {
+		return m.service
+	}
+	return ""
 }
 
+// Deprecated: use MethodCtx(ctx) and its Name().
 func MethodNameFromContext(ctx context.Context) string {
-	method, _ := ctx.Value(MethodNameCtxKey).(string)
-	return method
+	if m, ok := MethodCtx(ctx); ok {
+		return m.name
+	}
+	return ""
 }
 
 func RequestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	return r
+}
+
+// reqCtx carries the response writer and request to handlers in one allocation.
+type reqCtx struct {
+	context.Context
+	w http.ResponseWriter
+	r *http.Request
+}
+
+func (c *reqCtx) Value(key any) any {
+	switch key {
+	case HTTPResponseWriterCtxKey:
+		return c.w
+	case HTTPRequestCtxKey:
+		return c.r
+	}
+	return c.Context.Value(key)
 }
 
 // Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...
@@ -413,16 +434,12 @@ func (p *restParams) values() map[string][]string {
 // ResponseWriterFromContext(ctx) on multi-code routes. writeBody is false for
 // routes with an empty response whose declared set contains 204 or 205 — they
 // never write a body or Content-Type.
-func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, status int, writeBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+func restHandler[I, O any](pattern string, hasBody bool, hasBodyFields bool, status int, writeBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Identify the route before user code can run: MethodCtx resolves the
 		// method from r.Pattern (the dispatcher already set the path values).
 		r.Pattern = pattern
-		ctx := r.Context()
-		ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-		ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-		ctx = context.WithValue(ctx, ServiceNameCtxKey, service)
-		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
+		ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 		r = r.WithContext(ctx)
 
 		// A payload is detected without reading the body: ContentLength 0 means

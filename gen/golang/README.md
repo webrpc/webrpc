@@ -155,6 +155,10 @@ The full route is `{basepath}{route.path}`, here `GET /api/users/{id}`. Route pa
 - Routes need Go 1.23+ (they use `Request.Pattern`).
 - The JavaScript, Kotlin, Dart, Swift and OpenAPI targets exit with an error on routed methods.
 
+## Migrating
+
+Breaking changes and how to migrate are listed per release in [MIGRATING.md](../../MIGRATING.md).
+
 ## Examples
 
 See [_examples](./_examples)

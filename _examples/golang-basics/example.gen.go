@@ -527,11 +527,7 @@ func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "Example")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
@@ -544,9 +540,9 @@ func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/v1/Example/Version":
 		handler = s.serveVersionJSON
 	case "/v1/Example/GetUser":
-		handler = succinctHandler("GetUser", s.ExampleServer.GetUser, s.sendErrorJSON)
+		handler = succinctHandler(s.ExampleServer.GetUser, s.sendErrorJSON)
 	case "/v1/Example/GetUserV2":
-		handler = succinctHandler("GetUserV2", s.ExampleServer.GetUserV2, s.sendErrorJSON)
+		handler = succinctHandler(s.ExampleServer.GetUserV2, s.sendErrorJSON)
 	case "/v1/Example/FindUser":
 		handler = s.serveFindUserJSON
 	case "/v1/Example/GetIntents":
@@ -598,7 +594,6 @@ func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Ping")
 
 	// Call service method implementation.
 	err := s.ExampleServer.Ping(ctx)
@@ -617,7 +612,6 @@ func (s *exampleService) servePingJSON(ctx context.Context, w http.ResponseWrite
 }
 
 func (s *exampleService) serveStatusJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Status")
 
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.Status(ctx)
@@ -645,7 +639,6 @@ func (s *exampleService) serveStatusJSON(ctx context.Context, w http.ResponseWri
 }
 
 func (s *exampleService) serveVersionJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "Version")
 
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.Version(ctx)
@@ -673,8 +666,6 @@ func (s *exampleService) serveVersionJSON(ctx context.Context, w http.ResponseWr
 }
 
 func (s *exampleService) serveFindUserJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "FindUser")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -717,7 +708,6 @@ func (s *exampleService) serveFindUserJSON(ctx context.Context, w http.ResponseW
 }
 
 func (s *exampleService) serveGetIntentsJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "GetIntents")
 
 	// Call service method implementation.
 	ret0, err := s.ExampleServer.GetIntents(ctx)
@@ -745,8 +735,6 @@ func (s *exampleService) serveGetIntentsJSON(ctx context.Context, w http.Respons
 }
 
 func (s *exampleService) serveCountIntentsJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "CountIntents")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -788,8 +776,6 @@ func (s *exampleService) serveCountIntentsJSON(ctx context.Context, w http.Respo
 }
 
 func (s *exampleService) serveUploadAvatarMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "UploadAvatar")
-
 	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
@@ -840,8 +826,6 @@ func (s *exampleService) serveUploadAvatarMultipart(ctx context.Context, w http.
 }
 
 func (s *exampleService) serveDownloadAvatarJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "DownloadAvatar")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -917,10 +901,8 @@ func RespondWithError(w http.ResponseWriter, err error) {
 
 type sendErrorFunc func(w http.ResponseWriter, r *http.Request, rpcErr WebRPCError)
 
-func succinctHandler[I any, O any](method string, fn func(context.Context, I) (O, error), sendError sendErrorFunc) func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func succinctHandler[I any, O any](fn func(context.Context, I) (O, error), sendError sendErrorFunc) func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-		ctx = context.WithValue(ctx, MethodNameCtxKey, method)
-
 		reqBody, err := io.ReadAll(r.Body)
 		if err != nil {
 			sendError(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -1023,7 +1005,7 @@ var methods = map[string]*method{
 
 func MethodCtx(ctx context.Context) (*method, bool) {
 	req := RequestFromContext(ctx)
-	if req == nil {
+	if req == nil || req.URL == nil {
 		return nil, false
 	}
 
@@ -1230,24 +1212,45 @@ var (
 
 var (
 	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"}
-	MethodNameCtxKey         = &contextKey{"MethodName"}
 	HTTPRequestCtxKey        = &contextKey{"HTTPRequest"}
-	ServiceNameCtxKey        = &contextKey{"ServiceName"}
 )
 
+// Deprecated: use MethodCtx(ctx) and its Service().
 func ServiceNameFromContext(ctx context.Context) string {
-	service, _ := ctx.Value(ServiceNameCtxKey).(string)
-	return service
+	if m, ok := MethodCtx(ctx); ok {
+		return m.service
+	}
+	return ""
 }
 
+// Deprecated: use MethodCtx(ctx) and its Name().
 func MethodNameFromContext(ctx context.Context) string {
-	method, _ := ctx.Value(MethodNameCtxKey).(string)
-	return method
+	if m, ok := MethodCtx(ctx); ok {
+		return m.name
+	}
+	return ""
 }
 
 func RequestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	return r
+}
+
+// reqCtx carries the response writer and request to handlers in one allocation.
+type reqCtx struct {
+	context.Context
+	w http.ResponseWriter
+	r *http.Request
+}
+
+func (c *reqCtx) Value(key any) any {
+	switch key {
+	case HTTPResponseWriterCtxKey:
+		return c.w
+	case HTTPRequestCtxKey:
+		return c.r
+	}
+	return c.Context.Value(key)
 }
 
 // Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...

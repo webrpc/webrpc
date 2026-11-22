@@ -45,6 +45,32 @@ func TestSubscribe(t *testing.T) {
 	assert.ErrorIs(t, err, ErrWebrpcStreamFinished)
 }
 
+// ctxStreamStub checks the method the handler ctx resolves for a streaming call.
+type ctxStreamStub struct {
+	StreamServiceServer
+	t *testing.T
+}
+
+func (s ctxStreamStub) Subscribe(ctx context.Context, channel string, stream SubscribeStreamWriter) error {
+	m, ok := MethodCtx(ctx)
+	if !ok || m.Name() != "Subscribe" || m.Service() != "StreamService" {
+		s.t.Errorf("MethodCtx = %v, %v, want Subscribe on StreamService", m, ok)
+	}
+	return stream.Write(channel)
+}
+
+func TestSubscribeHandlerCtx(t *testing.T) {
+	srv := httptest.NewServer(NewStreamServiceServer(ctxStreamStub{t: t}))
+	defer srv.Close()
+
+	stream, err := NewStreamServiceClient(srv.URL, srv.Client()).Subscribe(context.Background(), "news")
+	require.NoError(t, err)
+
+	msg, err := stream.Read()
+	require.NoError(t, err)
+	assert.Equal(t, "news", msg)
+}
+
 func TestSubscribeEndpointError(t *testing.T) {
 	srv := httptest.NewServer(NewStreamServiceServer(streamStub{err: errors.New("boom")}))
 	defer srv.Close()

@@ -104,3 +104,31 @@ func TestUploadFilesWithoutJsonPart(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, string(respBody))
 	assert.Contains(t, string(respBody), `must declare \"files\" as a JSON array with one null per file part`)
 }
+
+// uploadCtxServer checks the method the handler ctx resolves for a multipart call.
+type uploadCtxServer struct {
+	*server.TestServer
+}
+
+func (s *uploadCtxServer) UploadFiles(ctx context.Context, files []*server.WebrpcFile) (uint32, error) {
+	m, ok := server.MethodCtx(ctx)
+	if !ok || m.Name() != "UploadFiles" || m.Service() != "TestApi" {
+		return 0, fmt.Errorf("MethodCtx = %v, %v, want UploadFiles on TestApi", m, ok)
+	}
+	return uint32(len(files)), nil
+}
+
+func TestUploadFilesHandlerCtx(t *testing.T) {
+	srv := httptest.NewServer(server.NewTestApiServer(&uploadCtxServer{&server.TestServer{}}))
+	defer srv.Close()
+
+	api := client.NewTestApiClient(srv.URL, &http.Client{})
+	count, err := api.UploadFiles(context.Background(), []*client.WebrpcFile{{
+		Name:        "a.txt",
+		ContentType: "text/plain",
+		Size:        1,
+		Body:        io.NopCloser(bytes.NewReader([]byte("a"))),
+	}})
+	assert.NoError(t, err)
+	assert.Equal(t, uint32(1), count)
+}

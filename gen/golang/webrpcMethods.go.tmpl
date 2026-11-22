@@ -46,7 +46,7 @@ var methods = map[string]*method{
 
 func MethodCtx(ctx context.Context) (*method, bool) {
 	req := RequestFromContext(ctx)
-	if req == nil {
+	if req == nil || req.URL == nil {
 		return nil, false
 	}
 

@@ -373,11 +373,7 @@ func (s *chatService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, HTTPResponseWriterCtxKey, w)
-	ctx = context.WithValue(ctx, HTTPRequestCtxKey, r)
-	ctx = context.WithValue(ctx, ServiceNameCtxKey, "Chat")
-
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
@@ -426,8 +422,6 @@ func (s *chatService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *chatService) serveSendMessageJSON(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "SendMessage")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -461,8 +455,6 @@ func (s *chatService) serveSendMessageJSON(ctx context.Context, w http.ResponseW
 }
 
 func (s *chatService) serveSubscribeMessagesJSONStream(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	ctx = context.WithValue(ctx, MethodNameCtxKey, "SubscribeMessages")
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		s.sendErrorJSON(w, r, ErrWebrpcBadRequest.WithCausef("failed to read request data: %w", err))
@@ -597,7 +589,7 @@ var methods = map[string]*method{
 
 func MethodCtx(ctx context.Context) (*method, bool) {
 	req := RequestFromContext(ctx)
-	if req == nil {
+	if req == nil || req.URL == nil {
 		return nil, false
 	}
 
@@ -796,24 +788,45 @@ var (
 
 var (
 	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"}
-	MethodNameCtxKey         = &contextKey{"MethodName"}
 	HTTPRequestCtxKey        = &contextKey{"HTTPRequest"}
-	ServiceNameCtxKey        = &contextKey{"ServiceName"}
 )
 
+// Deprecated: use MethodCtx(ctx) and its Service().
 func ServiceNameFromContext(ctx context.Context) string {
-	service, _ := ctx.Value(ServiceNameCtxKey).(string)
-	return service
+	if m, ok := MethodCtx(ctx); ok {
+		return m.service
+	}
+	return ""
 }
 
+// Deprecated: use MethodCtx(ctx) and its Name().
 func MethodNameFromContext(ctx context.Context) string {
-	method, _ := ctx.Value(MethodNameCtxKey).(string)
-	return method
+	if m, ok := MethodCtx(ctx); ok {
+		return m.name
+	}
+	return ""
 }
 
 func RequestFromContext(ctx context.Context) *http.Request {
 	r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request)
 	return r
+}
+
+// reqCtx carries the response writer and request to handlers in one allocation.
+type reqCtx struct {
+	context.Context
+	w http.ResponseWriter
+	r *http.Request
+}
+
+func (c *reqCtx) Value(key any) any {
+	switch key {
+	case HTTPResponseWriterCtxKey:
+		return c.w
+	case HTTPRequestCtxKey:
+		return c.r
+	}
+	return c.Context.Value(key)
 }
 
 // Deprecated: Use Go 1.26's new(expr). Migrate automatically with: go fix ./...
