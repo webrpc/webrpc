@@ -8,10 +8,11 @@ multi-ecosystem-groups:
       interval: "weekly"
 
 updates:
-  # Root module + every _examples/* module.
+  # Root module, tests/sonic, and every _examples/* module.
   - package-ecosystem: "gomod"
     directories:
       - "/"
+      - "/tests/sonic"
       - "/_examples/**"
     patterns: ["*"]
     multi-ecosystem-group: "all-dependencies"

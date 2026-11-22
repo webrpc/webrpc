@@ -42,6 +42,28 @@ Example:
 webrpc-gen -schema=./proto.json -target=golang -out server.gen.go -pkg=main -server
 ```
 
+## JSON wire-format guarantees
+
+The encoder decides what a nil slice, a nil map or a zero `time.Time` looks like on the wire.
+Generated Go output that talks to JavaScript should never send `null` where the schema says `list` or `map`.
+
+| Field state | stdlib (default) | sonic (`-json=sonic`) | v2 (`-json=v2`) |
+|---|---|---|---|
+| required scalar/string unset | `0` / `""` / `false` | same | same |
+| required time.Time zero | renders `"0001-01-01T00:00:00Z"` | renders | renders |
+| required list nil | `null` | `[]` | `[]` |
+| required map nil | `null` | `{}` | `{}` |
+| required struct `&T{}` | object with zero-value fields | same | same |
+| required struct nil | `null` | `null` | `null` |
+| optional (`?`) unset | key omitted | omitted | omitted |
+
+- JS-facing services: use `-json=sonic` or `-json=v2`. Nil required containers render `[]`/`{}` instead of `null`.
+- Required struct fields must be initialized (`&T{}`). A nil struct renders `null` under every encoder.
+- Optional pointers get `,omitempty`; optional lists and maps get `,omitzero`, so a non-nil empty collection is still sent.
+- `-json=v2` renders nil required containers as `[]`/`{}`, like sonic, and keeps v1 decoding behavior.
+- The stdlib encoder renders **nil** slices and maps as `null`; empty-but-non-nil ones render `[]`/`{}`.
+  The `-fixEmptyArrays` option patches `null` arrays at runtime with reflect (see Go [#27589][go27589]).
+
 ## Set custom Go field meta tags in your RIDL file
 
 | CLI option flag                              | Description                                                      |
