@@ -458,14 +458,10 @@ func (k *contextKey) String() string {
 
 var (
 	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"}
-	// Deprecated: use MethodCtx(ctx).
-	MethodNameCtxKey  = &contextKey{"MethodName"}
-	HTTPRequestCtxKey = &contextKey{"HTTPRequest"}
-	// Deprecated: use MethodCtx(ctx).
-	ServiceNameCtxKey = &contextKey{"ServiceName"}
+	HTTPRequestCtxKey        = &contextKey{"HTTPRequest"}
 )
 
-// Deprecated: use MethodCtx(ctx).
+// Deprecated: use MethodCtx(ctx) and its Service().
 func ServiceNameFromContext(ctx context.Context) string {
 	if m, ok := MethodCtx(ctx); ok {
 		return m.service
@@ -473,7 +469,7 @@ func ServiceNameFromContext(ctx context.Context) string {
 	return ""
 }
 
-// Deprecated: use MethodCtx(ctx).
+// Deprecated: use MethodCtx(ctx) and its Name().
 func MethodNameFromContext(ctx context.Context) string {
 	if m, ok := MethodCtx(ctx); ok {
 		return m.name

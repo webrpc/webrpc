@@ -41,10 +41,6 @@ func assertHandlerCtx(t *testing.T, ctx context.Context, method, service, path s
 	if got := ServiceNameFromContext(ctx); got != service {
 		t.Errorf("ServiceNameFromContext = %q, want %q", got, service)
 	}
-	// The names live in the methods table, not in ctx: only the helpers resolve them.
-	if m, s := ctx.Value(MethodNameCtxKey), ctx.Value(ServiceNameCtxKey); m != nil || s != nil {
-		t.Errorf("ctx.Value(MethodNameCtxKey, ServiceNameCtxKey) = %v, %v, want nil, nil", m, s)
-	}
 	if r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request); r == nil || r.URL.Path != path {
 		t.Errorf("ctx.Value(HTTPRequestCtxKey) = %v, want request for %q", r, path)
 	}
@@ -53,9 +49,6 @@ func assertHandlerCtx(t *testing.T, ctx context.Context, method, service, path s
 	}
 	if got := ctx.Value(unrelatedKey{}); got != "outer" {
 		t.Errorf("outer middleware value = %v, want \"outer\"", got)
-	}
-	if got := MethodNameFromContext(context.WithValue(ctx, MethodNameCtxKey, "override")); got != method {
-		t.Errorf("MethodNameFromContext on derived ctx = %q, want %q (injected key ignored)", got, method)
 	}
 }
 
@@ -96,10 +89,10 @@ func TestHandlerCtxCancelsWithRequest(t *testing.T) {
 	NewTestApiRestServer(probe).ServeHTTP(httptest.NewRecorder(), req)
 }
 
-// A path absent from methods reports no name, even when the parent ctx carries an injected key.
+// A path absent from methods reports no name.
 func TestCtxNamesEmptyOnBadRoute(t *testing.T) {
 	r := httptest.NewRequest("GET", "/rpc/NoSuchService/NoSuchMethod", nil)
-	parent := context.WithValue(context.Background(), MethodNameCtxKey, "parent")
+	parent := context.Background()
 	ctx := &reqCtx{Context: parent, w: httptest.NewRecorder(), r: r}
 	if got := ServiceNameFromContext(ctx); got != "" {
 		t.Errorf("ServiceNameFromContext on bad route = %q, want \"\"", got)
@@ -109,5 +102,15 @@ func TestCtxNamesEmptyOnBadRoute(t *testing.T) {
 	}
 	if got := MethodNameFromContext(parent); got != "" {
 		t.Errorf("MethodNameFromContext without a request = %q, want \"\"", got)
+	}
+}
+
+// Injecting the request, not a name, lets MethodCtx resolve a real method.
+func TestMethodCtxResolvesInjectedRequest(t *testing.T) {
+	r := httptest.NewRequest("POST", "/rpc/TestApiRest/RpcMethod", nil)
+	ctx := context.WithValue(context.Background(), HTTPRequestCtxKey, r)
+	m, ok := MethodCtx(ctx)
+	if !ok || m.Name() != "RpcMethod" || m.Service() != "TestApiRest" {
+		t.Errorf("MethodCtx = %v, %v, want RpcMethod on TestApiRest", m, ok)
 	}
 }
