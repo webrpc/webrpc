@@ -7,6 +7,7 @@ package admin
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -153,12 +154,11 @@ type adminService struct {
 }
 
 func NewAdminServer(svc AdminServer, options ...*Options) *adminService {
+	opts := cmp.Or(cmp.Or(options...), &Options{})
 	server := &adminService{
 		AdminServer: svc,
-	}
-	if len(options) > 0 && options[0] != nil {
-		server.OnError = options[0].OnError
-		server.OnRequest = options[0].OnRequest
+		OnError:     opts.OnError,
+		OnRequest:   opts.OnRequest,
 	}
 	return server
 }

@@ -7,6 +7,7 @@ package main
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -503,13 +504,12 @@ type exampleService struct {
 }
 
 func NewExampleServer(svc ExampleServer, options ...*Options) *exampleService {
+	opts := cmp.Or(cmp.Or(options...), &Options{})
 	server := &exampleService{
 		ExampleServer: svc,
-	}
-	if len(options) > 0 && options[0] != nil {
-		server.OnError = options[0].OnError
-		server.OnRequest = options[0].OnRequest
-		server.MaxUploadSize = options[0].MaxUploadSize
+		OnError:       opts.OnError,
+		OnRequest:     opts.OnRequest,
+		MaxUploadSize: cmp.Or(opts.MaxUploadSize, DefaultMaxUploadSize),
 	}
 	return server
 }
@@ -790,11 +790,7 @@ func (s *exampleService) serveCountIntentsJSON(ctx context.Context, w http.Respo
 func (s *exampleService) serveUploadAvatarMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "UploadAvatar")
 
-	maxUploadSize := s.MaxUploadSize
-	if maxUploadSize <= 0 {
-		maxUploadSize = DefaultMaxUploadSize
-	}
-	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
 	// may be absent when the method has no non-file arguments) followed by

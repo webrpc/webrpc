@@ -6,6 +6,7 @@
 package server
 
 import (
+	"cmp"
 	"context"
 	"encoding"
 	"encoding/json"
@@ -322,13 +323,12 @@ type testApiService struct {
 }
 
 func NewTestApiServer(svc TestApiServer, options ...*Options) *testApiService {
+	opts := cmp.Or(cmp.Or(options...), &Options{})
 	server := &testApiService{
 		TestApiServer: svc,
-	}
-	if len(options) > 0 && options[0] != nil {
-		server.OnError = options[0].OnError
-		server.OnRequest = options[0].OnRequest
-		server.MaxUploadSize = options[0].MaxUploadSize
+		OnError:       opts.OnError,
+		OnRequest:     opts.OnRequest,
+		MaxUploadSize: cmp.Or(opts.MaxUploadSize, DefaultMaxUploadSize),
 	}
 	return server
 }
@@ -749,11 +749,7 @@ func (s *testApiService) serveGetSchemaErrorJSON(ctx context.Context, w http.Res
 func (s *testApiService) serveUploadFileMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "UploadFile")
 
-	maxUploadSize := s.MaxUploadSize
-	if maxUploadSize <= 0 {
-		maxUploadSize = DefaultMaxUploadSize
-	}
-	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
 	// may be absent when the method has no non-file arguments) followed by
@@ -811,11 +807,7 @@ func (s *testApiService) serveUploadFileMultipart(ctx context.Context, w http.Re
 func (s *testApiService) serveUploadFilesMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "UploadFiles")
 
-	maxUploadSize := s.MaxUploadSize
-	if maxUploadSize <= 0 {
-		maxUploadSize = DefaultMaxUploadSize
-	}
-	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
 	// may be absent when the method has no non-file arguments) followed by
@@ -908,11 +900,7 @@ func (s *testApiService) serveDownloadFileJSON(ctx context.Context, w http.Respo
 func (s *testApiService) serveEchoFileMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "EchoFile")
 
-	maxUploadSize := s.MaxUploadSize
-	if maxUploadSize <= 0 {
-		maxUploadSize = DefaultMaxUploadSize
-	}
-	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
 	// may be absent when the method has no non-file arguments) followed by
@@ -996,12 +984,11 @@ type testApiRestService struct {
 }
 
 func NewTestApiRestServer(svc TestApiRestServer, options ...*Options) *testApiRestService {
+	opts := cmp.Or(cmp.Or(options...), &Options{})
 	server := &testApiRestService{
 		TestApiRestServer: svc,
-	}
-	if len(options) > 0 && options[0] != nil {
-		server.OnError = options[0].OnError
-		server.OnRequest = options[0].OnRequest
+		OnError:           opts.OnError,
+		OnRequest:         opts.OnRequest,
 	}
 	server.restGetItem = restHandler("GET /rpc/items/{id}", "TestApiRest", "GetItem", false, false, 200, true,
 		server.TestApiRestServer.GetItem,

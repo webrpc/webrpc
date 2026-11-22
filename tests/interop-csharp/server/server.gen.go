@@ -6,6 +6,7 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"database/sql/driver"
 	"encoding/json"
@@ -143,19 +144,20 @@ type jsonEncoder interface {
 	Encode(v any) error
 }
 
-// StreamKeepAliveInterval is the stream ping period. Zero or negative disables keepalive.
-// It must not be changed while streams are being served.
-var StreamKeepAliveInterval = 10 * time.Second
+// DefaultStreamKeepAliveInterval is the stream ping period when
+// Options.StreamKeepAliveInterval is not set.
+const DefaultStreamKeepAliveInterval = 10 * time.Second
 
-// keepAlive pings the client every interval. A failed ping cancels ctx,
-// so a service method waiting on ctx learns that the client is gone.
+// keepAlive pings the client every interval, never when it is negative.
+// A failed ping cancels ctx, so a service method waiting on ctx learns that
+// the client is gone.
 // The returned stop function ends the pings and closes w.
 func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc, interval time.Duration) (stop func()) {
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
 
-		if interval <= 0 {
+		if interval < 0 {
 			return
 		}
 
@@ -565,26 +567,30 @@ type Options struct {
 	// MaxUploadSize caps multipart/form-data request bodies of file upload
 	// methods. Defaults to DefaultMaxUploadSize when zero.
 	MaxUploadSize int64
+	// StreamKeepAliveInterval is the stream ping period. Defaults to
+	// DefaultStreamKeepAliveInterval when zero. Negative disables keepalive.
+	StreamKeepAliveInterval time.Duration
 }
 
 type cSharpService struct {
 	CSharpServer
-	OnError       func(r *http.Request, rpcErr *WebRPCError)
-	OnRequest     func(w http.ResponseWriter, r *http.Request) error
-	MaxUploadSize int64
+	OnError                 func(r *http.Request, rpcErr *WebRPCError)
+	OnRequest               func(w http.ResponseWriter, r *http.Request) error
+	MaxUploadSize           int64
+	StreamKeepAliveInterval time.Duration
 
 	restGetByName http.HandlerFunc
 	restGetTagged http.HandlerFunc
 }
 
 func NewCSharpServer(svc CSharpServer, options ...*Options) *cSharpService {
+	opts := cmp.Or(cmp.Or(options...), &Options{})
 	server := &cSharpService{
-		CSharpServer: svc,
-	}
-	if len(options) > 0 && options[0] != nil {
-		server.OnError = options[0].OnError
-		server.OnRequest = options[0].OnRequest
-		server.MaxUploadSize = options[0].MaxUploadSize
+		CSharpServer:            svc,
+		OnError:                 opts.OnError,
+		OnRequest:               opts.OnRequest,
+		MaxUploadSize:           cmp.Or(opts.MaxUploadSize, DefaultMaxUploadSize),
+		StreamKeepAliveInterval: cmp.Or(opts.StreamKeepAliveInterval, DefaultStreamKeepAliveInterval),
 	}
 	server.restGetByName = restHandler("GET /rpc/names/{name}", "CSharp", "GetByName", false, false, 200, true,
 		func(ctx context.Context, req cSharpServiceGetByNameArgs) (cSharpServiceGetByNameResult, error) {
@@ -1827,7 +1833,7 @@ func (s *cSharpService) serveCountdownJSONStream(ctx context.Context, w http.Res
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	stop := streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval)
+	stop := streamWriter.keepAlive(ctx, cancel, s.StreamKeepAliveInterval)
 	defer stop()
 
 	// Call service method implementation.
@@ -1883,7 +1889,7 @@ func (s *cSharpService) serveWatchJSONStream(ctx context.Context, w http.Respons
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	stop := streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval)
+	stop := streamWriter.keepAlive(ctx, cancel, s.StreamKeepAliveInterval)
 	defer stop()
 
 	// Call service method implementation.
@@ -1942,7 +1948,7 @@ func (s *cSharpService) serveCountdownFailJSONStream(ctx context.Context, w http
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	stop := streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval)
+	stop := streamWriter.keepAlive(ctx, cancel, s.StreamKeepAliveInterval)
 	defer stop()
 
 	// Call service method implementation.
@@ -1965,11 +1971,7 @@ func (s *cSharpService) serveCountdownFailJSONStream(ctx context.Context, w http
 func (s *cSharpService) serveUploadTaggedMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "UploadTagged")
 
-	maxUploadSize := s.MaxUploadSize
-	if maxUploadSize <= 0 {
-		maxUploadSize = DefaultMaxUploadSize
-	}
-	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
 	// may be absent when the method has no non-file arguments) followed by
@@ -2050,11 +2052,7 @@ func (s *cSharpService) serveHeadersJSON(ctx context.Context, w http.ResponseWri
 func (s *cSharpService) serveUploadDocMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "UploadDoc")
 
-	maxUploadSize := s.MaxUploadSize
-	if maxUploadSize <= 0 {
-		maxUploadSize = DefaultMaxUploadSize
-	}
-	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
 	// may be absent when the method has no non-file arguments) followed by
@@ -2117,11 +2115,7 @@ func (s *cSharpService) serveUploadDocMultipart(ctx context.Context, w http.Resp
 func (s *cSharpService) serveAttachMultipart(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	ctx = context.WithValue(ctx, MethodNameCtxKey, "Attach")
 
-	maxUploadSize := s.MaxUploadSize
-	if maxUploadSize <= 0 {
-		maxUploadSize = DefaultMaxUploadSize
-	}
-	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
+	r.Body = http.MaxBytesReader(w, r.Body, s.MaxUploadSize)
 
 	// Read the parts sequentially off the wire: the leading "json" part (it
 	// may be absent when the method has no non-file arguments) followed by

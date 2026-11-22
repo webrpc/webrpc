@@ -7,6 +7,7 @@ package main
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -198,12 +199,11 @@ type exampleAPIService struct {
 }
 
 func NewExampleAPIServer(svc ExampleAPIServer, options ...*Options) *exampleAPIService {
+	opts := cmp.Or(cmp.Or(options...), &Options{})
 	server := &exampleAPIService{
 		ExampleAPIServer: svc,
-	}
-	if len(options) > 0 && options[0] != nil {
-		server.OnError = options[0].OnError
-		server.OnRequest = options[0].OnRequest
+		OnError:          opts.OnError,
+		OnRequest:        opts.OnRequest,
 	}
 	return server
 }
