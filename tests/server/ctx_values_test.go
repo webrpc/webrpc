@@ -41,6 +41,11 @@ func assertHandlerCtx(t *testing.T, ctx context.Context, method, service, path s
 	if got := ServiceNameFromContext(ctx); got != service {
 		t.Errorf("ServiceNameFromContext = %q, want %q", got, service)
 	}
+	child, cancel := context.WithCancel(ctx)
+	defer cancel()
+	if got := MethodNameFromContext(child); got != method {
+		t.Errorf("MethodNameFromContext(child) = %q, want %q", got, method)
+	}
 	if r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request); r == nil || r.URL.Path != path {
 		t.Errorf("ctx.Value(HTTPRequestCtxKey) = %v, want request for %q", r, path)
 	}

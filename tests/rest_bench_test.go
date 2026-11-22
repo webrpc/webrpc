@@ -33,6 +33,9 @@ func newGetItemRequest(tb testing.TB) (http.Handler, *http.Request, *discardWrit
 
 // TestRestGetItemAllocs guards the allocation budget that BenchmarkRestGetItem reports.
 func TestRestGetItemAllocs(t *testing.T) {
+	if raceEnabled {
+		t.Skip("allocation counts differ under -race")
+	}
 	srv, req, w := newGetItemRequest(t)
 	allocs := testing.AllocsPerRun(100, func() {
 		clear(w.header)
@@ -101,23 +104,19 @@ func BenchmarkRPCGetEmpty(b *testing.B) {
 
 // BenchmarkRpcPost measures the plain RPC POST path with a rewound body per request.
 func BenchmarkRpcPost(b *testing.B) {
-	srv := server.NewTestApiRestServer(newRpcPostImpl(b))
+	srv := server.NewTestApiRestServer(newBenchImpl(b))
 	benchRpcPost(b, srv, context.Background())
 }
 
 // BenchmarkRpcPostReadCtx adds per-request ctx reads in the service method.
 func BenchmarkRpcPostReadCtx(b *testing.B) {
-	srv := server.NewTestApiRestServer(readCtxServer{newRpcPostImpl(b)})
+	srv := server.NewTestApiRestServer(readCtxServer{newBenchImpl(b)})
 	benchRpcPost(b, srv, outerValueCtx())
 }
 
 // BenchmarkRestGetItemReadCtx adds per-request ctx reads in the service method.
 func BenchmarkRestGetItemReadCtx(b *testing.B) {
-	impl := server.NewTestRESTServer()
-	if _, err := impl.CreateItem(context.Background(), server.CreateItemRequest{Item: &server.Item{Id: 7, Name: "alice"}}); err != nil {
-		b.Fatal(err)
-	}
-	srv := server.NewTestApiRestServer(readCtxServer{impl})
+	srv := server.NewTestApiRestServer(readCtxServer{newBenchImpl(b)})
 	req := httptest.NewRequest("GET", "/rpc/items/7", nil).WithContext(outerValueCtx())
 	w := &discardWriter{header: http.Header{}}
 
@@ -171,7 +170,7 @@ func outerValueCtx() context.Context {
 	return context.WithValue(context.Background(), benchUnrelatedKey{}, "outer")
 }
 
-func newRpcPostImpl(tb testing.TB) *server.TestRESTServer {
+func newBenchImpl(tb testing.TB) *server.TestRESTServer {
 	impl := server.NewTestRESTServer()
 	if _, err := impl.CreateItem(context.Background(), server.CreateItemRequest{Item: &server.Item{Id: 7, Name: "alice"}}); err != nil {
 		tb.Fatal(err)

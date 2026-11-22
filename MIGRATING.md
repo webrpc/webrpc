@@ -59,3 +59,4 @@ Use the path the method is served on, which depends on the schema's basepath. `p
 
 - `MethodNameFromContext` and `ServiceNameFromContext` still work. They are deprecated in favor of `MethodCtx`.
 - On a path that is not a known method, both return `""`. Before, `ServiceNameFromContext` returned the service name.
+- `MethodCtx(r.Context())` and the two name helpers now also resolve the method inside `OnRequest` and `OnError` hooks of plain RPC methods. Before, only the handler `ctx` carried the method name.
