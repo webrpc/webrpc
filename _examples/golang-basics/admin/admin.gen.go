@@ -380,18 +380,14 @@ var methods = map[string]*method{
 	},
 }
 
-// methodOf resolves the method for a request; reqCtx.Value shares it so the two cannot diverge.
-func methodOf(req *http.Request) (*method, bool) {
-	m, ok := methods[req.URL.Path]
-	return m, ok
-}
-
 func MethodCtx(ctx context.Context) (*method, bool) {
 	req := RequestFromContext(ctx)
 	if req == nil {
 		return nil, false
 	}
-	return methodOf(req)
+
+	m, ok := methods[req.URL.Path]
+	return m, ok
 }
 
 type Service string
@@ -586,19 +582,33 @@ var (
 
 var (
 	HTTPResponseWriterCtxKey = &contextKey{"HTTPResponseWriter"}
-	MethodNameCtxKey         = &contextKey{"MethodName"}
-	HTTPRequestCtxKey        = &contextKey{"HTTPRequest"}
-	ServiceNameCtxKey        = &contextKey{"ServiceName"}
+	// Deprecated: use MethodCtx(ctx).
+	MethodNameCtxKey  = &contextKey{"MethodName"}
+	HTTPRequestCtxKey = &contextKey{"HTTPRequest"}
+	// Deprecated: use MethodCtx(ctx).
+	ServiceNameCtxKey = &contextKey{"ServiceName"}
 )
 
+// Deprecated: use MethodCtx(ctx).
 func ServiceNameFromContext(ctx context.Context) string {
-	service, _ := ctx.Value(ServiceNameCtxKey).(string)
-	return service
+	if v, ok := ctx.Value(ServiceNameCtxKey).(string); ok {
+		return v // set explicitly with context.WithValue
+	}
+	if m, ok := MethodCtx(ctx); ok {
+		return m.service
+	}
+	return ""
 }
 
+// Deprecated: use MethodCtx(ctx).
 func MethodNameFromContext(ctx context.Context) string {
-	method, _ := ctx.Value(MethodNameCtxKey).(string)
-	return method
+	if v, ok := ctx.Value(MethodNameCtxKey).(string); ok {
+		return v // set explicitly with context.WithValue
+	}
+	if m, ok := MethodCtx(ctx); ok {
+		return m.name
+	}
+	return ""
 }
 
 func RequestFromContext(ctx context.Context) *http.Request {
@@ -619,13 +629,6 @@ func (c *reqCtx) Value(key any) any {
 		return c.w
 	case HTTPRequestCtxKey:
 		return c.r
-	case ServiceNameCtxKey, MethodNameCtxKey:
-		if m, ok := methodOf(c.r); ok {
-			if key == ServiceNameCtxKey {
-				return m.service
-			}
-			return m.name
-		}
 	}
 	return c.Context.Value(key)
 }

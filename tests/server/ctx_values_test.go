@@ -33,14 +33,17 @@ func serveWithOuterValue(h http.Handler) http.Handler {
 	})
 }
 
-// assertHandlerCtx reads the exported keys straight from ctx, not via the accessors.
 func assertHandlerCtx(t *testing.T, ctx context.Context, method, service, path string) {
 	t.Helper()
-	if got := ctx.Value(MethodNameCtxKey); got != method {
-		t.Errorf("ctx.Value(MethodNameCtxKey) = %v, want %q", got, method)
+	if got := MethodNameFromContext(ctx); got != method {
+		t.Errorf("MethodNameFromContext = %q, want %q", got, method)
 	}
-	if got := ctx.Value(ServiceNameCtxKey); got != service {
-		t.Errorf("ctx.Value(ServiceNameCtxKey) = %v, want %q", got, service)
+	if got := ServiceNameFromContext(ctx); got != service {
+		t.Errorf("ServiceNameFromContext = %q, want %q", got, service)
+	}
+	// The names live in the methods table, not in ctx: only the helpers resolve them.
+	if m, s := ctx.Value(MethodNameCtxKey), ctx.Value(ServiceNameCtxKey); m != nil || s != nil {
+		t.Errorf("ctx.Value(MethodNameCtxKey, ServiceNameCtxKey) = %v, %v, want nil, nil", m, s)
 	}
 	if r, _ := ctx.Value(HTTPRequestCtxKey).(*http.Request); r == nil || r.URL.Path != path {
 		t.Errorf("ctx.Value(HTTPRequestCtxKey) = %v, want request for %q", r, path)
@@ -103,5 +106,8 @@ func TestCtxServiceAndMethodFallThroughOnBadRoute(t *testing.T) {
 	}
 	if got := MethodNameFromContext(ctx); got != "parent" {
 		t.Errorf("MethodNameFromContext on bad route = %q, want parent value", got)
+	}
+	if got := MethodNameFromContext(parent); got != "parent" {
+		t.Errorf("MethodNameFromContext without a request = %q, want injected value", got)
 	}
 }
