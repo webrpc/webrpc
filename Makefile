@@ -49,11 +49,15 @@ diff:
 	git diff --color --ignore-all-space --ignore-blank-lines --exit-code
 
 # Run all tests
-test: test-go test-examples test-interoperability test-interop
+test: test-go test-sonic test-examples test-interoperability test-interop
 
 # Run Go tests
 test-go: generate
 	go test -v ./...
+
+# Run sonic wire-format tests (separate Go module, keeps sonic out of the root go.mod)
+test-sonic:
+	cd tests/sonic && go test ./...
 
 # Run example tests (separate Go modules, skipped by ./...)
 test-examples:
