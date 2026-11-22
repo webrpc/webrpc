@@ -30,14 +30,15 @@ func waitForCancel(ctx context.Context, stream proto.SubscribeMessagesStreamWrit
 	return ctx.Err()
 }
 
-// serve runs a SubscribeMessages request against svc and returns the error
-// the server reported, if any.
-func serve(t *testing.T, ctx context.Context, w http.ResponseWriter, svc subscribeFunc) proto.WebRPCError {
+// serve runs a SubscribeMessages request against svc, pinging the client
+// every keepAlive, and returns the error the server reported, if any.
+func serve(t *testing.T, ctx context.Context, w http.ResponseWriter, keepAlive time.Duration, svc subscribeFunc) proto.WebRPCError {
 	t.Helper()
 
 	var rpcErr proto.WebRPCError
 	srv := proto.NewChatServer(svc, &proto.Options{
-		OnError: func(r *http.Request, err *proto.WebRPCError) { rpcErr = *err },
+		OnError:                 func(r *http.Request, err *proto.WebRPCError) { rpcErr = *err },
+		StreamKeepAliveInterval: keepAlive,
 	})
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/Chat/SubscribeMessages", strings.NewReader(`{"username":"test"}`))
@@ -55,13 +56,6 @@ func serve(t *testing.T, ctx context.Context, w http.ResponseWriter, svc subscri
 		t.Fatal("handler did not return")
 	}
 	return rpcErr
-}
-
-// setKeepAliveInterval changes the package global, so its callers can't run in parallel.
-func setKeepAliveInterval(t *testing.T, d time.Duration) {
-	old := proto.StreamKeepAliveInterval
-	proto.StreamKeepAliveInterval = d
-	t.Cleanup(func() { proto.StreamKeepAliveInterval = old })
 }
 
 // failWriter fails every Write after the stream's initial ping, like a dead
@@ -92,28 +86,22 @@ func (f *flushFailWriter) FlushError() error {
 }
 
 func TestKeepAliveWriteErrorCancelsStream(t *testing.T) {
-	setKeepAliveInterval(t, 10*time.Millisecond)
-
 	w := &failWriter{ResponseRecorder: httptest.NewRecorder()}
-	err := serve(t, context.Background(), w, waitForCancel)
+	err := serve(t, context.Background(), w, 10*time.Millisecond, waitForCancel)
 
 	require.ErrorIs(t, err, proto.ErrWebrpcClientAborted)
 }
 
 func TestKeepAliveFlushErrorCancelsStream(t *testing.T) {
-	setKeepAliveInterval(t, 10*time.Millisecond)
-
 	w := &flushFailWriter{ResponseRecorder: httptest.NewRecorder()}
-	err := serve(t, context.Background(), w, waitForCancel)
+	err := serve(t, context.Background(), w, 10*time.Millisecond, waitForCancel)
 
 	require.ErrorIs(t, err, proto.ErrWebrpcClientAborted)
 }
 
 func TestKeepAliveDisabled(t *testing.T) {
-	setKeepAliveInterval(t, 0)
-
 	ctx, disconnect := context.WithCancel(context.Background())
-	err := serve(t, ctx, httptest.NewRecorder(), func(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error {
+	err := serve(t, ctx, httptest.NewRecorder(), -1, func(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error {
 		disconnect()
 		return waitForCancel(ctx, stream)
 	})
@@ -123,7 +111,7 @@ func TestKeepAliveDisabled(t *testing.T) {
 
 // A context error of the service's own, e.g. a database timeout, is not a client abort.
 func TestServiceContextErrorIsEndpointError(t *testing.T) {
-	err := serve(t, context.Background(), httptest.NewRecorder(), func(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error {
+	err := serve(t, context.Background(), httptest.NewRecorder(), 0, func(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error {
 		return context.DeadlineExceeded
 	})
 
@@ -135,7 +123,7 @@ func TestNoWriteAfterErrorFrame(t *testing.T) {
 	var leaked proto.SubscribeMessagesStreamWriter
 	rec := httptest.NewRecorder()
 
-	serve(t, context.Background(), rec, func(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error {
+	serve(t, context.Background(), rec, 0, func(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error {
 		leaked = stream
 		return errors.New("failed")
 	})
@@ -153,7 +141,7 @@ func TestNonFlushableWriterFailsBeforeHeaders(t *testing.T) {
 	called := false
 
 	// The anonymous struct hides the recorder's Flush method.
-	serve(t, context.Background(), struct{ http.ResponseWriter }{rec}, func(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error {
+	serve(t, context.Background(), struct{ http.ResponseWriter }{rec}, 0, func(ctx context.Context, stream proto.SubscribeMessagesStreamWriter) error {
 		called = true
 		return nil
 	})

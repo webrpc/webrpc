@@ -99,20 +99,24 @@ func (e jsonStreamEncoder) Encode(v any) error {
 	return err
 }
 
-// StreamKeepAliveInterval is the stream ping period. Zero or negative disables keepalive.
-// It must not be changed while streams are being served.
-var StreamKeepAliveInterval = 10 * time.Second
+// DefaultStreamKeepAliveInterval is the stream ping period when
+// Options.StreamKeepAliveInterval is not set.
+const DefaultStreamKeepAliveInterval = 10 * time.Second
 
-// keepAlive pings the client every interval. A failed ping cancels ctx,
-// so a service method waiting on ctx learns that the client is gone.
+// keepAlive pings the client every interval: DefaultStreamKeepAliveInterval
+// when zero, never when negative. A failed ping cancels ctx, so a service
+// method waiting on ctx learns that the client is gone.
 // The returned stop function ends the pings and closes w.
 func (w *streamWriter) keepAlive(ctx context.Context, cancel context.CancelFunc, interval time.Duration) (stop func()) {
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
 
-		if interval <= 0 {
+		if interval < 0 {
 			return
+		}
+		if interval == 0 {
+			interval = DefaultStreamKeepAliveInterval
 		}
 
 		ticker := time.NewTicker(interval)
@@ -326,12 +330,16 @@ type WebRPCServer interface {
 type Options struct {
 	OnError   func(r *http.Request, rpcErr *WebRPCError)
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
+	// StreamKeepAliveInterval is the stream ping period. Defaults to
+	// DefaultStreamKeepAliveInterval when zero. Negative disables keepalive.
+	StreamKeepAliveInterval time.Duration
 }
 
 type streamServiceService struct {
 	StreamServiceServer
-	OnError   func(r *http.Request, rpcErr *WebRPCError)
-	OnRequest func(w http.ResponseWriter, r *http.Request) error
+	OnError                 func(r *http.Request, rpcErr *WebRPCError)
+	OnRequest               func(w http.ResponseWriter, r *http.Request) error
+	StreamKeepAliveInterval time.Duration
 }
 
 func NewStreamServiceServer(svc StreamServiceServer, options ...*Options) *streamServiceService {
@@ -341,6 +349,7 @@ func NewStreamServiceServer(svc StreamServiceServer, options ...*Options) *strea
 	if len(options) > 0 && options[0] != nil {
 		server.OnError = options[0].OnError
 		server.OnRequest = options[0].OnRequest
+		server.StreamKeepAliveInterval = options[0].StreamKeepAliveInterval
 	}
 	return server
 }
@@ -446,7 +455,7 @@ func (s *streamServiceService) serveSubscribeJSONStream(ctx context.Context, w h
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	stop := streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval)
+	stop := streamWriter.keepAlive(ctx, cancel, s.StreamKeepAliveInterval)
 	defer stop()
 
 	// Call service method implementation.

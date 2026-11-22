@@ -63,6 +63,11 @@ type Options struct {
 	// methods. Defaults to DefaultMaxUploadSize when zero.
 	MaxUploadSize int64
 {{- end }}
+{{- if $opts.streaming }}
+	// StreamKeepAliveInterval is the stream ping period. Defaults to
+	// DefaultStreamKeepAliveInterval when zero. Negative disables keepalive.
+	StreamKeepAliveInterval time.Duration
+{{- end }}
 }
 
 {{/* Service servers */}}
@@ -72,7 +77,11 @@ type Options struct {
 {{- $name := $service.Name -}}
 {{- $serviceHasUpload := false -}}
 {{- $serviceHasRoutes := false -}}
+{{- $serviceHasStream := false -}}
 {{- range $_, $method := $service.Methods -}}
+{{- if $method.StreamOutput -}}
+{{- $serviceHasStream = true -}}
+{{- end -}}
 {{- if MethodHasFileUpload $method -}}
 {{- $serviceHasUpload = true -}}
 {{- end -}}
@@ -89,6 +98,9 @@ type {{$serviceName}} struct {
 	OnRequest func(w http.ResponseWriter, r *http.Request) error
 {{- if $serviceHasUpload }}
 	MaxUploadSize int64
+{{- end }}
+{{- if $serviceHasStream }}
+	StreamKeepAliveInterval time.Duration
 {{- end }}
 {{- if $serviceHasRoutes }}{{"\n"}}
 	{{- range $_, $method := $service.Methods}}
@@ -108,6 +120,9 @@ func New{{firstLetterToUpper $service.Name}}Server(svc {{$typePrefix}}{{.Name}}S
 		server.OnRequest = options[0].OnRequest
 {{- if $serviceHasUpload }}
 		server.MaxUploadSize = options[0].MaxUploadSize
+{{- end }}
+{{- if $serviceHasStream }}
+		server.StreamKeepAliveInterval = options[0].StreamKeepAliveInterval
 {{- end }}
 	}
 {{- if $serviceHasRoutes }}
@@ -670,7 +685,7 @@ func (s *{{$serviceName}}) serve{{firstLetterToUpper $method.Name}}JSONStream(ct
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	stop := streamWriter.keepAlive(ctx, cancel, StreamKeepAliveInterval)
+	stop := streamWriter.keepAlive(ctx, cancel, s.StreamKeepAliveInterval)
 	defer stop()
 
 	// Call service method implementation.
