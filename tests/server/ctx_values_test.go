@@ -92,3 +92,16 @@ func TestHandlerCtxCancelsWithRequest(t *testing.T) {
 	req := httptest.NewRequest("GET", "/rpc/items/7", nil).WithContext(parent)
 	NewTestApiRestServer(probe).ServeHTTP(httptest.NewRecorder(), req)
 }
+
+// A path absent from methods must fall through to the parent ctx, not report a stale name.
+func TestCtxServiceAndMethodFallThroughOnBadRoute(t *testing.T) {
+	r := httptest.NewRequest("GET", "/rpc/NoSuchService/NoSuchMethod", nil)
+	parent := context.WithValue(context.Background(), MethodNameCtxKey, "parent")
+	ctx := &reqCtx{Context: parent, w: httptest.NewRecorder(), r: r}
+	if got := ServiceNameFromContext(ctx); got != "" {
+		t.Errorf("ServiceNameFromContext on bad route = %q, want \"\"", got)
+	}
+	if got := MethodNameFromContext(ctx); got != "parent" {
+		t.Errorf("MethodNameFromContext on bad route = %q, want parent value", got)
+	}
+}

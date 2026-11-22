@@ -156,19 +156,16 @@ func (s *exampleService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "Example"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	switch r.URL.Path {
 	case "/Example/Ping":
-		ctx.method = "Ping"
 		handler = s.servePingJSON
 	case "/Example/GetUser":
-		ctx.method = "GetUser"
 		handler = s.serveGetUserJSON
 	case "/Example/FindUsers":
-		ctx.method = "FindUsers"
 		handler = s.serveFindUsersJSON
 	default:
 		err := ErrWebrpcBadRoute.WithCausef("no webrpc method defined for path %v", r.URL.Path)
@@ -391,14 +388,18 @@ var methods = map[string]*method{
 	},
 }
 
+// methodOf resolves the method for a request; reqCtx.Value shares it so the two cannot diverge.
+func methodOf(req *http.Request) (*method, bool) {
+	m, ok := methods[req.URL.Path]
+	return m, ok
+}
+
 func MethodCtx(ctx context.Context) (*method, bool) {
 	req := RequestFromContext(ctx)
 	if req == nil {
 		return nil, false
 	}
-
-	m, ok := methods[req.URL.Path]
-	return m, ok
+	return methodOf(req)
 }
 
 type Service string
@@ -484,10 +485,8 @@ func RequestFromContext(ctx context.Context) *http.Request {
 // reqCtx holds the per-request values in one allocation instead of four WithValue wrappers.
 type reqCtx struct {
 	context.Context
-	w       http.ResponseWriter
-	r       *http.Request
-	service any // string, pre-boxed so Value() does not allocate
-	method  any // string; nil until the method is known
+	w http.ResponseWriter
+	r *http.Request
 }
 
 func (c *reqCtx) Value(key any) any {
@@ -496,11 +495,12 @@ func (c *reqCtx) Value(key any) any {
 		return c.w
 	case HTTPRequestCtxKey:
 		return c.r
-	case ServiceNameCtxKey:
-		return c.service
-	case MethodNameCtxKey:
-		if c.method != nil {
-			return c.method
+	case ServiceNameCtxKey, MethodNameCtxKey:
+		if m, ok := methodOf(c.r); ok {
+			if key == ServiceNameCtxKey {
+				return m.service
+			}
+			return m.name
 		}
 	}
 	return c.Context.Value(key)

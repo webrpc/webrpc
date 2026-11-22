@@ -592,7 +592,7 @@ func NewCSharpServer(svc CSharpServer, options ...*Options) *cSharpService {
 		MaxUploadSize:           cmp.Or(opts.MaxUploadSize, DefaultMaxUploadSize),
 		StreamKeepAliveInterval: cmp.Or(opts.StreamKeepAliveInterval, DefaultStreamKeepAliveInterval),
 	}
-	server.restGetByName = restHandler("GET /rpc/names/{name}", "CSharp", "GetByName", false, false, 200, true,
+	server.restGetByName = restHandler("GET /rpc/names/{name}", false, false, 200, true,
 		func(ctx context.Context, req cSharpServiceGetByNameArgs) (cSharpServiceGetByNameResult, error) {
 			ret0, ret1, err := server.CSharpServer.GetByName(ctx, req.Arg0, req.Arg1)
 			return cSharpServiceGetByNameResult{Ret0: ret0, Ret1: ret1}, err
@@ -607,7 +607,7 @@ func NewCSharpServer(svc CSharpServer, options ...*Options) *cSharpService {
 			return nil
 		},
 		server.sendErrorJSON, &server.OnRequest)
-	server.restGetTagged = restHandler("GET /rpc/tagged/{tagId}", "CSharp", "GetTagged", false, false, 200, true,
+	server.restGetTagged = restHandler("GET /rpc/tagged/{tagId}", false, false, 200, true,
 		server.CSharpServer.GetTagged,
 		func(p *restParams, req *TaggedRequest) error {
 			if err := restPath(p, "tagId", "string", &req.Id, restString); err != nil {
@@ -726,7 +726,7 @@ func (s *cSharpService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleGetTypes(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/GetTypes" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "GetTypes"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -766,7 +766,7 @@ func (s *cSharpService) handleGetTypes(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleSendTypes(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/SendTypes" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "SendTypes"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -806,7 +806,7 @@ func (s *cSharpService) handleSendTypes(w http.ResponseWriter, r *http.Request) 
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleGetUnknownEnum(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/GetUnknownEnum" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "GetUnknownEnum"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -846,7 +846,7 @@ func (s *cSharpService) handleGetUnknownEnum(w http.ResponseWriter, r *http.Requ
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleSendUnknownEnum(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/SendUnknownEnum" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "SendUnknownEnum"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -886,7 +886,7 @@ func (s *cSharpService) handleSendUnknownEnum(w http.ResponseWriter, r *http.Req
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleKeywords(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Keywords" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Keywords"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -926,7 +926,7 @@ func (s *cSharpService) handleKeywords(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleShadow(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Shadow" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Shadow"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -966,7 +966,7 @@ func (s *cSharpService) handleShadow(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleOptional(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Optional" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Optional"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1006,7 +1006,7 @@ func (s *cSharpService) handleOptional(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleDeprecated(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Deprecated" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Deprecated"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1046,7 +1046,7 @@ func (s *cSharpService) handleDeprecated(w http.ResponseWriter, r *http.Request)
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleGetShadowed(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/GetShadowed" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "GetShadowed"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1086,7 +1086,7 @@ func (s *cSharpService) handleGetShadowed(w http.ResponseWriter, r *http.Request
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleCountdown(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Countdown" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Countdown"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1126,7 +1126,7 @@ func (s *cSharpService) handleCountdown(w http.ResponseWriter, r *http.Request) 
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleWatch(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Watch" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Watch"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1166,7 +1166,7 @@ func (s *cSharpService) handleWatch(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleCountdownFail(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/CountdownFail" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "CountdownFail"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1206,7 +1206,7 @@ func (s *cSharpService) handleCountdownFail(w http.ResponseWriter, r *http.Reque
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleUploadTagged(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/UploadTagged" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "UploadTagged"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1246,7 +1246,7 @@ func (s *cSharpService) handleUploadTagged(w http.ResponseWriter, r *http.Reques
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleHeaders(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Headers" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Headers"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1286,7 +1286,7 @@ func (s *cSharpService) handleHeaders(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleUploadDoc(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/UploadDoc" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "UploadDoc"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1326,7 +1326,7 @@ func (s *cSharpService) handleUploadDoc(w http.ResponseWriter, r *http.Request) 
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleAttach(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/Attach" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "Attach"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -1366,7 +1366,7 @@ func (s *cSharpService) handleAttach(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *cSharpService) handleDownloadDoc(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "/rpc/CSharp/DownloadDoc" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "CSharp", method: "DownloadDoc"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -2312,17 +2312,21 @@ var methods = map[string]*method{
 	},
 }
 
-func MethodCtx(ctx context.Context) (*method, bool) {
-	req := RequestFromContext(ctx)
-	if req == nil {
-		return nil, false
-	}
-
+// methodOf resolves the method for a request; reqCtx.Value shares it so the two cannot diverge.
+func methodOf(req *http.Request) (*method, bool) {
 	m, ok := methods[req.URL.Path]
 	if !ok {
 		m, ok = methods[req.Pattern] // REST route, e.g. "GET /users/{id}"
 	}
 	return m, ok
+}
+
+func MethodCtx(ctx context.Context) (*method, bool) {
+	req := RequestFromContext(ctx)
+	if req == nil {
+		return nil, false
+	}
+	return methodOf(req)
 }
 
 type Service string
@@ -2424,10 +2428,8 @@ func RequestFromContext(ctx context.Context) *http.Request {
 // reqCtx holds the per-request values in one allocation instead of four WithValue wrappers.
 type reqCtx struct {
 	context.Context
-	w       http.ResponseWriter
-	r       *http.Request
-	service any // string, pre-boxed so Value() does not allocate
-	method  any // string; nil until the method is known
+	w http.ResponseWriter
+	r *http.Request
 }
 
 func (c *reqCtx) Value(key any) any {
@@ -2436,11 +2438,12 @@ func (c *reqCtx) Value(key any) any {
 		return c.w
 	case HTTPRequestCtxKey:
 		return c.r
-	case ServiceNameCtxKey:
-		return c.service
-	case MethodNameCtxKey:
-		if c.method != nil {
-			return c.method
+	case ServiceNameCtxKey, MethodNameCtxKey:
+		if m, ok := methodOf(c.r); ok {
+			if key == ServiceNameCtxKey {
+				return m.service
+			}
+			return m.name
 		}
 	}
 	return c.Context.Value(key)
@@ -2473,13 +2476,12 @@ func (p *restParams) values() map[string][]string {
 // ResponseWriterFromContext(ctx) on multi-code routes. writeBody is false for
 // routes with an empty response whose declared set contains 204 or 205 — they
 // never write a body or Content-Type.
-func restHandler[I, O any](pattern, service, method string, hasBody bool, hasBodyFields bool, status int, writeBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
-	serviceV, methodV := any(service), any(method)
+func restHandler[I, O any](pattern string, hasBody bool, hasBodyFields bool, status int, writeBody bool, fn func(context.Context, I) (O, error), bind func(*restParams, *I) error, sendError func(http.ResponseWriter, *http.Request, WebRPCError), onRequest *func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Identify the route before user code can run: MethodCtx resolves the
+		// Identify the route before user code can run: methodOf resolves the
 		// method from r.Pattern (the dispatcher already set the path values).
 		r.Pattern = pattern
-		ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: serviceV, method: methodV}
+		ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 		r = r.WithContext(ctx)
 
 		// A payload is detected without reading the body: ContentLength 0 means

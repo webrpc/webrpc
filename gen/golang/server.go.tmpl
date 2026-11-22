@@ -133,7 +133,7 @@ func New{{firstLetterToUpper $service.Name}}Server(svc {{$typePrefix}}{{.Name}}S
 	{{- $resType := printf "%s%sResult" $serviceName (firstLetterToUpper $method.Name)}}
 	{{- $reqType := $argsType}}
 	{{- if $method.Succinct}}{{$reqType = printf "%s%s" $typePrefix (index $method.Inputs 0).Type}}{{end}}
-	server.{{RouteHandlerField $route}} = restHandler("{{RoutePattern $route}}", "{{$service.Name}}", "{{$method.Name}}", {{RouteHasBody $route}}, {{RouteHasBodyFields $route}}, {{RouteRestBehavior $route}},
+	server.{{RouteHandlerField $route}} = restHandler("{{RoutePattern $route}}", {{RouteHasBody $route}}, {{RouteHasBodyFields $route}}, {{RouteRestBehavior $route}},
 	{{- if $method.Succinct}}
 		server.{{$name}}Server.{{$method.Name}},
 	{{- else}}
@@ -284,7 +284,7 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // both in ServeHTTP's dispatch and when mounted on an external mux.
 func (s *{{$serviceName}}) handle{{$method.Name}}(w http.ResponseWriter, r *http.Request) {
 	r.Pattern = "{{$basepath}}{{$name}}/{{$method.Name}}" // MethodCtx resolves the method by this key.
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "{{$service.Name}}", method: "{{$method.Name}}"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	if r.Method != "POST" {
@@ -350,7 +350,7 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set(WebrpcHeader, WebrpcHeaderValue)
 
-	ctx := &reqCtx{Context: r.Context(), w: w, r: r, service: "{{.Name}}"}
+	ctx := &reqCtx{Context: r.Context(), w: w, r: r}
 	r = r.WithContext(ctx)
 
 	var handler func(ctx context.Context, w http.ResponseWriter, r *http.Request)
@@ -361,7 +361,6 @@ func (s *{{$serviceName}}) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	{{- range $_, $method := $service.Methods}}
 	{{- if not (MethodHasRoute $method)}}
 	case "{{$basepath}}{{$name}}/{{$method.Name}}":
-		ctx.method = "{{$method.Name}}"
 		{{- if MethodHasFileUpload $method }}
 		handler = s.serve{{$method.Name | firstLetterToUpper}}Multipart
 		expectedContentType = "multipart/form-data"
