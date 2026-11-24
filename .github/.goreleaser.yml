@@ -65,8 +65,7 @@ release:
 
     ## Homebrew
     ```
-    brew tap webrpc/tap
-    brew install webrpc-gen
+    brew install webrpc/tap/webrpc-gen
     ```
 
     ## Build from source
