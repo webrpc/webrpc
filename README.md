@@ -41,6 +41,12 @@ another option is to copy the [hello-webrpc](./_examples/hello-webrpc) example, 
 Btw, check out https://marketplace.visualstudio.com/items?itemName=XanderAppWorks.vscode-webrpc-ridl-syntax for VSCode
 plugin for RIDL synx highlighting.
 
+Using an AI coding agent? Install the [webrpc RIDL skill](./skills/webrpc-ridl-schema/SKILL.md), so it can write RIDL schemas and run `webrpc-gen` for you:
+
+```
+npx skills add webrpc/webrpc
+```
+
 # Code generators
 
 | Generator                                              | Description                       | Schema | Client | Server |

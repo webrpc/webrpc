@@ -5,7 +5,7 @@ strongly-typed servers and clients (Go, TypeScript, JavaScript, Kotlin, Dart, C#
 that speak HTTP + JSON.
 
 This file is for agents contributing to **this repo** (the schema parser and codegen
-CLI). For helping a user *write RIDL schemas*, see `SKILL.md` instead.
+CLI). For helping a user *write RIDL schemas*, see `skills/webrpc-ridl-schema/SKILL.md` instead.
 
 ## Naming & Terminology Conventions
 - **webrpc**: Always write `webrpc` as a single, all-lowercase word (never `WebRPC`, `Webrpc`, or `web RPC`), even at the start of a sentence.
