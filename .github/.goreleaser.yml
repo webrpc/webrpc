@@ -51,9 +51,9 @@ release:
   # Overwrite notes typed in the GitHub UI, so header/footer always apply.
   mode: replace
   header: |
-    ## Go package
+    ## Go mod tool
     ```
-    go get github.com/webrpc/webrpc@v{{.Version}}
+    go get -tool github.com/webrpc/webrpc/cmd/webrpc-gen@v{{.Version}}
     ```
   footer: |
     ## Docker
@@ -72,6 +72,11 @@ release:
     ## Build from source
     ```
     go install -ldflags="-s -w -X github.com/webrpc/webrpc.VERSION=v{{.Version}}" github.com/webrpc/webrpc/cmd/webrpc-gen@v{{.Version}}
+    ```
+
+    ## Agent skill
+    ```
+    npx skills add webrpc/webrpc
     ```
 
     ## Download binaries
