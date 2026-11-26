@@ -36,15 +36,13 @@ func NewChatServer() *ChatServer {
 
 func (s *ChatServer) close(ctx context.Context) {
 	s.SendMessage(ctx, "SYSTEM", "Server shutting down...")
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
 	s.messages.Close()
 }
 
 func (s *ChatServer) SendMessage(ctx context.Context, username string, text string) error {
 	now := time.Now()
 
+	// Keep Ids in buffer order; reconnects skip by lastMessageId.
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -74,14 +72,6 @@ func (s *ChatServer) SubscribeMessages(ctx context.Context, username string, las
 		StartBehind: s.messages.Size() / 2,
 		MaxLag:      3 * s.messages.Size() / 4,
 	})
-
-	// The subscriber observes ctx cancellation only when woken up by a write.
-	stop := context.AfterFunc(ctx, func() {
-		s.mu.Lock()
-		defer s.mu.Unlock()
-		s.messages.Write()
-	})
-	defer stop()
 
 	for msg := range sub.Iter() {
 		if lastMessageId != nil && msg.Id <= *lastMessageId {
