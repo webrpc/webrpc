@@ -4,6 +4,12 @@
 {{- $type := .Type -}}
 {{- $fields := .Fields -}}
 {{- $opts := .Opts -}}
+{{- $unknownField := "" -}}
+{{- range $_, $field := $fields }}
+	{{- if eq $field.Name "UNKNOWN" }}
+		{{- $unknownField = $field }}
+	{{- end }}
+{{- end -}}
 
 {{- if $opts.types -}}
 type {{$name}} {{$type}}
@@ -45,12 +51,36 @@ func (x {{$name}}) String() string {
 }
 
 func (x {{$name}}) MarshalText() ([]byte, error) {
-	return []byte({{$name}}_name[x]), nil
+	{{- if $unknownField }}
+	if v, ok := {{$name}}_name[x]; ok {
+		return []byte(v), nil
+	}
+	return []byte("{{enumWireValue $unknownField}}"), nil
+	{{- else }}
+	v, ok := {{$name}}_name[x]
+	if !ok {
+		return nil, fmt.Errorf("invalid {{$name}} value %v", x)
+	}
+	return []byte(v), nil
+	{{- end }}
 }
 
 func (x *{{$name}}) UnmarshalText(b []byte) error {
-	*x = {{$name}}({{$name}}_value[string(b)])
+	{{- if $unknownField }}
+	if v, ok := {{$name}}_value[string(b)]; ok {
+		*x = v
+		return nil
+	}
+	*x = {{template "enumConstName" dict "EnumName" $name "FieldName" "UNKNOWN"}}
 	return nil
+	{{- else }}
+	v, ok := {{$name}}_value[string(b)]
+	if !ok {
+		return fmt.Errorf("invalid {{$name}} value %q", string(b))
+	}
+	*x = v
+	return nil
+	{{- end }}
 }
 
 func (x *{{$name}}) Is(values ...{{$name}}) bool {

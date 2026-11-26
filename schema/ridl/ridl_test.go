@@ -1227,3 +1227,192 @@ func TestRIDLTypeAliasUsage(t *testing.T) {
 	setAge := s.Services[0].Methods[1]
 	assert.Equal(t, "Age", setAge.Inputs[0].Type.String())
 }
+
+func TestRIDLEnumUnknownMember(t *testing.T) {
+	t.Run("UNKNOWN first", func(t *testing.T) {
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum Animal: uint32
+			  - UNKNOWN
+			  - CAT
+			  - DOG
+		`
+		s, err := parseString(input)
+		require.NoError(t, err)
+
+		animal := s.GetTypeByName("Animal")
+		require.NotNil(t, animal)
+		require.Len(t, animal.Fields, 3)
+		assert.Equal(t, "UNKNOWN", animal.Fields[0].Name)
+		assert.Equal(t, "0", animal.Fields[0].Value)
+	})
+
+	t.Run("UNKNOWN first allows another member at the type max", func(t *testing.T) {
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum Animal: uint32
+			  - UNKNOWN
+			  - CAT = 4294967295
+		`
+		s, err := parseString(input)
+		require.NoError(t, err)
+
+		animal := s.GetTypeByName("Animal")
+		require.NotNil(t, animal)
+		require.Len(t, animal.Fields, 2)
+		assert.Equal(t, "0", animal.Fields[0].Value)
+		assert.Equal(t, "4294967295", animal.Fields[1].Value)
+	})
+
+	t.Run("UNKNOWN last unsigned", func(t *testing.T) {
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum Animal: uint32
+			  - CAT
+			  - DOG
+			  - UNKNOWN
+		`
+		s, err := parseString(input)
+		require.NoError(t, err)
+
+		animal := s.GetTypeByName("Animal")
+		require.NotNil(t, animal)
+		require.Len(t, animal.Fields, 3)
+		assert.Equal(t, "UNKNOWN", animal.Fields[2].Name)
+		assert.Equal(t, "4294967295", animal.Fields[2].Value)
+	})
+
+	t.Run("UNKNOWN last signed", func(t *testing.T) {
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum State: int32
+			  - ON
+			  - OFF
+			  - UNKNOWN
+		`
+		s, err := parseString(input)
+		require.NoError(t, err)
+
+		state := s.GetTypeByName("State")
+		require.NotNil(t, state)
+		require.Len(t, state.Fields, 3)
+		assert.Equal(t, "UNKNOWN", state.Fields[2].Name)
+		assert.Equal(t, "-1", state.Fields[2].Value)
+	})
+
+	t.Run("UNKNOWN only member", func(t *testing.T) {
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum Placeholder: uint32
+			  - UNKNOWN
+		`
+		s, err := parseString(input)
+		require.NoError(t, err)
+
+		placeholder := s.GetTypeByName("Placeholder")
+		require.NotNil(t, placeholder)
+		require.Len(t, placeholder.Fields, 1)
+		assert.Equal(t, "UNKNOWN", placeholder.Fields[0].Name)
+		assert.Equal(t, "0", placeholder.Fields[0].Value)
+	})
+
+	t.Run("UNKNOWN in middle", func(t *testing.T) {
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum Animal: uint32
+			  - CAT
+			  - UNKNOWN
+			  - DOG
+		`
+		_, err := parseString(input)
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "UNKNOWN")
+	})
+
+	t.Run("UNKNOWN first with non-zero value", func(t *testing.T) {
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum Animal: uint32
+			  - UNKNOWN = 3
+			  - CAT
+			  - DOG
+		`
+		_, err := parseString(input)
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "UNKNOWN")
+	})
+
+	t.Run("UNKNOWN last with wrong value", func(t *testing.T) {
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum Animal: uint32
+			  - CAT
+			  - DOG
+			  - UNKNOWN = 7
+		`
+		_, err := parseString(input)
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "UNKNOWN")
+	})
+
+	t.Run("sentinel collision", func(t *testing.T) {
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum Animal: uint32
+			  - CAT
+			  - DOG = 4294967295
+			  - UNKNOWN
+		`
+		_, err := parseString(input)
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "collides")
+	})
+
+	t.Run("string enum UNKNOWN in middle is allowed", func(t *testing.T) {
+		input := `
+			webrpc = v1
+			version = v0.1.0
+			name = test
+
+			enum Label: string
+			  - CAT
+			  - UNKNOWN
+			  - DOG
+		`
+		s, err := parseString(input)
+		require.NoError(t, err)
+
+		label := s.GetTypeByName("Label")
+		require.NotNil(t, label)
+		require.Len(t, label.Fields, 3)
+		assert.Equal(t, "UNKNOWN", label.Fields[1].Name)
+		assert.Equal(t, "UNKNOWN", label.Fields[1].Value)
+	})
+}

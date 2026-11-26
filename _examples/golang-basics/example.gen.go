@@ -109,11 +109,19 @@ func (x Kind) String() string {
 }
 
 func (x Kind) MarshalText() ([]byte, error) {
-	return []byte(Kind_name[x]), nil
+	v, ok := Kind_name[x]
+	if !ok {
+		return nil, fmt.Errorf("invalid Kind value %v", x)
+	}
+	return []byte(v), nil
 }
 
 func (x *Kind) UnmarshalText(b []byte) error {
-	*x = Kind(Kind_value[string(b)])
+	v, ok := Kind_value[string(b)]
+	if !ok {
+		return fmt.Errorf("invalid Kind value %q", string(b))
+	}
+	*x = v
 	return nil
 }
 

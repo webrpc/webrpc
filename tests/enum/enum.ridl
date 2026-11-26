@@ -1,0 +1,29 @@
+webrpc = v1
+
+name = EnumTest
+version = v1.0.0
+
+enum Animal: uint32
+  - CAT
+  - DOG
+
+enum FallbackFirst: uint32
+  - UNKNOWN
+  - CAT
+  - DOG
+
+enum FallbackLast: uint32
+  - CAT
+  - DOG
+  - UNKNOWN
+
+enum SignedFallbackLast: int32
+  - CAT
+  - DOG
+  - UNKNOWN
+
+struct EnumContainer
+  - animal: Animal
+  - fallbackFirst: FallbackFirst
+  - fallbackLast: FallbackLast
+  - signedFallbackLast: SignedFallbackLast
